@@ -268,7 +268,7 @@ const evmTokenTransferEntitySelectorsFromEtherscanWires = ({
 	$network: EvmNetworkId
 	txHash: `0x${string}`
 	wires: readonly EtherscanTokenTransferTagged[]
-}): Entity<typeof schema, EntityType.EvmTokenTransfer>[] => (
+}) => (
 	wires.flatMap((wire, index) => {
 		const entity = evmTokenTransferEntityFromEtherscanWire({
 			$network,
@@ -292,7 +292,7 @@ const evmTokenTransferEntitySelectorsFromEtherscanAddressWires = ({
 }: {
 	$network: EvmNetworkId
 	wires: readonly EtherscanTokenTransferTagged[]
-}): Entity<typeof schema, EntityType.EvmTokenTransfer>[] => {
+}) => {
 	const wiresByTxHash = new Map<`0x${string}`, EtherscanTokenTransferTagged[]>()
 	for (const wire of wires) {
 		const txHash = hexLowerOfByteSize(wire.row.hash ?? '', 32)
@@ -386,7 +386,7 @@ const evmInternalTransferEntitySelectorsFromEtherscanWires = ({
 	$network: EvmNetworkId
 	txHash: `0x${string}`
 	wires: readonly EtherscanInternalTransaction[]
-}): Entity<typeof schema, EntityType.EvmInternalTransfer>[] => (
+}) => (
 	wires.flatMap((wire, internalIndex) => {
 		const entity = evmInternalTransferEntityFromEtherscanWire({
 			$network,
@@ -404,7 +404,7 @@ const evmInternalTransferEntitySelectorsFromEtherscanAddressWires = ({
 }: {
 	$network: EvmNetworkId
 	wires: readonly EtherscanInternalTransaction[]
-}): Entity<typeof schema, EntityType.EvmInternalTransfer>[] => {
+}) => {
 	const wiresByTxHash = new Map<`0x${string}`, EtherscanInternalTransaction[]>()
 	for (const wire of wires) {
 		const txHash = hexLowerOfByteSize(wire.hash ?? '', 32)

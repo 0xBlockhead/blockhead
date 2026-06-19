@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.TronTokenTransfer>
+			selection: EntityProxyResource<typeof schema, EntityType.TronTokenTransfer>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -39,20 +41,19 @@
 
 <EntityView
 	entityType={EntityType.TronTokenTransfer}
-	entitySelector={selector}
-	title={`${selector.transactionId}:${selector.transferIndex.toString()}`}
+	entitySelector={selection.entitySelector}
+	title={`${selection.entitySelector.transactionId}:${selection.entitySelector.transferIndex.toString()}`}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
-		Transfer {selector.transferIndex.toString()}
+		Transfer {selection.entitySelector.transferIndex.toString()}
 	{/snippet}
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.TronTokenTransfer,
-					selector,
+			resource={selection(
 					({ fields: { standard: true, amount: true, timestampMs: true } }),
 				)}
 			placeholderText="Loading TRON token transfer..."

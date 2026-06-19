@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -11,14 +12,15 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		Form,
 		open = $bindable(true),
 	}: {
-		selector: EntitySelector<typeof schema, EntityType.IpfsResource>
+		selection: EntityProxyResource<typeof schema, EntityType.IpfsResource>
 		Form: Snippet
 		open?: boolean
 	} = $props()
+
 
 	import {
 		ipfsResourceCanonicalUri,
@@ -27,12 +29,12 @@
 
 	import { select } from '$/routes/+layout.svelte'
 
-	const ipfs = $derived(select(EntityType.IpfsResource, selector, ({ sources: [Source.Ipfs_Rest], fields: { canonicalUri: true, gatewayOrigin: true, gatewayUrl: true, fileName: true, extension: true, contentType: true, contentLength: true, displayType: true, isContentTypeInferred: true, ...(open && ({ text: true, cidVersion: true, cidMultibase: true, cidMulticodecCode: true, cidMultihashCode: true, cidMultihashDigestHex: true, isCidSubdomainSafe: true, $media: true })) } })))
+	const ipfs = $derived(selection( { sources: [Source.Ipfs_Rest], fields: { canonicalUri: true, gatewayOrigin: true, gatewayUrl: true, fileName: true, extension: true, contentType: true, contentLength: true, displayType: true, isContentTypeInferred: true, ...(open && ({ text: true, cidVersion: true, cidMultibase: true, cidMulticodecCode: true, cidMultihashCode: true, cidMultihashDigestHex: true, isCidSubdomainSafe: true, $media: true })) } }))
 
 
 	// (Derived)
 	const ipfsChromeKey = $derived(
-		stringify(selector),
+		stringify(selection.entitySelector),
 	)
 
 
@@ -51,8 +53,8 @@
 <EntityView
 	layout={EntityLayout.SummaryDetails}
 	entityType={EntityType.IpfsResource}
-	entitySelector={selector}
-	title={ipfsResourceCanonicalUri(selector)}
+	entitySelector={selection.entitySelector}
+	title={ipfsResourceCanonicalUri(selection.entitySelector)}
 	bind:open
 >
 	{#snippet Content()}
@@ -292,7 +294,7 @@
 					<p>
 						<code>
 							<TruncatedValue
-								value={ipfsResourceCanonicalUri(selector)}
+								value={ipfsResourceCanonicalUri(selection.entitySelector)}
 								format={TruncatedValueFormat.Visual}
 							/>
 						</code>

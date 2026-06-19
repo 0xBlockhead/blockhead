@@ -1,17 +1,17 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
-	type HyperliquidBlocksResource = EntityProxyFieldResource<
+	type HyperliquidBlocksResource = EntityProxyEntitiesResource<
 		typeof schema,
-		EntityType.HyperliquidNetwork,
-		'$$blocks'
+		EntityType.HyperliquidBlock
 	>
 	// State
 	let {
@@ -58,7 +58,7 @@
 
 	{#snippet body()}
 		{#if open}
-			<ResourceBoundary {resource} placeholderText="Loading blocks…">
+			<ResourceBoundary resource={selection} placeholderText="Loading blocks…">
 				{#snippet children(blocks)}
 					<EntitiesList
 						collapsible={false}
@@ -67,16 +67,16 @@
 						id={`${id}-items`}
 						href={href}
 						getKey={(block) => stringify(block.entitySelector)}
-						getSortValue={(block) => -Number(block.entitySelector.height)}
+						getSortValue={(block) => stringify(block.entitySelector)}
 						open={true}
-						items={blocks.entities}
+						items={blocks.values}
 						{title}
 						UnorderedListProps={{ orientation: ListOrientation.Column }}
 					>
 						{#snippet Empty()}<p data-text="muted">No recent blocks yet.</p>{/snippet}
 						{#snippet Item({ item })}
 							<HyperliquidBlockView
-								selector={item.entitySelector}
+								selection={select(EntityType.HyperliquidBlock, item.entitySelector)}
 								layout={EntityLayout.Summary}
 
 							/>

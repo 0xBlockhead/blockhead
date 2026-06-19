@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 
@@ -17,7 +19,7 @@
 
 <Page>
 	<BridgeTransactionView
-		selector={{
+		selection={select(EntityType.BridgeTransaction, {
 			$account: {
 				address: EvmAddress.assert(params.address),
 			},
@@ -26,6 +28,6 @@
 				txHash: ZeroExHex.assert(params.sourceTxHash),
 			},
 			createdAt: Number(params.createdAt),
-		}}
+		})}
 	/>
 </Page>

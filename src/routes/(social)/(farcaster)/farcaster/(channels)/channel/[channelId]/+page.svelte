@@ -22,7 +22,7 @@
 
 <Page>
 	<FarcasterChannelView
-		selector={{ id: params.channelId }}
+		selection={select(EntityType.FarcasterChannel, { id: params.channelId })}
 	/>
 
 	<section>

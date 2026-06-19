@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import { schema } from '$/schema/index.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
@@ -17,10 +18,10 @@
 	// State
 	let {
 		pageContent,
-		selector,
+		selection,
 		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(accounts)/account/[address=evmAddress]', {
-			caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
-			address: selector.$actor.address,
+			caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
+			address: selection.entitySelector.$actor.address,
 		}),
 		title = 'Network account',
 		layout = EntityLayout.SummaryDetails,
@@ -29,7 +30,7 @@
 	}: WithRest<
 		{
 			pageContent?: Snippet
-			selector: EntitySelector<typeof schema, EntityType.EvmNetworkAccount>
+			selection: EntityProxyResource<typeof schema, EntityType.EvmNetworkAccount>
 			href?: string
 			title?: string
 			layout?: EntityLayout
@@ -41,12 +42,13 @@
 		>
 	> = $props()
 
+
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { select } from '$/routes/+layout.svelte'
 
-	const evmNetworkAccountDetailAnchorKey = $derived(stringify(selector))
+	const evmNetworkAccountDetailAnchorKey = $derived(stringify(selection.entitySelector))
 
-	const network = $derived(select(EntityType.EvmNetwork, selector.$network, {
+	const network = $derived(select(EntityType.EvmNetwork, selection.entitySelector.$network, {
 		sources: [
 			Source.Constants_Internal,
 			Source.Chainlist_Rest,
@@ -62,13 +64,13 @@
 		],
 	}))
 
-	const actor = $derived(select(EntityType.EvmAccount, selector.$actor, {
+	const actor = $derived(select(EntityType.EvmAccount, selection.entitySelector.$actor, {
 		sources: [Source.Voltaire_JsonRpc],
 	}))
 	const primaryName = $derived(actor.$primaryName)
 	const actorIcon = $derived(actor.$icon)
 
-	const evmNetworkAccount = $derived(select(EntityType.EvmNetworkAccount, selector, {
+	const evmNetworkAccount = $derived(selection( {
 		sources: [Source.Blockscout_Rest],
 	}))
 	const ownedCoins = $derived(evmNetworkAccount.$$ownedCoins({
@@ -107,7 +109,7 @@
 
 <EntityView
 	entityType={EntityType.EvmNetworkAccount}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{title}
 	{layout}
@@ -122,7 +124,7 @@
 				<IconComponent
 					alt=""
 					shape={IconShape.Square}
-					src={blo(selector.$actor.address)}
+					src={blo(selection.entitySelector.$actor.address)}
 				/>
 			{/snippet}
 
@@ -131,7 +133,7 @@
 				<IconComponent
 					alt=""
 					shape={avatarUrl ? IconShape.Circle : IconShape.Square}
-					src={avatarUrl ?? blo(selector.$actor.address)}
+					src={avatarUrl ?? blo(selection.entitySelector.$actor.address)}
 				/>
 			{/snippet}
 		</ResourceBoundary>
@@ -147,7 +149,7 @@
 				{:else}
 					<TruncatedValue
 						format={TruncatedValueFormat.Visual}
-						value={selector.$actor.address}
+						value={selection.entitySelector.$actor.address}
 					/>
 				{/if}
 			{/snippet}
@@ -157,7 +159,7 @@
 	{#snippet Title()}
 		<TruncatedValue
 			format={TruncatedValueFormat.Visual}
-			value={selector.$actor.address}
+			value={selection.entitySelector.$actor.address}
 		/>
 
 		<small data-row="inline align-center wrap" data-text="muted">
@@ -168,7 +170,7 @@
 			>
 				{#snippet children(network)}
 					<EvmNetworkView
-						selector={selector.$network}
+						selection={select(EntityType.EvmNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Title}
 
 						open={false}
@@ -200,7 +202,7 @@
 					<dd>
 						<TruncatedValue
 							format={TruncatedValueFormat.Visual}
-							value={selector.$actor.address}
+							value={selection.entitySelector.$actor.address}
 						/>
 					</dd>
 				</div>
@@ -209,7 +211,7 @@
 				<div>
 					<dt>CAIP-2</dt>
 					<dd data-text="mono">
-						<code>eip155:{String(evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`))}</code>
+						<code>eip155:{String(evmChainIdFromCaip2(`${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`))}</code>
 					</dd>
 				</div>
 			{/if}
@@ -218,7 +220,7 @@
 					<dt>Network</dt>
 					<dd>
 						<EvmNetworkView
-							selector={selector.$network}
+							selection={select(EntityType.EvmNetwork, selection.entitySelector.$network)}
 							layout={EntityLayout.Value}
 
 							open={false}
@@ -254,10 +256,10 @@
 								<dt>Contract</dt>
 								<dd>
 									<EvmContractView
-										selector={{
-											$network: selector.$network,
-											address: selector.$actor.address,
-										}}
+										selection={select(EntityType.EvmContract, {
+											$network: selection.entitySelector.$network,
+											address: selection.entitySelector.$actor.address,
+										})}
 										layout={EntityLayout.Value}
 										showTypeAnnotation={false}
 										open={false}
@@ -363,10 +365,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					href={href}
 					collapsible={false}
-					selection={select(
-			EntityType.EvmNetworkAccount,
-			selector
-		).$$ownedCoins}
+					selection={selection.$$ownedCoins}
 					id={`${evmNetworkAccountDetailAnchorKey}:actor-owned-coins`}
 					title="Tokens"
 				/>
@@ -389,10 +388,10 @@
 										{#if contractPosition.pool != null}
 											<div data-row="wrap align-center gap-2">
 												<EvmContractView
-													selector={{
-														$network: selector.$network,
+													selection={select(EntityType.EvmContract, {
+														$network: selection.entitySelector.$network,
 														address: contractPosition.pool.address,
-													}}
+													})}
 													layout={EntityLayout.Title}
 													open={false}
 													/>
@@ -452,10 +451,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					href={href}
 					collapsible={false}
-					selection={select(
-			EntityType.EvmNetworkAccount,
-			selector
-		).$$tokenTransfers}
+					selection={selection.$$tokenTransfers}
 					id={`${evmNetworkAccountDetailAnchorKey}:activity-token-tx-transfers`}
 					title="Token transfers"
 				/>
@@ -466,10 +462,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					href={href}
 					collapsible={false}
-					selection={select(
-			EntityType.EvmNetworkAccount,
-			selector
-		).$$internalTransfers}
+					selection={selection.$$internalTransfers}
 					id={`${evmNetworkAccountDetailAnchorKey}:activity-internal-tx`}
 					title="Internal transfers"
 				/>

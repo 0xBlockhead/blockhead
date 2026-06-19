@@ -1,6 +1,5 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -34,11 +33,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.AtprotoPost>
 			id: string
 			href?: string
 			limit?: number
@@ -51,9 +46,6 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
-
-
-	
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
@@ -116,17 +108,10 @@
 									uri: encodeURIComponent(item.entitySelector.uri),
 								})}
 							>
-								<ResourceBoundary
-									resource={item.text}
-									placeholderText="Loading post…"
-								>
-									{#snippet children(text)}
-										<TruncatedValue
-											value={text ?? item.entitySelector.uri}
-											format={TruncatedValueFormat.Visual}
-										/>
-									{/snippet}
-								</ResourceBoundary>
+								<TruncatedValue
+									value={item.entitySelector.uri}
+									format={TruncatedValueFormat.Visual}
+								/>
 							</a>
 						{/snippet}
 					</EntitiesList>

@@ -1,11 +1,12 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import { select } from '$/routes/+layout.svelte'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+
+
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
@@ -21,11 +22,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.CoinBridgeCapability>
 			title?: string
 			open?: boolean
 			collapsible?: boolean
@@ -37,9 +34,6 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
-
-
-	
 
 
 	// Components
@@ -77,37 +71,35 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			<ResourceBoundary resource={selection({
-					sources: [
-						Source.Constants_Internal,
-						Source.Lifi_Rest,
-					],
-				})} placeholderText="Loading bridge capabilities…">
+			<ResourceBoundary
+				resource={selection}
+				placeholderText="Loading bridge capabilities…"
+			>
 				{#snippet children(capabilities)}
 					<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.CoinBridgeCapability}
-				{title}
-				open={true}
-				items={capabilities.entities}
-				getKey={(capability) => stringify(capability.entitySelector)}
-				getSortValue={(capability) => stringify(capability.entitySelector)}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No bridge capabilities yet.
-					</p>
-				{/snippet}
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.CoinBridgeCapability}
+						{title}
+						open={true}
+						items={capabilities.entities}
+						getKey={(capability) => stringify(capability.entitySelector)}
+						getSortValue={(capability) => stringify(capability.entitySelector)}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No bridge capabilities yet.
+							</p>
+						{/snippet}
 
-				{#snippet Item({ item })}
-					<CoinBridgeCapabilityView
-						selector={item.entitySelector}
-						layout={EntityLayout.Summary}
-
-					/>
-				{/snippet}
+						{#snippet Item({ item })}
+							<CoinBridgeCapabilityView
+								selection={select(EntityType.CoinBridgeCapability, item.entitySelector)}
+								layout={EntityLayout.Summary}
+								open={false}
+							/>
+						{/snippet}
 					</EntitiesList>
 				{/snippet}
 			</ResourceBoundary>

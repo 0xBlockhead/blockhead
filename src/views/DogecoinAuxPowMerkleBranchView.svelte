@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.DogecoinAuxPowMerkleBranch>
+			selection: EntityProxyResource<typeof schema, EntityType.DogecoinAuxPowMerkleBranch>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -39,20 +41,19 @@
 
 <EntityView
 	entityType={EntityType.DogecoinAuxPowMerkleBranch}
-	entitySelector={selector}
-	title={selector.branchKind}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.branchKind}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
-		{selector.branchKind.toString()}
+		{selection.entitySelector.branchKind.toString()}
 	{/snippet}
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.DogecoinAuxPowMerkleBranch,
-					selector,
+			resource={selection(
 					({ fields: { branchHashes: true, index: true } }),
 				)}
 			placeholderText={`Loading Dogecoin AuxPoW Merkle Branch...`}

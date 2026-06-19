@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		params,
@@ -13,9 +15,9 @@
 
 <Page>
 	<LiquidityPositionView
-		selector={{
+		selection={select(EntityType.LiquidityPosition, {
 			$network: { caip2: { namespace: 'eip155' as const, reference: String(Number(params.chainId)) } },
 			id: params.positionId,
-		}}
+		})}
 	/>
 </Page>

@@ -116,6 +116,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Voltaire_JsonRpc,
+				Source.ZeroGChain_JsonRpc,
 			],
 		},
 		{
@@ -125,6 +126,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Voltaire_JsonRpc,
+				Source.ZeroGChain_JsonRpc,
 			],
 		},
 		{
@@ -134,6 +136,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Voltaire_JsonRpc,
+				Source.ZeroGChain_JsonRpc,
 			],
 		},
 		{

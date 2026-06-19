@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 import { stringify } from 'devalue'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
@@ -61,7 +62,7 @@ import { stringify } from 'devalue'
 
 	{#snippet body()}
 		{#if open}
-			<ResourceBoundary {resource} placeholderText="Loading proposals…">
+			<ResourceBoundary resource={selection} placeholderText="Loading proposals…">
 				{#snippet children(proposals)}
 					<EntitiesList
 				collapsible={false}
@@ -81,7 +82,7 @@ import { stringify } from 'devalue'
 				{/snippet}
 
 				{#snippet Item({ item })}
-					<CosmosGovernanceProposalView selector={item.entitySelector} layout={EntityLayout.Summary} />
+					<CosmosGovernanceProposalView selection={select(EntityType.CosmosGovernanceProposal, item.entitySelector)} layout={EntityLayout.Summary} />
 				{/snippet}
 					</EntitiesList>
 				{/snippet}

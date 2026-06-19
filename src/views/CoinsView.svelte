@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import type { DeclarativeOrderBy } from '$/client/$client.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { CoinId } from '$/constants/Coin.ts'
-	import { catalogCoinIdentitySources } from '$/sources/Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { stringify } from 'devalue'
@@ -46,11 +46,7 @@
 			title?: string
 			open?: boolean
 			collapsible?: boolean
-			selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.Coin>
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
@@ -61,10 +57,10 @@
 
 
 	// Functions
-	const globalCoinsFieldOrderBy = (
+	const globalCoinsFieldOrderBy: DeclarativeOrderBy<CoinOrderFieldRow> = (
 		[
 			[
-				({ fieldRow }: { fieldRow: CoinOrderFieldRow }) => (
+				({ fieldRow }) => (
 					fieldRow.marketCapRank
 				),
 				{
@@ -72,7 +68,7 @@
 				},
 			],
 			[
-				({ fieldRow }: { fieldRow: CoinOrderFieldRow }) => (
+				({ fieldRow }) => (
 					fieldRow.marketCapUsd
 				),
 				{
@@ -80,17 +76,17 @@
 				},
 			],
 			[
-				({ fieldRow }: { fieldRow: CoinOrderFieldRow }) => (
+				({ fieldRow }) => (
 					fieldRow.valueKey
 				),
-				'asc',
+				{
+					direction: 'asc',
+				},
 			],
 		] as const
 	)
 	import { select } from '$/routes/+layout.svelte'
 
-
-	
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
@@ -128,7 +124,12 @@
 			{#if open}
 				<ResourceBoundary
 					resource={selection({
-							sources: catalogCoinIdentitySources,
+							sources: [
+								Source.Constants_Internal,
+								Source.Coingecko_Rest,
+								Source.CoinMarketCap_Rest,
+								Source.Coinpaprika_OpenApi,
+							],
 							orderBy: [...globalCoinsFieldOrderBy],
 							limit,
 						})}
@@ -147,7 +148,7 @@
 
 						{#snippet Item({ item: coin })}
 							<CoinView
-								selector={coin.entitySelector}
+								selection={select(EntityType.Coin, coin.entitySelector)}
 								id={stringify(coin.entitySelector)}
 								layout={EntityLayout.Summary}
 
@@ -198,9 +199,17 @@
 				selection={select(
 			EntityType._Global,
 			{ scope: '$$marketPrices' }
-		).$$marketPrices}
+				).$$marketPrices}
 				id={`${id}:prices-spot`}
 				open
+				sources={[
+					Source.Constants_Internal,
+					Source.Coingecko_Rest,
+					Source.Coingecko_OpenApi,
+					Source.CoinMarketCap_Rest,
+					Source.Coinpaprika_OpenApi,
+					Source.Defillama_OpenApi,
+				]}
 				title="Spot quote index"
 			/>
 		{/snippet}

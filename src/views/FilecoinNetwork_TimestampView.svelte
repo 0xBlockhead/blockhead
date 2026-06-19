@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -10,20 +11,18 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		selector: EntitySelector<typeof schema, EntityType.FilecoinNetwork_Timestamp>
+		selection: EntityProxyResource<typeof schema, EntityType.FilecoinNetwork_Timestamp>
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
+
 	const snapshot = $derived(
-		select(
-			EntityType.FilecoinNetwork_Timestamp,
-			selector,
-			{
+		selection({
 				sources: [
 					Source.Lotus_JsonRpc,
 				],
@@ -55,7 +54,7 @@
 
 <EntityView
 	entityType={EntityType.FilecoinNetwork_Timestamp}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	bind:open
 	{layout}
 >
@@ -70,7 +69,7 @@
 				{:else if snapshot.fields.networkVersion !== undefined}
 					<NumberValue value={snapshot.fields.networkVersion} />
 				{:else}
-					<Timestamp timestamp={selector.timestampMs} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -12,16 +13,17 @@
 	import { select } from '$/routes/+layout.svelte'
 
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.CosmosModule>
+			selection: EntityProxyResource<typeof schema, EntityType.CosmosModule>
 			open?: boolean
 		},
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
+
 
 	
 
@@ -35,18 +37,18 @@
 
 <EntityView
 	entityType={EntityType.CosmosModule}
-	entitySelector={selector}
-	title={selector.moduleName}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.moduleName}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{selector.moduleName.toString()}
+		{selection.entitySelector.moduleName.toString()}
 	{/snippet}
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.CosmosModule, selector, ({ fields: { $authority: true } }))}
+			resource={selection( { fields: { $authority: true } })}
 			placeholderText={`Loading Cosmos Module...`}
 		>
 			{#snippet children(cosmosModule)}
@@ -56,7 +58,7 @@
 							<dt>Authority</dt>
 							<dd>
 								<CosmosAccountView
-									selector={cosmosModule.fields.$authority[EntityMetaKey.Selector]}
+									selection={select(EntityType.CosmosAccount, cosmosModule.fields.$authority[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 								/>

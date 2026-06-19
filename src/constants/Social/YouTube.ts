@@ -6,36 +6,58 @@ import { YouTubeLiveBroadcastContent } from '$/schema/YouTubeVideo.ts'
 export const youtubeNetworkSeedChannels = [
 	{
 		channelId: 'UC_x5XG1OV2P6uZZ5FSM9Ttw',
+		title: 'Google for Developers',
 	},
 	{
 		channelId: 'UCBR8-60-B28hp2BmDPdntcQ',
+		title: 'YouTube Viewers',
 	},
 ] as const satisfies readonly {
 	channelId: string
+	title: string
 }[]
 
 /** Playlist `playlistId` is YouTube’s opaque PL… or channel uploads UU… id. */
 export const youtubeNetworkSeedPlaylists = [
 	{
 		playlistId: 'UU_x5XG1OV2P6uZZ5FSM9Ttw',
+		title: 'Google for Developers uploads',
+		channelId: 'UC_x5XG1OV2P6uZZ5FSM9Ttw',
 	},
 	{
 		playlistId: 'UUUCBR8-60-B28hp2BmDPdntcQ',
+		title: 'YouTube Viewers uploads',
+		channelId: 'UCBR8-60-B28hp2BmDPdntcQ',
 	},
 ] as const satisfies readonly {
 	playlistId: string
+	title: string
+	channelId: string
 }[]
 
 /** Video `videoId` is YouTube’s 11-character id. */
 export const youtubeNetworkSeedVideos = [
 	{
 		videoId: 'jNQXAC9IVRw',
+		title: 'Me at the zoo',
+		publishedAt: '2005-04-24T03:31:52Z',
+		publishedAtMs: 1_114_314_712_000,
+		thumbnailUrl: 'https://i.ytimg.com/vi/jNQXAC9IVRw/hqdefault.jpg',
+		channelId: 'UC_x5XG1OV2P6uZZ5FSM9Ttw',
 	},
 	{
 		videoId: 'M7lc1UVf-VE',
+		title: 'YouTube Developers Live: Embedded Web Player Customization',
+		thumbnailUrl: 'https://i.ytimg.com/vi/M7lc1UVf-VE/hqdefault.jpg',
+		channelId: 'UC_x5XG1OV2P6uZZ5FSM9Ttw',
 	},
 ] as const satisfies readonly {
 	videoId: string
+	title: string
+	publishedAt?: string
+	publishedAtMs?: number
+	thumbnailUrl: `https://${string}`
+	channelId: string
 }[]
 
 const youTubeVideoLiveBroadcastPhases = [
@@ -132,5 +154,26 @@ export const youTubeVideoCategoryByCategoryId = Object.fromEntries(
 	youTubeVideoCategories.map((row) => [
 		row.categoryId,
 		row,
+	])
+)
+
+export const youtubeNetworkSeedChannelByChannelId = Object.fromEntries(
+	youtubeNetworkSeedChannels.map((channel) => [
+		channel.channelId,
+		channel,
+	])
+)
+
+export const youtubeNetworkSeedPlaylistByPlaylistId = Object.fromEntries(
+	youtubeNetworkSeedPlaylists.map((playlist) => [
+		playlist.playlistId,
+		playlist,
+	])
+)
+
+export const youtubeNetworkSeedVideoByVideoId = Object.fromEntries(
+	youtubeNetworkSeedVideos.map((video) => [
+		video.videoId,
+		video,
 	])
 )

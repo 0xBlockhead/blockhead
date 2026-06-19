@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
@@ -117,8 +118,8 @@ import { resolve } from '$app/paths'
 							{#if blockSelector}
 								<!-- href override: tx detail under block route, not network /transactions/tx -->
 								<EvmTransactionView
-										selector={t}
-										href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber]/(block)/(transactions)/tx/[transactionId=evmTxHash]', {
+										selection={select(EntityType.EvmTransaction, t)}
+											href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]/(block)/(transactions)/tx/[transactionId=evmTxHash]', {
 											caip2: `${blockSelector.$network.caip2.namespace}:${blockSelector.$network.caip2.reference}`,
 											blockNumber: String(blockSelector.blockNumber),
 											transactionId: t.txHash,
@@ -130,7 +131,7 @@ import { resolve } from '$app/paths'
 								/>
 							{:else}
 								<EvmTransactionView
-									selector={t}
+									selection={select(EntityType.EvmTransaction, t)}
 									layout={EntityLayout.Summary}
 
 									collapsible={false}

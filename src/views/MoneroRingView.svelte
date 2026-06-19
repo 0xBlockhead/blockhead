@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -12,12 +13,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.MoneroRing>
+			selection: EntityProxyResource<typeof schema, EntityType.MoneroRing>
 			open?: boolean
 		},
 		Pick<
@@ -26,6 +27,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 
 	// Components
@@ -39,7 +41,7 @@
 
 <EntityView
 	entityType={EntityType.MoneroRing}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	title={'Monero Ring'}
 	bind:open
 	{...EntityViewProps}
@@ -52,16 +54,15 @@
 	{#snippet Content()}
 		<EntitiesList
 			entityType={EntityType.MoneroRingMember}
-			href={`#${encodeURIComponent(`${stringify(selector)}:members`)}`}
-			id={`${stringify(selector)}:members`}
+			href={`#${encodeURIComponent(`${stringify(selection.entitySelector)}:members`)}`}
+			id={`${stringify(selection.entitySelector)}:members`}
 			title="Ring members"
 			bind:open
 			collapsible={false}
 		>
 			{#snippet body()}
 				{#if open}
-					{@const moneroRingMembers = select(EntityType.MoneroRing,
-						selector,
+					{@const moneroRingMembers = selection(
 					).$$members}
 					<ResourceBoundary resource={moneroRingMembers} placeholderText="Loading Monero ring members...">
 						{#snippet children(moneroRingMembers)}
@@ -69,8 +70,8 @@
 								collapsible={false}
 								showSummary={false}
 								entityType={EntityType.MoneroRingMember}
-								href={`#${encodeURIComponent(`${stringify(selector)}:members`)}`}
-								id={`${stringify(selector)}:members-items`}
+								href={`#${encodeURIComponent(`${stringify(selection.entitySelector)}:members`)}`}
+								id={`${stringify(selection.entitySelector)}:members-items`}
 								title="Ring members"
 								open={true}
 								items={moneroRingMembers.entities}
@@ -78,7 +79,7 @@
 							>
 								{#snippet Item({ item: member })}
 									<MoneroRingMemberView
-										selector={member.entitySelector}
+										selection={select(EntityType.MoneroRingMember, member.entitySelector)}
 										layout={EntityLayout.Summary}
 
 									/>

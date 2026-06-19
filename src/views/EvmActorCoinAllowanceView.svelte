@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -15,14 +16,14 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve(
-			'/~/(accounts)/accounts/(allowances)/allowance/[chainId]/[owner]/[coin]/[spender]',
+				'/~/(accounts)/accounts/(allowances)/allowance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]/[spender=evmAddress]',
 			{
-				chainId: String(evmChainIdFromCaip2(`${selector.$contract.$network.caip2.namespace}:${selector.$contract.$network.caip2.reference}`)),
-				owner: selector.$actor.address,
-				coin: selector.$contract.address,
-				spender: selector.$spender.address,
+				chainId: String(evmChainIdFromCaip2(`${selection.entitySelector.$contract.$network.caip2.namespace}:${selection.entitySelector.$contract.$network.caip2.reference}`)),
+				owner: selection.entitySelector.$actor.address,
+				coin: selection.entitySelector.$contract.address,
+				spender: selection.entitySelector.$spender.address,
 			},
 		),
 		open = $bindable(true),
@@ -30,7 +31,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.EvmActorCoinAllowance>
+			selection: EntityProxyResource<typeof schema, EntityType.EvmActorCoinAllowance>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -41,11 +42,12 @@
 		>
 	> = $props()
 
+
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { select } from '$/routes/+layout.svelte'
 
-	const allowanceAnchorKey = $derived(stringify(selector))
-	const allowance = $derived(select(EntityType.EvmActorCoinAllowance, selector, {
+	const allowanceAnchorKey = $derived(stringify(selection.entitySelector))
+	const allowance = $derived(selection( {
 		sources: [Source.Voltaire_JsonRpc],
 	}))
 	const allowanceAmount = $derived(allowance.allowance)
@@ -68,7 +70,7 @@
 
 <EntityView
 	entityType={EntityType.EvmActorCoinAllowance}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
@@ -101,10 +103,10 @@
 				<dt>Owner</dt>
 				<dd>
 					<EvmNetworkAccountView
-						selector={{
-							$network: selector.$contract.$network,
-							$actor: selector.$actor,
-						}}
+						selection={select(EntityType.EvmNetworkAccount, {
+							$network: selection.entitySelector.$contract.$network,
+							$actor: selection.entitySelector.$actor,
+						})}
 						layout={EntityLayout.Title}
 
 					/>
@@ -115,7 +117,7 @@
 				<dd>
 					<TruncatedValue
 						format={TruncatedValueFormat.Visual}
-						value={selector.$spender.address}
+						value={selection.entitySelector.$spender.address}
 					/>
 				</dd>
 			</div>
@@ -123,7 +125,7 @@
 				<dt>Asset</dt>
 				<dd>
 					<EvmContractView
-						selector={selector.$contract}
+						selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
 						layout={EntityLayout.Value}
 
 						showTypeAnnotation={false}
@@ -178,7 +180,7 @@
 							{#snippet children(spenderContract)}
 								{#if spenderContract}
 									<EvmContractView
-										selector={spenderContract.entitySelector}
+										selection={select(EntityType.EvmContract, spenderContract.entitySelector)}
 										layout={EntityLayout.Value}
 
 										showTypeAnnotation={false}

@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,7 +17,7 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href: hrefProp,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
@@ -24,7 +25,7 @@
 	}: WithRest<
 		{
 
-			selector: EntitySelector<typeof schema, EntityType.SpecificationProposalKind>
+			selection: EntityProxyResource<typeof schema, EntityType.SpecificationProposalKind>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -32,8 +33,8 @@
 		never
 	> = $props()
 
-	const kind = $derived(select(EntityType.SpecificationProposalKind,
-		selector,
+
+	const kind = $derived(selection(
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { label: true, labelPlural: true, slug: true } }),
@@ -41,7 +42,7 @@
 
 	const specificationRealm = $derived(select(EntityType.SpecificationRealm,
 		{
-			realm: selector.realm,
+			realm: selection.entitySelector.realm,
 		},
 		({ sources: [
 				Source.Constants_Internal,
@@ -63,9 +64,9 @@
 
 <EntityView
 	entityType={EntityType.SpecificationProposalKind}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	{href}
-	title={`${selector.category}`}
+	title={`${selection.entitySelector.category}`}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -77,7 +78,7 @@
 		>
 			{#snippet children(kind)}
 				<span>
-					{kind.fields.label ?? selector.category}
+					{kind.fields.label ?? selection.entitySelector.category}
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -90,7 +91,7 @@
 		>
 			{#snippet children(kind)}
 				<span>
-					{kind.fields.labelPlural ?? kind.fields.label ?? selector.category}
+					{kind.fields.labelPlural ?? kind.fields.label ?? selection.entitySelector.category}
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -98,10 +99,7 @@
 
 	{#snippet Content({})}
 		<dl data-column-item="center">
-			{#if (
-				open
-				&& kindRow?.fields.labelPlural !== undefined
-			)}
+			{#if open}
 				<div>
 					<dt>Label plural</dt>
 					<dd>
@@ -110,7 +108,9 @@
 							placeholderText="Loading proposal kind…"
 						>
 							{#snippet children(kind)}
-								{kind.fields.labelPlural}
+								{#if kind.fields.labelPlural !== undefined}
+									{kind.fields.labelPlural}
+								{/if}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -127,13 +127,10 @@
 			{#snippet children(kind)}
 				<ProposalsView
 					href={resolve('/proposals')}
-					selection={select(
-			EntityType.SpecificationProposalKind,
-			selector
-		).$$proposals}
-					filterCategory={selector.category}
-					filterRealm={selector.realm}
-					id={`${stringify(selector)}:proposals`}
+					selection={selection.$$proposals}
+					filterCategory={selection.entitySelector.category}
+					filterRealm={selection.entitySelector.realm}
+					id={`${stringify(selection.entitySelector)}:proposals`}
 					open
 					title={
 						kind.fields.labelPlural

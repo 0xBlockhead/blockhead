@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import { ChainId } from '$/constants/ChainId.ts'
 	import { networkByCaip2 } from '$/constants/Network.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -21,8 +22,8 @@
 
 	// State
 	let {
-		selector,
-		href = resolve('/account/[address]', { address: selector.address }),
+		selection,
+		href = resolve('/account/[address=evmAddress]', { address: selection.entitySelector.address }),
 		title = 'Account',
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
@@ -30,7 +31,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.EvmAccount>
+			selection: EntityProxyResource<typeof schema, EntityType.EvmAccount>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -43,6 +44,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 
 	// Functions
@@ -86,7 +88,7 @@
 			evmNetworkAccountSliceChainIds.map((chainId) => {
 				const evmNetworkAccount = select(EntityType.EvmNetworkAccount, {
 					$network: { caip2: { namespace: 'eip155' as const, reference: String(chainId) } },
-					$actor: selector,
+					$actor: selection.entitySelector,
 				}, {
 					...(activityChainIds.some((activityChainId) => activityChainId === chainId) && {
 						sources: [Source.Blockscout_Rest],
@@ -114,9 +116,9 @@
 			[],
 	)
 
-	const idKey = $derived(stringify(selector))
+	const idKey = $derived(stringify(selection.entitySelector))
 
-	const actor = $derived(select(EntityType.EvmAccount, selector, {
+	const actor = $derived(selection( {
 		sources: [
 			Source.Voltaire_JsonRpc,
 			Source.TheGraph_Graphql,
@@ -135,7 +137,7 @@
 	// (Derived)
 	const firstContractChainId = $derived(undefined)
 
-	const flattenedCoinItems = $derived([])
+	const flattenedCoinItems: EntityProxyResource<typeof schema, EntityType.EvmNetworkActorCoinBalance>[] = $derived([])
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
@@ -158,7 +160,7 @@
 
 <EntityView
 	entityType={EntityType.EvmAccount}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{title}
 	{layout}
@@ -174,7 +176,7 @@
 				<IconComponent
 					alt=""
 					shape={IconShape.Square}
-					src={blo(selector.address)}
+					src={blo(selection.entitySelector.address)}
 				/>
 			{/snippet}
 
@@ -183,7 +185,7 @@
 				<IconComponent
 					alt=""
 					shape={avatarUrl ? IconShape.Circle : IconShape.Square}
-					src={avatarUrl ?? blo(selector.address)}
+					src={avatarUrl ?? blo(selection.entitySelector.address)}
 				/>
 			{/snippet}
 		</ResourceBoundary>
@@ -196,7 +198,7 @@
 			{#snippet Pending()}
 				<TruncatedValue
 					format={TruncatedValueFormat.Visual}
-					value={selector.address}
+					value={selection.entitySelector.address}
 				/>
 			{/snippet}
 
@@ -206,7 +208,7 @@
 				{:else}
 					<TruncatedValue
 						format={TruncatedValueFormat.Visual}
-						value={selector.address}
+						value={selection.entitySelector.address}
 					/>
 				{/if}
 			{/snippet}
@@ -246,10 +248,10 @@
 					<dt>Contract</dt>
 					<dd>
 						<EvmContractView
-							selector={{
+							selection={select(EntityType.EvmContract, {
 								$network: { caip2: { namespace: 'eip155' as const, reference: String(firstContractChainId) } },
-								address: selector.address,
-							}}
+								address: selection.entitySelector.address,
+							})}
 							layout={EntityLayout.Value}
 							open={true}
 							showTypeAnnotation={false}
@@ -358,7 +360,7 @@
 								{#snippet Item(props)}
 									{#if props.item}
 										<EvmNetworkActorCoinBalanceView
-											selector={props.item.value.entitySelector}
+											selection={select(EntityType.EvmNetworkActorCoinBalance, props.item.value.entitySelector)}
 											layout={EntityLayout.Summary}
 										/>
 									{/if}
@@ -375,14 +377,14 @@
 									CollapsibleProps={{ canToggle: false }}
 									href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(accounts)/account/[address=evmAddress]', {
 										caip2: `eip155:${balancesChainId}`,
-										address: selector.address,
+										address: selection.entitySelector.address,
 									})}
 								collapsible={false}
 								selection={select(
 									EntityType.EvmNetworkAccount,
 									{
 										$network: { caip2: { namespace: 'eip155' as const, reference: String(balancesChainId) } },
-										$actor: selector,
+										$actor: selection.entitySelector,
 									}
 								).$$ownedCoins}
 								id={`${idKey}:balances-per-net-${balancesChainId}`}
@@ -415,10 +417,10 @@
 						id={`${idKey}:activity-net-${facetChainId}`}
 					>
 						<EvmNetworkAccountView
-							selector={{
+							selection={select(EntityType.EvmNetworkAccount, {
 								$network: { caip2: { namespace: 'eip155' as const, reference: String(facetChainId) } },
-								$actor: selector,
-							}}
+								$actor: selection.entitySelector,
+							})}
 							layout={EntityLayout.Title}
 
 							open={false}
@@ -427,14 +429,14 @@
 							CollapsibleProps={{ canToggle: false }}
 							href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(accounts)/account/[address=evmAddress]', {
 								caip2: `eip155:${facetChainId}`,
-								address: selector.address,
+								address: selection.entitySelector.address,
 							})}
 							collapsible={false}
 							selection={select(
 								EntityType.EvmNetworkAccount,
 								{
 									$network: { caip2: { namespace: 'eip155' as const, reference: String(facetChainId) } },
-									$actor: selector,
+									$actor: selection.entitySelector,
 								}
 								).$$transactions({
 								sources: [Source.Blockscout_Rest],
@@ -451,14 +453,14 @@
 									CollapsibleProps={{ canToggle: false }}
 									href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(accounts)/account/[address=evmAddress]', {
 										caip2: `eip155:${facetChainId}`,
-										address: selector.address,
+										address: selection.entitySelector.address,
 									})}
 								collapsible={false}
 								selection={select(
 			EntityType.EvmNetworkAccount,
 			{
 										$network: { caip2: { namespace: 'eip155' as const, reference: String(facetChainId) } },
-										$actor: selector,
+										$actor: selection.entitySelector,
 									}
 		).$$tokenTransfers}
 								id={`${idKey}:activity-token-transfers-${facetChainId}`}
@@ -474,14 +476,14 @@
 									CollapsibleProps={{ canToggle: false }}
 									href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(accounts)/account/[address=evmAddress]', {
 										caip2: `eip155:${facetChainId}`,
-										address: selector.address,
+										address: selection.entitySelector.address,
 									})}
 								collapsible={false}
 								selection={select(
 			EntityType.EvmNetworkAccount,
 			{
 										$network: { caip2: { namespace: 'eip155' as const, reference: String(facetChainId) } },
-										$actor: selector,
+										$actor: selection.entitySelector,
 									}
 		).$$internalTransfers}
 								id={`${idKey}:activity-internal-tx-${facetChainId}`}

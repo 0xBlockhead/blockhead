@@ -3,6 +3,7 @@
 	import type { Snippet } from 'svelte'
 
 	import type { QueryResourceError } from '$/lib/db/queryResource.svelte.ts'
+	import { normalizeBoundaryError } from '$/lib/errors.ts'
 
 
 	// State
@@ -27,8 +28,8 @@
 
 
 <svelte:boundary
-	onerror={(error) => {
-		console.error('[blockhead:boundary:uncaught]', boundaryKey, error)
+	onerror={(error: unknown) => {
+		console.error('[blockhead:boundary:uncaught]', boundaryKey, normalizeBoundaryError(error))
 	}}
 >
 	{#if children}
@@ -52,9 +53,10 @@
 	{/snippet}
 
 	{#snippet failed(
-		error,
-		retry
+		error: unknown,
+		retry: () => void
 	)}
+		{@const normalizedError = normalizeBoundaryError(error)}
 		<div
 			data-card
 			data-error={boundaryKey}
@@ -62,7 +64,7 @@
 		>
 			{#if Failed}
 				{@render Failed(
-					error,
+					normalizedError,
 					retry,
 				)}
 			{:else}
@@ -82,7 +84,7 @@
 						>
 							<button
 								type="button"
-								onclick={() => navigator.clipboard.writeText(String(serializeError(error)))}
+								onclick={() => navigator.clipboard.writeText(String(serializeError(normalizedError)))}
 							>
 								Copy
 							</button>
@@ -99,19 +101,19 @@
 					</header>
 
 					<div class="error-content">
-						{#if error instanceof Error}
-							<p class="error-message">{error.message}</p>
+						{#if normalizedError instanceof Error}
+							<p class="error-message">{normalizedError.message}</p>
 
-							{#if error.stack}
+							{#if normalizedError.stack}
 								<details class="error-stack">
 									<summary>
 										Stack trace
 									</summary>
-									<pre>{error.stack}</pre>
+									<pre>{normalizedError.stack}</pre>
 								</details>
 							{/if}
 						{:else}
-							<pre>{stringify(error ?? null, null, 2)}</pre>
+							<pre>{stringify(normalizedError ?? null, null, 2)}</pre>
 						{/if}
 					</div>
 				</div>

@@ -2,6 +2,7 @@
 	// Types/constants
 	import { consensusProtocolByProtocol } from '$/constants/EvmNetwork.ts'
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -13,7 +14,7 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		emptyText = 'No consensus endpoints listed for this network yet.',
 		title = 'Endpoints',
 		open = $bindable(true),
@@ -22,7 +23,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.EvmNetwork>
+			selection: EntityProxyResource<typeof schema, EntityType.EvmNetwork>
 			emptyText?: string
 			title?: string
 			open?: boolean
@@ -31,6 +32,7 @@
 		},
 		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
+
 
 	
 
@@ -59,10 +61,7 @@
 		{#if open}
 				<ResourceBoundary
 					resource={
-		select(
-			EntityType.EvmNetwork,
-			selector,
-			{
+		selection({
 				sources: [
 					Source.Constants_Internal,
 				],

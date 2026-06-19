@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { stringify } from 'devalue'
 
@@ -26,9 +28,9 @@
 >
 	{#snippet Summary({ open: _open })}
 		<FarcasterView
-			selector={{
+			selection={select(EntityType.FarcasterNetwork, {
 				scope: 'FarcasterNetwork',
-			}}
+			})}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

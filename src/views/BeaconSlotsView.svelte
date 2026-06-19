@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
@@ -93,7 +94,7 @@
 
 						{#snippet Item({ item: slot })}
 							<BeaconSlotView
-								selector={slot.entitySelector}
+								selection={select(EntityType.BeaconSlot, slot.entitySelector)}
 								layout={EntityLayout.Summary}
 
 							/>

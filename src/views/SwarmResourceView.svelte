@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityProxyCurrent } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
@@ -19,16 +20,16 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = (
-			selector.contentPath.replace(/^\/+|\/+$/g, '') === '' ?
+			selection.entitySelector.contentPath.replace(/^\/+|\/+$/g, '') === '' ?
 				resolve('/(explore)/(swarm)/swarm/[reference]', {
-					reference: selector.reference.trim().toLowerCase().replace(/^0x/, '').replace(/^\/+|\/+$/g, ''),
+					reference: selection.entitySelector.reference.trim().toLowerCase().replace(/^0x/, '').replace(/^\/+|\/+$/g, ''),
 				})
 			:
 				resolve('/(explore)/(swarm)/swarm/[reference]/(swarmResource)/path/[...contentPath]', {
-					reference: selector.reference.trim().toLowerCase().replace(/^0x/, '').replace(/^\/+|\/+$/g, ''),
-					contentPath: selector.contentPath.replace(/^\/+|\/+$/g, ''),
+					reference: selection.entitySelector.reference.trim().toLowerCase().replace(/^0x/, '').replace(/^\/+|\/+$/g, ''),
+					contentPath: selection.entitySelector.contentPath.replace(/^\/+|\/+$/g, ''),
 				})
 		),
 		open = $bindable(true),
@@ -36,7 +37,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.SwarmResource>
+			selection: EntityProxyResource<typeof schema, EntityType.SwarmResource>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -44,9 +45,9 @@
 		never
 	> = $props()
 
+
 	const swarm = $derived(
-		select(EntityType.SwarmResource,
-			selector,
+		selection(
 			({ sources: [Source.Swarm_Rest], fields: { canonicalUri: true, fileName: true, extension: true, gatewayOrigin: true, gatewayUrl: true, contentType: true, contentLength: true, displayType: true, isContentTypeInferred: true, text: true, ...(open && ({ $media: true })) } }),
 		),
 	)
@@ -66,14 +67,14 @@
 
 <EntityView
 	entityType={EntityType.SwarmResource}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{selector.reference}
+			{selection.entitySelector.reference}
 		</span>
 	{/snippet}
 
@@ -82,13 +83,13 @@
 			<a
 				{href}>
 				<TruncatedValue
-					value={`bzz://${selector.reference}${selector.contentPath === '' ? '' : `/${selector.contentPath}`}`}
+					value={`bzz://${selection.entitySelector.reference}${selection.entitySelector.contentPath === '' ? '' : `/${selection.entitySelector.contentPath}`}`}
 					format={TruncatedValueFormat.Visual}
 				/>
 			</a>
 		{:else}
 			<TruncatedValue
-				value={`bzz://${selector.reference}${selector.contentPath === '' ? '' : `/${selector.contentPath}`}`}
+				value={`bzz://${selection.entitySelector.reference}${selection.entitySelector.contentPath === '' ? '' : `/${selection.entitySelector.contentPath}`}`}
 				format={TruncatedValueFormat.Visual}
 			/>
 		{/if}
@@ -279,7 +280,7 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{@const detailKey = stringify(selector)}
+		{@const detailKey = stringify(selection.entitySelector)}
 		<CollapsibleTabs
 			id={`${detailKey}:carousel-swarm-resource`}
 			sectionIdPrefix={detailKey}
@@ -310,7 +311,7 @@
 			{/snippet}
 
 			{#snippet SectionSwarmBrowse()}
-				<SwarmBrowseForm {selector} />
+				<SwarmBrowseForm selector={selection.entitySelector} />
 			{/snippet}
 
 			{#snippet SectionSwarmPreview()}

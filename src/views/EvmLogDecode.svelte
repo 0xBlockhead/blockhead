@@ -39,6 +39,7 @@
 		:
 			null,
 	)
+	const logData = $derived(data ?? '')
 
 	
 	const signatures = $derived(select(EntityType.EvmTopic,
@@ -108,36 +109,22 @@
 						placeholderText="Loading emitter ABI…"
 					>
 						{#snippet children(abi)}
-							{@const decodedLog = (
-								signatures.values
-									.map((signature) => ({
-										signature,
-										decoded: decodeLogWithSignature(signature, topics, data),
-										source: 'catalog' as const,
-									}))
-									.find(({ decoded }) => decoded)
-								?? (
-									abi?.length ?
-										{
-											...decodeLogWithContractAbi(abi, topics, data),
-											source: 'contract-abi' as const,
-										}
-									:
-										undefined
-								)
-							)}
-							{#if decodedLog?.decoded}
+							{@const catalogDecodedLog = signatures
+								.map((signature) => ({
+									signature,
+									decoded: decodeLogWithSignature(signature, topics, logData),
+									source: 'catalog' as const,
+								}))
+								.find(({ decoded }) => decoded)}
+							{#if catalogDecodedLog?.decoded}
 								<div data-column="gap-1">
 									<span data-text="annotation">
-										{decodedLog.source === 'contract-abi' ?
-											'Decoded from emitter ABI'
-										:
-											'Decoded from topic catalog'}
+										Decoded from topic catalog
 									</span>
-									<code>{decodedLog.signature}</code>
-									{#if decodedLog.decoded.params.length}
+									<code>{catalogDecodedLog.signature}</code>
+									{#if catalogDecodedLog.decoded.params.length}
 										<ul data-text="muted">
-											{#each decodedLog.decoded.params as param, index (index)}
+											{#each catalogDecodedLog.decoded.params as param, index (index)}
 												<li>
 													{param.type}: {formatDecodedParamValue(param.type, param.value)}
 												</li>
@@ -145,6 +132,25 @@
 										</ul>
 									{/if}
 								</div>
+							{:else if abi?.length}
+								{@const contractDecodedLog = decodeLogWithContractAbi(abi, topics, logData)}
+								{#if contractDecodedLog}
+									<div data-column="gap-1">
+										<span data-text="annotation">
+											Decoded from emitter ABI
+										</span>
+										<code>{contractDecodedLog.signature}</code>
+										{#if contractDecodedLog.decoded.params.length}
+											<ul data-text="muted">
+												{#each contractDecodedLog.decoded.params as param, index (index)}
+													<li>
+														{param.type}: {formatDecodedParamValue(param.type, param.value)}
+													</li>
+												{/each}
+											</ul>
+										{/if}
+									</div>
+								{/if}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

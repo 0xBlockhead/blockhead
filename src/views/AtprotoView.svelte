@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import {
@@ -21,7 +22,7 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/atproto'),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(
@@ -31,7 +32,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.AtprotoNetwork>
+			selection: EntityProxyResource<typeof schema, EntityType.AtprotoNetwork>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -40,9 +41,9 @@
 		never
 	> = $props()
 
+
 	const atprotoNetwork = $derived(
-		select(EntityType.AtprotoNetwork,
-			selector,
+		selection(
 			{
 				sources: [Source.Constants_Internal],
 				fields: {
@@ -66,7 +67,7 @@
 
 	// (Derived)
 	const networkSelectorKey = $derived(
-		stringify(selector),
+		stringify(selection.entitySelector),
 	)
 
 
@@ -82,7 +83,7 @@
 
 <EntityView
 	entityType={EntityType.AtprotoNetwork}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{layout}
 	bind:open
@@ -203,10 +204,7 @@
 				<AtprotoActorsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/atproto/actors')}
-					selection={select(
-			EntityType.AtprotoNetwork,
-			selector
-		).$$atprotoActors}
+					selection={selection.$$atprotoActors}
 					id={`${networkSelectorKey}:actors`}
 					open={_open}
 				/>
@@ -216,10 +214,7 @@
 				<AtprotoPostsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/atproto/posts')}
-					selection={select(
-			EntityType.AtprotoNetwork,
-			selector
-		).$$atprotoPosts}
+					selection={selection.$$atprotoPosts}
 					fieldOpen={_open}
 					id={`${networkSelectorKey}:posts`}
 					open={_open}

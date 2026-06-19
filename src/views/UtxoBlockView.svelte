@@ -13,14 +13,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
 		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.UtxoBlock>
-			selection?: EntityProxyResource<typeof schema, EntityType.UtxoBlock>
+			selection: EntityProxyResource<typeof schema, EntityType.UtxoBlock>
 			open?: boolean
 		},
 		Pick<
@@ -30,10 +28,8 @@
 		>
 	> = $props()
 
-	const block = $derived(selection ?? select(
-		EntityType.UtxoBlock,
-		selector,
-		{
+
+	const block = $derived(selection({
 			sources: [
 				Source.Esplora_Rest,
 				Source.Blockchair_Rest,
@@ -63,22 +59,22 @@
 
 <EntityView
 	entityType={EntityType.UtxoBlock}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={
-		'caip2' in selector.$network ?
-			`/network/${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}/blocks/${selector.height.toString()}`
+		'caip2' in selection.entitySelector.$network ?
+			`/network/${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}/blocks/${selection.entitySelector.height.toString()}`
 		:
-			`/network/${selector.$network.slug}/blocks/${selector.height.toString()}`
+			`/network/${selection.entitySelector.$network.slug}/blocks/${selection.entitySelector.height.toString()}`
 	}
-	title={`Block #${selector.height.toString()}`}
-	idDragPlainText={selector.height.toString()}
+	title={`Block #${selection.entitySelector.height.toString()}`}
+	idDragPlainText={selection.entitySelector.height.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{selector.height.toString()}
+			#{selection.entitySelector.height.toString()}
 		</span>
 	{/snippet}
 
@@ -99,12 +95,12 @@
 
 	{#snippet Content()}
 		<dl data-column-item="center">
-			{#if 'hash' in selector && selector.hash != null}
+			{#if 'hash' in selection.entitySelector && selection.entitySelector.hash != null}
 				<div>
 					<dt>Hash</dt>
 					<dd>
 						<TruncatedValue
-							value={selector.hash}
+							value={selection.entitySelector.hash}
 							format={TruncatedValueFormat.Abbr}
 						/>
 					</dd>

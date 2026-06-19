@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -17,12 +18,12 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve(
 			'/(social)/(rss)/rss/item/[feedKey]/[guid]',
 			{
-				feedKey: encodeURIComponent(selector.feedUrl),
-				guid: encodeURIComponent(selector.guid),
+				feedKey: encodeURIComponent(selection.entitySelector.feedUrl),
+				guid: encodeURIComponent(selection.entitySelector.guid),
 			},
 		),
 		layout,
@@ -32,7 +33,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.RssItem>
+			selection: EntityProxyResource<typeof schema, EntityType.RssItem>
 			href?: string
 			layout?: import('$/components/EntityView.svelte').EntityLayout
 			open?: boolean
@@ -40,13 +41,13 @@
 		never
 	> = $props()
 
+
 	import { syndicationHtmlToSafeHtml } from '$/lib/markdown.ts'
 	import { select } from '$/routes/+layout.svelte'
 
-	const item = $derived(select(EntityType.RssItem, selector, ({ sources: [
+	const item = $derived(selection( { sources: [
 				Source.Rss_Rest,
-				Source.Rss2Json_Rest,
-			], fields: { title: true, link: true, publishedAt: true, $feed: true, ...(open ? ({ description: true, content: true, author: true, updatedAt: true, categories: true, enclosureUrl: true, commentsUrl: true }) : ({  })) } })))
+			], fields: { title: true, link: true, publishedAt: true, $feed: true, ...(open ? ({ description: true, content: true, author: true, updatedAt: true, categories: true, enclosureUrl: true, commentsUrl: true }) : ({  })) } }))
 
 
 	// Components
@@ -62,7 +63,7 @@
 
 <EntityView
 	entityType={EntityType.RssItem}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{layout}
 	bind:open
@@ -70,7 +71,7 @@
 >
 	{#snippet Value()}
 		<TruncatedValue
-			value={selector.guid}
+			value={selection.entitySelector.guid}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -81,7 +82,7 @@
 			placeholderText="Loading item…"
 		>
 			{#snippet children(item)}
-				{item.fields.title ?? selector.guid}
+				{item.fields.title ?? selection.entitySelector.guid}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -125,7 +126,7 @@
 								endLength={12}
 								format={TruncatedValueFormat.Visual}
 								startLength={20}
-								value={selector.guid}
+								value={selection.entitySelector.guid}
 							/>
 						</dd>
 					</div>
@@ -135,7 +136,7 @@
 							<dt>Feed</dt>
 							<dd>
 								<RssFeedView
-									selector={item.fields.$feed[EntityMetaKey.Selector]}
+									selection={select(EntityType.RssFeed, item.fields.$feed[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 
 									open={false}
@@ -241,7 +242,7 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{@const idKey = stringify(selector)}
+		{@const idKey = stringify(selection.entitySelector)}
 		<CollapsibleTabs
 			id={`${idKey}:carousel-item`}
 			sectionIdPrefix={idKey}

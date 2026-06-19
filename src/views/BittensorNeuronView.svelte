@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -10,14 +11,15 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		selector: EntitySelector<typeof schema, EntityType.BittensorNeuron>
+		selection: EntityProxyResource<typeof schema, EntityType.BittensorNeuron>
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
+
 
 	
 
@@ -31,15 +33,15 @@
 
 <EntityView
 	entityType={EntityType.BittensorNeuron}
-	entitySelector={selector}
-	title={`Neuron #${selector.uid}`}
-	idDragPlainText={String(selector.uid)}
+	entitySelector={selection.entitySelector}
+	title={`Neuron #${selection.entitySelector.uid}`}
+	idDragPlainText={String(selection.entitySelector.uid)}
 	bind:open
 	{layout}
 >
 	{#snippet Value()}
 		<span data-badge="small">
-			#{String(selector.uid)}
+			#{String(selection.entitySelector.uid)}
 		</span>
 	{/snippet}
 
@@ -54,16 +56,16 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.BittensorNeuron, selector, ({ sources: [
+			resource={selection( { sources: [
 					Source.Bittensor_JsonRpc,
-				], fields: { uid: true } }))}
+				], fields: { uid: true } })}
 			placeholderText="Loading Bittensor neuron…"
 		>
 			{#snippet children(neuron)}
 				<dl>
 					<div>
 						<dt>Subnet</dt>
-						<dd><NumberValue value={selector.$subnet.netuid} /></dd>
+						<dd><NumberValue value={selection.entitySelector.$subnet.netuid} /></dd>
 					</div>
 
 					<div>

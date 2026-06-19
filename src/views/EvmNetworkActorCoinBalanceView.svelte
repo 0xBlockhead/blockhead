@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
@@ -12,13 +13,13 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.EvmNetworkActorCoinBalance>
+			selection: EntityProxyResource<typeof schema, EntityType.EvmNetworkActorCoinBalance>
 			href?: string
 			open?: boolean
 		},
@@ -28,11 +29,12 @@
 		>
 	> = $props()
 
+
 	import { select } from '$/routes/+layout.svelte'
 	import { formatValue } from '$/lib/number.ts'
 
-	const actorCoinDetailAnchorKey = $derived(stringify(selector))
-	const actorCoin = $derived(select(EntityType.EvmNetworkActorCoinBalance, selector, {
+	const actorCoinDetailAnchorKey = $derived(stringify(selection.entitySelector))
+	const actorCoin = $derived(selection( {
 		sources: [Source.Allium_Rest],
 	}))
 	const symbol = $derived(actorCoin.symbol)
@@ -54,7 +56,7 @@
 
 <EntityView
 	entityType={EntityType.EvmNetworkActorCoinBalance}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
@@ -147,10 +149,10 @@
 						{#snippet children(coinInstance)}
 							{#if coinInstance}
 								<EvmNetworkAccountView
-									selector={{
+									selection={select(EntityType.EvmNetworkAccount, {
 										$network: coinInstance.entitySelector.$network,
-										$actor: selector.$actor,
-									}}
+										$actor: selection.entitySelector.$actor,
+									})}
 									layout={EntityLayout.Title}
 
 									open={false}
@@ -178,7 +180,7 @@
 									{#snippet children(coinInstanceContract)}
 										{#if coinInstanceContract}
 											<EvmContractView
-												selector={coinInstanceContract.entitySelector}
+												selection={select(EntityType.EvmContract, coinInstanceContract.entitySelector)}
 												layout={EntityLayout.Value}
 
 												showTypeAnnotation={false}

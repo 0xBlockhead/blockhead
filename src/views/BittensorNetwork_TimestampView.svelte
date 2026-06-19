@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -10,17 +11,17 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		selector: EntitySelector<typeof schema, EntityType.BittensorNetwork_Timestamp>
+		selection: EntityProxyResource<typeof schema, EntityType.BittensorNetwork_Timestamp>
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
-	const snapshot = $derived(select(EntityType.BittensorNetwork_Timestamp,
-		selector,
+
+	const snapshot = $derived(selection(
 		({ sources: [
 				Source.Bittensor_JsonRpc,
 			], fields: { finalizedBlockNumber: true, finalizedBlockHash: true, runtimeSpecName: true, runtimeSpecVersion: true, runtimeImplVersion: true, peerCount: true, isSyncing: true, shouldHavePeers: true, subnetCount: true, subnetsInfoByteLength: true, dynamicInfoByteLength: true, metagraphsByteLength: true } }),
@@ -38,7 +39,7 @@
 
 <EntityView
 	entityType={EntityType.BittensorNetwork_Timestamp}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	bind:open
 	{layout}
 >
@@ -54,7 +55,7 @@
 					<NumberValue value={snapshot.fields.subnetCount} />
 					subnets
 				{:else}
-					<Timestamp timestamp={selector.timestampMs} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

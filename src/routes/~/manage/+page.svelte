@@ -22,7 +22,7 @@
 
 <Page>
 	<GlobalView
-		selector={{ scope: 'Manage' }}
+		selection={select(EntityType._Global, { scope: 'Manage' })}
 		title="Manage"
 		href={resolve('/~/manage')}
 	>

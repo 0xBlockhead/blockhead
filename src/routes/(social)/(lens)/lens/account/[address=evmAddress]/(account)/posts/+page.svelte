@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		params,
@@ -35,6 +37,6 @@
 
 <Page>
 	<LensAccountView
-		selector={selector}
+		selection={select(EntityType.LensAccount, selector)}
 	/>
 </Page>

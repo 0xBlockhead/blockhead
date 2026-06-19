@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -9,12 +10,12 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.MoneroKeyImage>
+			selection: EntityProxyResource<typeof schema, EntityType.MoneroKeyImage>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 	> = $props()
 
 
+
 	// Components
 	import EntityView from '$/components/EntityView.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
@@ -33,15 +35,15 @@
 
 <EntityView
 	entityType={EntityType.MoneroKeyImage}
-	entitySelector={selector}
-	title={selector.keyImage}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.keyImage}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
 		<TruncatedValue
-			value={selector.keyImage}
+			value={selection.entitySelector.keyImage}
 			format={TruncatedValueFormat.Abbr}
 		/>
 

@@ -152,7 +152,7 @@ export default {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
-				Source.Coingecko_Rest,
+				Source.Constants_Internal,
 			],
 		},
 		{
@@ -174,6 +174,7 @@ export default {
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.Vault,
 			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [Source.Constants_Internal],
 		},
 		{
 			name: '$$blockheadSources',

@@ -13,6 +13,7 @@ import { expect, test } from '@playwright/test'
 
 import {
 	assertMainSettled,
+	expectMainVisible,
 	installChainlistRpcsJsonStub,
 } from '../_e2eBrowserHelpers.ts'
 
@@ -72,21 +73,23 @@ const visitRouteFailFast = async (
 	testInfo: import('@playwright/test').TestInfo,
 	pathname: string
 ) => {
+	const {
+		diagnostics,
+		flushArtifacts,
+		step,
+	} = setupRouteViewSmokePage(page)
 	const attemptVisit = async () => {
-		const { step, flushArtifacts } = setupRouteViewSmokePage(page)
 		try {
 			await step(page.goto(pathname, {
 				waitUntil: 'load',
 				timeout: routeViewSmokeTimeoutsMs.goto,
 			}))
-			await step(expect(page.locator('#main')).toBeVisible({
-				timeout: routeViewSmokeTimeoutsMs.mainSelector,
-			}))
+			await expectMainVisible(page, routeViewSmokeTimeoutsMs.mainSelector, diagnostics)
 			const main = page.locator('#main')
 			await step(expect(main.locator('[data-error]')).toHaveCount(0, {
 				timeout: routeViewSmokeTimeoutsMs.mainSelector,
 			}))
-			await step(assertMainSettled(page, routeViewSmokeTimeoutsMs.mainSelector))
+			await step(assertMainSettled(page, routeViewSmokeTimeoutsMs.mainSelector, diagnostics))
 		}
 		catch (e) {
 			await flushArtifacts(testInfo)

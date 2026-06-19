@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import { select } from '$/routes/+layout.svelte'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 		import type { WithRest } from '$/typescript/WithRest.ts'
@@ -25,11 +25,7 @@
 		{
 			title?: string
 			open?: boolean
-			selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EvmNetwork_Txpool_Timestamp>
 			id: string
 			href?: string
 		},
@@ -93,7 +89,7 @@
 					{@const row = item}
 					{@const rowId = row.entitySelector}
 					<EvmNetwork_Txpool_TimestampView
-						selector={rowId}
+						selection={select(EntityType.EvmNetwork_Txpool_Timestamp, rowId)}
 						href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
 							caip2: `${rowId.$network.caip2.namespace}:${rowId.$network.caip2.reference}`,
 						})}

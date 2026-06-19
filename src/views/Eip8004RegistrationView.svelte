@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntitySelector } from '$/schema/$schema.ts'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import { EvmNftFormat } from '$/constants/Evm.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,20 +16,13 @@
 
 	// State
 	let {
-			selector,
-			href = resolve(
-				'/(explore)/(services)/services/agent/[chainId]/[contractAddress]/[tokenId]',
-				{
-					chainId: String(evmChainIdFromCaip2(`${selector.$contract.$network.caip2.namespace}:${selector.$contract.$network.caip2.reference}`)),
-					contractAddress: selector.$contract.address,
-					tokenId: selector.tokenId,
-				},
-			),
+			selection,
+			href,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.EvmNft>
+			selection: EntityProxyResource<typeof schema, EntityType.EvmNft>
 			href?: string
 			open?: boolean
 		},
@@ -42,9 +35,9 @@
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { select } from '$/routes/+layout.svelte'
 
-	const registration = $derived(select(EntityType.EvmNft, selector, ({ sources: [
+	const registration = $derived(selection( { sources: [
 				Source.Eip8004Scan_Rest,
-			], fields: { format: true, name: true, description: true, image: true, fetchedAt: true, $agentWallet: true } })))
+			], fields: { format: true, name: true, description: true, image: true, fetchedAt: true, $agentWallet: true } }))
 
 
 	// Components
@@ -61,8 +54,15 @@
 
 <EntityView
 	entityType={EntityType.EvmNft}
-	entitySelector={selector}
-	href={href}
+	entitySelector={selection.entitySelector}
+	href={href ?? resolve(
+			'/(explore)/(services)/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId]',
+		{
+			chainId: String(evmChainIdFromCaip2(`${selection.entitySelector.$contract.$network.caip2.namespace}:${selection.entitySelector.$contract.$network.caip2.reference}`)),
+			contractAddress: selection.entitySelector.$contract.address,
+			tokenId: selection.entitySelector.tokenId,
+		},
+	)}
 	bind:open
 	{...EntityViewProps}
 >
@@ -72,7 +72,7 @@
 				{#if registration.fields.image}
 					<IconComponent
 						src={registration.fields.image}
-						alt={registration.fields.name ?? selector.tokenId}
+						alt={registration.fields.name ?? selection.entitySelector.tokenId}
 					/>
 				{/if}
 			{/snippet}
@@ -81,7 +81,7 @@
 
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{selector.tokenId}
+			{selection.entitySelector.tokenId}
 		</span>
 	{/snippet}
 
@@ -91,7 +91,7 @@
 			placeholderText="Loading ERC-8004 registration…"
 		>
 			{#snippet children(registration)}
-				{registration.fields.name ?? selector.tokenId}
+				{registration.fields.name ?? selection.entitySelector.tokenId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -122,7 +122,7 @@
 						<dt>Network</dt>
 						<dd>
 							<EvmNetworkView
-								selector={selector.$contract.$network}
+								selection={select(EntityType.EvmNetwork, selection.entitySelector.$contract.$network)}
 								layout={EntityLayout.Value}
 
 							/>
@@ -133,7 +133,7 @@
 						<dt>Registry</dt>
 						<dd>
 							<EvmContractView
-								selector={selector.$contract}
+								selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
 								layout={EntityLayout.Value}
 								open={true}
 								showTypeAnnotation={false}
@@ -159,7 +159,7 @@
 							<dt>Agent wallet</dt>
 							<dd>
 								<EvmAccountView
-									selector={registration.fields.$agentWallet[EntityMetaKey.Selector]}
+									selection={select(EntityType.EvmAccount, registration.fields.$agentWallet[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 
 								/>

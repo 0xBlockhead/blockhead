@@ -1,6 +1,8 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -9,12 +11,12 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.LiquidityPosition>
+			selection: EntityProxyResource<typeof schema, EntityType.LiquidityPosition>
 			open?: boolean
 		},
 		Pick<
@@ -25,13 +27,14 @@
 	> = $props()
 
 
+
 	// Components
 	import LiquidityPositionView from '$/views/LiquidityPositionView.svelte'
 </script>
 
 
 <LiquidityPositionView
-	{selector}
+	selection={selection}
 	bind:open
 	{...EntityViewProps}
 />

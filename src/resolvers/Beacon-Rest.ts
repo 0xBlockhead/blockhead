@@ -323,9 +323,8 @@ export default {
 					const { getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 					const chainId = Number(caip2.reference)
 					const base = beaconRestEndpointByExecutionChainId[chainId]?.restBaseUrl
-					if (base == null) {
-						throw new Error(`Beacon_Rest: $$beaconEpochs unsupported for chain ${String(chainId)}`)
-					}
+					if (base == null)
+						return []
 					const headEpoch = Math.floor(await getHeadSlot(base) / slotsPerEpoch)
 					return (
 						Array.from(
@@ -361,9 +360,8 @@ export default {
 					const { getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 					const chainId = Number(caip2.reference)
 					const base = beaconRestEndpointByExecutionChainId[chainId]?.restBaseUrl
-					if (base == null) {
-						throw new Error(`Beacon_Rest: $$beaconSlots unsupported for chain ${String(chainId)}`)
-					}
+					if (base == null)
+						return []
 					const headSlot = await getHeadSlot(base)
 					return (
 						Array.from(
@@ -400,9 +398,8 @@ export default {
 					const limit = resolverContextRowLimit(context)
 					const chainId = Number(caip2.reference)
 					const base = beaconRestEndpointByExecutionChainId[chainId]?.restBaseUrl
-					if (base == null) {
-						throw new Error(`Beacon_Rest: $$beaconValidators unsupported for chain ${String(chainId)}`)
-					}
+					if (base == null)
+						return []
 					return (
 						(await getRecentProposerValidatorIndices({
 							beaconRestBaseUrl: base,
@@ -540,9 +537,8 @@ export default {
 					const { getCommittees } = await import('$/sources/Beacon/Rest/queries.ts')
 					const chainId = Number(caip2.reference)
 					const base = beaconRestEndpointByExecutionChainId[chainId]?.restBaseUrl
-					if (base == null) {
-						throw new Error(`Beacon_Rest: $$beaconCommittees unsupported for chain ${String(chainId)}`)
-					}
+					if (base == null)
+						return []
 					return (
 						(await getCommittees(base))
 							.slice(0, resolverContextRowLimit(context))
@@ -569,9 +565,8 @@ export default {
 					const { getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 					const chainId = Number(caip2.reference)
 					const base = beaconRestEndpointByExecutionChainId[chainId]?.restBaseUrl
-					if (base == null) {
-						throw new Error(`Beacon_Rest: $$beaconSyncCommittees unsupported for chain ${String(chainId)}`)
-					}
+					if (base == null)
+						return []
 					return [
 						{
 							[EntityMetaKey.Selector]: {
@@ -595,9 +590,8 @@ export default {
 					const { getBlockDutySummary, getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 					const chainId = Number(caip2.reference)
 					const base = beaconRestEndpointByExecutionChainId[chainId]?.restBaseUrl
-					if (base == null) {
-						throw new Error(`Beacon_Rest: $$beaconAttestations unsupported for chain ${String(chainId)}`)
-					}
+					if (base == null)
+						return []
 					const slot = await getHeadSlot(base)
 					return (
 						(await getBlockDutySummary(base, slot)).attestations
@@ -625,9 +619,8 @@ export default {
 					const { getBlockDutySummary, getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 					const chainId = Number(caip2.reference)
 					const base = beaconRestEndpointByExecutionChainId[chainId]?.restBaseUrl
-					if (base == null) {
-						throw new Error(`Beacon_Rest: $$beaconWithdrawals unsupported for chain ${String(chainId)}`)
-					}
+					if (base == null)
+						return []
 					const slot = await getHeadSlot(base)
 					return (
 						(await getBlockDutySummary(base, slot)).withdrawals
@@ -655,9 +648,8 @@ export default {
 					const { getBlockDutySummary, getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 					const chainId = Number(caip2.reference)
 					const base = beaconRestEndpointByExecutionChainId[chainId]?.restBaseUrl
-					if (base == null) {
-						throw new Error(`Beacon_Rest: $$beaconSlashings unsupported for chain ${String(chainId)}`)
-					}
+					if (base == null)
+						return []
 					const slot = await getHeadSlot(base)
 					return (
 						(await getBlockDutySummary(base, slot)).slashings

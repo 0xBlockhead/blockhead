@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		data,
@@ -13,6 +15,6 @@
 
 <Page>
 	<RssItemView
-		selector={data.selector}
+		selection={select(EntityType.RssItem, data.selector)}
 	/>
 </Page>

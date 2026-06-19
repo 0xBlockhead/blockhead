@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// Context
 	import { resolve } from '$app/paths'
 	import { page } from '$app/state'
@@ -51,7 +53,7 @@
 >
 	{#snippet Summary({ open: _open })}
 		<LensAccountView
-			selector={selector}
+			selection={select(EntityType.LensAccount, selector)}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

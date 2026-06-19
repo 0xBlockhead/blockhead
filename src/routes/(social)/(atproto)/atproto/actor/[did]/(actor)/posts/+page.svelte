@@ -1,4 +1,6 @@
 	<script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 		// State
 		let {
 			params,
@@ -20,6 +22,6 @@
 
 <Page>
 		<AtprotoActorView
-			selector={selector}
+			selection={select(EntityType.AtprotoActor, selector)}
 		/>
 	</Page>

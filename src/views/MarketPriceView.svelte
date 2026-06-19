@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { Entity, EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 
@@ -13,9 +14,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
-	import {
-		marketSpotPriceSources,
-	} from '$/sources/Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
@@ -26,16 +25,16 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/(assets)/(markets)/market/[marketKey]', {
-			marketKey: stringify(selector.$market),
+			marketKey: stringify(selection.entitySelector.$market),
 		}),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.MarketPrice>
+			selection: EntityProxyResource<typeof schema, EntityType.MarketPrice>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -49,7 +48,7 @@
 
 	// Functions
 	const marketAssetSymbol = (
-		leg: typeof selector.$market.$base,
+		leg: typeof selection.entitySelector.$market.$base,
 	) => (
 		leg.kind === MarketAssetKind.Coin ?
 			leg.$coin.coinId
@@ -66,15 +65,32 @@
 	import { select } from '$/routes/+layout.svelte'
 
 	const marketPrice = $derived(
-		select(EntityType.MarketPrice,
-			selector,
+		selection(
 			({
-				sources: marketSpotPriceSources,
+				sources: [
+					Source.Constants_Internal,
+					Source.Coingecko_Rest,
+					Source.Coingecko_OpenApi,
+					Source.CoinMarketCap_Rest,
+					Source.Coinpaprika_OpenApi,
+					Source.Defillama_OpenApi,
+					Source.Blockscout_Rest,
+					Source.Defillama_Rest,
+				],
 				fields: {
 					$parentMarket: true,
 					...(open && ({
 						$$quotes: {
-							sources: marketSpotPriceSources,
+							sources: [
+								Source.Constants_Internal,
+								Source.Coingecko_Rest,
+								Source.Coingecko_OpenApi,
+								Source.CoinMarketCap_Rest,
+								Source.Coinpaprika_OpenApi,
+								Source.Defillama_OpenApi,
+								Source.Blockscout_Rest,
+								Source.Defillama_Rest,
+							],
 							limit: 32,
 						},
 					})),
@@ -86,10 +102,10 @@
 
 	// (Derived)
 	const marketIdLabel = $derived(
-		selector.$market.marketKind === MarketKind.Spot ?
-			`${selector.$market.$marketVenue.marketVenueId}:${marketAssetSymbol(selector.$market.$base)}-${marketAssetSymbol(selector.$market.$quote)}`
+		selection.entitySelector.$market.marketKind === MarketKind.Spot ?
+			`${selection.entitySelector.$market.$marketVenue.marketVenueId}:${marketAssetSymbol(selection.entitySelector.$market.$base)}-${marketAssetSymbol(selection.entitySelector.$market.$quote)}`
 		:
-			`${selector.$market.$marketVenue.marketVenueId}:${marketAssetSymbol(selector.$market.$base)}-${marketAssetSymbol(selector.$market.$quote)} (${marketKindByMarketKind[selector.$market.marketKind].label})`
+			`${selection.entitySelector.$market.$marketVenue.marketVenueId}:${marketAssetSymbol(selection.entitySelector.$market.$base)}-${marketAssetSymbol(selection.entitySelector.$market.$quote)} (${marketKindByMarketKind[selection.entitySelector.$market.marketKind].label})`
 	)
 
 
@@ -105,7 +121,7 @@
 
 <EntityView
 	entityType={EntityType.MarketPrice}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{layout}
 	{open}
@@ -125,11 +141,8 @@
 
 			{#snippet children(marketPrice)}
 				{@const headQuoteId = (
-					(marketPrice.fields.$$quotes.values )
-						.toSorted((
-							leftQuote: Entity<typeof schema, EntityType.Market_Timestamp>,
-							rightQuote: Entity<typeof schema, EntityType.Market_Timestamp>,
-						) => (
+					marketPrice.fields.$$quotes.values
+						.toSorted((leftQuote, rightQuote) => (
 							rightQuote[EntityMetaKey.Selector].timestampMs
 								- leftQuote[EntityMetaKey.Selector].timestampMs
 						))[0]
@@ -137,7 +150,7 @@
 				)}
 				{#if headQuoteId}
 					<Market_TimestampView
-						selector={headQuoteId}
+						selection={select(EntityType.Market_Timestamp, headQuoteId)}
 						layout={EntityLayout.Value}
 
 						showTypeAnnotation={false}
@@ -167,11 +180,8 @@
 					>
 							{#snippet children(marketPrice)}
 								{@const headQuoteId = (
-								(marketPrice.fields.$$quotes.values )
-									.toSorted((
-										leftQuote: Entity<typeof schema, EntityType.Market_Timestamp>,
-										rightQuote: Entity<typeof schema, EntityType.Market_Timestamp>,
-									) => (
+								marketPrice.fields.$$quotes.values
+									.toSorted((leftQuote, rightQuote) => (
 										rightQuote[EntityMetaKey.Selector].timestampMs
 											- leftQuote[EntityMetaKey.Selector].timestampMs
 									))[0]
@@ -179,7 +189,7 @@
 							)}
 							{#if headQuoteId}
 								<Market_TimestampView
-									selector={headQuoteId}
+									selection={select(EntityType.Market_Timestamp, headQuoteId)}
 									layout={EntityLayout.Value}
 
 									showTypeAnnotation={false}
@@ -218,7 +228,7 @@
 					>
 						{#snippet children(marketPrice)}
 							<MarketView
-								selector={marketPrice.fields.$parentMarket?.[EntityMetaKey.Selector] ?? selector.$market}
+								selection={select(EntityType.Market, marketPrice.fields.$parentMarket?.[EntityMetaKey.Selector] ?? selection.entitySelector.$market)}
 								layout={EntityLayout.Title}
 
 								showTypeAnnotation={false}
@@ -237,10 +247,7 @@
 		<Market_TimestampsView
 			href={resolve('/markets')}
 			collapsible={false}
-			selection={select(
-			EntityType.MarketPrice,
-			selector
-		).$$quotes}
+			selection={selection.$$quotes}
 
 			title="Quotes"
 		/>

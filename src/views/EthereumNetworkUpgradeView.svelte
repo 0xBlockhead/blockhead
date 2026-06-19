@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -16,17 +17,17 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/upgrade/[upgradeSlug]', {
-			caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
-				upgradeSlug: selector.upgradeId,
+			caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
+				upgradeSlug: selection.entitySelector.upgradeId,
 		}),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.EthereumNetworkUpgrade>
+			selection: EntityProxyResource<typeof schema, EntityType.EthereumNetworkUpgrade>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -37,10 +38,8 @@
 		>
 	> = $props()
 
-	const networkUpgrade = $derived(select(
-		EntityType.EthereumNetworkUpgrade,
-		selector,
-		{
+
+	const networkUpgrade = $derived(selection({
 			sources: [
 				Source.Constants_Internal,
 			],
@@ -69,15 +68,15 @@
 
 <EntityView
 	entityType={EntityType.EthereumNetworkUpgrade}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
-	title={selector.upgradeId}
+	title={selection.entitySelector.upgradeId}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
-			{selector.upgradeId}
+			{selection.entitySelector.upgradeId}
 		</span>
 	{/snippet}
 
@@ -87,7 +86,7 @@
 			placeholderText="Loading network upgrade…"
 		>
 			{#snippet children(name)}
-				{name ?? selector.upgradeId}
+				{name ?? selection.entitySelector.upgradeId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -118,10 +117,10 @@
 								<dt>Activation block</dt>
 								<dd>
 									<EvmBlockView
-										selector={{
-											$network: selector.$network,
+										selection={select(EntityType.EvmBlock, {
+											$network: selection.entitySelector.$network,
 											blockNumber: BigInt(activationBlock),
-										}}
+										})}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -177,7 +176,7 @@
 								<dt>Execution layer</dt>
 								<dd>
 									<EthereumExecutionUpgradeView
-										selector={networkExecutionUpgrade.entitySelector}
+										selection={select(EntityType.EthereumExecutionUpgrade, networkExecutionUpgrade.entitySelector)}
 										layout={EntityLayout.Value}
 										showTypeAnnotation={false}
 										open={false}
@@ -198,7 +197,7 @@
 								<dt>Consensus layer</dt>
 								<dd>
 									<EthereumConsensusUpgradeView
-										selector={networkConsensusUpgrade.entitySelector}
+										selection={select(EntityType.EthereumConsensusUpgrade, networkConsensusUpgrade.entitySelector)}
 										layout={EntityLayout.Value}
 										showTypeAnnotation={false}
 										open={false}
@@ -215,11 +214,8 @@
 	{#snippet Details({ open })}
 		<ProposalsView
 			href={resolve('/proposals')}
-			selection={select(
-				EntityType.EthereumNetworkUpgrade,
-				selector
-			).$$proposals}
-			id={`${stringify(selector)}:proposals`}
+			selection={selection.$$proposals}
+			id={`${stringify(selection.entitySelector)}:proposals`}
 
 			title="Specification proposals"
 		/>

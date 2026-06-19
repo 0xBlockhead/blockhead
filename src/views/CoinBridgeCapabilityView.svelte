@@ -9,7 +9,7 @@
 	} from '$/constants/Bridge.ts'
 
 	import type { ComponentProps } from 'svelte'
-	import type { EntitySelector } from '$/schema/$schema.ts'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -20,14 +20,14 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-			selector,
+			selection,
 			href,
 			open = $bindable(true),
 			collapsible = true,
 			...EntityViewProps
 	}: WithRest<
 		{
-				selector: EntitySelector<typeof schema, EntityType.CoinBridgeCapability>
+				selection: EntityProxyResource<typeof schema, EntityType.CoinBridgeCapability>
 				href?: string
 				open?: boolean
 				collapsible?: boolean
@@ -38,10 +38,10 @@
 			>
 		> = $props()
 
-	const capability = $derived(select(EntityType.CoinBridgeCapability, selector, ({ sources: [
+	const capability = $derived(selection( { sources: [
 				Source.Constants_Internal,
 				Source.Lifi_Rest,
-			], fields: { ...(open && ({ railId: true, settlementModel: true, verificationModel: true, assetOutcome: true })) } })))
+			], fields: { ...(open && ({ railId: true, settlementModel: true, verificationModel: true, assetOutcome: true })) } }))
 
 
 	// Components
@@ -53,7 +53,7 @@
 
 <EntityView
 		entityType={EntityType.CoinBridgeCapability}
-		entitySelector={selector}
+		entitySelector={selection.entitySelector}
 		href={href}
 		bind:open
 	{collapsible}
@@ -61,7 +61,7 @@
 >
 	{#snippet Value()}
 		<span>
-			{bridgeToolByKey[selector.toolKey]?.label ?? selector.toolKey}
+			{bridgeToolByKey[selection.entitySelector.toolKey]?.label ?? selection.entitySelector.toolKey}
 		</span>
 	{/snippet}
 
@@ -71,7 +71,7 @@
 			placeholderText="Loading…"
 		>
 			{#snippet children(capability)}
-				{bridgeToolByKey[selector.toolKey]?.label ?? selector.toolKey}
+				{bridgeToolByKey[selection.entitySelector.toolKey]?.label ?? selection.entitySelector.toolKey}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -141,7 +141,7 @@
 				<dt>From</dt>
 				<dd>
 					<EvmCoinInstanceView
-						selector={selector.$fromInstance}
+						selection={select(EntityType.EvmCoinInstance, selection.entitySelector.$fromInstance)}
 						layout={EntityLayout.Value}
 						open={true}
 						showTypeAnnotation={false}
@@ -152,7 +152,7 @@
 				<dt>To</dt>
 				<dd>
 					<EvmCoinInstanceView
-						selector={selector.$toInstance}
+						selection={select(EntityType.EvmCoinInstance, selection.entitySelector.$toInstance)}
 						layout={EntityLayout.Value}
 						open={true}
 						showTypeAnnotation={false}

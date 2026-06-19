@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,15 +17,15 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/(assets)/(currencies)/currency/[iso4217=iso4217]', {
-				iso4217: selector.$currency.iso4217,
+				iso4217: selection.entitySelector.$currency.iso4217,
 		}),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.Currency_Timestamp>
+			selection: EntityProxyResource<typeof schema, EntityType.Currency_Timestamp>
 			href?: string
 			open?: boolean
 		},
@@ -35,9 +36,10 @@
 		>
 	> = $props()
 
-	const currencyTimestamp = $derived(select(EntityType.Currency_Timestamp, selector, ({ sources: [
+
+	const currencyTimestamp = $derived(selection( { sources: [
 				Source.Constants_Internal,
-			], fields: { marketCap: true } })))
+			], fields: { marketCap: true } }))
 
 	
 
@@ -55,9 +57,9 @@
 <EntityView
 	entityType={EntityType.Currency_Timestamp}
 	bind:open
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
-	title={`Currency snapshot ${selector.$currency.iso4217}`}
+	title={`Currency snapshot ${selection.entitySelector.$currency.iso4217}`}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
@@ -73,7 +75,7 @@
 					/>
 				{:else}
 					<span>
-						{selector.$currency.iso4217}
+						{selection.entitySelector.$currency.iso4217}
 					</span>
 				{/if}
 			{/snippet}
@@ -93,7 +95,7 @@
 					/>
 				{:else}
 					<span>
-						{selector.$currency.iso4217}
+						{selection.entitySelector.$currency.iso4217}
 					</span>
 				{/if}
 	{/snippet}
@@ -141,13 +143,18 @@
 						<dt>Currency</dt>
 						<dd>
 							<ResourceBoundary
-								resource={select(EntityType.Currency, selector.$currency, ({ sources: [
+								resource={select(EntityType.Currency, selection.entitySelector.$currency, {
+									sources: [
 										Source.Constants_Internal,
-									], fields: { name: true } }))}
+									],
+									fields: {
+										name: true,
+									},
+								})}
 								placeholderText="Loading currency…"
 							>
 								{#snippet children(currency)}
-									{currency.fields.name ?? selector.$currency.iso4217}
+									{currency.fields.name ?? selection.entitySelector.$currency.iso4217}
 								{/snippet}
 							</ResourceBoundary>
 						</dd>
@@ -156,7 +163,7 @@
 						<dt>Snapshot wall time</dt>
 						<dd>
 							<Timestamp
-								timestamp={selector.timestampMs}
+								timestamp={selection.entitySelector.timestampMs}
 							/>
 						</dd>
 					</div>
@@ -168,8 +175,8 @@
 	{#snippet Details({ open })}
 		<section data-scroll-marker-label="Currency">
 			<CurrencyView
-				selector={selector.$currency}
-				id={`${stringify(selector)}:currency`}
+				selection={select(EntityType.Currency, selection.entitySelector.$currency)}
+				id={`${stringify(selection.entitySelector)}:currency`}
 
 			/>
 		</section>

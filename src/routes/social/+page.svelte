@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// Context
 	import { resolve } from '$app/paths'
 
@@ -103,7 +105,7 @@
 
 <Page>
 	<GlobalView
-		selector={{ scope: 'Social' }}
+		selection={select(EntityType._Global, { scope: 'Social' })}
 		title="Social"
 		href={resolve('/social')}
 	>
@@ -170,9 +172,9 @@
 
 				{#snippet SectionFarcaster({ id, label })}
 					<FarcasterView
-						selector={{
+						selection={select(EntityType.FarcasterNetwork, {
 							scope: 'FarcasterNetwork',
-						}}
+						})}
 						open={hubOpen}
 					/>
 				{/snippet}

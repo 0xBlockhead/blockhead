@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -10,17 +11,17 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		selector: EntitySelector<typeof schema, EntityType.BittensorMetagraph_Timestamp>
+		selection: EntityProxyResource<typeof schema, EntityType.BittensorMetagraph_Timestamp>
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
-	const metagraph = $derived(select(EntityType.BittensorMetagraph_Timestamp,
-		selector,
+
+	const metagraph = $derived(selection(
 		({ sources: [
 				Source.Bittensor_JsonRpc,
 			], fields: { metagraphByteLength: true, neuronCount: true } }),
@@ -37,7 +38,7 @@
 
 <EntityView
 	entityType={EntityType.BittensorMetagraph_Timestamp}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	bind:open
 	{layout}
 >
@@ -54,7 +55,7 @@
 					<NumberValue value={metagraph.fields.metagraphByteLength} />
 					bytes
 				{:else}
-					Subnet {selector.$subnet.netuid}
+					Subnet {selection.entitySelector.$subnet.netuid}
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -69,7 +70,7 @@
 				<dl>
 					<div>
 						<dt>Snapshot</dt>
-						<dd><Timestamp timestamp={selector.timestampMs} /></dd>
+						<dd><Timestamp timestamp={selection.entitySelector.timestampMs} /></dd>
 					</div>
 
 					{#if metagraph.fields.metagraphByteLength !== undefined}

@@ -1,17 +1,15 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import { select } from '$/routes/+layout.svelte'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { MarketKind } from '$/constants/Market.ts'
-	import { marketCatalogFieldSources } from '$/sources/Source.ts'
 	import type { MarketVenueId } from '$/constants/MarketVenue.ts'
 	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
-
 
 	// Context
 	// State
@@ -28,11 +26,7 @@
 			title?: string
 			open?: boolean
 			collapsible?: boolean
-			selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.Market>
 			filterMarketVenueId?: MarketVenueId
 			filterMarketKind?: MarketKind
 		},
@@ -43,8 +37,6 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
-
-	
 
 
 	// Components
@@ -129,9 +121,10 @@
 
 						{#snippet Item({ item })}
 							<MarketView
-								selector={item.entitySelector}
+								selection={select(EntityType.Market, item.entitySelector)}
 								id={stringify(item.entitySelector)}
-								layout={EntityLayout.Summary}
+								layout={EntityLayout.Title}
+								open={false}
 
 							/>
 						{/snippet}

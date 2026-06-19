@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -13,19 +14,19 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve(
-			'/(assets)/(vaults)/vault/[chainId]/[vaultId]',
+				'/(assets)/(vaults)/vault/[chainId=eip155ChainId]/[vaultId]',
 			{
-				chainId: String(evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`)),
-				vaultId: selector.id,
+				chainId: String(evmChainIdFromCaip2(`${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`)),
+				vaultId: selection.entitySelector.id,
 			},
 		),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.Vault>
+			selection: EntityProxyResource<typeof schema, EntityType.Vault>
 			href?: string
 			open?: boolean
 		},
@@ -34,6 +35,7 @@
 			| 'layout'
 		>
 	> = $props()
+
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 
@@ -46,14 +48,14 @@
 
 <EntityView
 	entityType={EntityType.Vault}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<TruncatedValue
-			value={selector.id}
+			value={selection.entitySelector.id}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}

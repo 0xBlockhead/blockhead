@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 
@@ -15,5 +17,5 @@
 
 
 <Page>
-	<BlockheadWalletConnectionView selector={data.selector} />
+	<BlockheadWalletConnectionView selection={select(EntityType.BlockheadWalletConnection, data.selector)} />
 </Page>

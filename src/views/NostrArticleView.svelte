@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -18,12 +19,12 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve(
 			'/(social)/(nostr)/nostr/article/[pubkey]/[identifier]',
 			{
-				pubkey: selector.pubkey,
-				identifier: selector.identifier,
+				pubkey: selection.entitySelector.pubkey,
+				identifier: selection.entitySelector.identifier,
 			},
 		),
 		open = $bindable(
@@ -33,7 +34,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.NostrArticle>
+			selection: EntityProxyResource<typeof schema, EntityType.NostrArticle>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -45,12 +46,11 @@
 		>
 	> = $props()
 
+
 	const article = $derived(
-		select(EntityType.NostrArticle,
-			selector,
+		selection(
 			({ sources: [
 				Source.NostrBand_Rest,
-				Source.Primal_Rest,
 			], fields: {
 				kind: true,
 				pubkey: true,
@@ -83,7 +83,7 @@
 
 <EntityView
 	entityType={EntityType.NostrArticle}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
@@ -94,7 +94,7 @@
 				{#if article.fields.imageUrl}
 					<IconComponent
 						src={article.fields.imageUrl}
-						alt={article.fields.title ?? selector.identifier}
+						alt={article.fields.title ?? selection.entitySelector.identifier}
 					/>
 				{/if}
 			{/snippet}
@@ -103,7 +103,7 @@
 
 	{#snippet Value()}
 		<TruncatedValue
-			value={selector.identifier}
+			value={selection.entitySelector.identifier}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -114,7 +114,7 @@
 			placeholderText="Loading article…"
 		>
 			{#snippet children(article)}
-				{article.fields.title ?? selector.identifier}
+				{article.fields.title ?? selection.entitySelector.identifier}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -165,7 +165,7 @@
 							<dt>Author</dt>
 							<dd>
 								<NostrProfileView
-									selector={article.fields.$author[EntityMetaKey.Selector]}
+									selection={select(EntityType.NostrProfile, article.fields.$author[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 
 									open={false}
@@ -212,7 +212,7 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{@const idKey = stringify(selector)}
+		{@const idKey = stringify(selection.entitySelector)}
 		<CollapsibleTabs
 			id={`${idKey}:carousel-article`}
 			sectionIdPrefix={idKey}

@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { toEvmActorCoinAllowanceEntitySelector } from '$/schema/EvmActorCoinAllowance.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// Functions
 	import { with0xHex } from '$/lib/hexLowerOfByteSize.ts'
 
@@ -12,29 +15,16 @@
 	// Components
 	import Page from '$/components/Page.svelte'
 	import EvmActorCoinAllowanceView from '$/views/EvmActorCoinAllowanceView.svelte'
-	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 </script>
 
 
 <Page>
 	<EvmActorCoinAllowanceView
-		selector={{
-			$actorCoin: {
-				$actor: {
-					address: with0xHex(params.owner),
-				},
-				$coinInstance: {
-					$network: { caip2: { namespace: 'eip155' as const, reference: String(Number(params.chainId)) } },
-					type: CoinInstanceType.Erc20Token,
-					$contract: {
-						$network: { caip2: { namespace: 'eip155' as const, reference: String(Number(params.chainId)) } },
-						address: with0xHex(params.coin),
-					},
-				},
-			},
-			$spender: {
-				address: with0xHex(params.spender),
-			},
-		}}
+		selection={select(EntityType.EvmActorCoinAllowance, toEvmActorCoinAllowanceEntitySelector(
+			Number(params.chainId),
+			with0xHex(params.owner),
+			with0xHex(params.coin),
+			with0xHex(params.spender),
+		))}
 	/>
 </Page>

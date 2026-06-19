@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -17,13 +18,13 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.LensAccount>
+			selection: EntityProxyResource<typeof schema, EntityType.LensAccount>
 			href?: string
 			open?: boolean
 		},
@@ -34,10 +35,16 @@
 		>
 	> = $props()
 
-	const idKey = $derived(stringify(selector))
 
-	const lensAccount = $derived(select(EntityType.LensAccount,
-		selector,
+	const idKey = $derived(stringify(selection.entitySelector))
+	const accountAddress = $derived(
+		'address' in selection.entitySelector ?
+			selection.entitySelector.address
+		:
+			undefined
+	)
+
+	const lensAccount = $derived(selection(
 		{
 			sources: [
 				Source.Lens_Graphql,
@@ -75,14 +82,15 @@
 
 <EntityView
 	entityType={EntityType.LensAccount}
-	entitySelector={selector}
-	href={href ?? resolve('/(social)/(lens)/lens/account/[address]', {
-		address: (
-			'address' in selector ? selector.address
-			: 'localName' in selector ? selector.localName
-			: `legacy:${selector.legacyProfileId}`
-		),
-	})}
+	entitySelector={selection.entitySelector}
+	href={href ?? (
+		accountAddress === undefined ?
+			undefined
+		:
+			resolve('/(social)/(lens)/lens/account/[address=evmAddress]', {
+				address: accountAddress,
+			})
+	)}
 	bind:open
 	{...EntityViewProps}
 >
@@ -111,7 +119,7 @@
 
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{'address' in selector ? selector.address : 'localName' in selector ? `@${selector.localName}` : selector.legacyProfileId}
+			{'address' in selection.entitySelector ? selection.entitySelector.address : 'localName' in selection.entitySelector ? `@${selection.entitySelector.localName}` : selection.entitySelector.legacyProfileId}
 		</span>
 	{/snippet}
 
@@ -122,7 +130,7 @@
 		>
 			{#snippet children(lensAccount)}
 				{lensAccount.fields.displayName
-					?? ('address' in selector ? selector.address : 'localName' in selector ? selector.localName : selector.legacyProfileId)}
+					?? ('address' in selection.entitySelector ? selection.entitySelector.address : 'localName' in selection.entitySelector ? selection.entitySelector.localName : selection.entitySelector.legacyProfileId)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -132,9 +140,9 @@
 			resource={lensAccount}
 		>
 			{#snippet children(lensAccount)}
-				{#if 'localName' in selector && selector.localName !== lensAccount.fields.displayName}
+				{#if 'localName' in selection.entitySelector && selection.entitySelector.localName !== lensAccount.fields.displayName}
 					<span data-text="muted">
-						@{selector.localName}
+						@{selection.entitySelector.localName}
 					</span>
 				{/if}
 			{/snippet}
@@ -175,11 +183,11 @@
 							metrics={[
 								{
 									label: 'Followers',
-									value: lensAccount.fields.$$timestamps.values.at(0)?.followerCount,
+									resource: lensAccount.fields.$$timestamps.values.at(0)?.followerCount,
 								},
 								{
 									label: 'Following',
-									value: lensAccount.fields.$$timestamps.values.at(0)?.followingCount,
+									resource: lensAccount.fields.$$timestamps.values.at(0)?.followingCount,
 								},
 							]}
 						/>
@@ -239,20 +247,22 @@
 					placeholderText="Loading Lens profile…"
 				>
 					{#snippet children(lensAccount)}
-						<LensPostsView
-							CollapsibleProps={{ canToggle: false }}
-							href={resolve(
-								'/(social)/(lens)/lens/account/[address]/(account)/posts',
-								{ address: lensAccount.fields.address },
-							)}
-							selection={select(
-			EntityType.LensAccount,
-			{
-									address: lensAccount.fields.address,
-								}
-		).$$posts}
-							id={`${idKey}:posts-lensAccounts`}
-						/>
+							{#if accountAddress !== undefined}
+								<LensPostsView
+									CollapsibleProps={{ canToggle: false }}
+									href={resolve(
+										'/(social)/(lens)/lens/account/[address=evmAddress]/(account)/posts',
+										{ address: accountAddress },
+									)}
+									selection={select(
+										EntityType.LensAccount,
+										{
+											address: accountAddress,
+										}
+									).$$posts}
+									id={`${idKey}:posts-lensAccounts`}
+								/>
+							{/if}
 					{/snippet}
 				</ResourceBoundary>
 			{/snippet}
@@ -263,19 +273,21 @@
 					placeholderText="Loading Lens profile…"
 				>
 					{#snippet children(lensAccount)}
-						<LensAccount_TimestampsView
-							selection={select(
-			EntityType.LensAccount,
-			{
-									address: lensAccount.fields.address,
-								}
-		).$$timestamps}
-							href={resolve('/(social)/(lens)/lens/account/[address]', {
-								address: lensAccount.fields.address,
-							})}
-							id={`${idKey}:metric-snapshots`}
-							title="Metric snapshots"
-						/>
+							{#if accountAddress !== undefined}
+								<LensAccount_TimestampsView
+									selection={select(
+										EntityType.LensAccount,
+										{
+											address: accountAddress,
+										}
+									).$$timestamps}
+									href={resolve('/(social)/(lens)/lens/account/[address=evmAddress]', {
+										address: accountAddress,
+									})}
+									id={`${idKey}:metric-snapshots`}
+									title="Metric snapshots"
+								/>
+							{/if}
 					{/snippet}
 				</ResourceBoundary>
 			{/snippet}

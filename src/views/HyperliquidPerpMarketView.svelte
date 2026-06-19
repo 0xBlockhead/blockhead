@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -12,12 +13,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.HyperliquidPerpMarket>
+			selection: EntityProxyResource<typeof schema, EntityType.HyperliquidPerpMarket>
 			open?: boolean
 		},
 		Pick<
@@ -26,6 +27,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -39,14 +41,14 @@
 
 <EntityView
 	entityType={EntityType.HyperliquidPerpMarket}
-	entitySelector={selector}
-	title={selector.coin}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.coin}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
-		{selector.coin}
+		{selection.entitySelector.coin}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -57,8 +59,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.HyperliquidPerpMarket,
-					selector,
+			resource={selection(
 					({ sources: [
 							Source.Hyperliquid_Rest,
 						], fields: { maxLeverage: true, onlyIsolated: true } }),

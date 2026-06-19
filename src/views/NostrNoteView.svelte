@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -18,9 +19,9 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/(social)/(nostr)/nostr/note/[eventId]', {
-			eventId: selector.eventId,
+			eventId: selection.entitySelector.eventId,
 		}),
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
@@ -29,7 +30,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.NostrNote>
+			selection: EntityProxyResource<typeof schema, EntityType.NostrNote>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -41,16 +42,14 @@
 		>
 	> = $props()
 
-	const note = $derived(select(EntityType.NostrNote, selector, ({ sources: [
-				Source.NostrBand_Rest,
-				Source.Primal_Rest,
-			], fields: { eventId: true, pubkey: true, content: true, createdAt: true, replyToEventId: true, rootEventId: true, tags: true, $replyToNote: true, $author: true, ...(open ? ({ $$replies: ({ sources: [
-							Source.NostrBand_Rest,
-							Source.Primal_Rest,
+
+	const note = $derived(selection( { sources: [
+				Source.Constants_Internal,
+			], fields: { eventId: true, pubkey: true, content: true, createdAt: true, $author: true, ...(open ? ({ $$replies: ({ sources: [
+							Source.Constants_Internal,
 						] }), $$reactions: ({ sources: [
-							Source.NostrBand_Rest,
-							Source.Primal_Rest,
-						] }) }) : ({  })) } })))
+							Source.Constants_Internal,
+						] }) }) : ({  })) } }))
 
 
 	// Components
@@ -61,6 +60,7 @@
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
+	import NostrNoteView from '$/views/NostrNoteView.svelte'
 	import NostrNotesView from '$/views/NostrNotesView.svelte'
 	import NostrProfileView from '$/views/NostrProfileView.svelte'
 	import NostrReactionsView from '$/views/NostrReactionsView.svelte'
@@ -69,14 +69,14 @@
 
 <EntityView
 	entityType={EntityType.NostrNote}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<TruncatedValue
-			value={selector.eventId}
+			value={selection.entitySelector.eventId}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -162,7 +162,7 @@
 					<dt>Author</dt>
 					<dd>
 								<NostrProfileView
-									selector={note.fields.$author[EntityMetaKey.Selector]}
+									selection={select(EntityType.NostrProfile, note.fields.$author[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 
 									open={false}
@@ -184,16 +184,12 @@
 				<div>
 					<dt>Reply to</dt>
 					<dd>
-								{#if note.fields.$replyToNote}
-										<svelte:self
-											selector={note.fields.$replyToNote[EntityMetaKey.Selector]}
-										layout={EntityLayout.Value}
-
-									
-										open={false}
-
-									
-										/>
+									{#if note.fields.$replyToNote}
+											<NostrNoteView
+												selection={select(EntityType.NostrNote, note.fields.$replyToNote[EntityMetaKey.Selector])}
+											layout={EntityLayout.Value}
+											open={false}
+											/>
 								{:else if note.fields.replyToEventId}
 									<a
 										data-link
@@ -254,7 +250,7 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{@const idKey = stringify(selector)}
+		{@const idKey = stringify(selection.entitySelector)}
 		<CollapsibleTabs
 			id={`${idKey}:carousel-note`}
 			sectionIdPrefix={idKey}
@@ -311,12 +307,9 @@
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve(
 						'/(social)/(nostr)/nostr/note/[eventId]/(note)/replies',
-						{ eventId: selector.eventId },
+						{ eventId: selection.entitySelector.eventId },
 					)}
-					selection={select(
-			EntityType.NostrNote,
-			selector
-		).$$replies}
+					selection={selection.$$replies}
 					id={`${idKey}:replies`}
 					open={true}
 					title="Reply thread"
@@ -327,10 +320,7 @@
 				<NostrReactionsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/nostr/reactions')}
-					selection={select(
-			EntityType.NostrNote,
-			selector
-		).$$reactions}
+					selection={selection.$$reactions}
 					id={`${idKey}:reactions`}
 					open={true}
 				/>

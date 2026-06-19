@@ -13,16 +13,14 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
 		selection,
-		href = selector.url,
+		href = selection.entitySelector.url,
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.EvmNetworkBridge>
-			selection?: EntityProxyResource<typeof schema, EntityType.EvmNetworkBridge>
+			selection: EntityProxyResource<typeof schema, EntityType.EvmNetworkBridge>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -33,11 +31,9 @@
 		>
 	> = $props()
 
+
 	
-	const relationshipType = $derived(((selection ?? select(
-		EntityType.EvmNetworkBridge,
-		selector,
-		{
+	const relationshipType = $derived(((selection({
 			sources: [
 				Source.Chainlist_Rest,
 				Source.EthereumLists_Rest,
@@ -54,21 +50,21 @@
 
 <EntityView
 	entityType={EntityType.EvmNetworkBridge}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
-	title={`Execution bridge ${selector.$fromNetwork.caip2.namespace}:${selector.$fromNetwork.caip2.reference} → ${selector.$toNetwork.caip2.namespace}:${selector.$toNetwork.caip2.reference}`}
+	title={`Execution bridge ${selection.entitySelector.$fromNetwork.caip2.namespace}:${selection.entitySelector.$fromNetwork.caip2.reference} → ${selection.entitySelector.$toNetwork.caip2.namespace}:${selection.entitySelector.$toNetwork.caip2.reference}`}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
-			{selector.url}
+			{selection.entitySelector.url}
 		</span>
 	{/snippet}
 
 	{#snippet Title()}
 		<span>
-			Execution bridge {selector.$fromNetwork.caip2.namespace}:{selector.$fromNetwork.caip2.reference} → {selector.$toNetwork.caip2.namespace}:{selector.$toNetwork.caip2.reference}
+			Execution bridge {selection.entitySelector.$fromNetwork.caip2.namespace}:{selection.entitySelector.$fromNetwork.caip2.reference} → {selection.entitySelector.$toNetwork.caip2.namespace}:{selection.entitySelector.$toNetwork.caip2.reference}
 		</span>
 	{/snippet}
 
@@ -77,24 +73,24 @@
 			<div>
 				<dt>From</dt>
 				<dd>
-					{selector.$fromNetwork.caip2.namespace}:{selector.$fromNetwork.caip2.reference}
+					{selection.entitySelector.$fromNetwork.caip2.namespace}:{selection.entitySelector.$fromNetwork.caip2.reference}
 				</dd>
 			</div>
 			<div>
 				<dt>To</dt>
 				<dd>
-					{selector.$toNetwork.caip2.namespace}:{selector.$toNetwork.caip2.reference}
+					{selection.entitySelector.$toNetwork.caip2.namespace}:{selection.entitySelector.$toNetwork.caip2.reference}
 				</dd>
 			</div>
 			<div>
 				<dt>URL</dt>
 				<dd>
 					<a
-						href={selector.url}
+						href={selection.entitySelector.url}
 						rel="noreferrer"
 						target="_blank"
 					>
-						{selector.url}
+						{selection.entitySelector.url}
 					</a>
 				</dd>
 			</div>

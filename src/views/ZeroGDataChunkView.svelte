@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.ZeroGDataChunk>
+			selection: EntityProxyResource<typeof schema, EntityType.ZeroGDataChunk>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -39,16 +41,16 @@
 
 <EntityView
 	entityType={EntityType.ZeroGDataChunk}
-	entitySelector={selector}
-	title={`Data chunk #${selector.chunkIndex.toString()}`}
-	idDragPlainText={selector.chunkIndex.toString()}
+	entitySelector={selection.entitySelector}
+	title={`Data chunk #${selection.entitySelector.chunkIndex.toString()}`}
+	idDragPlainText={selection.entitySelector.chunkIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{selector.chunkIndex.toString()}
+			#{selection.entitySelector.chunkIndex.toString()}
 		</span>
 	{/snippet}
 
@@ -63,8 +65,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.ZeroGDataChunk,
-					selector,
+			resource={selection(
 					({ fields: { chunkRoot: true, sizeBytes: true } }),
 				)}
 			placeholderText={`Loading 0G data chunk...`}

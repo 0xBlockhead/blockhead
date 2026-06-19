@@ -22,10 +22,7 @@
 	import { EntitiesListLayout } from '$/components/EntitiesListLayout.ts'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
-	import type {
-		SvelteKitResource,
-		TanStackLiveQuerySnapshot,
-	} from '$/lib/db/queryResource.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { Match } from '$/lib/string.ts'
 
 	type ListItemProps = {
@@ -54,6 +51,10 @@
 		orientation?: ListOrientation
 	}
 	type ItemsInput = Iterable<_Item>
+	type ResourceItemsInput = {
+		readonly values: ItemsInput
+		readonly totalCount?: number
+	}
 
 
 	// Context
@@ -127,9 +128,7 @@
 			items?: ItemsInput
 			open?: boolean
 			placeholderText?: string
-			resource?:
-				| TanStackLiveQuerySnapshot<ItemsInput | undefined>
-				| SvelteKitResource<ItemsInput | undefined>
+			resource?: SvelteKitResource<ResourceItemsInput | undefined>
 			placeholderKeys?: Set<_Key>
 			title?: string
 			UnorderedListProps?: UnorderedListForwardProps
@@ -156,9 +155,11 @@
 	const emptyItems = new SvelteSet<number>()
 	const emptyPlaceholderKeys = new SvelteSet<number>()
 
-	if (showSummary) {
-		incrementHeadingLevel()
+	const incrementHeadingLevelIfSummaryShown = () => {
+		if (showSummary)
+			incrementHeadingLevel()
 	}
+	incrementHeadingLevelIfSummaryShown()
 
 
 	let listSummary = $state({
@@ -274,18 +275,17 @@
 				open,
 			})}
 		{:else if getKey !== undefined && Item !== undefined}
-			{#if resource !== undefined}
-				<ResourceBoundary
-					boundaryKey={id}
-					resource={resource}
-					placeholderText={
+				{#if resource !== undefined}
+					<ResourceBoundary
+						resource={resource}
+						placeholderText={
 						placeholderText
 						?? `Loading ${entityDefinitionByType[entityType].labelPlural.toLowerCase()}…`
 					}
 				>
 					{#snippet children(resource)}
 						{#key resource}
-							{@render ListRowsFrom(resource === undefined ? [] : [...resource])}
+							{@render ListRowsFrom(resource === undefined ? [] : [...resource.values])}
 						{/key}
 					{/snippet}
 				</ResourceBoundary>

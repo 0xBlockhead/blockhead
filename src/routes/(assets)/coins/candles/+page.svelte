@@ -2,6 +2,7 @@
 	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -22,6 +23,7 @@
 			EntityType._Global,
 			{ scope: '$$marketTimeIntervalTimestamps' }
 		).$$marketTimeIntervalTimestamps}
+		sources={[Source.Constants_Internal]}
 		id="coin-ohlc-candles-page"
 		limit={256}
 		title="All OHLC candles"

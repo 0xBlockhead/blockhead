@@ -364,7 +364,7 @@ export default {
 					)
 					const coinpaprikaId = idByCoinId[coinId]
 					if (coinpaprikaId == null)
-						throw new Error(`Coinpaprika_OpenApi: $$marketsWithCoinAsBase unsupported for coin ${coinId}`)
+						return []
 					const lim = resolverContextRowLimit(context)
 					const venueMarketIds = await collectMarketEntitySelectorsForCoin({
 						publicEnv: context.publicEnv,

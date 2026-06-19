@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.MoneroTransaction>
+			selection: EntityProxyResource<typeof schema, EntityType.MoneroTransaction>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -39,23 +41,22 @@
 
 <EntityView
 	entityType={EntityType.MoneroTransaction}
-	entitySelector={selector}
-	title={selector.txHash}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.txHash}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
 		<TruncatedValue
-			value={selector.txHash}
+			value={selection.entitySelector.txHash}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.MoneroTransaction,
-					selector,
+			resource={selection(
 					({ fields: { version: true, unlockTime: true, feeAtomicUnits: true } }),
 				)}
 			placeholderText={`Loading Monero Transaction...`}

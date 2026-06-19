@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { networkEnvironmentByEnvironment } from '$/constants/Network.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -13,32 +14,33 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		selector: EntitySelector<typeof schema, EntityType.Network>
+		selection: EntityProxyResource<typeof schema, EntityType.Network>
 		href?: string
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
-	const network = $derived(select(EntityType.Network, selector, ({ sources: [
+
+	const network = $derived(selection( { sources: [
 				Source.Constants_Internal,
-			], fields: { name: true, environment: true, $$executionEnvironments: true, $$consensusMechanisms: true, $$nativeAssets: true } })))
+			], fields: { name: true, environment: true, $$executionEnvironments: true, $$consensusMechanisms: true, $$nativeAssets: true } }))
 
 	const quilibriumNetwork = $derived(select(EntityType.QuilibriumNetwork, {
 			slug: 'quilibrium',
-		}, ({ sources: [
+		}, { sources: [
 				Source.QuilibriumDocs_Rest,
 				Source.QuilibriumNodeRpc_Grpc,
-			], fields: { docsEndpoints: true, nodeInterfaces: true, protocolFacts: true, serviceLayers: true, $protocolDocument: true, $masterShard: true } })))
+			], fields: { docsEndpoints: true, nodeInterfaces: true, protocolFacts: true, serviceLayers: true, $protocolDocument: true, $masterShard: true } }))
 
 
 	// (Derived)
 	const networkSelectorKey = $derived(
-		stringify(selector),
+		stringify(selection.entitySelector),
 	)
 
 
@@ -55,7 +57,7 @@
 
 <EntityView
 	entityType={EntityType.Network}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	{href}
 	bind:open
 	{layout}
@@ -104,7 +106,7 @@
 									<dt>Master shard</dt>
 									<dd>
 										<QuilibriumShardView
-											selector={quilibriumNetwork.fields.$masterShard[EntityMetaKey.Selector]}
+											selection={select(EntityType.QuilibriumShard, quilibriumNetwork.fields.$masterShard[EntityMetaKey.Selector])}
 											layout={EntityLayout.Value}
 										/>
 									</dd>
@@ -212,10 +214,7 @@
 				{#snippet SectionQuilibriumAssetsNative({ id, label }: { id: string, label: string })}
 				<AssetInstancesView
 			CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.Network,
-			selector
-		).$$nativeAssets}
+					selection={selection.$$nativeAssets}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -245,10 +244,7 @@
 				<UrlsView
 					CollapsibleProps={{ canToggle: false }}
 					emptyText="No faucets listed for this network yet."
-					selection={select(
-			EntityType.Network,
-			selector
-		).$$faucetUrls}
+					selection={selection.$$faucetUrls}
 					fieldSources={[
 						Source.Constants_Internal,
 					]}
@@ -262,10 +258,7 @@
 				<UrlsView
 					CollapsibleProps={{ canToggle: false }}
 					emptyText="No block explorers listed for this network yet."
-					selection={select(
-			EntityType.Network,
-			selector
-		).$$blockExplorerUrls}
+					selection={selection.$$blockExplorerUrls}
 					fieldSources={[
 						Source.Constants_Internal,
 					]}

@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.CosmosMessage>
+			selection: EntityProxyResource<typeof schema, EntityType.CosmosMessage>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -37,16 +39,16 @@
 
 <EntityView
 	entityType={EntityType.CosmosMessage}
-	entitySelector={selector}
-	title={`Message #${selector.messageIndex.toString()}`}
-	idDragPlainText={selector.messageIndex.toString()}
+	entitySelector={selection.entitySelector}
+	title={`Message #${selection.entitySelector.messageIndex.toString()}`}
+	idDragPlainText={selection.entitySelector.messageIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{selector.messageIndex.toString()}
+			#{selection.entitySelector.messageIndex.toString()}
 		</span>
 	{/snippet}
 
@@ -61,7 +63,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.CosmosMessage, selector, ({ fields: { typeUrl: true } }))}
+			resource={selection( { fields: { typeUrl: true } })}
 			placeholderText={`Loading Cosmos Message...`}
 		>
 			{#snippet children(cosmosMessage)}

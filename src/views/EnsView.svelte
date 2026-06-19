@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { Entity, EntitySelector } from '$/schema/$schema.ts'
 
@@ -25,16 +26,16 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/(explore)/(ens)/ens/name/[ensName]', {
-			ensName: selector.name,
+			ensName: selection.entitySelector.name,
 		}),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.EnsName>
+			selection: EntityProxyResource<typeof schema, EntityType.EnsName>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -44,6 +45,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	import {
 		decodeEnsContentHash,
@@ -58,8 +60,7 @@
 	} as const
 
 	const ens = $derived(
-		select(EntityType.EnsName,
-			selector,
+		selection(
 			({ sources: [
 				Source.Voltaire_JsonRpc,
 				Source.TheGraph_Graphql,
@@ -75,9 +76,6 @@
 				...(open && {
 					labelhash: true,
 					subgraphId: true,
-					$resolvedActor: true,
-					$resolverContract: true,
-					$ownerActor: true,
 					$subgraphOwnerActor: true,
 					$registrantActor: true,
 					$wrappedOwnerActor: true,
@@ -102,7 +100,7 @@
 
 	// (Derived)
 	const ensNameSelectorKey = $derived(
-		stringify(selector),
+		stringify(selection.entitySelector),
 	)
 
 
@@ -127,11 +125,11 @@
 
 <EntityView
 	entityType={EntityType.EnsName}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{layout}
 	bind:open
-	title={selector.name}
+	title={selection.entitySelector.name}
 	{...EntityViewProps}
 >
 	{#snippet Icon()}
@@ -148,7 +146,7 @@
 				)}
 				{#if avatarUrl}
 					<Icon
-						alt={selector.name}
+						alt={selection.entitySelector.name}
 						src={avatarUrl}
 					/>
 				{/if}
@@ -158,13 +156,13 @@
 
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{selector.name}
+			{selection.entitySelector.name}
 		</span>
 	{/snippet}
 
 	{#snippet Title()}
 		<span data-text="font-monospace">
-			{selector.name}
+			{selection.entitySelector.name}
 		</span>
 	{/snippet}
 
@@ -187,11 +185,11 @@
 						resource={ens}
 					>
 						{#snippet children(ens)}
-							{#if ens.fields.$resolvedActor !== undefined}
+							{#if ens.fields.$subgraphResolvedActor !== undefined}
 								<EvmAccountView
-									selector={ens.fields.$resolvedActor[EntityMetaKey.Selector]}
+									selection={select(EntityType.EvmAccount, ens.fields.$subgraphResolvedActor[EntityMetaKey.Selector])}
 									href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/resolves-to', {
-										ensName: selector.name,
+										ensName: selection.entitySelector.name,
 									})}
 									layout={EntityLayout.Value}
 									showTypeAnnotation={false}
@@ -341,12 +339,12 @@
 							resource={ens}
 						>
 							{#snippet children(ens)}
-								{#if ens.fields.$ownerActor !== undefined}
+								{#if ens.fields.$subgraphOwnerActor !== undefined}
 									<EvmNetworkAccountView
-										selector={{
+										selection={select(EntityType.EvmNetworkAccount, {
 											$network: { caip2: { namespace: 'eip155' as const, reference: String(ChainId.Ethereum) } },
-											$actor: ens.fields.$ownerActor[EntityMetaKey.Selector],
-										}}
+											$actor: ens.fields.$subgraphOwnerActor[EntityMetaKey.Selector],
+										})}
 										layout={EntityLayout.Value}
 										showTypeAnnotation={false}
 									/>
@@ -429,7 +427,7 @@
 					{#snippet SectionProfileRecords({ id, label })}
 						<EnsNameTextRecordsView
 							CollapsibleProps={{ canToggle: false }}
-							selector={selector}
+							selection={selection}
 							id={`${id}-list`}
 							recordKeys={ensTextRecords
 								.filter((row) => row.profile)
@@ -463,22 +461,22 @@
 						<EntitiesList
 							collapsible={false}
 							entityType={EntityType.EnsName}
-							getKey={(sub) => sub.name}
-							getSortValue={(sub) => sub.name}
+							getKey={(subdomain) => subdomain.entitySelector.name}
+							getSortValue={(subdomain) => subdomain.entitySelector.name}
 							href={resolve('/(explore)/(ens)/ens/name/[ensName]', {
-								ensName: selector.name,
+								ensName: selection.entitySelector.name,
 							})}
 							id={`${id}-list`}
-								items={(ens.fields.$$subdomains.values ).map((subdomain: Entity<typeof schema, EntityType.EnsName>) => subdomain[EntityMetaKey.Selector])}
+								items={ens.fields.$$subdomains.values}
 								title="Subdomains"
 							>
 							{#snippet Item({ item })}
 								<a
 									data-link
 									href={resolve('/(explore)/(ens)/ens/name/[ensName]', {
-										ensName: item.name,
+										ensName: item.entitySelector.name,
 									})}
-								>{item.name}</a>
+								>{item.entitySelector.name}</a>
 							{/snippet}
 						</EntitiesList>
 					{/if}
@@ -491,7 +489,7 @@
 							collapsible={false}
 							entityType={EntityType.EnsName}
 							href={resolve('/(explore)/(ens)/ens/name/[ensName]', {
-							ensName: selector.name,
+							ensName: selection.entitySelector.name,
 						})}
 							id={`${id}-list`}
 							title="Parent name"
@@ -515,10 +513,10 @@
 								<dt>Registry owner</dt>
 								<dd>
 									<EvmNetworkAccountView
-										selector={{
+										selection={select(EntityType.EvmNetworkAccount, {
 											$network: { caip2: { namespace: 'eip155' as const, reference: String(ChainId.Ethereum) } },
 											$actor: ens.fields.$ownerActor[EntityMetaKey.Selector],
-										}}
+										})}
 										layout={EntityLayout.Value}
 										showTypeAnnotation={false}
 									/>
@@ -531,10 +529,10 @@
 								<dt>Subgraph owner</dt>
 								<dd>
 									<EvmNetworkAccountView
-										selector={{
+										selection={select(EntityType.EvmNetworkAccount, {
 											$network: { caip2: { namespace: 'eip155' as const, reference: String(ChainId.Ethereum) } },
 											$actor: ens.fields.$subgraphOwnerActor[EntityMetaKey.Selector],
-										}}
+										})}
 										layout={EntityLayout.Value}
 										showTypeAnnotation={false}
 									/>
@@ -547,10 +545,10 @@
 								<dt>Registrant</dt>
 								<dd>
 									<EvmNetworkAccountView
-										selector={{
+										selection={select(EntityType.EvmNetworkAccount, {
 											$network: { caip2: { namespace: 'eip155' as const, reference: String(ChainId.Ethereum) } },
 											$actor: ens.fields.$registrantActor[EntityMetaKey.Selector],
-										}}
+										})}
 										layout={EntityLayout.Value}
 										showTypeAnnotation={false}
 									/>
@@ -563,10 +561,10 @@
 								<dt>Name wrapper owner</dt>
 								<dd>
 									<EvmNetworkAccountView
-										selector={{
+										selection={select(EntityType.EvmNetworkAccount, {
 											$network: { caip2: { namespace: 'eip155' as const, reference: String(ChainId.Ethereum) } },
 											$actor: ens.fields.$wrappedOwnerActor[EntityMetaKey.Selector],
-										}}
+										})}
 										layout={EntityLayout.Value}
 										showTypeAnnotation={false}
 									/>
@@ -590,7 +588,7 @@
 							</div>
 						{/if}
 
-						{#if ens.fields.name != null && ens.fields.name !== selector.name}
+						{#if ens.fields.name != null && ens.fields.name !== selection.entitySelector.name}
 							<div>
 								<dt>Normalized name</dt>
 								<dd>
@@ -601,7 +599,7 @@
 							</div>
 						{/if}
 
-						{#if ens.fields.labelName != null && ens.fields.labelName !== '' && ens.fields.labelName !== selector.name}
+						{#if ens.fields.labelName != null && ens.fields.labelName !== '' && ens.fields.labelName !== selection.entitySelector.name}
 							<div>
 								<dt>Label</dt>
 								<dd>{ens.fields.labelName}</dd>
@@ -725,7 +723,7 @@
 				{#snippet SectionRecordsText({ id, label })}
 					<EnsNameTextRecordsView
 						CollapsibleProps={{ canToggle: false }}
-						selector={selector}
+						selection={selection}
 						excludeRecordKeys={ensTextRecords
 							.filter((row) => row.profile)
 							.map((row) => row.key)}
@@ -742,7 +740,7 @@
 							collapsible={false}
 							entityType={EntityType.EnsName}
 							href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/records', {
-								ensName: selector.name,
+								ensName: selection.entitySelector.name,
 							})}
 							id={`${id}-list`}
 							title="Content hash"
@@ -787,7 +785,7 @@
 							collapsible={false}
 							entityType={EntityType.EnsName}
 							href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/records', {
-								ensName: selector.name,
+								ensName: selection.entitySelector.name,
 							})}
 							id={`${id}-list`}
 							title="Resolver ABI"
@@ -811,7 +809,7 @@
 							collapsible={false}
 							entityType={EntityType.EnsName}
 							href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/records', {
-								ensName: selector.name,
+								ensName: selection.entitySelector.name,
 							})}
 							id={`${id}-list`}
 							title="Coin addresses"
@@ -849,7 +847,7 @@
 							collapsible={false}
 							entityType={EntityType.EnsName}
 							href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/records', {
-								ensName: selector.name,
+								ensName: selection.entitySelector.name,
 							})}
 							id={`${id}-list`}
 							title="Subgraph resolver index"
@@ -886,9 +884,7 @@
 				id={`${ensNameSelectorKey}:carousel-resolution`}
 				sectionIdPrefix={ensNameSelectorKey}
 				sections={[
-					...(ens.fields.$resolvedActor !== undefined ? [{ id: 'resolution-addr', label: 'Addr record' }] : []),
 					...(ens.fields.$subgraphResolvedActor !== undefined ? [{ id: 'resolution-subgraph-addr', label: 'Subgraph addr' }] : []),
-					...(ens.fields.$resolverContract !== undefined ? [{ id: 'resolution-resolver', label: 'Resolver' }] : []),
 				]}
 				data-card
 				class="ens-view-collapsible-resolution"
@@ -900,38 +896,19 @@
 					</header>
 				{/snippet}
 
-				{#snippet SectionResolutionAddr({ id, label })}
-					{#if ens.fields.$resolvedActor !== undefined}
-						<EvmAccountView
-							selector={ens.fields.$resolvedActor[EntityMetaKey.Selector]}
-							href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/resolves-to', {
-								ensName: selector.name,
-							})}
-							title="Addr record (RPC)"
-						/>
-					{/if}
-				{/snippet}
-
 				{#snippet SectionResolutionSubgraphAddr({ id, label })}
 					{#if ens.fields.$subgraphResolvedActor !== undefined}
 						<EvmAccountView
-							selector={ens.fields.$subgraphResolvedActor[EntityMetaKey.Selector]}
+							selection={select(EntityType.EvmAccount, ens.fields.$subgraphResolvedActor[EntityMetaKey.Selector])}
 							href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/resolves-to', {
-								ensName: selector.name,
+								ensName: selection.entitySelector.name,
 							})}
 							title="Resolved address (subgraph)"
+							layout={EntityLayout.Summary}
 						/>
 					{/if}
 				{/snippet}
 
-				{#snippet SectionResolutionResolver({ id, label })}
-					{#if ens.fields.$resolverContract !== undefined}
-						<EvmContractView
-							selector={ens.fields.$resolverContract[EntityMetaKey.Selector]}
-							title="Resolver contract"
-						/>
-					{/if}
-				{/snippet}
 			</CollapsibleTabs>
 		{/snippet}
 		</ResourceBoundary>

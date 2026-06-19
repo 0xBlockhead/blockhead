@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -19,13 +20,13 @@
 
 	// State
 	let {
-		selector,
-		href = 'localStatusId' in selector ?
+		selection,
+		href = 'localStatusId' in selection.entitySelector ?
 			resolve(
 				'/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]',
 				{
-					instanceOrigin: encodeURIComponent(selector.instanceOrigin),
-					localStatusId: selector.localStatusId,
+					instanceOrigin: encodeURIComponent(selection.entitySelector.instanceOrigin),
+					localStatusId: selection.entitySelector.localStatusId,
 				},
 			)
 		:
@@ -35,7 +36,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.ActivityPubNote>
+			selection: EntityProxyResource<typeof schema, EntityType.ActivityPubNote>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -46,15 +47,16 @@
 		>
 	> = $props()
 
+
 	import { htmlToPlainText } from '$/lib/html.ts'
 	import { select } from '$/routes/+layout.svelte'
 
-	const idKey = $derived(stringify(selector))
+	const idKey = $derived(stringify(selection.entitySelector))
 
 	const sources = $derived(
-		'instanceOrigin' in selector && selector.instanceOrigin === mastodonInstanceByKey.mastodon_social.origin ?
+		'instanceOrigin' in selection.entitySelector && selection.entitySelector.instanceOrigin === mastodonInstanceByKey.mastodon_social.origin ?
 			[Source.Mastodon_Rest]
-		: 'instanceOrigin' in selector && selector.instanceOrigin === fediInstanceBySlug.fosstodon.origin ?
+		: 'instanceOrigin' in selection.entitySelector && selection.entitySelector.instanceOrigin === fediInstanceBySlug.fosstodon.origin ?
 			[Source.Fedi_Rest]
 		:
 			[]
@@ -68,10 +70,7 @@
 	})
 
 	const note = $derived(
-		select(
-			EntityType.ActivityPubNote,
-			selector,
-			({
+		selection(({
 				sources,
 				fields: {
 					content: true,
@@ -118,7 +117,7 @@
 
 <EntityView
 	entityType={EntityType.ActivityPubNote}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{layout}
 	bind:open
@@ -126,7 +125,7 @@
 >
 	{#snippet Value()}
 		<TruncatedValue
-			value={'localStatusId' in selector ? selector.localStatusId : selector.activityStreamsUri}
+			value={'localStatusId' in selection.entitySelector ? selection.entitySelector.localStatusId : selection.entitySelector.activityStreamsUri}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -161,7 +160,7 @@
 						endLength={16}
 						format={TruncatedValueFormat.Visual}
 						startLength={64}
-						value={'localStatusId' in selector ? selector.localStatusId : selector.activityStreamsUri}
+						value={'localStatusId' in selection.entitySelector ? selection.entitySelector.localStatusId : selection.entitySelector.activityStreamsUri}
 					/>
 				{/if}
 			{/snippet}
@@ -235,7 +234,7 @@
 									<dt>{note.fields.$reblogOf ? 'Boosted by' : 'Author'}</dt>
 									<dd>
 											<ActivityPubActorView
-												selector={note.fields.$author[EntityMetaKey.Selector]}
+												selection={select(EntityType.ActivityPubActor, note.fields.$author[EntityMetaKey.Selector])}
 												layout={EntityLayout.Title}
 												open={false}
 											/>
@@ -258,7 +257,7 @@
 								<dt>In reply to</dt>
 								<dd>
 										<ActivityPubNoteView
-											selector={note.fields.$inReplyTo[EntityMetaKey.Selector]}
+											selection={select(EntityType.ActivityPubNote, note.fields.$inReplyTo[EntityMetaKey.Selector])}
 											layout={EntityLayout.Title}
 											open={false}
 										/>
@@ -276,13 +275,13 @@
 				>
 					{#snippet children(note)}
 						{#if note.fields.$reblogOf && (
-							!('localStatusId' in selector)
+							!('localStatusId' in selection.entitySelector)
 							|| (
-								'localStatusId' in selector
+								'localStatusId' in selection.entitySelector
 								&& 'localStatusId' in note.fields.$reblogOf[EntityMetaKey.Selector]
 								&& (
-									note.fields.$reblogOf[EntityMetaKey.Selector].instanceOrigin !== selector.instanceOrigin
-									|| note.fields.$reblogOf[EntityMetaKey.Selector].localStatusId !== selector.localStatusId
+									note.fields.$reblogOf[EntityMetaKey.Selector].instanceOrigin !== selection.entitySelector.instanceOrigin
+									|| note.fields.$reblogOf[EntityMetaKey.Selector].localStatusId !== selection.entitySelector.localStatusId
 								)
 							)
 						)}
@@ -290,7 +289,7 @@
 								<dt>Reblog of</dt>
 								<dd>
 										<ActivityPubNoteView
-											selector={note.fields.$reblogOf[EntityMetaKey.Selector]}
+											selection={select(EntityType.ActivityPubNote, note.fields.$reblogOf[EntityMetaKey.Selector])}
 											layout={EntityLayout.Title}
 											open={false}
 										/>
@@ -428,15 +427,15 @@
 							metrics={[
 								{
 									label: 'Favourites',
-									value: note.fields.$$timestamps.values.at(0)?.favouriteCount,
+									resource: note.fields.$$timestamps.values.at(0)?.favouriteCount,
 								},
 								{
 									label: 'Reblogs',
-									value: note.fields.$$timestamps.values.at(0)?.reblogCount,
+									resource: note.fields.$$timestamps.values.at(0)?.reblogCount,
 								},
 								{
 									label: 'Replies',
-									value: note.fields.$$timestamps.values.at(0)?.replyCount,
+									resource: note.fields.$$timestamps.values.at(0)?.replyCount,
 								},
 							]}
 						/>
@@ -528,10 +527,7 @@
 			{#snippet SectionNoteThread()}
 				<ActivityPubNotesView
 					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.ActivityPubNote,
-			selector
-		).$$thread}
+					selection={selection.$$thread}
 					id={`${idKey}:note-thread-activityPubNotes`}
 					fieldOpen={_open}
 					orderByCreatedAt="asc"
@@ -543,10 +539,7 @@
 
 			{#snippet SectionMetricSnapshots()}
 				<ActivityPubNote_TimestampsView
-					selection={select(
-			EntityType.ActivityPubNote,
-			selector
-		).$$timestamps}
+					selection={selection.$$timestamps}
 					href={href ?? ''}
 					id={`${idKey}:metric-snapshots`}
 					{sources}

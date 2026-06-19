@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,17 +12,17 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		selector: EntitySelector<typeof schema, EntityType.BittensorSubnet>
+		selection: EntityProxyResource<typeof schema, EntityType.BittensorSubnet>
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
-	const subnet = $derived(select(EntityType.BittensorSubnet,
-		selector,
+
+	const subnet = $derived(selection(
 		({ sources: [
 				Source.Constants_Internal,
 				Source.Bittensor_JsonRpc,
@@ -40,15 +41,15 @@
 
 <EntityView
 	entityType={EntityType.BittensorSubnet}
-	entitySelector={selector}
-	title={`Subnet #${selector.netuid}`}
-	idDragPlainText={String(selector.netuid)}
+	entitySelector={selection.entitySelector}
+	title={`Subnet #${selection.entitySelector.netuid}`}
+	idDragPlainText={String(selection.entitySelector.netuid)}
 	bind:open
 	{layout}
 >
 	{#snippet Value()}
 		<span data-badge="small">
-			#{String(selector.netuid)}
+			#{String(selection.entitySelector.netuid)}
 		</span>
 	{/snippet}
 
@@ -106,22 +107,16 @@
 				{#if open}
 					<BittensorMetagraph_TimestampsView
 						CollapsibleProps={{ canToggle: false }}
-						selection={select(
-			EntityType.BittensorSubnet,
-			selector
-		).$$metagraphTimestamps}
-						id={`${stringify(selector)}:bittensor-metagraph-snapshots`}
+						selection={selection.$$metagraphTimestamps}
+						id={`${stringify(selection.entitySelector)}:bittensor-metagraph-snapshots`}
 					/>
 				{/if}
 
 				{#if open}
 					<BittensorNeuronsView
 						CollapsibleProps={{ canToggle: false }}
-						selection={select(
-			EntityType.BittensorSubnet,
-			selector
-		).$$neurons}
-						id={`${stringify(selector)}:bittensor-neurons`}
+						selection={selection.$$neurons}
+						id={`${stringify(selection.entitySelector)}:bittensor-neurons`}
 					/>
 				{/if}
 			{/snippet}

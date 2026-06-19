@@ -178,24 +178,6 @@
 				li {
 					display: contents;
 				}
-
-				button {
-					svg {
-						width: 1.25em;
-						height: 1.25em;
-
-						transition-property: color;
-					}
-				}
-
-				#theme-toggle {
-					> :first-child {
-						color: light-dark(currentColor, transparent);
-					}
-					> :last-child {
-						color: light-dark(transparent, currentColor);
-					}
-				}
 			}
 		}
 
@@ -214,15 +196,6 @@
 
 		footer {
 			padding: 1rem;
-
-			p {
-				padding: 0.75rem 1rem;
-				line-height: 1.4;
-				background-color: var(--accent-backgroundColor);
-				border-radius: 0.5rem;
-				font-size: 0.875rem;
-				color: var(--text-secondary);
-			}
 		}
 	}
 

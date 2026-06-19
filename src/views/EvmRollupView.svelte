@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -10,21 +11,19 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		layout = EntityLayout.Summary,
 		title = 'Rollup',
 	}: {
-		selector: EntitySelector<typeof schema, EntityType.EvmRollup>
+		selection: EntityProxyResource<typeof schema, EntityType.EvmRollup>
 		open?: boolean
 		layout?: EntityLayout
 		title?: string
 	} = $props()
 
-	const rollup = $derived(select(
-		EntityType.EvmRollup,
-		selector,
-		{
+
+	const rollup = $derived(selection({
 			sources: [
 				Source.L2Beat_Rest,
 			],
@@ -48,7 +47,7 @@
 
 <EntityView
 	entityType={EntityType.EvmRollup}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	{layout}
 	bind:open
 	{title}
@@ -109,7 +108,7 @@
 						<div>
 							<dt>Settlement network</dt>
 							<dd>
-									<EvmNetworkView selector={settlementNetwork.entitySelector} layout={EntityLayout.Title} open={false} />
+									<EvmNetworkView selection={select(EntityType.EvmNetwork, settlementNetwork.entitySelector)} layout={EntityLayout.Title} open={false} />
 							</dd>
 						</div>
 					{/if}

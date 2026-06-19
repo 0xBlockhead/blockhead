@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { specificationRealmBySlug } from '$/constants/SpecificationProposal.ts'
 	import { stringify } from 'devalue'
@@ -40,7 +42,7 @@
 	>
 		{#snippet Summary({ open: _open })}
 			<SpecificationRealmView
-				selector={selector}
+				selection={select(EntityType.SpecificationRealm, selector)}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

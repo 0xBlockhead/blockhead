@@ -1,37 +1,28 @@
 import {
 	EntityFieldType,
-	type EntityFieldDefinitionByName,
 	entityFieldPrimitiveValueIsValid,
-	type EntityFieldName,
 	type EntityType as SchemaEntityType,
 } from '$/schema/$schema.ts'
 import { schema, schemaMeta } from '$/schema/index.ts'
 
 type RegisteredSchema = typeof schema
-type PrimitiveEntityFieldName<
-	_EntityType extends SchemaEntityType<RegisteredSchema>,
-> = {
-	readonly [
-		_FieldName in EntityFieldName<RegisteredSchema, _EntityType>
-	]: EntityFieldDefinitionByName<RegisteredSchema, _EntityType, _FieldName> extends {
-		readonly type: EntityFieldType.Primitive
-	} ?
-		_FieldName
-	:
-		never
-}[EntityFieldName<RegisteredSchema, _EntityType>]
 
 export const matchSchemaPrimitiveParam = <
 	const _EntityType extends SchemaEntityType<RegisteredSchema>,
-	const _FieldName extends PrimitiveEntityFieldName<_EntityType>,
 >(
 	entityType: _EntityType,
-	fieldName: _FieldName,
+	fieldName: string,
 	value: unknown
-) => entityFieldPrimitiveValueIsValid(
-	schemaMeta.entityFieldDefinitionByEntityTypeAndName[entityType][fieldName],
-	value
-)
+) => {
+	const fieldDefinition = schemaMeta.entityFieldDefinitionByEntityTypeAndName[entityType][fieldName]
+	return (
+		fieldDefinition?.type === EntityFieldType.Primitive
+		&& entityFieldPrimitiveValueIsValid(
+			fieldDefinition,
+			value
+		)
+	)
+}
 
 export const matchDecimalNonNegativeIntegerParam = (
 	param: string
@@ -42,10 +33,9 @@ export const matchDecimalNonNegativeIntegerParam = (
 
 export const matchSchemaNumberParam = <
 	const _EntityType extends SchemaEntityType<RegisteredSchema>,
-	const _FieldName extends PrimitiveEntityFieldName<_EntityType>,
 >(
 	entityType: _EntityType,
-	fieldName: _FieldName,
+	fieldName: string,
 	param: string
 ) => (
 	matchDecimalNonNegativeIntegerParam(param)
@@ -58,10 +48,9 @@ export const matchSchemaNumberParam = <
 
 export const matchSchemaBigIntParam = <
 	const _EntityType extends SchemaEntityType<RegisteredSchema>,
-	const _FieldName extends PrimitiveEntityFieldName<_EntityType>,
 >(
 	entityType: _EntityType,
-	fieldName: _FieldName,
+	fieldName: string,
 	param: string
 ) => (
 	matchDecimalNonNegativeIntegerParam(param)

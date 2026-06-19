@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { type as arktype } from 'arktype'
 	import { parse } from 'devalue'
@@ -63,7 +65,7 @@
 		</p>
 	{:else}
 		<MarketView
-			selector={route.marketId}
+			selection={select(EntityType.Market, route.marketId)}
 		/>
 	{/if}
 </Page>

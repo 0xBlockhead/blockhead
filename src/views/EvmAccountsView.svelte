@@ -1,6 +1,5 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
@@ -29,11 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EvmAccount>
 			id: string
 			title?: string
 			open?: boolean
@@ -166,8 +161,8 @@
 				{#snippet Item({ item })}
 					{@const aid = item.entitySelector}
 					<EvmAccountView
-						selector={aid}
-						href={resolve('/account/[address]', {
+						selection={select(EntityType.EvmAccount, aid)}
+							href={resolve('/account/[address=evmAddress]', {
 							address: aid.address,
 						})}
 						layout={EntityLayout.Summary}

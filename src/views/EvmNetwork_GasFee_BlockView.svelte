@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -15,17 +16,17 @@
 
 	// State
 	let {
-		selector,
-		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber]', {
-			caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
-			blockNumber: String(selector.blockNumber),
+		selection,
+		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]', {
+			caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
+			blockNumber: String(selection.entitySelector.blockNumber),
 		}),
 		layout,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.EvmNetwork_GasFee_Block>
+			selection: EntityProxyResource<typeof schema, EntityType.EvmNetwork_GasFee_Block>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -36,10 +37,8 @@
 		>
 	> = $props()
 
-	const networkGasFeeBlock = $derived(select(
-		EntityType.EvmNetwork_GasFee_Block,
-		selector,
-		{
+
+	const networkGasFeeBlock = $derived(selection({
 			sources: [
 				Source.Voltaire_JsonRpc,
 			],
@@ -64,7 +63,7 @@
 
 <EntityView
 	entityType={EntityType.EvmNetwork_GasFee_Block}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{layout}
 	{open}
@@ -81,7 +80,7 @@
 					<NumberValue value={baseFeePerGas} />
 					wei
 				{:else}
-					<span>block {String(selector.blockNumber)}</span>
+					<span>block {String(selection.entitySelector.blockNumber)}</span>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -97,7 +96,7 @@
 					<NumberValue value={baseFeePerGas} />
 					wei
 				{:else}
-					<span>block {String(selector.blockNumber)}</span>
+					<span>block {String(selection.entitySelector.blockNumber)}</span>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

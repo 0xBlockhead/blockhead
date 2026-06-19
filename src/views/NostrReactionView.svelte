@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -17,10 +18,10 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve(
 			'/(social)/(nostr)/nostr/reaction/[eventId]',
-			{ eventId: selector.eventId },
+			{ eventId: selection.entitySelector.eventId },
 		),
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
@@ -29,7 +30,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.NostrReaction>
+			selection: EntityProxyResource<typeof schema, EntityType.NostrReaction>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -40,10 +41,10 @@
 		>
 	> = $props()
 
-	const reaction = $derived(select(EntityType.NostrReaction, selector, ({ sources: [
+
+	const reaction = $derived(selection( { sources: [
 				Source.NostrBand_Rest,
-				Source.Primal_Rest,
-			], fields: { eventId: true, pubkey: true, createdAt: true, $author: true, $targetNote: true, $targetArticle: true, content: true } })))
+			], fields: { eventId: true, pubkey: true, createdAt: true, $author: true, $targetNote: true, $targetArticle: true, content: true } }))
 
 
 	// Components
@@ -59,7 +60,7 @@
 
 <EntityView
 	entityType={EntityType.NostrReaction}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
 	{collapsible}
@@ -67,7 +68,7 @@
 >
 	{#snippet Value()}
 		<TruncatedValue
-			value={selector.eventId}
+			value={selection.entitySelector.eventId}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -157,7 +158,7 @@
 							{#snippet children(reaction)}
 								{#if reaction.fields.$author}
 									<NostrProfileView
-										selector={reaction.fields.$author[EntityMetaKey.Selector]}
+										selection={select(EntityType.NostrProfile, reaction.fields.$author[EntityMetaKey.Selector])}
 										layout={EntityLayout.Value}
 
 										open={false}
@@ -178,7 +179,7 @@
 							{#snippet children(reaction)}
 								{#if reaction.fields.$targetNote}
 									<NostrNoteView
-										selector={reaction.fields.$targetNote[EntityMetaKey.Selector]}
+										selection={select(EntityType.NostrNote, reaction.fields.$targetNote[EntityMetaKey.Selector])}
 										layout={EntityLayout.Value}
 
 										open={false}
@@ -199,7 +200,7 @@
 							{#snippet children(reaction)}
 								{#if reaction.fields.$targetArticle}
 									<NostrArticleView
-										selector={reaction.fields.$targetArticle[EntityMetaKey.Selector]}
+										selection={select(EntityType.NostrArticle, reaction.fields.$targetArticle[EntityMetaKey.Selector])}
 										layout={EntityLayout.Value}
 
 										open={false}
@@ -211,10 +212,5 @@
 				</div>
 			{/if}
 		</dl>
-	{/snippet}
-
-	{#snippet Details({
-		open: _open,
-	})}
 	{/snippet}
 </EntityView>

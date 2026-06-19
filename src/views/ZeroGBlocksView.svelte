@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 import { stringify } from 'devalue'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
@@ -58,7 +59,7 @@ import { stringify } from 'devalue'
 
 	{#snippet body()}
 		{#if open}
-			<ResourceBoundary {resource} placeholderText="Loading blocks…">
+			<ResourceBoundary resource={selection} placeholderText="Loading blocks…">
 				{#snippet children(blocks)}
 					<EntitiesList
 						collapsible={false}
@@ -76,9 +77,8 @@ import { stringify } from 'devalue'
 						{#snippet Empty()}<p data-text="muted">No recent blocks yet.</p>{/snippet}
 						{#snippet Item({ item })}
 							<EvmBlockView
-								selector={item.entitySelector}
+								selection={select(EntityType.EvmBlock, item.entitySelector)}
 								layout={EntityLayout.Summary}
-
 							/>
 						{/snippet}
 					</EntitiesList>

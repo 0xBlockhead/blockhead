@@ -25,6 +25,13 @@ const encodeUrlSegment = (segment: string) => (
 		encodeURIComponent(segment)
 )
 
+const encodeDynamicUrlSegment = (segment: string) => (
+	segment.includes('/') || segment.includes(':') ?
+		encodeURIComponent(encodeURIComponent(segment))
+	:
+		encodeUrlSegment(segment)
+)
+
 const bracketSegmentToParamKey = (segment: string) => (
 	segment.startsWith('[...') ?
 		`...${segment.slice(4, -1)}`
@@ -124,7 +131,7 @@ const expandMixedSegment = (
 				urlSegment: (
 					expandedContext.urlSegment
 					+ segment.slice(expandedContext.offset, part.index)
-					+ encodeUrlSegment(fixture)
+					+ encodeDynamicUrlSegment(fixture)
 				),
 				offset: part.index + part[0].length,
 			}))
@@ -199,7 +206,7 @@ const pageFileToPathname = (absPath: string) => {
 				...context,
 				urlSegments: [
 					...context.urlSegments,
-					encodeUrlSegment(fixture),
+					encodeDynamicUrlSegment(fixture),
 				],
 				params: {
 					...context.params,

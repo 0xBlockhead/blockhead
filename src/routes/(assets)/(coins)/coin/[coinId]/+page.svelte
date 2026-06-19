@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import type { CoinId } from '$/constants/Coin.ts'
 	import { coinById, coins } from '$/constants/Coin.ts'
@@ -51,9 +53,9 @@
 	{:else}
 		<div id="coin-detail-page">
 			<CoinView
-				selector={{
+				selection={select(EntityType.Coin, {
 					coinId: route.coinId,
-				}}
+				})}
 				open
 			/>
 		</div>

@@ -28,7 +28,7 @@ import {
 	type EntityFieldDefinition,
 	type EntityFieldDefinitionByEntityTypeAndName,
 } from '$/schema/$schema.ts'
-import type { EntityFieldCondition, EntityFieldDefinitionByName, EntityFieldName, EntityFieldResolvedValue, EntityFieldSingleResolvedValue, EntityFieldValues, EntityReferenceValue, EntitySelector, EntityType as EntityTypeName, Schema } from '$/schema/$schema.ts'
+import type { EntityFieldCondition, EntityFieldDefinitionByName, EntityFieldName, EntityFieldResolvedValue, EntityFieldSingleResolvedValue, EntityFieldValues, EntitySelector, EntityType as EntityTypeName, Schema } from '$/schema/$schema.ts'
 import { countLoadedSubsetKey, fieldLoadedSubsetKey, indexResolvers, parseResolverSubset } from '$/resolvers/$resolvers.ts'
 import type { ResolverContext, ResolverFieldValue, ResolverObject, ResolverSubset, ResolverValue, ResolveLiveFields, ResolverIndexes, SourceResolverDefinition, SourceResolverModule } from '$/resolvers/$resolvers.ts'
 import { indexSourceProviders, type SourceProviderDefinition } from '$/sources/$sources.ts'
@@ -46,6 +46,9 @@ declare global {
 				collectionId: string
 				decision: 'hydrated-rows' | 'loaded-marker' | 'snapshot' | 'remote'
 				loadedKey: string
+				hydratedRowCount?: number
+				loadedMarkerRowCount?: number
+				loadedMarkerSourceRowCounts?: Record<string, number>
 				at: number
 			}
 			| {
@@ -58,6 +61,8 @@ declare global {
 				kind: 'markLoaded'
 				collectionId: string
 				loadedKey: string
+				rowCount: number
+				sourceRowCounts: Record<string, number>
 				at: number
 			}
 		)[]
@@ -76,13 +81,16 @@ export type DeclarativeOrderBy<_FieldRow extends object> = readonly (readonly [
 type EntityResolvedFields<
 	_Schema extends Schema,
 	_EntityType extends EntityTypeName<_Schema> = EntityTypeName<_Schema>,
-> = Partial<Record<string, EntityFieldResolvedValue<_Schema, _EntityType, EntityFieldName<_Schema, _EntityType>>>>
+> = Partial<Record<string, ProductSingleFieldValue<_Schema>>>
 
 type EntitySingleResolvedFields<
 	_Schema extends Schema,
 > = Partial<Record<string, ProductSingleFieldValue<_Schema>>>
 
-type ResolverEntityReferenceValue<_Schema extends Schema> = EntityReferenceValue<_Schema, EntityTypeName<_Schema>> & ResolverObject
+type ResolverEntityReferenceValue<_Schema extends Schema> = {
+	readonly [EntityMetaKey.Selector]: EntitySelector<_Schema, EntityTypeName<_Schema>>
+	readonly [EntityMetaKey.SelectorKey]?: string
+} & ResolverObject
 
 type ProductSingleFieldValue<_Schema extends Schema> = EntityFieldSingleResolvedValue<_Schema, EntityTypeName<_Schema>, EntityFieldName<_Schema, EntityTypeName<_Schema>>>
 
@@ -112,7 +120,115 @@ type ProductLoadedSubset = {
 	collectionId: string
 	loadedKey: string
 	rowCount: number
+	sourceRowCounts: Record<string, number>
 }
+
+type ProductSourceRow = {
+	[EntityMetaKey.Source]: string
+}
+
+const sourceRowCountsFromRows = (
+	rows: readonly ProductSourceRow[],
+	sources: readonly string[]
+) => (
+	Object.fromEntries([...new Set([
+		...sources,
+		...rows.map((row) => row[EntityMetaKey.Source]),
+	])].map((source) => [
+		source,
+		rows.filter((row) => row[EntityMetaKey.Source] === source).length,
+	]))
+)
+
+const productRowValue = (
+	row: ProductSourceRow,
+	fieldPath: readonly string[]
+) => fieldPath.reduce<unknown>((value, key) => (
+	value != null && typeof value === 'object' && !(value instanceof Array) ?
+		value[key as keyof typeof value]
+	:
+		undefined
+), row)
+
+const windowProductRows = <_Row extends ProductSourceRow>(
+	rows: readonly _Row[],
+	resolverSubset: ResolverSubset
+) => {
+	const sortedRows = resolverSubset.sorts.length === 0 ?
+		[...rows]
+	:
+		rows.toSorted((left, right) => {
+			for (const sort of resolverSubset.sorts) {
+				const leftValue = productRowValue(left, sort.fieldPath)
+				const rightValue = productRowValue(right, sort.fieldPath)
+				const direction = sort.direction === 'desc' ? -1 : 1
+				if (leftValue == null && rightValue == null)
+					continue
+				if (leftValue == null)
+					return 1
+				if (rightValue == null)
+					return -1
+
+				const comparison = String(leftValue).localeCompare(String(rightValue), undefined, {
+					numeric: true,
+				})
+				if (comparison !== 0)
+					return comparison * direction
+			}
+			return 0
+		})
+	const offset = resolverSubset.pagination.offset ?? 0
+	const limit = resolverSubset.pagination.limit
+	return sortedRows.slice(
+		offset,
+		limit == null ?
+			undefined
+		:
+			offset + limit
+	)
+}
+
+const completedSourcesFromResolverEvents = <_Schema extends Schema>(
+	context: EntityCollectionsContext<_Schema>,
+	resolverEventStartIndex: number,
+	rows: readonly ProductSourceRow[],
+	requestedCompatibleSources: readonly string[]
+) => [
+	...new Set([
+		...(context.events.resolver.slice(resolverEventStartIndex).every((event) => event.outcome !== 'failed') ?
+			requestedCompatibleSources
+		:
+			context.events.resolver.slice(resolverEventStartIndex).flatMap((event) => (
+				event.outcome === 'failed' ?
+					[]
+				:
+					[event.source]
+			))
+		),
+		...rows.map((row) => row[EntityMetaKey.Source]),
+	]),
+]
+
+const loadedSubsetMarkerCoversRows = (
+	loadedMarker: ProductLoadedSubset | undefined,
+	hydratedRows: readonly ProductSourceRow[],
+	requestedCompatibleSources: readonly string[],
+	allowZeroRowMarker: boolean
+) => (
+	loadedMarker != null
+	&& (
+		allowZeroRowMarker
+		|| loadedMarker.rowCount > 0
+	)
+	&& hydratedRows.length >= loadedMarker.rowCount
+	&& requestedCompatibleSources.every((source) => {
+		const requiredRows = loadedMarker.sourceRowCounts[source]
+		return (
+			requiredRows != null
+			&& hydratedRows.filter((row) => row[EntityMetaKey.Source] === source).length >= requiredRows
+		)
+	})
+)
 
 export type EntityCollectionItem<
 	_Schema extends Schema,
@@ -236,14 +352,13 @@ const materializeResolverFieldValue = <
 	_Schema extends Schema,
 	_EntityType extends EntityTypeName<_Schema>,
 	_FieldName extends EntityFieldName<_Schema, _EntityType>,
-	_Value,
 >(
 	schema: _Schema,
 	fieldDefinition: EntityFieldDefinition,
-	value: _Value
+	value: ResolverValue | ProductFieldValue<_Schema>
 ): ProductFieldValue<_Schema> => {
 	if (fieldDefinition.type === EntityFieldType.Primitive || value == null)
-		return value
+		return value as ProductFieldValue<_Schema>
 
 	const referenceEntityDefinition = schema.find((entityDefinition) => entityDefinition.entityType === fieldDefinition.entityType)
 	if (referenceEntityDefinition == null)
@@ -269,7 +384,7 @@ const materializeResolverFieldValue = <
 				...item,
 				[EntityMetaKey.SelectorKey]: entitySelectorKey(schema, referenceEntityDefinition, item[EntityMetaKey.Selector]),
 			}
-		})
+		}) as ProductFieldValue<_Schema>
 	}
 
 	if (
@@ -289,7 +404,7 @@ const materializeResolverFieldValue = <
 			referenceEntityDefinition,
 			value[EntityMetaKey.Selector]
 		),
-	}
+	} as ProductFieldValue<_Schema>
 }
 
 export const countFilterKey = (
@@ -902,16 +1017,19 @@ const loadCollectionSubset = async <_Schema extends Schema>(
 								const fields: EntityResolvedFields<_Schema> = {}
 								for (const fieldDefinition of entityFieldDefinitions(referencedEntityDefinition)) {
 									const fieldValue = valueFields[fieldDefinition.name]
-									if (
-											fieldDefinition.when == null
-											&& !entityFieldCardinalityIsMultiple(fieldDefinition.cardinality)
-											&& isProductSingleFieldValue(fieldValue)
-										)
-											fields[fieldDefinition.name] = materializeResolverFieldValue(
+										if (
+												fieldDefinition.when == null
+												&& !entityFieldCardinalityIsMultiple(fieldDefinition.cardinality)
+												&& isProductSingleFieldValue(fieldValue)
+											) {
+											const fieldValueWithSelectorKey = materializeResolverFieldValue(
 												context.schema,
 												fieldDefinition,
 												fieldValue
 											)
+											if (isProductSingleFieldValue(fieldValueWithSelectorKey))
+												fields[fieldDefinition.name] = fieldValueWithSelectorKey
+										}
 								}
 
 								const entityRow = {
@@ -1430,34 +1548,36 @@ const loadCollectionSubset = async <_Schema extends Schema>(
 									&& fieldSelector.parentSelectors != null
 									&& !fieldSelector.parentSelectors.includes(candidate.selectorName)
 								)
-							)
-								return []
+								)
+									return []
 
-							try {
-								const value = materializeResolverFieldValue(
-									context.schema,
-									siblingFieldDefinition,
-									typeof fieldSelector === 'function' ?
-										fieldSelector(
+								try {
+									let selectedValue: ResolverValue | ProductFieldValue<_Schema>
+									if (typeof fieldSelector === 'function')
+										selectedValue = fieldSelector(
 											snapshot,
 											candidate.entitySelector,
 											{
 												...fieldResolverSubset,
 												publicEnv: context.resolverPublicEnvBySource.get(part.source) ?? {},
 											}
-										)
-										: fieldSelector.select == null ?
-											fieldRowFieldsFromValue(snapshot)[siblingFieldDefinition.name]
-										:
-											fieldSelector.select(
-												snapshot,
-												candidate.entitySelector,
-												{
+										) as ResolverValue | ProductFieldValue<_Schema>
+									else if (fieldSelector.select == null)
+										selectedValue = fieldRowFieldsFromValue(snapshot)[siblingFieldDefinition.name]
+									else
+										selectedValue = fieldSelector.select(
+											snapshot,
+											candidate.entitySelector,
+											{
 												...fieldResolverSubset,
 												publicEnv: context.resolverPublicEnvBySource.get(part.source) ?? {},
 											}
-										)
-								)
+										) as ResolverValue | ProductFieldValue<_Schema>
+									const value = materializeResolverFieldValue(
+										context.schema,
+										siblingFieldDefinition,
+										selectedValue
+									)
 								validateResolverFieldValue(context.schema, siblingFieldDefinition, value)
 
 								if (Array.isArray(value))
@@ -1695,18 +1815,11 @@ export const createCollections = <const _Schema extends Schema>({
 						const requestedCompatibleSources = resolverSubset.sources ?? [
 							...new Set((context.resolverIndexes.resolverDefinitionsByEntityType[entityDefinition.entityType] ?? []).map((resolver) => resolver.source)),
 						]
-						const hydratedRowsMissingCompatibleSource = requestedCompatibleSources.some((source) => (
-							!hydratedRows.some((row) => row[EntityMetaKey.Source] === source)
-							&& context.resolverIndexes.resolverDefinitionsByEntityType[entityDefinition.entityType]?.some((resolver) => (
-								resolver.source === source
-							))
-						))
-						const canUseLoadedMarker = (
-							!hydratedRowsMissingCompatibleSource
-							&& (
-								loadedMarker?.rowCount === 0
-								|| (loadedMarker != null && hydratedRows.length >= loadedMarker.rowCount)
-							)
+						const canUseLoadedMarker = loadedSubsetMarkerCoversRows(
+							loadedMarker,
+							hydratedRows,
+							requestedCompatibleSources,
+							true
 						)
 						const persistenceDecision = (
 							canUseLoadedMarker ?
@@ -1719,6 +1832,9 @@ export const createCollections = <const _Schema extends Schema>({
 							collectionId,
 							decision: persistenceDecision,
 							loadedKey,
+							hydratedRowCount: hydratedRows.length,
+							loadedMarkerRowCount: loadedMarker?.rowCount,
+							loadedMarkerSourceRowCounts: loadedMarker?.sourceRowCounts,
 							at: Date.now(),
 						})
 						recordPersistenceProbe({
@@ -1738,6 +1854,7 @@ export const createCollections = <const _Schema extends Schema>({
 						if (persistenceDecision !== 'remote')
 							return hydratedRows
 
+						const resolverEventStartIndex = context.events.resolver.length
 						const subset = await loadCollectionSubset(
 							context,
 							{
@@ -1757,25 +1874,43 @@ export const createCollections = <const _Schema extends Schema>({
 								row
 							)
 						const rows = [...rowsByKey.values()]
+						const completedSources = completedSourcesFromResolverEvents(
+							context,
+							resolverEventStartIndex,
+							rows,
+							requestedCompatibleSources
+						)
+						const markerRows = windowProductRows(rows.filter((row) => (
+							resolverSubset.selectorKeys.includes(row[EntityMetaKey.SelectorKey])
+							&& (
+								resolverSubset.sources == null
+								|| resolverSubset.sources.includes(row[EntityMetaKey.Source])
+							)
+						)), resolverSubset)
 						const loadedSubsetKey = stringify([
 							collectionId,
 							loadedKey,
 						])
+						const sourceRowCounts = sourceRowCountsFromRows(markerRows, completedSources)
 						recordPersistenceProbe({
 							kind: 'markLoaded',
 							collectionId,
 							loadedKey,
+							rowCount: markerRows.length,
+							sourceRowCounts,
 							at: Date.now(),
 						})
 						if (context.loadedSubsets.has(loadedSubsetKey))
 							await context.loadedSubsets.update(loadedSubsetKey, (row) => {
-								row.rowCount = rows.length
+								row.rowCount = markerRows.length
+								row.sourceRowCounts = sourceRowCounts
 							}).isPersisted.promise
 						else
 							await context.loadedSubsets.insert({
 								collectionId,
 								loadedKey,
-								rowCount: rows.length,
+								rowCount: markerRows.length,
+								sourceRowCounts,
 							}).isPersisted.promise
 						return rows
 							},
@@ -1914,15 +2049,6 @@ export const createCollections = <const _Schema extends Schema>({
 										[]
 								))),
 							]
-							const hydratedRowsMissingCompatibleSource = requestedCompatibleSources.some((source) => (
-								!hydratedRows.some((row) => row[EntityMetaKey.Source] === source)
-								&& context.resolverIndexes.resolverParts.some((resolverPart) => (
-									resolverPart.entityType === entityDefinition.entityType
-									&& resolverPart.fieldName === fieldDefinition.name
-									&& resolverPart.source === source
-									&& resolverPart.select != null
-								))
-							))
 							const hasCompatibleLivePublisher = (
 								context.resolverIndexes.resolverParts.some((resolverPart) => (
 									resolverPart.entityType === entityDefinition.entityType
@@ -1942,12 +2068,11 @@ export const createCollections = <const _Schema extends Schema>({
 										)
 									))
 							)
-							const canUseLoadedMarker = (
-								!hydratedRowsMissingCompatibleSource
-								&& (
-									(loadedMarker?.rowCount === 0 && !hasCompatibleLivePublisher)
-									|| (loadedMarker != null && loadedMarker.rowCount > 0 && hydratedRows.length >= loadedMarker.rowCount)
-								)
+							const canUseLoadedMarker = loadedSubsetMarkerCoversRows(
+								loadedMarker,
+								hydratedRows,
+								requestedCompatibleSources,
+								!hasCompatibleLivePublisher
 							)
 							const persistenceDecision = (
 								canUseLoadedMarker ?
@@ -1960,6 +2085,9 @@ export const createCollections = <const _Schema extends Schema>({
 								collectionId,
 								decision: persistenceDecision,
 								loadedKey,
+								hydratedRowCount: hydratedRows.length,
+								loadedMarkerRowCount: loadedMarker?.rowCount,
+								loadedMarkerSourceRowCounts: loadedMarker?.sourceRowCounts,
 								at: Date.now(),
 							})
 							recordPersistenceProbe({
@@ -1980,6 +2108,7 @@ export const createCollections = <const _Schema extends Schema>({
 							if (persistenceDecision !== 'remote')
 								return hydratedRows
 
+							const resolverEventStartIndex = context.events.resolver.length
 							const subset = await loadCollectionSubset(
 								context,
 								{
@@ -1995,25 +2124,43 @@ export const createCollections = <const _Schema extends Schema>({
 									row,
 								])).values(),
 							]
+							const completedSources = completedSourcesFromResolverEvents(
+								context,
+								resolverEventStartIndex,
+								rows,
+								requestedCompatibleSources
+							)
+							const markerRows = windowProductRows(rows.filter((row) => (
+								resolverSubset.parentSelectorKeys.includes(row[EntityMetaKey.ParentSelectorKey])
+								&& (
+									resolverSubset.sources == null
+									|| resolverSubset.sources.includes(row[EntityMetaKey.Source])
+								)
+							)), resolverSubset)
 							const loadedSubsetKey = stringify([
 								collectionId,
 								loadedKey,
 							])
+							const sourceRowCounts = sourceRowCountsFromRows(markerRows, completedSources)
 							recordPersistenceProbe({
 								kind: 'markLoaded',
 								collectionId,
 								loadedKey,
+								rowCount: markerRows.length,
+								sourceRowCounts,
 								at: Date.now(),
 							})
 							if (context.loadedSubsets.has(loadedSubsetKey))
 								await context.loadedSubsets.update(loadedSubsetKey, (row) => {
-									row.rowCount = rows.length
+									row.rowCount = markerRows.length
+									row.sourceRowCounts = sourceRowCounts
 								}).isPersisted.promise
 							else
 								await context.loadedSubsets.insert({
 									collectionId,
 									loadedKey,
-									rowCount: rows.length,
+									rowCount: markerRows.length,
+									sourceRowCounts,
 								}).isPersisted.promise
 							return rows
 								},
@@ -2136,24 +2283,11 @@ export const createCollections = <const _Schema extends Schema>({
 											[]
 									))),
 								]
-								const hydratedRowsMissingCompatibleSource = requestedCompatibleSources.some((source) => (
-									!hydratedRows.some((row) => row[EntityMetaKey.Source] === source)
-									&& context.resolverIndexes.resolverParts.some((resolverPart) => (
-										resolverPart.entityType === entityDefinition.entityType
-										&& resolverPart.fieldName === fieldDefinition.name
-										&& resolverPart.source === source
-										&& (
-											resolverPart.resolveCount != null
-											|| resolverPart.select != null
-										)
-									))
-								))
-								const canUseLoadedMarker = (
-									!hydratedRowsMissingCompatibleSource
-									&& (
-										loadedMarker?.rowCount === 0
-										|| (loadedMarker != null && hydratedRows.length >= loadedMarker.rowCount)
-									)
+								const canUseLoadedMarker = loadedSubsetMarkerCoversRows(
+									loadedMarker,
+									hydratedRows,
+									requestedCompatibleSources,
+									true
 								)
 								const persistenceDecision = (
 									canUseLoadedMarker ?
@@ -2166,6 +2300,9 @@ export const createCollections = <const _Schema extends Schema>({
 									collectionId,
 									decision: persistenceDecision,
 									loadedKey,
+									hydratedRowCount: hydratedRows.length,
+									loadedMarkerRowCount: loadedMarker?.rowCount,
+									loadedMarkerSourceRowCounts: loadedMarker?.sourceRowCounts,
 									at: Date.now(),
 								})
 								recordPersistenceProbe({
@@ -2186,6 +2323,7 @@ export const createCollections = <const _Schema extends Schema>({
 								if (persistenceDecision !== 'remote')
 									return hydratedRows
 
+								const resolverEventStartIndex = context.events.resolver.length
 								const subset = await loadCollectionSubset(
 									context,
 									{
@@ -2201,25 +2339,44 @@ export const createCollections = <const _Schema extends Schema>({
 										row,
 									])).values(),
 								]
+								const completedSources = completedSourcesFromResolverEvents(
+									context,
+									resolverEventStartIndex,
+									rows,
+									requestedCompatibleSources
+								)
+								const markerRows = windowProductRows(rows.filter((row) => (
+									resolverSubset.parentSelectorKeys.includes(row[EntityMetaKey.ParentSelectorKey])
+									&& row.filterKey === filterKey
+									&& (
+										resolverSubset.sources == null
+										|| resolverSubset.sources.includes(row[EntityMetaKey.Source])
+									)
+								)), resolverSubset)
 								const loadedSubsetKey = stringify([
 									collectionId,
 									loadedKey,
 								])
+								const sourceRowCounts = sourceRowCountsFromRows(markerRows, completedSources)
 								recordPersistenceProbe({
 									kind: 'markLoaded',
 									collectionId,
 									loadedKey,
+									rowCount: markerRows.length,
+									sourceRowCounts,
 									at: Date.now(),
 								})
 								if (context.loadedSubsets.has(loadedSubsetKey))
 									await context.loadedSubsets.update(loadedSubsetKey, (row) => {
-										row.rowCount = rows.length
+										row.rowCount = markerRows.length
+										row.sourceRowCounts = sourceRowCounts
 									}).isPersisted.promise
 								else
 									await context.loadedSubsets.insert({
 										collectionId,
 										loadedKey,
-										rowCount: rows.length,
+										rowCount: markerRows.length,
+										sourceRowCounts,
 									}).isPersisted.promise
 								return rows
 									},

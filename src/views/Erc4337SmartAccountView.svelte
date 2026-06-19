@@ -17,11 +17,10 @@
 
 	// State
 	let {
-		selector,
 		selection,
 		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/smart-account/[address=evmAddress]', {
-				caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
-				address: selector.address,
+				caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
+				address: selection.entitySelector.address,
 		}),
 		layout = EntityLayout.Summary,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
@@ -30,8 +29,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.Erc4337SmartAccount>
-			selection?: EntityProxyResource<typeof schema, EntityType.Erc4337SmartAccount>
+			selection: EntityProxyResource<typeof schema, EntityType.Erc4337SmartAccount>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -44,11 +42,9 @@
 		>
 	> = $props()
 
+
 	const smartAccount = $derived(
-		selection ?? select(
-			EntityType.Erc4337SmartAccount,
-			selector,
-			{
+		selection({
 			sources: [
 				Source.Blockscout_Rest,
 			],
@@ -74,7 +70,7 @@
 
 <EntityView
 	entityType={EntityType.Erc4337SmartAccount}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{layout}
 	bind:open
@@ -85,14 +81,14 @@
 	{#snippet Value()}
 		<TruncatedValue
 			format={TruncatedValueFormat.Visual}
-			value={selector.address}
+			value={selection.entitySelector.address}
 		/>
 	{/snippet}
 
 	{#snippet Title()}
 		<TruncatedValue
 			format={TruncatedValueFormat.Visual}
-			value={selector.address}
+			value={selection.entitySelector.address}
 		/>
 	{/snippet}
 
@@ -132,7 +128,7 @@
 							<dt>Factory</dt>
 							<dd>
 								<Erc4337AccountFactoryView
-									selector={factory.entitySelector}
+									selection={select(EntityType.Erc4337AccountFactory, factory.entitySelector)}
 									layout={EntityLayout.Title}
 
 									showTypeAnnotation={false}
@@ -154,7 +150,7 @@
 							<dt>Account contract</dt>
 							<dd>
 								<EvmContractView
-									selector={contract.entitySelector}
+									selection={select(EntityType.EvmContract, contract.entitySelector)}
 									layout={EntityLayout.Value}
 									open={true}
 									showTypeAnnotation={false}

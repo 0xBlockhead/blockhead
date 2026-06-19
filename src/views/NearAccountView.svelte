@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.NearAccount>
+			selection: EntityProxyResource<typeof schema, EntityType.NearAccount>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -39,23 +41,22 @@
 
 <EntityView
 	entityType={EntityType.NearAccount}
-	entitySelector={selector}
-	title={selector.accountId}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.accountId}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
 		<TruncatedValue
-			value={selector.accountId}
+			value={selection.entitySelector.accountId}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.NearAccount,
-					selector,
+			resource={selection(
 					({ fields: { amountYoctoNear: true, storageUsageBytes: true } }),
 				)}
 			placeholderText={`Loading NEAR Account...`}

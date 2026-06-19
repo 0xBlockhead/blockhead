@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -12,14 +13,14 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		layout = EntityLayout.Summary,
 		title: titleProp,
 		open = $bindable(false),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.MevRelay>
+			selection: EntityProxyResource<typeof schema, EntityType.MevRelay>
 			layout?: EntityLayout
 			title?: string
 			open?: boolean
@@ -30,6 +31,7 @@
 		>
 	> = $props()
 
+
 	
 	
 
@@ -38,7 +40,7 @@
 	// (Derived)
 	const title = $derived(
 		titleProp
-		?? selector.host
+		?? selection.entitySelector.host
 	)
 
 
@@ -50,7 +52,7 @@
 
 <EntityView
 	entityType={EntityType.MevRelay}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	{title}
 	{layout}
 	bind:open
@@ -58,7 +60,7 @@
 >
 	{#snippet Value()}
 		<span>
-			{selector.host}
+			{selection.entitySelector.host}
 		</span>
 	{/snippet}
 
@@ -69,10 +71,7 @@
 	{#snippet Content()}
 		{#if open}
 			<ResourceBoundary
-				resource={select(
-						EntityType.MevRelay,
-						selector,
-						{
+				resource={selection({
 							sources: [Source.Constants_Internal],
 						},
 					).url}

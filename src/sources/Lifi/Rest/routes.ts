@@ -4,6 +4,7 @@
  */
 
 import { BridgeRouteTag } from '$/schema/BridgeRoute.ts'
+import { stringify } from 'devalue'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
 import type { schema } from '$/schema/index.ts'
@@ -33,6 +34,8 @@ export type BridgeRouteResolverBundle = {
 	}
 	steps: BridgeRouteStepFields[]
 }
+
+const bridgeRouteResolverBundleByQuoteId = new Map<string, Promise<BridgeRouteResolverBundle>>()
 
 const bridgeRouteQuoteIdToRequest = (
 	quoteId: BridgeRouteQuoteId
@@ -148,6 +151,17 @@ const bridgeRouteBundleFromQuoteStep = (
 export const fetchBridgeRouteBundleForQuoteId = async (
 	quoteId: BridgeRouteQuoteId
 ): Promise<BridgeRouteResolverBundle> => {
-	const step = await fetchLifiQuoteStep(bridgeRouteQuoteIdToRequest(quoteId))
-	return bridgeRouteBundleFromQuoteStep(quoteId, step)
+	const quoteIdKey = stringify(quoteId)
+	const existingBundle = bridgeRouteResolverBundleByQuoteId.get(quoteIdKey)
+	if (existingBundle != null)
+		return existingBundle
+
+	const bundle = fetchLifiQuoteStep(bridgeRouteQuoteIdToRequest(quoteId))
+		.then((step) => bridgeRouteBundleFromQuoteStep(quoteId, step))
+		.catch((error) => {
+			bridgeRouteResolverBundleByQuoteId.delete(quoteIdKey)
+			throw error
+		})
+	bridgeRouteResolverBundleByQuoteId.set(quoteIdKey, bundle)
+	return bundle
 }

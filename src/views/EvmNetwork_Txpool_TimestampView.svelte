@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntitySelector } from '$/schema/$schema.ts'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -14,16 +14,16 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-			caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
+			caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
 		}),
 		layout,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.EvmNetwork_Txpool_Timestamp>
+			selection: EntityProxyResource<typeof schema, EntityType.EvmNetwork_Txpool_Timestamp>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -34,13 +34,10 @@
 		>
 	> = $props()
 
-	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { select } from '$/routes/+layout.svelte'
 
-	const networkTxpoolTimestamp = $derived(select(
-		EntityType.EvmNetwork_Txpool_Timestamp,
-		selector,
-		{
+	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
+
+	const networkTxpoolTimestamp = $derived(selection({
 			sources: [
 				Source.Voltaire_JsonRpc,
 			],
@@ -61,7 +58,7 @@
 
 <EntityView
 	entityType={EntityType.EvmNetwork_Txpool_Timestamp}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{layout}
 	{open}
@@ -78,11 +75,11 @@
 					<NumberValue value={pendingCount} />
 					pending
 				{:else if queuedCount !== undefined}
-					<NumberValue value={queuedCount} />
+					<NumberValue resource={queuedCount} />
 					queued
 				{:else}
 					<span>
-						chain {String(evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`))}
+						chain {String(evmChainIdFromCaip2(`${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`))}
 					</span>
 				{/if}
 			{/snippet}
@@ -99,11 +96,11 @@
 					<NumberValue value={pendingCount} />
 					pending
 				{:else if queuedCount !== undefined}
-					<NumberValue value={queuedCount} />
+					<NumberValue resource={queuedCount} />
 					queued
 				{:else}
 					<span>
-						chain {String(evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`))}
+						chain {String(evmChainIdFromCaip2(`${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`))}
 					</span>
 				{/if}
 	{/snippet}
@@ -126,7 +123,7 @@
 				<dt>As of</dt>
 				<dd>
 					<Timestamp
-						timestamp={selector.timestampMs}
+						timestamp={selection.entitySelector.timestampMs}
 					/>
 				</dd>
 				</div>
@@ -139,7 +136,7 @@
 								resource={pendingCount}
 							>
 								{#snippet children(networkTxpoolTimestamp)}
-									<NumberValue value={pendingCount} />
+									<NumberValue value={networkTxpoolTimestamp} />
 								{/snippet}
 							</ResourceBoundary>
 						</dd>
@@ -152,10 +149,10 @@
 						<dd>
 							<ResourceBoundary
 								placeholderText="Loading mempool snapshot…"
-								resource={pendingCount}
+								resource={queuedCount}
 							>
 								{#snippet children(networkTxpoolTimestamp)}
-									<NumberValue value={queuedCount} />
+									<NumberValue value={networkTxpoolTimestamp} />
 								{/snippet}
 							</ResourceBoundary>
 						</dd>

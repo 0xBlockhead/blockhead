@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
@@ -58,7 +59,7 @@
 
 	{#snippet body()}
 		{#if open}
-			<ResourceBoundary {resource} placeholderText="Loading transactions…">
+			<ResourceBoundary resource={selection} placeholderText="Loading transactions…">
 				{#snippet children(transactions)}
 					<EntitiesList
 				collapsible={false}
@@ -79,7 +80,7 @@
 
 				{#snippet Item({ item })}
 					<HyperliquidTransactionView
-						selector={item.entitySelector}
+						selection={select(EntityType.HyperliquidTransaction, item.entitySelector)}
 						layout={EntityLayout.Summary}
 
 					/>

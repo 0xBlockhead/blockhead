@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -10,14 +11,15 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		selector: EntitySelector<typeof schema, EntityType.NetworkStack>
+		selection: EntityProxyResource<typeof schema, EntityType.NetworkStack>
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
+
 
 	
 
@@ -30,16 +32,16 @@
 
 <EntityView
 	entityType={EntityType.NetworkStack}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	bind:open
 	{layout}
 >
 
 	{#snippet Title()}
 		<ResourceBoundary
-			resource={select(EntityType.NetworkStack, selector, ({ sources: [
+			resource={selection( { sources: [
 				Source.Constants_Internal,
-			], fields: { label: true } }))}
+			], fields: { label: true } })}
 		>
 			{#snippet children(stack)}
 				{stack.fields.label}

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { type as arktype } from 'arktype'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
@@ -26,7 +28,7 @@
 <Page>
 	{#if selector}
 		<EvmAccountView
-			selector={selector}
+			selection={select(EntityType.EvmAccount, selector)}
 		/>
 	{/if}
 </Page>

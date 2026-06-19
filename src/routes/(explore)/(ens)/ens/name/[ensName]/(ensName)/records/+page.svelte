@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		params,
@@ -12,6 +14,6 @@
 
 <Page>
 	<EnsNameTextRecordsView
-		selector={{ name: params.ensName }}
+		selection={select(EntityType.EnsName, { name: params.ensName })}
 	/>
 </Page>

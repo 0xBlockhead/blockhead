@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -17,16 +18,16 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/(social)/(reddit)/reddit/r/[name]', {
-			name: selector.name,
+			name: selection.entitySelector.name,
 		}),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.RedditSubreddit>
+			selection: EntityProxyResource<typeof schema, EntityType.RedditSubreddit>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -37,20 +38,13 @@
 		>
 	> = $props()
 
+
 	const subreddit = $derived(
-		select(
-			EntityType.RedditSubreddit,
-			selector,
-			({ sources: [
-				Source.Reddit_Rest,
-				Source.Reddit_PublicJson,
+		selection(({ sources: [
+				Source.Constants_Internal,
 			], fields: {
 				title: true,
 				publicDescription: true,
-				$$timestamps: ({ sources: [
-					Source.Reddit_Rest,
-					Source.Reddit_PublicJson,
-				], limit: 1 }),
 				createdAt: true,
 				over18: true,
 				$icon: true,
@@ -58,7 +52,7 @@
 		)
 	)
 
-	const idKey = $derived(stringify(selector))
+	const idKey = $derived(stringify(selection.entitySelector))
 
 
 	// Components
@@ -77,7 +71,7 @@
 
 <EntityView
 	entityType={EntityType.RedditSubreddit}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{layout}
 	bind:open
@@ -91,7 +85,7 @@
 			{#snippet children(subreddit)}
 				{#if subreddit.fields.$icon !== undefined}
 					<IconComponent
-						alt={subreddit.fields.title ?? selector.name}
+						alt={subreddit.fields.title ?? selection.entitySelector.name}
 						shape={IconShape.Circle}
 						src={subreddit.fields.$icon[EntityMetaKey.Selector].url}
 					/>
@@ -102,7 +96,7 @@
 
 	{#snippet Value()}
 		<span>
-			{selector.name}
+			{selection.entitySelector.name}
 		</span>
 	{/snippet}
 
@@ -112,7 +106,7 @@
 			placeholderText="Loading subreddit…"
 		>
 			{#snippet children(subreddit)}
-				{subreddit.fields.title ?? `r/${selector.name}`}
+				{subreddit.fields.title ?? `r/${selection.entitySelector.name}`}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -142,19 +136,6 @@
 				{/if}
 
 				<dl data-column-item="center">
-					<SocialMetricSnapshotRows
-						metrics={[
-							{
-								label: 'Subscribers',
-								value: subreddit.fields.$$timestamps.values.at(0)?.subscriberCount,
-							},
-							{
-								label: 'Active users',
-								value: subreddit.fields.$$timestamps.values.at(0)?.activeUserCount,
-							},
-						]}
-					/>
-
 					{#if subreddit.fields.createdAt != null}
 						<div>
 							<dt>Created</dt>
@@ -205,20 +186,14 @@
 			{#snippet SectionLinks()}
 				<RedditLinksView
 					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.RedditSubreddit,
-			selector
-		).$$links}
+					selection={selection.$$links}
 					id={`${idKey}:reddit-links`}
 				/>
 			{/snippet}
 
 			{#snippet SectionMetricSnapshots()}
 				<RedditSubreddit_TimestampsView
-					selection={select(
-			EntityType.RedditSubreddit,
-			selector
-		).$$timestamps}
+					selection={selection.$$timestamps}
 					href={href}
 					id={`${idKey}:metric-snapshots`}
 					title="Metric snapshots"

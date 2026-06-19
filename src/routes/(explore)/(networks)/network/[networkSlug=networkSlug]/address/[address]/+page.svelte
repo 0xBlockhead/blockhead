@@ -30,7 +30,9 @@
 		{#snippet children(network)}
 			{@const selector = { slug: network.fields.slug }}
 			{#if network.fields.namespace === NetworkNamespace.Bitcoin || network.fields.namespace === NetworkNamespace.BitcoinCash || network.fields.namespace === NetworkNamespace.Litecoin || network.fields.namespace === NetworkNamespace.Dogecoin || network.fields.namespace === NetworkNamespace.Zcash}
-				<UtxoAddressView selector={{ $network: selector, address: params.address }} />
+				<UtxoAddressView
+					selection={select(EntityType.UtxoAddress, { $network: selector, address: params.address })}
+				/>
 			{:else}
 				<p data-text="muted">Address detail not available for this network type yet.</p>
 			{/if}

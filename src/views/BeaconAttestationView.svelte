@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -12,14 +13,14 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		layout = EntityLayout.Summary,
 		title: titleProp,
 		open = $bindable(false),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.BeaconAttestation>
+			selection: EntityProxyResource<typeof schema, EntityType.BeaconAttestation>
 			layout?: EntityLayout
 			title?: string
 			open?: boolean
@@ -30,10 +31,8 @@
 		>
 	> = $props()
 
-	const attestation = $derived(select(
-		EntityType.BeaconAttestation,
-		selector,
-		{
+
+	const attestation = $derived(selection({
 			sources: [Source.Beacon_Rest],
 		},
 	))
@@ -45,7 +44,7 @@
 	// (Derived)
 	const title = $derived(
 		titleProp
-		?? `Attestation ${selector.index} in slot ${selector.slot.toLocaleString()}`
+		?? `Attestation ${selection.entitySelector.index} in slot ${selection.entitySelector.slot.toLocaleString()}`
 	)
 
 
@@ -59,7 +58,7 @@
 
 <EntityView
 	entityType={EntityType.BeaconAttestation}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	{title}
 	{layout}
 	bind:open
@@ -68,9 +67,9 @@
 	{#snippet Value()}
 		<span
 			data-badge="small"
-			data-attestation-index={String(selector.index)}
+			data-attestation-index={String(selection.entitySelector.index)}
 		>
-			{String(selector.index)}
+			{String(selection.entitySelector.index)}
 		</span>
 	{/snippet}
 
@@ -79,9 +78,9 @@
 			<span>Attestation </span>
 		<span
 			data-badge="small"
-			data-attestation-index={String(selector.index)}
+			data-attestation-index={String(selection.entitySelector.index)}
 				>
-			{String(selector.index)}
+			{String(selection.entitySelector.index)}
 		</span>
 		</span>
 	{/snippet}
@@ -101,17 +100,24 @@
 							</div>
 						{/if}
 
-						{#if aggregationBits !== undefined}
-							<div>
-								<dt>Aggregation bits</dt>
-								<dd>
-									<TruncatedValue
-										value={aggregationBits}
-										format={TruncatedValueFormat.Abbr}
-									/>
-								</dd>
-							</div>
-						{/if}
+						<div>
+							<dt>Aggregation bits</dt>
+							<dd>
+								<ResourceBoundary
+									resource={aggregationBits}
+									placeholderText="Loading aggregation bits…"
+								>
+									{#snippet children(aggregationBits)}
+										{#if aggregationBits !== undefined}
+											<TruncatedValue
+												value={aggregationBits}
+												format={TruncatedValueFormat.Abbr}
+											/>
+										{/if}
+									{/snippet}
+								</ResourceBoundary>
+							</dd>
+						</div>
 					</dl>
 				{/snippet}
 			</ResourceBoundary>

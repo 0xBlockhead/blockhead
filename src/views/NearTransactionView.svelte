@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.NearTransaction>
+			selection: EntityProxyResource<typeof schema, EntityType.NearTransaction>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -39,22 +41,22 @@
 
 <EntityView
 	entityType={EntityType.NearTransaction}
-	entitySelector={selector}
-	title={selector.hash}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.hash}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
 		<TruncatedValue
-			value={selector.hash}
+			value={selection.entitySelector.hash}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.NearTransaction, selector, ({ fields: { nonce: true } }))}
+			resource={selection( { fields: { nonce: true } })}
 			placeholderText={`Loading NEAR Transaction...`}
 		>
 			{#snippet children(nearTransaction)}

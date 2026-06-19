@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -17,15 +18,13 @@
 
 	// State
 	let {
-		selector,
-		href = resolve('/(social)/(x)/x/user/[userId]', {
-			userId: 'id' in selector ? selector.id : selector.username,
-		}),
+		selection,
+		href: hrefProp,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.XUser>
+			selection: EntityProxyResource<typeof schema, EntityType.XUser>
 			href?: string
 			open?: boolean
 		},
@@ -36,12 +35,20 @@
 		>
 	> = $props()
 
+	const selector = $derived(
+		selection.value[EntityMetaKey.Selector]
+	)
+
+	const href = $derived(
+		hrefProp ?? resolve('/(social)/(x)/x/user/[userId]', {
+			userId: 'id' in selector ? selector.id : selector.username,
+		})
+	)
+
+
 	const user = $derived(
-		select(
-			EntityType.XUser,
-			selector,
-			{
-				...(!('id' in selector) && {
+		selection({
+					...(!('id' in selector) && {
 					sources: [
 						Source.X_FxEmbed_Rest,
 					],
@@ -90,20 +97,22 @@
 	{...EntityViewProps}
 >
 	{#snippet Icon()}
-		<ResourceBoundary
-			resource={user}
-			placeholderText="Loading X profile…"
-		>
-			{#snippet children(user)}
-				{#if user.fields.$icon !== undefined}
-					<IconComponent
-						alt={user.fields.name ?? user.fields.username ?? ''}
-						shape={IconShape.Circle}
-						src={user.fields.$icon[EntityMetaKey.Selector].url}
-					/>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if open}
+			<ResourceBoundary
+				resource={user}
+				placeholderText="Loading X profile…"
+			>
+				{#snippet children(user)}
+					{#if user.fields.$icon !== undefined}
+						<IconComponent
+							alt={user.fields.name ?? user.fields.username ?? ''}
+							shape={IconShape.Circle}
+							src={user.fields.$icon[EntityMetaKey.Selector].url}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
@@ -114,34 +123,40 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<ResourceBoundary
-			resource={user}
-			placeholderText="Loading X profile…"
-		>
-			{#snippet children(user)}
-				{user.fields.name ?? user.fields.username ?? ('id' in selector ? selector.id : selector.username)}
-			{/snippet}
-		</ResourceBoundary>
+		{#if open}
+			<ResourceBoundary
+				resource={user}
+				placeholderText="Loading X profile…"
+				>
+					{#snippet children(user)}
+						{user.fields.name ?? user.fields.username ?? ('id' in selector ? selector.id : selector.username)}
+					{/snippet}
+				</ResourceBoundary>
+			{:else}
+				{'id' in selector ? selector.id : `@${selector.username}`}
+			{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary
-			resource={user}
-			placeholderText="Loading X profile…"
-		>
-			{#snippet children(user)}
-				{#if (
-					user.fields.username !== undefined
-					&& user.fields.username !== (
-						user.fields.name ?? ('id' in selector ? selector.id : selector.username)
-					)
-				)}
-					<span data-text="muted">
-						@{user.fields.username}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if open}
+			<ResourceBoundary
+				resource={user}
+				placeholderText="Loading X profile…"
+			>
+				{#snippet children(user)}
+					{#if (
+							user.fields.username !== undefined
+							&& user.fields.username !== (
+								user.fields.name ?? ('id' in selector ? selector.id : selector.username)
+							)
+						)}
+						<span data-text="muted">
+							@{user.fields.username}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -154,21 +169,23 @@
 	{/snippet}
 
 	{#snippet Content({ open })}
-		<ResourceBoundary
-			resource={user}
-			placeholderText="Loading X profile…"
-		>
-			{#snippet children(user)}
-				{#if user.fields.description}
-					<p>
-						<TruncatedValue
-							value={user.fields.description}
-							format={TruncatedValueFormat.Visual}
-						/>
-					</p>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if open}
+			<ResourceBoundary
+				resource={user}
+				placeholderText="Loading X profile…"
+			>
+				{#snippet children(user)}
+					{#if user.fields.description}
+						<p>
+							<TruncatedValue
+								value={user.fields.description}
+								format={TruncatedValueFormat.Visual}
+							/>
+						</p>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 
 		<dl data-column-item="center">
 			{#if open}
@@ -181,19 +198,19 @@
 							metrics={[
 								{
 									label: 'Followers',
-									value: user.fields.$$timestamps.values.at(0)?.followerCount,
+									resource: user.fields.$$timestamps.values.at(0)?.followerCount,
 								},
 								{
 									label: 'Following',
-									value: user.fields.$$timestamps.values.at(0)?.followingCount,
+									resource: user.fields.$$timestamps.values.at(0)?.followingCount,
 								},
 								{
 									label: 'Posts',
-									value: user.fields.$$timestamps.values.at(0)?.tweetCount,
+									resource: user.fields.$$timestamps.values.at(0)?.tweetCount,
 								},
 								{
 									label: 'Listed',
-									value: user.fields.$$timestamps.values.at(0)?.listedCount,
+									resource: user.fields.$$timestamps.values.at(0)?.listedCount,
 								},
 							]}
 						/>

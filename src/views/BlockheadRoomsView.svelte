@@ -1,6 +1,5 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -22,11 +21,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.BlockheadRoom>
 			title?: string
 			open?: boolean
 			collapsible?: boolean
@@ -104,7 +99,7 @@
 
 						{#snippet Item({ item: room })}
 							<BlockheadRoomView
-								selector={room.entitySelector}
+								selection={select(EntityType.BlockheadRoom, room.entitySelector)}
 								layout={EntityLayout.Summary}
 
 							/>

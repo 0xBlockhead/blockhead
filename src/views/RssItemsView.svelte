@@ -1,10 +1,9 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
-import { ListOrientation } from '$/components/ListOrientation.ts'
 	// Types/constants
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -13,13 +12,14 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 
 	// Context
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
+	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		selection,
 		id = 'rss-items',
-				limit = 25,
+		limit = 25,
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
 		),
@@ -28,11 +28,7 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.RssItem>
 			id?: string
 			limit?: number
 			open?: boolean
@@ -47,14 +43,10 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 	> = $props()
 
 
-
-	
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import RssItemView from '$/views/RssItemView.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -76,18 +68,17 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 		</p>
 	{/snippet}
 
-	{#snippet Empty()}
-		<p data-text="muted">
-			No RSS items here yet.
-		</p>
-	{/snippet}
+							{#snippet Empty()}
+								<p data-text="muted">
+									No RSS items here yet.
+								</p>
+							{/snippet}
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			<ResourceBoundary resource={selection({
 					sources: [
 						Source.Rss_Rest,
-						Source.Rss2Json_Rest,
 					],
 					limit,
 				})} placeholderText="Loading items…">
@@ -111,11 +102,17 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 						{/snippet}
 
 						{#snippet Item({ item })}
-							<RssItemView
-							selector={item.entitySelector}
-							layout={EntityLayout.Title}
-
-						/>
+							<a
+								href={resolve('/(social)/(rss)/rss/item/[feedKey]/[guid]', {
+									feedKey: encodeURIComponent(item.entitySelector.feedUrl),
+									guid: encodeURIComponent(item.entitySelector.guid),
+								})}
+							>
+								<TruncatedValue
+									value={item.entitySelector.guid}
+									format={TruncatedValueFormat.Visual}
+								/>
+							</a>
 						{/snippet}
 					</EntitiesList>
 				{/snippet}

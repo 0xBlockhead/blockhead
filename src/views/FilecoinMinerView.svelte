@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.FilecoinMiner>
+			selection: EntityProxyResource<typeof schema, EntityType.FilecoinMiner>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -39,23 +41,22 @@
 
 <EntityView
 	entityType={EntityType.FilecoinMiner}
-	entitySelector={selector}
-	title={selector.minerAddress}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.minerAddress}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
 		<TruncatedValue
-			value={selector.minerAddress}
+			value={selection.entitySelector.minerAddress}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.FilecoinMiner,
-					selector,
+			resource={selection(
 					({ fields: { peerId: true, qualityAdjustedPower: true } }),
 				)}
 			placeholderText={`Loading Filecoin Miner...`}

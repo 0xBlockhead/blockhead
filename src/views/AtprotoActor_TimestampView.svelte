@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -15,19 +16,19 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/(social)/(atproto)/atproto/actor/[did]', {
-			did: 'did' in selector.$actor ?
-				selector.$actor.did
+			did: 'did' in selection.entitySelector.$actor ?
+				selection.entitySelector.$actor.did
 			:
-				selector.$actor.handle,
+				selection.entitySelector.$actor.handle,
 		}),
 		layout = EntityLayout.Summary,
 		open = $bindable(false),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.AtprotoActor_Timestamp>
+			selection: EntityProxyResource<typeof schema, EntityType.AtprotoActor_Timestamp>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -37,6 +38,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -51,7 +53,7 @@
 
 <EntityView
 	entityType={EntityType.AtprotoActor_Timestamp}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{layout}
 	bind:open
@@ -59,11 +61,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<Timestamp timestamp={selector.timestampMs} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Title()}
-		<Timestamp timestamp={selector.timestampMs} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -74,8 +76,8 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.AtprotoActor_Timestamp, selector, ({ sources: [
-				Source.Atproto_Xrpc,			], fields: { followersCount: true, followsCount: true, postsCount: true } }))}
+			resource={selection( { sources: [
+				Source.Atproto_Xrpc,			], fields: { followersCount: true, followsCount: true, postsCount: true } })}
 			placeholderText="Loading AT Protocol actor snapshot..."
 		>
 			{#snippet children(atprotoActorTimestamp)}

@@ -2,9 +2,10 @@ import { expect, test } from '@playwright/test'
 
 import {
 	assertMainSettled,
-	collectIssues,
 	e2eBrowserNewContextOptions,
+	expectMainVisible,
 	installChainlistRpcsJsonStub,
+	setupPageRuntimeDiagnostics,
 } from '../_e2eBrowserHelpers.ts'
 
 import { discoverPathnamesFromRoutes } from './_routeDiscovery.ts'
@@ -34,7 +35,7 @@ test.describe('site data lifecycle', () => {
 				const warmCtx = await browser.newContext(e2eBrowserNewContextOptions())
 				const page = await warmCtx.newPage()
 				await installChainlistRpcsJsonStub(page)
-				const issues = collectIssues(page)
+				const diagnostics = setupPageRuntimeDiagnostics(page, { forwardConsole: true })
 
 				let coldProxies = 0
 				const onCold = (req: import('@playwright/test').Request) => {
@@ -42,8 +43,9 @@ test.describe('site data lifecycle', () => {
 				}
 				page.on('request', onCold)
 
-				await page.goto(pathname, { waitUntil: 'domcontentloaded' })
-				await assertMainSettled(page, settleTimeoutMs)
+				await diagnostics.step(page.goto(pathname, { waitUntil: 'domcontentloaded' }))
+				await expectMainVisible(page, settleTimeoutMs, diagnostics)
+				await assertMainSettled(page, settleTimeoutMs, diagnostics)
 
 				page.off('request', onCold)
 
@@ -53,8 +55,9 @@ test.describe('site data lifecycle', () => {
 				}
 				page.on('request', onReload)
 
-				await page.reload({ waitUntil: 'domcontentloaded' })
-				await assertMainSettled(page, settleTimeoutMs)
+				await diagnostics.step(page.reload({ waitUntil: 'domcontentloaded' }))
+				await expectMainVisible(page, settleTimeoutMs, diagnostics)
+				await assertMainSettled(page, settleTimeoutMs, diagnostics)
 
 				page.off('request', onReload)
 
@@ -63,14 +66,14 @@ test.describe('site data lifecycle', () => {
 					`expected zero /api-proxy/ after warm reload for ${pathname} (cold had ${coldProxies})`
 				).toBe(0)
 
-				expect(issues, `${pathname} warm\n${issues.join('\n')}`).toEqual([])
+				expect(diagnostics.issues, `${pathname} warm\n${diagnostics.issues.join('\n')}`).toEqual([])
 
 				await warmCtx.close()
 
 				const coldCtx = await browser.newContext(e2eBrowserNewContextOptions())
 				const pageCold = await coldCtx.newPage()
 				await installChainlistRpcsJsonStub(pageCold)
-				const issuesCold = collectIssues(pageCold)
+				const coldDiagnostics = setupPageRuntimeDiagnostics(pageCold, { forwardConsole: true })
 
 				let freshProxies = 0
 				const onFresh = (req: import('@playwright/test').Request) => {
@@ -78,8 +81,9 @@ test.describe('site data lifecycle', () => {
 				}
 				pageCold.on('request', onFresh)
 
-				await pageCold.goto(pathname, { waitUntil: 'domcontentloaded' })
-				await assertMainSettled(pageCold, settleTimeoutMs)
+				await coldDiagnostics.step(pageCold.goto(pathname, { waitUntil: 'domcontentloaded' }))
+				await expectMainVisible(pageCold, settleTimeoutMs, coldDiagnostics)
+				await assertMainSettled(pageCold, settleTimeoutMs, coldDiagnostics)
 
 				pageCold.off('request', onFresh)
 
@@ -89,7 +93,7 @@ test.describe('site data lifecycle', () => {
 						`expected /api-proxy/ on fresh browser profile for ${pathname}`
 					).toBeGreaterThan(0)
 
-				expect(issuesCold, `${pathname} cold\n${issuesCold.join('\n')}`).toEqual([])
+				expect(coldDiagnostics.issues, `${pathname} cold\n${coldDiagnostics.issues.join('\n')}`).toEqual([])
 
 				await coldCtx.close()
 			})
@@ -99,14 +103,15 @@ test.describe('site data lifecycle', () => {
 			const stressCtx = await browser.newContext(e2eBrowserNewContextOptions())
 			const stressPage = await stressCtx.newPage()
 			await installChainlistRpcsJsonStub(stressPage)
-			const stressIssues = collectIssues(stressPage)
+			const stressDiagnostics = setupPageRuntimeDiagnostics(stressPage, { forwardConsole: true })
 
 			for (const p of pathnames.slice(0, Math.min(24, pathnames.length))) {
-				await stressPage.goto(p, { waitUntil: 'domcontentloaded' })
-				await assertMainSettled(stressPage, settleTimeoutMs)
+				await stressDiagnostics.step(stressPage.goto(p, { waitUntil: 'domcontentloaded' }))
+				await expectMainVisible(stressPage, settleTimeoutMs, stressDiagnostics)
+				await assertMainSettled(stressPage, settleTimeoutMs, stressDiagnostics)
 			}
 
-			expect(stressIssues, stressIssues.join('\n')).toEqual([])
+			expect(stressDiagnostics.issues, stressDiagnostics.issues.join('\n')).toEqual([])
 			await stressCtx.close()
 		})
 	})

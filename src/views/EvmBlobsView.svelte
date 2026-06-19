@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
@@ -102,7 +103,7 @@
 
 					{#snippet Item({ item })}
 						<EvmBlobView
-							selector={item.entitySelector}
+							selection={select(EntityType.EvmBlob, item.entitySelector)}
 							layout={EntityLayout.Summary}
 
 						/>

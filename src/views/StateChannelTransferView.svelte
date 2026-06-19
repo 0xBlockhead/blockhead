@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import { stateChannelTransferStatusByStatus } from '$/constants/StateChannel.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -17,7 +18,7 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/channels'),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(
@@ -28,7 +29,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.StateChannelTransfer>
+			selection: EntityProxyResource<typeof schema, EntityType.StateChannelTransfer>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -41,8 +42,8 @@
 		>
 	> = $props()
 
-	const transfer = $derived(select(EntityType.StateChannelTransfer,
-		selector,
+
+	const transfer = $derived(selection(
 		({ sources: [Source.Local_Internal], fields: { amount: true, turnNum: true, status: true, timestamp: true, $from: true, $to: true, $channel: ({ fields: { $network: true } }) } }),
 	))
 
@@ -59,7 +60,7 @@
 
 <EntityView
 	entityType={EntityType.StateChannelTransfer}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{layout}
 	bind:open
@@ -68,7 +69,7 @@
 >
 	{#snippet Value()}
 		<span>
-			{selector.id}
+			{selection.entitySelector.id}
 		</span>
 	{/snippet}
 
@@ -160,19 +161,17 @@
 							<dd>
 								{#if transfer.fields.$channel?.entity.fields.$network !== undefined}
 									<EvmNetworkAccountView
-										selector={{
+										selection={select(EntityType.EvmNetworkAccount, {
 											$network: transfer.fields.$channel.entity.fields.$network[EntityMetaKey.Selector],
 											$actor: transfer.fields.$from[EntityMetaKey.Selector],
-										}}
+										})}
 										layout={EntityLayout.Title}
 
 									/>
 								{:else}
 									<EvmAccountView
-										selector={transfer.fields.$from[EntityMetaKey.Selector]}
-										href={resolve('/account/[address]', {
-											address: transfer.fields.$from[EntityMetaKey.Selector].address,
-										})}
+										selection={select(EntityType.EvmAccount, transfer.fields.$from[EntityMetaKey.Selector])}
+										href={`/account/${transfer.fields.$from[EntityMetaKey.Selector].address}`}
 										layout={EntityLayout.Title}
 
 									/>
@@ -187,19 +186,17 @@
 							<dd>
 								{#if transfer.fields.$channel?.entity.fields.$network !== undefined}
 									<EvmNetworkAccountView
-										selector={{
+										selection={select(EntityType.EvmNetworkAccount, {
 											$network: transfer.fields.$channel.entity.fields.$network[EntityMetaKey.Selector],
 											$actor: transfer.fields.$to[EntityMetaKey.Selector],
-										}}
+										})}
 										layout={EntityLayout.Title}
 
 									/>
 								{:else}
 									<EvmAccountView
-										selector={transfer.fields.$to[EntityMetaKey.Selector]}
-										href={resolve('/account/[address]', {
-											address: transfer.fields.$to[EntityMetaKey.Selector].address,
-										})}
+										selection={select(EntityType.EvmAccount, transfer.fields.$to[EntityMetaKey.Selector])}
+										href={`/account/${transfer.fields.$to[EntityMetaKey.Selector].address}`}
 										layout={EntityLayout.Title}
 
 									/>

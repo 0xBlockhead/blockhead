@@ -1,27 +1,20 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntitySelectorForSelectorName } from '$/schema/$schema.ts'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { LightningNodeSelector } from '$/schema/LightningNode.ts'
-	import { NetworkSelector } from '$/schema/Network.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
-
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelectorForSelectorName<typeof schema, EntityType.LightningNode, LightningNodeSelector.NetworkPublicKey> & {
-				$network: EntitySelectorForSelectorName<typeof schema, EntityType.Network, NetworkSelector.Slug>
-			}
+			selection: EntityProxyResource<typeof schema, EntityType.LightningNode>
 			open?: boolean
 		},
 		Pick<
@@ -31,8 +24,7 @@
 		>
 	> = $props()
 
-	const node = $derived(select(EntityType.LightningNode,
-		selector,
+	const node = $derived(selection(
 		({ sources: [
 				Source.LightningMempoolSpace_Rest,
 				Source.LightningLnd_Rest,
@@ -50,9 +42,14 @@
 
 <EntityView
 	entityType={EntityType.LightningNode}
-	entitySelector={selector}
-	href={`/network/${selector.$network.slug}/nodes/${selector.publicKey}`}
-	title={selector.publicKey}
+	entitySelector={selection.entitySelector}
+	href={`/network/${
+		'slug' in selection.entitySelector.$network ?
+			selection.entitySelector.$network.slug
+		:
+			`${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`
+	}/nodes/${selection.entitySelector.publicKey}`}
+	title={selection.entitySelector.publicKey}
 	bind:open
 	{...EntityViewProps}
 >
@@ -62,7 +59,7 @@
 			resource={node}
 		>
 			{#snippet children(lightningNode)}
-				{lightningNode.fields.alias ?? selector.publicKey}
+				{lightningNode.fields.alias ?? selection.entitySelector.publicKey}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -78,7 +75,7 @@
 						<dt>Public key</dt>
 						<dd>
 							<TruncatedValue
-								value={selector.publicKey}
+								value={selection.entitySelector.publicKey}
 								format={TruncatedValueFormat.Abbr}
 							/>
 						</dd>

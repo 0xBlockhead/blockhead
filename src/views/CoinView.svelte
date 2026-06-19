@@ -1,11 +1,9 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import { CoinInstanceRepresentation } from '$/constants/Bridge.ts'
-	import {
-		Source,
-		catalogCoinIdentitySources,
-	} from '$/sources/Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { catalogCoinSpotUsdMarketByCoinId } from '$/constants/MarketCatalog.ts'
 
 	import {
@@ -30,10 +28,8 @@
 
 	// State
 	let {
-		selector,
-		href = resolve('/(assets)/(coins)/coin/[coinId]', {
-			coinId: selector.coinId,
-		}),
+		selection,
+		href,
 		layout,
 		open = $bindable(
 			layout === EntityLayout.SummaryDetails
@@ -43,7 +39,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.Coin>
+			selection: EntityProxyResource<typeof schema, EntityType.Coin>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -75,16 +71,19 @@
 
 
 	const coin = $derived(
-		select(
-			EntityType.Coin,
-			selector,
+		selection(
 			{
 				sources: (
 					open
 					|| layout == null
 					|| layout === EntityLayout.SummaryDetails
 				) ?
-					[...catalogCoinIdentitySources]
+					[
+						Source.Constants_Internal,
+						Source.Coingecko_Rest,
+						Source.CoinMarketCap_Rest,
+						Source.Coinpaprika_OpenApi,
+					]
 				:
 					[
 						Source.Constants_Internal,
@@ -108,7 +107,6 @@
 						$$bridgeCapabilities: {
 							sources: [
 								Source.Constants_Internal,
-								Source.Lifi_Rest,
 							],
 						},
 					}),
@@ -119,27 +117,23 @@
 
 
 	const idPrefix = $derived(
-		stringify(selector)
+		stringify(selection.entitySelector)
 	)
 
 	const catalogUsdMarketId = $derived({
 		$base: {
 			kind: MarketAssetKind.Coin,
-			$coin: { coinId: catalogCoinSpotUsdMarketByCoinId[selector.coinId].baseCoinId },
+			$coin: { coinId: catalogCoinSpotUsdMarketByCoinId[selection.entitySelector.coinId].baseCoinId },
 		},
 		$quote: {
 			kind: MarketAssetKind.Currency,
-			$currency: { iso4217: catalogCoinSpotUsdMarketByCoinId[selector.coinId].quoteIso4217 },
+			$currency: { iso4217: catalogCoinSpotUsdMarketByCoinId[selection.entitySelector.coinId].quoteIso4217 },
 		},
 		$marketVenue: {
-			marketVenueId: catalogCoinSpotUsdMarketByCoinId[selector.coinId].marketVenueId,
+			marketVenueId: catalogCoinSpotUsdMarketByCoinId[selection.entitySelector.coinId].marketVenueId,
 		},
-		marketKind: catalogCoinSpotUsdMarketByCoinId[selector.coinId].marketKind,
+		marketKind: catalogCoinSpotUsdMarketByCoinId[selection.entitySelector.coinId].marketKind,
 	})
-
-	
-
-
 
 
 	// Components
@@ -153,7 +147,6 @@
 	import CoinBridgeCapabilitiesView from '$/views/CoinBridgeCapabilitiesView.svelte'
 	import EvmCoinInstancesView from '$/views/EvmCoinInstancesView.svelte'
 	import CurrencyAmount from '$/views/CurrencyAmount.svelte'
-	import MarketsView from '$/views/MarketsView.svelte'
 	import Coin_TimestampView from '$/views/Coin_TimestampView.svelte'
 </script>
 
@@ -161,8 +154,10 @@
 <EntityView
 	entityType={EntityType.Coin}
 	bind:open
-	entitySelector={selector}
-	href={href}
+	entitySelector={selection.entitySelector}
+	href={href ?? resolve('/(assets)/(coins)/coin/[coinId]', {
+		coinId: selection.entitySelector.coinId,
+	})}
 	{layout}
 	{collapsible}
 	{...EntityViewProps}
@@ -176,7 +171,7 @@
 					{#if coin.fields.$logo?.[EntityMetaKey.Selector].url !== undefined}
 						<IconComponent
 							src={coin.fields.$logo[EntityMetaKey.Selector].url}
-							alt={coin.fields.symbol ?? coin.fields.name ?? selector.coinId}
+							alt={coin.fields.symbol ?? coin.fields.name ?? selection.entitySelector.coinId}
 						/>
 					{/if}
 				{/snippet}
@@ -186,7 +181,7 @@
 
 	{#snippet Value()}
 		<span>
-			{selector.coinId}
+			{selection.entitySelector.coinId}
 		</span>
 	{/snippet}
 
@@ -197,11 +192,11 @@
 				placeholderText="Loading…"
 			>
 				{#snippet children(coin)}
-					{formatCoinHeadingLabel(coin.fields, selector.coinId)}
+					{formatCoinHeadingLabel(coin.fields, selection.entitySelector.coinId)}
 				{/snippet}
 			</ResourceBoundary>
 		{:else}
-			{selector.coinId}
+			{selection.entitySelector.coinId}
 		{/if}
 	{/snippet}
 
@@ -240,19 +235,17 @@
 				<div>
 					<dt>Market cap</dt>
 					<dd>
-						<ResourceBoundary resource={coin}>
-							{#snippet children(coin)}
-									{#if (
-										coin.fields.$$timestamps?.values.at(0)?.marketCapUsd != null
-										&& Number.isFinite(coin.fields.$$timestamps?.values.at(0)?.marketCapUsd)
-									)}
-										<CurrencyAmount
-											currency="USD"
-											scale={1}
-											value={coin.fields.$$timestamps?.values.at(0)?.marketCapUsd}
-										/>
-									{/if}
-							{/snippet}
+							<ResourceBoundary resource={coin}>
+								{#snippet children(coin)}
+									{@const marketCapUsd = coin.fields.$$timestamps?.values.at(0)?.marketCapUsd}
+										{#if marketCapUsd !== undefined}
+											<CurrencyAmount
+												currency="USD"
+												scale={1}
+												resource={marketCapUsd}
+											/>
+										{/if}
+								{/snippet}
 					</ResourceBoundary>
 				</dd>
 			</div>
@@ -265,13 +258,13 @@
 										<dt>Latest snapshot</dt>
 										<dd>
 										<Coin_TimestampView
-											selector={coin.fields.$$timestamps.values
+											selection={select(EntityType.Coin_Timestamp, coin.fields.$$timestamps.values
 											.toSorted((leftRow, rightRow) => (
 												rightRow[EntityMetaKey.Selector].timestampMs
 													- leftRow[EntityMetaKey.Selector].timestampMs
-											))[0][EntityMetaKey.Selector]}
+											))[0][EntityMetaKey.Selector])}
 										href={resolve('/(assets)/(coins)/coin/[coinId]', {
-											coinId: selector.coinId,
+											coinId: selection.entitySelector.coinId,
 										})}
 										layout={EntityLayout.Title}
 									/>
@@ -310,9 +303,7 @@
 						sectionIdPrefix={idPrefix}
 						sections={collapsibleTabsSections([
 							{ id: 'coin-instances', label: 'Instances' },
-							...(coin.fields.$$coinInstances.values.some((row) => (
-								row.representation === CoinInstanceRepresentation.BridgeWrapped
-							)) ? [{ id: 'coin-wrapped', label: 'Wrapped' }] : []),
+							{ id: 'coin-wrapped', label: 'Wrapped' },
 							...(coin.fields.$$bridgeCapabilities.values.length ? [{ id: 'coin-bridge-capabilities', label: 'Bridge capabilities' }] : []),
 						])}
 						class="coin-view-collapsible-topology"
@@ -335,31 +326,21 @@
 							<EvmCoinInstancesView
 								CollapsibleProps={{ canToggle: false }}
 								href={resolve('/coins')}
-								selection={select(
-									EntityType.Coin,
-									selector
-								).$$coinInstances}
+								selection={selection.$$coinInstances}
 								{id}
 								title="Instances"
 							/>
 						{/snippet}
 
 						{#snippet SectionCoinWrapped({ id, label })}
-							{#if coin.fields.$$coinInstances.values.some((row) => (
-								row.representation === CoinInstanceRepresentation.BridgeWrapped
-							))}
-								<EvmCoinInstancesView
-									CollapsibleProps={{ canToggle: false }}
-									href={resolve('/coins')}
-									selection={select(
-										EntityType.Coin,
-										selector
-									).$$coinInstances}
-									{id}
-									representationFilter={CoinInstanceRepresentation.BridgeWrapped}
-									title="Wrapped"
-								/>
-							{/if}
+							<EvmCoinInstancesView
+								CollapsibleProps={{ canToggle: false }}
+								href={resolve('/coins')}
+								selection={selection.$$coinInstances}
+								{id}
+								representationFilter={CoinInstanceRepresentation.BridgeWrapped}
+								title="Wrapped"
+							/>
 						{/snippet}
 
 						{#snippet SectionCoinBridgeCapabilities({ id, label })}
@@ -367,10 +348,7 @@
 								<CoinBridgeCapabilitiesView
 									CollapsibleProps={{ canToggle: false }}
 									href={resolve('/bridge')}
-									selection={select(
-										EntityType.Coin,
-										selector
-									).$$bridgeCapabilities}
+									selection={selection.$$bridgeCapabilities}
 									{id}
 									title="Bridge capabilities"
 								/>
@@ -383,8 +361,6 @@
 						sectionIdPrefix={idPrefix}
 						sections={[
 							{ id: 'catalog-usd-market', label: 'USD market' },
-							{ id: 'markets-as-base', label: 'Base' },
-							{ id: 'markets-as-quote', label: 'Quote' },
 						]}
 						class="coin-view-collapsible-markets"
 						data-card
@@ -427,32 +403,6 @@
 									— spot quote and OHLC on the market page.
 								</span>
 							</p>
-						{/snippet}
-
-						{#snippet SectionMarketsAsBase({ id, label })}
-							<MarketsView
-								CollapsibleProps={{ canToggle: false }}
-								href={resolve('/markets')}
-								selection={select(
-			EntityType.Coin,
-			selector
-		).$$marketsWithCoinAsBase}
-								{id}
-								title="Base"
-							/>
-						{/snippet}
-
-						{#snippet SectionMarketsAsQuote({ id, label })}
-							<MarketsView
-								CollapsibleProps={{ canToggle: false }}
-								href={resolve('/markets')}
-								selection={select(
-			EntityType.Coin,
-			selector
-		).$$marketsWithCoinAsQuote}
-								{id}
-								title="Quote"
-							/>
 						{/snippet}
 					</CollapsibleTabs>
 				</div>

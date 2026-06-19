@@ -454,6 +454,13 @@ Market graph notes: `$/constants/Market.ts`. Quote / OHLC UI: Entity views — L
 
 The repo uses `src/sources/**` for external I/O and source metadata registration.
 
+Source ownership:
+
+- A `SourceProvider` is the vendor, host family, protocol project, or local subsystem that owns shared source metadata, environment gating, transport origins, and concrete source rows.
+- A `Source` is one concrete executable wire contract under a provider: transport plus endpoint family/protocol shape, such as REST/OpenAPI, GraphQL schema, EVM JSON-RPC, XRPC lexicon, GitHub raw files, or internal constants.
+- Provider roots (`$/sources/<Provider>/index.ts`) own provider metadata, provider-level env, and executable origins. Transport folders (`$/sources/<Provider>/<Transport>/`) own source definitions and network code (`queries.ts`, optional `client.ts`, `constants.ts`, `types.ts`, and generated schema files). Resolvers own source-to-schema mapping.
+- `src/constants/**` may hold protocol/catalog/reference rows. Executable base URLs, RPC URLs, REST API origins, gateway origins, and endpoint rows used by source clients must live in `src/sources/**` or be projected into provider origins there. Do not export primitive endpoint URL maps from constants for source clients.
+
 Registry contract:
 
 - `$/sources/$SourceProvider.ts` exports `SourceProvider` enum and `SourceProviderDefinition`
@@ -648,18 +655,18 @@ Resolvers are the bridge between `sources/` and the TanStack DB collections.
 		- Use field facets for truly field-scoped data only; avoid repeating identical endpoint calls across many fields for one entity.
 		- Entity field collections apply the same optional `Source` filter as entity collections when the live query includes a `Source` `in` clause, so field facets for disabled or filtered-out sources are not invoked.
 	- Failure behavior:
-	- **Throw** when the entity or field cannot be resolved under the given id / parent scope / source mapping. Do not return `{}`, `[]`, or `undefined` to mean failure, unsupported scope, missing API mapping, or swallowed fetch/parse errors.
-		- Validate predicate-scoped support (chain, variant, id shape, realm/category, market kind, …) **before** upstream requests. Mirror the entity resolver’s throw on the same file/source when a field facet hits the same unsupported predicate.
+		- A declared field facet is a compatibility promise. Do not declare a field facet that can only throw `unsupported`, `not implemented`, or “wrong selector” for the source surface. Omit unsupported facets from the resolver `fields` map.
+		- Throw when a schema-valid selector is invalid for the resolver’s domain slice, such as the wrong chain family, market kind, realm/category, id shape, or provider mapping for this source. These are invalid selector requests for that resolver, not empty results.
+		- For declared many-field facets, return `[]` when the source successfully determines that this supported parent has no child rows. Do not return `[]` for fetch/parse/auth failures, unsupported source scope, missing required source mapping, or a facet that the source never supports.
+		- Return `undefined` only for optional schema fields after a successful supported lookup confirms that the upstream has no value, or for documented auth-optional degradation where the resolver can still satisfy the optional field contract. Required scalar/source invariant failures throw.
+		- Do not `catch` and return empty data. Rethrow or wrap with `{ cause }` and a source-prefixed message.
+		- Do not return partial placeholder entity rows (e.g. only `{ epoch }` when header fetch was skipped, or `{}` when REST base is missing).
 	- Error messages: `` `{Source}_{Transport}: <predicate>` `` (e.g. `` `Blockscout_Rest: no Blockscout v2 explorer for chain ${chainId}` ``, `` `Coingecko_OpenApi: OHLC is spot-only` ``). Reuse the message already thrown by a sibling resolver on that source when possible.
-	- Do not `catch` and return empty data. Rethrow or wrap with `{ cause }` and a source-prefixed message.
-	- Do not return partial placeholder entity rows (e.g. only `{ epoch }` when header fetch was skipped, or `{}` when REST base is missing).
-	- **Allowed** (not “could not resolve”):
-		- `[]` inside `flatMap` / filter to skip individual bad or duplicate wire rows after a successful list fetch.
-		- `[]` when upstream successfully returns zero child rows for a supported parent (e.g. mainnet with no paired testnets).
-		- `{}` on entity `resolve` after existence validation when the schema entity has no scalar fields beyond its id (catalog/local rows).
-		- `undefined` on optional schema fields when this source’s **successful** scoped call confirms upstream has no value (ENS reverse miss, missing deployer on explorer row, optional metadata slice)—not when the chain/transport/field is unsupported for this source.
-		- Multi-source optional fields: returning `undefined` because “not from this source” is OK only when views intentionally merge providers; if this source owns the field and would throw on entity resolve for the same predicate, field facets must throw too.
-	- Removing/resolving: delete or never add stub resolvers; unimplemented field paths must throw (see existing `` `… is not implemented` `` / `` `… unsupported` `` patterns in `Constants.ts` and market providers)—never silently return empty.
+	- Selector parameters: destructure selector fields in resolver callbacks unless forwarding the whole selector unchanged to a source query or using it as an opaque selector key. Avoid repeated property drilling like `entitySelector.foo` when the callback uses individual fields.
+	- Count facets:
+		- `resolveCount` is authoritative only when the source exposes a count endpoint/value or the resolver has a complete unwindowed result set. Do not use a paginated/windowed page length as an authoritative count.
+		- `partial: true` means the list facet result is intentionally incomplete for count fallback purposes; it is not a support declaration. Set it when a many-field facet returns a window/preview and no authoritative count exists, so the client does not infer a count from list length.
+	- Source support metadata: source/provider constants should own statically known network, chain, transport, and feature coverage where practical. Resolver predicates should consume that metadata so unsupported surfaces are filtered before they look like runtime resolver failures.
 - Live resolvers:
 		- Optional `resolveLive` on a `defineResolver` field facet (see `ResolveLiveContext` in `$/resolvers/$resolvers.ts`) handles push-driven refresh from WebSockets or streams.
 	- Keep `resolve` as the snapshot implementation.
@@ -710,16 +717,16 @@ Local collection query behavior:
 - TanStack’s persisted wrapper still invokes each Product Data collection `queryFn` after OPFS hydration. The query function must therefore return hydrated rows or row-count-validated loaded-marker completion before resolver work when the requested completed subset is already durable.
 - Entity/Field/Count `queryFn`s wait for `LoadedSubset` hydration, check matching Product Data rows, and only run resolvers when durable rows/markers cannot satisfy the subset. For Field and Count collection `queryFn`s, hydrated rows satisfy a request only when every requested compatible source is represented; lower-priority hydrated rows must not suppress a missing higher-priority compatible source. A nonzero loaded marker never proves a nonempty subset by itself; it can suppress resolver work only when the matching persisted row count is present. For rendered Count results, resource readiness must at least be priority-complete: do not settle from a lower-priority Count Row while an earlier compatible count source is still missing.
 - After every successful remote subset load, including successful zero-row and partial-source-result loads, the query function writes a `LoadedSubset` row keyed by `collectionId` plus the canonical loaded key plus `rowCount`, and awaits OPFS persistence. This is required because Product Data rows alone cannot represent “this subset loaded and returned zero rows” or “this compatible source completed with no row,” while the row count prevents a marker from hiding missing persisted nonempty rows after reload.
-- New route-dependent subsets that were not cold-completed are legitimate TanStack on-demand work after reload. Do not treat all warm catalog HTTP as a persistence failure unless the corresponding collection subset was cold-marked or cold-hydrated.
+- For a given page URL, the first fresh-browser load may run resolver-backed network work through Product Data collections. A refresh of that same page must resolve from persisted TanStack DB Product Data for every subset completed during the cold load, without replaying the same resolver-backed `collectionId` + `loadedKey` network work or the same catalog HTTP. New work is legitimate only when the warm page requests a subset that the cold load never completed.
 - Keep collection query functions typed from package-provided TanStack types where possible, especially `LoadSubsetOptions` and TanStack Query Collection metadata. Avoid duplicating sync param/result shapes locally unless package types cannot express the boundary.
 - Do not replace this collection-level logic with route/view-specific guards, manual preloads, in-memory caches, or raw provider-response persistence unless the Product Data invariant is explicitly changed.
 
 Verification:
 
-- Use `tests/e2e/tanstack-db-persistence.e2e.ts` for OPFS persistence checks. It clears OPFS, installs the client persistence probe (`window.__blockheadPersistenceProbe` / sessionStorage), cold-loads representative routes, records cold `markLoaded` events, reloads, and asserts completed Entity/Field/Count Product Data subsets hydrate from OPFS without warm `remote` replay for the same `collectionId` + `loadedKey`.
-- **CI / pre-merge gate:** `pnpm run test:e2e:persistence` (canonical routes: `/networks`, `/network/1`; dedicated dev server). Full route discovery: `pnpm run test:e2e:persistence:full` (slow; may fail on unrelated page console errors).
+- Use `tests/e2e/tanstack-db-persistence.e2e.ts` for OPFS persistence checks. It clears OPFS, installs the client persistence probe (`window.__blockheadPersistenceProbe` / sessionStorage), cold-loads every discovered `+page` route, records cold `markLoaded` events, refreshes the same page, and asserts completed Entity/Field/Count Product Data subsets hydrate from OPFS without warm `remote` replay for the same `collectionId` + `loadedKey` or repeated catalog HTTP. The same file also keeps the direct `$client` EVM network probe and schema-version invalidation proof.
+- **CI / pre-merge gate:** `pnpm run test:e2e:persistence` (all discovered pages; dedicated dev server). Focus a single route with `E2E_PROBE_PATH=/network/eip155:1 pnpm exec playwright test tests/e2e/tanstack-db-persistence.e2e.ts -g "every discovered page"` or slice with `E2E_PATH_LIMIT=20`.
 - Real-network suites may need provider-specific noise filtering for unrelated upstream 400/404/422/fetch failures.
-- Current focused status: `PLAYWRIGHT_SKIP_WEBSERVER=1 PLAYWRIGHT_BASE_URL=http://127.0.0.1:5174 E2E_REAL_PERSISTENCE_PATHS=/network/eip155:1 ./node_modules/.bin/playwright test tests/e2e/tanstack-db-persistence.e2e.ts --reporter=line` passes for completed-subset replay. Warm catalog HTTP for cold-unmarked route work is not a persistence failure under the current on-demand Product Data model.
+- Current focused status must include the route-matrix refresh assertion. A narrow probe is acceptable while debugging only when the follow-up all-route gate is still required before closing persistence work.
 
 Regression history (do not reintroduce):
 
@@ -727,7 +734,7 @@ Regression history (do not reintroduce):
 2. **`collectionSnapshotHasChanges` short-circuit without `everyListedSourceHydrated`** ([coins / `$$coins` thread](9bcb00da-fbfa-409d-8b45-31c2ec5ef194)) — Constants-only rows could satisfy a limited ordered snapshot while Coingecko (or other `Source in (…)`) never loaded; wrapper returned `true` and skipped remote fetch forever. Fix: require `everyListedSourceHydrated` before short-circuiting on snapshot changes; multi-source live queries must list **enabled** sources only (disabled providers never produce rows → subset never “complete”).
 3. **Unfiltered catalog subsets** — Global `$$networks` and similar lists have `filters.length === 0`; `collectionHasHydratedSubset` alone is insufficient. `markLoaded()` must persist the `blockhead:loaded-subset:…` metadata marker after a successful remote load.
 4. **`schemaVersion` bumps** (`+layout.svelte`) — intentional OPFS wipe; first visit after bump will refetch catalogs. Bump only when persisted row shape changes, not for unrelated features.
-5. **Stale reused Vite dev server during Playwright** — `playwright.config.ts` notes mid-HMR `.svelte-kit/generated` can 500; use `PLAYWRIGHT_DEDICATED_SERVER=1` (or stop port 5173) for persistence runs. Do not use page-wide catalog HTTP count on `/networks` warm reload as the persistence signal — list rows mount summary `NetworkView` instances that fetch per-network catalog fields independently; rely on the probe for `$$networks` instead.
+5. **Stale reused Vite dev server during Playwright** — `playwright.config.ts` notes mid-HMR `.svelte-kit/generated` can 500; use `PLAYWRIGHT_DEDICATED_SERVER=1` (or stop port 5173) for persistence runs. Page-wide warm reloads must not repeat resolver-backed work completed by the cold load; use the persistence probe’s `collectionId` + `loadedKey` replay check as the authoritative signal, with repeated catalog HTTP as an additional failure.
 6. **Live `resolveLive` invalidations** — Voltaire block streams invalidate head block / tx lists; that is expected live refresh, not catalog persistence failure. Do not confuse with Chainlist / EthereumLists refetch.
 
 Change checklist (any edit touching collections, layout persistence, or catalog field queries):

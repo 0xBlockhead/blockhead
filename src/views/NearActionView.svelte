@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.NearAction>
+			selection: EntityProxyResource<typeof schema, EntityType.NearAction>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -38,16 +40,16 @@
 
 <EntityView
 	entityType={EntityType.NearAction}
-	entitySelector={selector}
-	title={`Action #${selector.actionIndex.toString()}`}
-	idDragPlainText={selector.actionIndex.toString()}
+	entitySelector={selection.entitySelector}
+	title={`Action #${selection.entitySelector.actionIndex.toString()}`}
+	idDragPlainText={selection.entitySelector.actionIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{selector.actionIndex.toString()}
+			#{selection.entitySelector.actionIndex.toString()}
 		</span>
 	{/snippet}
 
@@ -62,8 +64,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.NearAction,
-					selector,
+			resource={selection(
 					({ fields: { actionKind: true, methodName: true, depositYoctoNear: true } }),
 				)}
 			placeholderText={`Loading NEAR Action...`}

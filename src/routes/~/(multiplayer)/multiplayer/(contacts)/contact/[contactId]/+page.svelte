@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		params,
@@ -12,6 +14,6 @@
 
 <Page>
 	<BlockheadRoomPeerView
-		selector={{ id: params.contactId }}
+		selection={select(EntityType.BlockheadRoomPeer, { id: params.contactId })}
 	/>
 </Page>

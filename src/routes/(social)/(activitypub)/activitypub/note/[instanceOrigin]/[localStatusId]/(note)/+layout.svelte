@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// Context
 	import { resolve } from '$app/paths'
 	import { page } from '$app/state'
@@ -32,10 +34,10 @@
 >
 	{#snippet Summary({ open: _open })}
 		<ActivityPubNoteView
-			selector={{
+			selection={select(EntityType.ActivityPubNote, {
 				instanceOrigin: decodeURIComponent(instanceOrigin),
 				localStatusId: decodeURIComponent(localStatusId),
-			}}
+			})}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

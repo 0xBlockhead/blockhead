@@ -16,6 +16,7 @@
 		entityType: entityDefinition.entityType,
 		label: entityDefinition.label,
 		fields: entityFieldDefinitions(entityDefinition).map((field) => ({
+			cacheKey: `${entityDefinition.entityType}\0${field.name}`,
 			name: field.name,
 		})),
 	}))
@@ -132,7 +133,7 @@
 							String(fieldIndex),
 						].join('\0')
 					)}
-						{@const fieldCache = fieldCaches[`${entityDefinition.entityType}\0${field.name}`]}
+						{@const fieldCache = fieldCaches[field.cacheKey]}
 
 						<details
 							data-card

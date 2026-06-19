@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -14,14 +15,14 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		layout = EntityLayout.Summary,
 		title: titleProp,
 		open = $bindable(false),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.BeaconWithdrawal>
+			selection: EntityProxyResource<typeof schema, EntityType.BeaconWithdrawal>
 			layout?: EntityLayout
 			title?: string
 			open?: boolean
@@ -29,10 +30,8 @@
 		Pick<ComponentProps<typeof EntityView>, 'showTypeAnnotation'>
 	> = $props()
 
-	const withdrawal = $derived(select(
-		EntityType.BeaconWithdrawal,
-		selector,
-		{
+
+	const withdrawal = $derived(selection({
 			sources: [
 				Source.Beacon_Rest,
 			],
@@ -55,23 +54,23 @@
 
 <EntityView
 	entityType={EntityType.BeaconWithdrawal}
-	entitySelector={selector}
-	title={titleProp ?? `Withdrawal ${selector.index} in slot ${selector.slot.toLocaleString()}`}
+	entitySelector={selection.entitySelector}
+	title={titleProp ?? `Withdrawal ${selection.entitySelector.index} in slot ${selection.entitySelector.slot.toLocaleString()}`}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<span data-badge="small" data-withdrawal-index={String(selector.index)}>
-			{String(selector.index)}
+		<span data-badge="small" data-withdrawal-index={String(selection.entitySelector.index)}>
+			{String(selection.entitySelector.index)}
 		</span>
 	{/snippet}
 
 	{#snippet Title()}
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Withdrawal </span>
-			<span data-badge="small" data-withdrawal-index={String(selector.index)}>
-				{String(selector.index)}
+			<span data-badge="small" data-withdrawal-index={String(selection.entitySelector.index)}>
+				{String(selection.entitySelector.index)}
 			</span>
 		</span>
 	{/snippet}
@@ -103,7 +102,7 @@
 								<dt>Validator</dt>
 								<dd>
 									<BeaconValidatorView
-										selector={validator.entitySelector}
+										selection={select(EntityType.BeaconValidator, validator.entitySelector)}
 										layout={EntityLayout.Title}
 
 									/>
@@ -123,7 +122,7 @@
 								<dt>Recipient</dt>
 								<dd>
 									<EvmAccountView
-										selector={account.entitySelector}
+										selection={select(EntityType.EvmAccount, account.entitySelector)}
 										layout={EntityLayout.Title}
 
 										open={false}

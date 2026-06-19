@@ -1,6 +1,5 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -40,11 +39,7 @@
 		orderByCreatedAt: 'asc' | 'desc'
 		placeholderText: string
 		title: string
-		selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+		selection: EntityProxyEntitiesResource<typeof schema, EntityType.ActivityPubNote>
 		fieldOpen?: boolean
 		CollapsibleProps?: ComponentProps<typeof EntitiesList>['CollapsibleProps']
 		href?: ComponentProps<typeof EntitiesList>['href']

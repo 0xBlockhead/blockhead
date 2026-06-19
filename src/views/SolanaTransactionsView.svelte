@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 import { stringify } from 'devalue'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
@@ -58,32 +59,32 @@ import { stringify } from 'devalue'
 
 	{#snippet body()}
 		{#if open}
-			<ResourceBoundary {resource} placeholderText="Loading transactions…">
+			<ResourceBoundary resource={selection} placeholderText="Loading transactions…">
 				{#snippet children(transactions)}
 					<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.SolanaTransaction}
-				id={`${id}-items`}
-				{href}
-				getKey={(transaction) => stringify(transaction.entitySelector)}
-				getSortValue={(transaction) => -Number(transaction.entitySelector.slot ?? 0n)}
-				open={true}
-				items={transactions.entities}
-				{title}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">No recent transactions yet.</p>
-				{/snippet}
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.SolanaTransaction}
+						id={`${id}-items`}
+						{href}
+						getKey={(transaction) => stringify(transaction.entitySelector)}
+						getSortValue={(transaction) => stringify(transaction.entitySelector)}
+						open={true}
+						items={transactions.values}
+						{title}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">No recent transactions yet.</p>
+						{/snippet}
 
-				{#snippet Item({ item })}
-					<SolanaTransactionView
-						selector={item.entitySelector}
-						layout={EntityLayout.Summary}
+						{#snippet Item({ item })}
+							<SolanaTransactionView
+								selection={select(EntityType.SolanaTransaction, item.entitySelector)}
+								layout={EntityLayout.Summary}
 
-					/>
-				{/snippet}
+							/>
+						{/snippet}
 					</EntitiesList>
 				{/snippet}
 			</ResourceBoundary>

@@ -1,16 +1,17 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
-	type EvmBlocksResource = EntityProxyFieldResource<
+	type EvmBlocksResource = EntityProxyEntitiesResource<
 		typeof schema,
-		EntityType.EvmNetwork,
-		'$$blocks'
+		EntityType.EvmBlock
 	>
 
 
@@ -83,11 +84,9 @@
 							id={`${id}-items`}
 							{title}
 							open={true}
-							getKey={(row) => String(row.entitySelector.blockNumber)}
-							getSortValue={(row) => (
-								-Number(row.entitySelector.blockNumber)
-							)}
-							items={blocks.entities}
+							getKey={(row) => stringify(row.entitySelector)}
+							getSortValue={(row) => stringify(row.entitySelector)}
+							items={blocks.values}
 							UnorderedListProps={{ orientation: ListOrientation.Column }}
 						>
 							{#snippet Empty()}
@@ -98,7 +97,7 @@
 
 							{#snippet Item({ item })}
 								<EvmBlockView
-									selector={item.entitySelector}
+									selection={select(EntityType.EvmBlock, item.entitySelector)}
 									layout={EntityLayout.Summary}
 
 								/>

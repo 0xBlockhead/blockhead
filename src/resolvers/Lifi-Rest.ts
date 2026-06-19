@@ -4,6 +4,7 @@ import {
 	bridgeToolByKey,
 	type BridgeToolRow,
 } from '$/constants/Bridge.ts'
+import { CoinId } from '$/constants/Coin.ts'
 import { ExecutionRpcProvider } from '$/constants/ExecutionRpcProvider.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import {
@@ -33,7 +34,10 @@ import { BridgeRouteSelector } from '$/schema/BridgeRoute.ts'
 import { BridgeRouteStepSelector } from '$/schema/BridgeRouteStep.ts'
 import type { BridgeRouteStepFields } from '$/sources/Lifi/Rest/routes.ts'
 import { CoinSelector } from '$/schema/Coin.ts'
-import { EvmCoinInstanceSelector } from '$/schema/EvmCoinInstance.ts'
+import {
+	CoinInstanceType,
+	EvmCoinInstanceSelector,
+} from '$/schema/EvmCoinInstance.ts'
 
 const canonicalPublicHttpUrlFromCatalogString = (raw: string): string => {
 	const trimmed = raw.trim()
@@ -84,7 +88,7 @@ const blockExplorerLikeFromExplorersAndInfoUrl = ({
 
 const urlEntitiesFromBlockExplorerCatalog = (
 	blockExplorers: ReturnType<typeof blockExplorerLikeFromExplorersAndInfoUrl>
-): Entity<typeof schema, EntityType.Url>[] =>
+) =>
 	blockExplorers.flatMap((explorer) => {
 		if (explorer.origin === '') return []
 		const url = canonicalPublicHttpUrlFromCatalogString(explorer.origin)
@@ -111,7 +115,7 @@ const urlEntitiesFromBlockExplorerCatalog = (
 
 const urlEntitiesFromFaucetUrlStrings = (
 	faucetUrls: string[]
-): Entity<typeof schema, EntityType.Url>[] =>
+) =>
 	faucetUrls.flatMap((raw) => {
 		const trimmed = raw.trim()
 		if (trimmed === '') return []
@@ -174,6 +178,28 @@ const coinBridgeCapabilityRowsForCoin = async (
 		await fetchCoinInstanceStubsForCoin(coinId, context.publicEnv),
 		await fetchTools()
 	)
+}
+
+const coinIdForBridgeInstanceSelector = async (
+	entitySelector: EntitySelector<typeof schema, EntityType.EvmCoinInstance>,
+	context: SourceResolverContext<Source.Lifi_Rest>
+) => {
+	if (
+		entitySelector.type === CoinInstanceType.NativeCurrency
+		&& entitySelector.$network.caip2.reference === '1'
+	)
+		return CoinId.ETH
+
+	const { resolveCoinIdForCoinInstanceEntitySelector } = await import(
+		'$/sources/Coingecko/Rest/coinInstances.ts'
+	)
+	const coinId = await resolveCoinIdForCoinInstanceEntitySelector(
+		entitySelector,
+		context.publicEnv
+	)
+	if (coinId == null)
+		throw new Error('Lifi_Rest: coin instance not mapped to catalog coin')
+	return coinId
 }
 
 export default {
@@ -312,34 +338,18 @@ export default {
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
 				[EvmCoinInstanceSelector.NetworkType]: async (entitySelector, context) => {
-					const { resolveCoinIdForCoinInstanceEntitySelector } = await import(
-						'$/sources/Coingecko/Rest/coinInstances.ts'
-					)
 					const { filterCoinBridgeCapabilityRowsForInstance } = await import(
 						'$/sources/Lifi/Rest/coinBridgeCapabilities.ts'
 					)
-					const coinId = await resolveCoinIdForCoinInstanceEntitySelector(
-						entitySelector,
-						context.publicEnv
-					)
-					if (coinId == null)
-						throw new Error('Lifi_Rest: coin instance not mapped to catalog coin')
+					const coinId = await coinIdForBridgeInstanceSelector(entitySelector, context)
 					const bridgeCapabilities = await coinBridgeCapabilityRowsForCoin({ coinId }, context)
 					return filterCoinBridgeCapabilityRowsForInstance(bridgeCapabilities, entitySelector, 'outbound')
 				},
 				[EvmCoinInstanceSelector.NetworkTypeContract]: async (entitySelector, context) => {
-					const { resolveCoinIdForCoinInstanceEntitySelector } = await import(
-						'$/sources/Coingecko/Rest/coinInstances.ts'
-					)
 					const { filterCoinBridgeCapabilityRowsForInstance } = await import(
 						'$/sources/Lifi/Rest/coinBridgeCapabilities.ts'
 					)
-					const coinId = await resolveCoinIdForCoinInstanceEntitySelector(
-						entitySelector,
-						context.publicEnv
-					)
-					if (coinId == null)
-						throw new Error('Lifi_Rest: coin instance not mapped to catalog coin')
+					const coinId = await coinIdForBridgeInstanceSelector(entitySelector, context)
 					const bridgeCapabilities = await coinBridgeCapabilityRowsForCoin({ coinId }, context)
 					return filterCoinBridgeCapabilityRowsForInstance(bridgeCapabilities, entitySelector, 'outbound')
 				},
@@ -354,34 +364,18 @@ export default {
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
 				[EvmCoinInstanceSelector.NetworkType]: async (entitySelector, context) => {
-					const { resolveCoinIdForCoinInstanceEntitySelector } = await import(
-						'$/sources/Coingecko/Rest/coinInstances.ts'
-					)
 					const { filterCoinBridgeCapabilityRowsForInstance } = await import(
 						'$/sources/Lifi/Rest/coinBridgeCapabilities.ts'
 					)
-					const coinId = await resolveCoinIdForCoinInstanceEntitySelector(
-						entitySelector,
-						context.publicEnv
-					)
-					if (coinId == null)
-						throw new Error('Lifi_Rest: coin instance not mapped to catalog coin')
+					const coinId = await coinIdForBridgeInstanceSelector(entitySelector, context)
 					const bridgeCapabilities = await coinBridgeCapabilityRowsForCoin({ coinId }, context)
 					return filterCoinBridgeCapabilityRowsForInstance(bridgeCapabilities, entitySelector, 'inbound')
 				},
 				[EvmCoinInstanceSelector.NetworkTypeContract]: async (entitySelector, context) => {
-					const { resolveCoinIdForCoinInstanceEntitySelector } = await import(
-						'$/sources/Coingecko/Rest/coinInstances.ts'
-					)
 					const { filterCoinBridgeCapabilityRowsForInstance } = await import(
 						'$/sources/Lifi/Rest/coinBridgeCapabilities.ts'
 					)
-					const coinId = await resolveCoinIdForCoinInstanceEntitySelector(
-						entitySelector,
-						context.publicEnv
-					)
-					if (coinId == null)
-						throw new Error('Lifi_Rest: coin instance not mapped to catalog coin')
+					const coinId = await coinIdForBridgeInstanceSelector(entitySelector, context)
 					const bridgeCapabilities = await coinBridgeCapabilityRowsForCoin({ coinId }, context)
 					return filterCoinBridgeCapabilityRowsForInstance(bridgeCapabilities, entitySelector, 'inbound')
 				},

@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.PolkadotReferendum>
+			selection: EntityProxyResource<typeof schema, EntityType.PolkadotReferendum>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -38,16 +40,16 @@
 
 <EntityView
 	entityType={EntityType.PolkadotReferendum}
-	entitySelector={selector}
-	title={selector.referendumId}
-	idDragPlainText={selector.referendumId}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.referendumId}
+	idDragPlainText={selection.entitySelector.referendumId}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<TruncatedValue
-			value={selector.referendumId}
+			value={selection.entitySelector.referendumId}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
@@ -63,8 +65,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.PolkadotReferendum,
-					selector,
+			resource={selection(
 					({ fields: { track: true, status: true } }),
 				)}
 			placeholderText={`Loading Polkadot referendum...`}

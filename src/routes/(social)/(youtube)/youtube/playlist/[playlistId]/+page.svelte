@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		params,
@@ -13,6 +15,6 @@
 
 <Page>
 	<YouTubePlaylistView
-		selector={{ playlistId: decodeURIComponent(params.playlistId) }}
+		selection={select(EntityType.YouTubePlaylist, { playlistId: decodeURIComponent(params.playlistId) })}
 	/>
 </Page>

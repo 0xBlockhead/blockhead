@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.SolanaTransaction>
+			selection: EntityProxyResource<typeof schema, EntityType.SolanaTransaction>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -39,22 +41,22 @@
 
 <EntityView
 	entityType={EntityType.SolanaTransaction}
-	entitySelector={selector}
-	title={selector.signature}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.signature}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
 		<TruncatedValue
-			value={selector.signature}
+			value={selection.entitySelector.signature}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.SolanaTransaction, selector, ({ fields: { slot: true, feeLamports: true, computeUnitsConsumed: true, status: true } }))}
+			resource={selection( { fields: { slot: true, feeLamports: true, computeUnitsConsumed: true, status: true } })}
 			placeholderText={`Loading Solana Transaction...`}
 		>
 			{#snippet children(solanaTransaction)}

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		params,
@@ -13,7 +15,7 @@
 
 <Page>
 	<RedditSubredditView
-		selector={{ name: decodeURIComponent(params.name).toLowerCase() }}
+		selection={select(EntityType.RedditSubreddit, { name: decodeURIComponent(params.name).toLowerCase() })}
 	>
 	</RedditSubredditView>
 </Page>

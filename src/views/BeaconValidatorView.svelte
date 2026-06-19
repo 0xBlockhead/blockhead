@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -15,9 +16,9 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-			caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
+			caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
 		}),
 		layout = EntityLayout.Summary,
 		title: titleProp,
@@ -26,7 +27,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.BeaconValidator>
+			selection: EntityProxyResource<typeof schema, EntityType.BeaconValidator>
 			href?: string
 			layout?: EntityLayout
 			title?: string
@@ -39,10 +40,8 @@
 		>
 	> = $props()
 
-	const validator = $derived(select(
-		EntityType.BeaconValidator,
-		selector,
-		{
+
+	const validator = $derived(selection({
 			sources: [
 				Source.Beacon_Rest,
 			],
@@ -65,17 +64,17 @@
 
 <EntityView
 	entityType={EntityType.BeaconValidator}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 		{layout}
 	bind:open
-	title={titleProp ?? `Validator #${selector.validatorIndex.toLocaleString()}`}
+	title={titleProp ?? `Validator #${selection.entitySelector.validatorIndex.toLocaleString()}`}
 		{collapsible}
 		{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-badge="small">
-			#{String(selector.validatorIndex)}
+			#{String(selection.entitySelector.validatorIndex)}
 		</span>
 	{/snippet}
 
@@ -83,7 +82,7 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Validator </span>
 		<span data-badge="small">
-			#{String(selector.validatorIndex)}
+			#{String(selection.entitySelector.validatorIndex)}
 		</span>
 		</span>
 	{/snippet}

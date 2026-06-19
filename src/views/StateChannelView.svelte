@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import { stateChannelStatusByStatus } from '$/constants/StateChannel.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -17,17 +18,17 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve(
 			'/(assets)/(channels)/channel/[channelId]',
-			{ channelId: selector.id },
+			{ channelId: selection.entitySelector.id },
 		),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.StateChannel>
+			selection: EntityProxyResource<typeof schema, EntityType.StateChannel>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -38,8 +39,8 @@
 		>
 	> = $props()
 
-	const stateChannel = $derived(select(EntityType.StateChannel,
-		selector,
+
+	const stateChannel = $derived(selection(
 		({ sources: [Source.Local_Internal], fields: { status: true, createdAt: true, updatedAt: true, turnNum: true, totalDeposited: true, $network: true, $participant0: true, $participant1: true, ...(open ? ({ balance0: true, balance1: true, $asset: true, $room: true }) : ({  })) } }),
 	))
 
@@ -60,13 +61,13 @@
 <EntityView
 	entityType={EntityType.StateChannel}
 	bind:open
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
-			{selector.id}
+			{selection.entitySelector.id}
 		</span>
 	{/snippet}
 
@@ -81,16 +82,16 @@
 						{#if stateChannel.fields.$participant0?.[EntityMetaKey.Selector].address !== undefined}
 							{#if stateChannel.fields.$network?.[EntityMetaKey.Selector] !== undefined}
 								<EvmNetworkAccountView
-									selector={{
+									selection={select(EntityType.EvmNetworkAccount, {
 										$network: stateChannel.fields.$network[EntityMetaKey.Selector],
 										$actor: stateChannel.fields.$participant0[EntityMetaKey.Selector],
-									}}
+									})}
 									layout={EntityLayout.Value}
 
 								/>
 							{:else}
 								<EvmAccountView
-									selector={stateChannel.fields.$participant0[EntityMetaKey.Selector]}
+									selection={select(EntityType.EvmAccount, stateChannel.fields.$participant0[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							{/if}
@@ -101,16 +102,16 @@
 						{#if stateChannel.fields.$participant1?.[EntityMetaKey.Selector].address !== undefined}
 							{#if stateChannel.fields.$network?.[EntityMetaKey.Selector] !== undefined}
 								<EvmNetworkAccountView
-									selector={{
+									selection={select(EntityType.EvmNetworkAccount, {
 										$network: stateChannel.fields.$network[EntityMetaKey.Selector],
 										$actor: stateChannel.fields.$participant1[EntityMetaKey.Selector],
-									}}
+									})}
 									layout={EntityLayout.Value}
 
 								/>
 							{:else}
 								<EvmAccountView
-									selector={stateChannel.fields.$participant1[EntityMetaKey.Selector]}
+									selection={select(EntityType.EvmAccount, stateChannel.fields.$participant1[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							{/if}
@@ -253,7 +254,7 @@
 							{#snippet children(stateChannel)}
 								{#if stateChannel.fields.$network !== undefined}
 									<EvmNetworkView
-										selector={stateChannel.fields.$network[EntityMetaKey.Selector]}
+										selection={select(EntityType.EvmNetwork, stateChannel.fields.$network[EntityMetaKey.Selector])}
 										layout={EntityLayout.Title}
 
 									/>
@@ -273,7 +274,7 @@
 							{#snippet children(stateChannel)}
 								{#if stateChannel.fields.$asset?.[EntityMetaKey.Selector] !== undefined}
 									<EvmCoinInstanceView
-										selector={stateChannel.fields.$asset[EntityMetaKey.Selector]}
+										selection={select(EntityType.EvmCoinInstance, stateChannel.fields.$asset[EntityMetaKey.Selector])}
 										layout={EntityLayout.Title}
 
 									/>
@@ -293,7 +294,7 @@
 							{#snippet children(stateChannel)}
 								{#if stateChannel.fields.$room?.[EntityMetaKey.Selector].id !== undefined}
 									<BlockheadRoomView
-										selector={stateChannel.fields.$room[EntityMetaKey.Selector]}
+										selection={select(EntityType.BlockheadRoom, stateChannel.fields.$room[EntityMetaKey.Selector])}
 										layout={EntityLayout.Value}
 
 										showTypeAnnotation={false}

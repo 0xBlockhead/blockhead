@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 import { stringify } from 'devalue'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
@@ -60,7 +61,7 @@ import { stringify } from 'devalue'
 
 	{#snippet body()}
 		{#if open}
-			<ResourceBoundary {resource} placeholderText="Loading tipsets…">
+			<ResourceBoundary resource={selection} placeholderText="Loading tipsets…">
 				{#snippet children(tipsets)}
 					<EntitiesList
 				collapsible={false}
@@ -83,7 +84,7 @@ import { stringify } from 'devalue'
 
 				{#snippet Item({ item })}
 					<FilecoinTipsetView
-						selector={item.entitySelector}
+						selection={select(EntityType.FilecoinTipset, item.entitySelector)}
 						layout={EntityLayout.Summary}
 
 					/>

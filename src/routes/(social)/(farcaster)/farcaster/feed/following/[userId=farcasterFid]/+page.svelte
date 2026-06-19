@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntitySelector } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -15,10 +16,10 @@
 
 <Page>
 	<FarcasterFeedView
-		selector={{
+		selection={select(EntityType.FarcasterFeed, {
 			variant: 'following',
 			viewerFid: Number(params.userId),
-		}}
-		limit={50}
+		})}
+		limit={6}
 	/>
 </Page>

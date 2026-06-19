@@ -219,7 +219,7 @@ const blockExplorerLikeFromExplorersAndInfoUrl = ({
 
 const urlEntitiesFromBlockExplorerCatalog = (
 	blockExplorers: ReturnType<typeof blockExplorerLikeFromExplorersAndInfoUrl>
-): Entity<typeof schema, EntityType.Url>[] =>
+) =>
 	blockExplorers.flatMap((explorer) => {
 		if (explorer.origin === '') return []
 		const url = canonicalPublicHttpUrlFromCatalogString(explorer.origin)
@@ -246,7 +246,7 @@ const urlEntitiesFromBlockExplorerCatalog = (
 
 const urlEntitiesFromFaucetUrlStrings = (
 	faucetUrls: string[]
-): Entity<typeof schema, EntityType.Url>[] =>
+) =>
 	faucetUrls.flatMap((raw) => {
 		const trimmed = raw.trim()
 		if (trimmed === '') return []

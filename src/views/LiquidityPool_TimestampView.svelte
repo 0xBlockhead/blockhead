@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -15,17 +16,17 @@
 
 	// State
 	let {
-		selector,
-		href = resolve('/(assets)/(pools)/pool/[chainId]/[poolId]', {
-			chainId: String(evmChainIdFromCaip2(`${selector.$liquidityPool.$network.caip2.namespace}:${selector.$liquidityPool.$network.caip2.reference}`)),
-			poolId: selector.$liquidityPool.id,
+		selection,
+		href = resolve('/(assets)/(pools)/pool/[chainId=eip155ChainId]/[poolId]', {
+			chainId: String(evmChainIdFromCaip2(`${selection.entitySelector.$liquidityPool.$network.caip2.namespace}:${selection.entitySelector.$liquidityPool.$network.caip2.reference}`)),
+			poolId: selection.entitySelector.$liquidityPool.id,
 		}),
 		layout,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.LiquidityPool_Timestamp>
+			selection: EntityProxyResource<typeof schema, EntityType.LiquidityPool_Timestamp>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -37,12 +38,13 @@
 		>
 	> = $props()
 
+
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { select } from '$/routes/+layout.svelte'
 
-	const poolTimestamp = $derived(select(EntityType.LiquidityPool_Timestamp, selector, ({ sources: [
-				Source.Dexscreener_OpenApi,
-			], fields: { $parentLiquidityPool: true, priceUsd: true, priceNative: true, liquidityUsd: true, volumeUsd24h: true, priceChangePercent24h: true, transactionBuys24h: true, transactionSells24h: true, marketCapUsd: true, fdvUsd: true, transport: true } })))
+	const poolTimestamp = $derived(selection( { sources: [
+				...(layout === EntityLayout.Summary ? [] : [Source.Dexscreener_OpenApi]),
+			], fields: { ...(layout !== EntityLayout.Summary && { $parentLiquidityPool: true, priceUsd: true, priceNative: true, liquidityUsd: true, volumeUsd24h: true, priceChangePercent24h: true, transactionBuys24h: true, transactionSells24h: true, marketCapUsd: true, fdvUsd: true, transport: true }) } }))
 
 
 	// Components
@@ -55,7 +57,7 @@
 
 <EntityView
 	entityType={EntityType.LiquidityPool_Timestamp}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{layout}
 	bind:open
@@ -63,20 +65,26 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<ResourceBoundary
-			placeholderText="Loading pool observation…"
-			resource={poolTimestamp}
-		>
-			{#snippet children(poolTimestamp)}
-				{#if poolTimestamp.fields.priceUsd !== undefined}
-					{poolTimestamp.fields.priceUsd}
-				{:else}
-					<Timestamp
-						timestamp={selector.timestampMs}
-					/>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if layout === EntityLayout.Summary}
+			<Timestamp
+				timestamp={selection.entitySelector.timestampMs}
+			/>
+		{:else}
+			<ResourceBoundary
+				placeholderText="Loading pool observation…"
+				resource={poolTimestamp}
+			>
+				{#snippet children(poolTimestamp)}
+					{#if poolTimestamp.fields.priceUsd !== undefined}
+						{poolTimestamp.fields.priceUsd}
+					{:else}
+						<Timestamp
+							timestamp={selection.entitySelector.timestampMs}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -96,7 +104,7 @@
 						<dt>Observed at</dt>
 						<dd>
 							<Timestamp
-								timestamp={selector.timestampMs}
+								timestamp={selection.entitySelector.timestampMs}
 							/>
 						</dd>
 					</div>
@@ -105,7 +113,7 @@
 						<dt>Pool</dt>
 						<dd>
 							<LiquidityPoolView
-								selector={poolTimestamp.fields.$parentLiquidityPool?.[EntityMetaKey.Selector] ?? selector.$liquidityPool}
+								selection={select(EntityType.LiquidityPool, poolTimestamp.fields.$parentLiquidityPool?.[EntityMetaKey.Selector] ?? selection.entitySelector.$liquidityPool)}
 								layout={EntityLayout.Title}
 
 								open={false}

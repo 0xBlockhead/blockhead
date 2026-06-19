@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.LitecoinMwebBlock>
+			selection: EntityProxyResource<typeof schema, EntityType.LitecoinMwebBlock>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -38,16 +40,16 @@
 
 <EntityView
 	entityType={EntityType.LitecoinMwebBlock}
-	entitySelector={selector}
-	title={`MWEB Block #${selector.$block.height.toString()}`}
-	idDragPlainText={selector.$block.height.toString()}
+	entitySelector={selection.entitySelector}
+	title={`MWEB Block #${selection.entitySelector.$block.height.toString()}`}
+	idDragPlainText={selection.entitySelector.$block.height.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{selector.$block.height.toString()}
+			#{selection.entitySelector.$block.height.toString()}
 		</span>
 	{/snippet}
 
@@ -62,7 +64,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.LitecoinMwebBlock, selector, ({ fields: { hogExTransactionId: true, kernelRoot: true } }))}
+			resource={selection( { fields: { hogExTransactionId: true, kernelRoot: true } })}
 			placeholderText={`Loading Litecoin MWEB Block...`}
 		>
 			{#snippet children(litecoinMwebBlock)}

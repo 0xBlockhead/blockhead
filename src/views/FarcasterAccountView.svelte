@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -17,17 +18,17 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve(
 			'/(social)/(farcaster)/farcaster/(accounts)/account/[accountId]',
-			{ accountId: String(selector.fid) },
+			{ accountId: String(selection.entitySelector.fid) },
 		),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.BlockheadFarcasterAccountConnection>
+			selection: EntityProxyResource<typeof schema, EntityType.BlockheadFarcasterAccountConnection>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -35,10 +36,10 @@
 		never
 	> = $props()
 
-	const connection = $derived(select(EntityType.BlockheadFarcasterAccountConnection, selector, ({ sources: [
-				Source.Neynar_Rest,
+
+	const connection = $derived(selection( { sources: [
 				Source.Snapchain_Rest,
-			], fields: { username: true, displayName: true, $icon: true, bio: true, ...(open ? ({ verifications: true, custody: true, authMethod: true, signedAt: true }) : ({  })) } })))
+				], fields: { username: true, displayName: true, $icon: { sources: [Source.Snapchain_Rest] }, bio: true, ...(open ? ({ verifications: true, custody: true, authMethod: true, signedAt: true }) : ({  })) } }))
 
 
 	// Components
@@ -52,7 +53,7 @@
 
 <EntityView
 	entityType={EntityType.BlockheadFarcasterAccountConnection}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
 	{collapsible}
@@ -77,7 +78,7 @@
 
 	{#snippet Value()}
 		<span>
-			FID {String(selector.fid)}
+			FID {String(selection.entitySelector.fid)}
 		</span>
 	{/snippet}
 
@@ -87,7 +88,7 @@
 			placeholderText="Loading Farcaster account connection (FID)…"
 		>
 			{#snippet children(connection)}
-				{connection.fields.displayName ?? connection.fields.username ?? String(selector.fid)}
+				{connection.fields.displayName ?? connection.fields.username ?? String(selection.entitySelector.fid)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -101,7 +102,7 @@
 				{#if (
 					connection.fields.username !== undefined
 					&& connection.fields.username !== (
-						connection.fields.displayName ?? connection.fields.username ?? String(selector.fid)
+						connection.fields.displayName ?? connection.fields.username ?? String(selection.entitySelector.fid)
 					)
 				)}
 					<span data-text="muted">

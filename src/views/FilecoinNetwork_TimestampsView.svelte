@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import { select } from '$/routes/+layout.svelte'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -22,11 +22,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.FilecoinNetwork_Timestamp>
 			title?: string
 			open?: boolean
 			id: string
@@ -90,7 +86,7 @@
 						{/snippet}
 						{#snippet Item({ item })}
 							<FilecoinNetwork_TimestampView
-								selector={item.entitySelector}
+								selection={select(EntityType.FilecoinNetwork_Timestamp, item.entitySelector)}
 								layout={EntityLayout.Summary}
 
 							/>

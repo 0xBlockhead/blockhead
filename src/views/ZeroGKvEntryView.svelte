@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -12,16 +13,17 @@
 	import { select } from '$/routes/+layout.svelte'
 
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.ZeroGKvEntry>
+			selection: EntityProxyResource<typeof schema, EntityType.ZeroGKvEntry>
 			open?: boolean
 		},
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
+
 
 	
 
@@ -37,15 +39,15 @@
 
 <EntityView
 	entityType={EntityType.ZeroGKvEntry}
-	entitySelector={selector}
-	title={selector.key}
-	idDragPlainText={selector.key}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.key}
+	idDragPlainText={selection.entitySelector.key}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<TruncatedValue
-			value={selector.key}
+			value={selection.entitySelector.key}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
@@ -61,7 +63,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.ZeroGKvEntry, selector, ({ fields: { $logEntry: true, $owner: true, valueHash: true } }))}
+			resource={selection( { fields: { $logEntry: true, $owner: true, valueHash: true } })}
 			placeholderText={`Loading 0G KV entry...`}
 		>
 			{#snippet children(zeroGKvEntry)}
@@ -71,7 +73,7 @@
 							<dt>Owner</dt>
 							<dd>
 								<EvmAccountView
-									selector={zeroGKvEntry.fields.$owner[EntityMetaKey.Selector]}
+									selection={select(EntityType.EvmAccount, zeroGKvEntry.fields.$owner[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 								/>
@@ -96,7 +98,7 @@
 							<dt>Log entry</dt>
 							<dd>
 								<ZeroGStorageLogEntryView
-									selector={zeroGKvEntry.fields.$logEntry[EntityMetaKey.Selector]}
+									selection={select(EntityType.ZeroGStorageLogEntry, zeroGKvEntry.fields.$logEntry[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 								/>

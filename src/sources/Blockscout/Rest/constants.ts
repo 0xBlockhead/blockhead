@@ -142,6 +142,13 @@ export const blockscoutExplorerRestV2SupportedForChain = (chainId: number): bool
 	return origin != null && blockscoutRestV2AtExplorerOrigin(origin)
 }
 
+export const blockscoutExplorerRestV2OriginForChain = (chainId: number): string | undefined => {
+	const origin = blockscoutExplorerOriginForChain(chainId)
+	if (origin == null) return undefined
+	if (!blockscoutRestV2AtExplorerOrigin(origin)) return undefined
+	return origin
+}
+
 /**
  * Blockscout `/proxy/account-abstraction/*` routes on hosted explorers (`blockscoutHostedNetworks`).
  * Operations and indexed smart accounts are the reliable surfaces; registry leaderboard lists often 504.

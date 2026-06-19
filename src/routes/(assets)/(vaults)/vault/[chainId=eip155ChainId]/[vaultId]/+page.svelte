@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		params,
@@ -13,10 +15,10 @@
 
 <Page>
 	<VaultView
-		selector={{
+		selection={select(EntityType.Vault, {
 			$network: { caip2: { namespace: 'eip155' as const, reference: String(Number(params.chainId)) } },
 			id: hexLowerOfByteSize(decodeURIComponent(params.vaultId).trim(), 20)
 				?? decodeURIComponent(params.vaultId).trim(),
-		}}
+		})}
 	/>
 </Page>

@@ -97,7 +97,7 @@
 
 				{#snippet Item({ item: upgrade })}
 					<NetworkUpgradeView
-						selector={upgrade.entitySelector}
+						selection={upgrade}
 						layout={EntityLayout.Summary}
 
 					/>

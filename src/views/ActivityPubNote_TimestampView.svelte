@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -15,20 +16,25 @@
 
 	// State
 	let {
-		selector,
-		href = resolve(
-			'/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]',
-			{
-				instanceOrigin: encodeURIComponent(selector.$note.instanceOrigin),
-				localStatusId: selector.$note.localStatusId,
-			},
+		selection,
+		href = (
+			'instanceOrigin' in selection.entitySelector.$note ?
+				resolve(
+					'/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]',
+					{
+						instanceOrigin: encodeURIComponent(selection.entitySelector.$note.instanceOrigin),
+						localStatusId: selection.entitySelector.$note.localStatusId,
+					},
+				)
+			:
+				undefined
 		),
 		layout = EntityLayout.Summary,
 		open = $bindable(false),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.ActivityPubNote_Timestamp>
+			selection: EntityProxyResource<typeof schema, EntityType.ActivityPubNote_Timestamp>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -38,6 +44,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -52,7 +59,7 @@
 
 <EntityView
 	entityType={EntityType.ActivityPubNote_Timestamp}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{layout}
 	bind:open
@@ -60,11 +67,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<Timestamp timestamp={selector.timestampMs} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Title()}
-		<Timestamp timestamp={selector.timestampMs} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -75,8 +82,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.ActivityPubNote_Timestamp,
-					selector,
+			resource={selection(
 					({ sources: [
 							Source.Mastodon_Rest,
 							Source.Fedi_Rest,

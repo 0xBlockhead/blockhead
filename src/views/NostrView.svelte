@@ -1,12 +1,12 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -17,7 +17,7 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/nostr'),
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
@@ -26,7 +26,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.NostrNetwork>
+			selection: EntityProxyResource<typeof schema, EntityType.NostrNetwork>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -34,29 +34,16 @@
 		never
 	> = $props()
 
-	
-
-	const entityViewDetailCarouselScrollProps = {
-		'data-row': 'start align-start',
-	}
-
 
 	// Components
-	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import NostrArticlesView from '$/views/NostrArticlesView.svelte'
-	import NostrNotesView from '$/views/NostrNotesView.svelte'
-	import NostrProfilesView from '$/views/NostrProfilesView.svelte'
-	import NostrRelaysView from '$/views/NostrRelaysView.svelte'
-	import NostrRepostsView from '$/views/NostrRepostsView.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.NostrNetwork}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
 	{collapsible}
@@ -83,13 +70,9 @@
 	{#snippet Content({})}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={select(EntityType.NostrNetwork, selector, ({ sources: [
+				resource={selection( { sources: [
 						Source.Constants_Internal,
-					], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, $$nostrProfiles: ({ sources: [
-									Source.Constants_Internal,
-									Source.NostrBand_Rest,
-									Source.Primal_Rest,
-								] }), $$nostrNotes: ({ sources: [Source.NostrBand_Rest] }), $$nostrRelays: ({ sources: [Source.NostrBand_Rest] }), $$nostrReposts: ({ sources: [Source.NostrBand_Rest] }), $$nostrArticles: ({ sources: [Source.NostrBand_Rest] }) }) : ({  })) } }))}
+					], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true }) : ({  })) } })}
 				placeholderText="Loading Nostr hub directory…"
 			>
 			{#snippet children(network)}
@@ -102,41 +85,6 @@
 					<div>
 						<dt>Protocol</dt>
 						<dd>{network.fields.protocolName}</dd>
-					</div>
-				{/if}
-
-				{#if open}
-					<div>
-						<dt>Profiles</dt>
-						<dd>{String(network.fields.$$nostrProfiles.values.length)}</dd>
-					</div>
-				{/if}
-
-				{#if open}
-					<div>
-						<dt>Notes</dt>
-						<dd>{String(network.fields.$$nostrNotes.values.length)}</dd>
-					</div>
-				{/if}
-
-				{#if open}
-					<div>
-						<dt>Relays</dt>
-						<dd>{String(network.fields.$$nostrRelays.values.length)}</dd>
-					</div>
-				{/if}
-
-				{#if open}
-					<div>
-						<dt>Reposts</dt>
-						<dd>{String(network.fields.$$nostrReposts.values.length)}</dd>
-					</div>
-				{/if}
-
-				{#if open}
-					<div>
-						<dt>Articles</dt>
-						<dd>{String(network.fields.$$nostrArticles.values.length)}</dd>
 					</div>
 				{/if}
 
@@ -167,127 +115,5 @@
 			{/snippet}
 		</ResourceBoundary>
 	</dl>
-	{/snippet}
-
-	{#snippet Details({
-		open: _open,
-	})}
-		{@const networkSelectorKey = stringify(selector)}
-		<CollapsibleTabs
-			id={`${networkSelectorKey}:carousel-feed`}
-			sectionIdPrefix={networkSelectorKey}
-			sections={collapsibleTabsSections([
-				{ id: 'notes', label: 'Recent notes' },
-				{ id: 'reposts', label: 'Reposts' },
-				{ id: 'articles', label: 'Articles' },
-			])}
-			data-card
-		>
-			{#snippet Summary({ open: _summaryOpen })}
-				<header
-					data-row-item="flexible"
-					data-row="wrap gap-4"
-				>
-					<HeadingComponent>
-						Feed
-					</HeadingComponent>
-				</header>
-			{/snippet}
-
-			{#snippet SectionNotes()}
-				<NostrNotesView
-					CollapsibleProps={{ canToggle: false }}
-					href={resolve('/nostr/notes')}
-					selection={select(
-			EntityType.NostrNetwork,
-			selector
-		).$$nostrNotes}
-					fieldOpen={_open}
-					id={`${networkSelectorKey}:notes`}
-					limit={25}
-					open={_open}
-					title="Recent notes"
-				/>
-			{/snippet}
-
-			{#snippet SectionReposts()}
-				<NostrRepostsView
-					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.NostrNetwork,
-			selector
-		).$$nostrReposts}
-					fieldOpen={_open}
-					id={`${networkSelectorKey}:reposts`}
-					limit={25}
-					open={_open}
-					title="Recent reposts"
-				/>
-			{/snippet}
-
-			{#snippet SectionArticles()}
-				<NostrArticlesView
-					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.NostrNetwork,
-			selector
-		).$$nostrArticles}
-					fieldOpen={_open}
-					id={`${networkSelectorKey}:articles`}
-					limit={25}
-					open={_open}
-					title="Recent articles"
-				/>
-			{/snippet}
-		</CollapsibleTabs>
-
-		<CollapsibleTabs
-			id={`${networkSelectorKey}:carousel-directory`}
-			sectionIdPrefix={networkSelectorKey}
-			sections={collapsibleTabsSections([
-				{ id: 'profiles', label: 'Profiles' },
-				{ id: 'relays', label: 'Relays' },
-			])}
-			data-card
-			scrollContainerProps={entityViewDetailCarouselScrollProps}
-		>
-			{#snippet Summary({ open: _summaryOpen })}
-				<header
-					data-row-item="flexible"
-					data-row="wrap gap-4"
-				>
-					<HeadingComponent>
-						Directory
-					</HeadingComponent>
-				</header>
-			{/snippet}
-
-			{#snippet SectionProfiles()}
-				<NostrProfilesView
-					CollapsibleProps={{ canToggle: false }}
-					href={resolve('/nostr/profiles')}
-					selection={select(
-			EntityType.NostrNetwork,
-			selector
-		).$$nostrProfiles}
-					id={`${networkSelectorKey}:profiles`}
-					open={true}
-				/>
-			{/snippet}
-
-			{#snippet SectionRelays()}
-				<NostrRelaysView
-					CollapsibleProps={{ canToggle: false }}
-					href={resolve('/nostr/relays')}
-					selection={select(
-			EntityType.NostrNetwork,
-			selector
-		).$$nostrRelays}
-					id={`${networkSelectorKey}:relays`}
-					open={true}
-				/>
-			{/snippet}
-		</CollapsibleTabs>
-
 	{/snippet}
 </EntityView>

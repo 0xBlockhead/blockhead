@@ -3,6 +3,9 @@ import {
 	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import {
+	BLOCKHEAD_PRODUCT_DATA_SCHEMA_VERSION,
+} from '$/constants/Persistence.ts'
+import {
 	describe,
 	expect,
 	it,
@@ -289,7 +292,7 @@ describe('client resolver architecture', () => {
 	it('keeps constants as checked-in domain rows and derived row lookups', () => {
 		expect(scannedSource).not.toMatch(/\b(?:liquidNetworkId|lightningNetworkId)\b/)
 		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'AtprotoAppView.ts')]).not.toMatch(/^export const \w*(?:Origin|XrpcBase)\b/m)
-		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'Social', 'Atproto.ts')]).not.toMatch(/^export const \w*(?:Did|Uri|Url|Id)\b/m)
+		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'Social', 'Atproto.ts')]).not.toMatch(/^export const (?!\w*By)\w*(?:Did|Uri|Url|Id)\s*=/m)
 		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'BitcoinNetwork.ts')]).not.toMatch(/^export const \w*(?:Caip2|DefaultLocalRpcUrl|RestBaseUrl)\b/m)
 		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'CosmosNetwork.ts')]).not.toMatch(/^export const \w*(?:Caip2|RpcUrl|RestBaseUrl)\b/m)
 		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'ElementsNetwork.ts')]).toBeUndefined()
@@ -489,7 +492,9 @@ describe('client resolver architecture', () => {
 		const layoutSource = scannedSourceByFilePath[join(srcPath, 'routes', '+layout.svelte')]
 		const persistenceSource = scannedSourceByFilePath[join(srcPath, 'constants', 'Persistence.ts')]
 
+		expect(BLOCKHEAD_PRODUCT_DATA_SCHEMA_VERSION).toBeGreaterThan(1)
 		expect(persistenceSource).toMatch(/\bBLOCKHEAD_PRODUCT_DATA_SCHEMA_VERSION\b/)
+		expect(persistenceSource).not.toMatch(/\bexport const BLOCKHEAD_PRODUCT_DATA_SCHEMA_VERSION = 1\b/)
 		expect(clientSource).not.toMatch(/schemaVersion\s*=\s*1/)
 		expect(clientSource).toMatch(/schemaVersion:\s*number/)
 		expect(layoutSource).toMatch(/\bBLOCKHEAD_PRODUCT_DATA_SCHEMA_VERSION\b/)
@@ -562,6 +567,29 @@ describe('client resolver architecture', () => {
 
 		expect(source).not.toMatch(/Constants_Internal: \$+\w+ is (?:unsupported|not implemented)/)
 		expect(source).not.toMatch(/throw new Error\('[^']+: \$+\w+ is unsupported;/)
+		expect(source).not.toMatch(/\$\$marketsWithCoinAsQuote unsupported/)
+		expect(source).not.toMatch(/\$\$marketsWithInstanceAs(?:Base|Quote) is unsupported/)
+		expect(source).not.toMatch(/\$\$replies unsupported/)
+		expect(source).not.toMatch(/\$\$erc20TokenAllowances unsupported/)
+		expect(source).not.toMatch(/\$\$beacon(?:Epochs|Slots|Validators|Committees|SyncCommittees|Attestations|Withdrawals|Slashings) unsupported/)
+		expect(source).not.toMatch(/\$\$marketsWithCoinAsBase unsupported for coin/)
+		expect(source).not.toMatch(/\$\$coinInstances unsupported for coin/)
+		expect(source).not.toMatch(/ERC-4337 user operations not supported/)
+	})
+
+	it('keeps inferred count fallback behind complete single-source results', () => {
+		const clientSource = scannedSourceByFilePath[join(srcPath, 'client', '$client.svelte.ts')]
+		const fallbackSource = clientSource.slice(
+			clientSource.indexOf('...(countRows.length > 0'),
+			clientSource.indexOf('const finalRows = deduplicateLoadedRows(', clientSource.indexOf('...(countRows.length > 0'))
+		)
+
+		expect(fallbackSource).toMatch(/settledRowGroups\.some\(\(result\) => result\.status === 'rejected'\)/)
+		expect(fallbackSource).toMatch(/\(resolverSubset\.sources\?\.length \?\? parts\.length\) !== 1/)
+		expect(fallbackSource).toMatch(/parts\.some\(\(part\) => part\.partial === true\)/)
+		expect(fallbackSource).toMatch(/resolverSubset\.pagination\.limit != null/)
+		expect(fallbackSource).toMatch(/resolverSubset\.pagination\.offset != null/)
+		expect(fallbackSource).toMatch(/resolverSubset\.pagination\.cursor != null/)
 	})
 
 	it('keeps parent list resolvers from hiding child scalar payloads', () => {
@@ -1027,15 +1055,15 @@ describe('client resolver architecture', () => {
 
 		expect(scannedSourceByFilePath[join(srcPath, 'resolvers', 'TradingView-Rest.ts')]).not.toMatch(/\b(?:Market_TimestampSelector|MarketPriceSelector|Date\.now\(\))\b/)
 		expect(scannedSourceByFilePath[join(srcPath, 'schema', 'MarketPrice.ts')]).not.toMatch(/\b(?:name: 'feedKey'|name: '\$network'|Source\.TradingView_Rest)\b/)
-		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Source.ts')]).not.toMatch(/marketSpotPriceSources = \[[^\]]*Source\.TradingView_Rest/)
+		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Source.ts')]).not.toMatch(/export const .*Sources = \[/)
 	})
 
 	it('does not present DefiLlama close-price charts as OHLC candles', () => {
-		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Source.ts')]).not.toMatch(
-			/marketOhlcCandleSources = \[[^\]]*Source\.Defillama_OpenApi/
-		)
 		expect(scannedSourceByFilePath[join(srcPath, 'schema', 'Market.ts')]).not.toMatch(
 			/name: '\$\$marketTimeIntervalTimestamps'[\s\S]*?defaultSources: \[[^\]]*Source\.Defillama_OpenApi/
+		)
+		expect(scannedSourceByFilePath[join(srcPath, 'schema', 'Market_TimeInterval_Timestamp.ts')]).not.toMatch(
+			/defaultSources: \[[^\]]*Source\.Defillama_OpenApi/
 		)
 		expect(scannedSourceByFilePath[join(srcPath, 'resolvers', 'Defillama-OpenApi.ts')]).not.toMatch(/\b(?:Market_TimeInterval_Timestamp|\$\$marketTimeIntervalTimestamps|getChartOhlcRows)\b/)
 		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Defillama', 'OpenApi', 'queries.ts')]).not.toMatch(/\b(?:OhlcCandle|getChartOhlcRows|Maps DefiLlama chart closes)\b/)

@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -15,7 +16,7 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/~/manage'),
 		title = 'Manage',
 		layout = EntityLayout.SummaryDetails,
@@ -23,7 +24,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType._Global>
+			selection: EntityProxyResource<typeof schema, EntityType._Global>
 			href?: string
 			title?: string
 			layout?: EntityLayout
@@ -32,7 +33,8 @@
 		never
 	> = $props()
 
-	const global = $derived(select(EntityType._Global, selector, ({ sources: [
+
+	const global = $derived(selection( { sources: [
 				Source.Local_Internal,
 				...(
 					open ?
@@ -40,7 +42,7 @@
 					:
 						[]
 				),
-			], fields: { ...(open ? ({ duneCreditsUsed: true, duneCreditsIncluded: true }) : ({  })) } })))
+			], fields: { ...(open ? ({ duneCreditsUsed: true, duneCreditsIncluded: true }) : ({  })) } }))
 
 
 	// Components
@@ -51,7 +53,7 @@
 
 <EntityView
 	entityType={EntityType._Global}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{title}
 	{layout}
@@ -59,7 +61,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		{selector.scope}
+		{selection.entitySelector.scope}
 
 	{/snippet}
 

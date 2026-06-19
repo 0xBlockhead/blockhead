@@ -1,6 +1,5 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,6 +10,7 @@
 
 	// Context
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
+	import { resolve } from '$app/paths'
 
 
 	// State
@@ -26,11 +26,7 @@
 		href,
 		title = 'Playlists',
 	}: {
-		selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+		selection: EntityProxyEntitiesResource<typeof schema, EntityType.YouTubePlaylist>
 		id: string
 		limit?: number
 		open?: boolean
@@ -41,14 +37,10 @@
 	} = $props()
 
 
-
-	
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import YouTubePlaylistView from '$/views/YouTubePlaylistView.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -81,12 +73,11 @@
 			<ResourceBoundary
 				resource={selection({
 						...(selection.entityType === EntityType.YouTubeNetwork ?
-							{
-								sources: [
-									Source.Constants_Internal,
-									Source.Youtube_Rest,
-								],
-							}
+								{
+									sources: [
+										Source.Constants_Internal,
+									],
+								}
 						:
 							{
 								sources: [
@@ -117,11 +108,16 @@
 						{/snippet}
 
 						{#snippet Item({ item })}
-							<YouTubePlaylistView
-								selector={item.entitySelector}
-								layout={EntityLayout.SummaryDetails}
-
-							/>
+							<a
+								href={resolve('/(social)/(youtube)/youtube/playlist/[playlistId]', {
+									playlistId: item.entitySelector.playlistId,
+								})}
+							>
+								<TruncatedValue
+									value={item.entitySelector.playlistId}
+									format={TruncatedValueFormat.Visual}
+								/>
+							</a>
 						{/snippet}
 					</EntitiesList>
 				{/snippet}

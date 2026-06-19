@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -16,14 +17,14 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/evm'),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.EvmProtocol>
+			selection: EntityProxyResource<typeof schema, EntityType.EvmProtocol>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -31,10 +32,8 @@
 		never
 	> = $props()
 
-	const protocol = $derived(select(
-		EntityType.EvmProtocol,
-		selector,
-		{
+
+	const protocol = $derived(selection({
 			sources: [
 				Source.Constants_Internal,
 				Source.Local_Internal,
@@ -70,7 +69,7 @@
 
 <EntityView
 	entityType={EntityType.EvmProtocol}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
 	{collapsible}
@@ -78,7 +77,7 @@
 	title="EVM"
 >
 	{#snippet Value()}
-		{selector.scope}
+		{selection.entitySelector.scope}
 	{/snippet}
 
 	{#snippet Title()}
@@ -161,7 +160,7 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{@const protocolSelectorKey = stringify(selector)}
+		{@const protocolSelectorKey = stringify(selection.entitySelector)}
 		<CollapsibleTabs
 			sectionIdPrefix={protocolSelectorKey}
 			sections={[
@@ -188,10 +187,7 @@
 				<EvmTopicsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/evm/topics')}
-					selection={select(
-			EntityType.EvmProtocol,
-			selector
-		).$$evmTopics}
+					selection={selection.$$evmTopics}
 					id={`${protocolSelectorKey}:topics`}
 					open={true}
 				/>
@@ -201,10 +197,7 @@
 				<EvmSelectorsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/evm/selectors')}
-					selection={select(
-			EntityType.EvmProtocol,
-			selector
-		).$$evmSelectors}
+					selection={selection.$$evmSelectors}
 					id={`${protocolSelectorKey}:selectors`}
 					open={true}
 				/>
@@ -214,10 +207,7 @@
 				<EvmErrorsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/evm/errors')}
-					selection={select(
-			EntityType.EvmProtocol,
-			selector
-		).$$evmErrors}
+					selection={selection.$$evmErrors}
 					id={`${protocolSelectorKey}:errors`}
 					open={true}
 				/>

@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { Iso4217 } from '$/constants/Currency.ts'
@@ -13,10 +14,7 @@
 
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import {
-		Source,
-		marketOhlcCandleSources,
-	} from '$/sources/Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
@@ -27,11 +25,11 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve(
 			'/(assets)/(markets)/market/[marketKey]',
 			{
-				marketKey: encodeURIComponent(stringify(selector.$market)),
+				marketKey: encodeURIComponent(stringify(selection.entitySelector.$market)),
 			},
 			),
 			layout,
@@ -40,7 +38,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.Market_TimeInterval_Timestamp>
+			selection: EntityProxyResource<typeof schema, EntityType.Market_TimeInterval_Timestamp>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -53,17 +51,23 @@
 		>
 	> = $props()
 
-	const marketTimeIntervalTimestamp = $derived(select(EntityType.Market_TimeInterval_Timestamp, selector, ({ sources: [
+
+	const marketTimeIntervalTimestamp = $derived(selection( { sources: [
 				Source.Constants_Internal,
-				...marketOhlcCandleSources,
-			], fields: { $parentMarket: true, close: true, ...(open && ({ open: true, high: true, low: true, volume: true, quoteVolume: true, tradeCount: true, vwap: true })) } })))
+				...(open && layout !== EntityLayout.Summary ? [
+					Source.Coingecko_Rest,
+					Source.Coingecko_OpenApi,
+					Source.Coinpaprika_OpenApi,
+					Source.CoinMarketCap_Rest,
+				] : []),
+			], fields: { $parentMarket: true, ...(open && layout !== EntityLayout.Summary && ({ open: true, high: true, low: true, close: true, volume: true, quoteVolume: true, tradeCount: true, vwap: true })) } }))
 
 
 	// (Derived)
 
 	const quoteCurrency = $derived(
-		selector.$market.$quote.kind === MarketAssetKind.Currency ?
-			selector.$market.$quote.$currency.iso4217
+		selection.entitySelector.$market.$quote.kind === MarketAssetKind.Currency ?
+			selection.entitySelector.$market.$quote.$currency.iso4217
 		:
 			Iso4217.USD
 	)
@@ -81,63 +85,75 @@
 
 <EntityView
 	entityType={EntityType.Market_TimeInterval_Timestamp}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{layout}
 	bind:open
 	{collapsible}
-	title={`${(selector.timeInterval.unit === MarketTimeIntervalUnit.Day ?
-			`${String(selector.timeInterval.value)}d`
-		: selector.timeInterval.unit === MarketTimeIntervalUnit.Hour ?
-			`${String(selector.timeInterval.value)}h`
-		: selector.timeInterval.unit === MarketTimeIntervalUnit.Minute ?
-			`${String(selector.timeInterval.value)}m`
-		: selector.timeInterval.unit === MarketTimeIntervalUnit.Second ?
-			`${String(selector.timeInterval.value)}s`
+	title={`${(selection.entitySelector.timeInterval.unit === MarketTimeIntervalUnit.Day ?
+			`${String(selection.entitySelector.timeInterval.value)}d`
+		: selection.entitySelector.timeInterval.unit === MarketTimeIntervalUnit.Hour ?
+			`${String(selection.entitySelector.timeInterval.value)}h`
+		: selection.entitySelector.timeInterval.unit === MarketTimeIntervalUnit.Minute ?
+			`${String(selection.entitySelector.timeInterval.value)}m`
+		: selection.entitySelector.timeInterval.unit === MarketTimeIntervalUnit.Second ?
+			`${String(selection.entitySelector.timeInterval.value)}s`
 		:
-			`${String(selector.timeInterval.value)}`)} OHLC candle`}
+			`${String(selection.entitySelector.timeInterval.value)}`)} OHLC candle`}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<ResourceBoundary
-			resource={marketTimeIntervalTimestamp}
-			placeholderText="Loading OHLC candle…"
-		>
-			{#snippet children(marketTimeIntervalTimestamp)}
-				{#if marketTimeIntervalTimestamp.fields.close !== undefined}
-					<CurrencyAmount
-						currency={quoteCurrency}
-						showDecimalPlaces={6}
-						value={marketTimeIntervalTimestamp.fields.close}
-					/>
-				{:else}
-					<Timestamp
-						timestamp={selector.timestampMs}
-					/>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if layout === EntityLayout.Summary}
+			<Timestamp
+				timestamp={selection.entitySelector.timestampMs}
+			/>
+		{:else}
+			<ResourceBoundary
+				resource={marketTimeIntervalTimestamp}
+				placeholderText="Loading OHLC candle…"
+			>
+				{#snippet children(marketTimeIntervalTimestamp)}
+					{#if marketTimeIntervalTimestamp.fields.close !== undefined}
+						<CurrencyAmount
+							currency={quoteCurrency}
+							showDecimalPlaces={6}
+							value={marketTimeIntervalTimestamp.fields.close}
+						/>
+					{:else}
+						<Timestamp
+							timestamp={selection.entitySelector.timestampMs}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Title()}
-		<ResourceBoundary
-			resource={marketTimeIntervalTimestamp}
-			placeholderText="Loading OHLC candle…"
-		>
-			{#snippet children(marketTimeIntervalTimestamp)}
-				{#if marketTimeIntervalTimestamp.fields.close !== undefined}
-					<CurrencyAmount
-						currency={quoteCurrency}
-						showDecimalPlaces={6}
-						value={marketTimeIntervalTimestamp.fields.close}
-					/>
-				{:else}
-					<Timestamp
-						timestamp={selector.timestampMs}
-					/>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if layout === EntityLayout.Summary}
+			<Timestamp
+				timestamp={selection.entitySelector.timestampMs}
+			/>
+		{:else}
+			<ResourceBoundary
+				resource={marketTimeIntervalTimestamp}
+				placeholderText="Loading OHLC candle…"
+			>
+				{#snippet children(marketTimeIntervalTimestamp)}
+					{#if marketTimeIntervalTimestamp.fields.close !== undefined}
+						<CurrencyAmount
+							currency={quoteCurrency}
+							showDecimalPlaces={6}
+							value={marketTimeIntervalTimestamp.fields.close}
+						/>
+					{:else}
+						<Timestamp
+							timestamp={selection.entitySelector.timestampMs}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({})}
@@ -164,7 +180,7 @@
 						<dt>Interval start</dt>
 						<dd>
 							<Timestamp
-								timestamp={selector.timestampMs}
+								timestamp={selection.entitySelector.timestampMs}
 							/>
 						</dd>
 					</div>
@@ -173,7 +189,7 @@
 						<dt>Market</dt>
 						<dd>
 							<MarketView
-								selector={marketTimeIntervalTimestamp.fields.$parentMarket?.[EntityMetaKey.Selector] ?? selector.$market}
+								selection={select(EntityType.Market, marketTimeIntervalTimestamp.fields.$parentMarket?.[EntityMetaKey.Selector] ?? selection.entitySelector.$market)}
 								layout={EntityLayout.Title}
 
 								open={false}
@@ -291,10 +307,5 @@
 				</dl>
 			{/snippet}
 		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Details({
-		open: _open,
-	})}
 	{/snippet}
 </EntityView>

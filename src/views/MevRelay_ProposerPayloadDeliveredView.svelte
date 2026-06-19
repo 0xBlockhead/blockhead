@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,9 +17,9 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-			caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
+			caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
 		}),
 		layout,
 		open = $bindable(true),
@@ -26,7 +27,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.MevRelay_ProposerPayloadDelivered>
+			selection: EntityProxyResource<typeof schema, EntityType.MevRelay_ProposerPayloadDelivered>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -38,10 +39,8 @@
 		>
 	> = $props()
 
-	const mevRelayProposerPayloadDelivered = $derived(select(
-		EntityType.MevRelay_ProposerPayloadDelivered,
-		selector,
-		{
+
+	const mevRelayProposerPayloadDelivered = $derived(selection({
 			sources: [
 				Source.MevRelay_Rest,
 			],
@@ -55,7 +54,7 @@
 
 	// (Derived)
 	const payloadSelectorKey = $derived(
-		stringify(selector),
+		stringify(selection.entitySelector),
 	)
 
 
@@ -73,22 +72,22 @@
 
 <EntityView
 	entityType={EntityType.MevRelay_ProposerPayloadDelivered}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{layout}
 	bind:open
-	title={`Slot ${String(selector.slot)}`}
+	title={`Slot ${String(selection.entitySelector.slot)}`}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
-			{selector.slot}
+			{selection.entitySelector.slot}
 		</span>
 	{/snippet}
 
 	{#snippet Title()}
 		<span>
-			{selector.slot}
+			{selection.entitySelector.slot}
 		</span>
 	{/snippet}
 
@@ -181,7 +180,7 @@
 								&& executionBlock !== undefined
 							)}
 								<EvmBlockView
-									selector={executionBlock.entitySelector}
+									selection={select(EntityType.EvmBlock, executionBlock.entitySelector)}
 									layout={EntityLayout.Summary}
 								/>
 							{:else if open}

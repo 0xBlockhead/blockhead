@@ -87,6 +87,7 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
 	import EnsView from '$/views/EnsView.svelte'
 </script>
@@ -154,7 +155,7 @@
 					getSortValue={(ensName) => ensName.entitySelector.name}
 					href={resolve('/ens')}
 					id="ens-substring-search-results-items"
-					items={ensSearchMatches.entities}
+					resource={ensSearchMatches}
 					open={true}
 					title={`Substring matches for "${searchTerm}"`}
 				>
@@ -166,7 +167,7 @@
 
 					{#snippet Item({ item })}
 						<EnsView
-							selector={item.entitySelector}
+							selection={select(EntityType.EnsName, item.entitySelector)}
 							layout={EntityLayout.Summary}
 
 							showTypeAnnotation={false}
@@ -237,10 +238,10 @@
 					<dt>Address</dt>
 					<dd>
 						<EvmNetworkAccountView
-							selector={{
+							selection={select(EntityType.EvmNetworkAccount, {
 								$network: { caip2: { namespace: 'eip155' as const, reference: String(ChainId.Ethereum) } },
 								$actor: { address: reverseAddress },
-							}}
+							})}
 							layout={EntityLayout.Title}
 
 						/>

@@ -21,6 +21,7 @@ import { UtxoBlockSelector } from '$/schema/UtxoBlock.ts'
 import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
 import { UtxoInputSelector } from '$/schema/UtxoInput.ts'
 import { UtxoOutputSelector } from '$/schema/UtxoOutput.ts'
+import { UtxoAddressSelector } from '$/schema/UtxoAddress.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
@@ -76,6 +77,22 @@ const getTransactionDashboard = async ({ $network, txId }: {
 		).data,
 		txId
 	)
+}
+
+const getAddressDashboard = async ({ $network, address }: {
+	$network: NetworkId
+	address: string
+}) => {
+	const { getBitcoinLikeAddressDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
+	return firstDashboardRow(
+		(
+			await getBitcoinLikeAddressDashboard({
+				chain: blockchairChain($network),
+				address,
+			})
+		).data,
+		address
+	).address
 }
 
 export default {
@@ -177,6 +194,21 @@ export default {
 				weightUnits: (transaction) => transaction.weightUnits,
 				feeSats: (transaction) => transaction.feeSats,
 				isCoinbase: (transaction) => transaction.isCoinbase,
+			},
+		}),
+
+		defineResolver(Source.Blockchair_Rest, {
+			entityType: EntityType.UtxoAddress,
+			resolve: {
+				[UtxoAddressSelector.NetworkAddress]: getAddressDashboard,
+			},
+		})({
+			fields: {
+				balanceSats: (address) => bigintFromNumber(address.balance),
+				transactionCount: (address) => address.transaction_count,
+				unspentOutputCount: (address) => address.unspent_output_count,
+				totalReceivedSats: (address) => bigintFromNumber(address.received),
+				totalSpentSats: (address) => bigintFromNumber(address.spent),
 			},
 		}),
 

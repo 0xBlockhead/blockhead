@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -14,14 +15,14 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href,
 		layout = EntityLayout.Summary,
 		open = $bindable(false),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.FarcasterCast_Timestamp>
+			selection: EntityProxyResource<typeof schema, EntityType.FarcasterCast_Timestamp>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -31,6 +32,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -45,7 +47,7 @@
 
 <EntityView
 	entityType={EntityType.FarcasterCast_Timestamp}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{layout}
 	bind:open
@@ -53,11 +55,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<Timestamp timestamp={selector.timestampMs} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Title()}
-		<Timestamp timestamp={selector.timestampMs} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -68,8 +70,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.FarcasterCast_Timestamp,
-					selector,
+			resource={selection(
 					({ sources: [
 							Source.Snapchain_Rest,
 						], fields: { likeCount: true, recastCount: true, replyCount: true } }),

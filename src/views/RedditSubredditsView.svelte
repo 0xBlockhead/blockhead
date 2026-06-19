@@ -1,7 +1,6 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
-import { ListOrientation } from '$/components/ListOrientation.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,6 +10,9 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Context
+	import { resolve } from '$app/paths'
+
+
 	// State
 	let {
 		selection,
@@ -21,12 +23,8 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 		href,
 		title = 'Subreddits',
 	}: {
-		selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
-			id: string
+		selection: EntityProxyEntitiesResource<typeof schema, EntityType.RedditSubreddit>
+		id: string
 		open?: boolean
 		collapsible?: boolean
 		href?: ComponentProps<typeof EntitiesList>['href']
@@ -35,14 +33,10 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 	} = $props()
 
 
-
-	
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import RedditSubredditView from '$/views/RedditSubredditView.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -77,8 +71,7 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 		{#if open}
 			<ResourceBoundary resource={selection({
 					sources: [
-						Source.Reddit_Rest,
-						Source.Reddit_PublicJson,
+						Source.Constants_Internal,
 					],
 				})} placeholderText="Loading subreddits…">
 				{#snippet children(subreddits)}
@@ -93,19 +86,24 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 						getKey={(subreddit) => stringify(subreddit.entitySelector)}
 						getSortValue={(subreddit) => subreddit.entitySelector.name}
 						UnorderedListProps={{ orientation: ListOrientation.Column }}
-					>
-						{#snippet Empty()}
-							<p data-text="muted">
-							No subreddits in this Reddit hub yet.
-						</p>
-						{/snippet}
+						>
+							{#snippet Empty()}
+								<p data-text="muted">
+									No subreddits in this Reddit hub yet.
+								</p>
+							{/snippet}
 
 						{#snippet Item({ item })}
-							<RedditSubredditView
-							selector={item.entitySelector}
-							layout={EntityLayout.Summary}
-
-						/>
+							<a
+								href={resolve('/(social)/(reddit)/reddit/r/[name]', {
+									name: item.entitySelector.name,
+								})}
+							>
+								<TruncatedValue
+									value={`r/${item.entitySelector.name}`}
+									format={TruncatedValueFormat.Visual}
+								/>
+							</a>
 						{/snippet}
 					</EntitiesList>
 				{/snippet}

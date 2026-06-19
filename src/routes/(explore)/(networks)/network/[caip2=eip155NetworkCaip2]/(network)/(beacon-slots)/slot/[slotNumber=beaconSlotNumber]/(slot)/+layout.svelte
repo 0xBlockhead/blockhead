@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	import { eip155NetworkSelectorFromCaip2 } from '$/lib/caip2.ts'
 	// Types/constants
 	import { stringify } from 'devalue'
@@ -41,7 +43,7 @@
 >
 	{#snippet Summary({ open: _open })}
 		<BeaconSlotView
-			selector={slotEntitySelector}
+			selection={select(EntityType.BeaconSlot, slotEntitySelector)}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -14,17 +15,17 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve(
 			'/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]',
-			{ caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}` },
+			{ caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}` },
 		),
 		layout,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.EvmNetwork_GasEstimate_Timestamp>
+			selection: EntityProxyResource<typeof schema, EntityType.EvmNetwork_GasEstimate_Timestamp>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -35,13 +36,11 @@
 		>
 	> = $props()
 
+
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { select } from '$/routes/+layout.svelte'
 
-	const networkGasEstimateTimestamp = $derived(select(
-		EntityType.EvmNetwork_GasEstimate_Timestamp,
-		selector,
-		{
+	const networkGasEstimateTimestamp = $derived(selection({
 			sources: [
 				Source.Blockscout_Rest,
 				Source.Etherscan_Rest,
@@ -65,7 +64,7 @@
 
 <EntityView
 	entityType={EntityType.EvmNetwork_GasEstimate_Timestamp}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	{href}
 	{layout}
 	{open}
@@ -110,7 +109,7 @@
 											gwei slow
 										{:else}
 											<span>
-												chain {String(evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`))}
+												chain {String(evmChainIdFromCaip2(`${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`))}
 											</span>
 										{/if}
 									{/snippet}
@@ -125,7 +124,7 @@
 
 	{#snippet Title()}
 		<Timestamp
-			timestamp={selector.timestampMs}
+			timestamp={selection.entitySelector.timestampMs}
 		/>
 	{/snippet}
 
@@ -141,7 +140,7 @@
 				<dt>As of</dt>
 				<dd>
 					<Timestamp
-						timestamp={selector.timestampMs}
+						timestamp={selection.entitySelector.timestampMs}
 					/>
 				</dd>
 			</div>

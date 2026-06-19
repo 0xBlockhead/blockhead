@@ -10,6 +10,7 @@
 	} from '$/constants/Bridge.ts'
 
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -27,14 +28,14 @@
 
 	// State
 	let {
-		selector,
-		href = resolve(`/bridge/route/${encodeURIComponent(stringify(selector.$route))}/step/${String(selector.index)}`),
-		open = $bindable(true),
+		selection,
+		href = resolve(`/bridge/route/${encodeURIComponent(stringify(selection.entitySelector.$route))}/step/${String(selection.entitySelector.index)}`),
+		open = $bindable(false),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.BridgeRouteStep>
+			selection: EntityProxyResource<typeof schema, EntityType.BridgeRouteStep>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -45,10 +46,29 @@
 		>
 	> = $props()
 
-	const step = $derived(select(EntityType.BridgeRouteStep, selector, ({ sources: [
-				Source.Constants_Internal,
-				Source.Lifi_Rest,
-			], fields: { $fromNetwork: true, $toNetwork: true, $fromToken: true, $toToken: true, ...(open && ({ stepType: true, tool: true, railId: true, settlementModel: true, verificationModel: true, assetOutcome: true })) } })))
+
+	const step = $derived(selection({
+		sources: [
+			Source.Lifi_Rest,
+		],
+		fields: (
+			open ?
+				{
+					$fromNetwork: true,
+					$toNetwork: true,
+					$fromToken: true,
+					$toToken: true,
+					stepType: true,
+					tool: true,
+					railId: true,
+					settlementModel: true,
+					verificationModel: true,
+					assetOutcome: true,
+				}
+			:
+				{}
+		),
+	}))
 
 
 	// Components
@@ -61,31 +81,35 @@
 
 <EntityView
 	entityType={EntityType.BridgeRouteStep}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-badge="small">
-			#{selector.index}
+			#{selection.entitySelector.index}
 		</span>
 	{/snippet}
 
 	{#snippet Title()}
-		<ResourceBoundary
-			resource={step}
-			placeholderText="Loading…"
-		>
-			{#snippet children(step)}
-				{
-					step.fields.tool != null && step.fields.tool !== '' ?
-						(bridgeToolByKey[step.fields.tool]?.label ?? step.fields.tool)
-					:
-						`Step ${selector.index + 1}`
-				}
-			{/snippet}
-		</ResourceBoundary>
+		{#if open}
+			<ResourceBoundary
+				resource={step}
+				placeholderText="Loading…"
+			>
+				{#snippet children(step)}
+					{
+						step.fields.tool != null && step.fields.tool !== '' ?
+							(bridgeToolByKey[step.fields.tool]?.label ?? step.fields.tool)
+						:
+							`Step ${selection.entitySelector.index + 1}`
+					}
+				{/snippet}
+			</ResourceBoundary>
+		{:else}
+			Step {selection.entitySelector.index + 1}
+		{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -215,7 +239,7 @@
 						{#snippet children(step)}
 							{#if step.fields.$fromNetwork}
 								<EvmNetworkView
-									selector={step.fields.$fromNetwork[EntityMetaKey.Selector]}
+									selection={select(EntityType.EvmNetwork, step.fields.$fromNetwork[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 								/>
@@ -235,7 +259,7 @@
 						{#snippet children(step)}
 							{#if step.fields.$toNetwork}
 								<EvmNetworkView
-									selector={step.fields.$toNetwork[EntityMetaKey.Selector]}
+									selection={select(EntityType.EvmNetwork, step.fields.$toNetwork[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 								/>
@@ -256,7 +280,7 @@
 							{#snippet children(step)}
 								{#if step.fields.$fromToken}
 									<EvmCoinInstanceView
-										selector={step.fields.$fromToken[EntityMetaKey.Selector]}
+										selection={select(EntityType.EvmCoinInstance, step.fields.$fromToken[EntityMetaKey.Selector])}
 										layout={EntityLayout.Title}
 
 										showTypeAnnotation={false}
@@ -279,7 +303,7 @@
 							{#snippet children(step)}
 								{#if step.fields.$toToken}
 									<EvmCoinInstanceView
-										selector={step.fields.$toToken[EntityMetaKey.Selector]}
+										selection={select(EntityType.EvmCoinInstance, step.fields.$toToken[EntityMetaKey.Selector])}
 										layout={EntityLayout.Title}
 
 										showTypeAnnotation={false}

@@ -40,7 +40,7 @@ export const eip155NetworkSelectorFromCaip2 = (
 	caip2: `eip155:${string}`
 ) => ({
 	caip2: {
-		namespace: 'eip155',
+		namespace: 'eip155' as const,
 		reference: caip2.split(':')[1] ?? '',
 	},
 })

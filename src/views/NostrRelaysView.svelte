@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
-import { ListOrientation } from '$/components/ListOrientation.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -13,6 +13,7 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 
 	// Context
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
+	import { resolve } from '$app/paths'
 
 
 	// State
@@ -27,11 +28,7 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.NostrRelay>
 			id: string
 			open?: boolean
 			collapsible?: boolean
@@ -44,15 +41,10 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 		>
 	> = $props()
 
-
-
-	
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import NostrRelayView from '$/views/NostrRelayView.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -82,7 +74,9 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			<ResourceBoundary resource={selection({
-					sources: [Source.NostrBand_Rest],
+					sources: [
+						Source.Constants_Internal,
+					],
 				})} placeholderText="Loading relays…">
 				{#snippet children(relays)}
 					<EntitiesList
@@ -93,8 +87,8 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 						{title}
 						open={true}
 						items={relays.entities}
-						getKey={(relay) => stringify(relay.entitySelector)}
-						getSortValue={(relay) => relay.entitySelector.relayUrl}
+						getKey={(relay) => stringify(relay[EntityMetaKey.Selector])}
+						getSortValue={(relay) => relay[EntityMetaKey.Selector].relayUrl}
 						UnorderedListProps={{ orientation: ListOrientation.Column }}
 					>
 						{#snippet Empty()}
@@ -104,11 +98,16 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 						{/snippet}
 
 						{#snippet Item({ item })}
-							<NostrRelayView
-							selector={item.entitySelector}
-							layout={EntityLayout.SummaryDetails}
-
-						/>
+							<a
+								href={resolve('/(social)/(nostr)/nostr/relay/[relayKey]', {
+									relayKey: encodeURIComponent(item[EntityMetaKey.Selector].relayUrl),
+								})}
+							>
+								<TruncatedValue
+									value={item[EntityMetaKey.Selector].relayUrl}
+									format={TruncatedValueFormat.Visual}
+								/>
+							</a>
 						{/snippet}
 					</EntitiesList>
 				{/snippet}

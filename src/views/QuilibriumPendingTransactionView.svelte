@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.QuilibriumPendingTransaction>
+			selection: EntityProxyResource<typeof schema, EntityType.QuilibriumPendingTransaction>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -38,22 +40,22 @@
 
 <EntityView
 	entityType={EntityType.QuilibriumPendingTransaction}
-	entitySelector={selector}
-	title={selector.transactionHash}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.transactionHash}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
 		<TruncatedValue
-			value={selector.transactionHash}
+			value={selection.entitySelector.transactionHash}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.QuilibriumPendingTransaction, selector, ({ fields: { transactionType: true } }))}
+			resource={selection( { fields: { transactionType: true } })}
 			placeholderText={`Loading Quilibrium Pending Transaction...`}
 		>
 			{#snippet children(quilibriumPendingTransaction)}

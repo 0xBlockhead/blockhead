@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { networkEnvironmentByEnvironment } from '$/constants/Network.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -13,34 +14,32 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		selector: EntitySelector<typeof schema, EntityType.Network>
+		selection: EntityProxyResource<typeof schema, EntityType.Network>
 		href?: string
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
-	const network = $derived(select(EntityType.Network, selector, ({ sources: [
+
+	const network = $derived(selection( { sources: [
 				Source.Constants_Internal,
-			], fields: { name: true, environment: true, $$executionEnvironments: true, $$consensusMechanisms: true, $$nativeAssets: true } })))
+			], fields: { name: true, environment: true, $$executionEnvironments: true, $$consensusMechanisms: true, $$nativeAssets: true } }))
 
 	const zeroGNetwork = $derived(select(EntityType.ZeroGNetwork, {
 			slug: '0g',
-		}, ({ sources: [
+		}, { sources: [
 				Source.Constants_Internal,
-				Source.ZeroGChain_JsonRpc,
-				Source.ZeroGChainScan_Rest,
-				Source.ZeroGStorageScan_Rest,
-			], fields: { rpcEndpoints: true, storageEndpoints: true, $$blocks: ({ limit: 1 }), $consensusNetwork: true, $$timestamps: ({ limit: 1 }) } })))
+			], fields: { rpcEndpoints: true, storageEndpoints: true, $consensusNetwork: true } }))
 
 
 	// (Derived)
 	const networkSelectorKey = $derived(
-		stringify(selector),
+		stringify(selection.entitySelector),
 	)
 
 
@@ -63,7 +62,7 @@
 
 <EntityView
 	entityType={EntityType.Network}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	{href}
 	bind:open
 	{layout}
@@ -100,24 +99,6 @@
 		<ResourceBoundary resource={network}>
 			{#snippet children(network)}
 				<dl class="network-summary-head" data-column-item="center">
-						<ResourceBoundary resource={zeroGNetwork}>
-							{#snippet children(zeroGNetwork)}
-								{@const block = zeroGNetwork.fields.$$blocks.values.at(0)}
-								{#if block != null}
-									<div>
-										<dt>Head block</dt>
-										<dd id="network-summary-head-block">
-											<EvmBlockView
-												selector={block[EntityMetaKey.Selector]}
-												layout={EntityLayout.Value}
-												open={false}
-												/>
-										</dd>
-								</div>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-
 					<div>
 						<dt>Environment</dt>
 						<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
@@ -189,7 +170,7 @@
 					{#snippet children(zeroGNetwork)}
 						{#if zeroGNetwork.fields.$consensusNetwork != null}
 							<ZeroGConsensusNetworkView
-								selector={zeroGNetwork.fields.$consensusNetwork[EntityMetaKey.Selector]}
+								selection={select(EntityType.ZeroGConsensusNetwork, zeroGNetwork.fields.$consensusNetwork[EntityMetaKey.Selector])}
 								layout={EntityLayout.SummaryDetails}
 							/>
 						{:else}
@@ -261,9 +242,6 @@
 							slug: '0g',
 						}
 		).$$storageNodes}
-					fieldSources={[
-						Source.Constants_Internal,
-					]}
 					href={href ?? ''}
 					id={`${id}-list`}
 					title={label}

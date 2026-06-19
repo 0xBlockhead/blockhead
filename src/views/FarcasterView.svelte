@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -16,14 +17,14 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/farcaster'),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.FarcasterNetwork>
+			selection: EntityProxyResource<typeof schema, EntityType.FarcasterNetwork>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -34,11 +35,12 @@
 		>
 	> = $props()
 
+
 	const trendingFeed: EntitySelector<typeof schema, EntityType.FarcasterFeed> = {
 		variant: 'trending',
 	}
 
-	const network = $derived(select(EntityType.FarcasterNetwork, selector, ({ sources: [Source.Farcaster_Rest], fields: { ...(open ? ({ protocolName: true, homeUrl: true, docsUrl: true, registryLabel: true, topology: true, $$channels: true, $$users: ({ sources: [Source.Snapchain_Rest] }) }) : ({  })) } })))
+	const network = $derived(selection( { sources: [Source.Farcaster_Rest], fields: { ...(open ? ({ protocolName: true, homeUrl: true, docsUrl: true, registryLabel: true, topology: true }) : ({  })) } }))
 
 	const entityViewDetailCarouselScrollProps = {
 		'data-row': 'start align-start',
@@ -60,7 +62,7 @@
 
 <EntityView
 	entityType={EntityType.FarcasterNetwork}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
 	{collapsible}
@@ -98,20 +100,6 @@
 				placeholderText="Loading Farcaster hub directory…"
 			>
 				{#snippet children(network)}
-					{#if open}
-						<div>
-							<dt>Channels</dt>
-							<dd>{String(network.fields.$$channels.values.length)}</dd>
-						</div>
-					{/if}
-
-					{#if open}
-						<div>
-							<dt>Users</dt>
-							<dd>{String(network.fields.$$users.values.length)}</dd>
-						</div>
-					{/if}
-
 					{#if open && network.fields.protocolName}
 						<div>
 							<dt>Protocol</dt>
@@ -158,7 +146,7 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{@const networkSelectorKey = stringify(selector)}
+		{@const networkSelectorKey = stringify(selection.entitySelector)}
 		<CollapsibleTabs
 			id={`${networkSelectorKey}:carousel-discovery`}
 			sectionIdPrefix={networkSelectorKey}

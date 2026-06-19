@@ -1,9 +1,9 @@
 	<script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 		import type { ComponentProps } from 'svelte'
 		import { EntityMetaKey } from '$/schema/$schema.ts'
 		import { EntityType } from '$/schema/EntityType.ts'
-		import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -16,20 +16,15 @@
 
 	// State
 	let {
-			selector,
-			href = resolve(
-				'/~/(multiplayer)/multiplayer/(contacts)/contact/[contactId]',
-				{
-					contactId: selector.id,
-				},
-			),
+			selection,
+			href,
 		title: titleProp,
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.BlockheadRoomPeer>
+			selection: EntityProxyResource<typeof schema, EntityType.BlockheadRoomPeer>
 			href?: string
 			title?: string
 			open?: boolean
@@ -42,9 +37,9 @@
 	> = $props()
 
 
-	const peer = $derived(select(EntityType.BlockheadRoomPeer, selector, ({ sources: [
+	const peer = $derived(selection( { sources: [
 				Source.Local_Internal,
-			], fields: { displayName: true, isConnected: true, ...(open ? ({ $room: true, peerId: true, joinedAt: true, lastSeenAt: true, connectedAt: true, disconnectedAt: true }) : ({  })) } })))
+			], fields: { displayName: true, isConnected: true, ...(open ? ({ $room: true, peerId: true, joinedAt: true, lastSeenAt: true, connectedAt: true, disconnectedAt: true }) : ({  })) } }))
 
 
 	// Components
@@ -57,14 +52,19 @@
 
 <EntityView
 	entityType={EntityType.BlockheadRoomPeer}
-	entitySelector={selector}
-	href={href}
+	entitySelector={selection.entitySelector}
+	href={href ?? resolve(
+		'/~/(multiplayer)/multiplayer/(contacts)/contact/[contactId]',
+		{
+			contactId: selection.entitySelector.id,
+		},
+	)}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
-			{selector.id}
+			{selection.entitySelector.id}
 		</span>
 	{/snippet}
 
@@ -74,7 +74,7 @@
 			placeholderText="Loading peer…"
 		>
 			{#snippet children(peer)}
-				{titleProp ?? peer.fields.displayName ?? peer.fields.peerId ?? selector.id}
+				{titleProp ?? peer.fields.displayName ?? peer.fields.peerId ?? selection.entitySelector.id}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -132,7 +132,7 @@
 								<dt>Room session</dt>
 								<dd>
 									<BlockheadRoomView
-										selector={peer.fields.$room[EntityMetaKey.Selector]}
+										selection={select(EntityType.BlockheadRoom, peer.fields.$room[EntityMetaKey.Selector])}
 										layout={EntityLayout.Title}
 
 										open={false}

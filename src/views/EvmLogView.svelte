@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,7 +17,7 @@
 	import { select } from '$/routes/+layout.svelte'
 
 	let {
-		selector,
+		selection,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		summaryUsesHeading = (
@@ -30,7 +31,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.EvmLog>
+			selection: EntityProxyResource<typeof schema, EntityType.EvmLog>
 			href?: string
 			layout?: EntityLayout
 			summaryUsesHeading?: boolean
@@ -44,10 +45,8 @@
 		>
 	> = $props()
 
-	const log = $derived(select(
-		EntityType.EvmLog,
-		selector,
-	))
+
+	const log = $derived(selection())
 	const topics = $derived(log.topics)
 	const data = $derived(log.data)
 	const emitter = $derived(log.$emitter)
@@ -68,11 +67,11 @@
 
 <EntityView
 	entityType={EntityType.EvmLog}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href ?? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]/log/[logIndex=nonNegativeInteger]', {
-		caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
-		transactionId: selector.txHash,
-		logIndex: String(selector.logIndex),
+		caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
+		transactionId: selection.entitySelector.txHash,
+		logIndex: String(selection.entitySelector.logIndex),
 	})}
 	{layout}
 	bind:open
@@ -81,7 +80,7 @@
 >
 	{#snippet Value()}
 		<span data-badge="small">
-			#{selector.logIndex}
+			#{selection.entitySelector.logIndex}
 		</span>
 	{/snippet}
 
@@ -94,12 +93,12 @@
 				<span data-row="wrap gap-2 align-baseline">
 					<span data-row="inline align-center gap-2 wrap">
 						<span>Receipt log </span>
-						<span data-badge="small">#{selector.logIndex}</span>
+						<span data-badge="small">#{selection.entitySelector.logIndex}</span>
 					</span>
 					{#if topics?.[0]?.startsWith('0x')}
 						{@const topic0Hex = normalizeEvmTopicHex(topics[0])}
 						<EvmTopicView
-							selector={{ hex: topic0Hex }}
+							selection={select(EntityType.EvmTopic, { hex: topic0Hex })}
 							layout={EntityLayout.Title}
 
 						/>
@@ -132,11 +131,11 @@
 							<a
 								data-text="font-monospace"
 								href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-									caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
-									transactionId: selector.txHash,
+									caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
+									transactionId: selection.entitySelector.txHash,
 								})}
 							>
-								<TruncatedValue value={selector.txHash} format={TruncatedValueFormat.Abbr} />
+								<TruncatedValue value={selection.entitySelector.txHash} format={TruncatedValueFormat.Abbr} />
 							</a>
 						</dd>
 					</div>
@@ -149,7 +148,7 @@
 								<dt>Emitter contract</dt>
 								<dd>
 									<EvmContractView
-										selector={emitter.entitySelector}
+										selection={select(EntityType.EvmContract, emitter.entitySelector)}
 										layout={EntityLayout.Value}
 										showTypeAnnotation={false}
 										open={false}
@@ -212,10 +211,7 @@
 								<dt>Token transfers</dt>
 								<dd>
 									<EvmTokenTransfersView
-										selection={select(
-			EntityType.EvmLog,
-			selector
-		).$$tokenTransfers}
+										selection={selection.$$tokenTransfers}
 										open={true}
 									/>
 								</dd>

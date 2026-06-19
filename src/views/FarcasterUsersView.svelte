@@ -1,6 +1,5 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -8,6 +7,10 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
+
+
+	// Context
+	import { resolve } from '$app/paths'
 
 
 	// State
@@ -20,11 +23,7 @@
 		CollapsibleProps = {},
 		href,
 	}: {
-		selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+		selection: EntityProxyEntitiesResource<typeof schema, EntityType.FarcasterUser>
 		id?: string
 		title?: string
 		CollapsibleProps?: ComponentProps<typeof EntitiesList>['CollapsibleProps']
@@ -35,9 +34,7 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import FarcasterUserView from '$/views/FarcasterUserView.svelte'
 </script>
 
 
@@ -93,11 +90,11 @@
 						{/snippet}
 
 						{#snippet Item({ item })}
-							<FarcasterUserView
-								selector={item[EntityMetaKey.Selector]}
-								layout={EntityLayout.Summary}
-
-							/>
+							<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId=farcasterFid]', {
+								userId: String(item[EntityMetaKey.Selector].fid),
+							})}>
+								FID {String(item[EntityMetaKey.Selector].fid)}
+							</a>
 						{/snippet}
 					</EntitiesList>
 				{/snippet}

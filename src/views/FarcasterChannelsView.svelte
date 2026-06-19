@@ -1,6 +1,5 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -9,6 +8,10 @@
 	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
+
+
+	// Context
+	import { resolve } from '$app/paths'
 
 
 	// State
@@ -21,11 +24,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.FarcasterChannel>
 			id?: string
 			title?: string
 			open?: boolean
@@ -40,9 +39,7 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import FarcasterChannelView from '$/views/FarcasterChannelView.svelte'
 </script>
 
 
@@ -97,11 +94,11 @@
 						{/snippet}
 
 						{#snippet Item({ item })}
-							<FarcasterChannelView
-								selector={item[EntityMetaKey.Selector]}
-								layout={EntityLayout.Summary}
-
-							/>
+							<a href={resolve('/(social)/(farcaster)/farcaster/(channels)/channel/[channelId]', {
+								channelId: item[EntityMetaKey.Selector].id,
+							})}>
+								/{item[EntityMetaKey.Selector].id}
+							</a>
 						{/snippet}
 					</EntitiesList>
 				{/snippet}

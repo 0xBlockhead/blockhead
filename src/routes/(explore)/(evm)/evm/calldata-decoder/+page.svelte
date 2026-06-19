@@ -352,7 +352,7 @@
 																			<span>{index}</span>
 																			{#if param.type === 'address' && typeof param.value === 'string'}
 																				<EvmAccountView
-																					selector={{ address: EvmAddress.assert(param.value) }}
+																					selection={select(EntityType.EvmAccount, { address: EvmAddress.assert(param.value) })}
 																					layout={EntityLayout.Value}
 																				/>
 																			{:else}
@@ -455,7 +455,7 @@
 																			<span>{index}</span>
 																			{#if param.type === 'address' && typeof param.value === 'string'}
 																				<EvmAccountView
-																					selector={{ address: EvmAddress.assert(param.value) }}
+																					selection={select(EntityType.EvmAccount, { address: EvmAddress.assert(param.value) })}
 																					layout={EntityLayout.Value}
 																				/>
 																			{:else}

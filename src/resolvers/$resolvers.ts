@@ -3,7 +3,7 @@ import { extractSimpleComparisons, parseOrderByExpression } from '@tanstack/db'
 import type { LoadSubsetOptions } from '@tanstack/db'
 
 import { EntityFieldCardinality, EntityFieldType, EntityMetaKey, entityFieldConditionKey, entityFieldDefinitions } from '$/schema/$schema.ts'
-import type { EntityFieldDefinitionByName, EntityFieldName, EntityFieldSingleResolvedValue, EntityReferenceValue, EntitySelector, EntityType, Schema } from '$/schema/$schema.ts'
+import type { EntityFieldDefinitionByName, EntityFieldName, EntityFieldSingleResolvedValue, EntitySelector, EntityType, Schema } from '$/schema/$schema.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 
 export type ResolverValue =
@@ -40,7 +40,10 @@ export type LoadSubsetKeyObject = { readonly [key: string]: LoadSubsetKeyValue }
 type ResolverEntityReferenceValue<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
-> = EntityReferenceValue<_Schema, _EntityType> & ResolverObject
+> = {
+	readonly [EntityMetaKey.Selector]: EntitySelector<_Schema, _EntityType>
+	readonly [EntityMetaKey.SelectorKey]?: string
+} & ResolverObject
 
 type ResolverFieldSingleValue<
 	_Schema extends Schema,

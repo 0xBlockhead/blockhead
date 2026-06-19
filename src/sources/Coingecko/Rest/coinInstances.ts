@@ -31,7 +31,8 @@ const isEvmContractAddress = (value: string) => (
 const coinInstanceStubRowsFromCoingeckoCoin = (
 	coinId: CoinId,
 	coin: CoingeckoCoin,
-	chainIdByPlatformId: ReadonlyMap<string, number>
+	chainIdByPlatformId: ReadonlyMap<string, number>,
+	nativeChainIds: readonly number[]
 ) => {
 	const seenKeys = new Set<string>()
 	const rows: CoinInstanceStub[] = []
@@ -81,9 +82,12 @@ const coinInstanceStubRowsFromCoingeckoCoin = (
 		})
 	}
 
-	if (nativeChainId != null) {
+	for (const chainId of [
+		...(nativeChainId == null ? [] : [nativeChainId]),
+		...nativeChainIds,
+	]) {
 		pushRow({
-			$network: { caip2: { namespace: 'eip155', reference: String(nativeChainId) } },
+			$network: { caip2: { namespace: 'eip155', reference: String(chainId) } },
 			type: CoinInstanceType.NativeCurrency,
 		})
 	}
@@ -133,7 +137,15 @@ export const fetchCoinInstanceStubsForCoin = async (
 	return coinInstanceStubRowsFromCoingeckoCoin(
 		coinId,
 		coin,
-		chainIdByPlatformId
+		chainIdByPlatformId,
+		assetPlatforms
+			.flatMap((platform) => (
+				platform.native_coin_id === coingeckoId
+				&& typeof platform.chain_identifier === 'number' ?
+					[platform.chain_identifier]
+				:
+					[]
+			))
 	)
 }
 

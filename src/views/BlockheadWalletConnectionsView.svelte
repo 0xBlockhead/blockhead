@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -56,11 +57,11 @@
 						connectionA.walletId.localeCompare(connectionB.walletId)
 					)) as connection (connection.walletId)}
 						<BlockheadWalletConnectionView
-							selector={{
+							selection={select(EntityType.BlockheadWalletConnection, {
 								$wallet: {
 									id: connection.walletId,
 								},
-							}}
+							})}
 							onRemove={() => walletRuntime.disconnect(connection.walletId)}
 							href={resolve('/~/accounts')}
 

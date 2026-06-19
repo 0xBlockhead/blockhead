@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -14,16 +15,16 @@
 
 	// State
 	let {
-		selector,
-		href = resolve('/~/(accounts)/accounts/(positions)/position/[chainId]/[positionId]', {
-			chainId: String(evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`)),
-			positionId: selector.id,
+		selection,
+		href = resolve('/~/(accounts)/accounts/(positions)/position/[chainId=eip155ChainId]/[positionId]', {
+			chainId: String(evmChainIdFromCaip2(`${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`)),
+			positionId: selection.entitySelector.id,
 		}),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.LiquidityPosition>
+			selection: EntityProxyResource<typeof schema, EntityType.LiquidityPosition>
 			href?: string
 			open?: boolean
 		},
@@ -32,6 +33,7 @@
 			| 'layout'
 		>
 	> = $props()
+
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { select } from '$/routes/+layout.svelte'
@@ -51,14 +53,14 @@
 
 <EntityView
 	entityType={EntityType.LiquidityPosition}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{open}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{selector.id}
+			{selection.entitySelector.id}
 		</span>
 	{/snippet}
 
@@ -84,7 +86,7 @@
 
 	{#snippet Content({})}
 		<ResourceBoundary
-			resource={select(EntityType.LiquidityPosition, selector, ({ fields: { $pool: true, $owner: true, createdAtTimestamp: true, liquidity: true, origin: true, tickLower: true, tickUpper: true, token0Owed: true, token1Owed: true, tokenId: true } }))}
+			resource={selection( { fields: { $pool: true, $owner: true, createdAtTimestamp: true, liquidity: true, origin: true, tickLower: true, tickUpper: true, token0Owed: true, token1Owed: true, tokenId: true } })}
 			placeholderText="Loading position…"
 		>
 			{#snippet children(liquidityPosition)}
@@ -94,7 +96,7 @@
 							<dd>
 								{#if liquidityPosition.fields.$pool !== undefined}
 									<EvmNetworkView
-										selector={liquidityPosition.fields.$pool[EntityMetaKey.Selector].$network}
+										selection={select(EntityType.EvmNetwork, liquidityPosition.fields.$pool[EntityMetaKey.Selector].$network)}
 										layout={EntityLayout.Value}
 
 									/>
@@ -108,7 +110,7 @@
 							<dd>
 								{#if liquidityPosition.fields.$pool !== undefined}
 									<LiquidityPoolView
-										selector={liquidityPosition.fields.$pool[EntityMetaKey.Selector]}
+										selection={select(EntityType.LiquidityPool, liquidityPosition.fields.$pool[EntityMetaKey.Selector])}
 										layout={EntityLayout.Value}
 										open={true}
 										showTypeAnnotation={false}
@@ -123,10 +125,10 @@
 								<dt>Owner</dt>
 								<dd>
 									<EvmNetworkAccountView
-										selector={{
+										selection={select(EntityType.EvmNetworkAccount, {
 											$network: liquidityPosition.fields.$pool[EntityMetaKey.Selector].$network,
 											$actor: liquidityPosition.fields.$owner[EntityMetaKey.Selector],
-										}}
+										})}
 										layout={EntityLayout.Value}
 
 									/>

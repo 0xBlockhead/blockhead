@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -17,17 +18,17 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/upgrade/[upgradeSlug]', {
-			caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
-				upgradeSlug: selector.upgradeId,
+			caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
+				upgradeSlug: selection.entitySelector.upgradeId,
 			}),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.EthereumExecutionUpgrade>
+			selection: EntityProxyResource<typeof schema, EntityType.EthereumExecutionUpgrade>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -39,10 +40,8 @@
 		>
 	> = $props()
 
-	const networkExecutionUpgrade = $derived(select(
-		EntityType.EthereumExecutionUpgrade,
-		selector,
-		{
+
+	const networkExecutionUpgrade = $derived(selection({
 			sources: [
 				Source.Constants_Internal,
 			],
@@ -68,15 +67,15 @@
 
 <EntityView
 	entityType={EntityType.EthereumExecutionUpgrade}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
-	title={`Execution upgrade ${String(selector.upgradeId)}`}
+	title={`Execution upgrade ${String(selection.entitySelector.upgradeId)}`}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
-			{selector.upgradeId}
+			{selection.entitySelector.upgradeId}
 		</span>
 	{/snippet}
 
@@ -86,7 +85,7 @@
 			placeholderText="Loading execution upgrade…"
 		>
 			{#snippet children(name)}
-				{name ?? selector.upgradeId}
+				{name ?? selection.entitySelector.upgradeId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -97,31 +96,31 @@
 		open: contentOpen,
 	})}
 		<ResourceBoundary
-			resource={name}
+			resource={networkExecutionUpgrade}
 			placeholderText="Loading execution upgrade…"
 		>
-			{#snippet children(name)}
+			{#snippet children(networkExecutionUpgrade)}
 		<dl data-column-item="center">
 			{#if (
 				contentOpen
-				&& protocol !== undefined
+				&& networkExecutionUpgrade.fields.protocol !== undefined
 			)}
 				<div>
 					<dt>Execution fork</dt>
 					<dd>
-								{executionProtocolByProtocol[protocol].label}
+								{executionProtocolByProtocol[networkExecutionUpgrade.fields.protocol].label}
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen && activationBlock !== undefined}
+			{#if contentOpen && networkExecutionUpgrade.fields.activationBlock !== undefined}
 				<div>
 					<dt>Activation block</dt>
 					<dd>
 									<EvmBlockView
-										selector={{
-											$network: selector.$network,
-											blockNumber: BigInt(activationBlock),
-										}}
+										selection={select(EntityType.EvmBlock, {
+											$network: selection.entitySelector.$network,
+											blockNumber: BigInt(networkExecutionUpgrade.fields.activationBlock),
+										})}
 										layout={EntityLayout.Value}
 
 										open={false}
@@ -129,20 +128,20 @@
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen && activationEpoch !== undefined}
+			{#if contentOpen && networkExecutionUpgrade.fields.activationEpoch !== undefined}
 				<div>
 					<dt>Activation epoch</dt>
 					<dd>
-								<NumberValue value={activationEpoch} />
+								<NumberValue value={networkExecutionUpgrade.fields.activationEpoch} />
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen && activationTimestampMs !== undefined}
+			{#if contentOpen && networkExecutionUpgrade.fields.activationTimestampMs !== undefined}
 				<div>
 					<dt>Activation time</dt>
 					<dd>
 								<Timestamp
-									timestamp={activationTimestampMs}
+									timestamp={networkExecutionUpgrade.fields.activationTimestampMs}
 								/>
 					</dd>
 				</div>
@@ -155,11 +154,8 @@
 	{#snippet Details({ open })}
 		<ProposalsView
 			href={resolve('/proposals')}
-			selection={select(
-			EntityType.EthereumExecutionUpgrade,
-			selector
-		).$$proposals}
-			id={`${stringify(selector)}:proposals`}
+			selection={selection.$$proposals}
+			id={`${stringify(selection.entitySelector)}:proposals`}
 
 			title="Specification proposals"
 		/>

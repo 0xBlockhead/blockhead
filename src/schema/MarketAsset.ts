@@ -21,7 +21,7 @@ export const marketAsset = type.or(
 			type({
 				$network: type({
 					caip2: type({
-						namespace: 'string',
+						namespace: type.unit('eip155'),
 						reference: 'string',
 					}),
 				}),
@@ -30,7 +30,7 @@ export const marketAsset = type.or(
 			type({
 				$network: type({
 					caip2: type({
-						namespace: 'string',
+						namespace: type.unit('eip155'),
 						reference: 'string',
 					}),
 				}),
@@ -38,7 +38,7 @@ export const marketAsset = type.or(
 				$contract: type({
 					$network: type({
 						caip2: type({
-							namespace: 'string',
+							namespace: type.unit('eip155'),
 							reference: 'string',
 						}),
 					}),

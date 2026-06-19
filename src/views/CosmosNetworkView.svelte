@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { networkEnvironmentByEnvironment } from '$/constants/Network.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -13,21 +14,22 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		selector: EntitySelector<typeof schema, EntityType.CosmosNetwork>
+		selection: EntityProxyResource<typeof schema, EntityType.CosmosNetwork>
 		href?: string
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
+
 	const network = $derived(
 		select(
 			EntityType.Network,
-			selector.$network,
+			selection.entitySelector.$network,
 			{
 				sources: [
 					Source.Constants_Internal,
@@ -47,7 +49,7 @@
 
 	// (Derived)
 	const networkSelectorKey = $derived(
-		stringify(selector),
+		stringify(selection.entitySelector),
 	)
 
 
@@ -69,7 +71,7 @@
 
 <EntityView
 	entityType={EntityType.Network}
-	entitySelector={selector.$network}
+	entitySelector={selection.entitySelector.$network}
 	{href}
 	bind:open
 	{layout}
@@ -106,10 +108,7 @@
 		<ResourceBoundary resource={network}>
 			{#snippet children(network)}
 				<dl class="network-summary-head" data-column-item="center">
-					<ResourceBoundary resource={select(
-							EntityType.CosmosNetwork,
-							selector,
-							{
+					<ResourceBoundary resource={selection({
 								sources: [
 									Source.CosmosSdk_Rest,
 									Source.CometBft_Rest,
@@ -132,7 +131,7 @@
 									<dt>Head block</dt>
 									<dd id="network-summary-head-block">
 										<CosmosBlockView
-											selector={block[EntityMetaKey.Selector]}
+											selection={select(EntityType.CosmosBlock, block[EntityMetaKey.Selector])}
 											layout={EntityLayout.Value}
 										/>
 									</dd>
@@ -178,10 +177,7 @@
 			{#snippet SectionCosmosBlocks({ id, label }: { id: string, label: string })}
 				<CosmosBlocksView
 					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.CosmosNetwork,
-			selector
-		).$$blocks}
+					selection={selection.$$blocks}
 					href={href == null ? '' : `${href}/blocks`}
 					id={`${id}-list`}
 					title={label}
@@ -191,10 +187,7 @@
 			{#snippet SectionCosmosSnapshots({ id, label }: { id: string, label: string })}
 				<CosmosNetwork_TimestampsView
 					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.CosmosNetwork,
-			selector
-		).$$timestamps}
+					selection={selection.$$timestamps}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -211,7 +204,7 @@
 					]}
 					id={`${id}-list`}
 					listEntityType={EntityType.CosmosNetwork}
-					parentEntitySelector={selector}
+					parentEntitySelector={selection.entitySelector}
 					parentEntityType={EntityType.CosmosNetwork}
 					title={label}
 				/>
@@ -237,10 +230,7 @@
 			{#snippet SectionCosmosValidators({ id, label }: { id: string, label: string })}
 				<CosmosValidatorsView
 					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.CosmosNetwork,
-			selector
-		).$$validators}
+					selection={selection.$$validators}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -249,10 +239,7 @@
 			{#snippet SectionCosmosGovernance({ id, label }: { id: string, label: string })}
 				<CosmosGovernanceProposalsView
 					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.CosmosNetwork,
-			selector
-		).$$governanceProposals}
+					selection={selection.$$governanceProposals}
 					href={href == null ? '' : `${href}/governance`}
 					id={`${id}-list`}
 					title={label}
@@ -280,7 +267,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					selection={select(
 			EntityType.Network,
-			selector.$network
+			selection.entitySelector.$network
 		).$$nativeAssets}
 					id={`${id}-list`}
 					title={label}
@@ -310,7 +297,7 @@
 					emptyText="No faucets listed for this network yet."
 					selection={select(
 			EntityType.Network,
-			selector.$network
+			selection.entitySelector.$network
 		).$$faucetUrls}
 					fieldSources={[
 						Source.Constants_Internal,
@@ -327,7 +314,7 @@
 					emptyText="No block explorers listed for this network yet."
 					selection={select(
 			EntityType.Network,
-			selector.$network
+			selection.entitySelector.$network
 		).$$blockExplorerUrls}
 					fieldSources={[
 						Source.Constants_Internal,

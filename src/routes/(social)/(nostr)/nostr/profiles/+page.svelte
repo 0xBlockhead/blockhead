@@ -20,7 +20,7 @@
 		selection={select(
 			EntityType.NostrNetwork,
 			{ scope: 'NostrNetwork' }
-		).$$nostrProfiles}
+		)}
 		id="nostr-profiles"
 	/>
 </Page>

@@ -10,10 +10,7 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import Market from '$/schema/Market.ts'
-import {
-	Source,
-	marketOhlcCandleSources,
-} from '$/sources/Source.ts'
+import { Source } from '$/sources/Source.ts'
 
 export enum Market_TimeInterval_TimestampSelector {
 	MarketTimeIntervalTimestampMs = 'marketTimeIntervalTimestampMs',
@@ -65,7 +62,10 @@ export default {
 			cardinality: EntityFieldCardinality.One,
 			defaultSources: [
 				Source.Constants_Internal,
-				...marketOhlcCandleSources,
+				Source.Coingecko_Rest,
+				Source.Coingecko_OpenApi,
+				Source.Coinpaprika_OpenApi,
+				Source.CoinMarketCap_Rest,
 			],
 		},
 		{
@@ -73,28 +73,48 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [...marketOhlcCandleSources],
+			defaultSources: [
+				Source.Coingecko_Rest,
+				Source.Coingecko_OpenApi,
+				Source.Coinpaprika_OpenApi,
+				Source.CoinMarketCap_Rest,
+			],
 		},
 		{
 			name: 'high',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [...marketOhlcCandleSources],
+			defaultSources: [
+				Source.Coingecko_Rest,
+				Source.Coingecko_OpenApi,
+				Source.Coinpaprika_OpenApi,
+				Source.CoinMarketCap_Rest,
+			],
 		},
 		{
 			name: 'low',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [...marketOhlcCandleSources],
+			defaultSources: [
+				Source.Coingecko_Rest,
+				Source.Coingecko_OpenApi,
+				Source.Coinpaprika_OpenApi,
+				Source.CoinMarketCap_Rest,
+			],
 		},
 		{
 			name: 'close',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [...marketOhlcCandleSources],
+			defaultSources: [
+				Source.Coingecko_Rest,
+				Source.Coingecko_OpenApi,
+				Source.Coinpaprika_OpenApi,
+				Source.CoinMarketCap_Rest,
+			],
 		},
 		{
 			name: 'volume',

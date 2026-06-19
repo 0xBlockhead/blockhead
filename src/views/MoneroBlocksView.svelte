@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
@@ -51,7 +52,7 @@
 
 	{#snippet body()}
 		{#if open}
-			<ResourceBoundary {resource} placeholderText="Loading blocks…">
+			<ResourceBoundary resource={selection} placeholderText="Loading blocks…">
 				{#snippet children(blocks)}
 					<EntitiesList
 						collapsible={false}
@@ -69,7 +70,7 @@
 						{#snippet Empty()}<p data-text="muted">No recent blocks yet.</p>{/snippet}
 						{#snippet Item({ item })}
 							<MoneroBlockView
-								selector={item.entitySelector}
+								selection={select(EntityType.MoneroBlock, item.entitySelector)}
 								layout={EntityLayout.Summary}
 
 							/>

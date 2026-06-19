@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
-import { ListOrientation } from '$/components/ListOrientation.ts'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -13,6 +13,7 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 
 	// Context
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
+	import { resolve } from '$app/paths'
 
 
 	// State
@@ -27,11 +28,7 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+			selection: EntityProxyResource<typeof schema, EntityType.NostrNetwork>
 			id: string
 			open?: boolean
 			title?: string
@@ -45,14 +42,10 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 	> = $props()
 
 
-
-	
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import NostrProfileView from '$/views/NostrProfileView.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -84,11 +77,16 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 			<ResourceBoundary resource={selection({
 					sources: [
 						Source.Constants_Internal,
-						Source.NostrBand_Rest,
-						Source.Primal_Rest,
 					],
+					fields: {
+						$$nostrProfiles: {
+							sources: [
+								Source.Primal_Rest,
+							],
+						},
+					},
 				})} placeholderText="Loading profiles…">
-				{#snippet children(profiles)}
+				{#snippet children(network)}
 					<EntitiesList
 						collapsible={false}
 						showSummary={false}
@@ -96,9 +94,9 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 						id={`${id}-items`}
 						{title}
 						open={true}
-						items={profiles.entities}
-						getKey={(profile) => stringify(profile.entitySelector)}
-						getSortValue={(profile) => profile.entitySelector.pubkey}
+						items={network.fields.$$nostrProfiles.values}
+						getKey={(profile) => stringify(profile[EntityMetaKey.Selector])}
+						getSortValue={(profile) => profile[EntityMetaKey.Selector].pubkey}
 						UnorderedListProps={{ orientation: ListOrientation.Column }}
 					>
 						{#snippet Empty()}
@@ -108,11 +106,16 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 						{/snippet}
 
 						{#snippet Item({ item })}
-							<NostrProfileView
-							selector={item.entitySelector}
-							layout={EntityLayout.SummaryDetails}
-
-						/>
+							<a
+								href={resolve('/(social)/(nostr)/nostr/profile/[pubkey]', {
+									pubkey: item[EntityMetaKey.Selector].pubkey,
+								})}
+							>
+								<TruncatedValue
+									value={item[EntityMetaKey.Selector].pubkey}
+									format={TruncatedValueFormat.Visual}
+								/>
+							</a>
 						{/snippet}
 					</EntitiesList>
 				{/snippet}

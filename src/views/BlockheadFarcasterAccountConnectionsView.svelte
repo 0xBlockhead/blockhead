@@ -1,6 +1,5 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 import { stringify } from 'devalue'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
@@ -22,11 +21,7 @@ import { stringify } from 'devalue'
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.BlockheadFarcasterAccountConnection>
 			title?: string
 			open?: boolean
 			collapsible?: boolean
@@ -108,8 +103,9 @@ import { stringify } from 'devalue'
 
 						{#snippet Item({ item })}
 							<BlockheadFarcasterAccountConnectionView
-								selector={{ fid: item.entitySelector.fid }}
+								selection={select(EntityType.BlockheadFarcasterAccountConnection, { fid: item.entitySelector.fid })}
 								layout={EntityLayout.Summary}
+								open={false}
 
 								title="Account"
 							/>

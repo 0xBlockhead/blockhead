@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 
 	import {
@@ -23,20 +24,21 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href: hrefProp,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.SpecificationProposal>
+			selection: EntityProxyResource<typeof schema, EntityType.SpecificationProposal>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
 		},
 		never
 	> = $props()
+
 
 
 	// Functions
@@ -72,43 +74,42 @@
 	}
 
 
-	const proposal = $derived(select(EntityType.SpecificationProposal,
-		selector,
+	const proposal = $derived(selection(
 		({ sources: [
-				selector.realm === SpecificationRealm.Bitcoin && selector.category === ProposalCategory.Bip ?
+				selection.entitySelector.realm === SpecificationRealm.Bitcoin && selection.entitySelector.category === ProposalCategory.Bip ?
 					Source.BitcoinBips_Github
-				: selector.realm === SpecificationRealm.BitcoinCash && selector.category === ProposalCategory.Chip ?
+				: selection.entitySelector.realm === SpecificationRealm.BitcoinCash && selection.entitySelector.category === ProposalCategory.Chip ?
 					Source.BitcoinCashChips_Gitlab
-				: selector.realm === SpecificationRealm.ChainAgnostic && selector.category === ProposalCategory.Caip ?
+				: selection.entitySelector.realm === SpecificationRealm.ChainAgnostic && selection.entitySelector.category === ProposalCategory.Caip ?
 					Source.Caips_Github
-				: selector.realm === SpecificationRealm.Cosmos && selector.category === ProposalCategory.Adr ?
+				: selection.entitySelector.realm === SpecificationRealm.Cosmos && selection.entitySelector.category === ProposalCategory.Adr ?
 					Source.CosmosAdrs_Github
-				: selector.realm === SpecificationRealm.Dogecoin && selector.category === ProposalCategory.Dip ?
+				: selection.entitySelector.realm === SpecificationRealm.Dogecoin && selection.entitySelector.category === ProposalCategory.Dip ?
 					Source.DogecoinDips_Github
-				: selector.realm === SpecificationRealm.Ens && selector.category === ProposalCategory.Ensip ?
+				: selection.entitySelector.realm === SpecificationRealm.Ens && selection.entitySelector.category === ProposalCategory.Ensip ?
 					Source.Ensips_Github
 				:
-					selector.realm === SpecificationRealm.Ethereum
+					selection.entitySelector.realm === SpecificationRealm.Ethereum
 					&& (
-						selector.category === ProposalCategory.Eip
-						|| selector.category === ProposalCategory.Erc
+						selection.entitySelector.category === ProposalCategory.Eip
+						|| selection.entitySelector.category === ProposalCategory.Erc
 					) ?
 					Source.EthereumEips_Github
-				: selector.realm === SpecificationRealm.Filecoin && selector.category === ProposalCategory.Fip ?
+				: selection.entitySelector.realm === SpecificationRealm.Filecoin && selection.entitySelector.category === ProposalCategory.Fip ?
 					Source.FilecoinFips_Github
-				: selector.realm === SpecificationRealm.Hyperliquid && selector.category === ProposalCategory.Hip ?
+				: selection.entitySelector.realm === SpecificationRealm.Hyperliquid && selection.entitySelector.category === ProposalCategory.Hip ?
 					Source.HyperliquidDocs_Rest
-				: selector.realm === SpecificationRealm.Litecoin && selector.category === ProposalCategory.Lip ?
+				: selection.entitySelector.realm === SpecificationRealm.Litecoin && selection.entitySelector.category === ProposalCategory.Lip ?
 					Source.LitecoinLips_Github
-				: selector.realm === SpecificationRealm.Near && selector.category === ProposalCategory.Nep ?
+				: selection.entitySelector.realm === SpecificationRealm.Near && selection.entitySelector.category === ProposalCategory.Nep ?
 					Source.NearNeps_Github
-				: selector.realm === SpecificationRealm.Polkadot && selector.category === ProposalCategory.Rfc ?
+				: selection.entitySelector.realm === SpecificationRealm.Polkadot && selection.entitySelector.category === ProposalCategory.Rfc ?
 					Source.PolkadotRfcs_Github
-				: selector.realm === SpecificationRealm.Quilibrium && selector.category === ProposalCategory.ProtocolDocument ?
+				: selection.entitySelector.realm === SpecificationRealm.Quilibrium && selection.entitySelector.category === ProposalCategory.ProtocolDocument ?
 					Source.QuilibriumDocs_Rest
-				: selector.realm === SpecificationRealm.Solana && selector.category === ProposalCategory.Simd ?
+				: selection.entitySelector.realm === SpecificationRealm.Solana && selection.entitySelector.category === ProposalCategory.Simd ?
 					Source.SolanaSimds_Github
-				: selector.realm === SpecificationRealm.Zcash && selector.category === ProposalCategory.Zip ?
+				: selection.entitySelector.realm === SpecificationRealm.Zcash && selection.entitySelector.category === ProposalCategory.Zip ?
 					Source.ZcashZips_Github
 				:
 					Source.Constants_Internal,
@@ -117,7 +118,7 @@
 
 	const specificationRealm = $derived(select(EntityType.SpecificationRealm,
 		{
-			realm: selector.realm,
+			realm: selection.entitySelector.realm,
 		},
 		({ sources: [
 				Source.Constants_Internal,
@@ -126,8 +127,8 @@
 
 	const proposalKind = $derived(select(EntityType.SpecificationProposalKind,
 		{
-			realm: selector.realm,
-			category: selector.category,
+			realm: selection.entitySelector.realm,
+			category: selection.entitySelector.category,
 		},
 		({ sources: [
 				Source.Constants_Internal,
@@ -140,9 +141,9 @@
 		hrefProp ?? resolve(
 			'/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]/(proposalKind)/[proposalRef=proposalRef]',
 			{
-				specificationRealmSlug: specificationRealmById[selector.realm].slug,
-				proposalKindSlug: proposalCategoryById[selector.category].slug,
-				proposalRef: `${proposalCategoryById[selector.category].slug}-${selector.number}`,
+				specificationRealmSlug: specificationRealmById[selection.entitySelector.realm].slug,
+				proposalKindSlug: proposalCategoryById[selection.entitySelector.category].slug,
+				proposalRef: `${proposalCategoryById[selection.entitySelector.category].slug}-${selection.entitySelector.number}`,
 			},
 		),
 	)
@@ -158,7 +159,7 @@
 
 <EntityView
 	entityType={EntityType.SpecificationProposal}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	{href}
 	{layout}
 	bind:open
@@ -171,7 +172,7 @@
 		>
 			{#snippet children(proposalKind)}
 				<span>
-					{`${proposalKind.fields.label ?? selector.category}-${selector.number}`}
+					{`${proposalKind.fields.label ?? selection.entitySelector.category}-${selection.entitySelector.number}`}
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -179,7 +180,7 @@
 
 	{#snippet Title()}
 		{#if layout === EntityLayout.SummaryInline}
-			{`${proposalCategoryById[selector.category].label}-${selector.number}`}
+			{`${proposalCategoryById[selection.entitySelector.category].label}-${selection.entitySelector.number}`}
 		{:else}
 			<ResourceBoundary
 				resource={proposal}
@@ -193,8 +194,8 @@
 						{#snippet children(proposalKind)}
 							{proposalHeadingTitle(
 								proposal.fields,
-								selector,
-								proposalKind.fields.label ?? selector.category,
+								selection.entitySelector,
+								proposalKind.fields.label ?? selection.entitySelector.category,
 							)}
 						{/snippet}
 					</ResourceBoundary>
@@ -256,10 +257,10 @@
 										<a href={resolve('/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]', {
 											specificationRealmSlug: specificationRealm.fields.slug,
 										})}>
-											{specificationRealm.fields.label ?? selector.realm}
+											{specificationRealm.fields.label ?? selection.entitySelector.realm}
 										</a>
 									{:else}
-										{specificationRealm.fields.label ?? selector.realm}
+										{specificationRealm.fields.label ?? selection.entitySelector.realm}
 									{/if}
 								{/snippet}
 							</ResourceBoundary>
@@ -288,10 +289,10 @@
 														proposalKindSlug: proposalKind.fields.slug,
 													})}
 												>
-													{proposalKind.fields.labelPlural ?? proposalKind.fields.label ?? selector.category}
+													{proposalKind.fields.labelPlural ?? proposalKind.fields.label ?? selection.entitySelector.category}
 												</a>
 											{:else}
-												{proposalKind.fields.labelPlural ?? proposalKind.fields.label ?? selector.category}
+												{proposalKind.fields.labelPlural ?? proposalKind.fields.label ?? selection.entitySelector.category}
 											{/if}
 										{/snippet}
 									</ResourceBoundary>
@@ -327,7 +328,7 @@
 
 	{#snippet Details()}
 		<section
-			id={`proposal:${selector.realm}:${selector.category}:${selector.number}:document-body`}
+			id={`proposal:${selection.entitySelector.realm}:${selection.entitySelector.category}:${selection.entitySelector.number}:document-body`}
 		>
 			<ResourceBoundary
 				resource={proposal}

@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.PolkadotEvent>
+			selection: EntityProxyResource<typeof schema, EntityType.PolkadotEvent>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -37,16 +39,16 @@
 
 <EntityView
 	entityType={EntityType.PolkadotEvent}
-	entitySelector={selector}
-	title={`Event #${selector.eventIndex.toString()}`}
-	idDragPlainText={selector.eventIndex.toString()}
+	entitySelector={selection.entitySelector}
+	title={`Event #${selection.entitySelector.eventIndex.toString()}`}
+	idDragPlainText={selection.entitySelector.eventIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{selector.eventIndex.toString()}
+			#{selection.entitySelector.eventIndex.toString()}
 		</span>
 	{/snippet}
 
@@ -61,8 +63,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.PolkadotEvent,
-					selector,
+			resource={selection(
 					({ fields: { eventName: true } }),
 				)}
 			placeholderText={`Loading Polkadot Event...`}

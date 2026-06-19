@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.ZcashShieldedPool>
+			selection: EntityProxyResource<typeof schema, EntityType.ZcashShieldedPool>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -37,20 +39,19 @@
 
 <EntityView
 	entityType={EntityType.ZcashShieldedPool}
-	entitySelector={selector}
-	title={selector.pool}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.pool}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
-		{selector.pool.toString()}
+		{selection.entitySelector.pool.toString()}
 	{/snippet}
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.ZcashShieldedPool,
-					selector,
+			resource={selection(
 					({ fields: { activationNetworkUpgrade: true, noteProtocol: true } }),
 				)}
 			placeholderText="Loading Zcash shielded pool…"

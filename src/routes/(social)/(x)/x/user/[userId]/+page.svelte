@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		params,
@@ -13,16 +15,14 @@
 
 <Page>
 	<XUserView
-		selector={
-			/^\d+$/.test(decodeURIComponent(params.userId)) ?
+		selection={select(EntityType.XUser, /^\d+$/.test(decodeURIComponent(params.userId)) ?
 				{
 					id: decodeURIComponent(params.userId),
 				}
 			:
 				{
 					username: decodeURIComponent(params.userId).replace(/^@/, ''),
-				}
-		}
+				})}
 	>
 	</XUserView>
 </Page>

@@ -1,6 +1,5 @@
 import AlliumRestResolvers from '$/resolvers/Allium-Rest.ts'
 import AmbossGraphqlResolvers from '$/resolvers/Amboss-Graphql.ts'
-import AtprotoBskySocialXrpcResolvers from '$/resolvers/Atproto-BskySocial-Xrpc.ts'
 import AtprotoXrpcResolvers from '$/resolvers/Atproto-Xrpc.ts'
 import BeaconRestResolvers from '$/resolvers/Beacon-Rest.ts'
 import BeaconchaInRestResolvers from '$/resolvers/BeaconchaIn-Rest.ts'
@@ -109,10 +108,9 @@ import ZeroGStorageScanRestResolvers from '$/resolvers/ZeroGStorageScan-Rest.ts'
 
 export const resolvers = (
 	[
-		AlliumRestResolvers,
-		AmbossGraphqlResolvers,
-		AtprotoBskySocialXrpcResolvers,
-		AtprotoXrpcResolvers,
+			AlliumRestResolvers,
+			AmbossGraphqlResolvers,
+			AtprotoXrpcResolvers,
 		BeaconRestResolvers,
 		BeaconchaInRestResolvers,
 		BitcoinBipsGithubResolvers,
@@ -217,5 +215,5 @@ export const resolvers = (
 		ZeroGChainScanRestResolvers,
 		ZeroGStorageNodeJsonRpcResolvers,
 		ZeroGStorageScanRestResolvers,
-	]
+		]
 )

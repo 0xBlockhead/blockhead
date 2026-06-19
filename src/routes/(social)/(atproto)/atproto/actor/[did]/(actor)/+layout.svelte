@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// Context
 	import { resolve } from '$app/paths'
 	import { page } from '$app/state'
@@ -27,12 +29,10 @@
 >
 		{#snippet Summary({ open: _open })}
 			<AtprotoActorView
-				selector={
-					decodeURIComponent(did).startsWith('did:') ?
+				selection={select(EntityType.AtprotoActor, decodeURIComponent(did).startsWith('did:') ?
 						{ did: decodeURIComponent(did) }
 					:
-						{ handle: decodeURIComponent(did) }
-				}
+						{ handle: decodeURIComponent(did) })}
 				layout={EntityLayout.SummaryInline}
 			/>
 	{/snippet}

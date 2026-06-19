@@ -1,6 +1,7 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+
+
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -13,6 +14,8 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
 		selection,
@@ -23,11 +26,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EvmContract>
 			title?: string
 			open?: boolean
 			id: string
@@ -39,8 +38,6 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
-
-	
 
 
 	// Components
@@ -72,10 +69,11 @@
 		{#if open}
 			{#key stringify(selection.entitySelector)}
 				<ResourceBoundary
-					resource={select(EntityType.EvmNetwork, selection.entitySelector)
-						.$$contracts({
-							sources: [Source.Blockscout_Rest],
-						})}
+					resource={selection({
+						sources: [
+							Source.Blockscout_Rest,
+						],
+					})}
 					placeholderText="Loading contracts…"
 				>
 					{#snippet children(contracts)}
@@ -101,9 +99,8 @@
 
 							{#snippet Item({ item: contract })}
 								<EvmContractView
-									selector={contract.entitySelector}
+									selection={select(EntityType.EvmContract, contract.entitySelector)}
 									layout={EntityLayout.Summary}
-
 								/>
 							{/snippet}
 						</EntitiesList>

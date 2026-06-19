@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import type { EvmTraceTree } from '$/schema/EvmTrace.ts'
 
@@ -39,10 +41,10 @@
 			<dt>From</dt>
 			<dd>
 				<EvmNetworkAccountView
-					selector={{
+					selection={select(EntityType.EvmNetworkAccount, {
 						$network: { caip2: { namespace: 'eip155' as const, reference: String(chainId) } },
 						$actor: { address: trace.from },
-					}}
+					})}
 					layout={EntityLayout.Value}
 
 					open={false}
@@ -56,10 +58,10 @@
 			<dt>To</dt>
 			<dd>
 				<EvmNetworkAccountView
-					selector={{
+					selection={select(EntityType.EvmNetworkAccount, {
 						$network: { caip2: { namespace: 'eip155' as const, reference: String(chainId) } },
 						$actor: { address: trace.to },
-					}}
+					})}
 					layout={EntityLayout.Value}
 
 					open={false}

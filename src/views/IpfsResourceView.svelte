@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,14 +12,14 @@
 
 	// State
 	let {
-		selector,
-		href = ipfsResourceHref(selector),
+		selection,
+		href = ipfsResourceHref(selection.entitySelector),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.IpfsResource>
+			selection: EntityProxyResource<typeof schema, EntityType.IpfsResource>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -26,10 +27,11 @@
 		never
 	> = $props()
 
+
 	import { ipfsResourceCanonicalUri, ipfsResourceHref } from '$/lib/ipfs.ts'
 	import { select } from '$/routes/+layout.svelte'
 
-	const ipfs = $derived(select(EntityType.IpfsResource, selector, ({ sources: [Source.Ipfs_Rest], fields: { canonicalUri: true, gatewayOrigin: true, gatewayUrl: true, fileName: true, extension: true, contentType: true, contentLength: true, displayType: true, isContentTypeInferred: true, text: true, cidVersion: true, cidMultibase: true, cidMulticodecCode: true, cidMultihashCode: true, cidMultihashDigestHex: true, isCidSubdomainSafe: true } })))
+	const ipfs = $derived(selection( { sources: [Source.Ipfs_Rest], fields: { canonicalUri: true, gatewayOrigin: true, gatewayUrl: true, fileName: true, extension: true, contentType: true, contentLength: true, displayType: true, isContentTypeInferred: true, ...(open && { text: true, cidVersion: true, cidMultibase: true, cidMulticodecCode: true, cidMultihashCode: true, cidMultihashDigestHex: true, isCidSubdomainSafe: true }) } }))
 
 
 	// Components
@@ -47,14 +49,14 @@
 
 <EntityView
 	entityType={EntityType.IpfsResource}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{selector.target}
+			{selection.entitySelector.target}
 		</span>
 	{/snippet}
 
@@ -64,13 +66,13 @@
 				{href}
 			>
 				<TruncatedValue
-					value={ipfsResourceCanonicalUri(selector)}
+					value={ipfsResourceCanonicalUri(selection.entitySelector)}
 					format={TruncatedValueFormat.Visual}
 				/>
 			</a>
 		{:else}
 			<TruncatedValue
-				value={ipfsResourceCanonicalUri(selector)}
+				value={ipfsResourceCanonicalUri(selection.entitySelector)}
 				format={TruncatedValueFormat.Visual}
 			/>
 		{/if}
@@ -78,26 +80,28 @@
 
 	{#snippet Content({})}
 		<dl data-column-item="center">
-			<div>
-				<dt>Content type</dt>
-				<dd>
-					<ResourceBoundary resource={ipfs}>
-						{#snippet children(ipfs)}
-							{#if ipfs.fields.contentType !== undefined}
-								<TruncatedValue
-									value={ipfs.fields.contentType}
-									format={TruncatedValueFormat.Visual}
-								/>
-								{#if ipfs.fields.isContentTypeInferred}
-									{' '}<span data-text="muted">(inferred)</span>
-								{/if}
-							{:else if !open}
-								<span data-text="muted">Content type unavailable.</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+				<div>
+					<dt>Content type</dt>
+					<dd>
+						{#if open}
+							<ResourceBoundary resource={ipfs}>
+								{#snippet children(ipfs)}
+									{#if ipfs.fields.contentType !== undefined}
+										<TruncatedValue
+											value={ipfs.fields.contentType}
+											format={TruncatedValueFormat.Visual}
+										/>
+										{#if ipfs.fields.isContentTypeInferred}
+											{' '}<span data-text="muted">(inferred)</span>
+										{/if}
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
+						{:else}
+							<span data-text="muted">Open to load content metadata.</span>
+						{/if}
+					</dd>
+				</div>
 
 			{#if open}
 				<div>
@@ -219,7 +223,7 @@
 				</div>
 			{/if}
 
-			{#if open && selector.namespace === 'ipfs'}
+			{#if open && selection.entitySelector.namespace === 'ipfs'}
 				<div>
 					<dt>Content identifier version</dt>
 					<dd>
@@ -234,7 +238,7 @@
 				</div>
 			{/if}
 
-			{#if open && selector.namespace === 'ipfs'}
+			{#if open && selection.entitySelector.namespace === 'ipfs'}
 				<div>
 					<dt>Multibase</dt>
 					<dd>
@@ -252,7 +256,7 @@
 				</div>
 			{/if}
 
-			{#if open && selector.namespace === 'ipfs'}
+			{#if open && selection.entitySelector.namespace === 'ipfs'}
 				<div>
 					<dt>Multicodec code</dt>
 					<dd>
@@ -267,7 +271,7 @@
 				</div>
 			{/if}
 
-			{#if open && selector.namespace === 'ipfs'}
+			{#if open && selection.entitySelector.namespace === 'ipfs'}
 				<div>
 					<dt>Multihash code</dt>
 					<dd>
@@ -282,7 +286,7 @@
 				</div>
 			{/if}
 
-			{#if open && selector.namespace === 'ipfs'}
+			{#if open && selection.entitySelector.namespace === 'ipfs'}
 				<div>
 					<dt>Multihash digest</dt>
 					<dd>
@@ -300,7 +304,7 @@
 				</div>
 			{/if}
 
-			{#if open && selector.namespace === 'ipfs'}
+			{#if open && selection.entitySelector.namespace === 'ipfs'}
 				<div>
 					<dt>Subdomain-safe</dt>
 					<dd>
@@ -320,13 +324,13 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{@const detailKey = stringify(selector)}
+		{@const detailKey = stringify(selection.entitySelector)}
 		<CollapsibleTabs
 			id={`${detailKey}:carousel-ipfs-resource`}
 			sectionIdPrefix={detailKey}
 			sections={[
 				{ id: 'ipfs-record', label: 'Record' },
-				...(_open && selector.namespace === 'ipfs' ? [{ id: 'ipfs-cid', label: 'Encodings' }] : []),
+				...(_open && selection.entitySelector.namespace === 'ipfs' ? [{ id: 'ipfs-cid', label: 'Encodings' }] : []),
 				...(_open ? [{ id: 'ipfs-preview', label: 'Preview' }] : []),
 			]}
 			data-card
@@ -358,13 +362,10 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionIpfsRecord()}
-			{/snippet}
-
 			{#snippet SectionIpfsCid()}
 				<IpfsCidAlternateEncodings
-					contentPath={selector.contentPath}
-					target={selector.target}
+					contentPath={selection.entitySelector.contentPath}
+					target={selection.entitySelector.target}
 				/>
 			{/snippet}
 

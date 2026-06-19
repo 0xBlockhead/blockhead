@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -17,17 +18,17 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/upgrade/[upgradeSlug]', {
-			caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
-				upgradeSlug: selector.upgradeId,
+			caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
+				upgradeSlug: selection.entitySelector.upgradeId,
 			}),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.EthereumConsensusUpgrade>
+			selection: EntityProxyResource<typeof schema, EntityType.EthereumConsensusUpgrade>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -39,10 +40,8 @@
 		>
 	> = $props()
 
-	const networkConsensusUpgrade = $derived(select(
-		EntityType.EthereumConsensusUpgrade,
-		selector,
-		{
+
+	const networkConsensusUpgrade = $derived(selection({
 			sources: [
 				Source.Constants_Internal,
 			],
@@ -71,15 +70,15 @@
 
 <EntityView
 	entityType={EntityType.EthereumConsensusUpgrade}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
-	title={`Consensus upgrade ${selector.upgradeId}`}
+	title={`Consensus upgrade ${selection.entitySelector.upgradeId}`}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
-			{selector.upgradeId}
+			{selection.entitySelector.upgradeId}
 		</span>
 	{/snippet}
 
@@ -89,7 +88,7 @@
 			placeholderText="Loading consensus upgrade…"
 		>
 			{#snippet children(name)}
-				{name ?? selector.upgradeId}
+				{name ?? selection.entitySelector.upgradeId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -100,31 +99,31 @@
 		open: contentOpen,
 	})}
 		<ResourceBoundary
-			resource={name}
+			resource={networkConsensusUpgrade}
 			placeholderText="Loading consensus upgrade…"
 		>
-			{#snippet children(name)}
+			{#snippet children(networkConsensusUpgrade)}
 		<dl data-column-item="center">
 			{#if (
 				contentOpen
-				&& protocol !== undefined
+				&& networkConsensusUpgrade.fields.protocol !== undefined
 			)}
 				<div>
 					<dt>Consensus fork</dt>
 					<dd>
-								{consensusProtocolByProtocol[protocol].label}
+								{consensusProtocolByProtocol[networkConsensusUpgrade.fields.protocol].label}
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen && activationBlock !== undefined}
+			{#if contentOpen && networkConsensusUpgrade.fields.activationBlock !== undefined}
 				<div>
 					<dt>Activation block</dt>
 					<dd>
 									<EvmBlockView
-										selector={{
-											$network: selector.$network,
-											blockNumber: BigInt(activationBlock),
-										}}
+										selection={select(EntityType.EvmBlock, {
+											$network: selection.entitySelector.$network,
+											blockNumber: BigInt(networkConsensusUpgrade.fields.activationBlock),
+										})}
 										layout={EntityLayout.Value}
 
 										open={false}
@@ -132,42 +131,42 @@
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen && activationEpoch !== undefined}
+			{#if contentOpen && networkConsensusUpgrade.fields.activationEpoch !== undefined}
 				<div>
 					<dt>Activation epoch</dt>
 					<dd>
-								<NumberValue value={activationEpoch} />
+								<NumberValue value={networkConsensusUpgrade.fields.activationEpoch} />
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen && activationTimestampMs !== undefined}
+			{#if contentOpen && networkConsensusUpgrade.fields.activationTimestampMs !== undefined}
 				<div>
 					<dt>Activation time</dt>
 					<dd>
 								<Timestamp
-									timestamp={activationTimestampMs}
+									timestamp={networkConsensusUpgrade.fields.activationTimestampMs}
 								/>
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen && previousForkVersion !== undefined}
+			{#if contentOpen && networkConsensusUpgrade.fields.previousForkVersion !== undefined}
 				<div>
 					<dt>Previous fork version</dt>
 					<dd>
 								<TruncatedValue
 									format={TruncatedValueFormat.Abbr}
-									value={previousForkVersion}
+									value={networkConsensusUpgrade.fields.previousForkVersion}
 								/>
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen && currentForkVersion !== undefined}
+			{#if contentOpen && networkConsensusUpgrade.fields.currentForkVersion !== undefined}
 				<div>
 					<dt>Current fork version</dt>
 					<dd>
 								<TruncatedValue
 									format={TruncatedValueFormat.Abbr}
-									value={currentForkVersion}
+									value={networkConsensusUpgrade.fields.currentForkVersion}
 								/>
 					</dd>
 				</div>
@@ -180,11 +179,8 @@
 	{#snippet Details({ open })}
 		<ProposalsView
 			href={resolve('/proposals')}
-			selection={select(
-			EntityType.EthereumConsensusUpgrade,
-			selector
-		).$$proposals}
-			id={`${stringify(selector)}:proposals`}
+			selection={selection.$$proposals}
+			id={`${stringify(selection.entitySelector)}:proposals`}
 
 			title="Specification proposals"
 		/>

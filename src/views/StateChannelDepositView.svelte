@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,7 +17,7 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/channels'),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(
@@ -26,7 +27,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.StateChannelDeposit>
+			selection: EntityProxyResource<typeof schema, EntityType.StateChannelDeposit>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -38,8 +39,8 @@
 		>
 	> = $props()
 
-	const deposit = $derived(select(EntityType.StateChannelDeposit,
-		selector,
+
+	const deposit = $derived(selection(
 		({ sources: [Source.Local_Internal], fields: { availableBalance: true, lockedBalance: true, lastUpdated: true, $account: true, $network: true } }),
 	))
 
@@ -56,7 +57,7 @@
 
 <EntityView
 	entityType={EntityType.StateChannelDeposit}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{layout}
 	bind:open
@@ -65,7 +66,7 @@
 >
 	{#snippet Value()}
 		<span>
-			{selector.id}
+			{selection.entitySelector.id}
 		</span>
 	{/snippet}
 
@@ -79,10 +80,8 @@
 				{#snippet children(deposit)}
 					{#if deposit.fields.$account?.[EntityMetaKey.Selector].address !== undefined}
 						<EvmAccountView
-							selector={deposit.fields.$account[EntityMetaKey.Selector]}
-							href={resolve('/account/[address]', {
-								address: deposit.fields.$account[EntityMetaKey.Selector].address,
-							})}
+							selection={select(EntityType.EvmAccount, deposit.fields.$account[EntityMetaKey.Selector])}
+							href={`/account/${deposit.fields.$account[EntityMetaKey.Selector].address}`}
 							layout={EntityLayout.Value}
 
 						/>
@@ -115,19 +114,17 @@
 							<dd>
 								{#if deposit.fields.$network !== undefined}
 									<EvmNetworkAccountView
-										selector={{
+										selection={select(EntityType.EvmNetworkAccount, {
 											$network: deposit.fields.$network[EntityMetaKey.Selector],
 											$actor: deposit.fields.$account[EntityMetaKey.Selector],
-										}}
+										})}
 										layout={EntityLayout.Title}
 
 									/>
 								{:else}
 									<EvmAccountView
-										selector={deposit.fields.$account[EntityMetaKey.Selector]}
-										href={resolve('/account/[address]', {
-											address: deposit.fields.$account[EntityMetaKey.Selector].address,
-										})}
+										selection={select(EntityType.EvmAccount, deposit.fields.$account[EntityMetaKey.Selector])}
+										href={`/account/${deposit.fields.$account[EntityMetaKey.Selector].address}`}
 										layout={EntityLayout.Title}
 
 									/>

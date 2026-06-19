@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,7 +17,7 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href: hrefProp,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
@@ -24,7 +25,7 @@
 	}: WithRest<
 		{
 
-			selector: EntitySelector<typeof schema, EntityType.SpecificationRealm>
+			selection: EntityProxyResource<typeof schema, EntityType.SpecificationRealm>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -32,9 +33,10 @@
 		never
 	> = $props()
 
-	const realm = $derived(select(EntityType.SpecificationRealm, selector, ({ sources: [
+
+	const realm = $derived(selection( { sources: [
 				Source.Constants_Internal,
-			], fields: { label: true, slug: true } })))
+			], fields: { label: true, slug: true } }))
 
 	const href = $derived(
 		hrefProp ?? resolve('/proposals'),
@@ -50,9 +52,9 @@
 
 <EntityView
 	entityType={EntityType.SpecificationRealm}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	{href}
-	title={String(selector.realm)}
+	title={String(selection.entitySelector.realm)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -64,7 +66,7 @@
 		>
 			{#snippet children(realm)}
 				<span>
-					{realm.fields.slug ?? String(selector.realm)}
+					{realm.fields.slug ?? String(selection.entitySelector.realm)}
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -76,7 +78,7 @@
 			placeholderText="Loading specification realm…"
 		>
 			{#snippet children(realm)}
-				{realm.fields.label ?? String(selector.realm)}
+				{realm.fields.label ?? String(selection.entitySelector.realm)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -90,11 +92,8 @@
 	{#snippet Details({ open })}
 		<ProposalKindsView
 			{href}
-			selection={select(
-				EntityType.SpecificationRealm,
-				selector
-			).$$proposalKinds}
-			id={`${stringify(selector)}:proposalKinds`}
+			selection={selection.$$proposalKinds}
+			id={`${stringify(selection.entitySelector)}:proposalKinds`}
 
 			title="Proposal kinds"
 		/>

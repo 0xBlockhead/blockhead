@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.SolanaTokenMint>
+			selection: EntityProxyResource<typeof schema, EntityType.SolanaTokenMint>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -39,23 +41,22 @@
 
 <EntityView
 	entityType={EntityType.SolanaTokenMint}
-	entitySelector={selector}
-	title={selector.mintAddress}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.mintAddress}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
 		<TruncatedValue
-			value={selector.mintAddress}
+			value={selection.entitySelector.mintAddress}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.SolanaTokenMint,
-					selector,
+			resource={selection(
 					({ fields: { supply: true, decimals: true } }),
 				)}
 			placeholderText={`Loading Solana Token Mint...`}

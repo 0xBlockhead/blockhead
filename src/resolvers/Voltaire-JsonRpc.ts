@@ -317,7 +317,7 @@ const evmBlobEntityRefsFromVoltaireTx = ({
 	$network: EvmNetworkId
 	txHash: `0x${string}`
 	blobVersionedHashes: readonly string[] | undefined
-}): Entity<typeof schema, EntityType.EvmBlob>[] => (
+}) => (
 	(blobVersionedHashes ?? []).map((_blobVersionedHash, blobIndex) => ({
 		[EntityMetaKey.Selector]: {
 			$network,
@@ -477,9 +477,9 @@ const evmBlobEntitiesFromVoltaireBlockWire = (
 	chainId: number,
 	blockNumber: bigint,
 	wire: VoltaireBlockRpc
-): Entity<typeof schema, EntityType.EvmBlob>[] => {
+) => {
 	const txs = wire.transactions ?? []
-	const out: Entity<typeof schema, EntityType.EvmBlob>[] = []
+	const out = []
 	for (const transactionRef of txs) {
 		if (typeof transactionRef === 'string') continue
 		const txHash = hexLowerOfByteSize(transactionRef.hash ?? '', 32)
@@ -1757,7 +1757,7 @@ export default {
 						Array.from({ length: depth }, (_, i) => head - BigInt(i))
 							.filter((n) => n >= 0n)
 					)
-					const evmBlobs: Entity<typeof schema, EntityType.EvmBlob>[] = []
+						const evmBlobs = []
 					for (const blockNumber of blockNumbers) {
 						const w = await getBlockByNumberForRpcUrl({
 							...jsonRpcTransport,

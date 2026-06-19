@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntitySelector } from '$/schema/$schema.ts'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -15,16 +15,14 @@
 
 	// State
 	let {
-		selector,
-		href = resolve('/(assets)/(marketVenues)/market-venue/[marketVenueId=marketVenueId]', {
-				marketVenueId: selector.marketVenueId,
-		}),
+		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.MarketVenue>
+			selection: EntityProxyResource<typeof schema, EntityType.MarketVenue>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -35,7 +33,7 @@
 		>
 	> = $props()
 
-	const marketVenue = $derived(select(EntityType.MarketVenue, selector, ({ sources: [
+	const marketVenue = $derived(selection(({ sources: [
 				Source.Constants_Internal,
 			], fields: { label: true } })))
 
@@ -49,9 +47,11 @@
 
 <EntityView
 	entityType={EntityType.MarketVenue}
-	entitySelector={selector}
-	{href}
-	title={selector.marketVenueId}
+	entitySelector={selection.entitySelector}
+	href={href ?? resolve('/(assets)/(marketVenues)/market-venue/[marketVenueId=marketVenueId]', {
+			marketVenueId: selection.entitySelector.marketVenueId,
+	})}
+	title={selection.entitySelector.marketVenueId}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -63,7 +63,7 @@
 			placeholderText="Loading market venue…"
 		>
 			{#snippet children(marketVenue)}
-				{marketVenue.fields.label ?? selector.marketVenueId}
+				{marketVenue.fields.label ?? selection.entitySelector.marketVenueId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -78,14 +78,14 @@
 					<div>
 						<dt>Venue id</dt>
 						<dd>
-							<code>{selector.marketVenueId}</code>
+							<code>{selection.entitySelector.marketVenueId}</code>
 						</dd>
 					</div>
 
 					<div>
 						<dt>Label</dt>
 						<dd>
-				{marketVenue.fields.label ?? selector.marketVenueId}
+				{marketVenue.fields.label ?? selection.entitySelector.marketVenueId}
 						</dd>
 					</div>
 				</dl>
@@ -98,10 +98,7 @@
 	})}
 		<MarketsView
 			href={resolve('/markets')}
-			selection={select(
-			EntityType.MarketVenue,
-			selector
-		).$$markets}
+			selection={selection.$$markets}
 
 			title="Markets"
 		/>

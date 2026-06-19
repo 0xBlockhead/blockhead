@@ -73,6 +73,7 @@ export default {
 			entityType: EntityType.EvmContract,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
+				Source.TheGraph_Graphql,
 				Source.Voltaire_JsonRpc,
 			],
 		},

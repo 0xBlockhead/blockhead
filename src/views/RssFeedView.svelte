@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -17,9 +18,9 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/(social)/(rss)/rss/feed/[feedKey]', {
-			feedKey: encodeURIComponent(selector.feedUrl),
+			feedKey: encodeURIComponent(selection.entitySelector.feedUrl),
 		}),
 		limit = 25,
 		layout,
@@ -29,7 +30,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.RssFeed>
+			selection: EntityProxyResource<typeof schema, EntityType.RssFeed>
 			href?: string
 			limit?: number
 			layout?: import('$/components/EntityView.svelte').EntityLayout
@@ -41,15 +42,16 @@
 		>
 	> = $props()
 
-	const feed = $derived(select(EntityType.RssFeed, selector, ({ sources: [
+
+	const feed = $derived(selection( { sources: [
 				Source.Rss_Rest,
-				Source.Rss2Json_Rest,
 			], fields: { title: true, description: true, link: true, siteUrl: true, language: true, lastBuildDate: true, imageUrl: true, ...(open ? ({ $$items: ({ sources: [
 							Source.Rss_Rest,
-							Source.Rss2Json_Rest,
-						] }) }) : ({  })) } })))
+						] }) }) : ({  })) } }))
 
-	const idKey = stringify(selector)
+	const idKey = $derived(
+		stringify(selection.entitySelector)
+	)
 
 
 	// Components
@@ -66,7 +68,7 @@
 
 <EntityView
 	entityType={EntityType.RssFeed}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{layout}
 	bind:open
@@ -78,7 +80,7 @@
 				{#if feed.fields.imageUrl}
 					<IconComponent
 						src={feed.fields.imageUrl}
-						alt={feed.fields.title ?? selector.feedUrl}
+						alt={feed.fields.title ?? selection.entitySelector.feedUrl}
 					/>
 				{/if}
 			{/snippet}
@@ -87,7 +89,7 @@
 
 	{#snippet Value()}
 		<TruncatedValue
-			value={selector.feedUrl}
+			value={selection.entitySelector.feedUrl}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -98,7 +100,7 @@
 			placeholderText="Loading feed…"
 		>
 			{#snippet children(feed)}
-				{feed.fields.title ?? selector.feedUrl}
+				{feed.fields.title ?? selection.entitySelector.feedUrl}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -132,7 +134,7 @@
 		<dl data-column-item="center">
 			<div>
 				<dt>Feed URL</dt>
-				<dd>{selector.feedUrl}</dd>
+				<dd>{selection.entitySelector.feedUrl}</dd>
 			</div>
 
 			<ResourceBoundary
@@ -228,17 +230,11 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionFeedRecord({ id, label })}
-			{/snippet}
-
 			{#snippet SectionFeedItems({ id, label })}
 				<RssItemsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/rss/items')}
-					selection={select(
-			EntityType.RssFeed,
-			selector
-		).$$items}
+					selection={selection.$$items}
 					id={`${idKey}:feed-items-rssFeeds`}
 					{limit}
 					open={_open}

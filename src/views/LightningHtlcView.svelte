@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -12,12 +13,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.LightningHtlc>
+			selection: EntityProxyResource<typeof schema, EntityType.LightningHtlc>
 			open?: boolean
 		},
 		Pick<
@@ -26,6 +27,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -39,15 +41,15 @@
 
 <EntityView
 	entityType={EntityType.LightningHtlc}
-	entitySelector={selector}
-	title={`HTLC #${selector.htlcIndex}`}
-	idDragPlainText={String(selector.htlcIndex)}
+	entitySelector={selection.entitySelector}
+	title={`HTLC #${selection.entitySelector.htlcIndex}`}
+	idDragPlainText={String(selection.entitySelector.htlcIndex)}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-badge="small">
-			#{selector.htlcIndex}
+			#{selection.entitySelector.htlcIndex}
 		</span>
 	{/snippet}
 
@@ -62,8 +64,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.LightningHtlc,
-		selector,
+			resource={selection(
 		({ sources: [
 				Source.LightningLnd_Rest,
 			], fields: { direction: true, amountMsat: true, expiryHeight: true, hashLock: true, state: true } }),

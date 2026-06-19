@@ -1,18 +1,21 @@
 <script lang="ts">
 	// Types/constants
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import { Tween, prefersReducedMotion } from 'svelte/motion'
 
 
 	// State
 	let {
 		value,
+		resource,
 		locales,
 		options = {},
 		tween = false,
 		tweenDuration = 1000,
 		formatValueOptions,
 	}: {
-		value: number | bigint
+		value?: number | bigint
+		resource?: SvelteKitResource<number | bigint | undefined>
 		locales?: string | string[]
 		options?: Intl.NumberFormatOptions
 		tween?: boolean
@@ -22,6 +25,7 @@
 
 
 	// Functions
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	const indexParts = (parts: Intl.NumberFormatPart[]) => {
 		const decimalIndex = parts.findIndex(
 			(part) => (part.type === 'decimal' || part.type === 'exponentSeparator'),
@@ -123,7 +127,7 @@
 		tween ?
 			tweenedNumber.current
 		:
-			(Number(value) || 0)
+			(Number(value ?? 0) || 0)
 	)
 
 	$effect(() => {
@@ -135,7 +139,7 @@
 			|| isFirstTweenSet
 		)
 		void tweenedNumber.set(
-			Number(value) || 0,
+			Number(value ?? 0) || 0,
 			{
 				duration: (instant ?
 					0
@@ -156,28 +160,53 @@
 </script>
 
 
-<output class="number-value">
-	{#each indexParts(
-		formatValueOptions
-			? (formatValue(
-				displayNumber,
-				{ ...formatValueOptions, toParts: true },
-			))
-		:
-			(new Intl.NumberFormat(
-				locales,
-				options,
+{#snippet RenderValue(renderedValue: number | bigint)}
+	<output class="number-value">
+		{#each indexParts(
+			formatValueOptions
+				? (formatValue(
+					tween && resource === undefined ?
+						displayNumber
+					:
+						Number(renderedValue) || 0,
+					{ ...formatValueOptions, toParts: true },
+				))
+			:
+				(new Intl.NumberFormat(
+					locales,
+					options,
+				)
+					.formatToParts(
+						tween && resource === undefined ?
+							displayNumber
+						:
+							Number(renderedValue) || 0
+					)
 			)
-				.formatToParts(displayNumber)
-		)
-	) as indexed (indexed.key)}
-		<span
-			data-part={indexed.part.type}
-		>
-			{indexed.part.value}
-		</span>
-	{/each}
-</output>
+		) as indexed (indexed.key)}
+			<span
+				data-part={indexed.part.type}
+			>
+				{indexed.part.value}
+			</span>
+		{/each}
+	</output>
+{/snippet}
+
+{#if resource !== undefined}
+	<ResourceBoundary
+		{resource}
+		placeholderText="Loading number…"
+	>
+		{#snippet children(value)}
+			{#if value !== undefined}
+				{@render RenderValue(value)}
+			{/if}
+		{/snippet}
+	</ResourceBoundary>
+{:else if value !== undefined}
+	{@render RenderValue(value)}
+{/if}
 
 
 <style>

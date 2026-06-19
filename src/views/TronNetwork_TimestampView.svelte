@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -10,17 +11,17 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		selector: EntitySelector<typeof schema, EntityType.TronNetwork_Timestamp>
+		selection: EntityProxyResource<typeof schema, EntityType.TronNetwork_Timestamp>
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
-	const snapshot = $derived(select(EntityType.TronNetwork_Timestamp,
-		selector,
+
+	const snapshot = $derived(selection(
 		({ sources: [
 				Source.TronGrid_Rest,
 			], fields: { latestBlockHeight: true, latestBlockHash: true, latestBlockTimeMs: true, latestBlockTransactionCount: true, witnessCount: true, activeWitnessCount: true, nodeBlockHeight: true, solidityBlockHeight: true, currentPeerCount: true, maintenanceIntervalMs: true, transactionFeeSun: true, createAccountFeeSun: true } }),
@@ -38,7 +39,7 @@
 
 <EntityView
 	entityType={EntityType.TronNetwork_Timestamp}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	bind:open
 	{layout}
 >
@@ -54,7 +55,7 @@
 					<NumberValue value={snapshot.fields.activeWitnessCount} />
 					witnesses
 				{:else}
-					<Timestamp timestamp={selector.timestampMs} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

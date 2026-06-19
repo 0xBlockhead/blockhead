@@ -5,6 +5,8 @@
 		proposalKindAllowedInRealmByKey,
 		specificationRealmBySlug,
 	} from '$/constants/SpecificationProposal.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 
 	import { stringify } from 'devalue'
 
@@ -55,7 +57,7 @@
 	>
 		{#snippet Summary({ open: _open })}
 			<ProposalKindView
-				selector={selector}
+				selection={select(EntityType.SpecificationProposalKind, selector)}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

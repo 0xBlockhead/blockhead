@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,10 +17,10 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve(
 			'/(social)/(nostr)/nostr/relay/[relayKey]',
-			{ relayKey: encodeURIComponent(selector.relayUrl) },
+			{ relayKey: encodeURIComponent(selection.entitySelector.relayUrl) },
 		),
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
@@ -28,7 +29,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.NostrRelay>
+			selection: EntityProxyResource<typeof schema, EntityType.NostrRelay>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -39,9 +40,10 @@
 		>
 	> = $props()
 
-	const relay = $derived(select(EntityType.NostrRelay, selector, ({ sources: [
-				Source.NostrBand_Rest,
-			], fields: { name: true, description: true, software: true, version: true, supportedNipCount: true, isPaid: true } })))
+
+	const relay = $derived(selection( { sources: [
+				Source.Constants_Internal,
+			], fields: { name: true, description: true, software: true, version: true, supportedNipCount: true, isPaid: true } }))
 
 	// Components
 	import EntityView from '$/components/EntityView.svelte'
@@ -52,14 +54,14 @@
 
 <EntityView
 	entityType={EntityType.NostrRelay}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<TruncatedValue
-			value={selector.relayUrl}
+			value={selection.entitySelector.relayUrl}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}

@@ -72,32 +72,33 @@
 {/snippet}
 
 {#snippet FailedContent(
-	error: QueryResourceError,
+	error: unknown,
 	retry: () => void,
 )}
+	{@const normalizedError = normalizeBoundaryError(error)}
 	{#if Failed}
 		{@render Failed(
-			error,
+			normalizedError,
 			retry,
 		)}
 	{:else if layout === Layout.Inline}
 		<span
 			data-tag
 			class="inline-placeholder"
-			aria-label={error instanceof Error ? error.message : serializeError(error)}
+			aria-label={normalizedError instanceof Error ? normalizedError.message : serializeError(normalizedError)}
 		>
 			•••
 		</span>
 	{:else}
 		<div data-card>
-			<p>{error instanceof Error ? error.message : serializeError(error)}</p>
+			<p>{normalizedError instanceof Error ? normalizedError.message : serializeError(normalizedError)}</p>
 		</div>
 	{/if}
 {/snippet}
 
 <svelte:boundary
-	onerror={(error) => {
-		console.error('[blockhead:boundary:uncaught]', placeholderText, error)
+	onerror={(error: unknown) => {
+		console.error('[blockhead:boundary:uncaught]', placeholderText, normalizeBoundaryError(error))
 	}}
 >
 	{@render children(await resourceRaw)}
@@ -107,11 +108,11 @@
 	{/snippet}
 
 	{#snippet failed(
-		error,
-		retry,
+		error: unknown,
+		retry: () => void,
 	)}
 		{@render FailedContent(
-			normalizeBoundaryError(error),
+			error,
 			retry,
 		)}
 	{/snippet}

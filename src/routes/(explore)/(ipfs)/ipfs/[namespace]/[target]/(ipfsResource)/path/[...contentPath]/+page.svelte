@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		params,
@@ -24,8 +26,8 @@
 {#if selector !== null}
 	<Page>
 		<IpfsResourceView
-			selector={selector}
-			open
+			selection={select(EntityType.IpfsResource, selector)}
+			open={false}
 		/>
 	</Page>
 {:else}

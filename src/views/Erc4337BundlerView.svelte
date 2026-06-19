@@ -16,11 +16,10 @@
 
 	// State
 	let {
-		selector,
 		selection,
 		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/bundler/[address=evmAddress]', {
-				caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
-				address: selector.address,
+				caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
+				address: selection.entitySelector.address,
 		}),
 		layout = EntityLayout.Summary,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
@@ -29,8 +28,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.Erc4337Bundler>
-			selection?: EntityProxyResource<typeof schema, EntityType.Erc4337Bundler>
+			selection: EntityProxyResource<typeof schema, EntityType.Erc4337Bundler>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -43,14 +41,12 @@
 			>
 	> = $props()
 
+
 	
 
 	
 	const userOperationsCount = $derived(
-		(selection ?? select(
-			EntityType.Erc4337Bundler,
-			selector,
-			{
+		(selection({
 			sources: [
 				Source.Blockscout_Rest,
 			],
@@ -68,7 +64,7 @@
 
 <EntityView
 	entityType={EntityType.Erc4337Bundler}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{layout}
 	bind:open
@@ -79,14 +75,14 @@
 	{#snippet Value()}
 		<TruncatedValue
 			format={TruncatedValueFormat.Visual}
-			value={selector.address}
+			value={selection.entitySelector.address}
 		/>
 	{/snippet}
 
 	{#snippet Title()}
 		<TruncatedValue
 			format={TruncatedValueFormat.Visual}
-			value={selector.address}
+			value={selection.entitySelector.address}
 		/>
 	{/snippet}
 
@@ -119,11 +115,11 @@
 				<dt>Operator</dt>
 				<dd>
 					<EvmAccountView
-						selector={{
-							address: selector.address,
-						}}
-						href={resolve('/account/[address]', {
-							address: selector.address,
+						selection={select(EntityType.EvmAccount, {
+							address: selection.entitySelector.address,
+						})}
+							href={resolve('/account/[address=evmAddress]', {
+							address: selection.entitySelector.address,
 						})}
 						layout={EntityLayout.Title}
 

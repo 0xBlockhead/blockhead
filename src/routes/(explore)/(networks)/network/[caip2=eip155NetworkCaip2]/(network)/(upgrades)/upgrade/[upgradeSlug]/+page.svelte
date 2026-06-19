@@ -5,6 +5,8 @@
 		ethereumMainnetNetworkUpgradeSlugAliasBySegmentSlug,
 		networkUpgrades,
 	} from '$/constants/EthereumNetworkUpgrades.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 
 	// State
 	let {
@@ -24,7 +26,7 @@
 
 <Page>
 	<NetworkUpgradeView
-		selector={{
+		selection={select(EntityType.EthereumNetworkUpgrade, {
 			$network: eip155NetworkSelectorFromCaip2(params.caip2),
 			upgradeId: ((() => {
 				const segment = params.upgradeSlug
@@ -75,6 +77,6 @@
 
 				return undefined
 			})() ?? params.upgradeSlug)
-		}}
+		})}
 	/>
 </Page>

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		params,
@@ -13,10 +15,10 @@
 
 <Page>
 	<ActivityPubActorView
-		selector={{
+		selection={select(EntityType.ActivityPubActor, {
 			instanceOrigin: decodeURIComponent(params.instanceOrigin),
 			localAccountId: decodeURIComponent(params.localAccountId),
-		}}
+		})}
 	>
 	</ActivityPubActorView>
 </Page>

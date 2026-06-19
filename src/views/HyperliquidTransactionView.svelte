@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.HyperliquidTransaction>
+			selection: EntityProxyResource<typeof schema, EntityType.HyperliquidTransaction>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -38,23 +40,22 @@
 
 <EntityView
 	entityType={EntityType.HyperliquidTransaction}
-	entitySelector={selector}
-	title={selector.txHash}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.txHash}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
 		<TruncatedValue
-			value={selector.txHash}
+			value={selection.entitySelector.txHash}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.HyperliquidTransaction,
-					selector,
+			resource={selection(
 					({ fields: { actionType: true, status: true } }),
 				)}
 			placeholderText={`Loading Hyperliquid Transaction...`}

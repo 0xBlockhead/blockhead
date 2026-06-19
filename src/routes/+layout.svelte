@@ -25,6 +25,7 @@
 
 	declare global {
 		interface Window {
+			__blockheadWaSqliteDatabaseNameOverride?: string
 			__blockheadProductDataSchemaVersionOverride?: number
 		}
 	}
@@ -50,7 +51,12 @@
 			}),
 			persistence: createBrowserWASQLitePersistence({
 				database: await openBrowserWASQLiteOPFSDatabase({
-					databaseName: BLOCKHEAD_WA_SQLITE_DATABASE_NAME,
+					databaseName: (
+						typeof window !== 'undefined' ?
+							window.__blockheadWaSqliteDatabaseNameOverride ?? BLOCKHEAD_WA_SQLITE_DATABASE_NAME
+						:
+							BLOCKHEAD_WA_SQLITE_DATABASE_NAME
+					),
 				}),
 				schemaMismatchPolicy: 'reset',
 			}),

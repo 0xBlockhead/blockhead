@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntityFieldValues, EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -17,13 +18,13 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		href,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.BlockheadAgentConversationTurn>
+			selection: EntityProxyResource<typeof schema, EntityType.BlockheadAgentConversationTurn>
 			href?: string
 			open?: boolean
 		},
@@ -34,9 +35,9 @@
 		>
 	> = $props()
 
+
 	const turn = $derived.by(() => (
-		select(EntityType.BlockheadAgentConversationTurn,
-			selector,
+		selection(
 			({ sources: [
 				Source.Local_Internal,
 			], fields: { userPrompt: true, assistantText: true, status: true, createdAt: true, ...(open ? ({ providerId: true, promptVersion: true, parentId: true, error: true }) : ({  })) } }),
@@ -50,19 +51,20 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import BlockheadAgentConversationTurnView from '$/views/BlockheadAgentConversationTurnView.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.BlockheadAgentConversationTurn}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<TruncatedValue
-			value={selector.id}
+			value={selection.entitySelector.id}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -128,7 +130,9 @@
 					<dd>
 						{#if true}
 							{#snippet TurnStatusRow(turn: ResourceFields)}
-								{blockheadAgentConversationTurnStatusByStatus[turn.fields.status].label}
+								{#if turn.fields.status !== undefined}
+									{blockheadAgentConversationTurnStatusByStatus[turn.fields.status].label}
+								{/if}
 							{/snippet}
 
 							<ResourceBoundary
@@ -221,8 +225,8 @@
 						{#if true}
 							{#snippet TurnParentRow(turn: ResourceFields)}
 								{#if turn.fields.parentId != null && turn.fields.parentId !== ''}
-									<svelte:self
-										selector={{ id: turn.fields.parentId }}
+									<BlockheadAgentConversationTurnView
+										selection={select(EntityType.BlockheadAgentConversationTurn, { id: turn.fields.parentId })}
 										layout={EntityLayout.Title}
 
 									
@@ -252,7 +256,7 @@
 						<dt>Error</dt>
 						<dd>
 							{#if true}
-								{#snippet TurnErrorRow(error)}
+								{#snippet TurnErrorRow(error?: string)}
 								{#if error !== undefined && error !== ''}
 									{error}
 								{:else}

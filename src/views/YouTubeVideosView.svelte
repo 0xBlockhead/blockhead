@@ -1,6 +1,5 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,6 +10,7 @@
 
 	// Context
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
+	import { resolve } from '$app/paths'
 
 
 	// State
@@ -26,11 +26,7 @@
 		href,
 		title = 'Videos',
 	}: {
-		selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+		selection: EntityProxyEntitiesResource<typeof schema, EntityType.YouTubeVideo>
 		id: string
 		limit?: number
 		open?: boolean
@@ -41,15 +37,11 @@
 	} = $props()
 
 
-
-	
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
-	import YouTubeVideoView from '$/views/YouTubeVideoView.svelte'
 </script>
 
 
@@ -105,10 +97,9 @@
 		{#snippet body({ open: _bodyOpen })}
 			{#if open}
 				<ResourceBoundary
-					resource={selection({
+						resource={selection({
 							sources: [
-								Source.Youtube_Rest,
-								Source.Piped_Rest,
+								Source.Constants_Internal,
 							],
 							limit,
 						})}
@@ -149,11 +140,16 @@
 							{/snippet}
 
 							{#snippet Item({ item })}
-								<YouTubeVideoView
-									selector={item.entitySelector}
-									layout={EntityLayout.SummaryDetails}
-
-								/>
+								<a
+									href={resolve('/(social)/(youtube)/youtube/video/[videoId]', {
+										videoId: item.entitySelector.videoId,
+									})}
+								>
+									<TruncatedValue
+										value={item.entitySelector.videoId}
+										format={TruncatedValueFormat.Visual}
+									/>
+								</a>
 							{/snippet}
 						</EntitiesList>
 					{/snippet}

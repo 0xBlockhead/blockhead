@@ -97,6 +97,7 @@ export default {
 			entityType: EntityType.NostrNote,
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
+				Source.Constants_Internal,
 				Source.NostrBand_Rest,
 			],
 		},
@@ -116,6 +117,7 @@ export default {
 			entityType: EntityType.NostrRepost,
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
+				Source.Constants_Internal,
 				Source.NostrBand_Rest,
 			],
 		},
@@ -125,6 +127,7 @@ export default {
 			entityType: EntityType.NostrArticle,
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
+				Source.Constants_Internal,
 				Source.NostrBand_Rest,
 			],
 		},

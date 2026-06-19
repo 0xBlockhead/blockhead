@@ -17,11 +17,10 @@
 
 	// State
 	let {
-		selector,
 		selection,
 		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/paymaster/[address=evmAddress]', {
-				caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
-				address: selector.address,
+				caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
+				address: selection.entitySelector.address,
 		}),
 		layout = EntityLayout.Summary,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
@@ -30,8 +29,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.Erc4337Paymaster>
-			selection?: EntityProxyResource<typeof schema, EntityType.Erc4337Paymaster>
+			selection: EntityProxyResource<typeof schema, EntityType.Erc4337Paymaster>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -44,11 +42,9 @@
 			>
 	> = $props()
 
+
 	const paymaster = $derived(
-		selection ?? select(
-			EntityType.Erc4337Paymaster,
-			selector,
-			{
+		selection({
 			sources: [
 				Source.Blockscout_Rest,
 			],
@@ -71,7 +67,7 @@
 
 <EntityView
 	entityType={EntityType.Erc4337Paymaster}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{layout}
 	bind:open
@@ -82,14 +78,14 @@
 	{#snippet Value()}
 		<TruncatedValue
 			format={TruncatedValueFormat.Visual}
-			value={selector.address}
+			value={selection.entitySelector.address}
 		/>
 	{/snippet}
 
 	{#snippet Title()}
 		<TruncatedValue
 			format={TruncatedValueFormat.Visual}
-			value={selector.address}
+			value={selection.entitySelector.address}
 		/>
 	{/snippet}
 
@@ -129,7 +125,7 @@
 						<dt>Paymaster contract</dt>
 						<dd>
 							<EvmContractView
-								selector={contract.entitySelector}
+								selection={select(EntityType.EvmContract, contract.entitySelector)}
 								layout={EntityLayout.Value}
 								open={true}
 								showTypeAnnotation={false}

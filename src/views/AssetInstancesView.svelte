@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import { select } from '$/routes/+layout.svelte'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -22,11 +22,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.AssetInstance>
 			title?: string
 			emptyText?: string
 			open?: boolean
@@ -74,7 +70,7 @@
 						href={href}
 						{title}
 						getKey={(asset) => `${asset.entitySelector.kind}:${asset.entitySelector.assetKey}`}
-						items={assets.entities}
+						items={assets.values}
 						UnorderedListProps={{ orientation: ListOrientation.Column }}
 						open={true}
 					>
@@ -84,7 +80,7 @@
 
 						{#snippet Item({ item })}
 							<AssetInstanceView
-								selector={asset.entitySelector}
+								selection={select(EntityType.AssetInstance, item.entitySelector)}
 								layout={EntityLayout.Summary}
 
 							/>

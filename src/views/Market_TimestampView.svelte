@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { Iso4217 } from '$/constants/Currency.ts'
@@ -18,9 +19,9 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/(assets)/(markets)/market/[marketKey]', {
-			marketKey: stringify(selector.$market),
+			marketKey: stringify(selection.entitySelector.$market),
 			}),
 		layout,
 		open = $bindable(true),
@@ -28,7 +29,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.Market_Timestamp>
+			selection: EntityProxyResource<typeof schema, EntityType.Market_Timestamp>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -41,7 +42,8 @@
 		>
 	> = $props()
 
-	const marketTimestamp = $derived(select(EntityType.Market_Timestamp, selector, ({ sources: [
+
+	const marketTimestamp = $derived(selection( { sources: [
 				Source.Blockscout_Rest,
 				Source.Coingecko_Rest,
 				Source.Coingecko_OpenApi,
@@ -49,7 +51,7 @@
 				Source.Coinpaprika_OpenApi,
 				Source.Defillama_OpenApi,
 				Source.TradingView_Rest,
-			], fields: { price: true, ...(open && ({ caip19: true, marketCap: true, volume24h: true, transport: true, providerAssetId: true })) } })))
+			], fields: { price: true, ...(open && ({ caip19: true, marketCap: true, volume24h: true, transport: true, providerAssetId: true })) } }))
 
 
 	// Components
@@ -63,7 +65,7 @@
 
 <EntityView
 	entityType={EntityType.Market_Timestamp}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{layout}
 	bind:open
@@ -78,8 +80,8 @@
 			{#snippet children(marketTimestamp)}
 				{#if marketTimestamp.fields.price !== undefined}
 					<CurrencyAmount
-						currency={selector.$market.$quote.kind === MarketAssetKind.Currency ?
-							selector.$market.$quote.$currency.iso4217
+						currency={selection.entitySelector.$market.$quote.kind === MarketAssetKind.Currency ?
+							selection.entitySelector.$market.$quote.$currency.iso4217
 						:
 							Iso4217.USD}
 						showDecimalPlaces={6}
@@ -87,7 +89,7 @@
 					/>
 				{:else}
 					<Timestamp
-						timestamp={selector.timestampMs}
+						timestamp={selection.entitySelector.timestampMs}
 					/>
 				{/if}
 			{/snippet}
@@ -102,8 +104,8 @@
 			{#snippet children(marketTimestamp)}
 				{#if marketTimestamp.fields.price !== undefined}
 					<CurrencyAmount
-						currency={selector.$market.$quote.kind === MarketAssetKind.Currency ?
-							selector.$market.$quote.$currency.iso4217
+						currency={selection.entitySelector.$market.$quote.kind === MarketAssetKind.Currency ?
+							selection.entitySelector.$market.$quote.$currency.iso4217
 						:
 							Iso4217.USD}
 							showDecimalPlaces={6}
@@ -111,7 +113,7 @@
 					/>
 				{:else}
 					<Timestamp
-						timestamp={selector.timestampMs}
+						timestamp={selection.entitySelector.timestampMs}
 					/>
 				{/if}
 	{/snippet}
@@ -129,8 +131,8 @@
 
 	{#snippet Content({})}
 		{@const quoteCurrency = (
-			selector.$market.$quote.kind === MarketAssetKind.Currency ?
-				selector.$market.$quote.$currency.iso4217
+			selection.entitySelector.$market.$quote.kind === MarketAssetKind.Currency ?
+				selection.entitySelector.$market.$quote.$currency.iso4217
 			:
 				Iso4217.USD
 		)}
@@ -157,7 +159,7 @@
 						<dt>Quote time</dt>
 						<dd>
 							<Timestamp
-								timestamp={selector.timestampMs}
+								timestamp={selection.entitySelector.timestampMs}
 							/>
 						</dd>
 					</div>
@@ -166,7 +168,7 @@
 						<dt>Market</dt>
 						<dd>
 							<MarketView
-								selector={selector.$market}
+								selection={select(EntityType.Market, selection.entitySelector.$market)}
 								layout={EntityLayout.Title}
 
 								open={false}

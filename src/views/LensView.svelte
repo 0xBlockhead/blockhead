@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { schema } from '$/schema/index.ts'
@@ -17,7 +18,7 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/(social)/(lens)/lens'),
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
@@ -26,7 +27,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.LensNetwork>
+			selection: EntityProxyResource<typeof schema, EntityType.LensNetwork>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -34,14 +35,17 @@
 		never
 	> = $props()
 
-	const networkSelectorKey = stringify(selector)
 
-	const lensNetwork = $derived(select(EntityType.LensNetwork, selector, ({ sources: [Source.Constants_Internal], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, $$lensAccounts: ({ sources: [
+	const networkSelectorKey = $derived(
+		stringify(selection.entitySelector)
+	)
+
+	const lensNetwork = $derived(selection( { sources: [Source.Constants_Internal], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, $$lensAccounts: ({ sources: [
 							Source.Constants_Internal,
 							Source.Lens_Graphql,
 						] }), $$lensPosts: ({ sources: [
 							Source.Lens_Graphql,
-						] }) }) : ({  })) } })))
+						] }) }) : ({  })) } }))
 
 
 	// Components
@@ -56,7 +60,7 @@
 
 <EntityView
 	entityType={EntityType.LensNetwork}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	layout={EntityLayout.SummaryDetails}
 	bind:open
@@ -181,10 +185,7 @@
 				<LensAccountsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/lens/accounts')}
-					selection={select(
-			EntityType.LensNetwork,
-			selector
-		).$$lensAccounts}
+					selection={selection.$$lensAccounts}
 					id={`${networkSelectorKey}:accounts`}
 					open={_open}
 				/>
@@ -194,10 +195,7 @@
 				<LensPostsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/lens/posts')}
-					selection={select(
-			EntityType.LensNetwork,
-			selector
-		).$$lensPosts}
+					selection={selection.$$lensPosts}
 					id={`${networkSelectorKey}:posts`}
 					open={_open}
 					title="Recent Lens v3 publications"
@@ -207,7 +205,7 @@
 			{#snippet SectionExamplesList()}
 				<ul>
 					<li>
-						<a href={resolve('/(social)/(lens)/lens/account/[address]', {
+						<a href={resolve('/(social)/(lens)/lens/account/[address=evmAddress]', {
 							address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
 						})}>
 							Lens v3 profile example

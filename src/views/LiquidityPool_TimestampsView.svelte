@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import { select } from '$/routes/+layout.svelte'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -23,11 +23,7 @@
 		{
 			title?: string
 			open?: boolean
-			selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.LiquidityPool_Timestamp>
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
@@ -93,10 +89,10 @@
 						{/snippet}
 						{#snippet Item({ item })}
 							<LiquidityPool_TimestampView
-								selector={item.entitySelector}
+								selection={select(EntityType.LiquidityPool_Timestamp, item.entitySelector)}
 								id={stringify(item.entitySelector)}
 								layout={EntityLayout.Summary}
-
+								open={false}
 							/>
 						{/snippet}
 					</EntitiesList>

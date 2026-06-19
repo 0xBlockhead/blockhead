@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -17,15 +18,15 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/(social)/(atproto)/atproto/actor/[did]', {
-			did: 'did' in selector ? selector.did : selector.handle,
+			did: 'did' in selection.entitySelector ? selection.entitySelector.did : selection.entitySelector.handle,
 		}),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.AtprotoActor>
+			selection: EntityProxyResource<typeof schema, EntityType.AtprotoActor>
 			href?: string
 			open?: boolean
 		},
@@ -36,11 +37,11 @@
 		>
 	> = $props()
 
-	const idKey = $derived(stringify(selector))
+
+	const idKey = $derived(stringify(selection.entitySelector))
 
 	const actor = $derived(
-		select(EntityType.AtprotoActor,
-			selector,
+		selection(
 				({
 					sources: [
 						Source.Atproto_Xrpc,
@@ -76,7 +77,7 @@
 
 <EntityView
 	entityType={EntityType.AtprotoActor}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
@@ -100,7 +101,7 @@
 
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{'did' in selector ? selector.did : `@${selector.handle}`}
+			{'did' in selection.entitySelector ? selection.entitySelector.did : `@${selection.entitySelector.handle}`}
 		</span>
 	{/snippet}
 
@@ -112,7 +113,7 @@
 			{#snippet children(actor)}
 					{actor.fields.displayName
 						?? actor.fields.handle
-						?? ('did' in selector ? selector.did : selector.handle)}
+						?? ('did' in selection.entitySelector ? selection.entitySelector.did : selection.entitySelector.handle)}
 				{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -125,7 +126,7 @@
 					{@const atprotoSummaryHeadingLine = (
 						actor.fields.displayName
 						?? actor.fields.handle
-						?? ('did' in selector ? selector.did : selector.handle)
+						?? ('did' in selection.entitySelector ? selection.entitySelector.did : selection.entitySelector.handle)
 					)}
 				{#if actor.fields.handle && actor.fields.handle !== atprotoSummaryHeadingLine}
 					<span data-text="muted">

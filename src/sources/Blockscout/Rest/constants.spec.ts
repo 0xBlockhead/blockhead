@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
 	blockscoutErc4337OperationsSupported,
 	blockscoutErc4337RegistryListsSupported,
+	blockscoutExplorerRestV2OriginForChain,
 	blockscoutHostedNetworks,
 	blockscoutRestV2AtExplorerOrigin,
 } from '$/sources/Blockscout/Rest/constants.ts'
@@ -44,5 +45,16 @@ describe('blockscoutRestV2AtExplorerOrigin', () => {
 		]) {
 			expect(blockscoutRestV2AtExplorerOrigin(origin), origin).toBe(false)
 		}
+	})
+})
+
+describe('blockscoutExplorerRestV2OriginForChain', () => {
+	it('returns the Blockscout REST origin for hosted chains', () => {
+		expect(blockscoutExplorerRestV2OriginForChain(1)).toBe('https://eth.blockscout.com')
+		expect(blockscoutExplorerRestV2OriginForChain(8453)).toBe('https://base.blockscout.com')
+	})
+
+	it('returns undefined when Blockscout does not own REST v2 coverage for the chain', () => {
+		expect(blockscoutExplorerRestV2OriginForChain(999999)).toBeUndefined()
 	})
 })

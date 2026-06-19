@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import { select } from '$/routes/+layout.svelte'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { CoinInstanceRepresentation } from '$/constants/Bridge.ts'
@@ -10,7 +10,6 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
-
 
 	// Context
 	// State
@@ -29,11 +28,7 @@
 			collapsible?: boolean
 			id: string
 			representationFilter?: CoinInstanceRepresentation
-			selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EvmCoinInstance>
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
@@ -41,8 +36,6 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
-
-	
 
 
 	// Components
@@ -88,6 +81,10 @@
 								Source.Constants_Internal,
 								Source.Coingecko_Rest,
 							],
+							fields: {
+								representation: true,
+							},
+							limit: 8192,
 						})}
 					placeholderText="Loading deployments…"
 				>
@@ -102,9 +99,9 @@
 					getKey={(coinInstance) => stringify(coinInstance.entitySelector)}
 					getSortValue={(coinInstance) => stringify(coinInstance.entitySelector)}
 					placeholderText="Loading deployments…"
-					items={coinInstances.entities.filter((coinInstance, index) => (
+					items={coinInstances.entities.filter((coinInstance) => (
 						representationFilter == null
-						|| coinInstances.values[index]?.representation === representationFilter
+						|| coinInstance.current?.fields.representation === representationFilter
 					))}
 					UnorderedListProps={{ orientation: ListOrientation.Column }}
 				>
@@ -120,9 +117,9 @@
 					{#snippet Item({ item })}
 						{@const coinInstanceId = item.entitySelector}
 						<EvmCoinInstanceView
-							selector={coinInstanceId}
+							selection={select(EntityType.EvmCoinInstance, coinInstanceId)}
 							layout={EntityLayout.Summary}
-
+							open={false}
 						/>
 					{/snippet}
 				</EntitiesList>

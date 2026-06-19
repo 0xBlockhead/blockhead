@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
@@ -15,10 +16,10 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/user-operation/[userOperationHash=userOperationHash]', {
-				caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
-				userOperationHash: selector.hash,
+				caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
+				userOperationHash: selection.entitySelector.hash,
 		}),
 
 		layout = EntityLayout.SummaryDetails,
@@ -39,7 +40,7 @@
 		...entityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.EvmUserOperation>
+			selection: EntityProxyResource<typeof schema, EntityType.EvmUserOperation>
 			href?: string
 			layout?: EntityLayout
 
@@ -58,7 +59,8 @@
 			>
 	> = $props()
 
-	const operation = $derived(select(EntityType.EvmUserOperation, selector, {
+
+	const operation = $derived(selection( {
 		sources: [Source.Blockscout_Rest],
 	}))
 	const bundledTransaction = $derived(operation.$bundledTransaction)
@@ -103,7 +105,7 @@
 
 <EntityView
 	entityType={EntityType.EvmUserOperation}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{layout}
 	bind:open
@@ -114,7 +116,7 @@
 	{#snippet Value()}
 		<TruncatedValue
 			format={TruncatedValueFormat.Abbr}
-			value={selector.hash}
+			value={selection.entitySelector.hash}
 		/>
 	{/snippet}
 
@@ -124,7 +126,7 @@
 		{:else}
 			<TruncatedValue
 				format={TruncatedValueFormat.Visual}
-				value={selector.hash}
+				value={selection.entitySelector.hash}
 			/>
 		{/if}
 	{/snippet}
@@ -147,7 +149,7 @@
 					<dd>
 						<TruncatedValue
 							format={TruncatedValueFormat.Visual}
-							value={selector.hash}
+							value={selection.entitySelector.hash}
 						/>
 					</dd>
 				</div>
@@ -179,7 +181,7 @@
 						{#snippet children(operation)}
 							{#if operation.$block !== undefined}
 								<EvmBlockView
-									selector={operation.$block.entitySelector}
+									selection={select(EntityType.EvmBlock, operation.$block.entitySelector)}
 									layout={EntityLayout.Value}
 
 									open={false}
@@ -249,7 +251,7 @@
 							{#snippet children(operation)}
 								{#if operation.$entryPoint != null}
 									<EvmContractView
-										selector={operation.$entryPoint.entitySelector}
+										selection={select(EntityType.EvmContract, operation.$entryPoint.entitySelector)}
 										layout={EntityLayout.Value}
 
 										showTypeAnnotation={false}
@@ -286,9 +288,9 @@
 				<div class="entity-details" data-column="gap-2">
 					{#if operation.$bundledTransaction != null}
 						<EvmTransactionView
-							selector={operation.$bundledTransaction.entitySelector}
+							selection={select(EntityType.EvmTransaction, operation.$bundledTransaction.entitySelector)}
 							href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-								caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
+								caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
 								transactionId: operation.$bundledTransaction.entitySelector.txHash,
 							})}
 							layout={EntityLayout.Summary}
@@ -300,7 +302,7 @@
 
 					{#if operation.$sender != null}
 						<Erc4337SmartAccountView
-							selector={operation.$sender.entitySelector}
+							selection={select(EntityType.Erc4337SmartAccount, operation.$sender.entitySelector)}
 							layout={EntityLayout.Summary}
 
 							collapsible={false}
@@ -311,7 +313,7 @@
 
 					{#if operation.$paymaster != null}
 						<Erc4337PaymasterView
-							selector={operation.$paymaster.entitySelector}
+							selection={select(EntityType.Erc4337Paymaster, operation.$paymaster.entitySelector)}
 							layout={EntityLayout.Summary}
 
 							collapsible={false}
@@ -322,7 +324,7 @@
 
 					{#if operation.$bundler != null}
 						<Erc4337BundlerView
-							selector={operation.$bundler.entitySelector}
+							selection={select(EntityType.Erc4337Bundler, operation.$bundler.entitySelector)}
 							layout={EntityLayout.Summary}
 
 							collapsible={false}

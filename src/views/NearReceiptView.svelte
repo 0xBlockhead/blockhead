@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -12,12 +13,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.NearReceipt>
+			selection: EntityProxyResource<typeof schema, EntityType.NearReceipt>
 			open?: boolean
 		},
 		Pick<
@@ -26,6 +27,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -40,22 +42,22 @@
 
 <EntityView
 	entityType={EntityType.NearReceipt}
-	entitySelector={selector}
-	title={selector.receiptId}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.receiptId}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
 		<TruncatedValue
-			value={selector.receiptId}
+			value={selection.entitySelector.receiptId}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.NearReceipt, selector, ({ fields: { $predecessor: true, $receiver: true } }))}
+			resource={selection( { fields: { $predecessor: true, $receiver: true } })}
 			placeholderText="Loading NEAR Receipt..."
 		>
 			{#snippet children(nearReceipt)}
@@ -65,7 +67,7 @@
 							<dt>Predecessor</dt>
 							<dd>
 								<NearAccountView
-									selector={nearReceipt.fields.$predecessor[EntityMetaKey.Selector]}
+									selection={select(EntityType.NearAccount, nearReceipt.fields.$predecessor[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 
 									showTypeAnnotation={false}
@@ -79,7 +81,7 @@
 							<dt>Receiver</dt>
 							<dd>
 								<NearAccountView
-									selector={nearReceipt.fields.$receiver[EntityMetaKey.Selector]}
+									selection={select(EntityType.NearAccount, nearReceipt.fields.$receiver[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 
 									showTypeAnnotation={false}

@@ -1,8 +1,9 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -11,6 +12,7 @@
 
 
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
+	import { resolve } from '$app/paths'
 
 
 	// State
@@ -27,11 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.NostrArticle>
 			id: string
 			limit?: number
 			open?: boolean
@@ -50,8 +48,7 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import NostrArticleView from '$/views/NostrArticleView.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -77,7 +74,9 @@
 			{#if open}
 				<ResourceBoundary resource={selection({
 					sources: selection.entityType === EntityType.NostrNetwork ?
-						[Source.Constants_Internal, Source.NostrBand_Rest, Source.Primal_Rest]
+						[Source.Constants_Internal]
+					: selection.entityType === EntityType.NostrProfile ?
+						[Source.Constants_Internal]
 					:
 						[Source.NostrBand_Rest, Source.Primal_Rest],
 					limit,
@@ -90,8 +89,9 @@
 						id={`${id}-items`}
 						{title}
 							items={articles.entities}
-						getKey={(row) => stringify(row.entitySelector)}
-						getSortValue={(row) => stringify(row.entitySelector)}
+						getKey={(row) => stringify(row[EntityMetaKey.Selector])}
+						getSortValue={(row) => stringify(row[EntityMetaKey.Selector])}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
 						placeholderText={`Loading ${title.toLowerCase()}…`}
 					>
 						{#snippet Empty()}
@@ -101,11 +101,17 @@
 						{/snippet}
 
 						{#snippet Item({ item })}
-							<NostrArticleView
-								selector={item.entitySelector}
-								layout={EntityLayout.SummaryDetails}
-
-							/>
+							<a
+								href={resolve('/(social)/(nostr)/nostr/article/[pubkey]/[identifier]', {
+									pubkey: item[EntityMetaKey.Selector].pubkey,
+									identifier: item[EntityMetaKey.Selector].identifier,
+								})}
+							>
+								<TruncatedValue
+									value={item[EntityMetaKey.Selector].identifier}
+									format={TruncatedValueFormat.Visual}
+								/>
+							</a>
 						{/snippet}
 					</EntitiesList>
 				{/snippet}

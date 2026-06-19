@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,16 +17,16 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/(assets)/(markets)/market/[marketKey]', {
-			marketKey: stringify(selector.$market),
+			marketKey: stringify(selection.entitySelector.$market),
 		}),
 		layout,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.Market_Derivative_Timestamp>
+			selection: EntityProxyResource<typeof schema, EntityType.Market_Derivative_Timestamp>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -37,9 +38,10 @@
 		>
 	> = $props()
 
-	const derivativeTimestamp = $derived(select(EntityType.Market_Derivative_Timestamp, selector, ({ sources: [
+
+	const derivativeTimestamp = $derived(selection( { sources: [
 				Source.Coingecko_OpenApi,
-			], fields: { fundingRate: true, openInterestUsd: true, indexBasisPercent: true, markPrice: true, indexPrice: true, expiredAtMs: true, lastTradedAtMs: true, providerAssetId: true, transport: true } })))
+			], fields: { fundingRate: true, openInterestUsd: true, indexBasisPercent: true, markPrice: true, indexPrice: true, expiredAtMs: true, lastTradedAtMs: true, providerAssetId: true, transport: true } }))
 
 
 	// Components
@@ -52,7 +54,7 @@
 
 <EntityView
 	entityType={EntityType.Market_Derivative_Timestamp}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{layout}
 	bind:open
@@ -69,7 +71,7 @@
 					{String(derivativeTimestamp.fields.fundingRate)}%
 				{:else}
 					<Timestamp
-						timestamp={selector.timestampMs}
+						timestamp={selection.entitySelector.timestampMs}
 					/>
 				{/if}
 			{/snippet}
@@ -86,7 +88,7 @@
 					{String(derivativeTimestamp.fields.fundingRate)}%
 				{:else}
 					<Timestamp
-						timestamp={selector.timestampMs}
+						timestamp={selection.entitySelector.timestampMs}
 					/>
 				{/if}
 	{/snippet}
@@ -110,7 +112,7 @@
 						<dt>Observed at</dt>
 						<dd>
 							<Timestamp
-								timestamp={selector.timestampMs}
+								timestamp={selection.entitySelector.timestampMs}
 							/>
 						</dd>
 					</div>

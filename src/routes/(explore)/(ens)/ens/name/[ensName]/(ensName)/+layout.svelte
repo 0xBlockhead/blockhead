@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { stringify } from 'devalue'
 
@@ -31,7 +33,7 @@
 	>
 		{#snippet Summary({ open: _open })}
 			<EnsView
-				selector={{ name: params.ensName }}
+				selection={select(EntityType.EnsName, { name: params.ensName })}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

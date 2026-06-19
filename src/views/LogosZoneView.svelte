@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -12,12 +13,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.LogosZone>
+			selection: EntityProxyResource<typeof schema, EntityType.LogosZone>
 			open?: boolean
 		},
 		Pick<
@@ -26,6 +27,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -38,14 +40,14 @@
 
 <EntityView
 	entityType={EntityType.LogosZone}
-	entitySelector={selector}
-	title={selector.zoneId}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.zoneId}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
-		{selector.zoneId}
+		{selection.entitySelector.zoneId}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -56,9 +58,9 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.LogosZone, selector, ({ sources: [
+			resource={selection( { sources: [
 					Source.LogosDocs_Rest,
-				], fields: { zoneKind: true } }))}
+				], fields: { zoneKind: true } })}
 			placeholderText="Loading Logos zone…"
 		>
 			{#snippet children(zone)}

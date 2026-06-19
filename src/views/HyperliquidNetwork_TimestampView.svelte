@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -10,17 +11,17 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		selector: EntitySelector<typeof schema, EntityType.HyperliquidNetwork_Timestamp>
+		selection: EntityProxyResource<typeof schema, EntityType.HyperliquidNetwork_Timestamp>
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
-	const snapshot = $derived(select(EntityType.HyperliquidNetwork_Timestamp,
-		selector,
+
+	const snapshot = $derived(selection(
 		({ sources: [
 				Source.Hyperliquid_Rest,
 			], fields: { perpMarketCount: true, spotAssetCount: true, spotPairCount: true, validatorCount: true, activeValidatorCount: true, jailedValidatorCount: true, totalStake: true } }),
@@ -37,7 +38,7 @@
 
 <EntityView
 	entityType={EntityType.HyperliquidNetwork_Timestamp}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	bind:open
 	{layout}
 >
@@ -54,14 +55,14 @@
 					<NumberValue value={snapshot.fields.validatorCount} />
 					validators
 				{:else}
-					<Timestamp timestamp={selector.timestampMs} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Title()}
-		<Timestamp timestamp={selector.timestampMs} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Content()}

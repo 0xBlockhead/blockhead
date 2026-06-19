@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { networkEnvironmentByEnvironment } from '$/constants/Network.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -12,25 +13,26 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		selector: EntitySelector<typeof schema, EntityType.Network>
+		selection: EntityProxyResource<typeof schema, EntityType.Network>
 		href?: string
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
-	const network = $derived(select(EntityType.Network, selector, ({ sources: [
+
+	const network = $derived(selection( { sources: [
 				Source.Constants_Internal,
-			], fields: { name: true, environment: true, $$executionEnvironments: true, $$consensusMechanisms: true } })))
+			], fields: { name: true, environment: true, $$executionEnvironments: true, $$consensusMechanisms: true } }))
 
 
 	// (Derived)
 	const networkSelectorKey = $derived(
-		stringify(selector),
+		stringify(selection.entitySelector),
 	)
 
 
@@ -46,7 +48,7 @@
 
 <EntityView
 	entityType={EntityType.Network}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	{href}
 	bind:open
 	{layout}
@@ -81,10 +83,10 @@
 
 	{#snippet Content()}
 		<LogosZoneView
-			selector={{
-				$network: selector,
+			selection={select(EntityType.LogosZone, {
+				$network: selection.entitySelector,
 				zoneId: 'logos-stack',
-			}}
+			})}
 			layout={EntityLayout.Value}
 		/>
 	{/snippet}
@@ -111,10 +113,10 @@
 
 			{#snippet SectionLogosZones()}
 				<LogosZoneView
-					selector={{
-						$network: selector,
+					selection={select(EntityType.LogosZone, {
+						$network: selection.entitySelector,
 						zoneId: 'logos-stack',
-					}}
+					})}
 					layout={EntityLayout.SummaryDetails}
 				/>
 			{/snippet}
@@ -167,10 +169,7 @@
 				<UrlsView
 					CollapsibleProps={{ canToggle: false }}
 					emptyText="No faucets listed for this network yet."
-					selection={select(
-			EntityType.Network,
-			selector
-		).$$faucetUrls}
+					selection={selection.$$faucetUrls}
 					fieldSources={[
 						Source.Constants_Internal,
 					]}
@@ -184,10 +183,7 @@
 				<UrlsView
 					CollapsibleProps={{ canToggle: false }}
 					emptyText="No block explorers listed for this network yet."
-					selection={select(
-			EntityType.Network,
-			selector
-		).$$blockExplorerUrls}
+					selection={selection.$$blockExplorerUrls}
 					fieldSources={[
 						Source.Constants_Internal,
 					]}

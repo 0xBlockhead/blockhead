@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		params,
@@ -13,7 +15,7 @@
 
 <Page>
 	<AtprotoPostView
-		selector={{ uri: decodeURIComponent(params.uri) }}
+		selection={select(EntityType.AtprotoPost, { uri: decodeURIComponent(params.uri) })}
 	>
 	</AtprotoPostView>
 </Page>

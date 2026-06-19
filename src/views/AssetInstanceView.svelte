@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -12,12 +13,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.AssetInstance>
+			selection: EntityProxyResource<typeof schema, EntityType.AssetInstance>
 			open?: boolean
 		},
 		Pick<
@@ -27,9 +28,10 @@
 		>
 	> = $props()
 
-	const asset = $derived(select(EntityType.AssetInstance, selector, ({ sources: [
+
+	const asset = $derived(selection( { sources: [
 				Source.Constants_Internal,
-			], fields: { name: true, symbol: true, coinId: true, decimals: true } })))
+			], fields: { name: true, symbol: true, coinId: true, decimals: true } }))
 
 
 	// Components
@@ -40,7 +42,7 @@
 
 <EntityView
 	entityType={EntityType.AssetInstance}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	bind:open
 	{...EntityViewProps}
 >
@@ -87,7 +89,7 @@
 
 					<div>
 						<dt>Kind</dt>
-						<dd>{selector.kind}</dd>
+						<dd>{selection.entitySelector.kind}</dd>
 					</div>
 				</dl>
 			{/snippet}

@@ -16,6 +16,7 @@
 	} from '$/constants/BeaconConsensus.ts'
 
 	import { ConsensusProtocol } from '$/schema/NetworkUpgradeProtocols.ts'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
@@ -36,27 +37,29 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		selector: EvmNetworkViewSelector
+		selection: EntityProxyResource<typeof schema, EntityType.EvmNetwork> & {
+			entitySelector: EvmNetworkViewSelector
+		}
 		href?: string
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
 	const networkSelector: EntitySelector<typeof schema, EntityType.EvmNetwork> = $derived(
-		'chainId' in selector ?
+		'chainId' in selection.entitySelector ?
 			{
 				caip2: {
 					namespace: 'eip155',
-					reference: String(selector.chainId),
+					reference: String(selection.entitySelector.chainId),
 				},
 			}
 		:
-		selector
+		selection.entitySelector
 	)
 
 	const chainId = $derived(
@@ -72,33 +75,25 @@
 	)
 
 	const network = $derived(
-		select(
-			EntityType.EvmNetwork,
-			networkSelector,
+		selection(
 			{
 				sources: (
-				showNetworkDetails ?
-					[
-						Source.Constants_Internal,
-						Source.Chainlist_Rest,
-						Source.EthereumLists_Rest,
-						Source.Superchain_Github,
-						Source.Lifi_Rest,
-					]
-				:
-					[
-						Source.Constants_Internal,
-					]
+					showNetworkDetails ?
+						[
+							Source.Constants_Internal,
+							Source.Chainlist_Rest,
+							Source.EthereumLists_Rest,
+							Source.Superchain_Github,
+							Source.Lifi_Rest,
+						]
+					:
+						[
+							Source.Constants_Internal,
+						]
 				),
 			}
 		)
 	)
-
-	
-
-	
-
-	
 
 	const networkBlocks = $derived(network.$$blocks({
 		sources: [
@@ -150,8 +145,6 @@
 
 	const networkEnvironment = $derived(network.environment)
 
-	
-
 	const networkNativeCoin = $derived(network.$nativeCoin)
 
 	const networkNativeCoinInstance = $derived(network.$nativeCoinInstance)
@@ -187,19 +180,11 @@
 		limit: 512,
 	}))
 
-	
-
 	const networkConsensusProtocol = $derived(network.consensusProtocol({
 		sources: [
 			Source.Constants_Internal,
 		],
 	}))
-
-	
-
-	
-
-	
 
 	const networkBridges = $derived(network.$$bridges({
 		sources: [
@@ -369,19 +354,11 @@
 						{/snippet}
 
 						{#snippet children(upgrades)}
-							{@const upgradeSelector = upgrades.values
-								.filter((upgrade) => (
-									upgrade.activationTimestampMs !== undefined
-									&& upgrade.activationTimestampMs <= Date.now()
-								))
-								.toSorted((leftUpgrade, rightUpgrade) => (
-									(rightUpgrade.activationTimestampMs ?? 0)
-										- (leftUpgrade.activationTimestampMs ?? 0)
-								))[0]
-								?.[EntityMetaKey.Selector]}
+							{@const upgrade = upgrades.values[0]}
+							{@const upgradeSelector = upgrade === undefined ? undefined : upgrade[EntityMetaKey.Selector]}
 							{#if upgradeSelector !== undefined}
 								<EthereumNetworkUpgradeView
-									selector={upgradeSelector}
+									selection={select(EntityType.EthereumNetworkUpgrade, upgradeSelector)}
 									layout={EntityLayout.Value}
 
 									open={false}
@@ -411,10 +388,10 @@
 						{#snippet children(blocks)}
 							{#if blocks.totalCount !== undefined && blocks.totalCount > 0}
 								<EvmBlockView
-									selector={{
+									selection={select(EntityType.EvmBlock, {
 										$network: networkSelector,
 										blockNumber: BigInt(blocks.totalCount - 1),
-									}}
+									})}
 									layout={EntityLayout.Value}
 
 									open={false}
@@ -432,7 +409,7 @@
 								))[0]}
 								{#if latestBlock !== undefined}
 									<EvmBlockView
-										selector={latestBlock[EntityMetaKey.Selector]}
+										selection={select(EntityType.EvmBlock, latestBlock[EntityMetaKey.Selector])}
 										layout={EntityLayout.Value}
 
 										open={false}
@@ -468,10 +445,10 @@
 								)}
 								{#if headSlot !== undefined}
 									<BeaconEpochView
-										selector={{
+										selection={select(EntityType.BeaconEpoch, {
 											$network: networkSelector,
 											epoch: Math.floor(headSlot / slotsPerEpoch),
-										}}
+										})}
 										layout={EntityLayout.Value}
 
 										open={false}
@@ -507,10 +484,10 @@
 								)}
 								{#if headSlot !== undefined}
 									<BeaconSlotView
-										selector={{
+										selection={select(EntityType.BeaconSlot, {
 											$network: networkSelector,
 											slot: headSlot,
-										}}
+										})}
 										layout={EntityLayout.Value}
 
 										open={false}
@@ -562,7 +539,7 @@
 							<dd>
 								<a
 									href={resolve(
-										'/(assets)/(coinInstances)/coin-instance/[chainId]/[coinInstanceSlug]',
+										'/(assets)/(coinInstances)/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug]',
 										{
 											chainId: String(chainId),
 											coinInstanceSlug: 'native',
@@ -590,7 +567,7 @@
 							<dt>Parent</dt>
 							<dd>
 								<NetworkView
-									selection={parentNetwork}
+									selection={select(EntityType.Network, parentNetwork.entitySelector)}
 									layout={EntityLayout.Title}
 
 									open={false}
@@ -985,7 +962,7 @@
 							{#snippet SectionConsensusEndpoints({ id, label })}
 								<EvmNetworkConsensusEndpointsView
 									CollapsibleProps={{ canToggle: false }}
-									selector={networkSelector}
+									selection={select(EntityType.EvmNetwork, networkSelector)}
 									id={`${id}-list`}
 									title={label}
 								/>
@@ -1170,7 +1147,7 @@
 										{#snippet children(nativeCoinInstance)}
 											{#if nativeCoinInstance?.entitySelector !== undefined}
 												<EvmCoinInstanceView
-													selector={nativeCoinInstance.entitySelector}
+													selection={select(EntityType.EvmCoinInstance, nativeCoinInstance.entitySelector)}
 													layout={EntityLayout.Summary}
 													title="Native coin"
 												/>
@@ -1186,7 +1163,7 @@
 										{#snippet children(nativeCoin)}
 											{#if nativeCoin?.entitySelector !== undefined}
 												<CoinView
-													selector={nativeCoin.entitySelector}
+													selection={select(EntityType.Coin, nativeCoin.entitySelector)}
 													layout={EntityLayout.Summary}
 												/>
 											{:else}
@@ -1357,7 +1334,7 @@
 									{#snippet body({})}
 										{#if parentNetwork?.entitySelector !== undefined}
 											<NetworkView
-												selection={parentNetwork}
+												selection={select(EntityType.Network, parentNetwork.entitySelector)}
 												layout={EntityLayout.Title}
 
 												open={false}
@@ -1387,7 +1364,7 @@
 									{#snippet body({})}
 										{#if rollup?.entitySelector.projectId !== undefined}
 											<EvmRollupView
-												selector={rollup.entitySelector}
+												selection={select(EntityType.EvmRollup, rollup.entitySelector)}
 												layout={EntityLayout.Summary}
 
 											/>

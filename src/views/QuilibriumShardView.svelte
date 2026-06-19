@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.QuilibriumShard>
+			selection: EntityProxyResource<typeof schema, EntityType.QuilibriumShard>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -38,16 +40,16 @@
 
 <EntityView
 	entityType={EntityType.QuilibriumShard}
-	entitySelector={selector}
-	title={selector.shardKey}
-	idDragPlainText={selector.shardKey}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.shardKey}
+	idDragPlainText={selection.entitySelector.shardKey}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<TruncatedValue
-			value={selector.shardKey}
+			value={selection.entitySelector.shardKey}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
@@ -63,7 +65,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.QuilibriumShard, selector, ({ fields: { shardKind: true } }))}
+			resource={selection( { fields: { shardKind: true } })}
 			placeholderText={`Loading Quilibrium Shard...`}
 		>
 			{#snippet children(quilibriumShard)}

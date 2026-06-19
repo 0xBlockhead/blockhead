@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -15,16 +16,16 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/(social)/(youtube)/youtube/playlist/[playlistId]', {
-			playlistId: selector.$playlist.playlistId,
+			playlistId: selection.entitySelector.$playlist.playlistId,
 		}),
 		layout = EntityLayout.Summary,
 		open = $bindable(false),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.YouTubePlaylist_Timestamp>
+			selection: EntityProxyResource<typeof schema, EntityType.YouTubePlaylist_Timestamp>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -34,6 +35,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -48,7 +50,7 @@
 
 <EntityView
 	entityType={EntityType.YouTubePlaylist_Timestamp}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{layout}
 	bind:open
@@ -56,11 +58,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<Timestamp timestamp={selector.timestampMs} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Title()}
-		<Timestamp timestamp={selector.timestampMs} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -71,8 +73,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.YouTubePlaylist_Timestamp,
-					selector,
+			resource={selection(
 					({ sources: [
 							Source.Youtube_Rest,
 							Source.Piped_Rest,

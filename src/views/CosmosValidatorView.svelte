@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.CosmosValidator>
+			selection: EntityProxyResource<typeof schema, EntityType.CosmosValidator>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -39,22 +41,22 @@
 
 <EntityView
 	entityType={EntityType.CosmosValidator}
-	entitySelector={selector}
-	title={selector.operatorAddress}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.operatorAddress}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
 		<TruncatedValue
-			value={selector.operatorAddress}
+			value={selection.entitySelector.operatorAddress}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.CosmosValidator, selector, ({ fields: { consensusPubkey: true, moniker: true, jailed: true, status: true, tokens: true } }))}
+			resource={selection( { fields: { consensusPubkey: true, moniker: true, jailed: true, status: true, tokens: true } })}
 			placeholderText={`Loading Cosmos Validator...`}
 		>
 			{#snippet children(cosmosValidator)}

@@ -97,7 +97,7 @@
 	<Market_TimeInterval_TimestampsView
 		href={resolve('/markets')}
 		collapsible
-		{resource}
+		selection={resource}
 		id={`${id}:candles`}
 		open={listOpen}
 		timeInterval={marketOhlcDailyTimeInterval}

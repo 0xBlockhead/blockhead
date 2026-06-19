@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 
 	import {
@@ -20,17 +21,18 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve(
 			'/(explore)/(ens)/ens/name/[ensName]',
-			{ ensName: selector.name },
+			{ ensName: selection.entitySelector.name },
 		),
 		recordId,
 	}: {
-		selector: EntitySelector<typeof schema, EntityType.EnsName>
+		selection: EntityProxyResource<typeof schema, EntityType.EnsName>
 		href?: string
 		recordId: string
 	} = $props()
+
 
 	
 
@@ -70,7 +72,7 @@
 
 <EntityView
 	entityType={EntityType.EnsName}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	title={recordLabel}
 >
@@ -93,8 +95,7 @@
 	{#snippet Content()}
 		<ResourceBoundary
 			placeholderText="Loading text record…"
-			resource={select(EntityType.EnsName,
-					selector,
+			resource={selection(
 					({ sources: [
 						Source.Voltaire_JsonRpc,
 						Source.TheGraph_Graphql,
@@ -115,7 +116,7 @@
 				<dl data-column-item="center">
 					<div>
 						<dt>ENS name</dt>
-						<dd data-text="font-monospace">{selector.name}</dd>
+						<dd data-text="font-monospace">{selection.entitySelector.name}</dd>
 					</div>
 					<div>
 						<dt>Value</dt>

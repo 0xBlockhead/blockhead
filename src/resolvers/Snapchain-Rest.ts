@@ -791,7 +791,7 @@ export default {
 					const { getCastsByFid, getLinksByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
 					const followedFids: number[] = []
 					let linksPageToken: string | undefined
-					const maxFollowedFids = Math.min(subsetRowLimit * 2, 50)
+					const maxFollowedFids = Math.min(subsetRowLimit, 12)
 					do {
 						const remaining = Math.max(maxFollowedFids - followedFids.length, 0)
 						if (remaining === 0) break
@@ -811,31 +811,35 @@ export default {
 						linksPageToken != null
 						&& followedFids.length < maxFollowedFids
 					)
-					const refs: CastEntity[] = []
 					const perAuthor = Math.max(
 						1,
 						Math.ceil(subsetRowLimit / Math.max(followedFids.length, 1))
 					)
-					for (const fid of followedFids) {
-						if (refs.length >= subsetRowLimit) break
-						const page = await getCastsByFid({
-							fid,
-							pageSize: Math.min(perAuthor, snapchainMaxPageSize),
-							reverse: true,
-						})
-						for (const cast of page.messages ?? []) {
-							const authorFid = cast.data?.fid
-							if (authorFid == null) continue
-							refs.push({
-								[EntityMetaKey.Selector]: {
-									fid: authorFid,
-									hash: lowerHex0xCastHash(cast.hash),
-								},
-							} satisfies CastEntity)
-							if (refs.length >= subsetRowLimit) break
-						}
-					}
-					return refs
+					return (
+						(await Promise.all(
+							followedFids.map(async (fid) => (
+								await getCastsByFid({
+									fid,
+									pageSize: Math.min(perAuthor, snapchainMaxPageSize),
+									reverse: true,
+								})
+							))
+						))
+							.flatMap((page) => page.messages ?? [])
+							.flatMap((cast) => {
+								const authorFid = cast.data?.fid
+								return authorFid == null ?
+									[]
+								:
+									[{
+										[EntityMetaKey.Selector]: {
+											fid: authorFid,
+											hash: lowerHex0xCastHash(cast.hash),
+										},
+									} satisfies CastEntity]
+							})
+							.slice(0, subsetRowLimit)
+					)
 				},
 			},
 		})({

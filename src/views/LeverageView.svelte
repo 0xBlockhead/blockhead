@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -15,20 +16,21 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/(assets)/(leverage)/position/[positionId]', {
-			positionId: selector.id,
+			positionId: selection.entitySelector.id,
 		}),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.Leverage>
+			selection: EntityProxyResource<typeof schema, EntityType.Leverage>
 			href?: string
 			open?: boolean
 		},
 		never
 	> = $props()
+
 
 	
 
@@ -45,14 +47,14 @@
 
 <EntityView
 	entityType={EntityType.Leverage}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{open}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{selector.id}
+			{selection.entitySelector.id}
 		</span>
 	{/snippet}
 
@@ -78,7 +80,7 @@
 
 	{#snippet Content({})}
 		<ResourceBoundary
-			resource={select(EntityType.Leverage, selector, ({ fields: { $pool: true, $owner: true, createdAtTimestamp: true, liquidity: true, origin: true, tickLower: true, tickUpper: true, token0Owed: true, token1Owed: true, tokenId: true } }))}
+			resource={selection( { fields: { $pool: true, $owner: true, createdAtTimestamp: true, liquidity: true, origin: true, tickLower: true, tickUpper: true, token0Owed: true, token1Owed: true, tokenId: true } })}
 			placeholderText="Loading leverage row…"
 		>
 			{#snippet children(leverage)}
@@ -88,7 +90,7 @@
 							<dd>
 								{#if leverage.fields.$pool !== undefined}
 									<EvmNetworkView
-										selector={leverage.fields.$pool[EntityMetaKey.Selector].$network}
+										selection={select(EntityType.EvmNetwork, leverage.fields.$pool[EntityMetaKey.Selector].$network)}
 										layout={EntityLayout.Value}
 
 									/>
@@ -102,7 +104,7 @@
 							<dd>
 								{#if leverage.fields.$pool !== undefined}
 									<LiquidityPoolView
-										selector={leverage.fields.$pool[EntityMetaKey.Selector]}
+										selection={select(EntityType.LiquidityPool, leverage.fields.$pool[EntityMetaKey.Selector])}
 										layout={EntityLayout.Value}
 										open={true}
 										showTypeAnnotation={false}
@@ -117,10 +119,10 @@
 								<dt>Owner</dt>
 								<dd>
 									<EvmNetworkAccountView
-										selector={{
+										selection={select(EntityType.EvmNetworkAccount, {
 											$network: leverage.fields.$pool[EntityMetaKey.Selector].$network,
 											$actor: leverage.fields.$owner[EntityMetaKey.Selector],
-										}}
+										})}
 										layout={EntityLayout.Value}
 
 									/>

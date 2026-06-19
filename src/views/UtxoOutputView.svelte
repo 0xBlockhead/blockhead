@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -13,21 +14,19 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.UtxoOutput>
+			selection: EntityProxyResource<typeof schema, EntityType.UtxoOutput>
 			open?: boolean
 		},
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const utxoOutput = $derived(select(
-		EntityType.UtxoOutput,
-		selector,
-	))
+
+	const utxoOutput = $derived(selection())
 	
 	
 	
@@ -48,15 +47,15 @@
 
 <EntityView
 	entityType={EntityType.UtxoOutput}
-	entitySelector={selector}
-	title={`Output #${selector.outputIndex.toString()}`}
-	idDragPlainText={selector.outputIndex.toString()}
+	entitySelector={selection.entitySelector}
+	title={`Output #${selection.entitySelector.outputIndex.toString()}`}
+	idDragPlainText={selection.entitySelector.outputIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-badge="small">
-			#{selector.outputIndex.toString()}
+			#{selection.entitySelector.outputIndex.toString()}
 		</span>
 	{/snippet}
 
@@ -121,7 +120,7 @@
 						<div>
 							<dt>Address</dt>
 							<dd>
-								<UtxoAddressView selector={address.entitySelector} layout={EntityLayout.Title} />
+								<UtxoAddressView selection={select(EntityType.UtxoAddress, address.entitySelector)} layout={EntityLayout.Title} />
 							</dd>
 						</div>
 					{/if}

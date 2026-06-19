@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,13 +17,13 @@
 
 	// State
 	let {
-		selector,
-		href = resolve(`/url/${encodeURIComponent(selector.url)}`),
+		selection,
+		href = resolve(`/url/${encodeURIComponent(selection.entitySelector.url)}`),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.Url>
+			selection: EntityProxyResource<typeof schema, EntityType.Url>
 			href?: string
 			open?: boolean
 		},
@@ -32,8 +33,8 @@
 		>
 	> = $props()
 
-	const url = $derived(select(EntityType.Url,
-		selector,
+
+	const url = $derived(selection(
 		({ sources: [
 				Source.Constants_Internal,
 				Source.MetadataVision_Rest,
@@ -54,14 +55,14 @@
 
 <EntityView
 	entityType={EntityType.Url}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{open}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{selector.url}
+			{selection.entitySelector.url}
 		</span>
 	{/snippet}
 
@@ -71,7 +72,7 @@
 			placeholderText="Loading URL entity…"
 		>
 			{#snippet children(url)}
-				{url.fields.openGraphTitle ?? url.fields.catalogName ?? selector.url}
+				{url.fields.openGraphTitle ?? url.fields.catalogName ?? selection.entitySelector.url}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -160,20 +161,20 @@
 						{#snippet children(url)}
 							{#if url.fields.openGraphTitle != null}
 								<a
-									href={selector.url}
+									href={selection.entitySelector.url}
 									rel="noreferrer"
 									target="_blank"
 								>
-									{selector.url}
+									{selection.entitySelector.url}
 								</a>
 							{:else}
 								{#if url.fields.catalogName != null}
 									<a
-										href={selector.url}
+										href={selection.entitySelector.url}
 										rel="noreferrer"
 										target="_blank"
 									>
-										{selector.url}
+										{selection.entitySelector.url}
 									</a>
 								{/if}
 							{/if}

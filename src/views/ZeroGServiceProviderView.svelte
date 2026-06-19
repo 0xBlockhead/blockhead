@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -12,16 +13,17 @@
 	import { select } from '$/routes/+layout.svelte'
 
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.ZeroGServiceProvider>
+			selection: EntityProxyResource<typeof schema, EntityType.ZeroGServiceProvider>
 			open?: boolean
 		},
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
+
 
 	
 
@@ -37,14 +39,14 @@
 
 <EntityView
 	entityType={EntityType.ZeroGServiceProvider}
-	entitySelector={selector}
-	title={selector.providerId}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.providerId}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<TruncatedValue
-			value={selector.providerId}
+			value={selection.entitySelector.providerId}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
@@ -55,7 +57,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.ZeroGServiceProvider, selector, ({ fields: { serviceKind: true, $operator: true, verificationMethod: true, $$requests: true } }))}
+			resource={selection( { fields: { serviceKind: true, $operator: true, verificationMethod: true, $$requests: true } })}
 			placeholderText="Loading 0G service provider…"
 		>
 			{#snippet children(serviceProvider)}
@@ -72,7 +74,7 @@
 							<dt>Operator</dt>
 							<dd>
 								<EvmAccountView
-									selector={serviceProvider.fields.$operator[EntityMetaKey.Selector]}
+									selection={select(EntityType.EvmAccount, serviceProvider.fields.$operator[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 								/>
@@ -95,7 +97,7 @@
 									{#each serviceProvider.fields.$$requests.values as request (request[EntityMetaKey.Selector].requestId)}
 										<li>
 											<ZeroGServiceRequestView
-												selector={request[EntityMetaKey.Selector]}
+												selection={select(EntityType.ZeroGServiceRequest, request[EntityMetaKey.Selector])}
 												layout={EntityLayout.Title}
 
 											/>

@@ -22,7 +22,7 @@
 
 <Page>
 	<FarcasterUserView
-		selector={{ fid: Number(params.userId) }}
+		selection={select(EntityType.FarcasterUser, { fid: Number(params.userId) })}
 	/>
 
 	<section>

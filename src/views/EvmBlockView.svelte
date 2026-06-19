@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,11 +17,11 @@
 
 	// State
 	let {
-		selector,
-		href = 'blockNumber' in selector ?
-			resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber]', {
-				caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
-				blockNumber: selector.blockNumber.toString(),
+		selection,
+		href = 'blockNumber' in selection.entitySelector ?
+				resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]', {
+				caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
+				blockNumber: selection.entitySelector.blockNumber.toString(),
 			})
 		:
 			undefined,
@@ -29,7 +30,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.EvmBlock>
+			selection: EntityProxyResource<typeof schema, EntityType.EvmBlock>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -41,8 +42,13 @@
 		>
 	> = $props()
 
-	const block = $derived(select(EntityType.EvmBlock, selector, {
-		sources: [Source.Voltaire_JsonRpc],
+
+	const block = $derived(selection( {
+		sources: [
+			Source.Blockscout_Rest,
+			Source.Voltaire_JsonRpc,
+			Source.ZeroGChain_JsonRpc,
+		],
 	}))
 	const hash = $derived(block.hash)
 	const timestamp = $derived(block.timestamp)
@@ -58,7 +64,7 @@
 
 	// (Derived)
 	const blockSelectorKey = $derived(
-		stringify(selector),
+		stringify(selection.entitySelector),
 	)
 
 
@@ -79,17 +85,17 @@
 
 <EntityView
 	entityType={EntityType.EvmBlock}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
-	title={'blockNumber' in selector ? `Block #${String(selector.blockNumber)}` : `Block ${selector.hash}`}
-	idDragPlainText={'blockNumber' in selector ? String(selector.blockNumber) : selector.hash}
+	title={'blockNumber' in selection.entitySelector ? `Block #${String(selection.entitySelector.blockNumber)}` : `Block ${selection.entitySelector.hash}`}
+	idDragPlainText={'blockNumber' in selection.entitySelector ? String(selection.entitySelector.blockNumber) : selection.entitySelector.hash}
 	bind:open
 	{collapsible}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-badge="small">
-			{'blockNumber' in selector ? `#${String(selector.blockNumber)}` : selector.hash}
+			{'blockNumber' in selection.entitySelector ? `#${String(selection.entitySelector.blockNumber)}` : selection.entitySelector.hash}
 		</span>
 	{/snippet}
 
@@ -97,7 +103,7 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Block </span>
 			<span data-badge="small">
-				{'blockNumber' in selector ? `#${String(selector.blockNumber)}` : selector.hash}
+				{'blockNumber' in selection.entitySelector ? `#${String(selection.entitySelector.blockNumber)}` : selection.entitySelector.hash}
 			</span>
 		</span>
 	{/snippet}
@@ -272,7 +278,7 @@
 								{#snippet children(block)}
 									{#if block.$parent}
 											<EvmBlockView
-												selector={block.$parent.entitySelector}
+												selection={select(EntityType.EvmBlock, block.$parent.entitySelector)}
 												layout={EntityLayout.Value}
 												open={false}
 											/>
@@ -294,10 +300,10 @@
 								{#snippet children(block)}
 									{#if block.$miner}
 										<EvmNetworkAccountView
-											selector={{
-												$network: selector.$network,
+											selection={select(EntityType.EvmNetworkAccount, {
+												$network: selection.entitySelector.$network,
 												$actor: block.$miner.entitySelector,
-											}}
+											})}
 											layout={EntityLayout.Title}
 
 											open={false}
@@ -353,7 +359,7 @@
 						{#snippet children(block)}
 							{#if block.$parent}
 									<EvmBlockView
-										selector={block.$parent.entitySelector}
+										selection={select(EntityType.EvmBlock, block.$parent.entitySelector)}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -365,10 +371,10 @@
 				{#snippet SectionTransactions({ id: _txId, label: _txLabel })}
 					<EvmTransactionsView
 						CollapsibleProps={{ canToggle: false }}
-							href={'blockNumber' in selector ?
-								resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber]/(block)/transactions', {
-									caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
-									blockNumber: String(selector.blockNumber),
+							href={'blockNumber' in selection.entitySelector ?
+									resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]/(block)/transactions', {
+									caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
+									blockNumber: String(selection.entitySelector.blockNumber),
 								})
 						:
 							undefined}
@@ -379,7 +385,7 @@
 							],
 							limit: 100,
 						})}
-						blockSelector={'blockNumber' in selector ? selector : undefined}
+						blockSelector={'blockNumber' in selection.entitySelector ? selection.entitySelector : undefined}
 						id="transactions"
 						collapsible={false}
 						open={true}

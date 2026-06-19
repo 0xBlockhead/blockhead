@@ -1,4 +1,8 @@
-import { expect, test } from '@playwright/test'
+import { test } from '@playwright/test'
+
+import {
+	expectMainVisible,
+} from '../_e2eBrowserHelpers.ts'
 
 import {
 	routeViewSmokeTimeoutsMs,
@@ -12,15 +16,17 @@ test.describe('route views smoke (#main, no page error)', () => {
 	for (const [label, path] of Object.entries(pathByLabel)) {
 		test(`${label}: ${path}`, async ({ page }, testInfo) => {
 			testInfo.setTimeout(routeViewSmokeTimeoutsMs.test)
-			const { step, flushArtifacts } = setupRouteViewSmokePage(page)
+			const {
+				diagnostics,
+				flushArtifacts,
+				step,
+			} = setupRouteViewSmokePage(page)
 			try {
 				await step(page.goto(path, {
 					waitUntil: 'domcontentloaded',
 					timeout: routeViewSmokeTimeoutsMs.goto,
 				}))
-				await step(expect(page.locator('#main')).toBeAttached({
-					timeout: routeViewSmokeTimeoutsMs.mainSelector,
-				}))
+				await expectMainVisible(page, routeViewSmokeTimeoutsMs.mainSelector, diagnostics)
 			}
 			catch (e) {
 				await flushArtifacts(testInfo)

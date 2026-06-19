@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import { select } from '$/routes/+layout.svelte'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import type { MarketTimeInterval } from '$/constants/Market.ts'
-	import { marketOhlcCandleSources } from '$/sources/Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { stringify } from 'devalue'
@@ -20,6 +20,12 @@
 		collapsible = true,
 		limit = 4096,
 		timeInterval,
+		sources = [
+			Source.Coingecko_Rest,
+			Source.Coingecko_OpenApi,
+			Source.Coinpaprika_OpenApi,
+			Source.CoinMarketCap_Rest,
+		],
 		selection,
 		...EntitiesListProps
 	}: WithRest<
@@ -29,11 +35,8 @@
 			collapsible?: boolean
 			limit?: number
 			timeInterval?: MarketTimeInterval
-			selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+			sources?: readonly Source[]
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.Market_TimeInterval_Timestamp>
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
@@ -42,10 +45,6 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
-
-
-
-	
 
 
 	// Components
@@ -82,7 +81,7 @@
 		{#if open}
 			<ResourceBoundary
 				resource={selection({
-						sources: [...marketOhlcCandleSources],
+						sources,
 						limit,
 					})}
 				placeholderText="Loading OHLC candles…"
@@ -120,10 +119,10 @@
 
 						{#snippet Item({ item })}
 							<Market_TimeInterval_TimestampView
-								selector={item.entitySelector}
+								selection={select(EntityType.Market_TimeInterval_Timestamp, item.entitySelector)}
 								id={stringify(item.entitySelector)}
 								layout={EntityLayout.Summary}
-
+								open={false}
 							/>
 						{/snippet}
 					</EntitiesList>

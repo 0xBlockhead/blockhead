@@ -3,7 +3,7 @@
 - [ ] `/coin-instance/1/native`
 	- Failure: after fixing the precompile catalog import error, the focused route probe timed out and closed the page while OPFS persistence startup logged `UNIQUE constraint failed: collection_registry.tombstone_table_name` and `database is locked`.
 	- Similar-route scan: the broader crawl reached `/coin-instance/1/native` only after `/bridge/route/undefined`, `/bridge/route/undefined/step/undefined`, `/channel/e2e-probe-state-channel`, and `/channels` passed. This failure is persistence startup / route settlement, not the earlier global precompile import error.
-	- Disposition: deferred. It likely needs the persistence/OPFS route-hygiene pass that TODO explicitly treats separately; no obvious route-local fix was identified in this slice.
+	- Disposition: open under the all-page persistence contract. `tests/e2e/tanstack-db-persistence.e2e.ts` must cold-load and refresh this route like every other discovered page, and any repeated cold-completed Product Data subset (`collectionId` + `loadedKey`) or repeated catalog HTTP on refresh is a persistence failure, not a route-local exception.
 
 - [ ] `/contracts`
 	- Failure: after fixing the eager verification request, focused probes still intermittently render no `#main` with only the SvelteKit dev bootstrap script in the body. One rerun was contaminated by Vite HMR, and a later clean-port rerun reported only 404 resource messages in the browser console tail.

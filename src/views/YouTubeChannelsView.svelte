@@ -1,6 +1,5 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,6 +10,7 @@
 
 	// Context
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
+	import { resolve } from '$app/paths'
 
 
 	// State
@@ -25,11 +25,7 @@
 		href,
 		title = 'Channels',
 	}: {
-		selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+		selection: EntityProxyEntitiesResource<typeof schema, EntityType.YouTubeChannel>
 		id: string
 		open?: boolean
 		collapsible?: boolean
@@ -39,14 +35,10 @@
 	} = $props()
 
 
-
-	
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import YouTubeChannelView from '$/views/YouTubeChannelView.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -79,8 +71,7 @@
 			<ResourceBoundary
 				resource={selection({
 						sources: [
-							Source.Youtube_Rest,
-							Source.Piped_Rest,
+							Source.Constants_Internal,
 						],
 					})}
 				placeholderText="Loading channels…"
@@ -104,11 +95,16 @@
 						{/snippet}
 
 						{#snippet Item({ item })}
-							<YouTubeChannelView
-								selector={item.entitySelector}
-								layout={EntityLayout.SummaryDetails}
-
-							/>
+							<a
+								href={resolve('/(social)/(youtube)/youtube/channel/[channelId]', {
+									channelId: item.entitySelector.channelId,
+								})}
+							>
+								<TruncatedValue
+									value={item.entitySelector.channelId}
+									format={TruncatedValueFormat.Visual}
+								/>
+							</a>
 						{/snippet}
 					</EntitiesList>
 				{/snippet}

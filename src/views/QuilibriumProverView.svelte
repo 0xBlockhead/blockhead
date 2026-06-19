@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.QuilibriumProver>
+			selection: EntityProxyResource<typeof schema, EntityType.QuilibriumProver>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -38,23 +40,22 @@
 
 <EntityView
 	entityType={EntityType.QuilibriumProver}
-	entitySelector={selector}
-	title={selector.proverPeerId}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.proverPeerId}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
 		<TruncatedValue
-			value={selector.proverPeerId}
+			value={selection.entitySelector.proverPeerId}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.QuilibriumProver,
-					selector,
+			resource={selection(
 					({ fields: { publicKey: true, version: true } }),
 				)}
 			placeholderText={`Loading Quilibrium Prover...`}

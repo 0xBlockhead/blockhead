@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import { select } from '$/routes/+layout.svelte'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 import { stringify } from 'devalue'
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -17,11 +17,7 @@ import { stringify } from 'devalue'
 		title = 'Metric snapshots',
 		open = $bindable(false),
 	}: {
-		selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+		selection: EntityProxyEntitiesResource<typeof schema, EntityType.AtprotoPost_Timestamp>
 		href: string
 		id: string
 		title?: string
@@ -76,9 +72,8 @@ import { stringify } from 'devalue'
 					>
 						{#snippet Item({ item })}
 							<AtprotoPost_TimestampView
-								selector={item.entitySelector}
+								selection={select(EntityType.AtprotoPost_Timestamp, item.entitySelector)}
 								{href}
-								id={stringify(item.entitySelector)}
 								layout={EntityLayout.Summary}
 
 								showTypeAnnotation={false}

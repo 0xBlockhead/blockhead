@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { networkEnvironmentByEnvironment } from '$/constants/Network.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -13,27 +14,40 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		selector: EntitySelector<typeof schema, EntityType.NearNetwork>
+		selection: EntityProxyResource<typeof schema, EntityType.NearNetwork>
 		href?: string
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
-	const network = $derived(select(EntityType.NearNetwork, selector, ({ sources: [
-				Source.Constants_Internal,
-			], fields: { slug: true, name: true, environment: true, rpcEndpoints: true, $$blocks: ({ limit: 1 }), $$timestamps: ({ limit: 1 }) } })))
 
-	
+	const network = $derived(selection({
+		sources: [
+			Source.Constants_Internal,
+		],
+		fields: {
+			slug: true,
+			name: true,
+			environment: true,
+			rpcEndpoints: true,
+			$$blocks: {
+				limit: 1,
+			},
+			$$timestamps: {
+				limit: 1,
+			},
+		},
+	}))
 
 
 	// (Derived)
 	const networkSelectorKey = $derived(
-		stringify(selector),
+		stringify(selection.entitySelector),
 	)
 
 
@@ -54,13 +68,13 @@
 
 <EntityView
 	entityType={EntityType.NearNetwork}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	{href}
 	bind:open
 	{layout}
 >
 	{#snippet Value()}
-		<span>{selector.slug}</span>
+		<span>{selection.entitySelector.slug}</span>
 	{/snippet}
 
 	{#snippet Title()}
@@ -80,19 +94,19 @@
 	{/snippet}
 
 	{#snippet Content({ open })}
-			<ResourceBoundary resource={network}>
-				{#snippet children(network)}
-					{@const block = network.fields.$$blocks.values.at(0)}
-					<dl class="network-summary-head" data-column-item="center">
-						{#if block != null}
-							<div>
-								<dt>Head block</dt>
-								<dd id="network-summary-head-block">
-									<NearBlockView
-										selector={block[EntityMetaKey.Selector]}
-										layout={EntityLayout.Value}
-									/>
-								</dd>
+		<ResourceBoundary resource={network}>
+			{#snippet children(network)}
+				{@const block = network.fields.$$blocks.values.at(0)}
+				<dl class="network-summary-head" data-column-item="center">
+					{#if block != null}
+						<div>
+							<dt>Head block</dt>
+							<dd id="network-summary-head-block">
+								<NearBlockView
+									selection={select(EntityType.NearBlock, block[EntityMetaKey.Selector])}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
 						</div>
 					{/if}
 
@@ -108,18 +122,25 @@
 						</div>
 					{/if}
 
-						<ResourceBoundary resource={select(EntityType.Network, selector, ({ sources: [
+					<ResourceBoundary
+						resource={select(EntityType.Network, selection.entitySelector, {
+							sources: [
 								Source.Constants_Internal,
-							], fields: { $$nativeAssets: true } }))}>
-							{#snippet children(baseNetwork)}
-								{@const nativeAssetCount = baseNetwork.fields.$$nativeAssets.values.length}
-								{#if nativeAssetCount > 0}
-									<div>
-										<dt>Native asset</dt>
-										<dd>{nativeAssetCount}</dd>
-									</div>
-								{/if}
-							{/snippet}
+							],
+							fields: {
+								$$nativeAssets: true,
+							},
+						})}
+					>
+						{#snippet children(baseNetwork)}
+							{@const nativeAssetCount = baseNetwork.fields.$$nativeAssets.values.length}
+							{#if nativeAssetCount > 0}
+								<div>
+									<dt>Native asset</dt>
+									<dd>{nativeAssetCount}</dd>
+								</div>
+							{/if}
+						{/snippet}
 					</ResourceBoundary>
 				</dl>
 			{/snippet}
@@ -151,10 +172,7 @@
 			{#snippet SectionNearBlocks({ id, label }: { id: string, label: string })}
 				<NearBlocksView
 					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.NearNetwork,
-			selector
-		).$$blocks}
+					selection={selection.$$blocks}
 					href={href == null ? '' : `${href}/blocks`}
 					id={`${id}-list`}
 					title={label}
@@ -164,10 +182,7 @@
 			{#snippet SectionNearSnapshots({ id, label }: { id: string, label: string })}
 				<NearNetwork_TimestampsView
 					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.NearNetwork,
-			selector
-		).$$timestamps}
+					selection={selection.$$timestamps}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -176,10 +191,7 @@
 			{#snippet SectionNearValidators({ id, label }: { id: string, label: string })}
 				<NearValidatorsView
 					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.NearNetwork,
-			selector
-		).$$validators}
+					selection={selection.$$validators}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -195,7 +207,7 @@
 					]}
 					id={`${id}-list`}
 					listEntityType={EntityType.NearNetwork}
-					parentEntitySelector={selector}
+					parentEntitySelector={selection.entitySelector}
 					parentEntityType={EntityType.NearNetwork}
 					title={label}
 				/>
@@ -225,7 +237,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					selection={select(
 			EntityType.Network,
-			selector
+			selection.entitySelector
 		).$$nativeAssets}
 					id={`${id}-list`}
 					title={label}
@@ -258,7 +270,7 @@
 					emptyText="No faucets listed for this network yet."
 					selection={select(
 			EntityType.Network,
-			selector
+			selection.entitySelector
 		).$$faucetUrls}
 					fieldSources={[
 						Source.Constants_Internal,
@@ -275,7 +287,7 @@
 					emptyText="No block explorers listed for this network yet."
 					selection={select(
 			EntityType.Network,
-			selector
+			selection.entitySelector
 		).$$blockExplorerUrls}
 					fieldSources={[
 						Source.Constants_Internal,

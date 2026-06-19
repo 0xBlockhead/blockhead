@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// Components
 	import Page from '$/components/Page.svelte'
 	import IpfsProtocolView from '$/views/IpfsProtocolView.svelte'
@@ -7,8 +9,8 @@
 
 <Page>
 	<IpfsProtocolView
-		selector={{
+		selection={select(EntityType.IpfsProtocol, {
 			scope: 'IpfsProtocol',
-		}}
+		})}
 	/>
 </Page>

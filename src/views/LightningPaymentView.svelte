@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { LightningPaymentStatus } from '$/schema/LightningPayment.ts'
@@ -13,12 +14,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.LightningPayment>
+			selection: EntityProxyResource<typeof schema, EntityType.LightningPayment>
 			open?: boolean
 		},
 		Pick<
@@ -27,6 +28,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -40,14 +42,14 @@
 
 <EntityView
 	entityType={EntityType.LightningPayment}
-	entitySelector={selector}
-	title={selector.paymentHash}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.paymentHash}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<TruncatedValue
-			value={selector.paymentHash}
+			value={selection.entitySelector.paymentHash}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
@@ -60,8 +62,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.LightningPayment,
-		selector,
+			resource={selection(
 		({ sources: [
 				Source.LightningLnd_Rest,
 			], fields: { valueMsat: true, feeMsat: true, status: true, failureReason: true, paymentRequest: true } }),

@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -15,12 +16,12 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.BlockheadWalletAccount>
+			selection: EntityProxyResource<typeof schema, EntityType.BlockheadWalletAccount>
 			open?: boolean
 		},
 		Pick<
@@ -31,8 +32,8 @@
 		>
 	> = $props()
 
-	const walletAccount = $derived(select(EntityType.BlockheadWalletAccount,
-		selector,
+
+	const walletAccount = $derived(selection(
 		({ sources: [
 				Source.Local_Internal,
 			], fields: { $network: true, address: true, label: true, capabilities: true } }),
@@ -50,18 +51,18 @@
 <EntityView
 	entityType={EntityType.BlockheadWalletAccount}
 	bind:open
-	entitySelector={selector}
-	title={`${selector.caip10.namespace}:${selector.caip10.reference}:${selector.caip10.accountAddress}`}
+	entitySelector={selection.entitySelector}
+	title={`${selection.entitySelector.caip10.namespace}:${selection.entitySelector.caip10.reference}:${selection.entitySelector.caip10.accountAddress}`}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<TruncatedValue value={selector.caip10.accountAddress} />
+		<TruncatedValue value={selection.entitySelector.caip10.accountAddress} />
 	{/snippet}
 
 	{#snippet Title()}
 		<ResourceBoundary
 			resource={walletAccount}
-			placeholderText={selector.caip10.accountAddress}
+			placeholderText={selection.entitySelector.caip10.accountAddress}
 		>
 			{#snippet children(walletAccount)}
 				{walletAccount.fields.label ?? walletAccount.fields.address}
@@ -84,12 +85,12 @@
 				<dl data-column-item="center">
 					<div>
 						<dt>Namespace</dt>
-						<dd>{selector.caip10.namespace}</dd>
+						<dd>{selection.entitySelector.caip10.namespace}</dd>
 					</div>
 
 					<div>
 						<dt>Reference</dt>
-						<dd>{selector.caip10.reference}</dd>
+						<dd>{selection.entitySelector.caip10.reference}</dd>
 					</div>
 
 					<div>

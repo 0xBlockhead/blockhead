@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// Functions
 	import { with0xHex } from '$/lib/hexLowerOfByteSize.ts'
 
@@ -17,12 +19,12 @@
 
 <Page>
 	<Eip8004RegistrationView
-		selector={{
+		selection={select(EntityType.EvmNft, {
 			$contract: {
 				$network: { caip2: { namespace: 'eip155' as const, reference: String(Number(params.chainId)) } },
 				address: with0xHex(params.contractAddress),
 			},
 			tokenId: decodeURIComponent(params.tokenId),
-		}}
+		})}
 	/>
 </Page>

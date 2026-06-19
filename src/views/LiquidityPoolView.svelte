@@ -1,11 +1,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntitySelector } from '$/schema/$schema.ts'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
@@ -15,16 +14,16 @@
 
 	// State
 	let {
-		selector,
-		href = resolve('/(assets)/(pools)/pool/[chainId]/[poolId]', {
-			chainId: String(evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`)),
-			poolId: selector.id,
+		selection,
+		href = resolve('/(assets)/(pools)/pool/[chainId=eip155ChainId]/[poolId]', {
+			chainId: String(evmChainIdFromCaip2(`${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`)),
+			poolId: selection.entitySelector.id,
 		}),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.LiquidityPool>
+			selection: EntityProxyResource<typeof schema, EntityType.LiquidityPool>
 			href?: string
 			open?: boolean
 		},
@@ -34,6 +33,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { select } from '$/routes/+layout.svelte'
@@ -53,14 +53,14 @@
 
 <EntityView
 	entityType={EntityType.LiquidityPool}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{open}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{selector.id}
+			{selection.entitySelector.id}
 		</span>
 	{/snippet}
 
@@ -83,11 +83,8 @@
 
 	{#snippet Content({})}
 		<ResourceBoundary
-			resource={select(EntityType.LiquidityPool,
-					selector,
-					({ fields: { $baseToken: true, $quoteToken: true, $hooks: true, baseTokenSymbol: true, quoteTokenSymbol: true, baseTokenDecimals: true, quoteTokenDecimals: true, fee: true, tickSpacing: true, v4PoolId: true, $$timestamps: ({ sources: [
-								Source.Dexscreener_OpenApi,
-							], limit: 64 }), pairCreatedAtMs: true, dexscreenerLabels: true, dexId: true, dexscreenerPairUrl: true } }),
+			resource={selection(
+					({ fields: { $baseToken: true, $quoteToken: true, baseTokenSymbol: true, quoteTokenSymbol: true, pairCreatedAtMs: true, dexscreenerLabels: true, dexId: true, dexscreenerPairUrl: true } }),
 				)}
 			placeholderText="Loading pool…"
 		>
@@ -98,7 +95,7 @@
 							<dt>Base token</dt>
 							<dd>
 								<EvmContractView
-									selector={pool.fields.$baseToken[EntityMetaKey.Selector]}
+									selection={select(EntityType.EvmContract, pool.fields.$baseToken[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 
 									showTypeAnnotation={false}
@@ -111,7 +108,7 @@
 							<dt>Quote token</dt>
 							<dd>
 								<EvmContractView
-									selector={pool.fields.$quoteToken[EntityMetaKey.Selector]}
+									selection={select(EntityType.EvmContract, pool.fields.$quoteToken[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 
 									showTypeAnnotation={false}
@@ -157,7 +154,7 @@
 							<dt>Hooks</dt>
 							<dd>
 								<EvmContractView
-									selector={pool.fields.$hooks[EntityMetaKey.Selector]}
+									selection={select(EntityType.EvmContract, pool.fields.$hooks[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 
 									showTypeAnnotation={false}
@@ -252,10 +249,7 @@
 		open: _open,
 	})}
 		<LiquidityPool_TimestampsView
-			selection={select(
-			EntityType.LiquidityPool,
-			selector
-		).$$timestamps}
+			selection={selection.$$timestamps}
 			open={true}
 		/>
 	{/snippet}

@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -14,19 +15,17 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		id,
 		CollapsibleProps = {},
 	}: {
-		selector: EntitySelector<typeof schema, EntityType.EvmTransaction>
+		selection: EntityProxyResource<typeof schema, EntityType.EvmTransaction>
 		id: string
 		CollapsibleProps?: ComponentProps<typeof EvmInternalTransfersView>['CollapsibleProps']
 	} = $props()
 
-	const evmTransaction = $derived(select(
-		EntityType.EvmTransaction,
-		selector,
-		{
+
+	const evmTransaction = $derived(selection({
 			sources: [
 				Source.Blockscout_Rest,
 				Source.Voltaire_JsonRpc,
@@ -65,10 +64,10 @@
 						{#snippet children(from)}
 							{#if from?.entitySelector.address !== undefined}
 								<EvmNetworkAccountView
-									selector={{
-										$network: selector.$network,
+									selection={select(EntityType.EvmNetworkAccount, {
+										$network: selection.entitySelector.$network,
 										$actor: from.entitySelector,
-									}}
+									})}
 									layout={EntityLayout.Title}
 
 									open={false}
@@ -86,10 +85,10 @@
 						{#snippet children(to)}
 							{#if to?.entitySelector.address !== undefined}
 								<EvmNetworkAccountView
-									selector={{
-										$network: selector.$network,
+									selection={select(EntityType.EvmNetworkAccount, {
+										$network: selection.entitySelector.$network,
 										$actor: to.entitySelector,
-									}}
+									})}
 									layout={EntityLayout.Title}
 
 									open={false}
@@ -105,13 +104,10 @@
 	<EvmInternalTransfersView
 		{CollapsibleProps}
 		href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-			caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
-			transactionId: selector.txHash,
+			caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
+			transactionId: selection.entitySelector.txHash,
 		})}
-		selection={select(
-			EntityType.EvmTransaction,
-			selector
-		).$$internalTransfers}
+		selection={selection.$$internalTransfers}
 		id={`${id}:internal-transfers`}
 		collapsible={false}
 		title="Internal native transfers"
@@ -119,13 +115,10 @@
 	<EvmTokenTransfersView
 		{CollapsibleProps}
 		href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-			caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
-			transactionId: selector.txHash,
+			caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
+			transactionId: selection.entitySelector.txHash,
 		})}
-		selection={select(
-			EntityType.EvmTransaction,
-			selector
-		).$$tokenTransfers}
+		selection={selection.$$tokenTransfers}
 		id={`${id}:token-transfers`}
 		collapsible={false}
 	/>

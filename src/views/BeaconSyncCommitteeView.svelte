@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -12,14 +13,14 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		layout = EntityLayout.Summary,
 		title: titleProp,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.BeaconSyncCommittee>
+			selection: EntityProxyResource<typeof schema, EntityType.BeaconSyncCommittee>
 			layout?: EntityLayout
 			title?: string
 			open?: boolean
@@ -30,6 +31,7 @@
 		>
 	> = $props()
 
+
 	
 	
 	
@@ -39,7 +41,7 @@
 	// (Derived)
 	const title = $derived(
 		titleProp
-		?? `Sync committee period ${selector.period.toLocaleString()}`
+		?? `Sync committee period ${selection.entitySelector.period.toLocaleString()}`
 	)
 
 
@@ -52,7 +54,7 @@
 
 <EntityView
 	entityType={EntityType.BeaconSyncCommittee}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	{title}
 	{layout}
 	bind:open
@@ -60,7 +62,7 @@
 >
 	{#snippet Value()}
 		<span>
-			{selector.period}
+			{selection.entitySelector.period}
 		</span>
 	{/snippet}
 
@@ -75,10 +77,7 @@
 					<dt>Validators</dt>
 					<dd>
 						<ResourceBoundary
-							resource={select(
-									EntityType.BeaconSyncCommittee,
-									selector,
-									{
+							resource={selection({
 										sources: [Source.Beacon_Rest],
 									},
 								).validatorIndices}

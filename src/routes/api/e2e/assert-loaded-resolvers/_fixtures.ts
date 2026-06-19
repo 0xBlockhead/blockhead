@@ -64,17 +64,21 @@ export { NOSTR_PROBE_PUBKEY }
 
 export const NOSTR_PROBE_RELAY_URL = 'wss://relay.damus.io' as const
 
-export const NOSTR_PROBE_REPOST_EVENT_ID = `${'b'.repeat(64)}` as const
+export const NOSTR_PROBE_REPOST_EVENT_ID = '73c5554c50f37d308b1a4df0463fe07391e278d409158cfcb77701228094243c' as const
 
-export const NOSTR_PROBE_REACTION_EVENT_ID = `${'c'.repeat(64)}` as const
+export const NOSTR_PROBE_REACTION_EVENT_ID = '4f87e4389d1873e3c5eafd6b825fcaf5a3193e97ed5004a913247f7c81a1e6ee' as const
 
-export const NOSTR_PROBE_ARTICLE_IDENTIFIER = 'e2e-probe-article' as const
+export const NOSTR_PROBE_ARTICLE_PUBKEY = (
+	'ba4df886d2a7c4224bc98efb6cbf3817b0e2b7227c287b692a7c7d0a9e3e86ff' as const
+)
+
+export const NOSTR_PROBE_ARTICLE_IDENTIFIER = 'WFH3Q0hJn_yS0pbAbKocQ' as const
 
 export const YOUTUBE_PROBE_PLAYLIST_ID = 'UU_x5XG1OV2P6uZZ5FSM9Ttw' as const
 
 export const YOUTUBE_PROBE_VIDEO_ID = 'jNQXAC9IVRw' as const
 
-export const YOUTUBE_PROBE_COMMENT_ID = 'e2e-probe-comment' as const
+export const YOUTUBE_PROBE_COMMENT_ID = 'UgzuC3zzpRZkjc5Qzsd4AaABAg' as const
 
 /** EVM explorer routes for e2e smoke / boundary (see also `routeViewSmokePaths`). */
 export const e2eEvmExplorerRoutePaths = {
@@ -104,7 +108,7 @@ export const e2eNostrYouTubeOptionalDetailRoutePaths = {
 	nostrRepost: `/nostr/repost/${NOSTR_PROBE_REPOST_EVENT_ID}`,
 	nostrReaction: `/nostr/reaction/${NOSTR_PROBE_REACTION_EVENT_ID}`,
 	nostrArticle: (
-		`/nostr/article/${NOSTR_PROBE_PUBKEY}/${encodeURIComponent(NOSTR_PROBE_ARTICLE_IDENTIFIER)}`
+		`/nostr/article/${NOSTR_PROBE_ARTICLE_PUBKEY}/${encodeURIComponent(NOSTR_PROBE_ARTICLE_IDENTIFIER)}`
 	),
 	youtubePlaylist: `/youtube/playlist/${encodeURIComponent(YOUTUBE_PROBE_PLAYLIST_ID)}`,
 } as const satisfies Record<string, `/${string}`>
@@ -114,7 +118,7 @@ export const SAMPLE_BLOB_TX_HASH = (
 	'0x31ed178236b6bc4dd6dc8c6026e9d344e39afe0dc6d832c228131ce4ee40a8ca' as const
 )
 
-const CAST_HASH_32 = `0x${'a'.repeat(64)}` as const
+const CAST_HASH_32 = '0xe4f2e1c70d72388a98dba2a2511a9b480840e544' as const
 
 export { CAST_HASH_32 }
 
@@ -1434,7 +1438,7 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 	[EntityType.NostrNetwork]: { scope: 'NostrNetwork' },
 	[EntityType.NostrArticle]: {
 		kind: 30023,
-		pubkey: NOSTR_PROBE_PUBKEY,
+		pubkey: NOSTR_PROBE_ARTICLE_PUBKEY,
 		identifier: NOSTR_PROBE_ARTICLE_IDENTIFIER,
 	},
 	[EntityType.NostrProfile]: {
@@ -1464,14 +1468,14 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 	},
 	[EntityType.SpecificationRealm]: { realm: SpecificationRealm.Ethereum },
 
-	[EntityType.RedditComment]: { fullname: 't1_carprdq' },
+	[EntityType.RedditComment]: { fullname: 't1_osbo75d' },
 	[EntityType.RedditComment_Timestamp]: {
-		$comment: { fullname: 't1_carprdq' },
+		$comment: { fullname: 't1_osbo75d' },
 		timestampMs: 1_700_000_000_000,
 	},
-	[EntityType.RedditLink]: { fullname: 't3_1h7t8a' },
+	[EntityType.RedditLink]: { fullname: 't3_1u8x2f8' },
 	[EntityType.RedditLink_Timestamp]: {
-		$link: { fullname: 't3_1h7t8a' },
+		$link: { fullname: 't3_1u8x2f8' },
 		timestampMs: 1_700_000_000_000,
 	},
 	[EntityType.RedditNetwork]: { scope: 'RedditNetwork' },
@@ -1482,10 +1486,10 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 	},
 
 	[EntityType.RssNetwork]: { scope: 'RssNetwork' },
-	[EntityType.RssFeed]: { feedUrl: 'https://hnrss.org/frontpage' },
+	[EntityType.RssFeed]: { feedUrl: 'https://hnrss.org/item?id=48592832' },
 	[EntityType.RssItem]: {
-		feedUrl: 'https://hnrss.org/frontpage',
-		guid: 'e2e-probe-rss-item',
+		feedUrl: 'https://hnrss.org/item?id=48592832',
+		guid: 'https://news.ycombinator.com/item?id=48594706',
 	},
 
 	[EntityType.SwarmProtocol]: { scope: 'SwarmProtocol' },

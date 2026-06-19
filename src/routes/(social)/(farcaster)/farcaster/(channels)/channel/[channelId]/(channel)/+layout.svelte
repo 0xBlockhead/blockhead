@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// Context
 	import { resolve } from '$app/paths'
 
@@ -20,7 +22,7 @@
 >
 	{#snippet Summary({ open: _open })}
 		<FarcasterChannelView
-			selector={{ id: params.channelId }}
+			selection={select(EntityType.FarcasterChannel, { id: params.channelId })}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

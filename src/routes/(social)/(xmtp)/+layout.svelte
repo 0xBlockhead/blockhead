@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { stringify } from 'devalue'
 
@@ -26,9 +28,9 @@
 >
 	{#snippet Summary({ open: _open })}
 		<XmtpView
-			selector={{
+			selection={select(EntityType.XmtpNetwork, {
 				scope: 'XmtpNetwork',
-			}}
+			})}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

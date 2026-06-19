@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -14,16 +15,16 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/(social)/(x)/x/post/[postId]', {
-			postId: selector.$post.id,
+			postId: selection.entitySelector.$post.id,
 		}),
 		layout = EntityLayout.Summary,
 		open = $bindable(false),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.XPost_Timestamp>
+			selection: EntityProxyResource<typeof schema, EntityType.XPost_Timestamp>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -33,6 +34,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -47,7 +49,7 @@
 
 <EntityView
 	entityType={EntityType.XPost_Timestamp}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{layout}
 	bind:open
@@ -55,11 +57,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<Timestamp timestamp={selector.timestampMs} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Title()}
-		<Timestamp timestamp={selector.timestampMs} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -70,7 +72,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.XPost_Timestamp, selector, ({ fields: { likeCount: true, retweetCount: true, replyCount: true, quoteCount: true } }))}
+			resource={selection( { fields: { likeCount: true, retweetCount: true, replyCount: true, quoteCount: true } })}
 			placeholderText="Loading X post snapshot..."
 		>
 			{#snippet children(xPostTimestamp)}

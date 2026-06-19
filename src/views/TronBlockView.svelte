@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -12,16 +13,17 @@
 	import { select } from '$/routes/+layout.svelte'
 
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.TronBlock>
+			selection: EntityProxyResource<typeof schema, EntityType.TronBlock>
 			open?: boolean
 		},
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
+
 
 	
 
@@ -38,15 +40,15 @@
 
 <EntityView
 	entityType={EntityType.TronBlock}
-	entitySelector={selector}
-	title={`Block #${selector.height.toString()}`}
-	idDragPlainText={selector.height.toString()}
+	entitySelector={selection.entitySelector}
+	title={`Block #${selection.entitySelector.height.toString()}`}
+	idDragPlainText={selection.entitySelector.height.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-badge="small">
-			#{selector.height.toString()}
+			#{selection.entitySelector.height.toString()}
 		</span>
 	{/snippet}
 
@@ -65,7 +67,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.TronBlock, selector, ({ fields: { hash: true, timestampMs: true, transactionCount: true, ...(open && ({ parentHash: true, $witness: true, txTrieRoot: true, version: true })) } }))}
+			resource={selection( { fields: { hash: true, timestampMs: true, transactionCount: true, ...(open && ({ parentHash: true, $witness: true, txTrieRoot: true, version: true })) } })}
 			placeholderText="Loading TRON block..."
 		>
 			{#snippet children(block)}
@@ -113,7 +115,7 @@
 							<dt>Witness</dt>
 							<dd>
 								<TronWitnessView
-									selector={block.fields.$witness[EntityMetaKey.Selector]}
+									selection={select(EntityType.TronWitness, block.fields.$witness[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 								/>

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import { select } from '$/routes/+layout.svelte'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -25,11 +25,7 @@
 			title?: string
 			open?: boolean
 			collapsible?: boolean
-			selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.MevRelay_ProposerPayloadDelivered>
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
@@ -90,7 +86,7 @@
 				{#snippet Item({ item })}
 					{@const rowId = item.entitySelector}
 					<MevRelay_ProposerPayloadDeliveredView
-						selector={rowId}
+						selection={select(EntityType.MevRelay_ProposerPayloadDelivered, rowId)}
 							href={resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
 								caip2: `${rowId.$network.caip2.namespace}:${rowId.$network.caip2.reference}`,
 							})}

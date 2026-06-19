@@ -52,12 +52,31 @@ type EntityProxyRemoteResource<
 	readonly error: EntityProxyError<_Schema>
 }
 
-type EntityProxyCallableFieldResource<
+interface EntityProxyCallableFieldResource<
 	_Schema extends Schema,
 	_Value,
 	_Selection,
-> = EntityProxyRemoteResource<_Schema, _Value> & {
-	(selection?: _Selection): EntityProxyCallableFieldResource<_Schema, _Value, _Selection>
+> extends EntityProxyRemoteResource<_Schema, _Value> {
+	(selection?: _Selection): EntityProxyRemoteResource<_Schema, _Value>
+}
+
+interface EntityProxyResourceShape<
+	_Schema extends Schema,
+	_EntityType extends EntityTypeName<_Schema>,
+> extends EntityProxyRemoteResource<_Schema, EntityProxyCurrent<_Schema, _EntityType>> {
+	(selection?: EntityProxySelection<_Schema, _EntityType>): EntityProxyResource<_Schema, _EntityType>
+	readonly entityType: _EntityType
+	readonly entitySelector: EntitySelector<_Schema, _EntityType>
+	readonly [EntityMetaKey.Selector]: EntitySelector<_Schema, _EntityType>
+	readonly value: {
+		readonly entitySelector: EntitySelector<_Schema, _EntityType>
+		readonly [EntityMetaKey.Selector]: EntitySelector<_Schema, _EntityType>
+	}
+	readonly entity: EntityProxyCurrent<_Schema, _EntityType> | undefined
+	field: <const _FieldName extends EntityFieldName<_Schema, _EntityType>>(
+		fieldName: _FieldName,
+		selection?: EntityProxyFieldSelection<_Schema, _EntityType>
+	) => EntityProxyFieldResource<_Schema, _EntityType, _FieldName>
 }
 
 type EntityProxyManyFieldCurrent<
@@ -147,20 +166,7 @@ export type EntityProxyCurrent<
 export type EntityProxyResource<
 	_Schema extends Schema,
 	_EntityType extends EntityTypeName<_Schema>,
-> = EntityProxyRemoteResource<_Schema, EntityProxyCurrent<_Schema, _EntityType>> & {
-	readonly entityType: _EntityType
-	readonly entitySelector: EntitySelector<_Schema, _EntityType>
-	readonly [EntityMetaKey.Selector]: EntitySelector<_Schema, _EntityType>
-	readonly value: {
-		readonly entitySelector: EntitySelector<_Schema, _EntityType>
-		readonly [EntityMetaKey.Selector]: EntitySelector<_Schema, _EntityType>
-	}
-	readonly entity: EntityProxyCurrent<_Schema, _EntityType> | undefined
-	field: <const _FieldName extends EntityFieldName<_Schema, _EntityType>>(
-		fieldName: _FieldName,
-		selection?: EntityProxyFieldSelection<_Schema, _EntityType>
-	) => EntityProxyFieldResource<_Schema, _EntityType, _FieldName>
-} & EntityProxyFields<_Schema, _EntityType>
+> = EntityProxyResourceShape<_Schema, _EntityType> & EntityProxyFields<_Schema, _EntityType>
 
 export type EntityProxyFieldResource<
 	_Schema extends Schema,
@@ -171,18 +177,51 @@ export type EntityProxyFieldResource<
 		readonly type: EntityFieldType.EntityReference
 		readonly entityType: infer _ReferencedEntityType extends EntityTypeName<_Schema>
 	} ?
-		EntityProxyCallableFieldResource<
-			_Schema,
-			EntityProxyFieldCurrent<_Schema, _EntityType, _FieldName>,
-			EntityProxyFieldSelection<_Schema, _EntityType>
-		> & EntityProxyFields<_Schema, _ReferencedEntityType> & NonNullable<EntityProxyFieldCurrent<_Schema, _EntityType, _FieldName>>
-	:
-		EntityProxyCallableFieldResource<
-			_Schema,
-			EntityProxyFieldCurrent<_Schema, _EntityType, _FieldName>,
-			EntityProxyFieldSelection<_Schema, _EntityType>
-		> & NonNullable<EntityProxyFieldCurrent<_Schema, _EntityType, _FieldName>>
-)
+			EntityProxyCallableFieldResource<
+				_Schema,
+				EntityProxyFieldCurrent<_Schema, _EntityType, _FieldName>,
+				EntityProxyFieldSelection<_Schema, EntityTypeName<_Schema>>
+			> & EntityProxyFields<_Schema, _ReferencedEntityType> & NonNullable<EntityProxyFieldCurrent<_Schema, _EntityType, _FieldName>>
+		: EntityFieldDefinitionByName<_Schema, _EntityType, _FieldName> extends {
+			readonly type: EntityFieldType.EntitiesReference
+			readonly entityType: infer _ReferencedEntityType extends EntityTypeName<_Schema>
+		} ?
+			EntityProxyEntitiesResource<_Schema, _ReferencedEntityType, _EntityType, _FieldName>
+		:
+			EntityProxyCallableFieldResource<
+				_Schema,
+				EntityProxyFieldCurrent<_Schema, _EntityType, _FieldName>,
+				EntityProxyFieldSelection<_Schema, EntityTypeName<_Schema>>
+			> & {
+				readonly entityType: _EntityType
+				readonly entitySelector: EntitySelector<_Schema, _EntityType>
+				readonly fieldName: _FieldName
+			}
+	)
+
+export interface EntityProxyEntitiesResource<
+	_Schema extends Schema,
+	_ReferencedEntityType extends EntityTypeName<_Schema>,
+	_EntityType extends EntityTypeName<_Schema> = EntityTypeName<_Schema>,
+	_FieldName extends EntityFieldName<_Schema, _EntityType> = EntityFieldName<_Schema, _EntityType>,
+> extends EntityProxyRemoteResource<
+	_Schema,
+	{
+		readonly values: readonly EntityProxyResource<_Schema, _ReferencedEntityType>[]
+		readonly entities: readonly EntityProxyResource<_Schema, _ReferencedEntityType>[]
+		readonly totalCount?: number
+	}
+> {
+	(selection?: EntityProxyFieldSelection<_Schema, EntityTypeName<_Schema>>): EntityProxyEntitiesResource<
+		_Schema,
+		_ReferencedEntityType,
+		_EntityType,
+		_FieldName
+	>
+	readonly entityType: _EntityType
+	readonly entitySelector: EntitySelector<_Schema, _EntityType>
+	readonly fieldName: _FieldName
+}
 
 type SubscribeEntity<_Schema extends Schema> = <
 	const _EntityType extends EntityTypeName<_Schema>,
@@ -202,6 +241,13 @@ const resourceProperties = new Set<PropertyKey>([
 	'catch',
 	'finally',
 	Symbol.toStringTag,
+])
+
+const fieldResourceProperties = new Set<PropertyKey>([
+	'entityType',
+	'entitySelector',
+	'fieldName',
+	...resourceProperties,
 ])
 
 const entityProperties = new Set<PropertyKey>([
@@ -264,6 +310,9 @@ type FieldResourceController<
 	_Value,
 	_Selection,
 > = {
+	readonly entityType?: EntityTypeName<_Schema>
+	readonly entitySelector?: EntitySelector<_Schema, EntityTypeName<_Schema>>
+	readonly fieldName?: EntityFieldName<_Schema, EntityTypeName<_Schema>>
 	readonly current: _Value | undefined
 	readonly error: EntityProxyError<_Schema>
 	readonly loading: boolean
@@ -272,8 +321,8 @@ type FieldResourceController<
 	readonly catch: Promise<_Value>['catch']
 	readonly finally: Promise<_Value>['finally']
 	readonly [Symbol.toStringTag]: string
-	withSelection: (selection?: _Selection) => EntityProxyCallableFieldResource<_Schema, _Value, _Selection>
-	nestedField: (fieldName: string, selection?: _Selection) => EntityProxyCallableFieldResource<_Schema, unknown, _Selection> | undefined
+	withSelection: (selection?: _Selection) => EntityProxyRemoteResource<_Schema, _Value>
+	nestedField: (fieldName: string, selection?: _Selection) => EntityProxyRemoteResource<_Schema, unknown> | undefined
 }
 
 
@@ -287,7 +336,12 @@ class EntityProxyController<
 	readonly #context: EntityCollectionsContext<_Schema>
 	readonly #subscribeEntity: SubscribeEntity<_Schema>
 	readonly #selection: EntityProxyEntitySelection<_Schema, _EntityType>
-	readonly #fieldResources = new Map<string, EntityProxyCallableFieldResource<_Schema, unknown, EntityProxyFieldSelection<_Schema, _EntityType>>>()
+	readonly #fieldResources = new Map<string, EntityProxyCallableFieldResource<
+		_Schema,
+		unknown,
+		EntityProxyFieldSelection<_Schema, _EntityType>
+	>>()
+	readonly #entityResources = new Map<string, EntityProxyResource<_Schema, _EntityType>>()
 
 	#fields = $derived.by(() => {
 		const fields: Record<string, unknown> = {}
@@ -423,6 +477,12 @@ class EntityProxyController<
 		return 'RemoteResource'
 	}
 
+	isField(
+		fieldName: string
+	) {
+		return this.#context.entityFieldDefinitionByEntityTypeAndName[this.entityType][fieldName] != null
+	}
+
 	field<const _FieldName extends EntityFieldName<_Schema, _EntityType>>(
 		fieldName: _FieldName,
 		selection?: EntityProxyFieldSelection<_Schema, _EntityType>
@@ -452,6 +512,34 @@ class EntityProxyController<
 		this.#fieldResources.set(key, resource)
 		return resource as EntityProxyFieldResource<_Schema, _EntityType, _FieldName>
 	}
+
+	withSelection(
+		selection?: EntityProxySelection<_Schema, _EntityType>
+	): EntityProxyResource<_Schema, _EntityType> {
+		if (selection == null)
+			return createEntityProxyResource(
+				this.#context,
+				this.#subscribeEntity,
+				this.entityType,
+				this.entitySelector,
+				this.#selection
+			)
+
+		const key = cacheKey(selection)
+		const cached = this.#entityResources.get(key)
+		if (cached != null)
+			return cached
+
+		const resource = createEntityProxyResource(
+			this.#context,
+			this.#subscribeEntity,
+			this.entityType,
+			this.entitySelector,
+			selection
+		)
+		this.#entityResources.set(key, resource)
+		return resource
+	}
 }
 
 class EntityProxyFieldController<
@@ -459,24 +547,30 @@ class EntityProxyFieldController<
 	const _EntityType extends EntityTypeName<_Schema>,
 	const _FieldName extends EntityFieldName<_Schema, _EntityType>,
 > {
-		readonly fieldDefinition: EntityFieldDefinition
-		readonly #entity: EntityProxyController<_Schema, _EntityType>
-		readonly #context: EntityCollectionsContext<_Schema>
-		readonly #subscribeEntity: SubscribeEntity<_Schema>
-		readonly #entitySelection: EntityProxySelection<_Schema, _EntityType>
-		readonly #fieldName: _FieldName
-		readonly #fieldSelection: EntityProxyFieldSelection<_Schema, _EntityType> | undefined
-		readonly #source: SubscribeEntityResource<_Schema, _EntityType, SubscribeSelection<_Schema, _EntityType>>
-		readonly #childEntities = new Map<string, EntityProxyResource<_Schema, EntityTypeName<_Schema>>>()
-		readonly #nestedFields = new Map<string, EntityProxyCallableFieldResource<_Schema, unknown, EntityProxyFieldSelection<_Schema, _EntityType>>>()
+	readonly entityType: _EntityType
+	readonly entitySelector: EntitySelector<_Schema, _EntityType>
+	readonly fieldName: _FieldName
+	readonly fieldDefinition: EntityFieldDefinition
+	readonly #entity: EntityProxyController<_Schema, _EntityType>
+	readonly #context: EntityCollectionsContext<_Schema>
+	readonly #subscribeEntity: SubscribeEntity<_Schema>
+	readonly #entitySelection: EntityProxySelection<_Schema, _EntityType>
+	readonly #fieldSelection: EntityProxyFieldSelection<_Schema, _EntityType> | undefined
+	readonly #source: SubscribeEntityResource<_Schema, _EntityType, SubscribeSelection<_Schema, _EntityType>>
+	readonly #childEntities = new Map<string, EntityProxyResource<_Schema, EntityTypeName<_Schema>>>()
+	readonly #nestedFields = new Map<string, EntityProxyCallableFieldResource<
+		_Schema,
+		unknown,
+		EntityProxyFieldSelection<_Schema, _EntityType>
+	>>()
 
-		#rawCurrent = $derived.by(() => (
-			this.#source.current == null ?
-				undefined
-			:
-				(this.#source.current.fields as Record<string, EntityProxyFieldCurrent<_Schema, _EntityType, _FieldName> | undefined>)[this.#fieldName]
-		))
-		#current = $derived.by(() => this.#project(this.#rawCurrent))
+	#rawCurrent = $derived.by(() => (
+		this.#source.current == null ?
+			undefined
+		:
+			(this.#source.current.fields as Record<string, EntityProxyFieldCurrent<_Schema, _EntityType, _FieldName> | undefined>)[this.fieldName]
+	))
+	#current = $derived.by(() => this.#project(this.#rawCurrent))
 
 	constructor(
 		entity: EntityProxyController<_Schema, _EntityType>,
@@ -485,59 +579,61 @@ class EntityProxyFieldController<
 		entityType: _EntityType,
 		entitySelector: EntitySelector<_Schema, _EntityType>,
 		entitySelection: EntityProxySelection<_Schema, _EntityType>,
-			fieldName: _FieldName,
-			fieldDefinition: EntityFieldDefinition,
-			fieldSelection?: EntityProxyFieldSelection<_Schema, _EntityType>
-		) {
-			this.#entity = entity
-			this.#context = context
-			this.#subscribeEntity = subscribeEntity
-			this.#entitySelection = entitySelection
-			this.#fieldName = fieldName
-			this.fieldDefinition = fieldDefinition
-			this.#fieldSelection = fieldSelection
-			this.#source = subscribeEntity(
-				entityType,
-				entitySelector,
-				{
-					...entitySelection,
-					fields: {
-						[fieldName]: fieldSelection ?? true,
-					},
-				} as SubscribeSelection<_Schema, _EntityType>
-			)
-		}
+		fieldName: _FieldName,
+		fieldDefinition: EntityFieldDefinition,
+		fieldSelection?: EntityProxyFieldSelection<_Schema, _EntityType>
+	) {
+		this.#entity = entity
+		this.#context = context
+		this.#subscribeEntity = subscribeEntity
+		this.entityType = entityType
+		this.entitySelector = entitySelector
+		this.#entitySelection = entitySelection
+		this.fieldName = fieldName
+		this.fieldDefinition = fieldDefinition
+		this.#fieldSelection = fieldSelection
+		this.#source = subscribeEntity(
+			entityType,
+			entitySelector,
+			{
+				...entitySelection,
+				fields: {
+					[fieldName]: fieldSelection ?? true,
+				},
+			} as SubscribeSelection<_Schema, _EntityType>
+		)
+	}
 
-		get current(): EntityProxyFieldCurrent<_Schema, _EntityType, _FieldName> | undefined {
-			return this.#current
-		}
+	get current(): EntityProxyFieldCurrent<_Schema, _EntityType, _FieldName> | undefined {
+		return this.#current
+	}
 
-		get error() {
-			return this.#source.error
-		}
+	get error() {
+		return this.#source.error
+	}
 
-		get loading() {
-			return this.#source.loading
-		}
+	get loading() {
+		return this.#source.loading
+	}
 
-		get ready() {
-			return this.#source.ready
-		}
+	get ready() {
+		return this.#source.ready
+	}
 
-		get then(): Promise<EntityProxyFieldCurrent<_Schema, _EntityType, _FieldName>>['then'] {
-			return (onFulfilled, onRejected) => {
-				const result = this.#source
-					.then((source) => this.#project(
-						(source.fields as Record<string, EntityProxyFieldCurrent<_Schema, _EntityType, _FieldName> | undefined>)[this.#fieldName]
-					))
-					.then(async (value) => {
+	get then(): Promise<EntityProxyFieldCurrent<_Schema, _EntityType, _FieldName>>['then'] {
+		return (onFulfilled, onRejected) => {
+			const result = this.#source
+				.then((source) => this.#project(
+					(source.fields as Record<string, EntityProxyFieldCurrent<_Schema, _EntityType, _FieldName> | undefined>)[this.fieldName]
+				))
+				.then(async (value) => {
 					await tick()
 					return value as EntityProxyFieldCurrent<_Schema, _EntityType, _FieldName>
 				})
 
-				return result.then(onFulfilled, onRejected)
-			}
+			return result.then(onFulfilled, onRejected)
 		}
+	}
 
 	get catch(): Promise<EntityProxyFieldCurrent<_Schema, _EntityType, _FieldName>>['catch'] {
 		return (onRejected) => this.then(undefined, onRejected)
@@ -556,23 +652,23 @@ class EntityProxyFieldController<
 		)
 	}
 
-		get [Symbol.toStringTag]() {
-			return 'RemoteResource'
-		}
+	get [Symbol.toStringTag]() {
+		return 'RemoteResource'
+	}
 
 	withSelection(
 		selection?: EntityProxyFieldSelection<_Schema, _EntityType>
-	): EntityProxyCallableFieldResource<_Schema, EntityProxyFieldCurrent<_Schema, _EntityType, _FieldName>, EntityProxyFieldSelection<_Schema, _EntityType>> {
+	): EntityProxyRemoteResource<_Schema, EntityProxyFieldCurrent<_Schema, _EntityType, _FieldName>> {
 		return selection == null ?
 			createCallableFieldResource(this)
 		:
-			this.#entity.field(this.#fieldName, selection)
+			this.#entity.field(this.fieldName, selection) as EntityProxyRemoteResource<_Schema, EntityProxyFieldCurrent<_Schema, _EntityType, _FieldName>>
 	}
 
 	nestedField(
 		fieldName: string,
 		selection?: EntityProxyFieldSelection<_Schema, _EntityType>
-	): EntityProxyCallableFieldResource<_Schema, unknown, EntityProxyFieldSelection<_Schema, _EntityType>> | undefined {
+	): EntityProxyRemoteResource<_Schema, unknown> | undefined {
 		if (this.fieldDefinition.type !== EntityFieldType.EntityReference)
 			return undefined
 
@@ -581,7 +677,11 @@ class EntityProxyFieldController<
 		if (cached != null)
 			return cached
 
-		const resource: EntityProxyCallableFieldResource<_Schema, unknown, EntityProxyFieldSelection<_Schema, _EntityType>> = createCallableFieldResource(
+		const resource: EntityProxyCallableFieldResource<
+			_Schema,
+			unknown,
+			EntityProxyFieldSelection<_Schema, _EntityType>
+		> = createCallableFieldResource(
 			new EntityProxyNestedFieldController(
 				this as unknown as EntityProxyFieldController<_Schema, EntityTypeName<_Schema>, EntityFieldName<_Schema, EntityTypeName<_Schema>>>,
 				fieldName,
@@ -670,7 +770,11 @@ class EntityProxyNestedFieldController<
 	>
 	readonly #fieldName: string
 	readonly #fieldSelection: _Selection | undefined
-	readonly #nestedFields = new Map<string, EntityProxyCallableFieldResource<_Schema, unknown, _Selection>>()
+	readonly #nestedFields = new Map<string, EntityProxyCallableFieldResource<
+		_Schema,
+		unknown,
+		_Selection
+	>>()
 
 	#child = $derived.by(() => (
 		this.#parent.current == null ?
@@ -725,10 +829,11 @@ class EntityProxyNestedFieldController<
 	get then(): Promise<unknown>['then'] {
 		return (onFulfilled, onRejected) => {
 			const result = this.#parent
-				.then(() => this.#child)
-				.then((child) => child == null ? undefined : child)
-				.then(tick)
-				.then(() => this.current)
+				.then(async () => {
+					await this.#child
+					await tick()
+					return this.current
+				})
 
 			return result.then(onFulfilled, onRejected)
 		}
@@ -757,23 +862,39 @@ class EntityProxyNestedFieldController<
 
 	withSelection(
 		selection?: _Selection
-	): EntityProxyCallableFieldResource<_Schema, unknown, _Selection> {
+	): EntityProxyCallableFieldResource<
+		_Schema,
+		unknown,
+		_Selection
+	> {
 		return selection == null ?
 			createCallableFieldResource(this)
 		:
-			this.#parent.nestedField(this.#fieldName, selection as EntityProxyFieldSelection<_Schema, EntityTypeName<_Schema>>) as EntityProxyCallableFieldResource<_Schema, unknown, _Selection>
+			this.#parent.nestedField(this.#fieldName, selection as EntityProxyFieldSelection<_Schema, EntityTypeName<_Schema>>) as EntityProxyCallableFieldResource<
+				_Schema,
+				unknown,
+				_Selection
+			>
 	}
 
 	nestedField(
 		fieldName: string,
 		selection?: _Selection
-	): EntityProxyCallableFieldResource<_Schema, unknown, _Selection> {
+	): EntityProxyCallableFieldResource<
+		_Schema,
+		unknown,
+		_Selection
+	> {
 		const key = `${fieldName}:${cacheKey(selection ?? {})}`
 		const cached = this.#nestedFields.get(key)
 		if (cached != null)
 			return cached
 
-		const resource: EntityProxyCallableFieldResource<_Schema, unknown, _Selection> = createCallableFieldResource(
+		const resource: EntityProxyCallableFieldResource<
+			_Schema,
+			unknown,
+			_Selection
+		> = createCallableFieldResource(
 			new EntityProxyNestedFieldController(
 				this as unknown as EntityProxyFieldController<_Schema, EntityTypeName<_Schema>, EntityFieldName<_Schema, EntityTypeName<_Schema>>>,
 				fieldName,
@@ -792,10 +913,13 @@ const createCallableFieldResource = <
 >(
 	controller: FieldResourceController<_Schema, _Value, _Selection>
 ): EntityProxyCallableFieldResource<_Schema, _Value, _Selection> => {
-	const target = ((selection?: _Selection) => controller.withSelection(selection)) as EntityProxyCallableFieldResource<_Schema, _Value, _Selection>
+	const target: (
+		& ((selection?: _Selection) => EntityProxyRemoteResource<_Schema, _Value>)
+		& Partial<EntityProxyRemoteResource<_Schema, _Value>>
+	) = (selection?: _Selection) => controller.withSelection(selection)
 	return new Proxy(target, {
 		get(target, property, receiver) {
-			if (resourceProperties.has(property))
+			if (fieldResourceProperties.has(property))
 				return Reflect.get(controller, property, controller)
 
 			if (typeof property === 'string') {
@@ -812,7 +936,7 @@ const createCallableFieldResource = <
 		apply(_target, _this, argumentsList: [selection?: _Selection]) {
 			return controller.withSelection(argumentsList[0])
 		},
-	})
+	}) as EntityProxyCallableFieldResource<_Schema, _Value, _Selection>
 }
 
 const createEntityProxyResource = <
@@ -832,36 +956,43 @@ const createEntityProxyResource = <
 		entitySelector,
 		selection
 	)
-	return new Proxy(controller, {
+	const target = ((selection?: EntityProxySelection<_Schema, _EntityType>) => controller.withSelection(selection)) as EntityProxyResource<_Schema, _EntityType>
+	return new Proxy(target, {
 		get(target, property, receiver) {
 			if (property === EntityMetaKey.Selector)
-				return target.entitySelector
+				return controller.entitySelector
 
 			if (property === 'value')
 				return {
-					entitySelector: target.entitySelector,
-					[EntityMetaKey.Selector]: target.entitySelector,
+					entitySelector: controller.entitySelector,
+					[EntityMetaKey.Selector]: controller.entitySelector,
 				}
 
 			if (property === 'entity')
-				return target.current
+				return controller.current
 
 			if (property === 'field')
-				return target.field.bind(target)
+				return controller.field.bind(controller)
 
 			if (entityProperties.has(property))
-				return Reflect.get(target, property, target)
-
-			if (property in target)
-				return Reflect.get(target, property, receiver)
+				return Reflect.get(controller, property, controller)
 
 			if (typeof property !== 'string')
 				return undefined
 
-			if (property in target.entitySelector)
-				return target.entitySelector[property as keyof typeof target.entitySelector]
+			if (property in controller.entitySelector)
+				return controller.entitySelector[property as keyof typeof controller.entitySelector]
 
-			return target.field(property as EntityFieldName<_Schema, _EntityType>)
+			if (controller.isField(property))
+				return controller.field(property as EntityFieldName<_Schema, _EntityType>)
+
+			if (property in target)
+				return Reflect.get(target, property, receiver)
+
+			return undefined
+		},
+		apply(_target, _this, argumentsList: [selection?: EntityProxySelection<_Schema, _EntityType>]) {
+			return controller.withSelection(argumentsList[0])
 		},
 	}) as EntityProxyResource<_Schema, _EntityType>
 }

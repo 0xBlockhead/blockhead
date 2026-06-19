@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -12,12 +13,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.SolanaAccount>
+			selection: EntityProxyResource<typeof schema, EntityType.SolanaAccount>
 			open?: boolean
 		},
 		Pick<
@@ -26,6 +27,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -41,23 +43,22 @@
 
 <EntityView
 	entityType={EntityType.SolanaAccount}
-	entitySelector={selector}
-	title={selector.pubkey}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.pubkey}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
 		<TruncatedValue
-			value={selector.pubkey}
+			value={selection.entitySelector.pubkey}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.SolanaAccount,
-					selector,
+			resource={selection(
 					({ fields: { $ownerProgram: true, lamports: true, rentEpoch: true, executable: true, dataEncoding: true } }),
 				)}
 			placeholderText={`Loading Solana Account...`}
@@ -69,7 +70,7 @@
 							<dt>Owner program</dt>
 							<dd>
 								<SolanaProgramView
-									selector={solanaAccount.fields.$ownerProgram[EntityMetaKey.Selector]}
+									selection={select(EntityType.SolanaProgram, solanaAccount.fields.$ownerProgram[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 									open={false}

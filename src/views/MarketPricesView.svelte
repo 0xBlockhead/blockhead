@@ -1,6 +1,5 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -8,10 +7,7 @@
 	import {
 		MarketAssetKind,
 	} from '$/constants/Market.ts'
-	import {
-		marketCatalogFieldSources,
-		marketSpotPriceSources,
-	} from '$/sources/Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -30,6 +26,16 @@
 		collapsible = true,
 		limit = 400,
 		selection,
+		sources = [
+			Source.Constants_Internal,
+			Source.Coingecko_Rest,
+			Source.Coingecko_OpenApi,
+			Source.CoinMarketCap_Rest,
+			Source.Coinpaprika_OpenApi,
+			Source.Defillama_OpenApi,
+			Source.Blockscout_Rest,
+			Source.Defillama_Rest,
+		],
 		...EntitiesListProps
 	}: WithRest<
 		{
@@ -37,11 +43,8 @@
 			open?: boolean
 			collapsible?: boolean
 			limit?: number
-			selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.MarketPrice>
+			sources?: readonly Source[]
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
@@ -51,8 +54,6 @@
 		>
 	> = $props()
 
-
-	
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
@@ -86,7 +87,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			<ResourceBoundary resource={selection({
-					sources: marketSpotPriceSources,
+					sources,
 					limit,
 				})}>
 				{#snippet children(prices)}
@@ -124,16 +125,11 @@
 						{/snippet}
 
 						{#snippet Item({ item })}
+							{@const baseLabel = item.entitySelector.$market.$base.kind === MarketAssetKind.Coin ? item.entitySelector.$market.$base.$coin.coinId : item.entitySelector.$market.$base.kind === MarketAssetKind.Currency ? item.entitySelector.$market.$base.$currency.iso4217 : item.entitySelector.$market.$base.kind}
+							{@const quoteLabel = item.entitySelector.$market.$quote.kind === MarketAssetKind.Coin ? item.entitySelector.$market.$quote.$coin.coinId : item.entitySelector.$market.$quote.kind === MarketAssetKind.Currency ? item.entitySelector.$market.$quote.$currency.iso4217 : item.entitySelector.$market.$quote.kind}
 							{@const marketPriceLabel = `${item.entitySelector.$market.$marketVenue.marketVenueId}:${
-								item.entitySelector.$market.$base.kind === MarketAssetKind.Coin ?
-									item.entitySelector.$market.$base.$coin.coinId
-								:
-									item.entitySelector.$market.$base.kind
-							}/${item.entitySelector.$market.$quote.kind === MarketAssetKind.Coin ?
-								item.entitySelector.$market.$quote.$coin.coinId
-							:
-								item.entitySelector.$market.$quote.kind
-							}`}
+								baseLabel
+							}/${quoteLabel}`}
 							<a
 								href={resolve('/(assets)/(markets)/market/[marketKey]', {
 									marketKey: stringify(item.entitySelector.$market),

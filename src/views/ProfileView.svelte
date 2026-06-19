@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -16,25 +17,37 @@
 
 	// State
 	let {
-		selector: farcasterUserId,
-		href = resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
-			userId: String(farcasterUserId.fid),
-		}),
+		selection,
+		href = resolve(`/farcaster/user/${String(selection.entitySelector.fid)}`),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.FarcasterUser>
+			selection: EntityProxyResource<typeof schema, EntityType.FarcasterUser>
 			href?: string
 			open?: boolean
-		},
+	},
 		never
 	> = $props()
 
-	const farcasterUser = $derived(select(EntityType.FarcasterUser, farcasterUserId, ({ sources: [
-				Source.Neynar_Rest,
-				Source.Snapchain_Rest,
-			], fields: { username: true, displayName: true, $icon: true, bio: true, url: true, $primaryEvmAccount: true, $$verifiedAddresses: true } })))
+	const farcasterUser = $derived(selection({
+		sources: [
+			Source.Snapchain_Rest,
+		],
+		fields: {
+			username: true,
+			displayName: true,
+			$icon: {
+				sources: [
+					Source.Snapchain_Rest,
+				],
+			},
+			bio: true,
+			url: true,
+			$primaryEvmAccount: true,
+			$$verifiedAddresses: true,
+		},
+	}))
 
 	// Components
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
@@ -48,7 +61,7 @@
 
 <EntityView
 	entityType={EntityType.FarcasterUser}
-	entitySelector={farcasterUserId}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
 	title="Profile"
@@ -73,7 +86,7 @@
 
 	{#snippet Value()}
 		<span>
-			FID {String(farcasterUserId.fid)}
+			FID {String(selection.entitySelector.fid)}
 		</span>
 	{/snippet}
 
@@ -85,7 +98,7 @@
 			{#snippet children(farcasterUser)}
 				{farcasterUser.fields.displayName
 					?? farcasterUser.fields.username
-					?? String(farcasterUserId.fid)}
+					?? String(selection.entitySelector.fid)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -101,7 +114,7 @@
 					&& farcasterUser.fields.username !== (
 						farcasterUser.fields.displayName
 						?? farcasterUser.fields.username
-						?? String(farcasterUserId.fid)
+						?? String(selection.entitySelector.fid)
 					)
 				)}
 					<span data-text="muted">
@@ -142,6 +155,8 @@
 							<dd>
 								<a
 									href={farcasterUser.fields.url}
+									rel="noreferrer noopener"
+									target="_blank"
 									data-text="muted"
 								>{farcasterUser.fields.url}</a>
 							</dd>
@@ -159,12 +174,10 @@
 						<div>
 							<dt>Primary EVM account</dt>
 							<dd>
-									<EvmAccountView
-										selector={farcasterUser.fields.$primaryEvmAccount[EntityMetaKey.Selector]}
-										href={resolve('/account/[address]', {
-											address: farcasterUser.fields.$primaryEvmAccount[EntityMetaKey.Selector].address,
-										})}
-										layout={EntityLayout.Title}
+										<EvmAccountView
+											selection={select(EntityType.EvmAccount, farcasterUser.fields.$primaryEvmAccount[EntityMetaKey.Selector])}
+											href={resolve(`/account/${farcasterUser.fields.$primaryEvmAccount[EntityMetaKey.Selector].address}`)}
+											layout={EntityLayout.Title}
 
 									/>
 							</dd>
@@ -186,17 +199,15 @@
 										{#each farcasterUser.fields.$$verifiedAddresses.values as verification (String(verification[EntityMetaKey.Selector].protocol) + ':' + verification[EntityMetaKey.Selector].address)}
 											<li>
 												{#if verification.$evmAccount}
-													<EvmAccountView
-														selector={verification.$evmAccount[EntityMetaKey.Selector]}
-														href={resolve('/account/[address]', {
-															address: verification.$evmAccount[EntityMetaKey.Selector].address,
-														})}
-														layout={EntityLayout.Title}
+														<EvmAccountView
+															selection={select(EntityType.EvmAccount, verification.$evmAccount[EntityMetaKey.Selector])}
+															href={resolve(`/account/${verification[EntityMetaKey.Selector].address}`)}
+															layout={EntityLayout.Title}
 
 													/>
 												{:else if verification.$solanaAccount}
 													<SolanaAccountView
-														selector={verification.$solanaAccount[EntityMetaKey.Selector]}
+														selection={select(EntityType.SolanaAccount, verification.$solanaAccount[EntityMetaKey.Selector])}
 														layout={EntityLayout.Title}
 
 													/>

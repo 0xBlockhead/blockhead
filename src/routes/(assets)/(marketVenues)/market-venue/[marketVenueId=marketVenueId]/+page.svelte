@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import {
 		marketVenueById,
@@ -48,7 +50,7 @@
 		</p>
 	{:else}
 		<MarketVenueView
-			selector={{ marketVenueId: route.marketVenueId }}
+			selection={select(EntityType.MarketVenue, { marketVenueId: route.marketVenueId })}
 		/>
 	{/if}
 </Page>

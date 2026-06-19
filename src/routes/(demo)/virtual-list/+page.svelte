@@ -71,7 +71,7 @@
 		min-height: 0;
 	}
 
-	.virtual-list-demo-viewport {
+	:global(.virtual-list-demo-viewport) {
 		flex: 1;
 		min-height: 50vh;
 		max-height: 70vh;

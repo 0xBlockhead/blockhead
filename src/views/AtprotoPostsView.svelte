@@ -1,6 +1,5 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -30,11 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.AtprotoPost>
 			id: string
 			limit?: number
 			open?: boolean
@@ -52,13 +47,13 @@
 
 	const atprotoPostOrderBy = [
 		[
-			({ fieldRow }) => fieldRow.createdAt,
+			({ fieldRow }: { fieldRow: AtprotoPostOrderFieldRow }) => fieldRow.createdAt,
 			{
 				direction: 'desc',
 			},
 		],
 		[
-			({ fieldRow }) => fieldRow[EntityMetaKey.SelectorKey],
+			({ fieldRow }: { fieldRow: AtprotoPostOrderFieldRow }) => fieldRow[EntityMetaKey.SelectorKey],
 			'asc',
 		],
 	] as const
@@ -100,7 +95,6 @@
 						resource={selection({
 							sources: [
 								Source.Constants_Internal,
-								Source.Atproto_Xrpc,
 							],
 							limit,
 						})}

@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -13,12 +14,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.PolkadotBlock>
+			selection: EntityProxyResource<typeof schema, EntityType.PolkadotBlock>
 			open?: boolean
 		},
 		Pick<
@@ -27,6 +28,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -41,22 +43,22 @@
 
 <EntityView
 	entityType={EntityType.PolkadotBlock}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={
-		'caip2' in selector.$network ?
-			`/network/${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}/blocks/${selector.blockNumber.toString()}`
+		'caip2' in selection.entitySelector.$network ?
+			`/network/${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}/blocks/${selection.entitySelector.blockNumber.toString()}`
 		:
-			`/network/${selector.$network.slug}/blocks/${selector.blockNumber.toString()}`
+			`/network/${selection.entitySelector.$network.slug}/blocks/${selection.entitySelector.blockNumber.toString()}`
 	}
-	title={`Block #${selector.blockNumber.toString()}`}
-	idDragPlainText={selector.blockNumber.toString()}
+	title={`Block #${selection.entitySelector.blockNumber.toString()}`}
+	idDragPlainText={selection.entitySelector.blockNumber.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{selector.blockNumber.toString()}
+			#{selection.entitySelector.blockNumber.toString()}
 		</span>
 	{/snippet}
 
@@ -77,8 +79,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.PolkadotBlock,
-					selector,
+			resource={selection(
 					({ sources: [
 							Source.SubstrateSidecar_Rest,
 						], fields: { hash: true, $$extrinsics: true, $$events: true, ...(open && ({ $parent: true, stateRoot: true, extrinsicsRoot: true })) } }),
@@ -87,12 +88,12 @@
 		>
 			{#snippet children(block)}
 				<dl data-column-item="center">
-					{#if ('hash' in selector && selector.hash != null) || block.fields.hash != null}
+					{#if ('hash' in selection.entitySelector && selection.entitySelector.hash != null) || block.fields.hash != null}
 						<div>
 							<dt>Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={'hash' in selector ? selector.hash : block.fields.hash}
+									value={'hash' in selection.entitySelector ? selection.entitySelector.hash : block.fields.hash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>

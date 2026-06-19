@@ -1,28 +1,24 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntitySelector } from '$/schema/$schema.ts'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		selector: EntitySelector<typeof schema, EntityType.UtxoNetwork_Timestamp>
+		selection: EntityProxyResource<typeof schema, EntityType.UtxoNetwork_Timestamp>
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
-	const snapshot = $derived(select(
-		EntityType.UtxoNetwork_Timestamp,
-		selector,
-		{
+
+	const snapshot = $derived(selection({
 			sources: [
 				Source.Blockchair_Rest,
 			],
@@ -56,7 +52,7 @@
 
 <EntityView
 	entityType={EntityType.UtxoNetwork_Timestamp}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	bind:open
 	{layout}
 >
@@ -69,7 +65,7 @@
 				{#if bestBlockHeight !== undefined}
 					<NumberValue value={bestBlockHeight} />
 				{:else}
-					<Timestamp timestamp={selector.timestampMs} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -92,21 +88,32 @@
 					{#if mempoolTransactionCount !== undefined}
 						<div>
 							<dt>Mempool transactions</dt>
-							<dd><NumberValue value={mempoolTransactionCount} /></dd>
+							<dd><NumberValue resource={mempoolTransactionCount} /></dd>
 						</div>
 					{/if}
 
 					{#if suggestedTransactionFeePerByteSats !== undefined}
 						<div>
 							<dt>Suggested fee</dt>
-							<dd><NumberValue value={suggestedTransactionFeePerByteSats} /> sat/vB</dd>
+							<dd><NumberValue resource={suggestedTransactionFeePerByteSats} /> sat/vB</dd>
 						</div>
 					{/if}
 
 					{#if bestBlockTimeMs !== undefined}
 						<div>
 							<dt>Best block time</dt>
-							<dd><Timestamp timestamp={bestBlockTimeMs} /></dd>
+							<dd>
+								<ResourceBoundary
+									resource={bestBlockTimeMs}
+									placeholderText="Loading block time…"
+								>
+									{#snippet children(bestBlockTimeMs)}
+										{#if bestBlockTimeMs !== undefined}
+											<Timestamp timestamp={bestBlockTimeMs} />
+										{/if}
+									{/snippet}
+								</ResourceBoundary>
+							</dd>
 						</div>
 					{/if}
 
@@ -114,10 +121,19 @@
 						<div>
 							<dt>Best block hash</dt>
 							<dd>
-								<TruncatedValue
-									value={bestBlockHash}
-									format={TruncatedValueFormat.Abbr}
-								/>
+								<ResourceBoundary
+									resource={bestBlockHash}
+									placeholderText="Loading block hash…"
+								>
+									{#snippet children(bestBlockHash)}
+										{#if bestBlockHash !== undefined}
+											<TruncatedValue
+												value={bestBlockHash}
+												format={TruncatedValueFormat.Abbr}
+											/>
+										{/if}
+									{/snippet}
+								</ResourceBoundary>
 							</dd>
 						</div>
 					{/if}
@@ -125,63 +141,63 @@
 					{#if open && blockCount !== undefined}
 						<div>
 							<dt>Blocks</dt>
-							<dd><NumberValue value={blockCount} /></dd>
+							<dd><NumberValue resource={blockCount} /></dd>
 						</div>
 					{/if}
 
 					{#if open && transactionCount !== undefined}
 						<div>
 							<dt>Transactions</dt>
-							<dd><NumberValue value={transactionCount} /></dd>
+							<dd><NumberValue resource={transactionCount} /></dd>
 						</div>
 					{/if}
 
 					{#if open && blocks24h !== undefined}
 						<div>
 							<dt>Blocks 24h</dt>
-							<dd><NumberValue value={blocks24h} /></dd>
+							<dd><NumberValue resource={blocks24h} /></dd>
 						</div>
 					{/if}
 
 					{#if open && transactions24h !== undefined}
 						<div>
 							<dt>Transactions 24h</dt>
-							<dd><NumberValue value={transactions24h} /></dd>
+							<dd><NumberValue resource={transactions24h} /></dd>
 						</div>
 					{/if}
 
 					{#if open && mempoolSizeBytes !== undefined}
 						<div>
 							<dt>Mempool size</dt>
-							<dd><NumberValue value={mempoolSizeBytes} /> bytes</dd>
+							<dd><NumberValue resource={mempoolSizeBytes} /> bytes</dd>
 						</div>
 					{/if}
 
 					{#if open && mempoolTps !== undefined}
 						<div>
 							<dt>Mempool TPS</dt>
-							<dd><NumberValue value={mempoolTps} /></dd>
+							<dd><NumberValue resource={mempoolTps} /></dd>
 						</div>
 					{/if}
 
 					{#if open && averageTransactionFee24hSats !== undefined}
 						<div>
 							<dt>Average fee 24h</dt>
-							<dd><NumberValue value={averageTransactionFee24hSats} /> sats</dd>
+							<dd><NumberValue resource={averageTransactionFee24hSats} /> sats</dd>
 						</div>
 					{/if}
 
 					{#if open && medianTransactionFee24hSats !== undefined}
 						<div>
 							<dt>Median fee 24h</dt>
-							<dd><NumberValue value={medianTransactionFee24hSats} /> sats</dd>
+							<dd><NumberValue resource={medianTransactionFee24hSats} /> sats</dd>
 						</div>
 					{/if}
 
 					{#if open && blockchainSizeBytes !== undefined}
 						<div>
 							<dt>Chain size</dt>
-							<dd><NumberValue value={blockchainSizeBytes} /> bytes</dd>
+							<dd><NumberValue resource={blockchainSizeBytes} /> bytes</dd>
 						</div>
 					{/if}
 				</dl>

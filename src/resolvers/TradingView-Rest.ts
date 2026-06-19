@@ -165,19 +165,6 @@ export default {
 		}),
 
 		defineResolver(Source.TradingView_Rest, {
-			entityType: EntityType.Coin,
-			resolve: {
-				[CoinSelector.CoinId]: async ({ coinId }) => {
-					throw new Error(`TradingView_Rest: $$marketsWithCoinAsQuote unsupported for coin ${coinId}`)
-				}
-			},
-		})({
-			fields: {
-				$$marketsWithCoinAsQuote: () => [],
-			},
-		}),
-
-		defineResolver(Source.TradingView_Rest, {
 			entityType: EntityType.Currency,
 			resolve: {
 				[CurrencySelector.Iso4217]: async ({ iso4217 }) => {

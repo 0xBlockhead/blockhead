@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
@@ -82,7 +83,7 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			<ResourceBoundary {resource} placeholderText="Loading feeds…">
+			<ResourceBoundary resource={selection} placeholderText="Loading feeds…">
 				{#snippet children(feeds)}
 					<EntitiesList
 				collapsible={false}
@@ -101,7 +102,7 @@
 
 				{#snippet Item({ item })}
 					<RssFeedView
-						selector={item.__selector}
+						selection={select(EntityType.RssFeed, item.__selector)}
 						layout={EntityLayout.SummaryDetails}
 
 					/>

@@ -1,6 +1,5 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -12,13 +11,14 @@
 
 	// Context
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
+	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		selection,
 		id,
-		limit = 50,
+		limit = 10,
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
 		),
@@ -27,11 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.YouTubeComment>
 			id: string
 			limit?: number
 			open?: boolean
@@ -46,14 +42,10 @@
 	> = $props()
 
 
-
-	
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import YouTubeCommentView from '$/views/YouTubeCommentView.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -83,11 +75,12 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			<ResourceBoundary
-				resource={selection({
-						sources: [
-							Source.Youtube_Rest,
-							Source.Piped_Rest,
-						],
+						resource={selection({
+							sources: [
+								Source.Constants_Internal,
+								Source.Youtube_Rest,
+								Source.Piped_Rest,
+							],
 						limit,
 					})}
 				placeholderText="Loading comment thread…"
@@ -99,7 +92,7 @@
 						entityType={EntityType.YouTubeComment}
 						id={`${id}-items`}
 						{title}
-						items={comments.entities}
+						items={comments.values}
 						placeholderText="Loading comment thread…"
 						getKey={(comment) => stringify(comment.entitySelector)}
 						getSortValue={(comment) => comment.entitySelector.commentId}
@@ -111,11 +104,20 @@
 						{/snippet}
 
 						{#snippet Item({ item })}
-							<YouTubeCommentView
-								selector={item.entitySelector}
-								layout={EntityLayout.SummaryDetails}
-
-							/>
+							<a
+								href={resolve(
+									'/(social)/(youtube)/youtube/comment/[videoId]/[commentId]',
+									{
+										videoId: encodeURIComponent(item.entitySelector.videoId),
+										commentId: encodeURIComponent(item.entitySelector.commentId),
+									},
+								)}
+							>
+								<TruncatedValue
+									value={item.entitySelector.commentId}
+									format={TruncatedValueFormat.Visual}
+								/>
+							</a>
 						{/snippet}
 					</EntitiesList>
 				{/snippet}

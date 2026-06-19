@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -13,12 +14,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.BittensorBlock>
+			selection: EntityProxyResource<typeof schema, EntityType.BittensorBlock>
 			open?: boolean
 		},
 		Pick<
@@ -27,6 +28,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -41,15 +43,15 @@
 
 <EntityView
 	entityType={EntityType.BittensorBlock}
-	entitySelector={selector}
-	title={`Block #${selector.blockNumber.toString()}`}
-	idDragPlainText={selector.blockNumber.toString()}
+	entitySelector={selection.entitySelector}
+	title={`Block #${selection.entitySelector.blockNumber.toString()}`}
+	idDragPlainText={selection.entitySelector.blockNumber.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-badge="small">
-			#{selector.blockNumber.toString()}
+			#{selection.entitySelector.blockNumber.toString()}
 		</span>
 	{/snippet}
 
@@ -68,8 +70,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.BittensorBlock,
-					selector,
+			resource={selection(
 					({ sources: [
 							Source.Bittensor_JsonRpc,
 						], fields: { hash: true, extrinsicCount: true, ...(open && ({ $parent: true, stateRoot: true, extrinsicsRoot: true })) } }),
@@ -78,12 +79,12 @@
 		>
 			{#snippet children(block)}
 				<dl data-column-item="center">
-					{#if selector.hash != null || block.fields.hash != null}
+					{#if selection.entitySelector.hash != null || block.fields.hash != null}
 						<div>
 							<dt>Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={selector.hash ?? block.fields.hash}
+									value={selection.entitySelector.hash ?? block.fields.hash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>

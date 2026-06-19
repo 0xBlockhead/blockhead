@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import { select } from '$/routes/+layout.svelte'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
@@ -23,11 +23,7 @@ import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.BittensorMetagraph_Timestamp>
 			title?: string
 			open?: boolean
 			id: string
@@ -80,18 +76,15 @@ import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 						id={`${id}-items`}
 						href={href}
 						open={true}
-						items={timestamps.entities}
+						items={timestamps.values}
 						getKey={(timestamp) => stringify(timestamp.entitySelector)}
 						getSortValue={(timestamp) => -timestamp.entitySelector.timestampMs}
 						UnorderedListProps={{ orientation: ListOrientation.Column }}
 					>
 						{#snippet Item({ item })}
 							<BittensorMetagraph_TimestampView
-								selector={item.entitySelector}
-								{href}
+								selection={select(EntityType.BittensorMetagraph_Timestamp, item.entitySelector)}
 								layout={EntityLayout.Summary}
-
-								showTypeAnnotation={false}
 							/>
 						{/snippet}
 					</EntitiesList>

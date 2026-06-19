@@ -5,6 +5,8 @@
 		proposalKindAllowedInRealmByKey,
 		specificationRealmBySlug,
 	} from '$/constants/SpecificationProposal.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -58,7 +60,7 @@
 <Page>
 	{#if selector !== undefined}
 		<ProposalView
-			selector={selector}
+			selection={select(EntityType.SpecificationProposal, selector)}
 			open
 		/>
 	{:else}

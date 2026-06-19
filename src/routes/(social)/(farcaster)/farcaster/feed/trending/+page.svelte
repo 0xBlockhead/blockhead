@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -19,7 +20,7 @@
 
 <Page>
 	<FarcasterFeedView
-		selector={selector}
+		selection={select(EntityType.FarcasterFeed, selector)}
 		limit={50}
 	/>
 </Page>

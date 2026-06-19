@@ -1,22 +1,24 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.UtxoAddress>
+			selection: EntityProxyResource<typeof schema, EntityType.UtxoAddress>
 			open?: boolean
 		},
 		Pick<
@@ -26,10 +28,17 @@
 		>
 	> = $props()
 
-	const utxoAddress = $derived(select(
-		EntityType.UtxoAddress,
-		selector,
-	))
+
+	const utxoAddress = $derived(selection({
+		sources: [Source.Blockchair_Rest],
+		fields: {
+			balanceSats: true,
+			transactionCount: true,
+			unspentOutputCount: true,
+			totalReceivedSats: true,
+			totalSpentSats: true,
+		},
+	}))
 	
 	
 	
@@ -48,15 +57,15 @@
 
 <EntityView
 	entityType={EntityType.UtxoAddress}
-	entitySelector={selector}
-	title={selector.address}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.address}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
 		<TruncatedValue
-			value={selector.address}
+			value={selection.entitySelector.address}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}

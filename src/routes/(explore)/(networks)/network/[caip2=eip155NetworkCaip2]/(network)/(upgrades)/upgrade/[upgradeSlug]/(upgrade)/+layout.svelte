@@ -5,6 +5,8 @@
 		ethereumMainnetNetworkUpgradeSlugAliasBySegmentSlug,
 		networkUpgrades,
 	} from '$/constants/EthereumNetworkUpgrades.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 
 	import { stringify } from 'devalue'
 
@@ -101,10 +103,10 @@
 >
 	{#snippet Summary({ open: _open })}
 		<NetworkUpgradeView
-			selector={{
+			selection={select(EntityType.EthereumNetworkUpgrade, {
 				$network: eip155NetworkSelectorFromCaip2(params.caip2),
 				upgradeId: resolvedUpgradeId,
-			}}
+			})}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

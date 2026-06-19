@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.MoneroStealthOutput>
+			selection: EntityProxyResource<typeof schema, EntityType.MoneroStealthOutput>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -38,16 +40,16 @@
 
 <EntityView
 	entityType={EntityType.MoneroStealthOutput}
-	entitySelector={selector}
-	title={`Stealth output #${selector.outputIndex.toString()}`}
-	idDragPlainText={selector.outputIndex.toString()}
+	entitySelector={selection.entitySelector}
+	title={`Stealth output #${selection.entitySelector.outputIndex.toString()}`}
+	idDragPlainText={selection.entitySelector.outputIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{selector.outputIndex.toString()}
+			#{selection.entitySelector.outputIndex.toString()}
 		</span>
 	{/snippet}
 
@@ -62,7 +64,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.MoneroStealthOutput, selector, ({ fields: { publicKey: true, commitment: true } }))}
+			resource={selection( { fields: { publicKey: true, commitment: true } })}
 			placeholderText={`Loading Monero Stealth Output...`}
 		>
 			{#snippet children(moneroStealthOutput)}

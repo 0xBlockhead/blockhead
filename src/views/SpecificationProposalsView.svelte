@@ -1,6 +1,5 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -10,6 +9,12 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 	import { EntitiesListLayout } from '$/components/EntitiesListLayout.ts'
+
+	type SpecificationProposalsResource =
+		| EntityProxyEntitiesResource<typeof schema, EntityType.SpecificationProposal, EntityType.SpecificationProposalKind>
+		| EntityProxyEntitiesResource<typeof schema, EntityType.SpecificationProposal, EntityType.EthereumConsensusUpgrade>
+		| EntityProxyEntitiesResource<typeof schema, EntityType.SpecificationProposal, EntityType.EthereumExecutionUpgrade>
+		| EntityProxyEntitiesResource<typeof schema, EntityType.SpecificationProposal, EntityType.EthereumNetworkUpgrade>
 
 
 	// Context
@@ -30,11 +35,7 @@
 		{
 			title?: string
 			open?: boolean
-			selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+			selection: SpecificationProposalsResource
 			filterCategory?: ProposalCategory
 			filterRealm?: SpecificationRealm
 			id: string
@@ -150,7 +151,7 @@
 			href={href}
 			{collapsible}
 			layout={EntitiesListLayout.Default}
-			items={proposals.entities}
+			items={proposals.values}
 			getKey={(proposal) => stringify(proposal.entitySelector)}
 		>
 			{#snippet TypeAnnotationTooltip()}
@@ -164,10 +165,8 @@
 
 			{#snippet Item({ item })}
 				<ProposalView
-					selector={item.entitySelector}
+					selection={item}
 					layout={EntityLayout.Summary}
-
-					showTypeAnnotation={false}
 				/>
 			{/snippet}
 		</EntitiesList>

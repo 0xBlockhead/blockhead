@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.BitcoinCashBcmrMetadata>
+			selection: EntityProxyResource<typeof schema, EntityType.BitcoinCashBcmrMetadata>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -39,20 +41,19 @@
 
 <EntityView
 	entityType={EntityType.BitcoinCashBcmrMetadata}
-	entitySelector={selector}
-	title={selector.registryUrl}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.registryUrl}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
-		{selector.registryUrl.toString()}
+		{selection.entitySelector.registryUrl.toString()}
 	{/snippet}
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.BitcoinCashBcmrMetadata,
-					selector,
+			resource={selection(
 					({ fields: { name: true, description: true, symbol: true, decimals: true } }),
 				)}
 			placeholderText={`Loading Bitcoin Cash Metadata Registry Entry...`}

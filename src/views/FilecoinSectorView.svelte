@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.FilecoinSector>
+			selection: EntityProxyResource<typeof schema, EntityType.FilecoinSector>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -39,16 +41,16 @@
 
 <EntityView
 	entityType={EntityType.FilecoinSector}
-	entitySelector={selector}
-	title={`Sector #${selector.sectorNumber.toString()}`}
-	idDragPlainText={selector.sectorNumber.toString()}
+	entitySelector={selection.entitySelector}
+	title={`Sector #${selection.entitySelector.sectorNumber.toString()}`}
+	idDragPlainText={selection.entitySelector.sectorNumber.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{selector.sectorNumber.toString()}
+			#{selection.entitySelector.sectorNumber.toString()}
 		</span>
 	{/snippet}
 
@@ -63,7 +65,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.FilecoinSector, selector, ({ fields: { sealedCid: true, activationEpoch: true, expirationEpoch: true } }))}
+			resource={selection( { fields: { sealedCid: true, activationEpoch: true, expirationEpoch: true } })}
 			placeholderText={`Loading Filecoin Sector...`}
 		>
 			{#snippet children(filecoinSector)}

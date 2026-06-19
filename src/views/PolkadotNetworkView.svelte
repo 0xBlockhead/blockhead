@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { networkEnvironmentByEnvironment } from '$/constants/Network.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -13,21 +14,22 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		selector: EntitySelector<typeof schema, EntityType.PolkadotNetwork>
+		selection: EntityProxyResource<typeof schema, EntityType.PolkadotNetwork>
 		href?: string
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
+
 	const network = $derived(
 		select(
 			EntityType.Network,
-			selector.$network,
+			selection.entitySelector.$network,
 			{
 				sources: [
 					Source.Constants_Internal,
@@ -47,7 +49,7 @@
 
 	// (Derived)
 	const networkSelectorKey = $derived(
-		stringify(selector),
+		stringify(selection.entitySelector),
 	)
 
 
@@ -68,7 +70,7 @@
 
 <EntityView
 	entityType={EntityType.Network}
-	entitySelector={selector.$network}
+	entitySelector={selection.entitySelector.$network}
 	{href}
 	bind:open
 	{layout}
@@ -105,10 +107,7 @@
 		<ResourceBoundary resource={network}>
 			{#snippet children(network)}
 				<dl class="network-summary-head" data-column-item="center">
-					<ResourceBoundary resource={select(
-							EntityType.PolkadotNetwork,
-							selector,
-							{
+					<ResourceBoundary resource={selection({
 								sources: [
 									Source.Polkadot_JsonRpc,
 									Source.SubstrateSidecar_Rest,
@@ -131,7 +130,7 @@
 									<dt>Head block</dt>
 									<dd id="network-summary-head-block">
 										<PolkadotBlockView
-											selector={block[EntityMetaKey.Selector]}
+											selection={select(EntityType.PolkadotBlock, block[EntityMetaKey.Selector])}
 											layout={EntityLayout.Value}
 										/>
 									</dd>
@@ -181,10 +180,7 @@
 			{#snippet SectionPolkadotBlocks({ id, label }: { id: string, label: string })}
 				<PolkadotBlocksView
 					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.PolkadotNetwork,
-			selector
-		).$$blocks}
+					selection={selection.$$blocks}
 					href={href == null ? '' : `${href}/blocks`}
 					id={`${id}-list`}
 					title={label}
@@ -194,10 +190,7 @@
 			{#snippet SectionPolkadotRuntime({ id, label }: { id: string, label: string })}
 				<PolkadotNetwork_TimestampsView
 					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.PolkadotNetwork,
-			selector
-		).$$timestamps}
+					selection={selection.$$timestamps}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -206,10 +199,7 @@
 			{#snippet SectionPolkadotValidators({ id, label }: { id: string, label: string })}
 				<PolkadotValidatorsView
 					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.PolkadotNetwork,
-			selector
-		).$$validators}
+					selection={selection.$$validators}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -225,7 +215,7 @@
 					]}
 					id={`${id}-list`}
 					listEntityType={EntityType.PolkadotNetwork}
-					parentEntitySelector={selector}
+					parentEntitySelector={selection.entitySelector}
 					parentEntityType={EntityType.PolkadotNetwork}
 					title={label}
 				/>
@@ -255,7 +245,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					selection={select(
 			EntityType.Network,
-			selector.$network
+			selection.entitySelector.$network
 		).$$nativeAssets}
 					id={`${id}-list`}
 					title={label}
@@ -288,7 +278,7 @@
 					emptyText="No faucets listed for this network yet."
 					selection={select(
 			EntityType.Network,
-			selector.$network
+			selection.entitySelector.$network
 		).$$faucetUrls}
 					fieldSources={[
 						Source.Constants_Internal,
@@ -305,7 +295,7 @@
 					emptyText="No block explorers listed for this network yet."
 					selection={select(
 			EntityType.Network,
-			selector.$network
+			selection.entitySelector.$network
 		).$$blockExplorerUrls}
 					fieldSources={[
 						Source.Constants_Internal,

@@ -288,13 +288,20 @@ export const getAddressTransactions = async ({
 	if (limit <= 0) return []
 	const normalized = hexLowerOfByteSize(address, 20)
 	if (normalized == null) return []
-	const wire = await getJson<BlockscoutPaginated<BlockscoutTransaction>>({
-		explorerOrigin,
-		path: `/addresses/${normalized}/transactions`,
-		searchParams: {
-			items_count: blockscoutItemsCount(limit),
-		},
-	})
+	let wire: BlockscoutPaginated<BlockscoutTransaction>
+	try {
+		wire = await getJson<BlockscoutPaginated<BlockscoutTransaction>>({
+			explorerOrigin,
+			path: `/addresses/${normalized}/transactions`,
+			searchParams: {
+				items_count: blockscoutItemsCount(limit),
+			},
+		})
+	}
+	catch (error) {
+		if (String(error).includes('Fetch failed (404 Not Found)')) return []
+		throw error
+	}
 	return wire.items.map(blockscoutTransactionWireAsRpcTransaction)
 }
 
@@ -365,14 +372,21 @@ export const getAddressTokenTransfers = async ({
 	if (limit <= 0) return []
 	const normalized = hexLowerOfByteSize(address, 20)
 	if (normalized == null) return []
-	const wire = await getJson<BlockscoutPaginated<BlockscoutTokenTransfer>>({
-		explorerOrigin,
-		path: `/addresses/${normalized}/token-transfers`,
-		searchParams: {
-			...searchParams,
-			items_count: blockscoutItemsCount(limit),
-		},
-	})
+	let wire: BlockscoutPaginated<BlockscoutTokenTransfer>
+	try {
+		wire = await getJson<BlockscoutPaginated<BlockscoutTokenTransfer>>({
+			explorerOrigin,
+			path: `/addresses/${normalized}/token-transfers`,
+			searchParams: {
+				...searchParams,
+				items_count: blockscoutItemsCount(limit),
+			},
+		})
+	}
+	catch (error) {
+		if (String(error).includes('Fetch failed (404 Not Found)')) return []
+		throw error
+	}
 	return wire.items
 }
 
@@ -440,14 +454,21 @@ export const getAddressInternalTransactions = async ({
 	if (limit <= 0) return []
 	const normalized = hexLowerOfByteSize(address, 20)
 	if (normalized == null) return []
-	const wire = await getJson<BlockscoutPaginated<BlockscoutInternalTransaction>>({
-		explorerOrigin,
-		path: `/addresses/${normalized}/internal-transactions`,
-		searchParams: {
-			...searchParams,
-			items_count: blockscoutItemsCount(limit),
-		},
-	})
+	let wire: BlockscoutPaginated<BlockscoutInternalTransaction>
+	try {
+		wire = await getJson<BlockscoutPaginated<BlockscoutInternalTransaction>>({
+			explorerOrigin,
+			path: `/addresses/${normalized}/internal-transactions`,
+			searchParams: {
+				...searchParams,
+				items_count: blockscoutItemsCount(limit),
+			},
+		})
+	}
+	catch (error) {
+		if (String(error).includes('Fetch failed (404 Not Found)')) return []
+		throw error
+	}
 	return wire.items
 }
 

@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -16,11 +17,11 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve(
 			'/~/(dashboards)/dashboard/[dashboardId]',
 			{
-				dashboardId: selector.id,
+				dashboardId: selection.entitySelector.id,
 			},
 		),
 		title = 'Panel tree',
@@ -28,7 +29,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.BlockheadPanelTree>
+			selection: EntityProxyResource<typeof schema, EntityType.BlockheadPanelTree>
 			href?: string
 			title?: string
 			open?: boolean
@@ -38,6 +39,7 @@
 			| 'layout'
 		>
 	> = $props()
+
 
 	
 
@@ -50,7 +52,7 @@
 
 <EntityView
 	entityType={EntityType.BlockheadPanelTree}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{title}
 	bind:open
@@ -58,7 +60,7 @@
 >
 	{#snippet Value()}
 		<span>
-			{selector.id}
+			{selection.entitySelector.id}
 		</span>
 	{/snippet}
 
@@ -88,9 +90,9 @@
 		<section
 			data-card
 			data-column="gap-2"
-			id={`${stringify(selector)}:metadata`}
+			id={`${stringify(selection.entitySelector)}:metadata`}
 		>
-			<ResourceBoundary resource={select(EntityType.BlockheadPanelTree, selector, {
+			<ResourceBoundary resource={selection( {
 					sources: [
 						Source.Local_Internal,
 					],

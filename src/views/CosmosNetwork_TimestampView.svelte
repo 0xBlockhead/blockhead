@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -10,17 +11,17 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		selector: EntitySelector<typeof schema, EntityType.CosmosNetwork_Timestamp>
+		selection: EntityProxyResource<typeof schema, EntityType.CosmosNetwork_Timestamp>
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
-	const snapshot = $derived(select(EntityType.CosmosNetwork_Timestamp,
-		selector,
+
+	const snapshot = $derived(selection(
 		({ sources: [
 				Source.CosmosSdk_Rest,
 			], fields: { latestBlockHeight: true, latestBlockHash: true, latestBlockTimeMs: true, latestBlockTransactionCount: true, chainId: true, nodeNetwork: true, applicationName: true, applicationVersion: true, cosmosSdkVersion: true, isSyncing: true, validatorCount: true, bondedValidatorCount: true, bondedTokens: true, notBondedTokens: true, governanceProposalCount: true } }),
@@ -38,7 +39,7 @@
 
 <EntityView
 	entityType={EntityType.CosmosNetwork_Timestamp}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	bind:open
 	{layout}
 >
@@ -54,7 +55,7 @@
 					<NumberValue value={snapshot.fields.validatorCount} />
 					validators
 				{:else}
-					<Timestamp timestamp={selector.timestampMs} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

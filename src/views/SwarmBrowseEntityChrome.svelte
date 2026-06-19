@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { Snippet } from 'svelte'
 	import type { EntityProxyCurrent } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
@@ -18,18 +19,18 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		Form,
 		open = $bindable(true),
 	}: {
-		selector: EntitySelector<typeof schema, EntityType.SwarmResource>
+		selection: EntityProxyResource<typeof schema, EntityType.SwarmResource>
 		Form: Snippet
 		open?: boolean
 	} = $props()
 
+
 	const swarm = $derived(
-		select(EntityType.SwarmResource,
-			selector,
+		selection(
 			({ sources: [Source.Swarm_Rest], fields: { canonicalUri: true, gatewayOrigin: true, gatewayUrl: true, fileName: true, extension: true, contentType: true, contentLength: true, displayType: true, isContentTypeInferred: true, text: true, ...(open && ({ $media: true })) } }),
 		),
 	)
@@ -37,7 +38,7 @@
 
 	// (Derived)
 	const swarmChromeKey = $derived(
-		stringify(selector),
+		stringify(selection.entitySelector),
 	)
 
 
@@ -56,8 +57,8 @@
 <EntityView
 	layout={EntityLayout.SummaryDetails}
 	entityType={EntityType.SwarmResource}
-	entitySelector={selector}
-	title={`bzz://${selector.reference}${selector.contentPath === '' ? '' : `/${selector.contentPath}`}`}
+	entitySelector={selection.entitySelector}
+	title={`bzz://${selection.entitySelector.reference}${selection.entitySelector.contentPath === '' ? '' : `/${selection.entitySelector.contentPath}`}`}
 	bind:open
 >
 	{#snippet TypeAnnotationTooltip()}
@@ -148,7 +149,7 @@
 					<p>
 						<code>
 							<TruncatedValue
-								value={`bzz://${selector.reference}${selector.contentPath === '' ? '' : `/${selector.contentPath}`}`}
+								value={`bzz://${selection.entitySelector.reference}${selection.entitySelector.contentPath === '' ? '' : `/${selection.entitySelector.contentPath}`}`}
 								format={TruncatedValueFormat.Visual}
 							/>
 						</code>

@@ -1,6 +1,7 @@
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { farcasterPlaceholderIconUrlFragments } from '$/constants/Social/Farcaster.ts'
 import { resolveMediaUrlTransport } from '$/lib/media.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
@@ -399,9 +400,10 @@ export default {
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterNetwork,
 			resolve: {
-				[FarcasterNetworkSelector.Scope]: async () => {
+				[FarcasterNetworkSelector.Scope]: async (_selector, context) => {
 					const { getAllChannels } = await import('$/sources/Farcaster/Rest/queries.ts')
 					return (await getAllChannels())
+						.slice(0, resolverContextRowLimit(context))
 						.map((farcasterChannel) => ({
 							[EntityMetaKey.Selector]: {
 								id: farcasterChannel.id,

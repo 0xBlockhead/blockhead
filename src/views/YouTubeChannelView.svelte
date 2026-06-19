@@ -1,9 +1,9 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -17,9 +17,9 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/(social)/(youtube)/youtube/channel/[channelId]', {
-			channelId: selector.channelId,
+			channelId: selection.entitySelector.channelId,
 		}),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(
@@ -28,7 +28,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.YouTubeChannel>
+			selection: EntityProxyResource<typeof schema, EntityType.YouTubeChannel>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -39,51 +39,24 @@
 		>
 	> = $props()
 
-	const channel = $derived(
-		select(
-			EntityType.YouTubeChannel,
-			selector,
-			({ sources: [
-				Source.Youtube_Rest,
-				Source.Piped_Rest,
-			], fields: {
-				title: true,
-				description: true,
-				$$timestamps: ({ sources: [
-					Source.Youtube_Rest,
-					Source.Piped_Rest,
-				], limit: 1 }),
-				publishedAt: true,
-				publishedAtMs: true,
-				customUrl: true,
-				$icon: true,
-				...(open && {
-					$$videos: ({ sources: [
-						Source.Youtube_Rest,
-						Source.Piped_Rest,
-					] }),
-					$$playlists: ({ sources: [
-						Source.Youtube_Rest,
-						Source.Piped_Rest,
-					] }),
-				}),
-			} }),
-		)
-	)
 
-	const idKey = $derived(stringify(selector))
+	const channel = $derived(
+				selection(({ sources: [
+						Source.Constants_Internal,
+					], fields: {
+					title: true,
+				} }),
+			)
+		)
+
+	const idKey = $derived(stringify(selection.entitySelector))
 
 
 	// Components
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import SocialMetricSnapshotRows from '$/views/SocialMetricSnapshotRows.svelte'
-	import YouTubeChannel_TimestampsView from '$/views/YouTubeChannel_TimestampsView.svelte'
 	import YouTubePlaylistsView from '$/views/YouTubePlaylistsView.svelte'
 	import YouTubeVideosView from '$/views/YouTubeVideosView.svelte'
 </script>
@@ -91,35 +64,15 @@
 
 <EntityView
 	entityType={EntityType.YouTubeChannel}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Icon()}
-		<ResourceBoundary
-			resource={channel}
-			placeholderText="Loading channel…"
-		>
-			{#snippet children(channel)}
-				{#if (
-					channel.fields.$icon
-					&& channel.fields.$icon[EntityMetaKey.Selector].url
-				)}
-					<IconComponent
-						shape={IconShape.Circle}
-						src={channel.fields.$icon[EntityMetaKey.Selector].url}
-						alt=""
-					/>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Value()}
+		{#snippet Value()}
 		<span>
-			{selector.channelId}
+			{selection.entitySelector.channelId}
 		</span>
 	{/snippet}
 
@@ -129,7 +82,7 @@
 			placeholderText="Loading channel…"
 		>
 			{#snippet children(channel)}
-				{channel.fields.title ?? selector.channelId}
+				{channel.fields.title ?? selection.entitySelector.channelId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -143,95 +96,16 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({})}
-		<ResourceBoundary
-			resource={channel}
-			placeholderText="Loading channel…"
-		>
-			{#snippet children(channel)}
-				{#if channel.fields.description}
-					<p>
-						<TruncatedValue
-							value={channel.fields.description}
-							format={TruncatedValueFormat.Visual}
-						/>
-					</p>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-
-		<dl data-column-item="center">
-			{#if open}
-				<ResourceBoundary
-					resource={channel}
-					placeholderText="Loading channel…"
-				>
-					{#snippet children(channel)}
-						<SocialMetricSnapshotRows
-							metrics={[
-								{
-									label: 'Subscribers',
-									value: channel.fields.$$timestamps.values.at(0)?.subscriberCount,
-								},
-								{
-									label: 'Videos',
-									value: channel.fields.$$timestamps.values.at(0)?.videoCount,
-								},
-								{
-									label: 'Views',
-									value: channel.fields.$$timestamps.values.at(0)?.viewCount,
-								},
-							]}
-						/>
-					{/snippet}
-				</ResourceBoundary>
-				<div>
-					<dt>Published</dt>
-					<dd>
-						<ResourceBoundary
-							resource={channel}
-							placeholderText="Loading channel…"
-						>
-							{#snippet children(channel)}
-								{#if channel.fields.publishedAtMs != null}
-									<Timestamp timestamp={channel.fields.publishedAtMs} />
-								{:else if channel.fields.publishedAt != null}
-									{channel.fields.publishedAt}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-				<div>
-					<dt>Handle</dt>
-					<dd>
-						<ResourceBoundary
-							resource={channel}
-							placeholderText="Loading channel…"
-						>
-							{#snippet children(channel)}
-								{#if channel.fields.customUrl}
-									{channel.fields.customUrl}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-		</dl>
-	{/snippet}
-
-	{#snippet Details({
+		{#snippet Details({
 		open: _open,
 	})}
 		<CollapsibleTabs
 			id={`${idKey}:carousel-channel`}
 			sectionIdPrefix={idKey}
-			sections={collapsibleTabsSections([
-				{ id: 'videos', label: 'Videos' },
-				{ id: 'playlists', label: 'Playlists' },
-				{ id: 'metric-snapshots', label: 'Metrics' },
-			])}
+				sections={collapsibleTabsSections([
+					{ id: 'videos', label: 'Videos' },
+					{ id: 'playlists', label: 'Playlists' },
+				])}
 			data-card
 		>
 			{#snippet Summary({
@@ -250,10 +124,7 @@
 			{#snippet SectionVideos()}
 				<YouTubeVideosView
 					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.YouTubeChannel,
-			selector
-		).$$videos}
+					selection={selection.$$videos}
 					id={`${idKey}:youtube-videos`}
 					open={_open}
 				/>
@@ -262,26 +133,11 @@
 			{#snippet SectionPlaylists()}
 				<YouTubePlaylistsView
 					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.YouTubeChannel,
-			selector
-		).$$playlists}
+					selection={selection.$$playlists}
 					id={`${idKey}:youtube-playlists`}
 					open={_open}
 				/>
 			{/snippet}
-
-			{#snippet SectionMetricSnapshots()}
-				<YouTubeChannel_TimestampsView
-					selection={select(
-			EntityType.YouTubeChannel,
-			selector
-		).$$timestamps}
-					href={href}
-					id={`${idKey}:metric-snapshots`}
-					title="Metric snapshots"
-				/>
-			{/snippet}
-		</CollapsibleTabs>
+			</CollapsibleTabs>
 	{/snippet}
 </EntityView>

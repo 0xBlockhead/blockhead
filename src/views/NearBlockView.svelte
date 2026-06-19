@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -12,12 +13,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.NearBlock>
+			selection: EntityProxyResource<typeof schema, EntityType.NearBlock>
 			open?: boolean
 		},
 		Pick<
@@ -26,6 +27,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -41,16 +43,16 @@
 
 <EntityView
 	entityType={EntityType.NearBlock}
-	entitySelector={selector}
-	title={`Block #${selector.height.toString()}`}
-	idDragPlainText={selector.height.toString()}
+	entitySelector={selection.entitySelector}
+	title={`Block #${selection.entitySelector.height.toString()}`}
+	idDragPlainText={selection.entitySelector.height.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{selector.height.toString()}
+			#{selection.entitySelector.height.toString()}
 		</span>
 	{/snippet}
 
@@ -71,8 +73,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.NearBlock,
-					selector,
+			resource={selection(
 					({ sources: [
 							Source.NearRpc_JsonRpc,
 						], fields: { hash: true, timestampMs: true, $$chunks: true, ...(open && ({ epochId: true })) } }),
@@ -81,12 +82,12 @@
 		>
 			{#snippet children(block)}
 				<dl data-column-item="center">
-					{#if selector.hash != null || block.fields.hash != null}
+					{#if ('hash' in selection.entitySelector && selection.entitySelector.hash != null) || block.fields.hash != null}
 						<div>
 							<dt>Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={selector.hash ?? block.fields.hash}
+									value={'hash' in selection.entitySelector ? selection.entitySelector.hash : block.fields.hash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>

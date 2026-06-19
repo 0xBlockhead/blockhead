@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.FilecoinMessage>
+			selection: EntityProxyResource<typeof schema, EntityType.FilecoinMessage>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -39,22 +41,22 @@
 
 <EntityView
 	entityType={EntityType.FilecoinMessage}
-	entitySelector={selector}
-	title={selector.cid}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.cid}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
 		<TruncatedValue
-			value={selector.cid}
+			value={selection.entitySelector.cid}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.FilecoinMessage, selector, ({ fields: { method: true, nonce: true, valueAttoFil: true, gasLimit: true } }))}
+			resource={selection( { fields: { method: true, nonce: true, valueAttoFil: true, gasLimit: true } })}
 			placeholderText="Loading Filecoin message…"
 		>
 			{#snippet children(filecoinMessage)}

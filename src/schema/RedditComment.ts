@@ -6,6 +6,7 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 export enum RedditCommentSelector {
 	Fullname = 'fullname',
@@ -43,48 +44,72 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Constants_Internal,
+			],
 		},
 		{
 			name: 'author',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Constants_Internal,
+			],
 		},
 		{
 			name: '$$timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.RedditComment_Timestamp,
 			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source.Constants_Internal,
+			],
 		},
 		{
 			name: 'createdAt',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Constants_Internal,
+			],
 		},
 		{
 			name: 'depth',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Constants_Internal,
+			],
 		},
 		{
 			name: '$link',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.RedditLink,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Constants_Internal,
+			],
 		},
 		{
 			name: '$parentComment',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.RedditComment,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Constants_Internal,
+			],
 		},
 		{
 			name: '$$replies',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.RedditComment,
 			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source.Constants_Internal,
+			],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

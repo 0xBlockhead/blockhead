@@ -1,11 +1,9 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntitySelectorForSelectorName } from '$/schema/$schema.ts'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
-	import { LightningChannelSelector } from '$/schema/LightningChannel.ts'
-	import { NetworkSelector } from '$/schema/Network.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -13,16 +11,16 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelectorForSelectorName<typeof schema, EntityType.LightningChannel, LightningChannelSelector.NetworkChannelId> & {
-				$network: EntitySelectorForSelectorName<typeof schema, EntityType.Network, NetworkSelector.Slug>
-			}
+			selection: EntityProxyResource<typeof schema, EntityType.LightningChannel>
 			open?: boolean
 		},
 		Pick<
@@ -32,7 +30,6 @@
 		>
 	> = $props()
 
-	
 
 
 	// Components
@@ -46,15 +43,20 @@
 
 <EntityView
 	entityType={EntityType.LightningChannel}
-	entitySelector={selector}
-	href={`/network/${selector.$network.slug}/channels/${selector.channelId}`}
-	title={selector.channelId}
+	entitySelector={selection.entitySelector}
+	href={`/network/${
+		'slug' in selection.entitySelector.$network ?
+			selection.entitySelector.$network.slug
+		:
+			`${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`
+	}/channels/${selection.entitySelector.channelId}`}
+	title={selection.entitySelector.channelId}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<TruncatedValue
-			value={selector.channelId}
+			value={selection.entitySelector.channelId}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
@@ -67,8 +69,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.LightningChannel,
-		selector,
+			resource={selection(
 		({ sources: [
 				Source.LightningMempoolSpace_Rest,
 				Source.LightningLnd_Rest,
@@ -139,7 +140,7 @@
 							<dt>Node 0</dt>
 							<dd>
 								<LightningNodeView
-									selector={lightningChannel.fields.$node0[EntityMetaKey.Selector]}
+									selection={select(EntityType.LightningNode, lightningChannel.fields.$node0[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -151,7 +152,7 @@
 							<dt>Node 1</dt>
 							<dd>
 								<LightningNodeView
-									selector={lightningChannel.fields.$node1[EntityMetaKey.Selector]}
+									selection={select(EntityType.LightningNode, lightningChannel.fields.$node1[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -10,17 +11,17 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		selector: EntitySelector<typeof schema, EntityType.SolanaNetwork_Timestamp>
+		selection: EntityProxyResource<typeof schema, EntityType.SolanaNetwork_Timestamp>
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
-	const snapshot = $derived(select(EntityType.SolanaNetwork_Timestamp,
-		selector,
+
+	const snapshot = $derived(selection(
 		({ sources: [
 				Source.Solana_JsonRpc,
 			], fields: { absoluteSlot: true, blockHeight: true, epoch: true, slotIndex: true, slotsInEpoch: true, transactionCount: true, currentValidatorCount: true, delinquentValidatorCount: true, totalActivatedStakeLamports: true, solanaCoreVersion: true, featureSet: true, health: true } }),
@@ -37,7 +38,7 @@
 
 <EntityView
 	entityType={EntityType.SolanaNetwork_Timestamp}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	bind:open
 	{layout}
 >
@@ -53,7 +54,7 @@
 					<NumberValue value={snapshot.fields.epoch} />
 					epoch
 				{:else}
-					<Timestamp timestamp={selector.timestampMs} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

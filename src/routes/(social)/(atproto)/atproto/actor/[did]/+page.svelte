@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		params,
@@ -13,11 +15,9 @@
 
 <Page>
 		<AtprotoActorView
-			selector={
-				decodeURIComponent(params.did).startsWith('did:') ?
+			selection={select(EntityType.AtprotoActor, decodeURIComponent(params.did).startsWith('did:') ?
 					{ did: decodeURIComponent(params.did) }
 				:
-					{ handle: decodeURIComponent(params.did) }
-			}
+					{ handle: decodeURIComponent(params.did) })}
 		/>
 	</Page>

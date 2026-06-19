@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -18,9 +19,9 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/(social)/(nostr)/nostr/profile/[pubkey]', {
-			pubkey: selector.pubkey,
+			pubkey: selection.entitySelector.pubkey,
 		}),
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
@@ -29,7 +30,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.NostrProfile>
+			selection: EntityProxyResource<typeof schema, EntityType.NostrProfile>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -41,19 +42,40 @@
 		>
 	> = $props()
 
-	const profile = $derived(select(EntityType.NostrProfile, selector, ({ sources: [
-				Source.NostrBand_Rest,
-				Source.Primal_Rest,
-			], fields: { pubkey: true, displayName: true, about: true, nip05: true, lud16: true, lud06: true, website: true, metadataUpdatedAt: true, $icon: true, $banner: true, ...(open ? ({ $$notes: ({ sources: [
-							Source.NostrBand_Rest,
-							Source.Primal_Rest,
-						] }), $$articles: ({ sources: [
-							Source.NostrBand_Rest,
-							Source.Primal_Rest,
-						] }), $$reposts: ({ sources: [
-							Source.NostrBand_Rest,
-							Source.Primal_Rest,
-						] }) }) : ({  })) } })))
+	const profile = $derived(selection({
+		sources: [
+				Source.Constants_Internal,
+		],
+		fields: {
+			pubkey: true,
+			displayName: true,
+			about: true,
+			nip05: true,
+			lud16: true,
+			lud06: true,
+			website: true,
+			metadataUpdatedAt: true,
+			$icon: true,
+			$banner: true,
+			...(open && {
+				$$notes: {
+					sources: [
+						Source.Constants_Internal,
+					],
+				},
+				$$articles: {
+					sources: [
+						Source.Constants_Internal,
+					],
+				},
+				$$reposts: {
+					sources: [
+						Source.Constants_Internal,
+					],
+				},
+			}),
+		},
+	}))
 
 	// Components
 	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
@@ -71,7 +93,7 @@
 
 <EntityView
 	entityType={EntityType.NostrProfile}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
@@ -98,7 +120,7 @@
 
 	{#snippet Value()}
 		<TruncatedValue
-			value={selector.pubkey}
+			value={selection.entitySelector.pubkey}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -234,7 +256,7 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{@const idKey = stringify(selector)}
+		{@const idKey = stringify(selection.entitySelector)}
 		<CollapsibleTabs
 			id={`${idKey}:carousel-profile-feed`}
 			sectionIdPrefix={idKey}
@@ -261,12 +283,9 @@
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve(
 						'/(social)/(nostr)/nostr/profile/[pubkey]/(profile)/notes',
-						{ pubkey: selector.pubkey },
+						{ pubkey: selection.entitySelector.pubkey },
 					)}
-					selection={select(
-			EntityType.NostrProfile,
-			selector
-		).$$notes}
+					selection={selection.$$notes}
 					id={`${idKey}:notes`}
 					open={true}
 					title="Notes"
@@ -276,10 +295,7 @@
 			{#snippet SectionArticles()}
 				<NostrArticlesView
 					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.NostrProfile,
-			selector
-		).$$articles}
+					selection={selection.$$articles}
 					id={`${idKey}:articles`}
 					open={true}
 					title="Articles"
@@ -289,10 +305,7 @@
 			{#snippet SectionReposts()}
 				<NostrRepostsView
 					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.NostrProfile,
-			selector
-		).$$reposts}
+					selection={selection.$$reposts}
 					id={`${idKey}:reposts`}
 					open={true}
 					title="Reposts"

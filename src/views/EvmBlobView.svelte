@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -17,18 +18,18 @@
 	// State
 	let {
 		routeChildren,
-		selector,
+		selection,
 		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blobs)/blob/[transactionId=evmTxHash]/[blobIndex=nonNegativeInteger]', {
-			caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
-			transactionId: selector.txHash,
-			blobIndex: selector.blobIndex.toString(),
+			caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
+			transactionId: selection.entitySelector.txHash,
+			blobIndex: selection.entitySelector.blobIndex.toString(),
 		}),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			routeChildren?: Snippet
-			selector: EntitySelector<typeof schema, EntityType.EvmBlob>
+			selection: EntityProxyResource<typeof schema, EntityType.EvmBlob>
 			href?: string
 			open?: boolean
 		},
@@ -38,7 +39,8 @@
 		>
 	> = $props()
 
-	const blob = $derived(select(EntityType.EvmBlob, selector))
+
+	const blob = $derived(selection)
 	const kzgCommitment = $derived(blob.kzgCommitment({
 		sources: [Source.Blobscan_Rest],
 	}))
@@ -46,7 +48,7 @@
 		sources: [Source.Blobscan_Rest],
 	}))
 	const blobSelectorKey = $derived(
-		stringify(selector),
+		stringify(selection.entitySelector),
 	)
 
 
@@ -63,10 +65,10 @@
 
 <EntityView
 	entityType={EntityType.EvmBlob}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
-	title={`Blob sidecar #${String(selector.blobIndex)} (EIP-4844)`}
-	idDragPlainText={stringify(selector)}
+	title={`Blob sidecar #${String(selection.entitySelector.blobIndex)} (EIP-4844)`}
+	idDragPlainText={stringify(selection.entitySelector)}
 	bind:open
 	{...EntityViewProps}
 >
@@ -74,14 +76,14 @@
 		<span
 			data-badge="small"
 		>
-			#{String(selector.blobIndex)}
+			#{String(selection.entitySelector.blobIndex)}
 		</span>
 	{/snippet}
 
 	{#snippet Title()}
 		<span data-row="inline align-center gap-2 wrap">
 			<span data-badge="small">
-				#{String(selector.blobIndex)}
+				#{String(selection.entitySelector.blobIndex)}
 			</span>
 
 			<ResourceBoundary
@@ -120,7 +122,7 @@
 			<div>
 				<dt>Blob index</dt>
 				<dd>
-					<NumberValue value={selector.blobIndex} />
+					<NumberValue value={selection.entitySelector.blobIndex} />
 				</dd>
 			</div>
 			<div>
@@ -190,11 +192,11 @@
 					<dt>Transaction</dt>
 					<dd>
 						<a href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-								caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
-								transactionId: selector.txHash,
+								caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
+								transactionId: selection.entitySelector.txHash,
 							})}>
 							<TruncatedValue
-								value={selector.txHash}
+								value={selection.entitySelector.txHash}
 								format={TruncatedValueFormat.Abbr}
 							/>
 						</a>

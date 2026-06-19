@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -17,10 +18,10 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve(
 			'/(social)/(nostr)/nostr/repost/[eventId]',
-			{ eventId: selector.eventId },
+			{ eventId: selection.entitySelector.eventId },
 		),
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
@@ -29,7 +30,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.NostrRepost>
+			selection: EntityProxyResource<typeof schema, EntityType.NostrRepost>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -40,10 +41,10 @@
 		>
 	> = $props()
 
-	const repost = $derived(select(EntityType.NostrRepost, selector, ({ sources: [
+
+	const repost = $derived(selection( { sources: [
 				Source.NostrBand_Rest,
-				Source.Primal_Rest,
-			], fields: { eventId: true, pubkey: true, createdAt: true, repostedEventId: true, $author: true, $repostedArticle: true, $repostedNote: ({ fields: { content: true } }) } })))
+			], fields: { eventId: true, pubkey: true, createdAt: true, repostedEventId: true, $author: true, $repostedArticle: true, $repostedNote: true } }))
 
 
 	// Components
@@ -59,7 +60,7 @@
 
 <EntityView
 	entityType={EntityType.NostrRepost}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
 	{collapsible}
@@ -67,7 +68,7 @@
 >
 	{#snippet Value()}
 		<TruncatedValue
-			value={selector.eventId}
+			value={selection.entitySelector.eventId}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -78,16 +79,9 @@
 			placeholderText="Loading repost…"
 		>
 			{#snippet children(repost)}
-				{#if repost.fields.$repostedNote?.content}
-					<TruncatedValue
-						endLength={16}
-						format={TruncatedValueFormat.Visual}
-						startLength={64}
-						value={repost.fields.$repostedNote.content}
-					/>
-				{:else if repost.fields.$repostedArticle}
+				{#if repost.fields.$repostedArticle}
 					<NostrArticleView
-						selector={repost.fields.$repostedArticle[EntityMetaKey.Selector]}
+						selection={select(EntityType.NostrArticle, repost.fields.$repostedArticle[EntityMetaKey.Selector])}
 						layout={EntityLayout.Title}
 
 						open={false}
@@ -167,7 +161,7 @@
 							{#snippet children(repost)}
 								{#if repost.fields.$author}
 									<NostrProfileView
-										selector={repost.fields.$author[EntityMetaKey.Selector]}
+										selection={select(EntityType.NostrProfile, repost.fields.$author[EntityMetaKey.Selector])}
 										layout={EntityLayout.Value}
 
 										open={false}
@@ -188,7 +182,7 @@
 							{#snippet children(repost)}
 								{#if repost.fields.$repostedNote}
 									<NostrNoteView
-										selector={repost.fields.$repostedNote[EntityMetaKey.Selector]}
+										selection={select(EntityType.NostrNote, repost.fields.$repostedNote[EntityMetaKey.Selector])}
 										layout={EntityLayout.Value}
 
 										open={false}
@@ -209,7 +203,7 @@
 							{#snippet children(repost)}
 								{#if repost.fields.$repostedArticle}
 									<NostrArticleView
-										selector={repost.fields.$repostedArticle[EntityMetaKey.Selector]}
+										selection={select(EntityType.NostrArticle, repost.fields.$repostedArticle[EntityMetaKey.Selector])}
 										layout={EntityLayout.Value}
 
 										open={false}
@@ -221,10 +215,5 @@
 				</div>
 			{/if}
 		</dl>
-	{/snippet}
-
-	{#snippet Details({
-		open: _open,
-	})}
 	{/snippet}
 </EntityView>

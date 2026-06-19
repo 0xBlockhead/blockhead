@@ -1,29 +1,26 @@
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { EntitySelector } from '$/schema/$schema.ts'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
-	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/reddit'),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.RedditNetwork>
+			selection: EntityProxyResource<typeof schema, EntityType.RedditNetwork>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -31,24 +28,16 @@
 		never
 	> = $props()
 
-	const networkSelectorKey = stringify(selector)
-
-	
-
 
 	// Components
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import RedditLinksView from '$/views/RedditLinksView.svelte'
-	import RedditSubredditsView from '$/views/RedditSubredditsView.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.RedditNetwork}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	layout={EntityLayout.SummaryDetails}
 	bind:open
@@ -76,15 +65,20 @@
 	{#snippet Content({})}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={select(EntityType.RedditNetwork, selector, ({ sources: [
+				resource={selection({
+					sources: [
 						Source.Constants_Internal,
-					], fields: { protocolName: true, registryLabel: true, ...(open ? ({ docsUrl: true, homeUrl: true, topology: true, $$redditLinks: ({ sources: [
-									Source.Reddit_Rest,
-									Source.Reddit_PublicJson,
-								] }), $$redditSubreddits: ({ sources: [
-									Source.Reddit_Rest,
-									Source.Reddit_PublicJson,
-								] }) }) : ({  })) } }))}
+					],
+					fields: {
+						protocolName: true,
+						registryLabel: true,
+						...(open && {
+							docsUrl: true,
+							homeUrl: true,
+							topology: true,
+						}),
+					},
+				})}
 				placeholderText="Loading Reddit…"
 			>
 				{#snippet children(redditNetwork)}
@@ -100,30 +94,16 @@
 						</div>
 					{/if}
 
-						{#if open}
-							<div>
-								<dt>Communities</dt>
-								<dd>{String(redditNetwork.fields.$$redditSubreddits.values.length )}</dd>
-							</div>
-						{/if}
-
-						{#if open}
-							<div>
-								<dt>Submissions</dt>
-								<dd>{String(redditNetwork.fields.$$redditLinks.values.length )}</dd>
-							</div>
-						{/if}
-
-						{#if open && redditNetwork.fields.homeUrl}
-							<div>
-								<dt>Home</dt>
-								<dd>
-									<a href={redditNetwork.fields.homeUrl}>
+					{#if open && redditNetwork.fields.homeUrl}
+						<div>
+							<dt>Home</dt>
+							<dd>
+								<a href={redditNetwork.fields.homeUrl}>
 										{redditNetwork.fields.homeUrl}
 									</a>
-								</dd>
-							</div>
-						{/if}
+							</dd>
+						</div>
+					{/if}
 
 						{#if open && redditNetwork.fields.docsUrl}
 							<div>
@@ -145,59 +125,5 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
-	{/snippet}
-
-	{#snippet Details({
-		open: _open,
-	})}
-		<CollapsibleTabs
-			sectionIdPrefix={networkSelectorKey}
-			sections={[
-				{ id: 'subreddits', label: 'Subreddits' },
-				{ id: 'links', label: 'Popular submissions' },
-			]}
-			id={`${networkSelectorKey}:registry`}
-			data-card
-		>
-			{#snippet Summary({
-				open: _summaryOpen,
-			})}
-				<header
-					data-row-item="flexible"
-					data-row="wrap gap-4"
-				>
-					<HeadingComponent>
-						Popular index
-					</HeadingComponent>
-				</header>
-			{/snippet}
-
-			{#snippet SectionSubreddits({ id, label })}
-				<RedditSubredditsView
-					CollapsibleProps={{ canToggle: false }}
-					href={resolve('/reddit/subreddits')}
-					selection={select(
-			EntityType.RedditNetwork,
-			selector
-		).$$redditSubreddits}
-					id={`${networkSelectorKey}:subreddits-redditNetworks`}
-					open={_open}
-				/>
-			{/snippet}
-
-			{#snippet SectionLinks({ id, label })}
-				<RedditLinksView
-					CollapsibleProps={{ canToggle: false }}
-					href={resolve('/reddit/links')}
-					selection={select(
-			EntityType.RedditNetwork,
-			selector
-		).$$redditLinks}
-					id={`${networkSelectorKey}:links-redditNetworks`}
-					open={_open}
-					title="Popular submissions"
-				/>
-			{/snippet}
-	</CollapsibleTabs>
 	{/snippet}
 </EntityView>

@@ -23,7 +23,7 @@
 
 <Page>
 	<GlobalView
-		selector={{ scope: 'Multiplayer' }}
+		selection={select(EntityType._Global, { scope: 'Multiplayer' })}
 		title={'Multiplayer'}
 		href={resolve('/~/multiplayer')}
 	>

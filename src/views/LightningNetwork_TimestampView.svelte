@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -12,12 +13,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.LightningNetwork_Timestamp>
+			selection: EntityProxyResource<typeof schema, EntityType.LightningNetwork_Timestamp>
 			open?: boolean
 		},
 		Pick<
@@ -27,8 +28,8 @@
 		>
 	> = $props()
 
-	const snapshot = $derived(select(EntityType.LightningNetwork_Timestamp,
-		selector,
+
+	const snapshot = $derived(selection(
 		({ sources: [
 				Source.LightningMempoolSpace_Rest,
 			], fields: { nodeCount: true, channelCount: true, totalCapacitySats: true, averageFeeRatePpm: true, medianFeeRatePpm: true, ...(open && ({ torNodeCount: true, clearnetNodeCount: true, unannouncedNodeCount: true, averageCapacitySats: true, medianCapacitySats: true })) } }),
@@ -44,7 +45,7 @@
 
 <EntityView
 	entityType={EntityType.LightningNetwork_Timestamp}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	title="Lightning Network snapshot"
 	bind:open
 	{...EntityViewProps}

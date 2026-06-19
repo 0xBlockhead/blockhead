@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { networkEnvironmentByEnvironment } from '$/constants/Network.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -13,21 +14,22 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		selector: EntitySelector<typeof schema, EntityType.TronNetwork>
+		selection: EntityProxyResource<typeof schema, EntityType.TronNetwork>
 		href?: string
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
+
 	const network = $derived(
 		select(
 			EntityType.Network,
-			selector.$network,
+			selection.entitySelector.$network,
 			{
 				sources: [
 					Source.Constants_Internal,
@@ -47,7 +49,7 @@
 
 	// (Derived)
 	const networkSelectorKey = $derived(
-		stringify(selector),
+		stringify(selection.entitySelector),
 	)
 
 
@@ -68,7 +70,7 @@
 
 <EntityView
 	entityType={EntityType.Network}
-	entitySelector={selector.$network}
+	entitySelector={selection.entitySelector.$network}
 	{href}
 	bind:open
 	{layout}
@@ -105,10 +107,7 @@
 		<ResourceBoundary resource={network}>
 			{#snippet children(network)}
 				<dl class="network-summary-head" data-column-item="center">
-					<ResourceBoundary resource={select(
-							EntityType.TronNetwork,
-							selector,
-							{
+					<ResourceBoundary resource={selection({
 								sources: [
 									Source.TronGrid_Rest,
 								],
@@ -130,7 +129,7 @@
 									<dt>Head block</dt>
 									<dd id="network-summary-head-block">
 										<TronBlockView
-											selector={block[EntityMetaKey.Selector]}
+											selection={select(EntityType.TronBlock, block[EntityMetaKey.Selector])}
 											layout={EntityLayout.Value}
 										/>
 									</dd>
@@ -180,10 +179,7 @@
 			{#snippet SectionTronBlocks({ id, label }: { id: string, label: string })}
 				<TronBlocksView
 					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.TronNetwork,
-			selector
-		).$$blocks}
+					selection={selection.$$blocks}
 					href={href == null ? '' : `${href}/blocks`}
 					id={`${id}-list`}
 					title={label}
@@ -193,10 +189,7 @@
 			{#snippet SectionTronSnapshots({ id, label }: { id: string, label: string })}
 				<TronNetwork_TimestampsView
 					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.TronNetwork,
-			selector
-		).$$timestamps}
+					selection={selection.$$timestamps}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -205,10 +198,7 @@
 			{#snippet SectionTronWitnesses({ id, label }: { id: string, label: string })}
 				<TronWitnessesView
 					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.TronNetwork,
-			selector
-		).$$witnesses}
+					selection={selection.$$witnesses}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -224,7 +214,7 @@
 					]}
 					id={`${id}-list`}
 					listEntityType={EntityType.TronNetwork}
-					parentEntitySelector={selector}
+					parentEntitySelector={selection.entitySelector}
 					parentEntityType={EntityType.TronNetwork}
 					title={label}
 				/>
@@ -252,7 +242,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					selection={select(
 			EntityType.Network,
-			selector.$network
+			selection.entitySelector.$network
 		).$$nativeAssets}
 					id={`${id}-list`}
 					title={label}
@@ -285,7 +275,7 @@
 					emptyText="No faucets listed for this network yet."
 					selection={select(
 			EntityType.Network,
-			selector.$network
+			selection.entitySelector.$network
 		).$$faucetUrls}
 					fieldSources={[
 						Source.Constants_Internal,
@@ -302,7 +292,7 @@
 					emptyText="No block explorers listed for this network yet."
 					selection={select(
 			EntityType.Network,
-			selector.$network
+			selection.entitySelector.$network
 		).$$blockExplorerUrls}
 					fieldSources={[
 						Source.Constants_Internal,

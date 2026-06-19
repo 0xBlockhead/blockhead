@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import { select } from '$/routes/+layout.svelte'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -20,11 +20,7 @@
 			Source.Fedi_Rest,
 		],
 	}: {
-		selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+		selection: EntityProxyEntitiesResource<typeof schema, EntityType.ActivityPubActor_Timestamp>
 		href: string
 		id: string
 		title?: string
@@ -77,7 +73,7 @@
 					>
 						{#snippet Item({ item })}
 							<ActivityPubActor_TimestampView
-								selector={item.entitySelector}
+								selection={select(EntityType.ActivityPubActor_Timestamp, item.entitySelector)}
 								{href}
 								layout={EntityLayout.Summary}
 

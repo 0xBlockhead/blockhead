@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import { select } from '$/routes/+layout.svelte'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -20,11 +20,7 @@
 		title = 'Top-level comments',
 		CollapsibleProps = {},
 	}: {
-		selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+		selection: EntityProxyEntitiesResource<typeof schema, EntityType.RedditComment>
 		id: string
 		href?: string
 		limit?: number
@@ -35,9 +31,6 @@
 	} = $props()
 
 
-
-	
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -45,19 +38,19 @@
 	import RedditCommentView from '$/views/RedditCommentView.svelte'
 </script>
 
+
 <div data-column="gap-2">
 	<ResourceBoundary resource={selection({
-			sources: [
-				Source.Reddit_Rest,
-				Source.Reddit_PublicJson,
-			],
-			limit,
-			...(sortMode !== 'api' && {
-				fields: {
-					createdAt: true,
-				},
-			}),
-		})}>
+		sources: [
+			Source.Constants_Internal,
+		],
+		limit,
+		...(sortMode !== 'api' && {
+			fields: {
+				createdAt: true,
+			},
+		}),
+	})}>
 		{#snippet children(comments)}
 			<EntitiesList
 				{CollapsibleProps}
@@ -85,7 +78,7 @@
 
 				{#snippet Item({ item })}
 					<RedditCommentView
-						selector={item.entitySelector}
+						selection={select(EntityType.RedditComment, item.entitySelector)}
 						layout={EntityLayout.Summary}
 
 						showTypeAnnotation={false}

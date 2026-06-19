@@ -25,7 +25,7 @@
 
 <Page>
 	<GlobalView
-		selector={{ scope: 'Explore' }}
+		selection={select(EntityType._Global, { scope: 'Explore' })}
 		title="Explore"
 		href={resolve('/explore')}
 		open={false}

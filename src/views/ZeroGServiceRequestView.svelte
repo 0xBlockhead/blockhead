@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -12,16 +13,17 @@
 	import { select } from '$/routes/+layout.svelte'
 
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.ZeroGServiceRequest>
+			selection: EntityProxyResource<typeof schema, EntityType.ZeroGServiceRequest>
 			open?: boolean
 		},
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
+
 
 	
 
@@ -37,21 +39,21 @@
 
 <EntityView
 	entityType={EntityType.ZeroGServiceRequest}
-	entitySelector={selector}
-	title={selector.requestId}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.requestId}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<TruncatedValue
-			value={selector.requestId}
+			value={selection.entitySelector.requestId}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.ZeroGServiceRequest, selector, ({ fields: { $requester: true, requestHash: true, responseHash: true, $settlementTrace: true } }))}
+			resource={selection( { fields: { $requester: true, requestHash: true, responseHash: true, $settlementTrace: true } })}
 			placeholderText={`Loading 0G service request...`}
 		>
 			{#snippet children(zeroGServiceRequest)}
@@ -61,7 +63,7 @@
 							<dt>Requester</dt>
 							<dd>
 								<EvmAccountView
-									selector={zeroGServiceRequest.fields.$requester[EntityMetaKey.Selector]}
+									selection={select(EntityType.EvmAccount, zeroGServiceRequest.fields.$requester[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 								/>
@@ -98,7 +100,7 @@
 							<dt>Settlement</dt>
 							<dd>
 								<ZeroGSettlementTraceView
-									selector={zeroGServiceRequest.fields.$settlementTrace[EntityMetaKey.Selector]}
+									selection={select(EntityType.ZeroGSettlementTrace, zeroGServiceRequest.fields.$settlementTrace[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 								/>

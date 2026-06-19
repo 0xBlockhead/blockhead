@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import type { NavigationItem } from '$/routes/NavigationItem.ts'
 	import type { Snippet } from 'svelte'
@@ -147,7 +149,7 @@
 							{@render LabelSnippet({ node })}
 						{:else if node.address.network}
 							<EvmNetworkAccountView
-								selector={{
+								selection={select(EntityType.EvmNetworkAccount, {
 									$network: {
 										caip2: {
 											namespace: 'eip155',
@@ -155,14 +157,14 @@
 										},
 									},
 									$actor: { address: node.address.address },
-								}}
+								})}
 								href={navHref}
 								layout={EntityLayout.Title}
 
 							/>
 						{:else}
 							<EvmAccountView
-								selector={{ address: node.address.address }}
+								selection={select(EntityType.EvmAccount, { address: node.address.address })}
 								href={navHref}
 								layout={EntityLayout.Title}
 
@@ -274,7 +276,7 @@
 						{:else}
 							{#if node.address?.network}
 								<EvmNetworkAccountView
-									selector={{
+									selection={select(EntityType.EvmNetworkAccount, {
 										$network: {
 											caip2: {
 												namespace: 'eip155',
@@ -282,14 +284,14 @@
 											},
 										},
 										$actor: { address: node.address.address },
-									}}
+									})}
 									layout={EntityLayout.Title}
 
 								/>
 							{:else if node.address}
 								<EvmAccountView
-									selector={{ address: node.address.address }}
-									href={resolve('/account/[address]', {
+									selection={select(EntityType.EvmAccount, { address: node.address.address })}
+									href={resolve('/account/[address=evmAddress]', {
 										address: node.address.address,
 									})}
 									layout={EntityLayout.Title}
@@ -350,7 +352,7 @@
 		:global {
 			menu {
 				gap: 2px;
-				navigationItems-style: none;
+				list-style: none;
 				font-size: 0.975em;
 
 				li {

@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -13,12 +14,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.FilecoinTipset>
+			selection: EntityProxyResource<typeof schema, EntityType.FilecoinTipset>
 			open?: boolean
 		},
 		Pick<
@@ -27,6 +28,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -41,16 +43,16 @@
 
 <EntityView
 	entityType={EntityType.FilecoinTipset}
-	entitySelector={selector}
-	title={`Tipset #${selector.height.toString()}`}
-	idDragPlainText={selector.height.toString()}
+	entitySelector={selection.entitySelector}
+	title={`Tipset #${selection.entitySelector.height.toString()}`}
+	idDragPlainText={selection.entitySelector.height.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{selector.height.toString()}
+			#{selection.entitySelector.height.toString()}
 		</span>
 	{/snippet}
 
@@ -71,16 +73,16 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.FilecoinTipset, selector, ({ sources: [
+			resource={selection( { sources: [
 					Source.Filfox_Rest,
-				], fields: { timestampMs: true, $$blocks: true, ...(open && ({ $parent: true, parentWeight: true })) } }))}
+				], fields: { timestampMs: true, $$blocks: true, ...(open && ({ $parent: true, parentWeight: true })) } })}
 			placeholderText="Loading tipset…"
 		>
 			{#snippet children(tipset)}
 				<dl data-column-item="center">
 					<div>
 						<dt>Key</dt>
-						<dd>{selector.tipsetKey}</dd>
+						<dd>{selection.entitySelector.tipsetKey}</dd>
 					</div>
 
 						{#if (tipset.fields.$$blocks.values.length ) > 0}

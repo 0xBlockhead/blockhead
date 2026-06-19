@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { Entity, EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,18 +12,18 @@
 
 	// Context
 	import { updateLocalBlockheadSessionActionType } from '$/collections/localMutations.ts'
-	import { select, appClient } from '$/routes/+layout.svelte'
+	import { appClient } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.BlockheadSessionAction>
+			selection: EntityProxyResource<typeof schema, EntityType.BlockheadSessionAction>
 			open?: boolean
 			collapsible?: boolean
 		},
@@ -32,9 +33,9 @@
 		>
 	> = $props()
 
+
 	const sessionAction = $derived(
-		select(EntityType.BlockheadSessionAction,
-			selector,
+		selection(
 			({ sources: [
 					Source.Local_Internal,
 				], fields: { indexInSequence: true, action: true, createdAt: true, updatedAt: true } }),
@@ -57,7 +58,7 @@
 	) => {
 		updateLocalBlockheadSessionActionType(
 			appClient,
-			selector,
+			selection.entitySelector,
 			sessionAction,
 			actionType,
 		)
@@ -72,13 +73,13 @@
 
 <EntityView
 	entityType={EntityType.BlockheadSessionAction}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	bind:open
 	{collapsible}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<span>{selector.actionId}</span>
+		<span>{selection.entitySelector.actionId}</span>
 	{/snippet}
 
 	{#snippet Title()}

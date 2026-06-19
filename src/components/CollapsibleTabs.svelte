@@ -125,7 +125,7 @@
 		propKey.startsWith(sectionSnippetPropPrefix)
 	)
 
-		const collapsibleTabsProps = (
+	const collapsibleTabsProps = $derived(
 			Object.fromEntries(
 				Object
 					.entries(collapsibleTabsAndSectionSnippets)
@@ -133,7 +133,7 @@
 						!isSectionSnippetProp(String(entry[0]))
 					)),
 			)
-		)
+	)
 
 
 	const sectionAnchorId = (

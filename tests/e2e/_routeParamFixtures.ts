@@ -4,6 +4,7 @@ import {
 	atprotoNetworkSeedActors,
 	atprotoNetworkSeedPosts,
 } from '$/constants/Social/Atproto.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import { specificationRealms } from '$/constants/SpecificationProposal.ts'
 import {
@@ -18,6 +19,7 @@ import {
 	ERC4337_PAYMASTER_ADDRESS,
 	ERC4337_SMART_ACCOUNT_ADDRESS,
 	NOSTR_PROBE_ARTICLE_IDENTIFIER,
+	NOSTR_PROBE_ARTICLE_PUBKEY,
 	NOSTR_PROBE_PUBKEY,
 	NOSTR_PROBE_REACTION_EVENT_ID,
 	NOSTR_PROBE_RELAY_URL,
@@ -32,16 +34,26 @@ import {
 	YOUTUBE_PROBE_VIDEO_ID,
 	e2eNostrYouTubeOptionalDetailRoutePaths,
 	ethUsdCatalogMarket,
+	probeEntitySelectorByType,
 } from '$/routes/api/e2e/assert-loaded-resolvers/_fixtures.ts'
 
 
-const NOSTR_PROBE_NOTE_EVENT_ID = `${'a'.repeat(64)}` as const
+const NOSTR_PROBE_NOTE_EVENT_ID = '69be3416ed20ce50dea9cdd5471dbef55d320df41d97e1e999108321c2c3e3df' as const
 
 const YOUTUBE_PROBE_CHANNEL_ID = 'UC_x5XG1OV2P6uZZ5FSM9Ttw' as const
 
-const RSS_PROBE_FEED_URL = 'https://hnrss.org/frontpage' as const
+const RSS_PROBE_FEED_URL = 'https://hnrss.org/item?id=48592832' as const
+const RSS_PROBE_ITEM_GUID = 'https://news.ycombinator.com/item?id=48594706' as const
 
 const LENS_PROBE_POST_ID = '161m1s2r2av9deyh2a3' as const
+
+const ZERO_G_PROBE_STORAGE_NODE_ID = '0x103E5184A40f98b4dA4AF91b22C588E44b271618' as const
+const ZERO_G_PROBE_TX_HASH = '0xa52e05ff31336c64036189253acf2fc174f4460eae786138de053fbd23ff03e6' as const
+
+const UTXO_PROBE_ADDRESS_BY_NETWORK_SLUG: Record<string, string> = {
+	bitcoin: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+	'bitcoin-cash': 'bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a',
+}
 
 const PRIMARY_NETWORK_CAIP2_FIXTURES = networks
 	.filter((network) => network.environment === NetworkEnvironment.Mainnet)
@@ -98,6 +110,7 @@ export const e2eRouteParamFixtures: Record<string, string> = {
 	networkId: '1',
 	caip2Namespace: 'eip155',
 	caip2Reference: '1',
+	caip2: 'eip155:1',
 	chainId: '1',
 	contractId: `1:${USDC_ADDRESS}`,
 	coinId: 'ETH',
@@ -107,15 +120,18 @@ export const e2eRouteParamFixtures: Record<string, string> = {
 	blockNumber: '18000000',
 	height: '18000000',
 	transactionId: SAMPLE_TX_HASH,
+	txId: SAMPLE_TX_HASH,
 	address: VITALIK_ADDRESS,
 	caipId: '25',
 	sessionId: 'e2e-probe-session',
 	sourceId: 'e2e-probe-source',
 	dashboardId: 'c0000000-0000-4000-8000-000000000003',
+	routeId: stringify(probeEntitySelectorByType[EntityType.BridgeRoute]),
+	stepIndex: '0',
 	userId: '3',
 	accountId: '3',
 	fid: '3',
-	fname: 'vitalik',
+	fname: 'dwr',
 	hex: '0xa9059cbb',
 	recordId: 'com.twitter',
 	specificationRealmSlug: 'ethereum',
@@ -126,6 +142,7 @@ export const e2eRouteParamFixtures: Record<string, string> = {
 	vaultId: '0x8ad599c3A0ff1De082011EFDDc58f1908eb6e6D8',
 	owner: VITALIK_ADDRESS,
 	coin: USDC_ADDRESS,
+	spender: USDC_ADDRESS,
 	sourceTxHash: SAMPLE_TX_HASH,
 	createdAt: '1700000000',
 	namespace: 'ipfs',
@@ -147,11 +164,11 @@ export const e2eRouteParamFixtures: Record<string, string> = {
 	blockHash: '0x0000000000000000000000000000000000000000000000000000000000000001',
 	direction: 'proposerPayloadDelivered',
 	name: 'ethereum',
-	fullname: 't3_1h7t8a',
+	fullname: 't3_1u8x2f8',
 	contractAddress: '0x8004a169fb4a3325136eb29fa0ceb6d2e539a432',
 	tokenId: '104776',
 	reference: swarmDocsLandingReference,
-	pubkey: NOSTR_PROBE_PUBKEY,
+	pubkey: NOSTR_PROBE_ARTICLE_PUBKEY,
 	kind: '30023',
 	eventId: NOSTR_PROBE_NOTE_EVENT_ID,
 	relayKey: NOSTR_PROBE_RELAY_URL,
@@ -160,7 +177,7 @@ export const e2eRouteParamFixtures: Record<string, string> = {
 	playlistId: YOUTUBE_PROBE_PLAYLIST_ID,
 	commentId: YOUTUBE_PROBE_COMMENT_ID,
 	feedKey: RSS_PROBE_FEED_URL,
-	guid: 'e2e-probe-rss-item',
+	guid: RSS_PROBE_ITEM_GUID,
 	blobIndex: '0',
 	logIndex: '0',
 	userOperationHash: SAMPLE_USER_OPERATION_HASH,
@@ -174,6 +191,8 @@ export const e2eRouteParamFixtures: Record<string, string> = {
 	channelId: 'e2e-probe-state-channel',
 	contactId: 'e2e-probe-room-peer',
 	roomId: 'e2e-probe-room',
+	url: 'https%3A%2F%2Fexample.com',
+	walletId: 'e2e-probe-wallet',
 }
 
 
@@ -189,6 +208,30 @@ export const e2eRouteRestSegmentFixtures: Record<string, string> = {
  */
 export const e2eBoundaryLiveOptionalPathnames = new Set<string>([
 	...Object.values(e2eNostrYouTubeOptionalDetailRoutePaths),
+	`/nostr/note/${NOSTR_PROBE_NOTE_EVENT_ID}`,
+	`/nostr/note/${NOSTR_PROBE_NOTE_EVENT_ID}/replies`,
+	`/nostr/profile/${NOSTR_PROBE_PUBKEY}`,
+	`/nostr/profile/${NOSTR_PROBE_PUBKEY}/articles`,
+	`/nostr/profile/${NOSTR_PROBE_PUBKEY}/notes`,
+	`/nostr/profile/${NOSTR_PROBE_PUBKEY}/reposts`,
+	`/nostr/reaction/${NOSTR_PROBE_REACTION_EVENT_ID}`,
+	`/nostr/reaction/${NOSTR_PROBE_NOTE_EVENT_ID}`,
+	`/nostr/repost/${NOSTR_PROBE_REPOST_EVENT_ID}`,
+	`/nostr/repost/${NOSTR_PROBE_NOTE_EVENT_ID}`,
+	'/nostr/articles',
+	'/nostr/notes',
+	'/nostr/profiles',
+	'/nostr/reactions',
+	'/nostr/relays',
+	'/nostr/reposts',
+	'/reddit/comment/t1_osbo75d',
+	'/reddit/comment/t1_osbo75d/replies',
+	'/reddit/link/t3_1u8x2f8',
+	'/reddit/link/t3_1u8x2f8/comments',
+	'/reddit/links',
+	'/reddit/r/ethereum',
+	'/reddit/r/ethereum/links',
+	'/reddit/subreddits',
 	`/youtube/comment/${encodeURIComponent(YOUTUBE_PROBE_VIDEO_ID)}/${encodeURIComponent(YOUTUBE_PROBE_COMMENT_ID)}`,
 	`/farcaster/cast/3/${CAST_HASH_32}`,
 	'/network/eip155:1',
@@ -207,6 +250,8 @@ export const e2eRouteParamFixtureForContext = (
 			return YOUTUBE_PROBE_CHANNEL_ID
 		if (path.includes('farcaster'))
 			return 'memes'
+		if (path.includes('network/channels'))
+			return '852861482917888001'
 		return 'e2e-probe-state-channel'
 	}
 
@@ -234,7 +279,7 @@ export const e2eRouteParamFixtureForContext = (
 	if (paramKey === 'networkSlug' && path === 'network')
 		return 'bitcoin'
 
-	if (paramKey === 'transactionId' && path.includes('/blob/'))
+	if (paramKey === 'transactionId' && path.includes('blob'))
 		return SAMPLE_BLOB_TX_HASH
 
 	if (paramKey === 'address') {
@@ -252,20 +297,26 @@ export const e2eRouteParamFixtureForContext = (
 	}
 
 	if (paramKey === 'postId') {
-		if (path.includes('/x/'))
+		if (path.includes('x'))
 			return '1855943488122347520'
 		return LENS_PROBE_POST_ID
 	}
 
 	if (paramKey === 'eventId') {
-		if (path.includes('/repost/'))
+		if (path.includes('repost'))
 			return NOSTR_PROBE_REPOST_EVENT_ID
-		if (path.includes('/reaction/'))
+		if (path.includes('reaction'))
 			return NOSTR_PROBE_REACTION_EVENT_ID
 		return NOSTR_PROBE_NOTE_EVENT_ID
 	}
 
-	if (paramKey === 'userId' && path.includes('/x/'))
+	if (paramKey === 'fullname') {
+		if (path.includes('reddit/comment'))
+			return 't1_osbo75d'
+		return 't3_1u8x2f8'
+	}
+
+	if (paramKey === 'userId' && path.includes('x'))
 		return '12'
 
 	return e2eRouteParamFixtures[paramKey]
@@ -303,6 +354,18 @@ export const e2eRouteParamFixtureVariantsForContext = (
 	if (paramKey === 'proposalRef' && selectedParams.proposalKindSlug)
 		return [
 			PROPOSAL_REF_BY_KIND_SLUG[selectedParams.proposalKindSlug]
+			?? e2eRouteParamFixtureForContext(paramKey, staticSegments),
+		]
+
+	if (paramKey === 'pubkey' && path.includes('network/nodes') && selectedParams.networkSlug === '0g')
+		return [ZERO_G_PROBE_STORAGE_NODE_ID]
+
+	if (paramKey === 'txId' && path.includes('network/transactions') && selectedParams.networkSlug === '0g')
+		return [ZERO_G_PROBE_TX_HASH]
+
+	if (paramKey === 'address' && path.includes('network/address') && selectedParams.networkSlug)
+		return [
+			UTXO_PROBE_ADDRESS_BY_NETWORK_SLUG[selectedParams.networkSlug]
 			?? e2eRouteParamFixtureForContext(paramKey, staticSegments),
 		]
 

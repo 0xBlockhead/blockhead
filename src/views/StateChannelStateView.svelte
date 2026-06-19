@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,7 +17,7 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/channels'),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(
@@ -27,7 +28,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.StateChannelState>
+			selection: EntityProxyResource<typeof schema, EntityType.StateChannelState>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -40,8 +41,8 @@
 		>
 	> = $props()
 
-	const state = $derived(select(EntityType.StateChannelState,
-		selector,
+
+	const state = $derived(selection(
 		({ sources: [Source.Local_Internal], fields: { intent: true, version: true, isFinal: true, timestamp: true, stateData: true, $channel: true, ...(open && ({ allocations: true, signatures: true })) } }),
 	))
 
@@ -56,7 +57,7 @@
 
 <EntityView
 	entityType={EntityType.StateChannelState}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{layout}
 	bind:open
@@ -65,7 +66,7 @@
 >
 	{#snippet Value()}
 		<span>
-			{selector.id}
+			{selection.entitySelector.id}
 		</span>
 	{/snippet}
 

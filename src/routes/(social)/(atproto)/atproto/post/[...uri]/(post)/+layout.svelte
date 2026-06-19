@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// Context
 	import { resolve } from '$app/paths'
 	import { page } from '$app/state'
@@ -27,7 +29,7 @@
 >
 	{#snippet Summary({ open: _open })}
 		<AtprotoPostView
-			selector={{ uri: decodeURIComponent(uri) }}
+			selection={select(EntityType.AtprotoPost, { uri: decodeURIComponent(uri) })}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

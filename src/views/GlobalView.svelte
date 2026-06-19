@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -25,7 +26,7 @@
 	// State
 	let {
 		children,
-		selector,
+		selection,
 		title,
 		href,
 		open = $bindable(true),
@@ -36,7 +37,7 @@
 			children?: Snippet<[context: {
 				open?: boolean,
 			}]>
-			selector: EntitySelector<typeof schema, EntityType._Global>
+			selection: EntityProxyResource<typeof schema, EntityType._Global>
 			title: string
 			/** href override: hub pages (`/assets`, `/explore`, `/social`, …) each pass their canonical URL. */
 			href: ResolvedPathname
@@ -46,7 +47,8 @@
 		never
 	> = $props()
 
-	const global = $derived(select(EntityType._Global, selector, ({ sources: [
+
+	const global = $derived(selection( { sources: [
 				Source.Local_Internal,
 				...(
 					open ?
@@ -54,7 +56,7 @@
 					:
 						[]
 				),
-			], fields: { ...(open ? ({ duneCreditsUsed: true, duneCreditsIncluded: true }) : ({  })) } })))
+			], fields: { ...(open ? ({ duneCreditsUsed: true, duneCreditsIncluded: true }) : ({  })) } }))
 
 	const entityViewDetailCarouselScrollProps = {
 		'data-row': 'start align-start',
@@ -73,14 +75,14 @@
 
 <EntityView
 	entityType={EntityType._Global}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	{title}
 	{href}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		{selector.scope}
+		{selection.entitySelector.scope}
 	{/snippet}
 
 	{#snippet Title()}
@@ -91,7 +93,7 @@
 		{#if !children}
 			<section
 				data-scroll-marker-label="Usage"
-				id={`global:${selector.scope}:usage`}
+				id={`global:${selection.entitySelector.scope}:usage`}
 			>
 				<ResourceBoundary
 					resource={global}
@@ -140,8 +142,8 @@
 			})}
 		{:else}
 			<CollapsibleTabs
-				id={`global:${selector.scope}:carousel-app`}
-				sectionIdPrefix={`global:${selector.scope}`}
+				id={`global:${selection.entitySelector.scope}:carousel-app`}
+				sectionIdPrefix={`global:${selection.entitySelector.scope}`}
 				sections={[
 					{ id: 'nav', label: 'Nav' },
 					{ id: 'usage', label: 'Usage' },

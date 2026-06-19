@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -15,17 +16,17 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve(
 			'/~/(multiplayer)/multiplayer/(rooms)/room/[roomId]',
-			{ roomId: selector.id },
+			{ roomId: selection.entitySelector.id },
 		),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.BlockheadRoom>
+			selection: EntityProxyResource<typeof schema, EntityType.BlockheadRoom>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -37,9 +38,10 @@
 		>
 	> = $props()
 
-	const room = $derived(select(EntityType.BlockheadRoom, selector, ({ sources: [
+
+	const room = $derived(selection( { sources: [
 				Source.Local_Internal,
-			], fields: { name: true, ...(open ? ({ createdAt: true, createdBy: true, $$peers: true }) : ({  })) } })))
+			], fields: { name: true, ...(open ? ({ createdAt: true, createdBy: true, $$peers: true }) : ({  })) } }))
 
 
 	// Components
@@ -52,14 +54,14 @@
 
 <EntityView
 	entityType={EntityType.BlockheadRoom}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
-			{selector.id}
+			{selection.entitySelector.id}
 		</span>
 	{/snippet}
 
@@ -69,7 +71,7 @@
 			placeholderText="Loading room…"
 		>
 			{#snippet children(room)}
-				{room.fields.name ?? selector.id}
+				{room.fields.name ?? selection.entitySelector.id}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -139,11 +141,8 @@
 	})}
 		{#if open}
 			<BlockheadRoomPeersView
-				selection={select(
-			EntityType.BlockheadRoom,
-			selector
-		).$$peers}
-				id={`${selector.id}:peers`}
+				selection={selection.$$peers}
+				id={`${selection.entitySelector.id}:peers`}
 			/>
 		{/if}
 	{/snippet}

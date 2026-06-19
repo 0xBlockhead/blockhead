@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { type as arktype } from 'arktype'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
@@ -30,7 +32,7 @@
 	{#if selector}
 		<FarcasterCastView
 			variant="feed"
-			selector={selector}
+			selection={select(EntityType.FarcasterCast, selector)}
 		/>
 	{/if}
 </Page>

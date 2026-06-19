@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -16,10 +17,10 @@
 
 	// State
 	let {
-		selector,
-			href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(beacon-epochs)/epoch/[epochNumber]', {
-				caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
-				epochNumber: String(selector.epoch),
+		selection,
+				href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(beacon-epochs)/epoch/[epochNumber=beaconEpochNumber]', {
+				caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
+				epochNumber: String(selection.entitySelector.epoch),
 			}),
 		layout = EntityLayout.Summary,
 		title: titleProp,
@@ -27,7 +28,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.BeaconEpoch>
+			selection: EntityProxyResource<typeof schema, EntityType.BeaconEpoch>
 			href?: string
 			layout?: EntityLayout
 			title?: string
@@ -39,8 +40,8 @@
 		>
 	> = $props()
 
-	const epoch = $derived(select(EntityType.BeaconEpoch,
-		selector,
+
+	const epoch = $derived(selection(
 		({ sources: [
 				Source.Beacon_Rest,
 				Source.BeaconchaIn_Rest,
@@ -50,11 +51,11 @@
 
 	// (Derived)
 	const title = $derived(
-		titleProp ?? `Epoch #${selector.epoch.toLocaleString()}`,
+		titleProp ?? `Epoch #${selection.entitySelector.epoch.toLocaleString()}`,
 	)
 
 	const epochSelectorKey = $derived(
-		stringify(selector),
+		stringify(selection.entitySelector),
 	)
 
 
@@ -70,17 +71,17 @@
 
 <EntityView
 	entityType={EntityType.BeaconEpoch}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{title}
 	{layout}
 	bind:open
-	idDragPlainText={String(selector.epoch)}
+	idDragPlainText={String(selection.entitySelector.epoch)}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-badge="small">
-			#{String(selector.epoch)}
+			#{String(selection.entitySelector.epoch)}
 		</span>
 	{/snippet}
 
@@ -88,7 +89,7 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Epoch </span>
 		<span data-badge="small">
-			#{String(selector.epoch)}
+			#{String(selection.entitySelector.epoch)}
 		</span>
 		</span>
 	{/snippet}

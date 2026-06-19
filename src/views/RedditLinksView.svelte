@@ -1,7 +1,6 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
-import { ListOrientation } from '$/components/ListOrientation.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -10,6 +9,9 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Context
+	import { resolve } from '$app/paths'
+
+
 	// State
 	let {
 		selection,
@@ -19,14 +21,10 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 		collapsible = true,
 		CollapsibleProps = {},
 		href,
-		title = 'Submissions'
+		title = 'Submissions',
 	}: {
-		selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
-			id: string
+		selection: EntityProxyEntitiesResource<typeof schema, EntityType.RedditLink>
+		id: string
 		limit?: number
 		open?: boolean
 		collapsible?: boolean
@@ -36,14 +34,10 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 	} = $props()
 
 
-
-	
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import RedditLinkView from '$/views/RedditLinkView.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -75,8 +69,7 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 		{#if open}
 			<ResourceBoundary resource={selection({
 					sources: [
-						Source.Reddit_Rest,
-						Source.Reddit_PublicJson,
+						Source.Constants_Internal,
 					],
 					limit,
 				})} placeholderText="Loading submissions…">
@@ -100,11 +93,16 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 						{/snippet}
 
 						{#snippet Item({ item })}
-							<RedditLinkView
-							selector={item.entitySelector}
-							layout={EntityLayout.Summary}
-
-						/>
+							<a
+								href={resolve('/(social)/(reddit)/reddit/link/[fullname]', {
+									fullname: item.entitySelector.fullname,
+								})}
+							>
+								<TruncatedValue
+									value={item.entitySelector.fullname}
+									format={TruncatedValueFormat.Visual}
+								/>
+							</a>
 						{/snippet}
 					</EntitiesList>
 				{/snippet}

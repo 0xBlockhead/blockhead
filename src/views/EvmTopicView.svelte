@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,7 +12,7 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href: hrefProp,
 		layout = EntityLayout.SummaryDetails,
 		summaryUsesHeading = (
@@ -24,7 +25,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.EvmTopic>
+			selection: EntityProxyResource<typeof schema, EntityType.EvmTopic>
 			href?: string
 			layout?: EntityLayout
 			summaryUsesHeading?: boolean
@@ -37,19 +38,17 @@
 		>
 	> = $props()
 
+
 	import { select } from '$/routes/+layout.svelte'
 
 	
 	const href = $derived(
 		hrefProp ?? resolve('/(explore)/(evm)/evm/(topics)/topic/[hex]', {
-			hex: selector.hex,
+			hex: selection.entitySelector.hex,
 		})
 	)
 
-	const signatures = $derived(select(
-		EntityType.EvmTopic,
-		selector,
-		{
+	const signatures = $derived(selection({
 			sources: [
 				Source.Openchain_Rest,
 			],
@@ -66,7 +65,7 @@
 
 <EntityView
 	entityType={EntityType.EvmTopic}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	{href}
 	{layout}
 	bind:open
@@ -75,7 +74,7 @@
 >
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{selector.hex}
+			{selection.entitySelector.hex}
 		</span>
 	{/snippet}
 
@@ -85,7 +84,7 @@
 			placeholderText="Loading log topic…"
 		>
 			{#snippet children(signatures)}
-				{signatures?.[0] ?? selector.hex}
+				{signatures?.[0] ?? selection.entitySelector.hex}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -111,7 +110,7 @@
 						<dt>Topic</dt>
 						<dd>
 							<TruncatedValue
-								value={selector.hex}
+								value={selection.entitySelector.hex}
 								format={TruncatedValueFormat.Visual}
 							/>
 						</dd>

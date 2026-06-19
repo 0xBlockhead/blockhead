@@ -289,7 +289,7 @@
 			{/snippet}
 
 			{#snippet children({ open })}
-				{#if Details && open}
+				{#if (Content || Details) && open}
 					<EntityDetails
 						{entityType}
 						{entitySelector}
@@ -302,9 +302,11 @@
 							})}
 						{/if}
 
-						{@render Details({
-							open,
-						})}
+						{#if Details}
+							{@render Details({
+								open,
+							})}
+						{/if}
 					</EntityDetails>
 				{/if}
 			{/snippet}

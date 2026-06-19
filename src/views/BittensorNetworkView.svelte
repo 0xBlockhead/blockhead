@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { networkEnvironmentByEnvironment } from '$/constants/Network.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -13,21 +14,22 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		selector: EntitySelector<typeof schema, EntityType.BittensorNetwork>
+		selection: EntityProxyResource<typeof schema, EntityType.BittensorNetwork>
 		href?: string
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
+
 	const network = $derived(
 		select(
 			EntityType.Network,
-			selector.$network,
+			selection.entitySelector.$network,
 			{
 				sources: [
 					Source.Constants_Internal,
@@ -45,10 +47,7 @@
 	)
 
 	const bittensorNetwork = $derived(
-		select(
-			EntityType.BittensorNetwork,
-			selector,
-			{
+		selection({
 				sources: [
 					Source.Bittensor_JsonRpc,
 				],
@@ -69,7 +68,7 @@
 
 
 	// (Derived)
-	const networkSelectorKey = $derived(stringify(selector))
+	const networkSelectorKey = $derived(stringify(selection.entitySelector))
 
 
 	// Components
@@ -90,7 +89,7 @@
 
 <EntityView
 	entityType={EntityType.Network}
-	entitySelector={selector.$network}
+	entitySelector={selection.entitySelector.$network}
 	{href}
 	bind:open
 	{layout}
@@ -120,12 +119,13 @@
 			<ResourceBoundary resource={bittensorNetwork}>
 				{#snippet children(bittensorNetwork)}
 						{@const subnetCount = bittensorNetwork.fields.$$subnets.values.length }
-					{#if block != null}
+						{@const block = bittensorNetwork.fields.$$blocks.values[0]}
+					{#if block !== undefined}
 						<div>
 							<dt>Finalized block</dt>
 							<dd id="network-summary-head-block">
 								<BittensorBlockView
-									selector={block[EntityMetaKey.Selector]}
+									selection={select(EntityType.BittensorBlock, block[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -154,7 +154,7 @@
 							<dt>Stack</dt>
 							<dd>
 								<NetworkStackView
-									selector={network.fields.$networkStack[EntityMetaKey.Selector]}
+									selection={select(EntityType.NetworkStack, network.fields.$networkStack[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -210,7 +210,7 @@
 						<div>
 							{#if block != null}
 								<BittensorBlockView
-									selector={block[EntityMetaKey.Selector]}
+									selection={select(EntityType.BittensorBlock, block[EntityMetaKey.Selector])}
 									layout={EntityLayout.SummaryDetails}
 								/>
 							{/if}
@@ -222,10 +222,7 @@
 			{#snippet SectionBittensorBlocks()}
 				<BittensorBlocksView
 					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.BittensorNetwork,
-			selector
-		).$$blocks}
+					selection={selection.$$blocks}
 					href={href == null ? '' : `${href}/blocks`}
 					id={`${networkSelectorKey}:bittensor-blocks-bittensorNetworks`}
 					title="Blocks"
@@ -235,10 +232,7 @@
 			{#snippet SectionBittensorSubnets()}
 				<BittensorSubnetsView
 					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.BittensorNetwork,
-			selector
-		).$$subnets}
+					selection={selection.$$subnets}
 					id={`${networkSelectorKey}:bittensor-subnets-bittensorNetworks`}
 				/>
 			{/snippet}
@@ -270,10 +264,7 @@
 			{#snippet SectionBittensorNeurons()}
 				<BittensorSubnetsView
 					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.BittensorNetwork,
-			selector
-		).$$subnets}
+					selection={selection.$$subnets}
 					id={`${networkSelectorKey}:bittensor-neuron-subnets-bittensorNetworks`}
 					title="Neuron subnets"
 				/>
@@ -290,10 +281,7 @@
 
 							<BittensorNetwork_TimestampsView
 								CollapsibleProps={{ canToggle: false }}
-								selection={select(
-			EntityType.BittensorNetwork,
-			selector
-		).$$timestamps}
+								selection={selection.$$timestamps}
 								id={`${networkSelectorKey}:bittensor-consensus-snapshots`}
 								title="Network snapshots"
 							/>
@@ -325,7 +313,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					selection={select(
 			EntityType.Network,
-			selector.$network
+			selection.entitySelector.$network
 		).$$nativeAssets}
 					id={`${id}-list`}
 					title={label}
@@ -370,7 +358,7 @@
 					emptyText="No faucets listed for this network yet."
 					selection={select(
 			EntityType.Network,
-			selector.$network
+			selection.entitySelector.$network
 		).$$faucetUrls}
 					fieldSources={[
 						Source.Constants_Internal,
@@ -387,7 +375,7 @@
 					emptyText="No block explorers listed for this network yet."
 					selection={select(
 			EntityType.Network,
-			selector.$network
+			selection.entitySelector.$network
 		).$$blockExplorerUrls}
 					fieldSources={[
 						Source.Constants_Internal,

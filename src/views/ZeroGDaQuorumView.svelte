@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.ZeroGDaQuorum>
+			selection: EntityProxyResource<typeof schema, EntityType.ZeroGDaQuorum>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -37,14 +39,14 @@
 
 <EntityView
 	entityType={EntityType.ZeroGDaQuorum}
-	entitySelector={selector}
-	title={selector.quorumId}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.quorumId}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
-		{selector.quorumId}
+		{selection.entitySelector.quorumId}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -55,7 +57,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.ZeroGDaQuorum, selector, ({ fields: { selectionMethod: true } }))}
+			resource={selection( { fields: { selectionMethod: true } })}
 			placeholderText="Loading 0G DA quorum…"
 		>
 			{#snippet children(daQuorum)}

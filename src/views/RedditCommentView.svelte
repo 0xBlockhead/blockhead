@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -17,16 +18,16 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/(social)/(reddit)/reddit/comment/[fullname]', {
-			fullname: selector.fullname,
+			fullname: selection.entitySelector.fullname,
 		}),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.RedditComment>
+			selection: EntityProxyResource<typeof schema, EntityType.RedditComment>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -37,19 +38,15 @@
 		>
 	> = $props()
 
+
 	const comment = $derived(
-		select(
-			EntityType.RedditComment,
-			selector,
-			({ sources: [
-				Source.Reddit_Rest,
-				Source.Reddit_PublicJson,
+		selection(({ sources: [
+				Source.Constants_Internal,
 			], fields: {
 				body: true,
 				author: true,
 				$$timestamps: ({ sources: [
-					Source.Reddit_Rest,
-					Source.Reddit_PublicJson,
+					Source.Constants_Internal,
 				], limit: 1 }),
 				createdAt: true,
 				depth: true,
@@ -59,7 +56,7 @@
 		)
 	)
 
-	const idKey = $derived(stringify(selector))
+	const idKey = $derived(stringify(selection.entitySelector))
 
 
 	// Components
@@ -80,7 +77,7 @@
 
 <EntityView
 	entityType={EntityType.RedditComment}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{layout}
 	bind:open
@@ -88,7 +85,7 @@
 >
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{selector.fullname}
+			{selection.entitySelector.fullname}
 		</span>
 	{/snippet}
 
@@ -103,7 +100,7 @@
 						comment.fields.body ?
 							comment.fields.body.replaceAll('\n', ' ')
 						:
-							selector.fullname
+							selection.entitySelector.fullname
 					}
 					startLength={64}
 					endLength={16}
@@ -160,7 +157,7 @@
 						metrics={[
 							{
 								label: 'Score',
-								value: comment.fields.$$timestamps.values.at(0)?.score,
+								resource: comment.fields.$$timestamps.values.at(0)?.score,
 							},
 						]}
 					/>
@@ -191,15 +188,11 @@
 						<div>
 							<dt>Reply to</dt>
 							<dd>
-									<RedditCommentView
-										selector={comment.fields.$parentComment[EntityMetaKey.Selector]}
-										layout={EntityLayout.Title}
-
-								
+								<RedditCommentView
+									selection={select(EntityType.RedditComment, comment.fields.$parentComment[EntityMetaKey.Selector])}
+									layout={EntityLayout.Title}
 									open={false}
-
-								
-									/>
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -209,11 +202,10 @@
 							<dt>Submission</dt>
 							<dd>
 								<RedditLinkView
-									selector={comment.fields.$link[EntityMetaKey.Selector]}
+									selection={select(EntityType.RedditLink, comment.fields.$link[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
-
 									open={false}
-									/>
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -225,12 +217,12 @@
 	{#snippet Details({
 		open: _open,
 	})}
-			<CollapsibleTabs
-				sectionIdPrefix={idKey}
-				sections={collapsibleTabsSections([
-					{ id: 'comment-replies', label: 'Replies' },
-					{ id: 'metric-snapshots', label: 'Metrics' },
-				])}
+		<CollapsibleTabs
+			sectionIdPrefix={idKey}
+			sections={collapsibleTabsSections([
+				{ id: 'comment-replies', label: 'Replies' },
+				{ id: 'metric-snapshots', label: 'Metrics' },
+			])}
 			id={`${idKey}:carousel-comment`}
 			data-card
 		>
@@ -247,13 +239,10 @@
 				</header>
 			{/snippet}
 
-				{#snippet SectionCommentReplies()}
+			{#snippet SectionCommentReplies()}
 				<RedditCommentsView
 					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.RedditComment,
-			selector
-		).$$replies}
+					selection={selection.$$replies}
 					id={`${idKey}:reddit-replies`}
 					sortMode="createdAtAsc"
 					title="Replies"
@@ -262,10 +251,7 @@
 
 			{#snippet SectionMetricSnapshots()}
 				<RedditComment_TimestampsView
-					selection={select(
-			EntityType.RedditComment,
-			selector
-		).$$timestamps}
+					selection={selection.$$timestamps}
 					href={href}
 					id={`${idKey}:metric-snapshots`}
 					title="Metric snapshots"

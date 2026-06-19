@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import { select } from '$/routes/+layout.svelte'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -22,11 +22,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.FarcasterCast>
 			id?: string
 			title?: string
 			limit?: number
@@ -76,10 +72,7 @@
 				<ResourceBoundary
 					resource={selection({
 						sources: [
-							import.meta.env.PUBLIC_NEYNAR_API_KEY?.trim() ?
-								Source.Neynar_Rest
-							:
-								Source.Snapchain_Rest,
+							Source.Snapchain_Rest,
 						],
 						limit,
 					})}
@@ -107,8 +100,9 @@
 
 						{#snippet Item({ item })}
 							<FarcasterCastView
-								selector={item[EntityMetaKey.Selector]}
+								selection={select(EntityType.FarcasterCast, item[EntityMetaKey.Selector])}
 								layout={EntityLayout.Summary}
+								open={false}
 
 								variant="feed"
 							/>

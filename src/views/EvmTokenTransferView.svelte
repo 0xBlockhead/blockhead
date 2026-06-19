@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -21,11 +22,11 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]/log/[logIndex=nonNegativeInteger]', {
-			caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
-			transactionId: selector.txHash,
-			logIndex: String(selector.logIndex),
+			caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
+			transactionId: selection.entitySelector.txHash,
+			logIndex: String(selection.entitySelector.logIndex),
 		}),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(
@@ -36,7 +37,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.EvmTokenTransfer>
+			selection: EntityProxyResource<typeof schema, EntityType.EvmTokenTransfer>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -49,7 +50,8 @@
 		>
 	> = $props()
 
-	const transfer = $derived(select(EntityType.EvmTokenTransfer, selector, {
+
+	const transfer = $derived(selection( {
 		sources: [Source.Blockscout_Rest],
 	}))
 	const standard = $derived(transfer.standard)
@@ -74,7 +76,7 @@
 
 <EntityView
 	entityType={EntityType.EvmTokenTransfer}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{layout}
 	bind:open
@@ -83,7 +85,7 @@
 >
 	{#snippet Value()}
 		<span>
-			log #{selector.logIndex}.{selector.transferIndex}
+			log #{selection.entitySelector.logIndex}.{selection.entitySelector.transferIndex}
 		</span>
 	{/snippet}
 
@@ -91,7 +93,7 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Token transfer </span>
 			<span>
-				log #{selector.logIndex}.{selector.transferIndex}
+				log #{selection.entitySelector.logIndex}.{selection.entitySelector.transferIndex}
 			</span>
 		</span>
 	{/snippet}
@@ -110,12 +112,12 @@
 					<dd>
 						<a
 							href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-								caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
-								transactionId: selector.txHash,
+								caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
+								transactionId: selection.entitySelector.txHash,
 							})}
 						>
 							<TruncatedValue
-								value={selector.txHash}
+								value={selection.entitySelector.txHash}
 								format={TruncatedValueFormat.Abbr}
 							/>
 						</a>
@@ -187,10 +189,10 @@
 							<dt>From</dt>
 							<dd>
 								<EvmNetworkAccountView
-									selector={{
-										$network: selector.$network,
+									selection={select(EntityType.EvmNetworkAccount, {
+										$network: selection.entitySelector.$network,
 										$actor: from.entitySelector,
-									}}
+									})}
 									layout={EntityLayout.Title}
 
 									open={false}
@@ -211,10 +213,10 @@
 							<dt>To</dt>
 							<dd>
 								<EvmNetworkAccountView
-									selector={{
-										$network: selector.$network,
+									selection={select(EntityType.EvmNetworkAccount, {
+										$network: selection.entitySelector.$network,
 										$actor: to.entitySelector,
-									}}
+									})}
 									layout={EntityLayout.Title}
 
 									open={false}
@@ -235,7 +237,7 @@
 							<dt>Token</dt>
 							<dd>
 								<EvmCoinInstanceView
-									selector={coinInstance.entitySelector}
+									selection={select(EntityType.EvmCoinInstance, coinInstance.entitySelector)}
 									layout={EntityLayout.Value}
 
 									showTypeAnnotation={false}
@@ -254,7 +256,7 @@
 										<dt>Token contract</dt>
 										<dd>
 											<EvmContractView
-												selector={tokenContract.entitySelector}
+												selection={select(EntityType.EvmContract, tokenContract.entitySelector)}
 												layout={EntityLayout.Value}
 
 												showTypeAnnotation={false}

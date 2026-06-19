@@ -1,7 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntitySelector } from '$/schema/$schema.ts'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -17,9 +16,7 @@
 
 	// State
 	let {
-		selector = {
-			scope: 'RssNetwork',
-		},
+		selection,
 		href = resolve('/rss'),
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
@@ -28,7 +25,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector?: EntitySelector<typeof schema, EntityType.RssNetwork>
+			selection: EntityProxyResource<typeof schema, EntityType.RssNetwork>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -36,9 +33,9 @@
 		never
 	> = $props()
 
-	const networkSelectorKey = stringify(selector)
-
-	
+	const networkSelectorKey = $derived(
+		stringify(selection.entitySelector),
+	)
 
 	const entityViewDetailCarouselScrollProps = {
 		'data-row': 'start align-start',
@@ -51,13 +48,12 @@
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import RssFeedsView from '$/views/RssFeedsView.svelte'
-	import RssItemsView from '$/views/RssItemsView.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.RssNetwork}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
 	{collapsible}
@@ -65,7 +61,7 @@
 	title="RSS / Atom"
 >
 	{#snippet Value()}
-		{selector.scope}
+		{selection.entitySelector.scope}
 
 	{/snippet}
 
@@ -88,13 +84,10 @@
 	{#snippet Content({})}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={select(EntityType.RssNetwork, selector, ({ sources: [
-						Source.Constants_Internal,
-					], fields: { protocolName: true, registryLabel: true, ...(open ? ({ docsUrl: true, homeUrl: true, topology: true, $$rssFeeds: ({ sources: [
+				resource={selection(({ sources: [
+							Source.Constants_Internal,
+						], fields: { protocolName: true, registryLabel: true, ...(open ? ({ docsUrl: true, homeUrl: true, topology: true, $$rssFeeds: ({ sources: [
 									Source.Constants_Internal,
-								] }), $$rssItems: ({ sources: [
-									Source.Rss_Rest,
-									Source.Rss2Json_Rest,
 								] }) }) : ({  })) } }))}
 				placeholderText="Loading RSS hub directory…"
 			>
@@ -115,13 +108,6 @@
 						<div>
 							<dt>Feeds</dt>
 							<dd>{String(rssNetwork.fields.$$rssFeeds.values.length)}</dd>
-						</div>
-					{/if}
-
-					{#if open}
-						<div>
-							<dt>Items</dt>
-							<dd>{String(rssNetwork.fields.$$rssItems.values.length)}</dd>
 						</div>
 					{/if}
 
@@ -162,7 +148,6 @@
 			sectionIdPrefix={networkSelectorKey}
 			sections={collapsibleTabsSections([
 				{ id: 'feeds', label: 'Feeds' },
-				{ id: 'items', label: 'Recent items' },
 			])}
 			data-card
 			scrollContainerProps={entityViewDetailCarouselScrollProps}
@@ -182,27 +167,9 @@
 				<RssFeedsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/rss/feeds')}
-					selection={select(
-			EntityType.RssNetwork,
-			selector
-		).$$rssFeeds}
+					selection={selection.$$rssFeeds}
 					id={`${networkSelectorKey}:feeds`}
 					open={_open}
-				/>
-			{/snippet}
-
-			{#snippet SectionItems({ id, label })}
-				<RssItemsView
-					CollapsibleProps={{ canToggle: false }}
-					href={resolve('/rss/items')}
-					selection={select(
-			EntityType.RssNetwork,
-			selector
-		).$$rssItems}
-					id={`${networkSelectorKey}:items`}
-					limit={25}
-					open={_open}
-					title="Recent items"
 				/>
 			{/snippet}
 		</CollapsibleTabs>

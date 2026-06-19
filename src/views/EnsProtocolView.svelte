@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -16,20 +17,21 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/ens'),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.EnsProtocol>
+			selection: EntityProxyResource<typeof schema, EntityType.EnsProtocol>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
 		},
 		never
 	> = $props()
+
 
 	
 
@@ -50,7 +52,7 @@
 
 <EntityView
 	entityType={EntityType.EnsProtocol}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
 	{collapsible}
@@ -58,7 +60,7 @@
 	title="ENS"
 >
 	{#snippet Value()}
-		{selector.scope}
+		{selection.entitySelector.scope}
 	{/snippet}
 
 	{#snippet Title()}
@@ -77,8 +79,7 @@
 	{#snippet Content({})}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={select(EntityType.EnsProtocol,
-						selector,
+				resource={selection(
 						({ sources: [Source.Constants_Internal], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true }) : ({  })) } }),
 					)}
 				placeholderText="Loading ENS protocol…"
@@ -135,7 +136,7 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{@const protocolSelectorKey = stringify(selector)}
+		{@const protocolSelectorKey = stringify(selection.entitySelector)}
 		<CollapsibleTabs
 			id={`${protocolSelectorKey}:browse`}
 			sectionIdPrefix={protocolSelectorKey}

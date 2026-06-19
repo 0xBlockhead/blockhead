@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.ZeroGStorageLogEntry>
+			selection: EntityProxyResource<typeof schema, EntityType.ZeroGStorageLogEntry>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -39,16 +41,16 @@
 
 <EntityView
 	entityType={EntityType.ZeroGStorageLogEntry}
-	entitySelector={selector}
-	title={selector.logEntryId}
-	idDragPlainText={selector.logEntryId}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.logEntryId}
+	idDragPlainText={selection.entitySelector.logEntryId}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<TruncatedValue
-			value={selector.logEntryId}
+			value={selection.entitySelector.logEntryId}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
@@ -64,8 +66,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.ZeroGStorageLogEntry,
-					selector,
+			resource={selection(
 					({ fields: { sequenceNumber: true, commitment: true } }),
 				)}
 			placeholderText={`Loading 0G storage log entry...`}

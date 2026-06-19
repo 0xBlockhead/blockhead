@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { schema } from '$/schema/index.ts'
@@ -17,7 +18,7 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/activitypub'),
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
@@ -26,7 +27,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.ActivityPubNetwork>
+			selection: EntityProxyResource<typeof schema, EntityType.ActivityPubNetwork>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -34,12 +35,13 @@
 		never
 	> = $props()
 
+
 	
 
 
 	// (Derived)
 	const networkSelectorKey = $derived(
-		stringify(selector),
+		stringify(selection.entitySelector),
 	)
 
 
@@ -55,7 +57,7 @@
 
 <EntityView
 	entityType={EntityType.ActivityPubNetwork}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	layout={EntityLayout.SummaryDetails}
 	bind:open
@@ -83,14 +85,14 @@
 	{#snippet Content({})}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={select(EntityType.ActivityPubNetwork, selector, ({ sources: [Source.Constants_Internal], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, instanceTitle: ({ sources: [Source.Mastodon_Rest] }), instanceVersion: ({ sources: [Source.Mastodon_Rest] }), fediInstanceTitle: ({ sources: [Source.Fedi_Rest] }), fediInstanceVersion: ({ sources: [Source.Fedi_Rest] }), $$activityPubActors: ({ sources: [
+				resource={selection( { sources: [Source.Constants_Internal], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, instanceTitle: ({ sources: [Source.Mastodon_Rest] }), instanceVersion: ({ sources: [Source.Mastodon_Rest] }), fediInstanceTitle: ({ sources: [Source.Fedi_Rest] }), fediInstanceVersion: ({ sources: [Source.Fedi_Rest] }), $$activityPubActors: ({ sources: [
 						Source.Constants_Internal,
 						Source.Mastodon_Rest,
 						Source.Fedi_Rest,
 					] }), $$activityPubNotes: ({ sources: [
 						Source.Mastodon_Rest,
 						Source.Fedi_Rest,
-					] }) }) : ({  })) } }))}
+					] }) }) : ({  })) } })}
 				placeholderText="Loading ActivityPub federation slice…"
 			>
 				{#snippet children(activityPubNetwork)}
@@ -207,10 +209,7 @@
 				<ActivityPubActorsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/activitypub/actors')}
-					selection={select(
-			EntityType.ActivityPubNetwork,
-			selector
-		).$$activityPubActors}
+					selection={selection.$$activityPubActors}
 					id={`${networkSelectorKey}:actors`}
 					open={_open}
 				/>
@@ -220,10 +219,7 @@
 				<ActivityPubNotesView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/activitypub/notes')}
-					selection={select(
-			EntityType.ActivityPubNetwork,
-			selector
-		).$$activityPubNotes}
+					selection={selection.$$activityPubNotes}
 					fieldOpen={_open}
 					id={`${networkSelectorKey}:notes`}
 					orderByCreatedAt="desc"

@@ -1,12 +1,11 @@
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntitySelector } from '$/schema/$schema.ts'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { ComponentProps } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { blockheadFarcasterConnectionAuthMethodByAuthMethod } from '$/constants/Blockhead.ts'
 	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
@@ -18,20 +17,18 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve(
 			'/(social)/(farcaster)/farcaster/(accounts)/account/[accountId]',
-			{ accountId: String(selector.fid) },
+			{ accountId: String(selection.entitySelector.fid) },
 		),
 		open = $bindable(true),
-		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.BlockheadFarcasterAccountConnection>
+			selection: EntityProxyResource<typeof schema, EntityType.BlockheadFarcasterAccountConnection>
 			href?: string
 			open?: boolean
-			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
@@ -40,10 +37,31 @@
 		>
 	> = $props()
 
-	const connection = $derived(select(EntityType.BlockheadFarcasterAccountConnection, selector, ({ sources: [Source.Neynar_Rest], fields: { displayName: true, username: true, $icon: true, ...(open ? ({ bio: true, custody: true, authMethod: true, signedAt: true }) : ({  })) } })))
+
+	const farcasterUser = $derived(
+		select(EntityType.FarcasterUser, {
+			fid: selection.entitySelector.fid,
+		})({
+			sources: [
+				Source.Snapchain_Rest,
+			],
+			fields: {
+				displayName: true,
+				username: true,
+				$icon: {
+					sources: [
+						Source.Snapchain_Rest,
+					],
+				},
+				...(open && {
+					bio: true,
+				}),
+			},
+		})
+	)
 
 	const connectionSelectorKey = $derived(
-		stringify(selector),
+		stringify(selection.entitySelector),
 	)
 
 
@@ -53,7 +71,6 @@
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import FarcasterCastsView from '$/views/FarcasterCastsView.svelte'
 </script>
@@ -61,24 +78,24 @@
 
 <EntityView
 	entityType={EntityType.BlockheadFarcasterAccountConnection}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Icon()}
 		<ResourceBoundary
-			resource={connection}
+			resource={farcasterUser}
 			placeholderText="Loading icon…"
 		>
-			{#snippet children(connection)}
+			{#snippet children(farcasterUser)}
 				{#if (
-					connection.fields.$icon
-					&& connection.fields.$icon[EntityMetaKey.Selector].url
+					farcasterUser.fields.$icon
+					&& farcasterUser.fields.$icon[EntityMetaKey.Selector].url
 				)}
 					<IconComponent
 						shape={IconShape.Circle}
-						src={connection.fields.$icon[EntityMetaKey.Selector].url}
+						src={farcasterUser.fields.$icon[EntityMetaKey.Selector].url}
 						alt=""
 					/>
 				{/if}
@@ -88,20 +105,20 @@
 
 	{#snippet Value()}
 		<span>
-			FID {String(selector.fid)}
+			FID {String(selection.entitySelector.fid)}
 		</span>
 	{/snippet}
 
 	{#snippet Title()}
 		<ResourceBoundary
-			resource={connection}
+			resource={farcasterUser}
 			placeholderText="Loading connection…"
 		>
-			{#snippet children(connection)}
+			{#snippet children(farcasterUser)}
 				{@const headline = (
-					connection.fields.displayName
-					?? connection.fields.username
-					?? `FID ${String(selector.fid)}`
+					farcasterUser.fields.displayName
+					?? farcasterUser.fields.username
+					?? `FID ${String(selection.entitySelector.fid)}`
 				)}
 				{headline}
 			{/snippet}
@@ -110,17 +127,17 @@
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary
-			resource={connection}
+			resource={farcasterUser}
 		>
-			{#snippet children(connection)}
+			{#snippet children(farcasterUser)}
 				{@const headline = (
-					connection.fields.displayName
-					?? connection.fields.username
-					?? `FID ${String(selector.fid)}`
+					farcasterUser.fields.displayName
+					?? farcasterUser.fields.username
+					?? `FID ${String(selection.entitySelector.fid)}`
 				)}
-				{#if connection.fields.username !== undefined && connection.fields.username !== headline}
+				{#if farcasterUser.fields.username !== undefined && farcasterUser.fields.username !== headline}
 					<span data-text="muted">
-						@{connection.fields.username}
+						@{farcasterUser.fields.username}
 					</span>
 				{/if}
 			{/snippet}
@@ -142,15 +159,15 @@
 	{#snippet Content({})}
 		{#if open}
 			<ResourceBoundary
-				resource={connection}
+				resource={farcasterUser}
 				placeholderText="Loading profile…"
 			>
 				{#snippet Pending()}{/snippet}
-				{#snippet children(connection)}
+				{#snippet children(farcasterUser)}
 					<p>
-						{#if connection.fields.bio != null && connection.fields.bio !== ''}
+						{#if farcasterUser.fields.bio != null && farcasterUser.fields.bio !== ''}
 							<TruncatedValue
-								value={connection.fields.bio}
+								value={farcasterUser.fields.bio}
 								format={TruncatedValueFormat.Visual}
 							/>
 						{:else}
@@ -161,49 +178,6 @@
 			</ResourceBoundary>
 		{/if}
 
-		<ResourceBoundary
-			resource={connection}
-			placeholderText="Loading profile…"
-		>
-			{#snippet Pending()}{/snippet}
-			{#snippet children(connection)}
-				<dl data-column-item="center">
-					{#if open && connection.fields.custody}
-						<div>
-							<dt>Custody</dt>
-							<dd>
-								<TruncatedValue
-									value={connection.fields.custody}
-									format={TruncatedValueFormat.Visual}
-								/>
-							</dd>
-						</div>
-					{/if}
-
-					{#if open && connection.fields.authMethod}
-						<div>
-							<dt>Auth method</dt>
-							<dd>
-								{#if connection.fields.authMethod !== undefined}
-									{blockheadFarcasterConnectionAuthMethodByAuthMethod[connection.fields.authMethod].label}
-								{/if}
-							</dd>
-						</div>
-					{/if}
-
-					{#if open && connection.fields.signedAt !== undefined}
-						<div>
-							<dt>Signed at</dt>
-							<dd>
-								<Timestamp
-									timestamp={connection.fields.signedAt}
-								/>
-							</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({
@@ -223,17 +197,17 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionFeed({ id: _feedId, label: _feedLabel })}
-				<FarcasterCastsView
-					CollapsibleProps={{ canToggle: false }}
-					href={resolve('/(social)/(farcaster)/farcaster/feed/user/[userId]', {
-						userId: String(selector.fid),
-					})}
-					selection={select(
+				{#snippet SectionFeed({ id: _feedId, label: _feedLabel })}
+					<FarcasterCastsView
+						CollapsibleProps={{ canToggle: false }}
+						href={resolve('/(social)/(farcaster)/farcaster/feed/user/[userId=farcasterFid]', {
+							userId: String(selection.entitySelector.fid),
+						})}
+						selection={select(
 						EntityType.FarcasterFeed,
 						{
 							variant: 'byUser',
-							fid: selector.fid,
+							fid: selection.entitySelector.fid,
 						}
 					).$$entries}
 					id={`${connectionSelectorKey}:feed-blockheadFarcasterAccountConnections`}

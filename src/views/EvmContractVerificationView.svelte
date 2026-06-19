@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -16,10 +17,10 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
-			caip2: `${selector.$contract.$network.caip2.namespace}:${selector.$contract.$network.caip2.reference}`,
-			address: selector.$contract.address,
+			caip2: `${selection.entitySelector.$contract.$network.caip2.namespace}:${selection.entitySelector.$contract.$network.caip2.reference}`,
+			address: selection.entitySelector.$contract.address,
 		}),
 		layout = EntityLayout.SummaryDetails,
 		summaryUsesHeading = (
@@ -32,7 +33,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.EvmContractVerification>
+			selection: EntityProxyResource<typeof schema, EntityType.EvmContractVerification>
 			href?: string
 			layout?: EntityLayout
 			summaryUsesHeading?: boolean
@@ -42,7 +43,8 @@
 		never
 	> = $props()
 
-	const verification = $derived(select(EntityType.EvmContractVerification, selector, {
+
+	const verification = $derived(selection( {
 		sources: [Source.Sourcify_Rest],
 	}))
 	const match = $derived(verification.match)
@@ -53,7 +55,7 @@
 	
 	
 	const verificationSelectorKey = $derived(
-		stringify(selector),
+		stringify(selection.entitySelector),
 	)
 
 
@@ -68,7 +70,7 @@
 
 <EntityView
 	entityType={EntityType.EvmContractVerification}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{layout}
 	bind:open
@@ -181,7 +183,7 @@
 				{#if compilation}
 					<section id={`${verificationSelectorKey}:compilation`}>
 						<EvmContractCompilationView
-							selector={compilation.entitySelector}
+							selection={select(EntityType.EvmContractCompilation, compilation.entitySelector)}
 							layout={EntityLayout.SummaryDetails}
 							open={true}
 						/>
@@ -195,7 +197,7 @@
 				{#if sourceBundle}
 					<section id={`${verificationSelectorKey}:source-bundle`}>
 						<EvmContractSourceBundleView
-							selector={sourceBundle.entitySelector}
+							selection={select(EntityType.EvmContractSourceBundle, sourceBundle.entitySelector)}
 							layout={EntityLayout.SummaryDetails}
 							open={true}
 						/>

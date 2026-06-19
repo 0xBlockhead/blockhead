@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.NearExecutionOutcome>
+			selection: EntityProxyResource<typeof schema, EntityType.NearExecutionOutcome>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -39,22 +41,22 @@
 
 <EntityView
 	entityType={EntityType.NearExecutionOutcome}
-	entitySelector={selector}
-	title={selector.outcomeId}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.outcomeId}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
 		<TruncatedValue
-			value={selector.outcomeId}
+			value={selection.entitySelector.outcomeId}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.NearExecutionOutcome, selector, ({ fields: { status: true, gasBurnt: true } }))}
+			resource={selection( { fields: { status: true, gasBurnt: true } })}
 			placeholderText={`Loading NEAR Execution Outcome...`}
 		>
 			{#snippet children(nearExecutionOutcome)}

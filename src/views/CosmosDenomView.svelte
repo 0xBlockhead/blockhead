@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.CosmosDenom>
+			selection: EntityProxyResource<typeof schema, EntityType.CosmosDenom>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -37,20 +39,19 @@
 
 <EntityView
 	entityType={EntityType.CosmosDenom}
-	entitySelector={selector}
-	title={selector.denom}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.denom}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
-		{selector.denom.toString()}
+		{selection.entitySelector.denom.toString()}
 	{/snippet}
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.CosmosDenom,
-					selector,
+			resource={selection(
 					({ fields: { display: true, base: true, symbol: true } }),
 				)}
 			placeholderText={`Loading Cosmos Denom...`}

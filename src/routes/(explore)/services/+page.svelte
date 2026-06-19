@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// Context
 	import { resolve } from '$app/paths'
 
@@ -12,7 +14,7 @@
 
 <Page>
 	<GlobalView
-		selector={{ scope: 'Services' }}
+		selection={select(EntityType._Global, { scope: 'Services' })}
 		title={'Services'}
 		href={resolve('/services')}
 	>

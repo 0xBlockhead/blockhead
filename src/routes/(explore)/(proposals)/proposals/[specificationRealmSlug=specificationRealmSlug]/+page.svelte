@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { specificationRealmBySlug } from '$/constants/SpecificationProposal.ts'
 
@@ -26,7 +28,7 @@
 <Page>
 	{#if selector !== undefined}
 		<SpecificationRealmView
-			selector={selector}
+			selection={select(EntityType.SpecificationRealm, selector)}
 			open
 		/>
 	{:else}

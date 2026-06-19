@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import { select } from '$/routes/+layout.svelte'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -16,18 +16,12 @@
 		title = 'Metric snapshots',
 		open = $bindable(false),
 	}: {
-		selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+		selection: EntityProxyEntitiesResource<typeof schema, EntityType.RedditLink_Timestamp>
 		href: string
 		id: string
 		title?: string
 		open?: boolean
 	} = $props()
-
-	
 
 
 	// Components
@@ -44,8 +38,8 @@
 	{id}
 	bind:open
 	{title}
->
-	{#snippet TypeAnnotationTooltip()}
+	>
+		{#snippet TypeAnnotationTooltip()}
 			<p>
 				Timestamped social metric snapshots captured from provider-visible counters.
 			</p>
@@ -55,9 +49,9 @@
 		{#if open}
 			<ResourceBoundary
 				resource={selection({
-						sources: [Source.Reddit_Rest, Source.Reddit_PublicJson],
-						limit: 64,
-					})}
+					sources: [Source.Constants_Internal],
+					limit: 64,
+				})}
 				placeholderText="Loading metric snapshots…"
 			>
 				{#snippet children(redditLinkTimestamps)}
@@ -72,7 +66,7 @@
 					>
 						{#snippet Item({ item })}
 							<RedditLink_TimestampView
-								selector={item.entitySelector}
+								selection={select(EntityType.RedditLink_Timestamp, item.entitySelector)}
 								{href}
 								layout={EntityLayout.Summary}
 

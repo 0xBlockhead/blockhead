@@ -1,16 +1,16 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
-	type LightningNodesResource = EntityProxyFieldResource<
+	type LightningNodesResource = EntityProxyEntitiesResource<
 		typeof schema,
-		EntityType.LightningNetwork,
-		'$$nodes'
+		EntityType.LightningNode
 	>
 
 	// State
@@ -39,7 +39,7 @@
 <EntitiesList entityType={EntityType.LightningNode} {title} bind:open {id} href={href} {...EntitiesListProps}>
 	{#snippet body()}
 		{#if open}
-			<ResourceBoundary {resource} placeholderText="Loading nodes…">
+			<ResourceBoundary resource={selection} placeholderText="Loading nodes…">
 				{#snippet children(nodes)}
 					<EntitiesList
 						collapsible={false}
@@ -50,13 +50,13 @@
 						getKey={(node) => node.entitySelector.publicKey}
 						getSortValue={(node) => node.entitySelector.publicKey}
 						open={true}
-						items={nodes.entities}
+						items={nodes.values}
 						{title}
 						UnorderedListProps={{ orientation: ListOrientation.Column }}
 					>
 						{#snippet Empty()}<p data-text="muted">No nodes listed yet.</p>{/snippet}
 						{#snippet Item({ item })}
-							<LightningNodeView selector={item.entitySelector} layout={EntityLayout.Summary} />
+							<LightningNodeView selection={select(EntityType.LightningNode, item.entitySelector)} layout={EntityLayout.Summary} />
 						{/snippet}
 					</EntitiesList>
 				{/snippet}

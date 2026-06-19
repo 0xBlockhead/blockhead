@@ -13,14 +13,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
 		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.UtxoTransaction>
-			selection?: EntityProxyResource<typeof schema, EntityType.UtxoTransaction>
+			selection: EntityProxyResource<typeof schema, EntityType.UtxoTransaction>
 			open?: boolean
 		},
 		Pick<
@@ -30,10 +28,8 @@
 		>
 	> = $props()
 
-	const transaction = $derived(selection ?? select(
-		EntityType.UtxoTransaction,
-		selector,
-		{
+
+	const transaction = $derived(selection({
 			sources: [
 				Source.Esplora_Rest,
 				Source.Blockchair_Rest,
@@ -64,21 +60,21 @@
 
 <EntityView
 	entityType={EntityType.UtxoTransaction}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={
-		'networkSlug' in selector.$network ?
-			`/network/${selector.$network.networkSlug}/transactions/${selector.txId}`
+		'slug' in selection.entitySelector.$network ?
+			`/network/${selection.entitySelector.$network.slug}/transactions/${selection.entitySelector.txId}`
 		:
-			`/network/${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}/transactions/${selector.txId}`
+			`/network/${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}/transactions/${selection.entitySelector.txId}`
 	}
-	title={selector.txId}
+	title={selection.entitySelector.txId}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
 		<TruncatedValue
-			value={selector.txId}
+			value={selection.entitySelector.txId}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}

@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -12,12 +13,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.ZcashShieldedAction>
+			selection: EntityProxyResource<typeof schema, EntityType.ZcashShieldedAction>
 			open?: boolean
 		},
 		Pick<
@@ -26,6 +27,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -39,16 +41,16 @@
 
 <EntityView
 	entityType={EntityType.ZcashShieldedAction}
-	entitySelector={selector}
-	title={`Shielded action #${selector.actionIndex.toString()}`}
-	idDragPlainText={selector.actionIndex.toString()}
+	entitySelector={selection.entitySelector}
+	title={`Shielded action #${selection.entitySelector.actionIndex.toString()}`}
+	idDragPlainText={selection.entitySelector.actionIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{selector.actionIndex.toString()}
+			#{selection.entitySelector.actionIndex.toString()}
 		</span>
 	{/snippet}
 
@@ -63,7 +65,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.ZcashShieldedAction, selector, ({ fields: { actionKind: true, ...(open && ({ valueCommitment: true })) } }))}
+			resource={selection( { fields: { actionKind: true, ...(open && ({ valueCommitment: true })) } })}
 			placeholderText="Loading Zcash shielded action…"
 		>
 			{#snippet children(zcashShieldedAction)}

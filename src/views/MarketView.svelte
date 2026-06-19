@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntitySelector } from '$/schema/$schema.ts'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 	import {
@@ -9,7 +9,7 @@
 		MarketKind,
 		marketKindByMarketKind,
 	} from '$/constants/Market.ts'
-	import { marketDerivativeObservationSources } from '$/sources/Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -25,35 +25,30 @@
 
 	// State
 	let {
-		selector,
-			href = resolve(
-				'/(assets)/(markets)/market/[marketKey]',
-				{
-					marketKey: encodeURIComponent(stringify(selector)),
-				},
-			),
-			open = $bindable(true),
-			collapsible = true,
-			...EntityViewProps
+		selection,
+		href,
+		open = $bindable(true),
+		collapsible = true,
+		...EntityViewProps
 	}: WithRest<
 		{
-				selector: EntitySelector<typeof schema, EntityType.Market>
-				href?: string
-				open?: boolean
-				collapsible?: boolean
-			},
-			Pick<
-				ComponentProps<typeof EntityView>,
-				| 'id'
-				| 'layout'
-				| 'showTypeAnnotation'
-			>
-		> = $props()
+			selection: EntityProxyResource<typeof schema, EntityType.Market>
+			href?: string
+			open?: boolean
+			collapsible?: boolean
+		},
+		Pick<
+			ComponentProps<typeof EntityView>,
+			| 'id'
+			| 'layout'
+			| 'showTypeAnnotation'
+		>
+	> = $props()
 
 
 	// Functions
 	const marketAssetSymbol = (
-		leg: typeof selector.$base,
+		leg: typeof selection.entitySelector.$base,
 	) => (
 		leg.kind === MarketAssetKind.Coin ?
 			leg.$coin.coinId
@@ -65,9 +60,6 @@
 		:
 			leg.$currency.iso4217
 	)
-
-
-	
 
 
 	// Components
@@ -86,118 +78,125 @@
 
 <EntityView
 	entityType={EntityType.Market}
-		entitySelector={selector}
-		href={href}
-		{open}
-		{collapsible}
+	entitySelector={selection.entitySelector}
+	href={href ?? resolve(
+		'/(assets)/(markets)/market/[marketKey]',
+		{
+			marketKey: encodeURIComponent(stringify(selection.entitySelector)),
+		},
+	)}
+	{open}
+	{collapsible}
 	{...EntityViewProps}
 	title={
-		selector.marketKind === MarketKind.Spot ?
-			`${selector.$marketVenue.marketVenueId}:${marketAssetSymbol(selector.$base)}-${marketAssetSymbol(selector.$quote)}`
+		selection.entitySelector.marketKind === MarketKind.Spot ?
+			`${selection.entitySelector.$marketVenue.marketVenueId}:${marketAssetSymbol(selection.entitySelector.$base)}-${marketAssetSymbol(selection.entitySelector.$quote)}`
 		:
-			`${selector.$marketVenue.marketVenueId}:${marketAssetSymbol(selector.$base)}-${marketAssetSymbol(selector.$quote)} (${marketKindByMarketKind[selector.marketKind].label})`
+			`${selection.entitySelector.$marketVenue.marketVenueId}:${marketAssetSymbol(selection.entitySelector.$base)}-${marketAssetSymbol(selection.entitySelector.$quote)} (${marketKindByMarketKind[selection.entitySelector.marketKind].label})`
 	}
 >
 	{#snippet Content({})}
 		<dl data-column-item="center">
 			<div>
 				<dt>Kind</dt>
-				<dd>{marketKindByMarketKind[selector.marketKind].label}</dd>
+				<dd>{marketKindByMarketKind[selection.entitySelector.marketKind].label}</dd>
 			</div>
 			<div>
 				<dt>Venue</dt>
 				<dd>
 					<MarketVenueView
-						selector={selector.$marketVenue}
+						selection={select(EntityType.MarketVenue, selection.entitySelector.$marketVenue)}
 						layout={EntityLayout.Value}
 						showTypeAnnotation={false}
 						open={false}
-						/>
+					/>
 				</dd>
 			</div>
-				{#if selector.marketKind !== MarketKind.Spot}
-					<ResourceBoundary resource={select(EntityType.Market, selector, ({ sources: (
-							[...marketDerivativeObservationSources]
-						), fields: { ...(open && ({ $$derivativeTimestamps: ({ sources: [
-										...marketDerivativeObservationSources,
-									], limit: 64 }) })) } }))}>
-						{#snippet children(market)}
-							{@const derivativeTimestamp = market.fields.$$derivativeTimestamps.values.at(0)}
-							{#if derivativeTimestamp != null}
-								<div>
-									<dt>Latest derivative observation</dt>
-									<dd>
-										<Market_Derivative_TimestampView
-											selector={derivativeTimestamp[EntityMetaKey.Selector]}
-											layout={EntityLayout.Value}
-
-											showTypeAnnotation={false}
-										/>
-									</dd>
-								</div>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/if}
+			{#if selection.entitySelector.marketKind !== MarketKind.Spot}
+				<ResourceBoundary
+					resource={selection.$$derivativeTimestamps({
+						sources: [
+							Source.Coingecko_OpenApi,
+						],
+						limit: 64,
+					})}
+				>
+					{#snippet children(derivativeTimestamps)}
+						{@const derivativeTimestamp = derivativeTimestamps.values.at(0)}
+						{#if derivativeTimestamp != null}
+							<div>
+								<dt>Latest derivative observation</dt>
+								<dd>
+									<Market_Derivative_TimestampView
+										selection={select(EntityType.Market_Derivative_Timestamp, derivativeTimestamp[EntityMetaKey.Selector])}
+										layout={EntityLayout.Value}
+										showTypeAnnotation={false}
+									/>
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
 			<div>
 				<dt>Base</dt>
 				<dd>
-					{#if selector.$base.kind === MarketAssetKind.Coin}
+					{#if selection.entitySelector.$base.kind === MarketAssetKind.Coin}
 						<CoinView
-							selector={selector.$base.$coin}
+							selection={select(EntityType.Coin, selection.entitySelector.$base.$coin)}
 							layout={EntityLayout.Value}
 							showTypeAnnotation={false}
 							open={false}
-							/>
-					{:else if selector.$base.kind === MarketAssetKind.CoinInstance}
-						{#if '$contract' in selector.$base.$coinInstance && selector.$base.$coinInstance.$network.caip2.namespace === 'eip155'}
+						/>
+					{:else if selection.entitySelector.$base.kind === MarketAssetKind.CoinInstance}
+						{#if '$contract' in selection.entitySelector.$base.$coinInstance && selection.entitySelector.$base.$coinInstance.$network.caip2.namespace === 'eip155'}
 							<EvmCoinInstanceView
-								selector={selector.$base.$coinInstance}
+								selection={select(EntityType.EvmCoinInstance, selection.entitySelector.$base.$coinInstance)}
 								layout={EntityLayout.Value}
 								showTypeAnnotation={false}
 								open={false}
-								/>
+							/>
 						{:else}
 							<span>Native currency</span>
 						{/if}
 					{:else}
 						<CurrencyView
-							selector={selector.$base.$currency}
+							selection={select(EntityType.Currency, selection.entitySelector.$base.$currency)}
 							layout={EntityLayout.Value}
 							showTypeAnnotation={false}
 							open={false}
-							/>
+						/>
 					{/if}
 				</dd>
 			</div>
 			<div>
 				<dt>Quote</dt>
 				<dd>
-					{#if selector.$quote.kind === MarketAssetKind.Coin}
+					{#if selection.entitySelector.$quote.kind === MarketAssetKind.Coin}
 						<CoinView
-							selector={selector.$quote.$coin}
+							selection={select(EntityType.Coin, selection.entitySelector.$quote.$coin)}
 							layout={EntityLayout.Value}
 							showTypeAnnotation={false}
 							open={false}
-							/>
-					{:else if selector.$quote.kind === MarketAssetKind.CoinInstance}
-						{#if '$contract' in selector.$quote.$coinInstance && selector.$quote.$coinInstance.$network.caip2.namespace === 'eip155'}
+						/>
+					{:else if selection.entitySelector.$quote.kind === MarketAssetKind.CoinInstance}
+						{#if '$contract' in selection.entitySelector.$quote.$coinInstance && selection.entitySelector.$quote.$coinInstance.$network.caip2.namespace === 'eip155'}
 							<EvmCoinInstanceView
-								selector={selector.$quote.$coinInstance}
+								selection={select(EntityType.EvmCoinInstance, selection.entitySelector.$quote.$coinInstance)}
 								layout={EntityLayout.Value}
 								showTypeAnnotation={false}
 								open={false}
-								/>
+							/>
 						{:else}
 							<span>Native currency</span>
 						{/if}
 					{:else}
 						<CurrencyView
-							selector={selector.$quote.$currency}
+							selection={select(EntityType.Currency, selection.entitySelector.$quote.$currency)}
 							layout={EntityLayout.Value}
 							showTypeAnnotation={false}
 							open={false}
-							/>
+						/>
 					{/if}
 				</dd>
 			</div>
@@ -207,16 +206,13 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{@const marketSelectorKey = stringify(selector)}
-		{#if selector.marketKind === MarketKind.Spot}
+		{@const marketSelectorKey = stringify(selection.entitySelector)}
+		{#if selection.entitySelector.marketKind === MarketKind.Spot}
 			<section data-scroll-marker-label="Spot">
 				<MarketPricesView
 					href={resolve('/markets')}
 					collapsible={false}
-					selection={select(
-			EntityType.Market,
-			selector
-		).$$marketPrices}
+					selection={selection.$$marketPrices}
 					id={`${marketSelectorKey}:market-prices`}
 					title="Spot"
 				/>
@@ -226,16 +222,13 @@
 				<MarketOhlcHub
 					candlesListTitle="Candles"
 					id={`${marketSelectorKey}:market-ohlc`}
-					market={selector}
+					market={selection.entitySelector}
 				/>
 			</section>
 		{:else}
 			<section data-scroll-marker-label="Derivative observations">
 				<Market_Derivative_TimestampsView
-					selection={select(
-			EntityType.Market,
-			selector
-		).$$derivativeTimestamps}
+					selection={selection.$$derivativeTimestamps}
 					id={`${marketSelectorKey}:market-derivative-timestamps`}
 					open={true}
 				/>

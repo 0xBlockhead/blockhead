@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -17,9 +18,9 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/(social)/(youtube)/youtube/playlist/[playlistId]', {
-			playlistId: selector.playlistId,
+			playlistId: selection.entitySelector.playlistId,
 		}),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(
@@ -28,7 +29,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.YouTubePlaylist>
+			selection: EntityProxyResource<typeof schema, EntityType.YouTubePlaylist>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -39,14 +40,13 @@
 		>
 	> = $props()
 
+
 	const playlist = $derived(
-		select(
-			EntityType.YouTubePlaylist,
-			selector,
-			({ sources: [
-				Source.Youtube_Rest,
-				Source.Piped_Rest,
-			], fields: {
+			selection(({ sources: [
+					Source.Constants_Internal,
+					Source.Youtube_Rest,
+					Source.Piped_Rest,
+				], fields: {
 				title: true,
 				description: true,
 				$$timestamps: ({ sources: [
@@ -66,7 +66,7 @@
 		)
 	)
 
-	const idKey = $derived(stringify(selector))
+	const idKey = $derived(stringify(selection.entitySelector))
 
 
 	// Components
@@ -85,7 +85,7 @@
 
 <EntityView
 	entityType={EntityType.YouTubePlaylist}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{layout}
 	bind:open
@@ -93,7 +93,7 @@
 >
 	{#snippet Value()}
 		<span>
-			{selector.playlistId}
+			{selection.entitySelector.playlistId}
 		</span>
 	{/snippet}
 
@@ -103,7 +103,7 @@
 			placeholderText="Loading playlist…"
 		>
 			{#snippet children(playlist)}
-				{playlist.fields.title ?? selector.playlistId}
+				{playlist.fields.title ?? selection.entitySelector.playlistId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -147,7 +147,7 @@
 							metrics={[
 								{
 									label: 'Items',
-									value: playlist.fields.$$timestamps.values.at(0)?.itemCount,
+									resource: playlist.fields.$$timestamps.values.at(0)?.itemCount,
 								},
 							]}
 						/>
@@ -169,7 +169,7 @@
 								<dt>Channel</dt>
 								<dd>
 									<YouTubeChannelView
-										selector={playlist.fields.$channel[EntityMetaKey.Selector]}
+										selection={select(EntityType.YouTubeChannel, playlist.fields.$channel[EntityMetaKey.Selector])}
 										layout={EntityLayout.Value}
 
 										open={false}
@@ -211,10 +211,7 @@
 			{#snippet SectionVideos()}
 				<YouTubeVideosView
 					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.YouTubePlaylist,
-			selector
-		).$$videos}
+					selection={selection.$$videos}
 					id={`${idKey}:youtube-videos`}
 					open={_open}
 				/>
@@ -222,10 +219,7 @@
 
 			{#snippet SectionMetricSnapshots()}
 				<YouTubePlaylist_TimestampsView
-					selection={select(
-			EntityType.YouTubePlaylist,
-			selector
-		).$$timestamps}
+					selection={selection.$$timestamps}
 					href={href}
 					id={`${idKey}:metric-snapshots`}
 					title="Metric snapshots"

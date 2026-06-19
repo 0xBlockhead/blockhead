@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { networkEnvironmentByEnvironment } from '$/constants/Network.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -13,21 +14,22 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		selector: EntitySelector<typeof schema, EntityType.FilecoinNetwork>
+		selection: EntityProxyResource<typeof schema, EntityType.FilecoinNetwork>
 		href?: string
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
+
 	const network = $derived(
 		select(
 			EntityType.Network,
-			selector.$network,
+			selection.entitySelector.$network,
 			{
 				sources: [
 					Source.Constants_Internal,
@@ -43,10 +45,7 @@
 	)
 
 	const filecoinNetwork = $derived(
-		select(
-			EntityType.FilecoinNetwork,
-			selector,
-			{
+		selection({
 				sources: [
 					Source.Lotus_JsonRpc,
 					Source.Filfox_Rest,
@@ -67,7 +66,7 @@
 
 	// (Derived)
 	const networkSelectorKey = $derived(
-		stringify(selector),
+		stringify(selection.entitySelector),
 	)
 
 
@@ -88,7 +87,7 @@
 
 <EntityView
 	entityType={EntityType.Network}
-	entitySelector={selector.$network}
+	entitySelector={selection.entitySelector.$network}
 	{href}
 	bind:open
 	{layout}
@@ -127,17 +126,24 @@
 				<dl class="network-summary-head" data-column-item="center">
 					<ResourceBoundary resource={filecoinNetwork}>
 						{#snippet children(filecoinNetwork)}
-							{@const latestTimestamp = filecoinNetwork.fields.$$timestamps.entities[0]}
-							{#if latestTimestamp != null}
+							{@const latestTimestamp = filecoinNetwork.fields.$$timestamps.values[0]}
+							{#if latestTimestamp !== undefined}
 								<div>
 									<dt>Head tipset</dt>
 									<dd id="network-summary-head-block">
-										{#if latestTimestamp.fields.$headTipset != null}
-											<FilecoinTipsetView
-												selector={latestTimestamp.fields.$headTipset[EntityMetaKey.Selector]}
-												layout={EntityLayout.Value}
-											/>
-										{/if}
+										<ResourceBoundary
+											resource={latestTimestamp}
+											placeholderText="Loading Filecoin timestamp…"
+										>
+											{#snippet children(latestTimestamp)}
+												{#if latestTimestamp.fields.$headTipset != null}
+													<FilecoinTipsetView
+														selection={select(EntityType.FilecoinTipset, latestTimestamp.fields.$headTipset[EntityMetaKey.Selector])}
+														layout={EntityLayout.Value}
+													/>
+												{/if}
+											{/snippet}
+										</ResourceBoundary>
 									</dd>
 								</div>
 							{/if}
@@ -185,10 +191,7 @@
 			{#snippet SectionFilecoinTipsets({ id, label }: { id: string, label: string })}
 				<FilecoinTipsetsView
 					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.FilecoinNetwork,
-			selector
-		).$$tipsets}
+					selection={selection.$$tipsets}
 					href={href == null ? '' : `${href}/blocks`}
 					id={`${id}-list`}
 					title={label}
@@ -198,10 +201,7 @@
 			{#snippet SectionFilecoinNetworkSnapshots({ id, label }: { id: string, label: string })}
 				<FilecoinNetwork_TimestampsView
 					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.FilecoinNetwork,
-			selector
-		).$$timestamps}
+					selection={selection.$$timestamps}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -217,7 +217,7 @@
 					]}
 					id={`${id}-list`}
 					listEntityType={EntityType.FilecoinNetwork}
-					parentEntitySelector={selector}
+					parentEntitySelector={selection.entitySelector}
 					parentEntityType={EntityType.FilecoinNetwork}
 					title={label}
 				/>
@@ -282,7 +282,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					selection={select(
 			EntityType.Network,
-			selector.$network
+			selection.entitySelector.$network
 		).$$nativeAssets}
 					id={`${id}-list`}
 					title={label}
@@ -312,7 +312,7 @@
 					emptyText="No faucets listed for this network yet."
 					selection={select(
 			EntityType.Network,
-			selector.$network
+			selection.entitySelector.$network
 		).$$faucetUrls}
 					fieldSources={[
 						Source.Constants_Internal,
@@ -329,7 +329,7 @@
 					emptyText="No block explorers listed for this network yet."
 					selection={select(
 			EntityType.Network,
-			selector.$network
+			selection.entitySelector.$network
 		).$$blockExplorerUrls}
 					fieldSources={[
 						Source.Constants_Internal,

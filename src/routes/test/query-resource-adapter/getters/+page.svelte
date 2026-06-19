@@ -131,7 +131,7 @@
 			isLoading: false,
 			isError: false,
 			isReady: true,
-			status: 'disabled',
+			status: 'ready',
 		})}
 	>
 		Adapter disabled ready

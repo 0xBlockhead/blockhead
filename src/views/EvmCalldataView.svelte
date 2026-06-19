@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -14,23 +15,24 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve(
 			'/(explore)/(evm)/evm/(calldata)/calldata/[hex]',
-			{ hex: selector.hex },
+			{ hex: selection.entitySelector.hex },
 		),
 		title = 'Calldata',
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.EvmCalldata>
+			selection: EntityProxyResource<typeof schema, EntityType.EvmCalldata>
 			href?: string
 			title?: string
 			open?: boolean
 		},
 		never
 	> = $props()
+
 
 	// Components
 	import EntityView from '$/components/EntityView.svelte'
@@ -40,16 +42,16 @@
 
 <EntityView
 	entityType={EntityType.EvmCalldata}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{title}
-	idDragPlainText={stringify(selector)}
+	idDragPlainText={stringify(selection.entitySelector)}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{selector.hex}
+			{selection.entitySelector.hex}
 		</span>
 	{/snippet}
 
@@ -73,14 +75,14 @@
 			<dl data-column-item="center">
 				<div>
 					<dt>Contract call data length</dt>
-						<dd>{String((selector.hex.length - 2) / 2)} bytes</dd>
+						<dd>{String((selection.entitySelector.hex.length - 2) / 2)} bytes</dd>
 					</div>
 					{#if open}
 						<div>
 							<dt>Call/input data (<code>msg.data</code>)</dt>
 							<dd>
 								<TruncatedValue
-									value={selector.hex}
+									value={selection.entitySelector.hex}
 									format={TruncatedValueFormat.Visual}
 								/>
 							</dd>

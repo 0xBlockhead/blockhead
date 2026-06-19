@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -17,15 +18,15 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/(social)/(atproto)/atproto/post/[...uri]', {
-			uri: encodeURIComponent(selector.uri),
+			uri: encodeURIComponent(selection.entitySelector.uri),
 		}),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.AtprotoPost>
+			selection: EntityProxyResource<typeof schema, EntityType.AtprotoPost>
 			href?: string
 			open?: boolean
 		},
@@ -36,53 +37,32 @@
 		>
 	> = $props()
 
-	const idKey = $derived(stringify(selector))
 
-	const post = $derived(select(EntityType.AtprotoPost,
-		selector,
+	const idKey = $derived(stringify(selection.entitySelector))
+
+	const post = $derived(selection(
 			{
-				sources: [
-					Source.Atproto_Xrpc,
-				],
-			fields: {
-				text: true,
-				createdAt: true,
-				...(open && {
+					sources: [
+						Source.Constants_Internal,
+					],
+				fields: {
 					$author: true,
-					$parent: true,
-					$root: true,
-					indexedAt: true,
-					$$timestamps: {
-						sources: [
-							Source.Atproto_Xrpc,
-						],
-						limit: 1,
-					},
-					langs: true,
-					selfLabelValues: true,
-				}),
+				},
 			},
-		},
-	))
+		))
 
 
 	// Components
 	import AtprotoActorView from '$/views/AtprotoActorView.svelte'
-	import AtprotoPost_TimestampsView from '$/views/AtprotoPost_TimestampsView.svelte'
-	import AtprotoPostThreadView from '$/views/AtprotoPostThreadView.svelte'
-	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import SocialMetricSnapshotRows from '$/views/SocialMetricSnapshotRows.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.AtprotoPost}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
@@ -92,50 +72,25 @@
 			endLength={12}
 			format={TruncatedValueFormat.Visual}
 			startLength={20}
-			value={selector.uri}
+			value={selection.entitySelector.uri}
 		/>
 	{/snippet}
 
 	{#snippet Title()}
 		<ResourceBoundary
 			resource={post}
-			placeholderText="Loading post…"
-		>
-			{#snippet children(post)}
-				{#if post.fields.text}
-					<TruncatedValue
-						endLength={8}
-						format={TruncatedValueFormat.Visual}
-						startLength={88}
-						value={post.fields.text}
-					/>
-					{:else}
-						<span data-text="font-monospace">
-							<TruncatedValue
-								value={selector.uri}
-								format={TruncatedValueFormat.Visual}
-							/>
-						</span>
-					{/if}
-				{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet HeadingAfter()}
-		<ResourceBoundary
-			resource={post}
-		>
-			{#snippet children(post)}
-				{#if post.fields.createdAt}
-					<span data-text="muted">
-						<Timestamp
-							timestamp={post.fields.createdAt}
+				placeholderText="Loading post…"
+			>
+				{#snippet children(post)}
+					<span data-text="font-monospace">
+						<TruncatedValue
+							value={selection.entitySelector.uri}
+							format={TruncatedValueFormat.Visual}
 						/>
 					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
+					{/snippet}
+			</ResourceBoundary>
+		{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -150,202 +105,25 @@
 	})}
 		<ResourceBoundary
 			resource={post}
-			placeholderText="Loading post…"
-		>
-			{#snippet children(post)}
-				{#if post.fields.text}
-					<p>
-						<TruncatedValue
-							value={post.fields.text}
-							format={TruncatedValueFormat.Visual}
-						/>
-					</p>
-				{/if}
-
-				<dl data-column-item="center">
-					{#if post.fields.createdAt}
-						<div>
-							<dt>Published</dt>
-							<dd>
-								<Timestamp
-									timestamp={post.fields.createdAt}
-								/>
-							</dd>
-						</div>
-					{/if}
-
-					{#if contentOpen && post.fields.$author}
-						<div>
-							<dt>Author</dt>
+				placeholderText="Loading post…"
+			>
+				{#snippet children(post)}
+					<dl data-column-item="center">
+						{#if contentOpen && post.fields.$author}
+							<div>
+								<dt>Author</dt>
 							<dd>
 								<AtprotoActorView
-									selector={post.fields.$author[EntityMetaKey.Selector]}
+									selection={select(EntityType.AtprotoActor, post.fields.$author[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 									open={false}
 									/>
-							</dd>
-						</div>
-					{/if}
-
-					{#if contentOpen && post.fields.$parent}
-						<div>
-							<dt>Reply to</dt>
-							<dd>
-								<a
-									href={resolve('/(social)/(atproto)/atproto/post/[...uri]', {
-										uri: encodeURIComponent(post.fields.$parent[EntityMetaKey.Selector].uri),
-									})}
-								>
-									<TruncatedValue
-										value={post.fields.$parent[EntityMetaKey.Selector].uri}
-										format={TruncatedValueFormat.Visual}
-									/>
-								</a>
-							</dd>
-						</div>
-					{/if}
-
-					{#if contentOpen && post.fields.$root && post.fields.$root[EntityMetaKey.Selector].uri !== post.fields.$parent?.[EntityMetaKey.Selector].uri}
-						<div>
-							<dt>Thread root</dt>
-							<dd>
-								<a
-									href={resolve('/(social)/(atproto)/atproto/post/[...uri]', {
-										uri: encodeURIComponent(post.fields.$root[EntityMetaKey.Selector].uri),
-									})}
-								>
-									<TruncatedValue
-										value={post.fields.$root[EntityMetaKey.Selector].uri}
-										format={TruncatedValueFormat.Visual}
-									/>
-								</a>
-							</dd>
-						</div>
-					{/if}
-
-					{#if contentOpen}
-						<SocialMetricSnapshotRows
-							metrics={[
-									{
-										label: 'Replies',
-										value: post.fields.$$timestamps.values.at(0)?.replyCount,
-									},
-									{
-										label: 'Reposts',
-										value: post.fields.$$timestamps.values.at(0)?.repostCount,
-									},
-									{
-										label: 'Likes',
-										value: post.fields.$$timestamps.values.at(0)?.likeCount,
-									},
-									{
-										label: 'Quotes',
-										value: post.fields.$$timestamps.values.at(0)?.quoteCount,
-									},
-							]}
-						/>
-					{/if}
-
-					{#if contentOpen && post.fields.langs?.length}
-						<div>
-							<dt>Languages</dt>
-							<dd>{post.fields.langs.join(', ')}</dd>
-						</div>
-					{/if}
-
-					{#if contentOpen && post.fields.selfLabelValues?.length}
-						<div>
-							<dt>Self labels</dt>
-							<dd>{post.fields.selfLabelValues.join(', ')}</dd>
-						</div>
-					{/if}
-
-					{#if contentOpen && post.fields.indexedAt}
-						<div>
-							<dt>Indexed</dt>
-							<dd>
-								<Timestamp
-									timestamp={post.fields.indexedAt}
-								/>
-							</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Details({
-		open: _open,
-	})}
-		{#if _open}
-			<CollapsibleTabs
-				id={`${idKey}:carousel-post`}
-				sectionIdPrefix={idKey}
-					sections={collapsibleTabsSections([
-						{ id: 'thread', label: 'Thread' },
-						{ id: 'repository', label: 'Repository' },
-						{ id: 'metric-snapshots', label: 'Metrics' },
-					])}
-				data-card
-			>
-				{#snippet Summary({ open: _postSummaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Thread & repository
-						</HeadingComponent>
-					</header>
+								</dd>
+							</div>
+						{/if}
+					</dl>
 				{/snippet}
-
-			{#snippet SectionThread()}
-				<header
-					data-row-item="flexible"
-					data-row="wrap gap-4"
-				>
-					<HeadingComponent>
-						Thread
-					</HeadingComponent>
-				</header>
-
-				<AtprotoPostThreadView
-					selection={select(
-			EntityType.AtprotoPost,
-			selector
-		).$$thread}
-					id={`${idKey}:thread-atprotoPosts`}
-					open={true}
-					title="Thread"
-				/>
-			{/snippet}
-
-			{#snippet SectionRepository()}
-				<header
-				data-row-item="flexible"
-				data-row="wrap gap-4"
-			>
-				<HeadingComponent>
-					Repository
-				</HeadingComponent>
-			</header>
-
-			{/snippet}
-
-			{#snippet SectionMetricSnapshots()}
-				<AtprotoPost_TimestampsView
-					selection={select(
-			EntityType.AtprotoPost,
-			selector
-		).$$timestamps}
-					href={href}
-					id={`${idKey}:metric-snapshots`}
-					title="Metric snapshots"
-				/>
-			{/snippet}
-			</CollapsibleTabs>
-		{/if}
-			{/snippet}
-	</EntityView>
+			</ResourceBoundary>
+		{/snippet}
+		</EntityView>

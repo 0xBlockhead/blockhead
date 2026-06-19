@@ -2,7 +2,7 @@
 	"name": "blockhead-2026",
 	"private": true,
 	"version": "0.0.1",
-	"packageManager": "pnpm@11.5.0",
+	"packageManager": "pnpm@11.7.0",
 	"type": "module",
 	"scripts": {
 		"dev": "pnpm exec dotenvx run -f .env.local -- vite dev",
@@ -16,8 +16,8 @@
 		"lint": "./node_modules/.bin/oxlint && node scripts/check-ts-formatting.mjs && ./node_modules/.bin/tsx scripts/check-svelte-formatting.ts",
 		"lint:formatting": "node scripts/check-ts-formatting.mjs",
 		"lint:svelte-formatting": "./node_modules/.bin/tsx scripts/check-svelte-formatting.ts",
-		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.svelte-check.json",
-		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.svelte-check.json --watch",
+		"check": "svelte-kit sync && svelte-check --incremental --tsconfig ./tsconfig.svelte-check.json",
+		"check:watch": "svelte-kit sync && svelte-check --incremental --tsconfig ./tsconfig.svelte-check.json --watch",
 		"check:e2e": "svelte-kit sync && tsc --project ./tsconfig.e2e.json",
 		"sources:graphql": "pnpm exec tsx scripts/graphql-source.ts",
 		"sources:graphql:check": "pnpm exec tsx scripts/graphql-source.ts check",
@@ -32,8 +32,8 @@
 		"test:e2e:boundaries": "playwright test tests/e2e/boundary-updates.e2e.ts --workers=4",
 		"test:e2e:failfast": "playwright test tests/e2e/route-errors-failfast.e2e.ts",
 		"test:e2e:cors": "playwright test tests/e2e/cors-policy.e2e.ts",
-		"test:e2e:persistence": "PLAYWRIGHT_DEDICATED_SERVER=1 E2E_REAL_PERSISTENCE_PATHS=/network/eip155:1 playwright test tests/e2e/tanstack-db-persistence.e2e.ts",
-		"test:e2e:persistence:full": "PLAYWRIGHT_DEDICATED_SERVER=1 playwright test tests/e2e/tanstack-db-persistence.e2e.ts"
+		"test:e2e:persistence": "PLAYWRIGHT_DEDICATED_SERVER=1 playwright test tests/e2e/tanstack-db-persistence.e2e.ts",
+		"test:e2e:persistence:probe": "PLAYWRIGHT_DEDICATED_SERVER=1 E2E_PROBE_PATH=/network/eip155:1 playwright test tests/e2e/tanstack-db-persistence.e2e.ts"
 	},
 	"devDependencies": {
 		"@dotenvx/dotenvx": "^1.69.2",
@@ -43,8 +43,8 @@
 		"@sveltejs/kit": "^2.61.1",
 		"@sveltejs/mcp": "^0.1.23",
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
-		"@types/node": "^25.9.1",
 		"@types/insane": "^1.0.0",
+		"@types/node": "^25.9.1",
 		"@vitest/browser-playwright": "^4.1.7",
 		"autoprefixer": "^10.5.0",
 		"openapi-typescript": "^7.13.0",

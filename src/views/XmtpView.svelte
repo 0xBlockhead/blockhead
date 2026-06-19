@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -16,14 +17,14 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/xmtp'),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.XmtpNetwork>
+			selection: EntityProxyResource<typeof schema, EntityType.XmtpNetwork>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -34,7 +35,10 @@
 		>
 	> = $props()
 
-	const networkSelectorKey = stringify(selector)
+
+	const networkSelectorKey = $derived(
+		stringify(selection.entitySelector)
+	)
 
 	
 
@@ -51,7 +55,7 @@
 
 <EntityView
 	entityType={EntityType.XmtpNetwork}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
 	{collapsible}
@@ -83,7 +87,7 @@
 		<dl data-column-item="center">
 			{#if contentOpen}
 				<ResourceBoundary
-					resource={select(EntityType.XmtpNetwork, selector, ({ sources: [Source.Constants_Internal], fields: { protocolName: true, homeUrl: true, docsUrl: true, registryLabel: true, topology: true, $$xmtpConversations: ({ sources: [Source.Local_Internal] }) } }))}
+					resource={selection( { sources: [Source.Constants_Internal], fields: { protocolName: true, homeUrl: true, docsUrl: true, registryLabel: true, topology: true, $$xmtpConversations: ({ sources: [Source.Local_Internal] }) } })}
 					placeholderText="Loading XMTP network…"
 				>
 					{#snippet children(network)}

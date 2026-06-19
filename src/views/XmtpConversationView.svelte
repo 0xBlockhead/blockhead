@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -16,17 +17,17 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve(
 			'/(social)/(xmtp)/xmtp/(conversations)/conversation/[conversationId]',
-			{ conversationId: selector.id },
+			{ conversationId: selection.entitySelector.id },
 		),
 		title: titleProp,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.XmtpConversation>
+			selection: EntityProxyResource<typeof schema, EntityType.XmtpConversation>
 			href?: string
 			title?: string
 			open?: boolean
@@ -37,9 +38,10 @@
 		>
 	> = $props()
 
-	const conversation = $derived(select(EntityType.XmtpConversation, selector, ({ sources: [
+
+	const conversation = $derived(selection( { sources: [
 				Source.Local_Internal,
-			], fields: { peerInboxId: true, topic: true, createdAtMs: true, consentState: true } })))
+			], fields: { peerInboxId: true, topic: true, createdAtMs: true, consentState: true } }))
 
 
 	// Components
@@ -52,7 +54,7 @@
 
 <EntityView
 	entityType={EntityType.XmtpConversation}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
 	title={titleProp ?? 'Conversation'}
@@ -60,7 +62,7 @@
 >
 	{#snippet Value()}
 		<TruncatedValue
-			value={selector.id}
+			value={selection.entitySelector.id}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -83,7 +85,7 @@
 					/>
 				{:else}
 					<TruncatedValue
-						value={selector.id}
+						value={selection.entitySelector.id}
 						format={TruncatedValueFormat.Visual}
 					/>
 				{/if}
@@ -176,10 +178,5 @@
 				</div>
 			{/if}
 		</dl>
-	{/snippet}
-
-	{#snippet Details({
-		open: _open,
-	})}
 	{/snippet}
 </EntityView>

@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -12,16 +13,17 @@
 	import { select } from '$/routes/+layout.svelte'
 
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.HyperliquidValidator>
+			selection: EntityProxyResource<typeof schema, EntityType.HyperliquidValidator>
 			open?: boolean
 		},
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
+
 
 	
 
@@ -36,18 +38,18 @@
 
 <EntityView
 	entityType={EntityType.HyperliquidValidator}
-	entitySelector={selector}
-	title={selector.validator}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.validator}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{selector.validator.toString()}
+		{selection.entitySelector.validator.toString()}
 	{/snippet}
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.HyperliquidValidator, selector, ({ fields: { name: true, $signer: true, commission: true, recentBlockCount: true, isActive: true, stake: true, isJailed: true } }))}
+			resource={selection( { fields: { name: true, $signer: true, commission: true, recentBlockCount: true, isActive: true, stake: true, isJailed: true } })}
 			placeholderText={`Loading Hyperliquid Validator...`}
 		>
 			{#snippet children(hyperliquidValidator)}
@@ -64,7 +66,7 @@
 							<dt>Signer</dt>
 							<dd>
 								<HyperliquidAccountView
-									selector={hyperliquidValidator.fields.$signer[EntityMetaKey.Selector]}
+									selection={select(EntityType.HyperliquidAccount, hyperliquidValidator.fields.$signer[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 								/>

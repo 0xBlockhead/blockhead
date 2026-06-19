@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		params,
@@ -13,9 +15,9 @@
 
 <Page>
 	<LeverageView
-		selector={{
+		selection={select(EntityType.Leverage, {
 			$network: { caip2: { namespace: 'eip155' as const, reference: String(1) } },
 			id: params.positionId,
-		}}
+		})}
 	/>
 </Page>

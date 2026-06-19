@@ -1,11 +1,15 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntitySelector } from '$/schema/$schema.ts'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntitySelectorForSelectorName } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { SolanaInstructionKind } from '$/schema/SolanaInstruction.ts'
+	import {
+		SolanaInstructionKind,
+		SolanaInstructionSelector,
+	} from '$/schema/SolanaInstruction.ts'
 	import { schema } from '$/schema/index.ts'
 
 
@@ -13,22 +17,33 @@
 	import { select } from '$/routes/+layout.svelte'
 
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.SolanaInstruction>
+			selection: EntityProxyResource<typeof schema, EntityType.SolanaInstruction> & {
+				entitySelector: (
+					| EntitySelectorForSelectorName<typeof schema, EntityType.SolanaInstruction, SolanaInstructionSelector.SolanaTransactionInstruction>
+					| EntitySelectorForSelectorName<typeof schema, EntityType.SolanaInstruction, SolanaInstructionSelector.SolanaTransactionInnerInstruction>
+				) & {
+					readonly innerInstructionIndex?: number
+				}
+			}
 			open?: boolean
 		},
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
+
 	const instructionId = $derived(
-		selector.instructionKind === SolanaInstructionKind.InnerInstruction ?
-			`${String(selector.instructionIndex)}.${String(selector.innerInstructionIndex)}`
+		(
+			selection.entitySelector.instructionKind === SolanaInstructionKind.InnerInstruction
+			&& selection.entitySelector.innerInstructionIndex != null
+		) ?
+			`${String(selection.entitySelector.instructionIndex)}.${String(selection.entitySelector.innerInstructionIndex)}`
 		:
-			String(selector.instructionIndex),
+			String(selection.entitySelector.instructionIndex),
 	)
 
 	// Components
@@ -42,8 +57,8 @@
 
 <EntityView
 	entityType={EntityType.SolanaInstruction}
-	entitySelector={selector}
-	title={selector.instructionKind === SolanaInstructionKind.InnerInstruction ?
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.instructionKind === SolanaInstructionKind.InnerInstruction ?
 		`Inner instruction #${instructionId}`
 	:
 		`Instruction #${instructionId}`}
@@ -68,7 +83,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.SolanaInstruction, selector, ({ fields: { $program: true, parsedType: true, data: true, stackHeight: true, $$accounts: true } }))}
+			resource={selection( { fields: { $program: true, parsedType: true, data: true, stackHeight: true, $$accounts: true } })}
 			placeholderText="Loading Solana Instruction..."
 		>
 			{#snippet children(solanaInstruction)}
@@ -78,7 +93,7 @@
 							<dt>Program</dt>
 							<dd>
 								<SolanaProgramView
-									selector={solanaInstruction.fields.$program[EntityMetaKey.Selector]}
+									selection={select(EntityType.SolanaProgram, solanaInstruction.fields.$program[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 								/>
@@ -120,7 +135,7 @@
 									{#each solanaInstruction.fields.$$accounts.values as account (account[EntityMetaKey.Selector].pubkey)}
 										<li>
 											<SolanaAccountView
-												selector={account[EntityMetaKey.Selector]}
+												selection={select(EntityType.SolanaAccount, account[EntityMetaKey.Selector])}
 												layout={EntityLayout.Title}
 
 											/>

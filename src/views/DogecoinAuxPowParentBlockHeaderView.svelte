@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.DogecoinAuxPowParentBlockHeader>
+			selection: EntityProxyResource<typeof schema, EntityType.DogecoinAuxPowParentBlockHeader>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -39,7 +41,7 @@
 
 <EntityView
 	entityType={EntityType.DogecoinAuxPowParentBlockHeader}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	title={'Dogecoin AuxPoW Parent Header'}
 	bind:open
 	{...EntityViewProps}
@@ -51,8 +53,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.DogecoinAuxPowParentBlockHeader,
-					selector,
+			resource={selection(
 					({ fields: { hash: true, merkleRoot: true, nonce: true } }),
 				)}
 			placeholderText={`Loading Dogecoin AuxPoW Parent Header...`}

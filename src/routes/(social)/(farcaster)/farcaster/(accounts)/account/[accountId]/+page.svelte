@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		params,
@@ -12,7 +14,7 @@
 
 <Page>
 	<BlockheadFarcasterAccountConnectionView
-		selector={{ fid: Number(params.accountId) }}
+		selection={select(EntityType.BlockheadFarcasterAccountConnection, { fid: Number(params.accountId) })}
 		title={'Account'}
 	/>
 </Page>

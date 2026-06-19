@@ -92,7 +92,6 @@ export default {
 			entityType: EntityType.BridgeRouteStep,
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
-				Source.Constants_Internal,
 				Source.Lifi_Rest,
 			],
 		},
@@ -102,7 +101,6 @@ export default {
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 			defaultSources: [
-				Source.Constants_Internal,
 				Source.Lifi_Rest,
 			],
 		},
@@ -112,7 +110,6 @@ export default {
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 			defaultSources: [
-				Source.Constants_Internal,
 				Source.Lifi_Rest,
 			],
 		},
@@ -122,7 +119,6 @@ export default {
 			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.One,
 			defaultSources: [
-				Source.Constants_Internal,
 				Source.Lifi_Rest,
 			],
 		},
@@ -132,7 +128,6 @@ export default {
 			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.One,
 			defaultSources: [
-				Source.Constants_Internal,
 				Source.Lifi_Rest,
 			],
 		},
@@ -142,7 +137,6 @@ export default {
 			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.One,
 			defaultSources: [
-				Source.Constants_Internal,
 				Source.Lifi_Rest,
 			],
 		},
@@ -152,7 +146,6 @@ export default {
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.One,
 			defaultSources: [
-				Source.Constants_Internal,
 				Source.Lifi_Rest,
 			],
 		},
@@ -162,7 +155,6 @@ export default {
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.One,
 			defaultSources: [
-				Source.Constants_Internal,
 				Source.Lifi_Rest,
 			],
 		},
@@ -173,7 +165,6 @@ export default {
 			cardinality: EntityFieldCardinality.One,
 			// LI.FI GET /v1/quote returns one executable route, not BEST/CHEAPEST/FASTEST comparison tags.
 			defaultSources: [
-				Source.Constants_Internal,
 				Source.Lifi_Rest,
 			],
 		},

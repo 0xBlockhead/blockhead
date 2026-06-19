@@ -91,12 +91,17 @@
 				parentEntitySelector,
 				{
 					sources: [...fieldSources],
-					fields: Object.fromEntries(
-						endpointFieldNames.map((fieldName) => [
-							fieldName,
-							true,
-						]),
-					),
+					fields: {
+						...(endpointFieldNames.includes('rpcEndpoints') && {
+							rpcEndpoints: true,
+						}),
+						...(endpointFieldNames.includes('restEndpoints') && {
+							restEndpoints: true,
+						}),
+						...(endpointFieldNames.includes('storageEndpoints') && {
+							storageEndpoints: true,
+						}),
+					},
 				},
 			)}
 			<ResourceBoundary resource={parent} placeholderText="Loading endpoints…">

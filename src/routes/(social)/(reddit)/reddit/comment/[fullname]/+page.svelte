@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		params,
@@ -13,7 +15,7 @@
 
 <Page>
 	<RedditCommentView
-		selector={{ fullname: decodeURIComponent(params.fullname) }}
+		selection={select(EntityType.RedditComment, { fullname: decodeURIComponent(params.fullname) })}
 	>
 	</RedditCommentView>
 </Page>

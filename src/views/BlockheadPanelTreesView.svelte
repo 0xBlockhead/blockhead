@@ -1,6 +1,5 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -16,24 +15,21 @@
 	let {
 		selection,
 		title = 'Panel layouts',
+		id = 'blockhead-panel-trees',
 		open = $bindable(true),
 		collapsible = true,
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.BlockheadPanelTree>
 			title?: string
+			id?: string
 			open?: boolean
 			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
 			| 'href'
-			| 'id'
 			| 'CollapsibleProps'
 		>
 	> = $props()
@@ -54,6 +50,7 @@
 <EntitiesList
 	entityType={EntityType.BlockheadPanelTree}
 	{title}
+	{id}
 	bind:open
 	{collapsible}
 	{...EntitiesListProps}
@@ -106,7 +103,7 @@
 
 						{#snippet Item({ item })}
 							<BlockheadPanelTreeView
-								selector={item.entitySelector}
+								selection={select(EntityType.BlockheadPanelTree, item.entitySelector)}
 								layout={EntityLayout.Summary}
 
 							/>

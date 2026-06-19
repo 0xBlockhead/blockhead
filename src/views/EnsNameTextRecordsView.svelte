@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -22,7 +23,7 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		id = 'ens-text-records',
 		open = $bindable(true),
 		collapsible = true,
@@ -32,7 +33,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.EnsName>
+			selection: EntityProxyResource<typeof schema, EntityType.EnsName>
 			id?: string
 			open?: boolean
 			excludeRecordKeys?: readonly string[]
@@ -47,20 +48,19 @@
 	> = $props()
 
 
+
 	// Functions
 	const rank = (key: string) => (
-		key in ensTextRecordDisplayRank ?
-			ensTextRecordDisplayRank[key].rank
-		:
-			9999
+		Object
+			.values(ensTextRecordDisplayRank)
+			.find((row) => row.key === key)
+			?.rank
+		?? 9999
 	)
 
 
 	const ens = $derived(
-		select(
-			EntityType.EnsName,
-			selector,
-			{
+		selection({
 				sources: [
 					Source.Voltaire_JsonRpc,
 					Source.TheGraph_Graphql,
@@ -92,6 +92,7 @@
 	// Components
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
 
 
@@ -151,7 +152,7 @@
 					<a
 						data-link
 						href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/(records)/record/[recordId]', {
-							ensName: selector.name,
+							ensName: selection.entitySelector.name,
 							recordId: item,
 						})}
 					>

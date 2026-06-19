@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -15,10 +16,10 @@
 
 	// State
 	let {
-		selector,
-			href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(beacon-slots)/slot/[slotNumber]', {
-				caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
-				slotNumber: String(selector.slot),
+		selection,
+				href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(beacon-slots)/slot/[slotNumber=beaconSlotNumber]', {
+				caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
+				slotNumber: String(selection.entitySelector.slot),
 			}),
 		layout = EntityLayout.Summary,
 		title: titleProp,
@@ -26,7 +27,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.BeaconSlot>
+			selection: EntityProxyResource<typeof schema, EntityType.BeaconSlot>
 			href?: string
 			layout?: EntityLayout
 			title?: string
@@ -38,8 +39,8 @@
 		>
 	> = $props()
 
-	const slot = $derived(select(EntityType.BeaconSlot,
-		selector,
+
+	const slot = $derived(selection(
 		({ sources: [
 				Source.Beacon_Rest,
 			], fields: { proposerIndex: true, ...(open && ({ epoch: true, root: true, parentRoot: true, stateRoot: true, bodyRoot: true, canonical: true, signature: true })) } }),
@@ -48,7 +49,7 @@
 
 	// (Derived)
 	const title = $derived(
-		titleProp ?? `Slot #${selector.slot.toLocaleString()}`,
+		titleProp ?? `Slot #${selection.entitySelector.slot.toLocaleString()}`,
 	)
 
 
@@ -68,17 +69,17 @@
 
 <EntityView
 	entityType={EntityType.BeaconSlot}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{title}
 	{layout}
 	bind:open
-	idDragPlainText={String(selector.slot)}
+	idDragPlainText={String(selection.entitySelector.slot)}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-badge="small">
-			#{String(selector.slot)}
+			#{String(selection.entitySelector.slot)}
 		</span>
 	{/snippet}
 
@@ -86,7 +87,7 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Slot </span>
 		<span data-badge="small">
-			#{String(selector.slot)}
+			#{String(selection.entitySelector.slot)}
 		</span>
 		</span>
 	{/snippet}
@@ -125,10 +126,10 @@
 							{#snippet children(slot)}
 								{#if slot.fields.epoch !== undefined}
 									<BeaconEpochView
-										selector={{
-											$network: selector.$network,
+										selection={select(EntityType.BeaconEpoch, {
+											$network: selection.entitySelector.$network,
 											epoch: slot.fields.epoch,
-										}}
+										})}
 										layout={EntityLayout.Value}
 
 										open={false}
@@ -257,8 +258,8 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-			id={`beacon-slot:${String(selector.slot)}:contents`}
-			sectionIdPrefix={`beacon-slot:${String(selector.slot)}`}
+			id={`beacon-slot:${String(selection.entitySelector.slot)}:contents`}
+			sectionIdPrefix={`beacon-slot:${String(selection.entitySelector.slot)}`}
 			sections={[
 				{ id: 'slot-committees', label: 'Committees' },
 				{ id: 'slot-attestations', label: 'Attestations' },
@@ -276,10 +277,7 @@
 			{#snippet SectionSlotCommittees({ id, label })}
 				<BeaconCommitteesView
 					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.BeaconSlot,
-			selector
-		).$$beaconCommittees}
+					selection={selection.$$beaconCommittees}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -288,10 +286,7 @@
 			{#snippet SectionSlotAttestations({ id, label })}
 				<BeaconAttestationsView
 					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.BeaconSlot,
-			selector
-		).$$beaconAttestations}
+					selection={selection.$$beaconAttestations}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -300,10 +295,7 @@
 			{#snippet SectionSlotWithdrawals({ id, label })}
 				<BeaconWithdrawalsView
 					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.BeaconSlot,
-			selector
-		).$$beaconWithdrawals}
+					selection={selection.$$beaconWithdrawals}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -312,10 +304,7 @@
 			{#snippet SectionSlotSlashings({ id, label })}
 				<BeaconSlashingsView
 					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.BeaconSlot,
-			selector
-		).$$beaconSlashings}
+					selection={selection.$$beaconSlashings}
 					id={`${id}-list`}
 					title={label}
 				/>

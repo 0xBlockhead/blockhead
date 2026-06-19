@@ -66,24 +66,36 @@ export default {
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Lifi_Rest,
+			],
 		},
 		{
 			name: '$toNetwork',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Lifi_Rest,
+			],
 		},
 		{
 			name: '$fromToken',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmCoinInstance,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Lifi_Rest,
+			],
 		},
 		{
 			name: '$toToken',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmCoinInstance,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Lifi_Rest,
+			],
 		},
 		{
 			name: 'railId',
@@ -91,7 +103,6 @@ export default {
 			primitiveType: type.valueOf(BridgeRailId),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
-				Source.Constants_Internal,
 				Source.Lifi_Rest,
 			],
 		},
@@ -101,7 +112,6 @@ export default {
 			primitiveType: type.valueOf(BridgeSettlementModel),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
-				Source.Constants_Internal,
 				Source.Lifi_Rest,
 			],
 		},
@@ -111,7 +121,6 @@ export default {
 			primitiveType: type.valueOf(BridgeVerificationModel),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
-				Source.Constants_Internal,
 				Source.Lifi_Rest,
 			],
 		},
@@ -121,7 +130,6 @@ export default {
 			primitiveType: type.valueOf(BridgeAssetOutcome),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
-				Source.Constants_Internal,
 				Source.Lifi_Rest,
 			],
 		},

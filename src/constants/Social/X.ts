@@ -5,3 +5,19 @@ export const xNetworkSeedUsers = [
 ] as const satisfies readonly {
 	id: string
 }[]
+
+export const xNetworkSeedPosts = [
+	{ id: '1855943488122347520' },
+] as const satisfies readonly {
+	id: string
+}[]
+
+
+// Lookups
+
+export const xNetworkSeedPostById = Object.fromEntries(
+	xNetworkSeedPosts.map((post) => [
+		post.id,
+		post,
+	])
+)

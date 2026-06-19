@@ -64,8 +64,8 @@ export const defineResolver = <
 	resolve: _Resolve
 	resolveLive?: ResolveLivePublishers<typeof schema, _EntityType>
 }
-) => (facets: {
-	fields: ResolverFields<_Source, _EntityType, _Resolve>
+) => <const _Fields extends ResolverFields<_Source, _EntityType, _Resolve>>(facets: {
+	fields: _Fields
 }) => ({
 	...resolver,
 	...facets,

@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.BitcoinCashCashTokenFungibleAmount>
+			selection: EntityProxyResource<typeof schema, EntityType.BitcoinCashCashTokenFungibleAmount>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -38,7 +40,7 @@
 
 <EntityView
 	entityType={EntityType.BitcoinCashCashTokenFungibleAmount}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	title={'Bitcoin Cash CashToken Fungible Amount'}
 	bind:open
 	{...EntityViewProps}
@@ -50,7 +52,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.BitcoinCashCashTokenFungibleAmount, selector, ({ fields: { amount: true } }))}
+			resource={selection( { fields: { amount: true } })}
 			placeholderText={`Loading Bitcoin Cash CashToken Fungible Amount...`}
 		>
 			{#snippet children(bitcoinCashCashTokenFungibleAmount)}

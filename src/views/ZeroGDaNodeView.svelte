@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -12,16 +13,17 @@
 	import { select } from '$/routes/+layout.svelte'
 
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.ZeroGDaNode>
+			selection: EntityProxyResource<typeof schema, EntityType.ZeroGDaNode>
 			open?: boolean
 		},
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
+
 
 	
 
@@ -37,21 +39,21 @@
 
 <EntityView
 	entityType={EntityType.ZeroGDaNode}
-	entitySelector={selector}
-	title={selector.nodeId}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.nodeId}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<TruncatedValue
-			value={selector.nodeId}
+			value={selection.entitySelector.nodeId}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.ZeroGDaNode, selector, ({ fields: { $quorum: true, $operator: true, endpoint: true } }))}
+			resource={selection( { fields: { $quorum: true, $operator: true, endpoint: true } })}
 			placeholderText={`Loading 0G DA node...`}
 		>
 			{#snippet children(zeroGDaNode)}
@@ -61,7 +63,7 @@
 							<dt>Operator</dt>
 							<dd>
 								<EvmAccountView
-									selector={zeroGDaNode.fields.$operator[EntityMetaKey.Selector]}
+									selection={select(EntityType.EvmAccount, zeroGDaNode.fields.$operator[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 								/>
@@ -81,7 +83,7 @@
 							<dt>Quorum</dt>
 							<dd>
 								<ZeroGDaQuorumView
-									selector={zeroGDaNode.fields.$quorum[EntityMetaKey.Selector]}
+									selection={select(EntityType.ZeroGDaQuorum, zeroGDaNode.fields.$quorum[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 								/>

@@ -46,7 +46,7 @@ const networkBaseFields = [
 			namespace: 'string',
 			reference: 'string',
 		}),
-		cardinality: EntityFieldCardinality.One,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Constants_Internal,
 		],

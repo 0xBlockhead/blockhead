@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntityProxyCurrent } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -18,16 +19,16 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve(
 			'/~/(agents)/agents/(conversations)/conversation/[conversationId]',
-			{ conversationId: selector.id },
+			{ conversationId: selection.entitySelector.id },
 		),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.BlockheadAgentConversation>
+			selection: EntityProxyResource<typeof schema, EntityType.BlockheadAgentConversation>
 			href?: string
 			open?: boolean
 		},
@@ -37,9 +38,9 @@
 		>
 	> = $props()
 
+
 	const conversation = $derived.by(() => (
-		select(EntityType.BlockheadAgentConversation,
-			selector,
+		selection(
 			({ sources: [
 				Source.Local_Internal,
 			], fields: { name: true, pinned: true, createdAt: true, updatedAt: true, ...(open ? ({ systemPrompt: true, defaultConnectionId: true, defaultModelId: true }) : ({  })) } }),
@@ -57,14 +58,14 @@
 
 <EntityView
 	entityType={EntityType.BlockheadAgentConversation}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<TruncatedValue
-			value={selector.id}
+			value={selection.entitySelector.id}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -72,7 +73,7 @@
 	{#snippet Title()}
 		{#if true}
 			{#snippet ConversationHeading(conversation: Conversation)}
-				{conversation.fields.name ?? selector.id}
+				{conversation.fields.name ?? selection.entitySelector.id}
 			{/snippet}
 
 			<ResourceBoundary

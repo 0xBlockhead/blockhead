@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -187,7 +188,7 @@
 
 {#if selector !== undefined}
 	<IpfsBrowseEntityChrome
-		{selector}
+		selection={select(EntityType.IpfsResource, selector)}
 		Form={Form}
 	/>
 {:else}

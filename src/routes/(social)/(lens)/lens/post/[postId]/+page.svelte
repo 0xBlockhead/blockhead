@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		params,
@@ -13,7 +15,7 @@
 
 <Page>
 	<LensPostView
-		selector={{ id: decodeURIComponent(params.postId) }}
+		selection={select(EntityType.LensPost, { id: decodeURIComponent(params.postId) })}
 	>
 	</LensPostView>
 </Page>

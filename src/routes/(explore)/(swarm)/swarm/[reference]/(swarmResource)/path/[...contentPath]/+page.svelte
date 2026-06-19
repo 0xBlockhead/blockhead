@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		params,
@@ -24,7 +26,7 @@
 {#if selector !== undefined}
 	<Page>
 		<SwarmResourceView
-			selector={selector}
+			selection={select(EntityType.SwarmResource, selector)}
 			open
 		/>
 	</Page>

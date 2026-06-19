@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.TronToken>
+			selection: EntityProxyResource<typeof schema, EntityType.TronToken>
 			open?: boolean
 		},
 		Pick<
@@ -26,8 +27,8 @@
 		>
 	> = $props()
 
-	const token = $derived(select(EntityType.TronToken,
-		selector,
+
+	const token = $derived(selection(
 		({ fields: { standard: true, name: true, symbol: true, decimals: true, totalSupply: true, ...(open && ({ createdTimestampMs: true, holderCount: true })) } }),
 	))
 
@@ -43,8 +44,8 @@
 
 <EntityView
 	entityType={EntityType.TronToken}
-	entitySelector={selector}
-	title={selector.tokenId}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.tokenId}
 	bind:open
 	{...EntityViewProps}
 >
@@ -52,7 +53,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={token}>
 			{#snippet children(token)}
-				{token.fields.symbol ?? token.fields.name ?? selector.tokenId}
+				{token.fields.symbol ?? token.fields.name ?? selection.entitySelector.tokenId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}

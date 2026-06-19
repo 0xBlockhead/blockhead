@@ -15,7 +15,7 @@ export const blockchairRestBaseUrl = blockchairOrigin
 export const blockchairOrigins = [
 	{
 		origin: blockchairOrigin,
-		corsEnabled: true,
+		corsEnabled: false,
 	},
 ] as const satisfies readonly SourceOrigin[]
 

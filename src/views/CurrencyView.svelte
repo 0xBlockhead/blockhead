@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntitySelector } from '$/schema/$schema.ts'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 	import {
@@ -21,14 +21,14 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.Currency>
+			selection: EntityProxyResource<typeof schema, EntityType.Currency>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -40,8 +40,7 @@
 		>
 	> = $props()
 
-	const currency = $derived(select(EntityType.Currency,
-		selector,
+	const currency = $derived(selection(
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { name: true, symbol: true, ...(open && ({ $$timestamps: ({ sources: [
@@ -49,7 +48,7 @@
 				], limit: 1, fields: { marketCap: true } }), minorUnitExponent: true })) } }),
 	))
 
-	const idPrefix = $derived(selector.iso4217)
+	const idPrefix = $derived(selection.entitySelector.iso4217)
 
 
 	// Components
@@ -66,18 +65,18 @@
 
 <EntityView
 	entityType={EntityType.Currency}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href ?? resolve('/(assets)/(currencies)/currency/[iso4217=iso4217]', {
-		iso4217: selector.iso4217,
+		iso4217: selection.entitySelector.iso4217,
 	})}
-	title={selector.iso4217}
+	title={selection.entitySelector.iso4217}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
-			{selector.iso4217}
+			{selection.entitySelector.iso4217}
 		</span>
 	{/snippet}
 
@@ -87,7 +86,7 @@
 			placeholderText="Loading currency…"
 		>
 			{#snippet children(currency)}
-				{currency.fields.name ?? selector.iso4217}
+				{currency.fields.name ?? selection.entitySelector.iso4217}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -108,10 +107,11 @@
 						placeholderText="Loading currency…"
 					>
 						{#snippet children(currency)}
-							{#if currency.fields.$$timestamps.values[0]?.marketCap !== undefined}
+							{@const marketCap = currency.fields.$$timestamps.values[0]?.marketCap}
+							{#if marketCap !== undefined}
 								<CurrencyAmount
 									currency="USD"
-									value={currency.fields.$$timestamps.values[0].marketCap}
+									resource={marketCap}
 								/>
 							{/if}
 						{/snippet}
@@ -156,10 +156,10 @@
 	{#snippet Details({ open })}
 		<section data-scroll-marker-label="Catalog snapshot">
 			<Currency_TimestampView
-				selector={{
-					$currency: { iso4217: selector.iso4217 },
+				selection={select(EntityType.Currency_Timestamp, {
+					$currency: { iso4217: selection.entitySelector.iso4217 },
 					timestampMs: currencyCatalogSnapshotTimestampMs,
-				}}
+				})}
 				layout={EntityLayout.Title}
 
 				open={false}
@@ -201,7 +201,7 @@
 			{/snippet}
 
 			{#snippet SectionMarketsAsBase({ id, label })}
-				{#if selector.iso4217 === Iso4217.USD}
+				{#if selection.entitySelector.iso4217 === Iso4217.USD}
 					<p data-text="muted">
 						<a href={resolve('/markets')}>All catalog markets</a>
 						— spot indices quote in USD.
@@ -210,10 +210,7 @@
 					<MarketsView
 						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/markets')}
-						selection={select(
-			EntityType.Currency,
-			selector
-		).$$marketsWithCurrencyAsBase}
+						selection={selection.$$marketsWithCurrencyAsBase}
 						{id}
 						title="Base"
 					/>
@@ -224,10 +221,7 @@
 				<MarketsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/markets')}
-					selection={select(
-			EntityType.Currency,
-			selector
-		).$$marketsWithCurrencyAsQuote}
+					selection={selection.$$marketsWithCurrencyAsQuote}
 					{id}
 					title="Quote"
 				/>

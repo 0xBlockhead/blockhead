@@ -1,5 +1,9 @@
 import type { Page, TestInfo } from '@playwright/test'
 
+import {
+	setupPageRuntimeDiagnostics,
+} from '../_e2eBrowserHelpers.ts'
+
 
 const envMs = (
 	value: string | undefined,
@@ -20,166 +24,21 @@ export const routeViewSmokeTimeoutsMs = {
 } as const
 
 
-const RESOURCE_LOAD_SKIP_SUBSTRINGS = [
-	'Failed to load resource',
-	'net::ERR_',
-] as const
-
-const DEV_SERVER_TRANSIENT_SUBSTRINGS = [
-	'[vite] Failed to reload',
-	'Failed to fetch dynamically imported module',
-] as const
-
-const DEV_SERVER_CONTAMINATION_SUBSTRINGS = [
-	'[vite] hot updated',
-] as const
-
-const TANSTACK_DB_QUERY_WARNINGS = [
-	'requires an index',
-] as const
-
-
-const shouldIgnoreBrowserConsoleError = (text: string) => (
-	RESOURCE_LOAD_SKIP_SUBSTRINGS.some((s) => (
-		text.includes(s)
-	))
-	|| DEV_SERVER_TRANSIENT_SUBSTRINGS.some((s) => (
-		text.includes(s)
-	))
-)
-
-export const routeViewSmokeDevServerContaminationError = (text: string) => (
-	DEV_SERVER_CONTAMINATION_SUBSTRINGS.some((s) => (
-		text.includes(s)
-	)) ?
-		new Error(
-			`route smoke test contaminated by Vite HMR during navigation: ${text}`
-		)
-	:
-		undefined
-)
-
-
 /**
- * Single `page.on('console')` / `page.on('pageerror')` wiring for route smoke tests:
- * append-only log for post-mortem attaches, plus fail-fast `step()` racing a gate on critical failures.
+ * Route-smoke diagnostic profile: fail fast on app runtime errors, Vite HMR contamination,
+ * and TanStack DB query warnings; attach browser/DOM artifacts on failure.
  */
 export const setupRouteViewSmokePage = (page: Page) => {
-	const lines: string[] = []
-	let seq = 0
-	let rejectErr: ((e: Error) => void) | undefined
-	const gate = new Promise<never>((_, reject) => {
-		rejectErr = reject
+	const diagnostics = setupPageRuntimeDiagnostics(page, {
+		failFast: true,
+		failOnDevServerContamination: true,
+		failOnTanStackWarnings: true,
+		ignoreTransientDevLoad: true,
 	})
-	let gated = false
-	const bump = (e: Error) => {
-		if (gated) return
-		gated = true
-		rejectErr?.(e)
-	}
-
-	page.on('pageerror', (err) => {
-		seq++
-		lines.push(`${seq}\tpageerror\t${err.message}`)
-		if (err.stack) lines.push(err.stack)
-		if (!shouldIgnoreBrowserConsoleError(err.message))
-			bump(new Error(`pageerror: ${err.message}`))
-	})
-
-	page.on('crash', () => {
-		seq++
-		lines.push(`${seq}\ttarget-crash\tBrowser tab crashed`)
-		bump(new Error('Browser tab crashed'))
-	})
-
-	page.on('console', (msg) => {
-		seq++
-		const text = msg.text()
-		lines.push(`${seq}\t${msg.type()}\t${text}`)
-		const contamination = routeViewSmokeDevServerContaminationError(text)
-		if (contamination)
-			bump(contamination)
-
-		if (
-			text.includes('[TanStack DB]')
-			&& TANSTACK_DB_QUERY_WARNINGS.some((s) => text.includes(s))
-		)
-			bump(new Error(`tanstack db query warning: ${text}`))
-
-		if (
-			msg.type() === 'error'
-			&& !shouldIgnoreBrowserConsoleError(text)
-		) {
-			bump(new Error(`console.error: ${text}`))
-		}
-	})
-
-	const step = async <T>(p: Promise<T>) => {
-		return await Promise.race([p, gate])
-	}
-
-	const flushArtifacts = async (testInfo: TestInfo) => {
-		await testInfo.attach('browser-console-tail.txt', {
-			body: lines.slice(-250).join('\n'),
-			contentType: 'text/plain',
-		})
-		let html = ''
-		try {
-			html = await page.content()
-		}
-		catch (e1) {
-			html = `page.content failed: ${e1}`
-			try {
-				html += (
-					`\n---\nouterHTML (evaluate):\n${await page.evaluate(() => (
-						document.documentElement.outerHTML
-					))}`
-				)
-			}
-			catch (e2) {
-				html += `\n---\nevaluate failed: ${e2}\npage.isClosed()=${page.isClosed()}`
-			}
-		}
-		await testInfo.attach('page-snippet.html', {
-			body: html.slice(0, 80_000),
-			contentType: 'text/html',
-		})
-		let screenshotFilename = 'failure-screenshot.png'
-		let screenshotContentType: 'image/png' | 'text/plain' = 'image/png'
-		const screenshotBody = await page.screenshot({
-			fullPage: true,
-		}).catch((e) => {
-			screenshotFilename = 'failure-screenshot-error.txt'
-			screenshotContentType = 'text/plain'
-			return Buffer.from(`screenshot failed: ${e}`, 'utf8')
-		})
-		await testInfo.attach(screenshotFilename, {
-			body: screenshotBody,
-			contentType: screenshotContentType,
-		})
-		const domHints = await page.evaluate(() => ({
-			bodyChildren: document.body.childElementCount,
-			hasLayout: !!document.querySelector('#layout'),
-			hasMain: !!document.querySelector('#main'),
-			readyState: document.readyState,
-		})).catch((e) => ({
-			bodyChildren: null,
-			hasLayout: false,
-			hasMain: false,
-			readyState: `(evaluate failed: ${e})`,
-		}))
-		await testInfo.attach('failure-meta.txt', {
-			body: (
-				`url=${page.url()}\n`
-				+ `viewport=${JSON.stringify(page.viewportSize())}\n`
-				+ `dom=${JSON.stringify(domHints)}\n`
-			),
-			contentType: 'text/plain',
-		})
-	}
 
 	return {
-		step,
-		flushArtifacts,
+		step: diagnostics.step,
+		flushArtifacts: (testInfo: TestInfo) => diagnostics.flushArtifacts(testInfo),
+		diagnostics,
 	}
 }

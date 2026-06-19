@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -12,12 +13,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.CosmosBlock>
+			selection: EntityProxyResource<typeof schema, EntityType.CosmosBlock>
 			open?: boolean
 		},
 		Pick<
@@ -26,6 +27,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -40,27 +42,29 @@
 
 <EntityView
 	entityType={EntityType.CosmosBlock}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={
-		'height' in selector ?
+		'height' in selection.entitySelector ?
 			(
-				'networkSlug' in selector.$network ?
-					`/network/${selector.$network.networkSlug}/blocks/${selector.height.toString()}`
+				'slug' in selection.entitySelector.$network ?
+					`/network/${selection.entitySelector.$network.slug}/blocks/${selection.entitySelector.height.toString()}`
+				: 'caip2' in selection.entitySelector.$network ?
+					`/network/${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}/blocks/${selection.entitySelector.height.toString()}`
 				:
-					`/network/${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}/blocks/${selector.height.toString()}`
+					undefined
 			)
 		:
 			undefined
 	}
-	title={'height' in selector ? `Block #${selector.height.toString()}` : `Block ${selector.hash}`}
-	idDragPlainText={'height' in selector ? selector.height.toString() : selector.hash}
+	title={'height' in selection.entitySelector ? `Block #${selection.entitySelector.height.toString()}` : `Block ${selection.entitySelector.hash}`}
+	idDragPlainText={'height' in selection.entitySelector ? selection.entitySelector.height.toString() : selection.entitySelector.hash}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			{'height' in selector ? `#${selector.height.toString()}` : selector.hash}
+			{'height' in selection.entitySelector ? `#${selection.entitySelector.height.toString()}` : selection.entitySelector.hash}
 		</span>
 	{/snippet}
 
@@ -81,8 +85,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.CosmosBlock,
-					selector,
+			resource={selection(
 					({ sources: [
 							Source.CometBft_Rest,
 							Source.CosmosSdk_Rest,

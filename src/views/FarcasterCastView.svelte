@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntitySelector } from '$/schema/$schema.ts'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -11,20 +11,19 @@
 
 
 	// Context
-	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
-		selector,
+		selection,
 		href,
 		variant = 'hub',
 		open = $bindable(true),
 			...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.FarcasterCast>
+			selection: EntityProxyResource<typeof schema, EntityType.FarcasterCast>
 			href?: string
 			variant?: 'feed' | 'hub'
 			open?: boolean
@@ -35,17 +34,32 @@
 		>
 	> = $props()
 
+	const supportsSnapchainCast = $derived(
+		'fid' in selection.entitySelector
+		&& 'hash' in selection.entitySelector
+	)
+
+
 	const cast = $derived(
-		select(EntityType.FarcasterCast,
-			selector,
-			({ sources: [
-				Source.Neynar_Rest,
-				Source.Snapchain_Rest,
-				Source.Farcaster_Rest,
-			], fields: { fid: true, hash: true, username: true, hashPrefix: true, clientUrl: true, text: true, timestamp: true, parentUrl: true, mentions: true, $$timestamps: ({ sources: [
-					Source.Neynar_Rest,
-					Source.Snapchain_Rest,
-				], limit: 1 }), threadHash: true, $author: ({ fields: { username: true, displayName: true, $icon: true } }), $parentCast: true, $postedViaApp: ({ fields: { username: true, displayName: true } }), $channel: true, ...(open ? ({ mentionedProfileFids: true, mentionedChannelIds: true, $$embeds: ({ fields: { url: true, title: true, description: true, quotedPreviewText: true, $embeddedCast: true, $icon: true } }) }) : ({  })) } }),
+		selection(
+			{
+				sources: [
+					...(supportsSnapchainCast ? [Source.Snapchain_Rest] : []),
+					...(!supportsSnapchainCast ? [Source.Farcaster_Rest] : []),
+				],
+				fields: {
+					fid: true,
+					hash: true,
+					text: true,
+					timestamp: true,
+					...(!supportsSnapchainCast && {
+						username: true,
+						hashPrefix: true,
+						clientUrl: true,
+						threadHash: true,
+					}),
+				},
+			},
 		)
 	)
 
@@ -54,31 +68,28 @@
 	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import FarcasterCast_TimestampsView from '$/views/FarcasterCast_TimestampsView.svelte'
-	import SocialMetricSnapshotRows from '$/views/SocialMetricSnapshotRows.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.FarcasterCast}
-	entitySelector={selector}
-	href={href ?? (
-		'fid' in selector && 'hash' in selector ?
-			resolve('/(social)/(farcaster)/farcaster/(feed)/cast/[fid]/[hash]', {
-				fid: String(selector.fid),
-				hash: selector.hash,
-			})
-		: 'username' in selector && 'hashPrefix' in selector ?
+	entitySelector={selection.entitySelector}
+		href={href ?? (
+			'fid' in selection.entitySelector && 'hash' in selection.entitySelector ?
+				resolve('/(social)/(farcaster)/farcaster/(feed)/cast/[fid=farcasterFid]/[hash]', {
+					fid: String(selection.entitySelector.fid),
+					hash: selection.entitySelector.hash,
+				})
+		: 'username' in selection.entitySelector && 'hashPrefix' in selection.entitySelector ?
 			resolve('/(social)/(farcaster)/farcaster/(feed)/c/[fname]/[hash]', {
-				fname: selector.username,
-				hash: selector.hashPrefix,
+				fname: selection.entitySelector.username,
+				hash: selection.entitySelector.hashPrefix,
 			})
-		: 'clientUrl' in selector ?
+		: 'clientUrl' in selection.entitySelector ?
 			resolve('/(social)/(farcaster)/farcaster/open-cast')
 		:
 			undefined
@@ -87,84 +98,89 @@
 	{...EntityViewProps}
 >
 	{#snippet Icon()}
-		{#if variant === 'feed'}
+		{#if variant === 'feed' && open}
 			<ResourceBoundary
 				resource={cast}
 				placeholderText="Loading Farcaster cast (author FID + cast hash)…"
 			>
 				{#snippet children(cast)}
-					{#if cast.fields.$author?.$icon}
-						<IconComponent
-							shape={IconShape.Circle}
-							src={cast.fields.$author.$icon[EntityMetaKey.Selector].url}
-							alt=""
-						/>
-					{/if}
+					{@const loadedCast = cast}
 				{/snippet}
 			</ResourceBoundary>
 		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary
-			resource={cast}
-			placeholderText="Loading Farcaster cast…"
-		>
-			{#snippet children(cast)}
-				<TruncatedValue
-					value={
-						cast.fields.fid != null && cast.fields.hash != null ?
-							`FID ${String(cast.fields.fid)} / ${cast.fields.hash}`
-						: 'username' in selector && 'hashPrefix' in selector ?
-							`@${selector.username} / ${selector.hashPrefix}`
-						: 'clientUrl' in selector ?
-							selector.clientUrl
-						:
-							stringify(selector)
-					}
-					startLength={18}
-					endLength={10}
-					format={TruncatedValueFormat.Visual}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		<TruncatedValue
+			value={
+				'fid' in selection.entitySelector && 'hash' in selection.entitySelector ?
+					`FID ${String(selection.entitySelector.fid)} / ${selection.entitySelector.hash}`
+				: 'username' in selection.entitySelector && 'hashPrefix' in selection.entitySelector ?
+					`@${selection.entitySelector.username} / ${selection.entitySelector.hashPrefix}`
+				: 'clientUrl' in selection.entitySelector ?
+					selection.entitySelector.clientUrl
+				:
+					stringify(selection.entitySelector)
+			}
+			startLength={18}
+			endLength={10}
+			format={TruncatedValueFormat.Visual}
+		/>
 	{/snippet}
 
 	{#snippet Title()}
-		<ResourceBoundary
-			resource={cast}
-			placeholderText="Loading Farcaster cast (author FID + cast hash)…"
-		>
-			{#snippet children(cast)}
-				{@const castText = cast.fields.text?.replaceAll('\n', ' ') ?? ''}
-				<TruncatedValue
-					value={
-						castText === '' ?
-							'Cast'
-						:
-							castText
-					}
-					startLength={56}
-					endLength={24}
-					format={TruncatedValueFormat.Abbr}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		{#if open}
+			<ResourceBoundary
+				resource={cast}
+				placeholderText="Loading Farcaster cast (author FID + cast hash)…"
+			>
+				{#snippet children(cast)}
+					{@const castText = cast.fields.text?.replaceAll('\n', ' ') ?? ''}
+					<TruncatedValue
+						value={
+							castText === '' ?
+								'Cast'
+							:
+								castText
+						}
+						startLength={56}
+						endLength={24}
+						format={TruncatedValueFormat.Abbr}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{:else}
+			<TruncatedValue
+				value={
+					'fid' in selection.entitySelector && 'hash' in selection.entitySelector ?
+						`Cast ${selection.entitySelector.hash}`
+					: 'username' in selection.entitySelector && 'hashPrefix' in selection.entitySelector ?
+						`Cast ${selection.entitySelector.hashPrefix}`
+					:
+						'Cast'
+				}
+				startLength={56}
+				endLength={24}
+				format={TruncatedValueFormat.Abbr}
+			/>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary
-			resource={cast}
-			placeholderText="Loading Farcaster cast (author FID + cast hash)…"
-		>
-			{#snippet children(cast)}
-				{#if variant === 'feed' && cast.fields.$author?.username !== undefined}
-					<span data-text="muted">
-						@{cast.fields.$author.username}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if open}
+			<ResourceBoundary
+				resource={cast}
+				placeholderText="Loading Farcaster cast (author FID + cast hash)…"
+			>
+				{#snippet children(cast)}
+					{#if variant === 'feed' && !supportsSnapchainCast && cast.fields.username !== undefined}
+						<span data-text="muted">
+							@{cast.fields.username}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -219,31 +235,7 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
-			<ResourceBoundary
-				resource={cast}
-				placeholderText="Loading Farcaster cast (author FID + cast hash)…"
-			>
-				{#snippet children(cast)}
-					<SocialMetricSnapshotRows
-						metrics={[
-							{
-								label: 'Likes',
-								value: cast.fields.$$timestamps.values.at(0)?.likeCount,
-							},
-							{
-								label: 'Recasts',
-								value: cast.fields.$$timestamps.values.at(0)?.recastCount,
-							},
-							{
-								label: 'Replies',
-								value: cast.fields.$$timestamps.values.at(0)?.replyCount,
-							},
-						]}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-
-			<div>
+				<div>
 				<dt>Channel</dt>
 				<dd>
 					<ResourceBoundary
@@ -294,13 +286,13 @@
 										cast.fields.$parentCast[EntityMetaKey.Selector]
 								)}
 								{@const parentCastHrefOpen = (
-									parentCastIdOpen === undefined || !('fid' in parentCastIdOpen) || !('hash' in parentCastIdOpen) ?
-										undefined
-									:
-										resolve('/(social)/(farcaster)/farcaster/(feed)/cast/[fid]/[hash]', {
-											fid: String(parentCastIdOpen.fid),
-											hash: parentCastIdOpen.hash,
-										})
+										parentCastIdOpen === undefined || !('fid' in parentCastIdOpen) || !('hash' in parentCastIdOpen) ?
+											undefined
+										:
+											resolve('/(social)/(farcaster)/farcaster/(feed)/cast/[fid=farcasterFid]/[hash]', {
+												fid: String(parentCastIdOpen.fid),
+												hash: parentCastIdOpen.hash,
+											})
 								)}
 								{#if parentCastHrefOpen !== undefined}
 									<a href={parentCastHrefOpen}>View parent cast</a>
@@ -342,13 +334,13 @@
 									cast.fields.mentions !== undefined
 									&& cast.fields.mentions.length
 								)}
-									<ul data-cast="wrap gap-2">
-										{#each cast.fields.mentions as mention (String(mention))}
-											<li>
-												<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
-													userId: String(mention),
-												})}>
-													FID {String(mention)}
+										<ul data-cast="wrap gap-2">
+											{#each cast.fields.mentions as mention (String(mention))}
+												<li>
+													<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId=farcasterFid]', {
+														userId: String(mention),
+													})}>
+														FID {String(mention)}
 												</a>
 											</li>
 										{/each}
@@ -412,16 +404,15 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{@const castDetailKey = stringify(selector)}
+		{@const castDetailKey = stringify(selection.entitySelector)}
 		<CollapsibleTabs
 			id={`${castDetailKey}:carousel-cast`}
 			sectionIdPrefix={castDetailKey}
 			sections={collapsibleTabsSections([
-				{ id: 'cast-record', label: 'Record' },
-				{ id: 'cast-thread', label: 'Thread' },
-				{ id: 'cast-media', label: 'Embeds' },
-				{ id: 'metric-snapshots', label: 'Metrics' },
-			])}
+					{ id: 'cast-record', label: 'Record' },
+					{ id: 'cast-thread', label: 'Thread' },
+					{ id: 'cast-media', label: 'Embeds' },
+				])}
 			data-card
 		>
 			{#snippet Summary({
@@ -469,38 +460,19 @@
 						placeholderText="Loading Farcaster cast (author FID + cast hash)…"
 						>
 							{#snippet children(cast)}
-								{@const authorId = cast.fields.$author?.[EntityMetaKey.Selector]}
-								{@const authorUsername = cast.fields.$author?.username}
-								{@const authorDisplayName = cast.fields.$author?.displayName}
-								{@const authorAvatarUrl = (
-									cast.fields.$author?.$icon === undefined ?
-										undefined
-									:
-										cast.fields.$author.$icon[EntityMetaKey.Selector].url
-								)}
-								{@const postedViaAppId = (
-									cast.fields.$postedViaApp === undefined ?
-										undefined
-									:
-										cast.fields.$postedViaApp[EntityMetaKey.Selector]
-								)}
-								{@const postedViaUsername = (
-									cast.fields.$postedViaApp === undefined ?
-										undefined
-									:
-										cast.fields.$postedViaApp.username
-								)}
-								{@const postedViaDisplayName = (
-									cast.fields.$postedViaApp === undefined ?
-										undefined
-									:
-										cast.fields.$postedViaApp.displayName
-								)}
-								{@const channelId = (
-									cast.fields.$channel === undefined ?
-										undefined
-									:
-										cast.fields.$channel[EntityMetaKey.Selector].id
+							{@const authorId = (
+								supportsSnapchainCast ?
+									cast.fields.$author?.[EntityMetaKey.Selector]
+								:
+									undefined
+							)}
+							{@const authorUsername = supportsSnapchainCast ? undefined : cast.fields.username}
+							{@const authorDisplayName = undefined}
+							{@const channelId = (
+								!supportsSnapchainCast || cast.fields.$channel === undefined ?
+									undefined
+								:
+									cast.fields.$channel[EntityMetaKey.Selector].id
 								)}
 								{@const channelPageHref = (
 									channelId === undefined ?
@@ -513,14 +485,6 @@
 								<section data-column>
 									<header data-cast="wrap gap-4">
 										<div data-cast="inline wrap gap-2">
-											{#if authorAvatarUrl !== undefined}
-												<IconComponent
-													shape={IconShape.Circle}
-													src={authorAvatarUrl}
-													alt=""
-													size="2.5rem"
-												/>
-											{/if}
 											<div data-column>
 												<strong>
 													{authorDisplayName ?? authorUsername ?? (
@@ -533,12 +497,12 @@
 												{#if (
 													authorId !== undefined
 													&& authorUsername !== undefined
-												)}
-													<span data-text="muted">
-														<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
-															userId: String(authorId.fid),
-														})}>
-															@{authorUsername}
+													)}
+														<span data-text="muted">
+															<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId=farcasterFid]', {
+																userId: String(authorId.fid),
+															})}>
+																@{authorUsername}
 														</a>
 													</span>
 												{/if}
@@ -549,17 +513,6 @@
 												timestamp={cast.fields.timestamp}
 											/>
 										</p>
-										{#if postedViaAppId !== undefined}
-											<p data-text="muted">
-												Cast via{' '}
-												<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
-													userId: String(postedViaAppId.fid),
-												})}>
-													{postedViaDisplayName ?? postedViaUsername ?? `FID ${String(postedViaAppId.fid)}`}
-												</a>
-											</p>
-										{/if}
-
 										{#if channelPageHref !== undefined}
 											{#if channelId !== undefined}
 												<p data-text="muted">
@@ -587,163 +540,28 @@
 				>
 					{#snippet children(cast)}
 						<section data-column>
-							{#if cast.fields.mentionedProfileFids !== undefined && cast.fields.mentionedProfileFids.length}
-								<section data-column>
-									<h3>Mentioned profiles (FID)</h3>
-									<ul data-row="wrap gap-2">
-										{#each cast.fields.mentionedProfileFids as mentionFid (String(mentionFid))}
-											<li>
-												<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
-													userId: String(mentionFid),
-												})}>
-													FID {String(mentionFid)}
-												</a>
-											</li>
-										{/each}
-									</ul>
-								</section>
-							{/if}
-
-							{#if cast.fields.mentionedChannelIds !== undefined && cast.fields.mentionedChannelIds.length}
-								<section data-column>
-									<h3>Mentioned channels</h3>
-									<ul data-row="wrap gap-2">
-										{#each cast.fields.mentionedChannelIds as mentionChId (mentionChId)}
-											<li>
-												<a href={resolve('/(social)/(farcaster)/farcaster/(channels)/channel/[channelId]', {
-													channelId: mentionChId,
-												})}>
-													/{mentionChId}
-												</a>
-											</li>
-										{/each}
-									</ul>
-								</section>
-							{/if}
-
-							{#if cast.fields.$$embeds.values.length}
-								<section data-column>
-									<h3>Embeds</h3>
-									<ul data-column>
-										{#each cast.fields.$$embeds.values as embed, embedIndex (String(embedIndex))}
-											{@const og = (
-												embed.$icon === undefined ?
-													undefined
-												:
-													embed.$icon[EntityMetaKey.Selector].url
-											)}
-											{@const embeddedCastId = (
-												embed.$embeddedCast === undefined ?
-													undefined
-												:
-													embed.$embeddedCast[EntityMetaKey.Selector]
-											)}
-											<li data-column>
-												{#if og !== undefined}
-													<p>
-														<a
-															href={embed.url ?? og}
-															rel="noreferrer"
-														>
-															<img
-																src={og}
-																alt=""
-																loading="lazy"
-															/>
-														</a>
-													</p>
-												{/if}
-
-												{#if embed.title !== undefined}
-													<p>
-														<strong>{embed.title}</strong>
-													</p>
-												{/if}
-
-												{#if embed.description !== undefined}
-													<p data-text="muted">
-														{embed.description}
-													</p>
-												{/if}
-
-												{#if embed.url !== undefined}
-													<p>
-														<a
-															href={embed.url}
-															rel="noreferrer"
-														>{embed.url}</a>
-													</p>
-												{/if}
-
-												{#if embed.quotedPreviewText !== undefined}
-													<blockquote>
-														<p>
-															{embed.quotedPreviewText}
-														</p>
-													</blockquote>
-												{/if}
-
-												{#if embeddedCastId !== undefined && 'fid' in embeddedCastId && 'hash' in embeddedCastId}
-													<p>
-														<a href={resolve('/(social)/(farcaster)/farcaster/(feed)/cast/[fid]/[hash]', {
-															fid: String(embeddedCastId.fid),
-															hash: embeddedCastId.hash,
-														})}>
-															Quoted cast · FID {String(embeddedCastId.fid)} ·{' '}
-															<TruncatedValue
-																value={embeddedCastId.hash}
-																startLength={8}
-																endLength={6}
-																format={TruncatedValueFormat.Visual}
-															/>
-														</a>
-													</p>
-												{/if}
-											</li>
-										{/each}
-									</ul>
-								</section>
-							{/if}
-
-							{#if (
-								!(cast.fields.mentionedProfileFids?.length)
-								&& !(cast.fields.mentionedChannelIds?.length)
-								&& !cast.fields.$$embeds.values.length
-							)}
-								<div data-row="wrap align-center gap-2">
-									<p data-text="muted">
-										No mentions or embeds.
-									</p>
-									<Tooltip contentProps={{ side: 'top' }}>
-										{#snippet Content()}
-											<p>
-												Mentioned profiles, channels, and cast embeds appear when the provider returns them for this cast.fields.
-											</p>
-										{/snippet}
-										<abbr
-											class="entity-heading-tip"
-											aria-label="Mentions and embeds"
-										>ⓘ</abbr>
-									</Tooltip>
-								</div>
-							{/if}
+							<div data-row="wrap align-center gap-2">
+								<p data-text="muted">
+									No mentions or embeds.
+								</p>
+								<Tooltip contentProps={{ side: 'top' }}>
+									{#snippet Content()}
+										<p>
+											Mentioned profiles, channels, and cast embeds appear when the provider returns them for this cast.fields.
+										</p>
+									{/snippet}
+									<abbr
+										class="entity-heading-tip"
+										aria-label="Mentions and embeds"
+									>ⓘ</abbr>
+								</Tooltip>
+							</div>
 						</section>
 				{/snippet}
 			</ResourceBoundary>
 		{/if}
 	{/snippet}
 
-			{#snippet SectionMetricSnapshots()}
-				<FarcasterCast_TimestampsView
-					selection={select(
-			EntityType.FarcasterCast,
-			selector
-		).$$timestamps}
-					href={href ?? '#'}
-					id={`${castDetailKey}:metric-snapshots`}
-					title="Metric snapshots"
-				/>
-			{/snippet}
-			</CollapsibleTabs>
+				</CollapsibleTabs>
 		{/snippet}
 	</EntityView>

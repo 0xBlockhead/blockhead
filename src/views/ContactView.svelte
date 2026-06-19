@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -16,7 +17,7 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/~/multiplayer/contacts'),
 		title,
 		open = $bindable(true),
@@ -24,7 +25,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.BlockheadSharedAddress>
+			selection: EntityProxyResource<typeof schema, EntityType.BlockheadSharedAddress>
 			href?: string
 			title?: string
 			open?: boolean
@@ -36,17 +37,18 @@
 		>
 	> = $props()
 
+
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { select } from '$/routes/+layout.svelte'
 
-	const sharedAddress = $derived(select(EntityType.BlockheadSharedAddress, selector, ({ sources: [
+	const sharedAddress = $derived(selection( { sources: [
 				Source.Local_Internal,
-			], fields: { peerId: true, sharedAt: true, ...(open ? ({ $account: true, $room: true, $network: true, targetPeerIds: true }) : ({  })) } })))
+			], fields: { peerId: true, sharedAt: true, ...(open ? ({ $account: true, $room: true, $network: true, targetPeerIds: true }) : ({  })) } }))
 
 
 	// (Derived)
 	const contactKey = $derived(
-		stringify(selector),
+		stringify(selection.entitySelector),
 	)
 
 
@@ -64,12 +66,12 @@
 <EntityView
 	entityType={EntityType.BlockheadSharedAddress}
 	bind:open
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<span>{selector.id}</span>
+		<span>{selection.entitySelector.id}</span>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -92,7 +94,7 @@
 						<div>
 							<dt>Shown as</dt>
 							<dd data-text="mono">
-								{selector.id}
+								{selection.entitySelector.id}
 							</dd>
 						</div>
 
@@ -126,10 +128,10 @@
 								<dt>Account</dt>
 								<dd>
 									<EvmNetworkAccountView
-										selector={{
+										selection={select(EntityType.EvmNetworkAccount, {
 											$network: sharedAddress.fields.$network[EntityMetaKey.Selector],
 											$actor: sharedAddress.fields.$account[EntityMetaKey.Selector],
-										}}
+										})}
 										layout={EntityLayout.Title}
 
 									/>

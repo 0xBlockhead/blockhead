@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.PolkadotExtrinsic>
+			selection: EntityProxyResource<typeof schema, EntityType.PolkadotExtrinsic>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -38,16 +40,16 @@
 
 <EntityView
 	entityType={EntityType.PolkadotExtrinsic}
-	entitySelector={selector}
-	title={`Extrinsic #${selector.extrinsicIndex.toString()}`}
-	idDragPlainText={selector.extrinsicIndex.toString()}
+	entitySelector={selection.entitySelector}
+	title={`Extrinsic #${selection.entitySelector.extrinsicIndex.toString()}`}
+	idDragPlainText={selection.entitySelector.extrinsicIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{selector.extrinsicIndex.toString()}
+			#{selection.entitySelector.extrinsicIndex.toString()}
 		</span>
 	{/snippet}
 
@@ -62,7 +64,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.PolkadotExtrinsic, selector, ({ fields: { hash: true, callName: true, success: true } }))}
+			resource={selection( { fields: { hash: true, callName: true, success: true } })}
 			placeholderText={`Loading Polkadot Extrinsic...`}
 		>
 			{#snippet children(polkadotExtrinsic)}

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import { select } from '$/routes/+layout.svelte'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
@@ -24,11 +24,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EvmLog>
 			title?: string
 			open?: boolean
 			collapsible?: boolean
@@ -111,7 +107,7 @@
 
 						{#snippet Item({ item })}
 							<EvmLogView
-								selector={item.entitySelector}
+								selection={select(EntityType.EvmLog, item.entitySelector)}
 								layout={EntityLayout.Summary}
 
 								collapsible={false}

@@ -388,28 +388,6 @@ const reactionFieldValuesFromEvent = (event: NostrEvent) => {
 	}
 }
 
-const reactionFieldValuesFromTargetEvent = (
-	reactionValues: ReturnType<typeof reactionFieldValuesFromEvent>,
-	targetEvent: NostrEvent | undefined
-) => (
-	reactionValues.$targetArticle != null || targetEvent == null ?
-		reactionValues
-	:
-		targetEvent.kind === 30023 ?
-			((targetArticle) => (
-			targetArticle == null ?
-				reactionValues
-			:
-				{
-					...reactionValues,
-					$targetArticle: targetArticle,
-					$targetNote: undefined,
-				}
-			))(articleRefFromEvent(targetEvent).at(0))
-		:
-			reactionValues
-)
-
 const articlePublishedAtMs = (event: NostrEvent) => (
 	((publishedAtTag) => (
 		publishedAtTag == null ?
@@ -703,13 +681,7 @@ export default {
 					const eventId = normalizeEventId(String(event.id))
 					if (eventId == null || eventId !== eventIdSelector)
 						throw new Error('NostrBand_Rest: repost event id mismatch')
-					const values = repostFieldValuesFromEvent(event)
-					if (values.$repostedNote == null) return values
-					const targetEventId = values.$repostedNote[EntityMetaKey.Selector].eventId
-					return repostFieldValuesFromTargetEvent(
-						values,
-						eventFromWire(await getEventById(targetEventId))
-					)
+					return repostFieldValuesFromEvent(event)
 				}
 			},
 		})({
@@ -737,13 +709,7 @@ export default {
 					const eventId = normalizeEventId(String(event.id))
 					if (eventId == null || eventId !== eventIdSelector)
 						throw new Error('NostrBand_Rest: reaction event id mismatch')
-					const values = reactionFieldValuesFromEvent(event)
-					if (values.$targetNote == null) return values
-					const targetEventId = values.$targetNote[EntityMetaKey.Selector].eventId
-					return reactionFieldValuesFromTargetEvent(
-						values,
-						eventFromWire(await getEventById(targetEventId))
-					)
+					return reactionFieldValuesFromEvent(event)
 				}
 			},
 		})({

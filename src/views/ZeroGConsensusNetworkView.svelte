@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.ZeroGConsensusNetwork>
+			selection: EntityProxyResource<typeof schema, EntityType.ZeroGConsensusNetwork>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -38,22 +40,22 @@
 
 <EntityView
 	entityType={EntityType.ZeroGConsensusNetwork}
-	entitySelector={selector}
-	title={selector.consensusNetworkId}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.consensusNetworkId}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
 		<TruncatedValue
-			value={selector.consensusNetworkId}
+			value={selection.entitySelector.consensusNetworkId}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.ZeroGConsensusNetwork, selector, ({ fields: { sharedStakingStatusSource: true } }))}
+			resource={selection( { fields: { sharedStakingStatusSource: true } })}
 			placeholderText={`Loading 0G consensus network...`}
 		>
 			{#snippet children(zeroGConsensusNetwork)}

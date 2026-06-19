@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -12,16 +13,17 @@
 	import { select } from '$/routes/+layout.svelte'
 
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.HyperliquidAccount>
+			selection: EntityProxyResource<typeof schema, EntityType.HyperliquidAccount>
 			open?: boolean
 		},
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
+
 
 	
 
@@ -36,21 +38,21 @@
 
 <EntityView
 	entityType={EntityType.HyperliquidAccount}
-	entitySelector={selector}
-	title={selector.address}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.address}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<TruncatedValue
-			value={selector.address}
+			value={selection.entitySelector.address}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.HyperliquidAccount, selector, ({ fields: { accountRole: true, $masterAccount: true, $agentAccount: true } }))}
+			resource={selection( { fields: { accountRole: true, $masterAccount: true, $agentAccount: true } })}
 			placeholderText={`Loading Hyperliquid Account...`}
 		>
 			{#snippet children(hyperliquidAccount)}
@@ -67,7 +69,7 @@
 							<dt>Master account</dt>
 							<dd>
 								<Self
-									selector={hyperliquidAccount.fields.$masterAccount[EntityMetaKey.Selector]}
+									selection={select(EntityType.HyperliquidAccount, hyperliquidAccount.fields.$masterAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 								/>
@@ -80,7 +82,7 @@
 							<dt>Agent account</dt>
 							<dd>
 								<Self
-									selector={hyperliquidAccount.fields.$agentAccount[EntityMetaKey.Selector]}
+									selection={select(EntityType.HyperliquidAccount, hyperliquidAccount.fields.$agentAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 								/>

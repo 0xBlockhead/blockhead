@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.ZeroGDataBlob>
+			selection: EntityProxyResource<typeof schema, EntityType.ZeroGDataBlob>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -38,16 +40,16 @@
 
 <EntityView
 	entityType={EntityType.ZeroGDataBlob}
-	entitySelector={selector}
-	title={selector.dataRoot}
-	idDragPlainText={selector.dataRoot}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.dataRoot}
+	idDragPlainText={selection.entitySelector.dataRoot}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<TruncatedValue
-			value={selector.dataRoot}
+			value={selection.entitySelector.dataRoot}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
@@ -69,7 +71,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.ZeroGDataBlob, selector, ({ fields: { sizeBytes: true, erasureCodingScheme: true, aggregatedSignature: true } }))}
+			resource={selection( { fields: { sizeBytes: true, erasureCodingScheme: true, aggregatedSignature: true } })}
 			placeholderText="Loading 0G data blob…"
 		>
 			{#snippet children(dataBlob)}

@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.ZeroGStorageProof>
+			selection: EntityProxyResource<typeof schema, EntityType.ZeroGStorageProof>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -39,16 +41,16 @@
 
 <EntityView
 	entityType={EntityType.ZeroGStorageProof}
-	entitySelector={selector}
-	title={selector.proofId}
-	idDragPlainText={selector.proofId}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.proofId}
+	idDragPlainText={selection.entitySelector.proofId}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<TruncatedValue
-			value={selector.proofId}
+			value={selection.entitySelector.proofId}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
@@ -64,8 +66,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.ZeroGStorageProof,
-					selector,
+			resource={selection(
 					({ fields: { proofKind: true, verifiedAtBlock: true } }),
 				)}
 			placeholderText={`Loading 0G storage proof...`}

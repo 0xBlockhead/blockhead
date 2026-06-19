@@ -1,4 +1,4 @@
-import { expect, type Locator, type Page } from '@playwright/test'
+import { expect, type Locator, type Page, type TestInfo } from '@playwright/test'
 
 import { ipfsPublicGateways } from '$/constants/IpfsProtocol.ts'
 import { TransportType } from '$/constants/TransportType.ts'
@@ -82,8 +82,44 @@ export type RouteBoundaryReport = {
 	pathname: string
 	finalUrl: string
 	mainVisible: boolean
+	timings?: {
+		navigationMs: number
+		mainAttachedMs: number
+		networkIdleMs: number
+		settleMs: number
+		eventsMs: number
+		totalMs: number
+	}
 	updates: BoundaryUpdateEvent[]
 	snapshot: BoundaryMainSnapshot
+	diagnostics?: {
+		console: {
+			type: string
+			text: string
+		}[]
+		pageErrors: {
+			message: string
+			stack?: string
+		}[]
+		badResponses: {
+			status: number
+			url: string
+			method: string
+			resourceType?: string
+			frameUrl?: string
+		}[]
+		requestFailures: {
+			url: string
+			method: string
+			failure: string | null
+			resourceType?: string
+			frameUrl?: string
+		}[]
+		lifecycle: {
+			event: string
+			at: number
+		}[]
+	}
 	slow: BoundarySlowRow[]
 	issues: string[]
 }
@@ -173,6 +209,9 @@ export type BlockheadPersistenceProbeEvent = (
 		collectionId: string
 		decision: BlockheadPersistenceProbeDecision
 		loadedKey: string
+		hydratedRowCount?: number
+		loadedMarkerRowCount?: number
+		loadedMarkerSourceRowCounts?: Record<string, number>
 		at: number
 	}
 	| {
@@ -185,6 +224,8 @@ export type BlockheadPersistenceProbeEvent = (
 		kind: 'markLoaded'
 		collectionId: string
 		loadedKey: string
+		rowCount: number
+		sourceRowCounts: Record<string, number>
 		at: number
 	}
 )
@@ -609,31 +650,48 @@ export const waitForBoundarySettle = async (
 	{
 		timeoutMs = 180_000,
 		quietMs = 4_000,
+		probeTimeoutMs = 20_000,
 	}: {
 		timeoutMs?: number
 		quietMs?: number
+		probeTimeoutMs?: number
 	} = {}
 ) => {
 	const deadline = Date.now() + timeoutMs
 	let lastSignature = ''
 	let quietSince = Date.now()
+	const withProbeTimeout = async <
+		const _Value,
+	>(
+		label: string,
+		promise: Promise<_Value>
+	) => (
+		Promise.race([
+			promise,
+			new Promise<never>((_resolve, reject) => {
+				setTimeout(() => {
+					reject(new Error(`${label} timed out`))
+				}, probeTimeoutMs)
+			}),
+		])
+	)
 
 	while (Date.now() < deadline) {
 		let snapshot: BoundaryMainSnapshot
 		let events: BoundaryUpdateEvent[]
 		try {
-			snapshot = await snapshotBoundaryMain(page)
-			events = await getBoundaryProbeEvents(page)
+			snapshot = await withProbeTimeout('snapshotBoundaryMain', snapshotBoundaryMain(page))
+			events = await withProbeTimeout('getBoundaryProbeEvents', getBoundaryProbeEvents(page))
 		}
 		catch {
-			return snapshotBoundaryMain(page).catch(() => ({
+			return {
 				failed: [],
 				loading: [],
 				empty: true,
-				emptyReason: 'page-closed',
+				emptyReason: page.isClosed() ? 'page-closed' : 'probe-evaluate-timeout',
 				textLength: 0,
 				contentMarkerCount: 0,
-			}))
+			}
 		}
 		const signature = JSON.stringify({
 			loading: snapshot.loading.length,
@@ -656,7 +714,15 @@ export const waitForBoundarySettle = async (
 		await page.waitForTimeout(250)
 	}
 
-	return snapshotBoundaryMain(page)
+	return withProbeTimeout('snapshotBoundaryMain', snapshotBoundaryMain(page))
+		.catch(() => ({
+			failed: [],
+			loading: [],
+			empty: true,
+			emptyReason: page.isClosed() ? 'page-closed' : 'probe-evaluate-timeout',
+			textLength: 0,
+			contentMarkerCount: 0,
+		}))
 }
 
 export const summarizeRouteBoundaryReport = (
@@ -665,6 +731,8 @@ export const summarizeRouteBoundaryReport = (
 	mainVisible: boolean,
 	updates: BoundaryUpdateEvent[],
 	snapshot: BoundaryMainSnapshot,
+	diagnostics?: RouteBoundaryReport['diagnostics'],
+	timings?: RouteBoundaryReport['timings'],
 	slowThresholdMs = 30_000
 ) => {
 	const issues: string[] = []
@@ -719,6 +787,26 @@ export const summarizeRouteBoundaryReport = (
 	if (snapshot.empty)
 		issues.push(`empty:${snapshot.emptyReason ?? 'unknown'}`)
 
+	if ((timings?.totalMs ?? 0) >= slowThresholdMs)
+		issues.push(`slow-route:${timings?.totalMs}ms`)
+
+	for (const entry of diagnostics?.pageErrors ?? [])
+		issues.push(`page-error:${entry.message}`)
+
+	for (const entry of diagnostics?.badResponses ?? [])
+		issues.push(`bad-response:${entry.status}:${entry.method}:${entry.url}`)
+
+	for (const entry of diagnostics?.requestFailures ?? [])
+		issues.push(`request-failed:${entry.method}:${entry.url}:${entry.failure ?? 'unknown'}`)
+
+	for (const entry of diagnostics?.lifecycle ?? [])
+		issues.push(`page-${entry.event}`)
+
+	for (const entry of diagnostics?.console ?? []) {
+		if (entry.type === 'error')
+			issues.push(`console-error:${entry.text}`)
+	}
+
 	const consoleFailures = updates.filter((event) => (
 		event.kind === 'console-failed'
 		|| event.kind === 'console-uncaught'
@@ -734,8 +822,10 @@ export const summarizeRouteBoundaryReport = (
 		pathname,
 		finalUrl,
 		mainVisible,
+		timings,
 		updates,
 		snapshot,
+		diagnostics,
 		slow,
 		issues,
 	} satisfies RouteBoundaryReport
@@ -753,8 +843,19 @@ export const formatBoundaryReportSummary = (
 		))
 	))
 	const emptyRoutes = reports.filter((report) => report.snapshot.empty)
+	const diagnosticRoutes = reports.filter((report) => (
+		(report.diagnostics?.pageErrors.length ?? 0) > 0
+		|| (report.diagnostics?.badResponses.length ?? 0) > 0
+		|| (report.diagnostics?.requestFailures.length ?? 0) > 0
+		|| (report.diagnostics?.lifecycle.length ?? 0) > 0
+		|| (report.diagnostics?.console.some((entry) => entry.type === 'error') ?? false)
+	))
 	const loadingRoutes = reports.filter((report) => report.snapshot.loading.length > 0)
 	const slowRoutes = reports.filter((report) => report.slow.length > 0)
+	const slowRouteTimingRoutes = reports.filter((report) => (
+		report.timings != null
+		&& report.issues.some((issue) => issue.startsWith('slow-route:'))
+	))
 	const issueRoutes = reports.filter((report) => report.issues.length > 0)
 	const optionalIssueRoutes = issueRoutes.filter((report) => optionalPathnames.has(report.pathname))
 	const blockingIssueRoutes = issueRoutes.filter((report) => !optionalPathnames.has(report.pathname))
@@ -767,7 +868,9 @@ export const formatBoundaryReportSummary = (
 		`failed ${failedRoutes.length}`,
 		`still loading ${loadingRoutes.length}`,
 		`slow loading ${slowRoutes.length}`,
+		`slow routes ${slowRouteTimingRoutes.length}`,
 		`empty ${emptyRoutes.length}`,
+		`diagnostics ${diagnosticRoutes.length}`,
 		'',
 	]
 
@@ -808,10 +911,49 @@ export const formatBoundaryReportSummary = (
 		lines.push('')
 	}
 
+	if (slowRouteTimingRoutes.length > 0) {
+		lines.push('Slow route timings:')
+		for (const report of slowRouteTimingRoutes) {
+			const tag = optionalPathnames.has(report.pathname) ? ' (optional-live)' : ''
+			const timings = report.timings
+			if (timings == null) continue
+
+			lines.push(`  ${report.pathname}${tag}`)
+			lines.push(`    total ${timings.totalMs}ms`)
+			lines.push(`    navigation ${timings.navigationMs}ms`)
+			lines.push(`    main attached ${timings.mainAttachedMs}ms`)
+			lines.push(`    network idle ${timings.networkIdleMs}ms`)
+			lines.push(`    settle ${timings.settleMs}ms`)
+			lines.push(`    events ${timings.eventsMs}ms`)
+			for (const event of report.updates.slice(-12))
+				lines.push(`    [${event.kind}] ${event.at}: ${event.key ?? 'unknown'}: ${event.message}`)
+		}
+		lines.push('')
+	}
+
 	if (emptyRoutes.length > 0) {
 		lines.push('Empty main after settle:')
 		for (const report of emptyRoutes)
 			lines.push(`  ${report.pathname} (${report.snapshot.emptyReason ?? 'unknown'})`)
+		lines.push('')
+	}
+
+	if (diagnosticRoutes.length > 0) {
+		lines.push('Page diagnostics:')
+		for (const report of diagnosticRoutes) {
+			const tag = optionalPathnames.has(report.pathname) ? ' (optional-live)' : ''
+			lines.push(`  ${report.pathname}${tag}`)
+			for (const entry of report.diagnostics?.pageErrors ?? [])
+				lines.push(`    [page-error] ${entry.message}`)
+			for (const entry of report.diagnostics?.badResponses ?? [])
+				lines.push(`    [bad-response] ${entry.status} ${entry.method} ${entry.url}${entry.resourceType ? ` (${entry.resourceType})` : ''}${entry.frameUrl ? ` from ${entry.frameUrl}` : ''}`)
+			for (const entry of report.diagnostics?.requestFailures ?? [])
+				lines.push(`    [request-failed] ${entry.method} ${entry.url}${entry.resourceType ? ` (${entry.resourceType})` : ''}${entry.frameUrl ? ` from ${entry.frameUrl}` : ''}: ${entry.failure ?? 'unknown'}`)
+			for (const entry of report.diagnostics?.lifecycle ?? [])
+				lines.push(`    [page-${entry.event}] ${entry.at}`)
+			for (const entry of report.diagnostics?.console.filter((consoleEntry) => consoleEntry.type === 'error') ?? [])
+				lines.push(`    [console-error] ${entry.text}`)
+		}
 		lines.push('')
 	}
 
@@ -858,48 +1000,264 @@ const forwardBrowserConsoleLine = (
 		console.log(line)
 }
 
-export const collectIssues = (page: Page) => {
+const browserResourceFailureIsUpstreamNoise = (text: string) => (
+	text.startsWith('Failed to load resource')
+	&& (
+		/\b[45]\d\d\b/.test(text)
+		|| text.includes('ERR_NAME_NOT_RESOLVED')
+		|| text.includes('net::ERR_')
+	)
+)
+
+const browserConsoleErrorIsIgnored = (
+	text: string,
+	{
+		ignoreTransientDevLoad,
+	}: {
+		ignoreTransientDevLoad?: boolean
+	} = {}
+) => (
+	browserResourceFailureIsUpstreamNoise(text)
+	|| (
+		ignoreTransientDevLoad === true
+		&& (
+			text.includes('[vite] Failed to reload')
+			|| text.includes('Failed to fetch dynamically imported module')
+		)
+	)
+	// Legacy ignore: hydrate paths historically surfaced resolver “requires query limit”; capped by the resolver context row-limit fallback now.
+	|| (
+		text.includes('[QueryCollection]')
+		&& text.includes('requires query limit')
+	)
+)
+
+export const browserDevServerContaminationError = (text: string) => (
+	text.includes('[vite] hot updated') ?
+		new Error(`route smoke test contaminated by Vite HMR during navigation: ${text}`)
+	:
+		undefined
+)
+
+export type PageRuntimeDiagnostics = {
+	issues: string[]
+	lines: string[]
+	step: <_Value>(promise: Promise<_Value>) => Promise<_Value>
+	summary: () => string
+	flushArtifacts: (testInfo: TestInfo) => Promise<void>
+}
+
+export const setupPageRuntimeDiagnostics = (
+	page: Page,
+	{
+		failFast = true,
+		forwardConsole = false,
+		failOnDevServerContamination = false,
+		failOnTanStackWarnings = false,
+		ignoreTransientDevLoad = false,
+	}: {
+		failFast?: boolean
+		forwardConsole?: boolean
+		failOnDevServerContamination?: boolean
+		failOnTanStackWarnings?: boolean
+		ignoreTransientDevLoad?: boolean
+	} = {}
+): PageRuntimeDiagnostics => {
 	const issues: string[] = []
-	page.on('console', (msg) => {
-		const t = msg.type()
-		const text = msg.text()
-		const loc = msg.location()
-		forwardBrowserConsoleLine(t, text, loc)
-		if (text.includes('[vite] hot updated')) {
-			issues.push(`dev-server-contamination: ${text}`)
-			return
-		}
-		if (t !== 'error')
-			return
-		// Legacy ignore: hydrate paths historically surfaced resolver “requires query limit”; capped by the resolver context row-limit fallback now.
-		if (
-			text.includes('[QueryCollection]')
-			&& text.includes('requires query limit')
-		)
-			return
-		// Browser network layer: upstream 4xx/5xx and DNS noise on public RPC URLs in e2e (not app throws).
-		if (
-			text.startsWith('Failed to load resource')
-			&& (
-				/\b[45]\d\d\b/.test(text)
-				|| text.includes('ERR_NAME_NOT_RESOLVED')
-			)
-		)
-			return
-		const locStr = (
-			loc.url ?
-				` ${loc.url}:${loc.lineNumber}:${loc.columnNumber}`
+	const lines: string[] = []
+	let failed = false
+	let rejectRuntimeError: ((error: Error) => void) | undefined
+	const runtimeError = new Promise<never>((_, reject) => {
+		rejectRuntimeError = reject
+	})
+	void runtimeError.catch(() => {})
+	const failFastEnabled = failFast
+	const triggerFailFast = (error: Error) => {
+		if (!failFastEnabled || failed) return
+		failed = true
+		rejectRuntimeError?.(error)
+	}
+	const pushIssue = (issue: string) => {
+		issues.push(issue)
+		triggerFailFast(new Error(issue))
+	}
+
+	page.on('console', (message) => {
+		const text = message.text()
+		const location = message.location()
+		const locationText = (
+			location.url ?
+				` ${location.url}:${location.lineNumber}:${location.columnNumber}`
 			:
 				''
 		)
-		issues.push(`error:${locStr} ${text}`)
+		lines.push(`${message.type()}${locationText} ${text}`)
+		if (forwardConsole)
+			forwardBrowserConsoleLine(message.type(), text, location)
+
+		const contamination = browserDevServerContaminationError(text)
+		if (contamination != null) {
+			const issue = `dev-server-contamination: ${text}`
+			issues.push(issue)
+			if (failOnDevServerContamination)
+				triggerFailFast(contamination)
+			return
+		}
+
+		if (
+			failOnTanStackWarnings
+			&& text.includes('[TanStack DB]')
+			&& text.includes('requires an index')
+		) {
+			pushIssue(`tanstack db query warning: ${text}`)
+			return
+		}
+
+		if (
+			message.type() === 'error'
+			&& !browserConsoleErrorIsIgnored(text, { ignoreTransientDevLoad })
+		)
+			pushIssue(`console.error:${locationText} ${text}`)
 	})
-	page.on('pageerror', (err) => {
-		const line = `[browser:pageerror] ${String(err)}`
-		console.error(line)
-		issues.push(`pageerror: ${String(err)}`)
+	page.on('pageerror', (error) => {
+		const issue = `pageerror: ${error.message}`
+		lines.push(issue)
+		if (error.stack)
+			lines.push(error.stack)
+		pushIssue(issue)
 	})
-	return issues
+	page.on('crash', () => {
+		const issue = 'Browser tab crashed'
+		lines.push(issue)
+		pushIssue(issue)
+	})
+
+	return {
+		issues,
+		lines,
+		step: async (promise) => (
+			await Promise.race([
+				promise,
+				runtimeError,
+			])
+		),
+		summary: () => [
+			...issues.slice(-20),
+			...(
+				issues.length === 0 ?
+					lines.slice(-20)
+				:
+					[]
+			),
+		].join('\n'),
+		flushArtifacts: async (testInfo) => {
+			await testInfo.attach('browser-console-tail.txt', {
+				body: lines.slice(-250).join('\n'),
+				contentType: 'text/plain',
+			})
+			let html = ''
+			try {
+				html = await page.content()
+			}
+			catch (contentError) {
+				html = `page.content failed: ${contentError}`
+				try {
+					html += (
+						`\n---\nouterHTML (evaluate):\n${await page.evaluate(() => (
+							document.documentElement.outerHTML
+						))}`
+					)
+				}
+				catch (evaluateError) {
+					html += `\n---\nevaluate failed: ${evaluateError}\npage.isClosed()=${page.isClosed()}`
+				}
+			}
+			await testInfo.attach('page-snippet.html', {
+				body: html.slice(0, 80_000),
+				contentType: 'text/html',
+			})
+			let screenshotFilename = 'failure-screenshot.png'
+			let screenshotContentType: 'image/png' | 'text/plain' = 'image/png'
+			const screenshotBody = await page.screenshot({
+				fullPage: true,
+			}).catch((screenshotError) => {
+				screenshotFilename = 'failure-screenshot-error.txt'
+				screenshotContentType = 'text/plain'
+				return Buffer.from(`screenshot failed: ${screenshotError}`, 'utf8')
+			})
+			await testInfo.attach(screenshotFilename, {
+				body: screenshotBody,
+				contentType: screenshotContentType,
+			})
+			const domHints = await page.evaluate(() => ({
+				bodyChildren: document.body.childElementCount,
+				hasLayout: !!document.querySelector('#layout'),
+				hasMain: !!document.querySelector('#main'),
+				readyState: document.readyState,
+			})).catch((error) => ({
+				bodyChildren: null,
+				hasLayout: false,
+				hasMain: false,
+				readyState: `(evaluate failed: ${error})`,
+			}))
+			await testInfo.attach('failure-meta.txt', {
+				body: (
+					`url=${page.url()}\n`
+					+ `viewport=${JSON.stringify(page.viewportSize())}\n`
+					+ `dom=${JSON.stringify(domHints)}\n`
+				),
+				contentType: 'text/plain',
+			})
+		},
+	}
+}
+
+export const collectIssues = (page: Page) => (
+	setupPageRuntimeDiagnostics(page, {
+		failFast: false,
+		forwardConsole: true,
+		failOnDevServerContamination: false,
+	}).issues
+)
+
+export const pageFailureSnapshot = async (page: Page) => (
+	page.isClosed() ?
+		'page closed'
+	:
+		await page.evaluate(() => ({
+			finalUrl: location.href,
+			readyState: document.readyState,
+			mainCount: document.querySelectorAll('#main').length,
+			bodyText: document.body.textContent.replace(/\s+/g, ' ').trim().slice(0, 800),
+		})).then(jsonStringifyForExpectMessage).catch((error) => (
+			`page snapshot failed: ${error}`
+		))
+)
+
+export const expectMainVisible = async (
+	page: Page,
+	timeoutMs = 120_000,
+	diagnostics?: PageRuntimeDiagnostics
+) => {
+	try {
+		await (
+			diagnostics ?
+				diagnostics.step(expect(page.locator('#main')).toBeVisible({ timeout: timeoutMs }))
+			:
+				expect(page.locator('#main')).toBeVisible({ timeout: timeoutMs })
+		)
+	}
+	catch (error) {
+		throw new Error(
+			[
+				`#main did not become visible within ${timeoutMs}ms`,
+				`url=${page.url()}`,
+				`runtime issues:\n${diagnostics?.summary() || '(no diagnostics installed or no browser runtime issues captured)'}`,
+				`page snapshot:\n${await pageFailureSnapshot(page)}`,
+			].join('\n\n'),
+			{ cause: error }
+		)
+	}
 }
 
 /**
@@ -1427,9 +1785,10 @@ export const installChainlistRpcsJsonStub = async (page: Page) => {
 
 export const assertMainSettled = async (
 	page: Page,
-	timeoutMs = 180_000
+	timeoutMs = 180_000,
+	diagnostics?: PageRuntimeDiagnostics
 ) => {
-	await expect(page.locator('#main')).toBeAttached({ timeout: timeoutMs })
+	await expectMainVisible(page, timeoutMs, diagnostics)
 	const snapshot = await waitForBoundarySettle(page, { timeoutMs })
 	expect(
 		snapshot.failed.map((row) => `${row.key ?? 'unknown'}: ${row.message}`)

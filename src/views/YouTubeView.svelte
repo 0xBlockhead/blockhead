@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntitySelector } from '$/schema/$schema.ts'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { ComponentProps } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -10,14 +10,13 @@
 
 
 	// Context
-	import { select } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/youtube'),
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
@@ -26,7 +25,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.YouTubeNetwork>
+			selection: EntityProxyResource<typeof schema, EntityType.YouTubeNetwork>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -37,7 +36,6 @@
 		>
 	> = $props()
 
-	
 
 	const entityViewDetailCarouselScrollProps = {
 		'data-row': 'start align-start',
@@ -49,15 +47,13 @@
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import YouTubeChannelsView from '$/views/YouTubeChannelsView.svelte'
 	import YouTubePlaylistsView from '$/views/YouTubePlaylistsView.svelte'
-	import YouTubeVideosView from '$/views/YouTubeVideosView.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.YouTubeNetwork}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
 	{collapsible}
@@ -84,18 +80,13 @@
 	{#snippet Content({})}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={select(EntityType.YouTubeNetwork, selector, ({ sources: [
+				resource={selection( { sources: [
 						Source.Constants_Internal,
 					], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, $$youtubeChannels: ({ sources: [
-									Source.Youtube_Rest,
-									Source.Piped_Rest,
-								] }), $$youtubeVideos: ({ sources: [
-									Source.Youtube_Rest,
-									Source.Piped_Rest,
+									Source.Constants_Internal,
 								] }), $$youtubePlaylists: ({ sources: [
 									Source.Constants_Internal,
-									Source.Youtube_Rest,
-								] }) }) : ({  })) } }))}
+								] }) }) : ({  })) } })}
 				placeholderText="Loading YouTube hub directory…"
 			>
 				{#snippet children(network)}
@@ -115,13 +106,6 @@
 						<div>
 							<dt>Channels</dt>
 							<dd>{String(network.fields.$$youtubeChannels.values.length)}</dd>
-						</div>
-					{/if}
-
-					{#if open}
-						<div>
-							<dt>Videos</dt>
-							<dd>{String(network.fields.$$youtubeVideos.values.length)}</dd>
 						</div>
 					{/if}
 
@@ -164,13 +148,11 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{@const networkSelectorKey = stringify(selector)}
+		{@const networkSelectorKey = stringify(selection.entitySelector)}
 		<CollapsibleTabs
 			id={`${networkSelectorKey}:carousel-registry`}
 			sectionIdPrefix={networkSelectorKey}
 			sections={collapsibleTabsSections([
-				{ id: 'channels', label: 'Channels' },
-				{ id: 'videos', label: 'Popular videos' },
 				{ id: 'playlists', label: 'Playlists' },
 			])}
 			data-card
@@ -187,42 +169,11 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionChannels({ id, label })}
-				<YouTubeChannelsView
-					CollapsibleProps={{ canToggle: false }}
-					href={resolve('/youtube/channels')}
-					selection={select(
-			EntityType.YouTubeNetwork,
-			selector
-		).$$youtubeChannels}
-					id="channels"
-					open={_open}
-				/>
-			{/snippet}
-
-			{#snippet SectionVideos({ id, label })}
-				<YouTubeVideosView
-					CollapsibleProps={{ canToggle: false }}
-					href={resolve('/youtube/videos')}
-					selection={select(
-			EntityType.YouTubeNetwork,
-			selector
-		).$$youtubeVideos}
-					id="videos"
-					limit={25}
-					open={_open}
-					title="Popular videos"
-				/>
-			{/snippet}
-
 			{#snippet SectionPlaylists({ id, label })}
 				<YouTubePlaylistsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/youtube/playlists')}
-					selection={select(
-			EntityType.YouTubeNetwork,
-			selector
-		).$$youtubePlaylists}
+					selection={selection.$$youtubePlaylists}
 					id="playlists"
 					open={_open}
 					title="Playlists"

@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -18,13 +19,13 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.ActivityPubActor>
+			selection: EntityProxyResource<typeof schema, EntityType.ActivityPubActor>
 			href?: string
 			open?: boolean
 		},
@@ -35,23 +36,23 @@
 		>
 	> = $props()
 
+
 	import { htmlToPlainText } from '$/lib/html.ts'
 	import { select } from '$/routes/+layout.svelte'
 
-	const idKey = $derived(stringify(selector))
+	const idKey = $derived(stringify(selection.entitySelector))
 
 	const sources = $derived(
-		'instanceOrigin' in selector && selector.instanceOrigin === mastodonInstanceByKey.mastodon_social.origin ?
+		'instanceOrigin' in selection.entitySelector && selection.entitySelector.instanceOrigin === mastodonInstanceByKey.mastodon_social.origin ?
 			[Source.Mastodon_Rest]
-		: 'instanceOrigin' in selector && selector.instanceOrigin === fediInstanceBySlug.fosstodon.origin ?
+		: 'instanceOrigin' in selection.entitySelector && selection.entitySelector.instanceOrigin === fediInstanceBySlug.fosstodon.origin ?
 			[Source.Fedi_Rest]
 		:
 			[]
 	)
 
 	const actor = $derived(
-		select(EntityType.ActivityPubActor,
-			selector,
+		selection(
 			({
 				sources,
 				fields: {
@@ -97,11 +98,11 @@
 
 <EntityView
 	entityType={EntityType.ActivityPubActor}
-	entitySelector={selector}
-	href={href ?? ('localAccountId' in selector ?
+	entitySelector={selection.entitySelector}
+	href={href ?? ('localAccountId' in selection.entitySelector ?
 		resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
-			instanceOrigin: encodeURIComponent(selector.instanceOrigin),
-			localAccountId: selector.localAccountId,
+			instanceOrigin: encodeURIComponent(selection.entitySelector.instanceOrigin),
+			localAccountId: selection.entitySelector.localAccountId,
 		})
 	:
 		undefined)}
@@ -115,7 +116,7 @@
 			{#snippet children(actor)}
 				{#if actor.fields.$icon}
 					<IconComponent
-						alt={actor.fields.displayName ?? actor.fields.acct ?? actor.fields.username ?? ('localAccountId' in selector ? selector.localAccountId : 'acct' in selector ? selector.acct : selector.activityStreamsUri)}
+						alt={actor.fields.displayName ?? actor.fields.acct ?? actor.fields.username ?? ('localAccountId' in selection.entitySelector ? selection.entitySelector.localAccountId : 'acct' in selection.entitySelector ? selection.entitySelector.acct : selection.entitySelector.activityStreamsUri)}
 						shape={IconShape.Circle}
 						src={actor.fields.$icon[EntityMetaKey.Selector].url}
 					/>
@@ -126,7 +127,7 @@
 
 	{#snippet Value()}
 		<TruncatedValue
-			value={'localAccountId' in selector ? selector.localAccountId : 'acct' in selector ? `@${selector.acct}` : selector.activityStreamsUri}
+			value={'localAccountId' in selection.entitySelector ? selection.entitySelector.localAccountId : 'acct' in selection.entitySelector ? `@${selection.entitySelector.acct}` : selection.entitySelector.activityStreamsUri}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -140,7 +141,7 @@
 				{actor.fields.displayName
 					?? actor.fields.acct
 					?? actor.fields.username
-					?? ('localAccountId' in selector ? selector.localAccountId : 'acct' in selector ? selector.acct : selector.activityStreamsUri)}
+					?? ('localAccountId' in selection.entitySelector ? selection.entitySelector.localAccountId : 'acct' in selection.entitySelector ? selection.entitySelector.acct : selection.entitySelector.activityStreamsUri)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -154,7 +155,7 @@
 					actor.fields.displayName
 					?? actor.fields.acct
 					?? actor.fields.username
-					?? ('localAccountId' in selector ? selector.localAccountId : 'acct' in selector ? selector.acct : selector.activityStreamsUri)}
+					?? ('localAccountId' in selection.entitySelector ? selection.entitySelector.localAccountId : 'acct' in selection.entitySelector ? selection.entitySelector.acct : selection.entitySelector.activityStreamsUri)}
 				{#if actor.fields.username && actor.fields.username !== activityPubSummaryHeadingLine}
 					<span data-text="muted">
 						@{actor.fields.username}
@@ -205,7 +206,7 @@
 								actor.fields.displayName
 								?? actor.fields.acct
 								?? actor.fields.username
-								?? ('localAccountId' in selector ? selector.localAccountId : 'acct' in selector ? selector.acct : selector.activityStreamsUri)}
+								?? ('localAccountId' in selection.entitySelector ? selection.entitySelector.localAccountId : 'acct' in selection.entitySelector ? selection.entitySelector.acct : selection.entitySelector.activityStreamsUri)}
 
 						{#if actor.fields.acct && actor.fields.acct !== activityPubSummaryHeadingLine}
 							<div>
@@ -234,15 +235,15 @@
 							metrics={[
 								{
 									label: 'Followers',
-									value: actor.fields.$$timestamps.values.at(0)?.followersCount,
+									resource: actor.fields.$$timestamps.values.at(0)?.followersCount,
 								},
 								{
 									label: 'Following',
-									value: actor.fields.$$timestamps.values.at(0)?.followingCount,
+									resource: actor.fields.$$timestamps.values.at(0)?.followingCount,
 								},
 								{
 									label: 'Statuses',
-									value: actor.fields.$$timestamps.values.at(0)?.statusesCount,
+									resource: actor.fields.$$timestamps.values.at(0)?.statusesCount,
 								},
 							]}
 						/>
@@ -380,14 +381,14 @@
 						placeholderText="Loading actor…"
 					>
 						{#snippet children(actor)}
-							{@const localAccountId = 'localAccountId' in selector ? selector.localAccountId : actor.fields.localAccountId}
-							{#if 'instanceOrigin' in selector && localAccountId != null}
+							{@const localAccountId = 'localAccountId' in selection.entitySelector ? selection.entitySelector.localAccountId : actor.fields.localAccountId}
+							{#if 'instanceOrigin' in selection.entitySelector && localAccountId != null}
 								<ActivityPubNotesView
 									CollapsibleProps={{ canToggle: false }}
 									selection={select(
 			EntityType.ActivityPubActor,
 			{
-											instanceOrigin: selector.instanceOrigin,
+											instanceOrigin: selection.entitySelector.instanceOrigin,
 											localAccountId,
 										}
 		).$$notes}
@@ -409,18 +410,18 @@
 						placeholderText="Loading actor…"
 					>
 						{#snippet children(actor)}
-							{@const localAccountId = 'localAccountId' in selector ? selector.localAccountId : actor.fields.localAccountId}
-							{#if 'instanceOrigin' in selector && localAccountId != null}
+							{@const localAccountId = 'localAccountId' in selection.entitySelector ? selection.entitySelector.localAccountId : actor.fields.localAccountId}
+							{#if 'instanceOrigin' in selection.entitySelector && localAccountId != null}
 								<ActivityPubActor_TimestampsView
 									selection={select(
 			EntityType.ActivityPubActor,
 			{
-											instanceOrigin: selector.instanceOrigin,
+											instanceOrigin: selection.entitySelector.instanceOrigin,
 											localAccountId,
 										}
 		).$$timestamps}
 									href={resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
-										instanceOrigin: encodeURIComponent(selector.instanceOrigin),
+										instanceOrigin: encodeURIComponent(selection.entitySelector.instanceOrigin),
 										localAccountId,
 									})}
 									id={`${idKey}:metric-snapshots`}

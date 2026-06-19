@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -12,14 +13,14 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		layout = EntityLayout.Summary,
 		title: titleProp,
 		open = $bindable(false),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.MevBuilder>
+			selection: EntityProxyResource<typeof schema, EntityType.MevBuilder>
 			layout?: EntityLayout
 			title?: string
 			open?: boolean
@@ -30,6 +31,7 @@
 		>
 	> = $props()
 
+
 	
 	
 
@@ -38,7 +40,7 @@
 	// (Derived)
 	const title = $derived(
 		titleProp
-		?? `MEV builder ${selector.builderPubkey}`
+		?? `MEV builder ${selection.entitySelector.builderPubkey}`
 	)
 
 
@@ -52,7 +54,7 @@
 
 <EntityView
 	entityType={EntityType.MevBuilder}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	{title}
 	{layout}
 	bind:open
@@ -60,7 +62,7 @@
 >
 	{#snippet Value()}
 		<TruncatedValue
-			value={selector.builderPubkey}
+			value={selection.entitySelector.builderPubkey}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -72,10 +74,7 @@
 	{#snippet Content()}
 		{#if open}
 			<ResourceBoundary
-				resource={select(
-						EntityType.MevBuilder,
-						selector,
-						{
+				resource={selection({
 							sources: [Source.MevRelay_Rest],
 						},
 					).deliveredPayloadCount}

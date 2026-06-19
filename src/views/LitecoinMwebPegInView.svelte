@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.LitecoinMwebPegIn>
+			selection: EntityProxyResource<typeof schema, EntityType.LitecoinMwebPegIn>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -38,16 +40,16 @@
 
 <EntityView
 	entityType={EntityType.LitecoinMwebPegIn}
-	entitySelector={selector}
-	title={`MWEB Peg-in #${selector.pegInIndex.toString()}`}
-	idDragPlainText={selector.pegInIndex.toString()}
+	entitySelector={selection.entitySelector}
+	title={`MWEB Peg-in #${selection.entitySelector.pegInIndex.toString()}`}
+	idDragPlainText={selection.entitySelector.pegInIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{selector.pegInIndex.toString()}
+			#{selection.entitySelector.pegInIndex.toString()}
 		</span>
 	{/snippet}
 
@@ -62,7 +64,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.LitecoinMwebPegIn, selector, ({ fields: { amountLitoshis: true } }))}
+			resource={selection( { fields: { amountLitoshis: true } })}
 			placeholderText={`Loading Litecoin MWEB Peg-in...`}
 		>
 			{#snippet children(litecoinMwebPegIn)}

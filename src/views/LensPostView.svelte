@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -18,16 +19,16 @@
 	// State
 	let {
 		routeChildren,
-		selector,
+		selection,
 		href = resolve('/(social)/(lens)/lens/post/[postId]', {
-			postId: selector.id,
+			postId: selection.entitySelector.id,
 		}),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			routeChildren?: Snippet
-			selector: EntitySelector<typeof schema, EntityType.LensPost>
+			selection: EntityProxyResource<typeof schema, EntityType.LensPost>
 			href?: string
 			open?: boolean
 		},
@@ -38,8 +39,8 @@
 		>
 	> = $props()
 
-	const lensPost = $derived(select(EntityType.LensPost,
-		selector,
+
+	const lensPost = $derived(selection(
 		{
 			sources: [
 				Source.Lens_Graphql,
@@ -73,6 +74,7 @@
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import LensAccountView from '$/views/LensAccountView.svelte'
+	import LensPostView from '$/views/LensPostView.svelte'
 	import LensCommentsView from '$/views/LensCommentsView.svelte'
 	import LensPost_TimestampsView from '$/views/LensPost_TimestampsView.svelte'
 	import SocialMetricSnapshotRows from '$/views/SocialMetricSnapshotRows.svelte'
@@ -81,7 +83,7 @@
 
 <EntityView
 	entityType={EntityType.LensPost}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
@@ -91,7 +93,7 @@
 			format={TruncatedValueFormat.Visual}
 			startLength={24}
 			endLength={12}
-			value={selector.id}
+			value={selection.entitySelector.id}
 		/>
 	{/snippet}
 
@@ -109,7 +111,7 @@
 						lensPost.fields.text
 							? lensPost.fields.text
 						:
-							selector.id
+							selection.entitySelector.id
 					}
 				/>
 			{/snippet}
@@ -174,7 +176,7 @@
 							<dt>Author</dt>
 							<dd>
 								<LensAccountView
-									selector={lensPost.fields.$author[EntityMetaKey.Selector]}
+									selection={select(EntityType.LensAccount, lensPost.fields.$author[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 									open={false}
@@ -187,8 +189,8 @@
 						<div>
 							<dt>Repost of</dt>
 							<dd>
-							<svelte:self
-								selector={lensPost.fields.$repostOf[EntityMetaKey.Selector]}
+							<LensPostView
+								selection={select(EntityType.LensPost, lensPost.fields.$repostOf[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								open={true}
 									showTypeAnnotation={false}
@@ -201,8 +203,8 @@
 						<div>
 							<dt>Quote of</dt>
 							<dd>
-							<svelte:self
-								selector={lensPost.fields.$quoteOf[EntityMetaKey.Selector]}
+							<LensPostView
+								selection={select(EntityType.LensPost, lensPost.fields.$quoteOf[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 
 									showTypeAnnotation={false}
@@ -218,8 +220,8 @@
 						<div>
 							<dt>Comment on</dt>
 							<dd>
-							<svelte:self
-								selector={lensPost.fields.$commentOn[EntityMetaKey.Selector]}
+							<LensPostView
+								selection={select(EntityType.LensPost, lensPost.fields.$commentOn[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 								
@@ -250,27 +252,27 @@
 							metrics={[
 								{
 									label: 'Comments',
-									value: lensPost.fields.$$timestamps.values.at(0)?.commentCount,
+									resource: lensPost.fields.$$timestamps.values.at(0)?.commentCount,
 								},
 								{
 									label: 'Reposts',
-									value: lensPost.fields.$$timestamps.values.at(0)?.repostCount,
+									resource: lensPost.fields.$$timestamps.values.at(0)?.repostCount,
 								},
 								{
 									label: 'Quotes',
-									value: lensPost.fields.$$timestamps.values.at(0)?.quoteCount,
+									resource: lensPost.fields.$$timestamps.values.at(0)?.quoteCount,
 								},
 								{
 									label: 'Bookmarks',
-									value: lensPost.fields.$$timestamps.values.at(0)?.bookmarkCount,
+									resource: lensPost.fields.$$timestamps.values.at(0)?.bookmarkCount,
 								},
 								{
 									label: 'Collects',
-									value: lensPost.fields.$$timestamps.values.at(0)?.collectCount,
+									resource: lensPost.fields.$$timestamps.values.at(0)?.collectCount,
 								},
 								{
 									label: 'Reactions',
-									value: lensPost.fields.$$timestamps.values.at(0)?.reactionCount,
+									resource: lensPost.fields.$$timestamps.values.at(0)?.reactionCount,
 								},
 							]}
 						/>
@@ -283,7 +285,7 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{@const postDetailKey = stringify(selector)}
+		{@const postDetailKey = stringify(selection.entitySelector)}
 		<CollapsibleTabs
 			id={`${postDetailKey}:carousel-lens-post`}
 			sectionIdPrefix={postDetailKey}
@@ -336,10 +338,7 @@
 				<LensCommentsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/lens')}
-					selection={select(
-			EntityType.LensPost,
-			selector
-		).$$comments}
+					selection={selection.$$comments}
 					id={`${postDetailKey}:comments`}
 					open={true}
 					title="Comments"
@@ -348,10 +347,7 @@
 
 			{#snippet SectionMetricSnapshots()}
 				<LensPost_TimestampsView
-					selection={select(
-			EntityType.LensPost,
-			selector
-		).$$timestamps}
+					selection={selection.$$timestamps}
 					href={href}
 					id={`${postDetailKey}:metric-snapshots`}
 					title="Metric snapshots"

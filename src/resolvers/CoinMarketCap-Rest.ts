@@ -349,7 +349,7 @@ export default {
 				[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>) => {
 					const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
 					if (idByCoinId[coinId] == null)
-						throw new Error(`CoinMarketCap_Rest: $$marketsWithCoinAsBase unsupported for coin ${coinId}`)
+						return []
 					return (
 						[
 							{

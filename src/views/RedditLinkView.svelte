@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -17,16 +18,16 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/(social)/(reddit)/reddit/link/[fullname]', {
-			fullname: selector.fullname,
+			fullname: selection.entitySelector.fullname,
 		}),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.RedditLink>
+			selection: EntityProxyResource<typeof schema, EntityType.RedditLink>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -37,13 +38,10 @@
 		>
 	> = $props()
 
+
 	const link = $derived(
-		select(
-			EntityType.RedditLink,
-			selector,
-			({ sources: [
-				Source.Reddit_Rest,
-				Source.Reddit_PublicJson,
+		selection(({ sources: [
+				Source.Constants_Internal,
 			], fields: {
 				title: true,
 				selftext: true,
@@ -51,8 +49,7 @@
 				permalink: true,
 				author: true,
 				$$timestamps: ({ sources: [
-					Source.Reddit_Rest,
-					Source.Reddit_PublicJson,
+					Source.Constants_Internal,
 				], limit: 1 }),
 				createdAt: true,
 				$subreddit: true,
@@ -60,7 +57,7 @@
 		)
 	)
 
-	const idKey = $derived(stringify(selector))
+	const idKey = $derived(stringify(selection.entitySelector))
 
 
 	// Components
@@ -79,7 +76,7 @@
 
 <EntityView
 	entityType={EntityType.RedditLink}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	{layout}
 	bind:open
@@ -87,7 +84,7 @@
 >
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{selector.fullname}
+			{selection.entitySelector.fullname}
 		</span>
 	{/snippet}
 
@@ -97,7 +94,7 @@
 			placeholderText="Loading Reddit submission…"
 		>
 			{#snippet children(link)}
-				{link.fields.title ?? selector.fullname}
+				{link.fields.title ?? selection.entitySelector.fullname}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -149,11 +146,11 @@
 						metrics={[
 							{
 								label: 'Score',
-								value: link.fields.$$timestamps.values.at(0)?.score,
+								resource: link.fields.$$timestamps.values.at(0)?.score,
 							},
 							{
 								label: 'Comments',
-								value: link.fields.$$timestamps.values.at(0)?.commentCount,
+								resource: link.fields.$$timestamps.values.at(0)?.commentCount,
 							},
 						]}
 					/>
@@ -170,7 +167,7 @@
 							<dt>Posted in</dt>
 							<dd>
 								<RedditSubredditView
-									selector={link.fields.$subreddit[EntityMetaKey.Selector]}
+									selection={select(EntityType.RedditSubreddit, link.fields.$subreddit[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 									open={false}
@@ -237,20 +234,14 @@
 			{#snippet SectionComments()}
 				<RedditCommentsView
 					CollapsibleProps={{ canToggle: false }}
-					selection={select(
-			EntityType.RedditLink,
-			selector
-		).$$comments}
+					selection={selection.$$comments}
 					id={`${idKey}:reddit-comments`}
 				/>
 			{/snippet}
 
 			{#snippet SectionMetricSnapshots()}
 				<RedditLink_TimestampsView
-					selection={select(
-			EntityType.RedditLink,
-			selector
-		).$$timestamps}
+					selection={selection.$$timestamps}
 					href={href}
 					id={`${idKey}:metric-snapshots`}
 					title="Metric snapshots"

@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.CosmosGovernanceProposal>
+			selection: EntityProxyResource<typeof schema, EntityType.CosmosGovernanceProposal>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -38,16 +40,16 @@
 
 <EntityView
 	entityType={EntityType.CosmosGovernanceProposal}
-	entitySelector={selector}
-	title={selector.proposalId}
-	idDragPlainText={selector.proposalId}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.proposalId}
+	idDragPlainText={selection.entitySelector.proposalId}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<TruncatedValue
-			value={selector.proposalId}
+			value={selection.entitySelector.proposalId}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
@@ -63,7 +65,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.CosmosGovernanceProposal, selector, ({ fields: { title: true, status: true } }))}
+			resource={selection( { fields: { title: true, status: true } })}
 			placeholderText={`Loading Cosmos governance proposal...`}
 		>
 			{#snippet children(cosmosGovernanceProposal)}

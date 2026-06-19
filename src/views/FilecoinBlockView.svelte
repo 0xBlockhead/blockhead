@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.FilecoinBlock>
+			selection: EntityProxyResource<typeof schema, EntityType.FilecoinBlock>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -39,16 +41,16 @@
 
 <EntityView
 	entityType={EntityType.FilecoinBlock}
-	entitySelector={selector}
-	title={selector.cid}
-	idDragPlainText={selector.cid}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.cid}
+	idDragPlainText={selection.entitySelector.cid}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<TruncatedValue
-			value={selector.cid}
+			value={selection.entitySelector.cid}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
@@ -64,7 +66,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.FilecoinBlock, selector, ({ fields: { ticketVrFProof: true, winCount: true } }))}
+			resource={selection( { fields: { ticketVrFProof: true, winCount: true } })}
 			placeholderText={`Loading Filecoin Block...`}
 		>
 			{#snippet children(filecoinBlock)}

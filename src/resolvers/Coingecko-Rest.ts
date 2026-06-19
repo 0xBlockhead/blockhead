@@ -540,7 +540,7 @@ export default {
 						'$/sources/Coingecko/Rest/coinInstances.ts'
 					)
 					if (idByCoinId[coinId] == null)
-						throw new Error(`Coingecko_Rest: $$coinInstances unsupported for coin ${coinId}`)
+						return []
 					return fetchCoinInstanceStubsForCoin(
 						coinId,
 						context.publicEnv
@@ -627,7 +627,7 @@ export default {
 				[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>) => {
 					const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 					if (idByCoinId[coinId] == null)
-						throw new Error(`Coingecko_Rest: $$marketsWithCoinAsBase unsupported for coin ${coinId}`)
+						return []
 					return (
 						[
 							{
@@ -711,38 +711,6 @@ export default {
 		})({
 			fields: {
 				$$marketsWithCurrencyAsBase: (currency) => currency,
-			},
-		}),
-
-		defineResolver(Source.Coingecko_Rest, {
-			entityType: EntityType.EvmCoinInstance,
-			resolve: {
-				[EvmCoinInstanceSelector.NetworkType]: async () => {
-					throw new Error('Coingecko_Rest: $$marketsWithInstanceAsBase is unsupported')
-				},
-				[EvmCoinInstanceSelector.NetworkTypeContract]: async () => {
-					throw new Error('Coingecko_Rest: $$marketsWithInstanceAsBase is unsupported')
-				},
-			},
-		})({
-			fields: {
-				$$marketsWithInstanceAsBase: (coinInstance) => coinInstance,
-			},
-		}),
-
-		defineResolver(Source.Coingecko_Rest, {
-			entityType: EntityType.EvmCoinInstance,
-			resolve: {
-				[EvmCoinInstanceSelector.NetworkType]: async () => {
-					throw new Error('Coingecko_Rest: $$marketsWithInstanceAsQuote is unsupported')
-				},
-				[EvmCoinInstanceSelector.NetworkTypeContract]: async () => {
-					throw new Error('Coingecko_Rest: $$marketsWithInstanceAsQuote is unsupported')
-				},
-			},
-		})({
-			fields: {
-				$$marketsWithInstanceAsQuote: (coinInstance) => coinInstance,
 			},
 		}),
 

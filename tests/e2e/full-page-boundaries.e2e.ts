@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test'
 import type { Page } from '@playwright/test'
 
 import {
+	expectMainVisible,
 	formatBoundaryReportSummary,
 	getBoundaryProbeEvents,
 	installBoundaryProbe,
@@ -9,6 +10,7 @@ import {
 	resetBoundaryProbe,
 	summarizeRouteBoundaryReport,
 	waitForBoundarySettle,
+	type PageRuntimeDiagnostics,
 	type RouteBoundaryReport,
 } from '../_e2eBrowserHelpers.ts'
 
@@ -22,16 +24,18 @@ import {
 } from './_routeViewDiagnostics.ts'
 
 
-const collectRouteBoundaryReport = async (page: Page, pathname: string) => {
+const collectRouteBoundaryReport = async (
+	page: Page,
+	pathname: string,
+	diagnostics: PageRuntimeDiagnostics
+) => {
 	await resetBoundaryProbe(page)
-	await page.goto(pathname, {
+	await diagnostics.step(page.goto(pathname, {
 		waitUntil: 'domcontentloaded',
 		timeout: routeViewSmokeTimeoutsMs.goto,
-	})
+	}))
 	const main = page.locator('#main')
-	await expect(main).toBeAttached({
-		timeout: routeViewSmokeTimeoutsMs.mainSelector,
-	})
+	await expectMainVisible(page, routeViewSmokeTimeoutsMs.mainSelector, diagnostics)
 	await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {})
 	const mainVisible = await main.isVisible().catch(() => false)
 	const snapshot = await waitForBoundarySettle(page, {
@@ -120,14 +124,18 @@ test.describe('full-page boundary failures (canonical smoke routes)', () => {
 	for (const [label, pathname] of Object.entries(routeViewSmokePathByLabel)) {
 		test(`${label}: ${pathname}`, async ({ page }, testInfo) => {
 			testInfo.setTimeout(routeViewSmokeTimeoutsMs.test)
-			const { step, flushArtifacts } = setupRouteViewSmokePage(page)
+			const {
+				diagnostics,
+				flushArtifacts,
+				step,
+			} = setupRouteViewSmokePage(page)
 			await installBoundaryProbe(page)
 			await installChainlistRpcsJsonStub(page)
 			await installEthereumEipGithubStub(page)
 
 			try {
 				assertNoBrokenBoundaryReports([
-					await step(collectRouteBoundaryReport(page, pathname)),
+					await step(collectRouteBoundaryReport(page, pathname, diagnostics)),
 				])
 			}
 			catch (error) {

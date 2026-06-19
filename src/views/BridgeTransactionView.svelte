@@ -1,8 +1,9 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
@@ -13,19 +14,14 @@
 
 	// State
 	let {
-			selector,
-			href = resolve('/~/(accounts)/accounts/(transactions)/transaction/[chainId]/[address]/[sourceTxHash]/[createdAt]', {
-				chainId: String(evmChainIdFromCaip2(`${selector.$sourceTx.$network.caip2.namespace}:${selector.$sourceTx.$network.caip2.reference}`)),
-				address: selector.$account.address,
-				sourceTxHash: selector.$sourceTx.txHash,
-				createdAt: String(selector.createdAt),
-			}),
+			selection,
+			href,
 		title = 'Bridge transaction',
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.BridgeTransaction>
+			selection: EntityProxyResource<typeof schema, EntityType.BridgeTransaction>
 			href?: string
 			title?: string
 			open?: boolean
@@ -52,14 +48,19 @@
 <EntityView
 	entityType={EntityType.BridgeTransaction}
 	bind:open
-	entitySelector={selector}
-	href={href}
+	entitySelector={selection.entitySelector}
+	href={href ?? resolve('/~/(accounts)/accounts/(transactions)/transaction/[chainId=eip155ChainId]/[address=evmAddress]/[sourceTxHash]/[createdAt]', {
+		chainId: String(evmChainIdFromCaip2(`${selection.entitySelector.$sourceTx.$network.caip2.namespace}:${selection.entitySelector.$sourceTx.$network.caip2.reference}`)),
+		address: selection.entitySelector.$account.address,
+		sourceTxHash: selection.entitySelector.$sourceTx.txHash,
+		createdAt: String(selection.entitySelector.createdAt),
+	})}
 	{title}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<TruncatedValue
-			value={selector.$sourceTx.txHash}
+			value={selection.entitySelector.$sourceTx.txHash}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -84,7 +85,7 @@
 					<dt>Origin chain</dt>
 					<dd>
 						<EvmNetworkView
-							selector={selector.$sourceTx.$network}
+							selection={select(EntityType.EvmNetwork, selection.entitySelector.$sourceTx.$network)}
 							layout={EntityLayout.Title}
 
 						/>
@@ -94,12 +95,12 @@
 					<dt>Origin transaction</dt>
 					<dd>
 						<EvmTransactionView
-							selector={selector.$sourceTx}
+							selection={select(EntityType.EvmTransaction, selection.entitySelector.$sourceTx)}
 							href={resolve(
 								'/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]',
 								{
-										caip2: `${selector.$sourceTx.$network.caip2.namespace}:${selector.$sourceTx.$network.caip2.reference}`,
-										transactionId: selector.$sourceTx.txHash,
+										caip2: `${selection.entitySelector.$sourceTx.$network.caip2.namespace}:${selection.entitySelector.$sourceTx.$network.caip2.reference}`,
+										transactionId: selection.entitySelector.$sourceTx.txHash,
 								},
 							)}
 							layout={EntityLayout.Title}
@@ -111,7 +112,7 @@
 					<dt>Recorded at</dt>
 					<dd>
 						<Timestamp
-							timestamp={selector.createdAt}
+							timestamp={selection.entitySelector.createdAt}
 						/>
 					</dd>
 				</div>
@@ -120,10 +121,10 @@
 						<dt>Initiator</dt>
 						<dd>
 							<EvmNetworkAccountView
-								selector={{
-									$network: selector.$sourceTx.$network,
-									$actor: selector.$account,
-								}}
+								selection={select(EntityType.EvmNetworkAccount, {
+									$network: selection.entitySelector.$sourceTx.$network,
+									$actor: selection.entitySelector.$account,
+								})}
 								layout={EntityLayout.Title}
 
 							/>

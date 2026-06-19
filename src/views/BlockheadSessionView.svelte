@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,17 +17,17 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve(
 			'/~/(sessions)/session/[sessionId]',
-			{ sessionId: selector.id },
+			{ sessionId: selection.entitySelector.id },
 		),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.BlockheadSession>
+			selection: EntityProxyResource<typeof schema, EntityType.BlockheadSession>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -37,9 +38,9 @@
 		>
 	> = $props()
 
+
 	const session = $derived(
-		select(EntityType.BlockheadSession,
-			selector,
+		selection(
 			({ sources: [
 					Source.Local_Internal,
 				], fields: { name: true, status: true, createdAt: true, updatedAt: true, lockedAt: true, ...(open ? ({ simulationCount: true, $$actions: ({ sources: [
@@ -59,14 +60,14 @@
 
 <EntityView
 	entityType={EntityType.BlockheadSession}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
-			{selector.id}
+			{selection.entitySelector.id}
 		</span>
 	{/snippet}
 
@@ -76,7 +77,7 @@
 			placeholderText="Loading session…"
 		>
 			{#snippet children(session)}
-				{session.fields.name ?? selector.id}
+				{session.fields.name ?? selection.entitySelector.id}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -219,11 +220,8 @@
 	})}
 		<BlockheadSessionActionsView
 			href={href}
-			selection={select(
-			EntityType.BlockheadSession,
-			selector
-		).$$actions}
-			id={`${selector.id}:actions`}
+			selection={selection.$$actions}
+			id={`${selection.entitySelector.id}:actions`}
 			open={_open}
 		/>
 	{/snippet}

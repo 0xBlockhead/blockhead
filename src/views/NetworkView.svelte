@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import {
 		NetworkNamespace,
@@ -28,7 +29,6 @@
 		open?: boolean
 	} = $props()
 
-	const selector = $derived(selection.entitySelector)
 
 	
 
@@ -63,14 +63,14 @@
 >
 	{#snippet children(row)}
 		{@const networkCaip2 = row.caip2 ?? (
-		'caip2' in selector ?
-			selector.caip2
+		'caip2' in selection.entitySelector ?
+			selection.entitySelector.caip2
 		:
 			undefined
 	)}
 		{@const networkSlug = row.slug ?? (
-		'slug' in selector ?
-			selector.slug
+		'slug' in selection.entitySelector ?
+			selection.entitySelector.slug
 		:
 			undefined
 	)}
@@ -101,117 +101,117 @@
 		)}
 		{#if networkNamespace === NetworkNamespace.Evm && networkCaip2 != null}
 			<EvmNetworkView
-				selector={{
+				selection={select(EntityType.EvmNetwork, {
 					caip2: {
 						namespace: 'eip155',
 						reference: networkCaip2.reference,
 					},
-				}}
+				})}
 				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else if networkNamespace === NetworkNamespace.Bitcoin || networkNamespace === NetworkNamespace.BitcoinCash || networkNamespace === NetworkNamespace.Litecoin || networkNamespace === NetworkNamespace.Dogecoin || networkNamespace === NetworkNamespace.Zcash}
 			<UtxoNetworkView
-				selector={{ $network: networkSelector }}
+				selection={select(EntityType.UtxoNetwork, { $network: networkSelector })}
 				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else if networkNamespace === NetworkNamespace.Solana && networkCaip2 != null}
 			<SolanaNetworkView
-				selector={{
+				selection={select(EntityType.SolanaNetwork, {
 					caip2: {
 						namespace: 'solana',
 						reference: networkCaip2.reference,
 					},
-				}}
+				})}
 				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else if networkNamespace === NetworkNamespace.Cosmos}
 			<CosmosNetworkView
-				selector={{ $network: networkSelector }}
+				selection={select(EntityType.CosmosNetwork, { $network: networkSelector })}
 				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else if networkNamespace === NetworkNamespace.Filecoin}
 			<FilecoinNetworkView
-				selector={{ $network: networkSelector }}
+				selection={select(EntityType.FilecoinNetwork, { $network: networkSelector })}
 				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else if networkNamespace === NetworkNamespace.Polkadot}
 			<PolkadotNetworkView
-				selector={{ $network: networkSelector }}
+				selection={select(EntityType.PolkadotNetwork, { $network: networkSelector })}
 				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else if networkNamespace === NetworkNamespace.Monero}
 			<MoneroNetworkView
-				selector={{ $network: networkSelector }}
+				selection={select(EntityType.MoneroNetwork, { $network: networkSelector })}
 				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else if networkNamespace === NetworkNamespace.Near}
 			<NearNetworkView
-				selector={{ slug: 'near' }}
+				selection={select(EntityType.NearNetwork, { slug: 'near' })}
 				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else if networkNamespace === NetworkNamespace.Tron}
 			<TronNetworkView
-				selector={{ $network: networkSelector }}
+				selection={select(EntityType.TronNetwork, { $network: networkSelector })}
 				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else if networkNamespace === NetworkNamespace.Hyperliquid}
 			<HyperliquidNetworkView
-				selector={{ $network: networkSelector }}
+				selection={select(EntityType.HyperliquidNetwork, { $network: networkSelector })}
 				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else if networkNamespace === NetworkNamespace.Bittensor}
 			<BittensorNetworkView
-				selector={{ $network: networkSelector }}
+				selection={select(EntityType.BittensorNetwork, { $network: networkSelector })}
 				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else if networkNamespace === NetworkNamespace.Lightning}
 			<LightningNetworkView
-				selector={{
+				selection={select(EntityType.LightningNetwork, {
 					$network: networkSelector,
-				}}
+				})}
 				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else if networkNamespace === NetworkNamespace.ZeroG}
 			<ZeroGNetworkView
-				selector={networkSelector}
+				selection={select(EntityType.Network, networkSelector)}
 				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else if networkNamespace === NetworkNamespace.Logos}
 			<LogosNetworkView
-				selector={networkSelector}
+				selection={select(EntityType.Network, networkSelector)}
 				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else if networkNamespace === NetworkNamespace.Quilibrium}
 			<QuilibriumNetworkView
-				selector={networkSelector}
+				selection={select(EntityType.Network, networkSelector)}
 				href={networkHref}
 				bind:open
 				{layout}

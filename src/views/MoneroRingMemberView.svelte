@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.MoneroRingMember>
+			selection: EntityProxyResource<typeof schema, EntityType.MoneroRingMember>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -38,16 +40,16 @@
 
 <EntityView
 	entityType={EntityType.MoneroRingMember}
-	entitySelector={selector}
-	title={`Ring member #${selector.memberIndex.toString()}`}
-	idDragPlainText={selector.memberIndex.toString()}
+	entitySelector={selection.entitySelector}
+	title={`Ring member #${selection.entitySelector.memberIndex.toString()}`}
+	idDragPlainText={selection.entitySelector.memberIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{selector.memberIndex.toString()}
+			#{selection.entitySelector.memberIndex.toString()}
 		</span>
 	{/snippet}
 
@@ -62,8 +64,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.MoneroRingMember,
-					selector,
+			resource={selection(
 					({ fields: { globalOutputIndex: true } }),
 				)}
 			placeholderText={`Loading Monero Ring Member...`}

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import {
 		currencies,
@@ -48,7 +50,7 @@
 		</p>
 	{:else}
 		<CurrencyView
-			selector={{ iso4217: route.iso4217 }}
+			selection={select(EntityType.Currency, { iso4217: route.iso4217 })}
 		/>
 	{/if}
 </Page>

@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -14,18 +15,18 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		title = 'Contract',
 		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
-			caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
-			address: selector.address,
+			caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
+			address: selection.entitySelector.address,
 		}),
 		open = $bindable(true),
 		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.EvmContract>
+			selection: EntityProxyResource<typeof schema, EntityType.EvmContract>
 			title?: string
 			href?: string
 			open?: boolean
@@ -39,10 +40,11 @@
 		>
 	> = $props()
 
+
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { select } from '$/routes/+layout.svelte'
 
-	const contract = $derived(select(EntityType.EvmContract, selector, {
+	const contract = $derived(selection( {
 		sources: [
 			Source.Local_Internal,
 			Source.Constants_Internal,
@@ -72,7 +74,7 @@
 
 <EntityView
 	entityType={EntityType.EvmContract}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	{title}
 	{href}
 	bind:open
@@ -81,10 +83,10 @@
 >
 	{#snippet Value()}
 		<EvmNetworkAccountView
-			selector={{
-				$network: selector.$network,
-				$actor: { address: selector.address },
-			}}
+			selection={select(EntityType.EvmNetworkAccount, {
+				$network: selection.entitySelector.$network,
+				$actor: { address: selection.entitySelector.address },
+			})}
 			layout={EntityLayout.Value}
 
 			open={false}
@@ -123,10 +125,10 @@
 												{compilationName}
 											{:else}
 												<EvmNetworkAccountView
-													selector={{
-														$network: selector.$network,
-														$actor: { address: selector.address },
-													}}
+													selection={select(EntityType.EvmNetworkAccount, {
+														$network: selection.entitySelector.$network,
+														$actor: { address: selection.entitySelector.address },
+													})}
 													layout={EntityLayout.Value}
 													open={false}
 												/>
@@ -141,10 +143,10 @@
 			</ResourceBoundary>
 		{:else}
 			<EvmNetworkAccountView
-				selector={{
-					$network: selector.$network,
-					$actor: { address: selector.address },
-				}}
+				selection={select(EntityType.EvmNetworkAccount, {
+					$network: selection.entitySelector.$network,
+					$actor: { address: selection.entitySelector.address },
+				})}
 				layout={EntityLayout.Value}
 
 				open={false}
@@ -157,7 +159,7 @@
 			<dl data-column-item="center">
 				<div>
 					<dt>Chain ID</dt>
-					<dd>{String(evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`))}</dd>
+					<dd>{String(evmChainIdFromCaip2(`${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`))}</dd>
 				</div>
 				<ResourceBoundary
 					placeholderText="Loading contract details…"
@@ -169,10 +171,10 @@
 								<dt>Address</dt>
 								<dd>
 									<EvmNetworkAccountView
-										selector={{
-											$network: selector.$network,
-											$actor: { address: selector.address },
-										}}
+										selection={select(EntityType.EvmNetworkAccount, {
+											$network: selection.entitySelector.$network,
+											$actor: { address: selection.entitySelector.address },
+										})}
 										layout={EntityLayout.Value}
 
 										open={false}
@@ -199,12 +201,12 @@
 								<dt>Deployer</dt>
 								<dd>
 									<EvmNetworkAccountView
-										selector={{
-											$network: selector.$network,
+										selection={select(EntityType.EvmNetworkAccount, {
+											$network: selection.entitySelector.$network,
 											$actor: deployer.entitySelector,
-										}}
+										})}
 										href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(accounts)/account/[address=evmAddress]', {
-											caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
+											caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
 											address: deployer.entitySelector.address,
 										})}
 										layout={EntityLayout.Title}
@@ -227,9 +229,9 @@
 								<dt>Creation transaction</dt>
 								<dd>
 									<EvmTransactionView
-										selector={creationTransaction.entitySelector}
+										selection={select(EntityType.EvmTransaction, creationTransaction.entitySelector)}
 										href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-											caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
+											caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
 											transactionId: creationTransaction.entitySelector.txHash,
 										})}
 										layout={EntityLayout.Title}
@@ -252,7 +254,7 @@
 								<dt>Implementation</dt>
 								<dd>
 									<Self
-										selector={implementation.entitySelector}
+										selection={select(EntityType.EvmContract, implementation.entitySelector)}
 										layout={EntityLayout.Title}
 
 									/>

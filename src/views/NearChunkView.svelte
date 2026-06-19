@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -11,12 +12,12 @@
 	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.NearChunk>
+			selection: EntityProxyResource<typeof schema, EntityType.NearChunk>
 			open?: boolean
 		},
 		Pick<
@@ -25,6 +26,7 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
 
 	
 
@@ -39,16 +41,16 @@
 
 <EntityView
 	entityType={EntityType.NearChunk}
-	entitySelector={selector}
-	title={selector.chunkHash}
-	idDragPlainText={selector.chunkHash}
+	entitySelector={selection.entitySelector}
+	title={selection.entitySelector.chunkHash}
+	idDragPlainText={selection.entitySelector.chunkHash}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<TruncatedValue
-			value={selector.chunkHash}
+			value={selection.entitySelector.chunkHash}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
@@ -64,7 +66,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={select(EntityType.NearChunk, selector, ({ fields: { shardId: true, gasUsed: true } }))}
+			resource={selection( { fields: { shardId: true, gasUsed: true } })}
 			placeholderText={`Loading NEAR Chunk...`}
 		>
 			{#snippet children(nearChunk)}

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
@@ -89,7 +90,7 @@
 
 				{#snippet Item(context)}
 					<UtxoTransactionView
-						selector={context!.item.entitySelector}
+						selection={select(EntityType.UtxoTransaction, context!.item.entitySelector)}
 						layout={EntityLayout.Summary}
 
 					/>

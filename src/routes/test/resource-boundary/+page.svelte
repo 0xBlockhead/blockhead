@@ -24,6 +24,7 @@
 		isLoading: false,
 		isError: false,
 		isReady: true,
+		status: 'ready',
 	} satisfies TanStackLiveQuerySnapshot<string>
 	const cachedResource = new TanStackLiveQueryResource(() => cachedQuery)
 
@@ -117,16 +118,11 @@
 		},
 		[Symbol.toStringTag]: 'Query',
 	}
+	const failedPromise = Promise.reject<string>(new Error('Boundary failure'))
 	const failedResource = {
-		then: (...parameters: Parameters<Promise<string>['then']>) => (
-			Promise.reject<string>(new Error('Boundary failure')).then(...parameters)
-		),
-		catch: (...parameters: Parameters<Promise<string>['catch']>) => (
-			Promise.reject<string>(new Error('Boundary failure')).catch(...parameters)
-		),
-		finally: (...parameters: Parameters<Promise<string>['finally']>) => (
-			Promise.reject<string>(new Error('Boundary failure')).finally(...parameters)
-		),
+		then: failedPromise.then.bind(failedPromise),
+		catch: failedPromise.catch.bind(failedPromise),
+		finally: failedPromise.finally.bind(failedPromise),
 		get current() {
 			return undefined
 		},

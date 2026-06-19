@@ -24,7 +24,7 @@
 
 <Page>
 	<GlobalView
-		selector={{ scope: 'Accounts' }}
+		selection={select(EntityType._Global, { scope: 'Accounts' })}
 		title="Accounts"
 		href={resolve('/~/accounts')}
 	>

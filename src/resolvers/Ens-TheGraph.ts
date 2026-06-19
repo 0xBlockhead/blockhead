@@ -108,6 +108,10 @@ export default {
 
 				const subgraphResolvedActor = actorEntityFromSubgraphAccount(matchingEnsDomain.resolvedAddress)
 				const subgraphOwnerActor = actorEntityFromSubgraphAccount(matchingEnsDomain.owner)
+				const resolverAddress = hexLowerOfByteSize(
+					String(matchingEnsDomain.resolver?.address ?? ''),
+					20
+				)
 				const registrantActor = actorEntityFromSubgraphAccount(
 					matchingEnsDomain.registrant
 					?? matchingEnsDomain.registration?.registrant
@@ -142,6 +146,19 @@ export default {
 						subdomainCount: matchingEnsDomain.subdomainCount,
 					...(subgraphResolvedActor != null && { $subgraphResolvedActor: subgraphResolvedActor }),
 					...(subgraphOwnerActor != null && { $subgraphOwnerActor: subgraphOwnerActor }),
+					...(resolverAddress != null && {
+						$resolverContract: {
+							[EntityMetaKey.Selector]: {
+								$network: {
+									caip2: {
+										namespace: 'eip155' as const,
+										reference: '1',
+									},
+								},
+								address: resolverAddress,
+							},
+						} satisfies Entity<typeof schema, EntityType.EvmContract>,
+					}),
 					...(registrantActor != null && { $registrantActor: registrantActor }),
 					...(wrappedOwnerActor != null && { $wrappedOwnerActor: wrappedOwnerActor }),
 					...(wrappedExpiryDateBigInt != null && { wrappedExpiryDate: wrappedExpiryDateBigInt }),
@@ -185,6 +202,7 @@ export default {
 					subdomainCount: (ensName) => ensName.subdomainCount,
 					$subgraphResolvedActor: (ensName) => ensName.$subgraphResolvedActor,
 					$subgraphOwnerActor: (ensName) => ensName.$subgraphOwnerActor,
+					$resolverContract: (ensName) => ensName.$resolverContract,
 					$registrantActor: (ensName) => ensName.$registrantActor,
 					$wrappedOwnerActor: (ensName) => ensName.$wrappedOwnerActor,
 					wrappedExpiryDate: (ensName) => ensName.wrappedExpiryDate,

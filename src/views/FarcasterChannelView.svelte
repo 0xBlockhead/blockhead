@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -17,15 +18,15 @@
 
 	// State
 	let {
-		selector,
+		selection,
 		href = resolve('/(social)/(farcaster)/farcaster/(channels)/channel/[channelId]', {
-			channelId: selector.id,
+			channelId: selection.entitySelector.id,
 		}),
 		open = $bindable(true),
 			...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.FarcasterChannel>
+			selection: EntityProxyResource<typeof schema, EntityType.FarcasterChannel>
 			href?: string
 			open?: boolean
 		},
@@ -35,14 +36,12 @@
 		>
 	> = $props()
 
+
 	const channel = $derived(
-		select(EntityType.FarcasterChannel,
-			selector,
+		selection(
 			({ sources: [
 				Source.Farcaster_Rest,
-			], fields: { name: true, url: true, description: true, $icon: true, createdAt: true, $$timestamps: ({ sources: [
-					Source.Farcaster_Rest,
-				], limit: 1 }), pinnedCastHash: true, publicCasting: true, externalLinkTitle: true, externalLinkUrl: true, followedAt: true, ...(open ? ({ $headerImage: true, $lead: true, $moderator: true, $$moderators: true }) : ({  })) } }),
+			], fields: { name: true, description: true, $icon: true, ...(open ? ({ url: true, createdAt: true, pinnedCastHash: true, publicCasting: true, externalLinkTitle: true, externalLinkUrl: true, followedAt: true, $headerImage: true, $lead: true, $moderator: true, $$moderators: true }) : ({  })) } }),
 		)
 	)
 
@@ -56,14 +55,12 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import FarcasterChannel_TimestampsView from '$/views/FarcasterChannel_TimestampsView.svelte'
-	import SocialMetricSnapshotRows from '$/views/SocialMetricSnapshotRows.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.FarcasterChannel}
-	entitySelector={selector}
+	entitySelector={selection.entitySelector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
@@ -77,7 +74,7 @@
 				{#if channel.fields.$icon?.[EntityMetaKey.Selector].url}
 					<IconComponent
 						src={channel.fields.$icon[EntityMetaKey.Selector].url}
-						alt={channel.fields.name ?? selector.id}
+						alt={channel.fields.name ?? selection.entitySelector.id}
 					/>
 				{/if}
 			{/snippet}
@@ -86,7 +83,7 @@
 
 	{#snippet Value()}
 		<span>
-			/{selector.id}
+			/{selection.entitySelector.id}
 		</span>
 	{/snippet}
 
@@ -96,7 +93,7 @@
 			placeholderText="Loading Farcaster channel (channel id / slug)…"
 		>
 			{#snippet children(channel)}
-				{channel.fields.name ?? `/${selector.id}`}
+				{channel.fields.name ?? `/${selection.entitySelector.id}`}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -128,26 +125,6 @@
 		</ResourceBoundary>
 
 		<dl>
-			<ResourceBoundary
-				resource={channel}
-				placeholderText="Loading Farcaster channel (channel id / slug)…"
-			>
-				{#snippet children(channel)}
-					<SocialMetricSnapshotRows
-						metrics={[
-							{
-								label: 'Followers',
-								value: channel.fields.$$timestamps.values.at(0)?.followerCount,
-							},
-							{
-								label: 'Members',
-								value: channel.fields.$$timestamps.values.at(0)?.memberCount,
-							},
-						]}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-
 			<div>
 				<dt>Public casting</dt>
 				<dd>
@@ -195,7 +172,7 @@
 									channel.fields.$lead !== undefined
 									&& channel.fields.$lead[EntityMetaKey.Selector].fid !== undefined
 								)}
-									<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
+										<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId=farcasterFid]', {
 										userId: String(channel.fields.$lead[EntityMetaKey.Selector].fid),
 									})}>
 										FID {String(channel.fields.$lead[EntityMetaKey.Selector].fid)}
@@ -220,7 +197,7 @@
 									channel.fields.$moderator !== undefined
 									&& channel.fields.$moderator[EntityMetaKey.Selector].fid !== undefined
 								)}
-									<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
+										<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId=farcasterFid]', {
 										userId: String(channel.fields.$moderator[EntityMetaKey.Selector].fid),
 									})}>
 										FID {String(channel.fields.$moderator[EntityMetaKey.Selector].fid)}
@@ -241,11 +218,11 @@
 							placeholderText="Loading Farcaster channel (channel id / slug)…"
 						>
 							{#snippet children(channel)}
-								{#if channel.fields.$moderators.values.length}
+								{#if channel.fields.$$moderators.values.length}
 									<ul>
-										{#each channel.fields.$moderators.values as mod (String(mod[EntityMetaKey.Selector].fid))}
+										{#each channel.fields.$$moderators.values as mod (String(mod[EntityMetaKey.Selector].fid))}
 											<li>
-												<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
+													<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId=farcasterFid]', {
 													userId: String(mod[EntityMetaKey.Selector].fid),
 												})}>
 													FID {String(mod[EntityMetaKey.Selector].fid)}
@@ -369,14 +346,13 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{@const channelDetailKey = stringify(selector)}
+		{@const channelDetailKey = stringify(selection.entitySelector)}
 		<CollapsibleTabs
 			id={`${channelDetailKey}:carousel-channel`}
 			sectionIdPrefix={channelDetailKey}
 			sections={collapsibleTabsSections([
 				{ id: 'channel-record', label: 'Record' },
 				{ id: 'channel-banner', label: 'Banner' },
-				{ id: 'metric-snapshots', label: 'Metrics' },
 			])}
 			data-card
 		>
@@ -393,10 +369,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionChannelRecord()}
-			{/snippet}
-
-			{#snippet SectionChannelBanner()}
+				{#snippet SectionChannelBanner()}
 				<ResourceBoundary
 					resource={channel}
 					placeholderText="Loading Farcaster channel banner…"
@@ -420,17 +393,6 @@
 				</ResourceBoundary>
 			{/snippet}
 
-			{#snippet SectionMetricSnapshots()}
-				<FarcasterChannel_TimestampsView
-					selection={select(
-			EntityType.FarcasterChannel,
-			selector
-		).$$timestamps}
-					href={href}
-					id={`${channelDetailKey}:metric-snapshots`}
-					title="Metric snapshots"
-				/>
-			{/snippet}
 			</CollapsibleTabs>
 		{/snippet}
 	</EntityView>

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -48,10 +48,9 @@
 		...articleElementProps
 	}: WithRest<
 		{
-			selection: EntityProxyFieldResource<
+			selection: EntityProxyEntitiesResource<
 				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+				EntityType.SpecificationRealm
 			>
 			title?: string
 			open?: boolean
@@ -85,25 +84,33 @@
 	))
 	setIsInsideEntityList(true)
 
-	if (!collapsible)
-		incrementHeadingLevel()
+	const incrementHeadingLevelIfStandalone = () => {
+		if (!collapsible)
+			incrementHeadingLevel()
+	}
+	incrementHeadingLevelIfStandalone()
 
-	const {
-		onclose: userCollapsibleOnClose,
-		...collapsibleDetailsRest
-	} = CollapsibleProps
+	const userCollapsibleOnClose = $derived(CollapsibleProps.onclose)
+
+	const collapsibleDetailsRest = $derived.by(() => {
+		const {
+			onclose: _userCollapsibleOnClose,
+			...rest
+		} = CollapsibleProps
+		return rest
+	})
 
 	const collapsibleTabsPaneProps: Record<string, string> = {
 		'data-scroll-container': 'block',
 	}
 
-	const standaloneRealmPanelsProps: Record<string, string> = {
+	const standaloneRealmPanelsProps: Record<string, string> = $derived({
 		'data-column': 'gap-4 layout-flex',
 		...(panelStyle ?
 			{ style: panelStyle }
 		:
 			{}),
-	}
+	})
 
 
 	const specificationRealms = $derived(selection({
@@ -169,7 +176,6 @@
 	{/snippet}
 
 	<ResourceBoundary
-		boundaryKey={id}
 		placeholderText={
 			placeholderText
 			?? `Loading ${entityDefinitionByType[EntityType.SpecificationRealm].labelPlural.toLowerCase()}…`

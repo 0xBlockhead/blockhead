@@ -1,17 +1,19 @@
 <script lang="ts">
-	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
-import { ListOrientation } from '$/components/ListOrientation.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
+	import { resolve } from '$app/paths'
 
 
 	// State
@@ -27,11 +29,7 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyFieldResource<
-				typeof schema,
-				EntityTypeName<typeof schema>,
-				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
-			>
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.NostrReaction>
 			id: string
 			limit?: number
 			open?: boolean
@@ -45,15 +43,10 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 		>
 	> = $props()
 
-
-
-	
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import NostrReactionView from '$/views/NostrReactionView.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -83,10 +76,10 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			<ResourceBoundary resource={selection({
-					sources: [
-						Source.NostrBand_Rest,
-						Source.Primal_Rest,
-					],
+					sources: selection.entityType === EntityType.NostrNote ?
+						[Source.Constants_Internal]
+					:
+						[Source.NostrBand_Rest, Source.Primal_Rest],
 					limit,
 					fields: {
 						createdAt: true,
@@ -101,8 +94,8 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 						{title}
 						open={true}
 						items={reactions.entities}
-						getKey={(reaction) => reaction.entitySelector.eventId}
-						getSortValue={(reaction) => reaction.entitySelector.eventId}
+						getKey={(reaction) => stringify(reaction[EntityMetaKey.Selector])}
+						getSortValue={(reaction) => reaction[EntityMetaKey.Selector].eventId}
 						UnorderedListProps={{ orientation: ListOrientation.Column }}
 					>
 						{#snippet Empty()}
@@ -112,11 +105,16 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 						{/snippet}
 
 						{#snippet Item({ item })}
-							<NostrReactionView
-							selector={item.entitySelector}
-							layout={EntityLayout.SummaryDetails}
-
-						/>
+							<a
+								href={resolve('/(social)/(nostr)/nostr/reaction/[eventId]', {
+									eventId: item[EntityMetaKey.Selector].eventId,
+								})}
+							>
+								<TruncatedValue
+									value={item[EntityMetaKey.Selector].eventId}
+									format={TruncatedValueFormat.Visual}
+								/>
+							</a>
 						{/snippet}
 					</EntitiesList>
 				{/snippet}

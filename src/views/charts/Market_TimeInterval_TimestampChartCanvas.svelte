@@ -1,8 +1,9 @@
 <script lang="ts">
 	// Types/constants
 	import { stringify } from 'devalue'
-	import type { ComponentProps } from 'svelte'
-	import type Market_TimeInterval_TimestampView from '$/views/Market_TimeInterval_TimestampView.svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 
 
 	// State
@@ -16,7 +17,7 @@
 		height = '22rem',
 	}: {
 		title?: string
-		points?: readonly ComponentProps<typeof Market_TimeInterval_TimestampView>['resource'][]
+		points?: readonly EntityProxyResource<typeof schema, EntityType.Market_TimeInterval_Timestamp>[]
 		priceDecimals?: number
 		min?: number
 		max?: number
