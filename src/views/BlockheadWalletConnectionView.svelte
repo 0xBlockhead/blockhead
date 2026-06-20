@@ -1,7 +1,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import {
+		EntityProxyField,
+		type EntityProxyResource,
+	} from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { blockheadWalletConnectionStatusByStatus } from '$/constants/Blockhead.ts'
@@ -45,7 +48,7 @@
 				Source.Local_Internal,
 			], fields: { status: true, protocol: true, transportKind: true, scopes: true, $$connectedAccounts: true, $activeAccount: true, selected: true, connectedAt: true, disconnectedAt: true, sessionId: true, sessionTopic: true, error: true } }),
 	))
-	const walletConnectionError = $derived(walletConnection.field('error'))
+	const walletConnectionError = $derived(walletConnection[EntityProxyField]('error'))
 
 
 	// (Derived)

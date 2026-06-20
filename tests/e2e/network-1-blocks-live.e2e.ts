@@ -6,7 +6,7 @@ import {
 	collectIssues,
 	installChainlistRpcsJsonStub,
 	installPersistenceProbe,
-	type ProductCollectionSyncEvent,
+	type PersistedCollectionSyncEvent,
 } from '../_e2eBrowserHelpers.ts'
 
 const pageErrors = (issues: string[]) => (
@@ -33,7 +33,7 @@ const readFieldSyncs = (
 	if (probe == null)
 		throw new Error('missing blockhead client probe')
 
-	return probe.events.collectionSync.flatMap((event: ProductCollectionSyncEvent) => (
+	return probe.events.collectionSync.flatMap((event: PersistedCollectionSyncEvent) => (
 		event.collection.kind === 'Field' ?
 			[{
 				entityType: event.collection.entityType,

@@ -12,7 +12,7 @@ export function useContext<_Value>(
 		hasContext(key) ?
 			getContext<_Value>(key)
 		: getInitialValue ?
-			setContext(key, getInitialValue())
+			getInitialValue()
 		:
 			undefined
 	)

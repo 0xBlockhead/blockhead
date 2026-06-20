@@ -3,16 +3,13 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import {
-	bitcoinNetworkBySlug,
-} from '$/constants/BitcoinNetwork.ts'
-import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import type { EsploraAsset } from '$/sources/Esplora/Rest/types.ts'
 import {
-	liquidMainnetEsploraRestEndpoints,
+	esploraRestBaseUrlByNetworkKey,
 } from '$/sources/Esplora/index.ts'
 import { UtxoBlockSelector } from '$/schema/UtxoBlock.ts'
 import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
@@ -25,17 +22,16 @@ type NetworkId = { caip2: {
 } } | { slug: string }
 
 const esploraRestBaseUrlForNetwork = (network: NetworkId) => {
-	if (
-		'caip2' in network
-		&& network.caip2.namespace === bitcoinNetworkBySlug.bitcoin.caip2.namespace
-		&& network.caip2.reference === bitcoinNetworkBySlug.bitcoin.caip2.reference
-	)
-		return bitcoinNetworkBySlug.bitcoin.esploraRestBaseUrl
+	const restBaseUrl = esploraRestBaseUrlByNetworkKey[
+		'caip2' in network ?
+			`${network.caip2.namespace}:${network.caip2.reference}`
+		:
+			network.slug
+	]
+	if (restBaseUrl == null)
+		throw new Error('Esplora_Rest: unsupported network')
 
-	if ('slug' in network && network.slug === 'liquid')
-		return liquidMainnetEsploraRestEndpoints[0].restBaseUrl
-
-	throw new Error('Esplora_Rest: unsupported network')
+	return restBaseUrl
 }
 
 const elementsAssetFieldsFromWire = (
@@ -183,7 +179,7 @@ export default {
 
 					const { getAsset } = await import('$/sources/Esplora/Rest/queries.ts')
 					const asset = await getAsset({
-						restBaseUrl: liquidMainnetEsploraRestEndpoints[0].restBaseUrl,
+						restBaseUrl: esploraRestBaseUrlByNetworkKey.liquid,
 						assetId: assetId,
 					})
 					if (asset.asset_id !== assetId)
@@ -218,7 +214,7 @@ export default {
 
 					const { getAsset } = await import('$/sources/Esplora/Rest/queries.ts')
 					const asset = await getAsset({
-						restBaseUrl: liquidMainnetEsploraRestEndpoints[0].restBaseUrl,
+						restBaseUrl: esploraRestBaseUrlByNetworkKey.liquid,
 						assetId: '6f0279e9ed041c3d710a9f57d0c02928416460c4b722ae3457a11eec381c526d',
 					})
 
@@ -245,7 +241,7 @@ export default {
 
 					const { listRegistryAssets } = await import('$/sources/Esplora/Rest/queries.ts')
 					return (await listRegistryAssets({
-						restBaseUrl: liquidMainnetEsploraRestEndpoints[0].restBaseUrl,
+						restBaseUrl: esploraRestBaseUrlByNetworkKey.liquid,
 					}))
 						.slice(0, resolverContextRowLimit(context))
 						.map((asset) => elementsAssetRowFromWire(asset))

@@ -186,14 +186,16 @@
 					>
 						{#snippet children(ens)}
 							{#if ens.fields.$subgraphResolvedActor !== undefined}
-								<EvmAccountView
-									selection={select(EntityType.EvmAccount, ens.fields.$subgraphResolvedActor[EntityMetaKey.Selector])}
+								<a
 									href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/resolves-to', {
 										ensName: selection.entitySelector.name,
 									})}
-									layout={EntityLayout.Value}
-									showTypeAnnotation={false}
-								/>
+								>
+									<TruncatedValue
+										format={TruncatedValueFormat.Visual}
+										value={ens.fields.$subgraphResolvedActor[EntityMetaKey.Selector].address}
+									/>
+								</a>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

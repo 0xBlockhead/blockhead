@@ -6,6 +6,7 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -71,7 +72,10 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={selection( { fields: { sizeBytes: true, erasureCodingScheme: true, aggregatedSignature: true } })}
+			resource={selection({
+				sources: [Source.ZeroGStorageScan_Rest],
+				fields: { sizeBytes: true },
+			})}
 			placeholderText="Loading 0G data blob…"
 		>
 			{#snippet children(dataBlob)}

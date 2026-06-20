@@ -133,8 +133,8 @@ export default {
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContractCompilation,
 			resolve: {
-				[EvmContractCompilationSelector.EvmContract]: async (entitySelector) => {
-					const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector.$contract)
+				[EvmContractCompilationSelector.EvmContract]: async ({ $contract }) => {
+					const contractLookup = await getSourcifyContractLookupForEntitySelector($contract)
 					if (contractLookup == null) throw new Error('Sourcify_Rest: compilation not verified')
 					const language = contractLookup.metadata?.language ?? contractLookup.compilation?.language
 					const compiler = (
@@ -183,8 +183,8 @@ export default {
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContractSourceBundle,
 			resolve: {
-				[EvmContractSourceBundleSelector.EvmContract]: async (entitySelector) => {
-					const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector.$contract)
+				[EvmContractSourceBundleSelector.EvmContract]: async ({ $contract }) => {
+					const contractLookup = await getSourcifyContractLookupForEntitySelector($contract)
 					if (contractLookup == null) throw new Error('Sourcify_Rest: source bundle not verified')
 					return {
 						files: sourcifySourceFilesFromLookup(contractLookup),

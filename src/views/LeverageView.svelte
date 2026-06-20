@@ -4,7 +4,6 @@
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
@@ -37,10 +36,6 @@
 
 	// Components
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
-	import LiquidityPoolView from '$/views/LiquidityPoolView.svelte'
 	import EvmNetworkView from '$/views/EvmNetworkView.svelte'
 </script>
 
@@ -79,119 +74,31 @@
 	{/snippet}
 
 	{#snippet Content({})}
-		<ResourceBoundary
-			resource={selection( { fields: { $pool: true, $owner: true, createdAtTimestamp: true, liquidity: true, origin: true, tickLower: true, tickUpper: true, token0Owed: true, token1Owed: true, tokenId: true } })}
-			placeholderText="Loading leverage row…"
-		>
-			{#snippet children(leverage)}
-				<dl data-column-item="center">
-						<div>
-							<dt>Network</dt>
-							<dd>
-								{#if leverage.fields.$pool !== undefined}
-									<EvmNetworkView
-										selection={select(EntityType.EvmNetwork, leverage.fields.$pool[EntityMetaKey.Selector].$network)}
-										layout={EntityLayout.Value}
+		<dl data-column-item="center">
+			<div>
+				<dt>Network</dt>
+				<dd>
+					<EvmNetworkView
+						selection={select(EntityType.EvmNetwork, selection.entitySelector.$network)}
+						layout={EntityLayout.Value}
+					/>
+				</dd>
+			</div>
 
-									/>
-								{:else}
-									<span data-text="muted">No pool network loaded</span>
-								{/if}
-							</dd>
-						</div>
-						<div>
-							<dt>Pool</dt>
-							<dd>
-								{#if leverage.fields.$pool !== undefined}
-									<LiquidityPoolView
-										selection={select(EntityType.LiquidityPool, leverage.fields.$pool[EntityMetaKey.Selector])}
-										layout={EntityLayout.Value}
-										open={true}
-										showTypeAnnotation={false}
-									/>
-								{:else}
-									<span data-text="muted">No pool loaded</span>
-								{/if}
-							</dd>
-						</div>
-						{#if open && leverage.fields.$pool !== undefined && leverage.fields.$owner !== undefined}
-							<div>
-								<dt>Owner</dt>
-								<dd>
-									<EvmNetworkAccountView
-										selection={select(EntityType.EvmNetworkAccount, {
-											$network: leverage.fields.$pool[EntityMetaKey.Selector].$network,
-											$actor: leverage.fields.$owner[EntityMetaKey.Selector],
-										})}
-										layout={EntityLayout.Value}
+			<div>
+				<dt>Position</dt>
+				<dd>
+					<span data-text="font-monospace">{selection.entitySelector.id}</span>
+				</dd>
+			</div>
 
-									/>
-								</dd>
-							</div>
-						{/if}
-
-						{#if open && leverage.fields.tickLower !== undefined}
-							<div>
-								<dt>Tick lower</dt>
-								<dd>{String(leverage.fields.tickLower)}</dd>
-							</div>
-						{/if}
-
-						{#if open && leverage.fields.tickUpper !== undefined}
-							<div>
-								<dt>Tick upper</dt>
-								<dd>{String(leverage.fields.tickUpper)}</dd>
-							</div>
-						{/if}
-
-						{#if open && leverage.fields.liquidity !== undefined}
-							<div>
-								<dt>Liquidity</dt>
-								<dd>{String(leverage.fields.liquidity)}</dd>
-							</div>
-						{/if}
-
-						{#if open && leverage.fields.token0Owed !== undefined}
-							<div>
-								<dt>Token0 owed</dt>
-								<dd>{String(leverage.fields.token0Owed)}</dd>
-							</div>
-						{/if}
-
-						{#if open && leverage.fields.token1Owed !== undefined}
-							<div>
-								<dt>Token1 owed</dt>
-								<dd>{String(leverage.fields.token1Owed)}</dd>
-							</div>
-						{/if}
-
-						{#if open && leverage.fields.tokenId !== undefined}
-							<div>
-								<dt>Token id</dt>
-								<dd>{String(leverage.fields.tokenId)}</dd>
-							</div>
-						{/if}
-
-						{#if open && leverage.fields.origin}
-							<div>
-								<dt>Origin</dt>
-								<dd>{leverage.fields.origin}</dd>
-							</div>
-						{/if}
-
-					{#if leverage.fields.createdAtTimestamp !== undefined}
-						<div>
-							<dt>Created at</dt>
-							<dd>
-								<Timestamp
-									timestamp={leverage.fields.createdAtTimestamp}
-								/>
-							</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+			{#if open}
+				<div>
+					<dt>Status</dt>
+					<dd>No position indexer is wired in this app yet.</dd>
+				</div>
+			{/if}
+		</dl>
 	{/snippet}
 
 </EntityView>

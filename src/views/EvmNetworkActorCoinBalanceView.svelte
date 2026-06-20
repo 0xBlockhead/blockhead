@@ -60,85 +60,85 @@
 	href={href}
 	bind:open
 	{...EntityViewProps}
->
-	{#snippet Value()}
-		<ResourceBoundary
-			resource={balance}
-			placeholderText="Loading balance…"
-		>
-			{#snippet children(balance)}
-				<ResourceBoundary
-					resource={decimals}
-					placeholderText="Loading balance decimals…"
-				>
-					{#snippet children(decimals)}
-						<ResourceBoundary
-							resource={symbol}
-							placeholderText="Loading balance symbol…"
-						>
-							{#snippet children(symbol)}
-								{#if balance !== undefined}
-									{#if decimals === undefined || decimals <= 0}
-										{formatValue(Number(balance))}
+	>
+		{#snippet Value()}
+			<ResourceBoundary
+				resource={balance}
+				placeholderText="Loading balance…"
+			>
+				{#snippet children(balance)}
+					<ResourceBoundary
+						resource={decimals}
+						placeholderText="Loading balance decimals…"
+					>
+						{#snippet children(decimals)}
+							<ResourceBoundary
+								resource={symbol}
+								placeholderText="Loading balance symbol…"
+							>
+								{#snippet children(symbol)}
+									{#if balance !== undefined}
+										{#if decimals === undefined || decimals <= 0}
+											{formatValue(Number(balance))}
+										{:else}
+											{@const divisor = 10n ** BigInt(decimals)}
+											{@const integerPart = balance / divisor}
+											{@const fractionalPartString = String(balance % divisor).padStart(decimals, '0').replace(/0+$/, '')}
+											{fractionalPartString ? `${formatValue(Number(integerPart))}.${fractionalPartString}` : formatValue(Number(integerPart))}
+										{/if}
 									{:else}
-										{@const divisor = 10n ** BigInt(decimals)}
-										{@const integerPart = balance / divisor}
-										{@const fractionalPartString = String(balance % divisor).padStart(decimals, '0').replace(/0+$/, '')}
-										{fractionalPartString ? `${formatValue(Number(integerPart))}.${fractionalPartString}` : formatValue(Number(integerPart))}
+										—
 									{/if}
-								{:else}
-									—
-								{/if}
-								{symbol ?? ''}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
+									{symbol ?? ''}
+								{/snippet}
+							</ResourceBoundary>
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/snippet}
 
-	{#snippet Title()}
-		<ResourceBoundary
-			resource={balance}
-			placeholderText="Loading holding…"
-		>
-			{#snippet children(balance)}
-				<ResourceBoundary
-					resource={decimals}
-					placeholderText="Loading balance decimals…"
-				>
-					{#snippet children(decimals)}
-						<ResourceBoundary
-							resource={symbol}
-							placeholderText="Loading balance symbol…"
-						>
-							{#snippet children(symbol)}
-								{#if balance !== undefined}
-									{#if decimals === undefined || decimals <= 0}
-										{formatValue(Number(balance))}
+		{#snippet Title()}
+			<ResourceBoundary
+				resource={balance}
+				placeholderText="Loading holding…"
+			>
+				{#snippet children(balance)}
+					<ResourceBoundary
+						resource={decimals}
+						placeholderText="Loading balance decimals…"
+					>
+						{#snippet children(decimals)}
+							<ResourceBoundary
+								resource={symbol}
+								placeholderText="Loading balance symbol…"
+							>
+								{#snippet children(symbol)}
+									{#if balance !== undefined}
+										{#if decimals === undefined || decimals <= 0}
+											{formatValue(Number(balance))}
+										{:else}
+											{@const divisor = 10n ** BigInt(decimals)}
+											{@const integerPart = balance / divisor}
+											{@const fractionalPartString = String(balance % divisor).padStart(decimals, '0').replace(/0+$/, '')}
+											{fractionalPartString ? `${formatValue(Number(integerPart))}.${fractionalPartString}` : formatValue(Number(integerPart))}
+										{/if}
 									{:else}
-										{@const divisor = 10n ** BigInt(decimals)}
-										{@const integerPart = balance / divisor}
-										{@const fractionalPartString = String(balance % divisor).padStart(decimals, '0').replace(/0+$/, '')}
-										{fractionalPartString ? `${formatValue(Number(integerPart))}.${fractionalPartString}` : formatValue(Number(integerPart))}
+										—
 									{/if}
-								{:else}
-									—
-								{/if}
-								{symbol ?? ''}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
+									{symbol ?? ''}
+								{/snippet}
+							</ResourceBoundary>
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/snippet}
 
-	{#snippet Content({
-		open: contentOpen,
-	})}
-		<dl data-column-item="center">
+		{#snippet Content({
+			open: contentOpen,
+		})}
+			<dl data-column-item="center">
 			<div>
 				<dt>Account</dt>
 				<dd>
@@ -272,13 +272,13 @@
 					</dd>
 				</div>
 			{/if}
-		</dl>
-	{/snippet}
+			</dl>
+		{/snippet}
 
 	{#snippet Details({
 		open: _open,
 	})}
-		<CollapsibleTabs
+			<CollapsibleTabs
 			id={`${actorCoinDetailAnchorKey}:carousel-related`}
 			sectionIdPrefix={actorCoinDetailAnchorKey}
 			sections={[
@@ -329,6 +329,6 @@
 				</ResourceBoundary>
 
 			{/snippet}
-	</CollapsibleTabs>
-	{/snippet}
-</EntityView>
+			</CollapsibleTabs>
+		{/snippet}
+	</EntityView>

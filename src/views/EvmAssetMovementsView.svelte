@@ -1,7 +1,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import {
+		EntityProxyField,
+		type EntityProxyResource,
+	} from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -50,7 +53,7 @@
 
 <section data-column="gap-2">
 	<ResourceBoundary
-		resource={evmTransaction.field('value')}
+		resource={evmTransaction[EntityProxyField]('value')}
 		placeholderText="Loading signed envelope value…"
 	>
 		{#snippet children(value)}

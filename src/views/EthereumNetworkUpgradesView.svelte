@@ -99,6 +99,7 @@
 					<NetworkUpgradeView
 						selection={upgrade}
 						layout={EntityLayout.Summary}
+						open={false}
 
 					/>
 				{/snippet}

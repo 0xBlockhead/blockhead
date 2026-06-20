@@ -11,7 +11,7 @@ import type { PageLoad } from './$types.ts'
 
 export const load: PageLoad = ({ params }) => {
 	const selector = parseEntitySelector(schema, UrlSchema, {
-		url: decodeURIComponent(params.url).trim(),
+		url: decodeURIComponent(params.url),
 	})
 	if (selector instanceof arktype.errors) error(404, 'Invalid URL')
 

@@ -66,48 +66,72 @@ export default {
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmBlock,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.ZeroGChain_JsonRpc,
+			],
 		},
 		{
 			name: '$from',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.One,
+			defaultSources: [
+				Source.ZeroGChain_JsonRpc,
+			],
 		},
 		{
 			name: '$to',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.ZeroGChain_JsonRpc,
+			],
 		},
 		{
 			name: '$contract',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmContract,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.ZeroGChain_JsonRpc,
+			],
 		},
 		{
 			name: 'transactionIndex',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.ZeroGChain_JsonRpc,
+			],
 		},
 		{
 			name: 'value',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.One,
+			defaultSources: [
+				Source.ZeroGChain_JsonRpc,
+			],
 		},
 		{
 			name: 'nonce',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.ZeroGChain_JsonRpc,
+			],
 		},
 		{
 			name: 'input',
 			type: EntityFieldType.Primitive,
 			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.ZeroGChain_JsonRpc,
+			],
 		},
 		{
 			name: 'r',
@@ -144,12 +168,18 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.ZeroGChain_JsonRpc,
+			],
 		},
 		{
 			name: 'kind',
 			type: EntityFieldType.Primitive,
 			primitiveType: type.valueOf(EvmTransactionKind),
 			cardinality: EntityFieldCardinality.One,
+			defaultSources: [
+				Source.ZeroGChain_JsonRpc,
+			],
 		},
 		...evmTransactionDiscriminatorFields,
 		{
@@ -157,30 +187,45 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type.valueOf(EvmTransactionExecutionStatus),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.ZeroGChain_JsonRpc,
+			],
 		},
 		{
 			name: 'gasPrice',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.ZeroGChain_JsonRpc,
+			],
 		},
 		{
 			name: 'gasUsed',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.ZeroGChain_JsonRpc,
+			],
 		},
 		{
 			name: 'cumulativeGasUsed',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.ZeroGChain_JsonRpc,
+			],
 		},
 		{
 			name: 'effectiveGasPrice',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.ZeroGChain_JsonRpc,
+			],
 		},
 		{
 			name: 'maxFeePerGas',
@@ -196,6 +241,9 @@ export default {
 					EvmTransactionEnvelopeType.SetCode,
 				]
 			),
+			defaultSources: [
+				Source.ZeroGChain_JsonRpc,
+			],
 		},
 		{
 			name: 'maxPriorityFeePerGas',
@@ -211,6 +259,9 @@ export default {
 					EvmTransactionEnvelopeType.SetCode,
 				]
 			),
+			defaultSources: [
+				Source.ZeroGChain_JsonRpc,
+			],
 		},
 		{
 			name: 'blobGasUsed',

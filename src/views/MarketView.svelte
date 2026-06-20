@@ -112,7 +112,10 @@
 					/>
 				</dd>
 			</div>
-			{#if selection.entitySelector.marketKind !== MarketKind.Spot}
+			{#if (
+				open
+				&& selection.entitySelector.marketKind !== MarketKind.Spot
+			)}
 				<ResourceBoundary
 					resource={selection.$$derivativeTimestamps({
 						sources: [

@@ -2,7 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -12,7 +11,6 @@
 
 
 	// Context
-	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -45,9 +43,14 @@
 			sources: [
 				Source.Constants_Internal,
 			],
+			fields: {
+				protocol: true,
+				activationBlock: true,
+				activationEpoch: true,
+				activationTimestampMs: true,
+			},
 		},
 	))
-	const name = $derived(networkExecutionUpgrade.name)
 	const protocol = $derived(networkExecutionUpgrade.protocol)
 	const activationBlock = $derived(networkExecutionUpgrade.activationBlock)
 	const activationEpoch = $derived(networkExecutionUpgrade.activationEpoch)
@@ -56,10 +59,9 @@
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import EvmBlockView from '$/views/EvmBlockView.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 	import ProposalsView from '$/views/SpecificationProposalsView.svelte'
 </script>
@@ -80,14 +82,7 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<ResourceBoundary
-			resource={name}
-			placeholderText="Loading execution upgrade…"
-		>
-			{#snippet children(name)}
-				{name ?? selection.entitySelector.upgradeId}
-			{/snippet}
-		</ResourceBoundary>
+		{selection.entitySelector.upgradeId}
 	{/snippet}
 
 	{#snippet Content({
@@ -116,15 +111,7 @@
 				<div>
 					<dt>Activation block</dt>
 					<dd>
-									<EvmBlockView
-										selection={select(EntityType.EvmBlock, {
-											$network: selection.entitySelector.$network,
-											blockNumber: BigInt(networkExecutionUpgrade.fields.activationBlock),
-										})}
-										layout={EntityLayout.Value}
-
-										open={false}
-										/>
+									<NumberValue value={networkExecutionUpgrade.fields.activationBlock} />
 					</dd>
 				</div>
 			{/if}

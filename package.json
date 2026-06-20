@@ -32,8 +32,8 @@
 		"test:e2e:boundaries": "playwright test tests/e2e/boundary-updates.e2e.ts --workers=4",
 		"test:e2e:failfast": "playwright test tests/e2e/route-errors-failfast.e2e.ts",
 		"test:e2e:cors": "playwright test tests/e2e/cors-policy.e2e.ts",
-		"test:e2e:persistence": "PLAYWRIGHT_DEDICATED_SERVER=1 playwright test tests/e2e/tanstack-db-persistence.e2e.ts",
-		"test:e2e:persistence:probe": "PLAYWRIGHT_DEDICATED_SERVER=1 E2E_PROBE_PATH=/network/eip155:1 playwright test tests/e2e/tanstack-db-persistence.e2e.ts"
+		"test:e2e:persistence": "VITE_BLOCKHEAD_E2E_PROBE=1 PLAYWRIGHT_DEDICATED_SERVER=1 playwright test tests/e2e/tanstack-db-persistence.e2e.ts",
+		"test:e2e:persistence:probe": "VITE_BLOCKHEAD_E2E_PROBE=1 PLAYWRIGHT_DEDICATED_SERVER=1 E2E_PROBE_PATH=/network/eip155:1 playwright test tests/e2e/tanstack-db-persistence.e2e.ts"
 	},
 	"devDependencies": {
 		"@dotenvx/dotenvx": "^1.69.2",

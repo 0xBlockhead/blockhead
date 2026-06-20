@@ -23,20 +23,9 @@
 		Sections extends readonly CollapsibleTabsSectionRow[],
 	> = Sections[number]['id']
 
-	type KebabToPascalCase<Segment extends string> = (
-		Segment extends `${infer Head}-${infer Tail}` ?
-			`${Capitalize<Head>}${KebabToPascalCase<Tail>}`
-		:
-			Capitalize<Segment>
-	)
-
-	export type SectionSnippetName<SectionId extends string> = (
-		`Section${KebabToPascalCase<SectionId>}`
-	)
-
-		export type CollapsibleTabsSectionSnippets = {
-			[SectionSnippetKey in `Section${string}`]?: CollapsibleTabsSectionSnippet
-		}
+	export type CollapsibleTabsSectionSnippets = {
+		[SectionSnippetKey in `Section${string}`]?: CollapsibleTabsSectionSnippet
+	}
 
 	export type CollapsibleTabsOwnProps<
 		Sections extends readonly CollapsibleTabsSectionRow[],
@@ -53,7 +42,7 @@
 		Annotation?: Snippet<[context: {
 			open?: boolean,
 		}]>
-		} & CollapsibleTabsSectionSnippets
+	} & CollapsibleTabsSectionSnippets
 
 
 	export const collapsibleTabsSections = <
@@ -82,22 +71,21 @@
 
 <script
 	lang="ts"
-	generics="const Sections extends readonly CollapsibleTabsSectionRow[]"
+	generics="Sections extends readonly CollapsibleTabsSectionRow[]"
 >
 	// Types/constants
-		import type { WithRest } from '$/typescript/WithRest.ts'
 		import type { SvelteHTMLElements } from 'svelte/elements'
 
 
-	type CollapsibleTabsForwardedProps = WithRest<
-		{
-			open?: boolean
-			ontoggle?: (e: Event) => void
-			onclose?: (id?: string) => void
-			scrollContainerProps?: SvelteHTMLElements['div']
-		},
-		SvelteHTMLElements['details']
-	>
+	type CollapsibleTabsForwardedProps = {
+		id?: SvelteHTMLElements['details']['id']
+		class?: SvelteHTMLElements['details']['class']
+		'data-card'?: boolean
+		open?: boolean
+		ontoggle?: (e: Event) => void
+		onclose?: (id?: string) => void
+		scrollContainerProps?: SvelteHTMLElements['div']
+	}
 
 
 	// State
@@ -109,33 +97,19 @@
 		Toolbar,
 		Annotation,
 
-		...collapsibleTabsAndSectionSnippets
-	}: WithRest<
-		CollapsibleTabsOwnProps<Sections>,
-		CollapsibleTabsForwardedProps
-	> = $props()
+		id,
+		class: className,
+		'data-card': dataCard,
+		open,
+		ontoggle,
+		onclose,
+		scrollContainerProps,
+
+		...collapsibleTabsSectionSnippets
+	}: CollapsibleTabsOwnProps<Sections> & CollapsibleTabsForwardedProps = $props()
 
 
 	// Functions
-	const sectionSnippetPropPrefix = 'Section'
-
-	const isSectionSnippetProp = (
-		propKey: string,
-	) => (
-		propKey.startsWith(sectionSnippetPropPrefix)
-	)
-
-	const collapsibleTabsProps = $derived(
-			Object.fromEntries(
-				Object
-					.entries(collapsibleTabsAndSectionSnippets)
-					.filter((entry) => (
-						!isSectionSnippetProp(String(entry[0]))
-					)),
-			)
-	)
-
-
 	const sectionAnchorId = (
 		sectionId: CollapsibleTabsSectionIds<Sections>,
 	) => (
@@ -145,7 +119,7 @@
 		const sectionSnippetForSection = (
 			section: Sections[number],
 		): CollapsibleTabsSectionSnippet | undefined => (
-			collapsibleTabsAndSectionSnippets[sectionSnippetName(section.id)]
+			collapsibleTabsSectionSnippets[sectionSnippetName(section.id)]
 		)
 
 
@@ -155,7 +129,13 @@
 
 
 <CollapsibleTabs1
-	{...collapsibleTabsProps}
+	{id}
+	class={className}
+	data-card={dataCard}
+	{open}
+	{ontoggle}
+	{onclose}
+	{scrollContainerProps}
 	{Summary}
 	{Toolbar}
 	{Annotation}

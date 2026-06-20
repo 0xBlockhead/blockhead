@@ -24,7 +24,7 @@
 		selection={select(
 			EntityType.RssFeed,
 			{
-				feedUrl: decodeURIComponent(page.params.feedKey ?? '').trim(),
+				feedUrl: decodeURIComponent(page.params.feedKey ?? ''),
 			}
 		).$$items}
 		id="rss-feed-items"

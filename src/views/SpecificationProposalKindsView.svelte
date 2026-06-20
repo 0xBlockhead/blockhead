@@ -92,12 +92,9 @@
 
 	const userCollapsibleOnClose = $derived(CollapsibleProps.onclose)
 
-	const collapsibleDetailsRest = $derived.by(() => {
-		const {
-			onclose: _userCollapsibleOnClose,
-			...rest
-		} = CollapsibleProps
-		return rest
+	const collapsibleDetailsProps = $derived({
+		id: CollapsibleProps.id,
+		class: CollapsibleProps.class,
 	})
 
 	const collapsibleTabsPaneProps: Record<string, string> = {
@@ -213,7 +210,7 @@
 				{:else if collapsible}
 					<CollapsibleTabs
 						open={open}
-						{...collapsibleDetailsRest}
+						{...collapsibleDetailsProps}
 						onclose={(closeId) => {
 							if (!getIsInsidePage())
 								onNestedCollapsibleClose?.(id)

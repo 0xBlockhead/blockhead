@@ -1,7 +1,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import {
+		EntityProxyField,
+		type EntityProxyResource,
+	} from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -53,18 +56,25 @@
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { select } from '$/routes/+layout.svelte'
 
+	const isZeroGTransaction = $derived(
+		selection.entitySelector.$network.caip2.namespace === 'eip155'
+		&& selection.entitySelector.$network.caip2.reference === '16661',
+	)
 	const evmTransaction = $derived(selection( {
-		sources: [
-			Source.Blockscout_Rest,
-			Source.Voltaire_JsonRpc,
-			Source.ZeroGChain_JsonRpc,
-		],
+		sources: isZeroGTransaction ?
+			[
+				Source.ZeroGChain_JsonRpc,
+			]
+		:
+			[
+				Source.Blockscout_Rest,
+				Source.Voltaire_JsonRpc,
+			],
 	}))
 	const block = $derived(evmTransaction.$block)
-	const from = $derived(evmTransaction.$from)
 	const to = $derived(evmTransaction.$to)
 	const contract = $derived(evmTransaction.$contract)
-	const value = $derived(evmTransaction.field('value'))
+	const value = $derived(evmTransaction[EntityProxyField]('value'))
 	const kind = $derived(evmTransaction.kind)
 	const envelopeType = $derived(evmTransaction.envelopeType)
 	const executionStatus = $derived(evmTransaction.executionStatus)
@@ -85,14 +95,10 @@
 	const maxFeePerBlobGas = $derived(evmTransaction.maxFeePerBlobGas)
 	
 	const traceUnavailable = $derived(evmTransaction.traceUnavailable({
-		sources: [
-			Source.Blockscout_Rest,
-		],
+		sources: isZeroGTransaction ? [] : [Source.Blockscout_Rest],
 	}))
 	const traceRoot = $derived(evmTransaction.traceRoot({
-		sources: [
-			Source.Blockscout_Rest,
-		],
+		sources: isZeroGTransaction ? [] : [Source.Blockscout_Rest],
 	}))
 
 
@@ -109,7 +115,6 @@
 	import Heading from '$/components/Heading.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
-	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
 	import EvmAssetMovementsView from '$/views/EvmAssetMovementsView.svelte'
 	import EvmBlockView from '$/views/EvmBlockView.svelte'
 	import EvmBlobsView from '$/views/EvmBlobsView.svelte'
@@ -217,22 +222,12 @@
 							<div>
 								<dt>From</dt>
 								<dd>
-									<ResourceBoundary
-										resource={from}
-										placeholderText="Loading sender…"
-									>
-										{#snippet children(from)}
-											<EvmNetworkAccountView
-												selection={select(EntityType.EvmNetworkAccount, {
-													$network: selection.entitySelector.$network,
-													$actor: from.entitySelector,
-												})}
-												layout={EntityLayout.Value}
-
-												open={false}
-												/>
-										{/snippet}
-									</ResourceBoundary>
+									{#if transaction.$from?.entitySelector.address !== undefined}
+										<TruncatedValue
+											value={transaction.$from.entitySelector.address}
+											format={TruncatedValueFormat.Abbr}
+										/>
+									{/if}
 								</dd>
 							</div>
 
@@ -240,15 +235,10 @@
 							<dt>To</dt>
 							<dd>
 								{#if transaction.$to?.entitySelector.address !== undefined}
-									<EvmNetworkAccountView
-										selection={select(EntityType.EvmNetworkAccount, {
-											$network: selection.entitySelector.$network,
-											$actor: transaction.$to.entitySelector,
-										})}
-										layout={EntityLayout.Value}
-
-										open={false}
-										/>
+									<TruncatedValue
+										value={transaction.$to.entitySelector.address}
+										format={TruncatedValueFormat.Abbr}
+									/>
 								{/if}
 							</dd>
 						</div>
@@ -453,14 +443,18 @@
 	{#snippet Details()}
 		<CollapsibleTabs
 			sectionIdPrefix={txSelectorKey}
-			sections={[
-				{ id: 'movements', label: 'Movements' },
-				{ id: 'call', label: 'Call' },
-				{ id: 'events', label: 'Events' },
-				{ id: 'trace', label: 'Trace' },
-				{ id: 'blobs', label: 'Blobs' },
-				{ id: 'user-operations', label: 'User operations' },
-			]}
+				sections={[
+					...(!isZeroGTransaction ? [
+						{ id: 'movements', label: 'Movements' },
+					] : []),
+					{ id: 'call', label: 'Call' },
+					...(!isZeroGTransaction ? [
+						{ id: 'events', label: 'Events' },
+						{ id: 'trace', label: 'Trace' },
+						{ id: 'blobs', label: 'Blobs' },
+						{ id: 'user-operations', label: 'User operations' },
+					] : []),
+				]}
 			id={`${txSelectorKey}:carousel-execution`}
 			data-card
 		>
@@ -470,13 +464,15 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionMovements({ id: _movementsId, label: _movementsLabel })}
-				<EvmAssetMovementsView
-					CollapsibleProps={{ canToggle: false }}
-					selection={selection}
-					id={`${txSelectorKey}:movements`}
-				/>
-			{/snippet}
+				{#if !isZeroGTransaction}
+					{#snippet SectionMovements({ id: _movementsId, label: _movementsLabel })}
+						<EvmAssetMovementsView
+							CollapsibleProps={{ canToggle: false }}
+							selection={selection}
+							id={`${txSelectorKey}:movements`}
+						/>
+					{/snippet}
+				{/if}
 
 			{#snippet SectionCall({ id: _callId, label: _callLabel })}
 				<ResourceBoundary
@@ -494,81 +490,91 @@
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
-			{/snippet}
+				{/snippet}
 
-			{#snippet SectionEvents({ id: _eventsId, label: _eventsLabel })}
-				<EvmLogsView
-					CollapsibleProps={{ canToggle: false }}
-					href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-						caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
-						transactionId: selection.entitySelector.txHash,
-					})}
-					selection={selection.$$logs}
-					collapsible={false}
-					id={`${txSelectorKey}:events`}
-					open={true}
-					title="Receipt logs"
-				/>
-			{/snippet}
-
-			{#snippet SectionTrace({ id: _traceId, label: _traceLabel })}
-				<ResourceBoundary
-					resource={traceRoot}
-					placeholderText="Loading call trace…"
-				>
-					{#snippet children(traceRoot)}
-						{#if traceRoot != null}
-							<EvmTraceTreeView
-								traceRoot={traceRoot}
-								chainId={evmChainIdFromCaip2(`${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`)}
-							/>
-						{:else if traceUnavailable.current}
-							<p data-text="muted">
-								Call trace is not available from the configured RPC or explorer for this chain.
-							</p>
-						{:else}
-							<p data-text="muted">No call trace for this transaction.</p>
-						{/if}
+				{#if !isZeroGTransaction}
+					{#snippet SectionEvents({ id: _eventsId, label: _eventsLabel })}
+						<EvmLogsView
+							CollapsibleProps={{ canToggle: false }}
+							href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
+								caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
+								transactionId: selection.entitySelector.txHash,
+							})}
+							selection={selection.$$logs}
+							collapsible={false}
+							id={`${txSelectorKey}:events`}
+							open={true}
+							title="Receipt logs"
+						/>
 					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
 
-			{#snippet SectionBlobs({ id: _blobsId, label: _blobsLabel })}
-				<ResourceBoundary
-						resource={evmTransaction}
-						placeholderText=""
-					>
-						{#snippet children(transaction)}
-							{#if transaction.envelopeType === EvmTransactionEnvelopeType.Blob}
-								<EvmBlobsView
-									CollapsibleProps={{ canToggle: false }}
-									selection={evmTransaction.$$blobs({
-										sources: [
-											Source.Voltaire_JsonRpc,
-										],
-									})}
-									href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
+					{#snippet SectionTrace({ id: _traceId, label: _traceLabel })}
+						<ResourceBoundary
+							resource={traceRoot}
+							placeholderText="Loading call trace…"
+						>
+							{#snippet children(traceRoot)}
+								{#if traceRoot != null}
+									<EvmTraceTreeView
+										traceRoot={traceRoot}
+										chainId={evmChainIdFromCaip2(`${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`)}
+									/>
+								{:else}
+									<ResourceBoundary
+										resource={traceUnavailable}
+										placeholderText="Loading call trace…"
+									>
+										{#snippet children(traceUnavailable)}
+											{#if traceUnavailable}
+												<p data-text="muted">
+													Call trace is not available from the configured RPC or explorer for this chain.
+												</p>
+											{:else}
+												<p data-text="muted">No call trace for this transaction.</p>
+											{/if}
+										{/snippet}
+									</ResourceBoundary>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+					{#snippet SectionBlobs({ id: _blobsId, label: _blobsLabel })}
+						<ResourceBoundary
+							resource={evmTransaction}
+							placeholderText=""
+						>
+							{#snippet children(transaction)}
+								{#if transaction.envelopeType === EvmTransactionEnvelopeType.Blob}
+									<EvmBlobsView
+										CollapsibleProps={{ canToggle: false }}
+										selection={evmTransaction.$$blobs({
+											sources: [
+												Source.Voltaire_JsonRpc,
+											],
+										})}
+										href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
 											caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
 											transactionId: selection.entitySelector.txHash,
 										})}
-									id={`${txSelectorKey}:blobs`}
-									open={true}
-									title="Blob sidecars"
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-			{/snippet}
+										id={`${txSelectorKey}:blobs`}
+										open={true}
+										title="Blob sidecars"
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
 
-			{#snippet SectionUserOperations({ id: _userOpsId, label: _userOpsLabel })}
-				<EvmUserOperationsView
-					CollapsibleProps={{ canToggle: false }}
-					selection={selection.$$userOperations}
-					id={`${txSelectorKey}:user-operations`}
-
-					title="User operations"
-				/>
-			{/snippet}
-		</CollapsibleTabs>
-	{/snippet}
-</EntityView>
+					{#snippet SectionUserOperations({ id: _userOpsId, label: _userOpsLabel })}
+						<EvmUserOperationsView
+							CollapsibleProps={{ canToggle: false }}
+							selection={selection.$$userOperations}
+							id={`${txSelectorKey}:user-operations`}
+							title="User operations"
+						/>
+					{/snippet}
+				{/if}
+			</CollapsibleTabs>
+		{/snippet}
+	</EntityView>

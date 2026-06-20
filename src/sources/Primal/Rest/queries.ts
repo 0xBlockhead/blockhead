@@ -14,15 +14,15 @@ const clampPrimalLimit = (limit: number) => (
 )
 
 const encodeProfileId = (pubkeyOrNpub: string) => (
-	encodeURIComponent(pubkeyOrNpub.trim())
+	encodeURIComponent(pubkeyOrNpub)
 )
 
 const normalizePubkey = (pubkey: string) => (
-	pubkey.trim().toLowerCase()
+	pubkey.toLowerCase()
 )
 
 const normalizeEventId = (eventId: string) => (
-	eventId.trim().toLowerCase()
+	eventId.toLowerCase()
 )
 
 const profileTimelinePost = (

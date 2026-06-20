@@ -102,11 +102,11 @@ export default {
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoNetwork,
 			resolve: {
-				[UtxoNetworkSelector.Network]: async (entitySelector) => {
-					blockchairChain(entitySelector.$network)
+				[UtxoNetworkSelector.Network]: async ({ $network }) => {
+					blockchairChain($network)
 					return {
 						$network: {
-							[EntityMetaKey.Selector]: entitySelector.$network,
+							[EntityMetaKey.Selector]: $network,
 						},
 					}
 				}
@@ -300,10 +300,10 @@ export default {
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoNetwork,
 			resolve: {
-				[UtxoNetworkSelector.Network]: async (entitySelector) => {
-					blockchairChain(entitySelector.$network)
+				[UtxoNetworkSelector.Network]: async ({ $network }) => {
+					blockchairChain($network)
 					return {
-						[EntityMetaKey.Selector]: entitySelector.$network,
+						[EntityMetaKey.Selector]: $network,
 					}
 				}
 			},
@@ -316,10 +316,10 @@ export default {
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoNetwork,
 			resolve: {
-				[UtxoNetworkSelector.Network]: async (entitySelector) => {
+				[UtxoNetworkSelector.Network]: async ({ $network }) => {
 					const { getBitcoinLikeStats } = await import('$/sources/Blockchair/Rest/queries.ts')
 					const stats = (await getBitcoinLikeStats({
-						chain: blockchairChain(entitySelector.$network),
+						chain: blockchairChain($network),
 					})).data
 					const bestBlockHeight = bigintFromNumber(stats.best_block_height)
 					const blockCount = bigintFromNumber(stats.blocks)
@@ -332,7 +332,7 @@ export default {
 					return [
 						{
 							[EntityMetaKey.Selector]: {
-								$network: entitySelector.$network,
+								$network: $network,
 								timestampMs: bestBlockTimeMs ?? Date.now(),
 							},
 							...(bestBlockHeight != null && { bestBlockHeight }),
@@ -364,17 +364,17 @@ export default {
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoNetwork,
 			resolve: {
-				[UtxoNetworkSelector.Network]: async (entitySelector, context) => {
+				[UtxoNetworkSelector.Network]: async ({ $network }, context) => {
 					const { getBlocks } = await import('$/sources/Blockchair/Rest/queries.ts')
 					return (await getBlocks<BlockchairBitcoinLikeBlock>({
-						chain: blockchairChain(entitySelector.$network),
+						chain: blockchairChain($network),
 						params: {
 							sort: 'id(desc)',
 							limit: resolverContextRowLimit(context),
 						},
 					})).data.map((block) => ({
 						[EntityMetaKey.Selector]: {
-							$network: entitySelector.$network,
+							$network: $network,
 							height: BigInt(block.id),
 							hash: block.hash,
 						},
@@ -390,17 +390,17 @@ export default {
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoNetwork,
 			resolve: {
-				[UtxoNetworkSelector.Network]: async (entitySelector, context) => {
+				[UtxoNetworkSelector.Network]: async ({ $network }, context) => {
 					const { getTransactions } = await import('$/sources/Blockchair/Rest/queries.ts')
 					return (await getTransactions<BlockchairBitcoinLikeTransaction>({
-						chain: blockchairChain(entitySelector.$network),
+						chain: blockchairChain($network),
 						params: {
 							sort: 'id(desc)',
 							limit: resolverContextRowLimit(context),
 						},
 					})).data.map((transaction) => ({
 						[EntityMetaKey.Selector]: {
-							$network: entitySelector.$network,
+							$network: $network,
 							txId: transaction.hash,
 						},
 					}))

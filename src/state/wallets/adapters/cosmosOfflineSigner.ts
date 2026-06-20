@@ -17,13 +17,7 @@ export const createCosmosOfflineSignerAdapter = (): WalletAdapter => createDisco
 		discoveryKind: WalletDiscoveryKind.InjectedGlobal,
 		transportKind: WalletTransportKind.InjectedSigner,
 		capabilities: [
-			WalletCapability.Connect,
-			WalletCapability.Reconnect,
-			WalletCapability.ListAccounts,
-			WalletCapability.WatchAccounts,
-			WalletCapability.SignTransaction,
-			WalletCapability.SendTransaction,
-			WalletCapability.SwitchScope,
+			WalletCapability.Discover,
 		],
 	},
 	getCandidates: () => (

@@ -34,14 +34,17 @@
 	> = $props()
 
 
-	const url = $derived(selection(
+	const catalogUrl = $derived(selection(
 		({ sources: [
 				Source.Constants_Internal,
-				Source.MetadataVision_Rest,
 				Source.Chainlist_Rest,
 				Source.EthereumLists_Rest,
 				Source.Lifi_Rest,
-			], fields: { catalogName: true, catalogStandard: true, catalogIcon: true, openGraphTitle: true, openGraphDescription: true, publisher: true, $siteIcon: true, $openGraphImage: true } }),
+			], fields: { catalogName: true, catalogStandard: true, catalogIcon: true } }),
+	))
+
+	const metadataUrl = $derived(selection(
+		({ sources: [Source.MetadataVision_Rest], fields: { openGraphTitle: true, openGraphDescription: true, publisher: true, $siteIcon: true, $openGraphImage: true } }),
 	))
 
 
@@ -68,11 +71,11 @@
 
 	{#snippet Title()}
 		<ResourceBoundary
-			resource={url}
+			resource={catalogUrl}
 			placeholderText="Loading URL entity…"
 		>
 			{#snippet children(url)}
-				{url.fields.openGraphTitle ?? url.fields.catalogName ?? selection.entitySelector.url}
+				{url.fields.catalogName ?? selection.entitySelector.url}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -90,7 +93,7 @@
 		open: contentOpen,
 	})}
 		{#if contentOpen}
-			<ResourceBoundary resource={url}>
+			<ResourceBoundary resource={metadataUrl}>
 				{#snippet children(url)}
 					{#if url.fields.openGraphDescription != null}
 						<p>
@@ -108,7 +111,7 @@
 			<div>
 				<dt>Publisher</dt>
 				<dd>
-					<ResourceBoundary resource={url}>
+					<ResourceBoundary resource={metadataUrl}>
 						{#snippet children(url)}
 							{#if url.fields.publisher != null}
 								{url.fields.publisher}
@@ -122,7 +125,7 @@
 				<div>
 					<dt>Catalog standard</dt>
 					<dd>
-						<ResourceBoundary resource={url}>
+						<ResourceBoundary resource={catalogUrl}>
 							{#snippet children(url)}
 								{#if url.fields.catalogStandard != null}
 									{url.fields.catalogStandard}
@@ -137,7 +140,7 @@
 				<div>
 					<dt>Open Graph image</dt>
 					<dd>
-						<ResourceBoundary resource={url}>
+						<ResourceBoundary resource={metadataUrl}>
 							{#snippet children(url)}
 								{#if (
 									url.fields.$openGraphImage != null
@@ -157,27 +160,15 @@
 			<div>
 				<dt>URL</dt>
 				<dd>
-					<ResourceBoundary resource={url}>
+					<ResourceBoundary resource={catalogUrl}>
 						{#snippet children(url)}
-							{#if url.fields.openGraphTitle != null}
-								<a
-									href={selection.entitySelector.url}
-									rel="noreferrer"
-									target="_blank"
-								>
-									{selection.entitySelector.url}
-								</a>
-							{:else}
-								{#if url.fields.catalogName != null}
-									<a
-										href={selection.entitySelector.url}
-										rel="noreferrer"
-										target="_blank"
-									>
-										{selection.entitySelector.url}
-									</a>
-								{/if}
-							{/if}
+							<a
+								href={selection.entitySelector.url}
+								rel="noreferrer"
+								target="_blank"
+							>
+								{selection.entitySelector.url}
+							</a>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

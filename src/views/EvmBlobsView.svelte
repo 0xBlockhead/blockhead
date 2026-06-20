@@ -105,6 +105,7 @@
 						<EvmBlobView
 							selection={select(EntityType.EvmBlob, item.entitySelector)}
 							layout={EntityLayout.Summary}
+							open={false}
 
 						/>
 					{/snippet}

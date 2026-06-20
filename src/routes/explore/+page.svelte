@@ -108,14 +108,18 @@
 			{/snippet}
 
 			{#snippet SectionProposals({ id, label })}
-				<SpecificationRealmsView
-					selection={select(
-			EntityType._Global,
-			{ scope: '$$specificationRealms' }
-		).$$specificationRealms}
-					id="proposal-realms"
-					open={hubOpen}
-					title="Proposals"
+					<SpecificationRealmsView
+						selection={select(
+				EntityType._Global,
+				{ scope: '$$specificationRealms' }
+			).$$specificationRealms({
+				sources: [
+					Source.Constants_Internal,
+				],
+			})}
+						id="proposal-realms"
+						open={hubOpen}
+						title="Proposals"
 				/>
 			{/snippet}
 		</CollapsibleTabs>

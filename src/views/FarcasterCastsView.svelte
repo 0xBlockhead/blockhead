@@ -71,9 +71,9 @@
 			{#if open}
 				<ResourceBoundary
 					resource={selection({
-						sources: [
-							Source.Snapchain_Rest,
-						],
+							sources: [
+								Source.Snapchain_Rest,
+							],
 						limit,
 					})}
 					placeholderText="Loading feed casts (Farcaster FID + cast hash)…"

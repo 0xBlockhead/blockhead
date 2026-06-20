@@ -13,7 +13,7 @@
 		page.params.address ?? '',
 	)
 	const selector = $derived.by(() => {
-		const raw = decodeURIComponent(address).trim()
+		const raw = decodeURIComponent(address)
 		if (raw.startsWith('legacy:'))
 			return { legacyProfileId: raw.slice('legacy:'.length) }
 

@@ -7,11 +7,11 @@
 	} = $props()
 
 	const selector = $derived(
-		params.reference.trim() === '' ?
+		params.reference.replace(/^\/+|\/+$/g, '') === '' ?
 			undefined
 		:
 			{
-				reference: params.reference.trim().toLowerCase().replace(/^0x/, '').replace(/^\/+|\/+$/g, ''),
+				reference: params.reference.toLowerCase().replace(/^0x/, '').replace(/^\/+|\/+$/g, ''),
 				contentPath: params.contentPath.replace(/^\/+|\/+$/g, ''),
 			},
 	)

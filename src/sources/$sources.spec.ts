@@ -26,7 +26,7 @@ import {
 } from '$/sources/Voltaire/JsonRpc/types.ts'
 import Voltaire, {
 	voltaireJsonRpcTransportCandidates,
-	voltaireJsonRpcUrlWithTransportForChain,
+	voltaireJsonRpcTransportWithOriginsByChainId,
 } from '$/sources/Voltaire/index.ts'
 import ZeroG from '$/sources/ZeroG/index.ts'
 import { zeroGMainnetRpcEndpoints } from '$/sources/ZeroG/Chain/JsonRpc/index.ts'
@@ -398,7 +398,7 @@ describe('source provider registry', () => {
 					&& entry.transportType === TransportType.Http
 				))
 			if (httpCandidate != null)
-				expect(voltaireJsonRpcUrlWithTransportForChain(chainId)).toEqual({
+				expect(voltaireJsonRpcTransportWithOriginsByChainId[chainId]).toEqual({
 					...httpCandidate,
 					origins: Voltaire.origins,
 				})

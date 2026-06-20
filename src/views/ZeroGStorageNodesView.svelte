@@ -77,6 +77,7 @@ import { stringify } from 'devalue'
 					<ZeroGStorageNodeView
 						selection={select(EntityType.ZeroGStorageNode, item.entitySelector)}
 						layout={EntityLayout.Summary}
+						open={false}
 
 					/>
 				{/snippet}

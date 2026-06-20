@@ -21,47 +21,51 @@ const browserCorsJsonRpcOriginSuffixes = [
 	'.drpc.org',
 ] as const
 
+const origins = [
+	...new Set(
+		voltaireJsonRpcTransportCandidates
+			.filter((entry) => entry.transportType === TransportType.Http)
+			.map((entry) => new URL(entry.rpcUrl).origin)
+	),
+]
+	.map((origin) => ({
+		origin,
+		corsEnabled: browserCorsJsonRpcOriginSuffixes.some((suffix) => origin.endsWith(suffix)),
+	}))
+
+export const voltaireJsonRpcTransportsWithOriginsByChainId = Object.fromEntries(
+	Object.entries(voltaireJsonRpcTransportCandidatesByChainId)
+		.map(([chainId, entries]) => [
+			Number(chainId),
+			(entries ?? []).map((entry) => ({
+				...entry,
+				origins,
+			})),
+		])
+)
+
+export const voltaireJsonRpcTransportWithOriginsByChainId = Object.fromEntries(
+	Object.entries(voltaireJsonRpcTransportsWithOriginsByChainId)
+		.flatMap(([chainId, entries]) => {
+			const httpExecutionEndpoint = entries.find((entry) => entry.transportType === TransportType.Http)
+			const executionEndpoint = httpExecutionEndpoint ?? entries.at(0)
+			return executionEndpoint == null ?
+				[]
+			:
+				[[
+					Number(chainId),
+					executionEndpoint,
+				]]
+		})
+)
+
 const Voltaire = {
 	provider: SourceProvider.Voltaire,
 	label: 'Voltaire',
-	origins: [
-		...new Set(
-			voltaireJsonRpcTransportCandidates
-				.filter((entry) => entry.transportType === TransportType.Http)
-				.map((entry) => new URL(entry.rpcUrl).origin)
-		),
-	]
-		.map((origin) => ({
-			origin,
-			corsEnabled: browserCorsJsonRpcOriginSuffixes.some((suffix) => origin.endsWith(suffix)),
-		})),
+	origins,
 	sources: [
 		VoltaireJsonRpcSource,
 	],
 } satisfies SourceProviderDefinition
-
-export const voltaireJsonRpcUrlWithTransportForChain = (
-	chainId: number
-) => {
-	const executionEndpointList = voltaireJsonRpcTransportCandidatesByChainId[chainId] ?? []
-	const httpExecutionEndpoint = executionEndpointList
-		.find((endpoint) => endpoint.transportType === TransportType.Http)
-	const executionEndpoint = httpExecutionEndpoint ?? executionEndpointList.at(0)
-	if (executionEndpoint == null) return undefined
-	return {
-		...executionEndpoint,
-		origins: Voltaire.origins,
-	}
-}
-
-export const voltaireJsonRpcTransportCandidatesForChain = (
-	chainId: number
-) => (
-	(voltaireJsonRpcTransportCandidatesByChainId[chainId] ?? [])
-		.map((jsonRpcTransportCandidate) => ({
-			...jsonRpcTransportCandidate,
-			origins: Voltaire.origins,
-		}))
-)
 
 export default Voltaire

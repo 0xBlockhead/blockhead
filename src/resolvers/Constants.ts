@@ -2705,8 +2705,6 @@ export default {
 								]?.proposalIds
 					),
 					])
-					if (proposals.length === 0)
-						throw new Error(`Constants_Internal: NetworkUpgrade ${upgradeId} has no $$proposals`)
 					return proposals
 				}
 			},
@@ -2722,10 +2720,7 @@ export default {
 				[EthereumExecutionUpgradeSelector.EvmNetworkUpgradeId]: async ({ $network, upgradeId }) => {
 					const { networkExecutionUpgradeByChainIdAndUpgradeId } = await import('$/constants/EthereumNetworkUpgrades.ts')
 					const networkExecutionUpgrade = networkExecutionUpgradeByChainIdAndUpgradeId[`${$network.caip2.reference}:${upgradeId}`]
-					const proposals = ethereumProposalRefs(networkExecutionUpgrade.proposalIds)
-					if (proposals.length === 0)
-						throw new Error(`Constants_Internal: NetworkExecutionUpgrade ${upgradeId} has no $$proposals`)
-					return proposals
+					return ethereumProposalRefs(networkExecutionUpgrade.proposalIds)
 				}
 			},
 		})({
@@ -2767,7 +2762,7 @@ export default {
 						if (linkedProposals.length > 0)
 							return linkedProposals
 					}
-					throw new Error(`Constants_Internal: NetworkConsensusUpgrade ${upgradeId} has no $$proposals`)
+					return []
 				}
 			},
 		})({

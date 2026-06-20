@@ -2,7 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -12,7 +11,6 @@
 
 
 	// Context
-	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -45,24 +43,26 @@
 			sources: [
 				Source.Constants_Internal,
 			],
+			fields: {
+				protocol: true,
+				activationBlock: true,
+				activationEpoch: true,
+				activationTimestampMs: true,
+			},
 		},
 	))
-	const name = $derived(networkConsensusUpgrade.name)
 	const protocol = $derived(networkConsensusUpgrade.protocol)
 	const activationBlock = $derived(networkConsensusUpgrade.activationBlock)
 	const activationEpoch = $derived(networkConsensusUpgrade.activationEpoch)
 	const activationTimestampMs = $derived(networkConsensusUpgrade.activationTimestampMs)
-	const previousForkVersion = $derived(networkConsensusUpgrade.previousForkVersion)
-	const currentForkVersion = $derived(networkConsensusUpgrade.currentForkVersion)
 
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import EvmBlockView from '$/views/EvmBlockView.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 	import ProposalsView from '$/views/SpecificationProposalsView.svelte'
 </script>
@@ -83,14 +83,7 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<ResourceBoundary
-			resource={name}
-			placeholderText="Loading consensus upgrade…"
-		>
-			{#snippet children(name)}
-				{name ?? selection.entitySelector.upgradeId}
-			{/snippet}
-		</ResourceBoundary>
+		{selection.entitySelector.upgradeId}
 	{/snippet}
 
 	{#snippet Content({
@@ -119,15 +112,7 @@
 				<div>
 					<dt>Activation block</dt>
 					<dd>
-									<EvmBlockView
-										selection={select(EntityType.EvmBlock, {
-											$network: selection.entitySelector.$network,
-											blockNumber: BigInt(networkConsensusUpgrade.fields.activationBlock),
-										})}
-										layout={EntityLayout.Value}
-
-										open={false}
-										/>
+									<NumberValue value={networkConsensusUpgrade.fields.activationBlock} />
 					</dd>
 				</div>
 			{/if}

@@ -92,12 +92,9 @@
 
 	const userCollapsibleOnClose = $derived(CollapsibleProps.onclose)
 
-	const collapsibleDetailsRest = $derived.by(() => {
-		const {
-			onclose: _userCollapsibleOnClose,
-			...rest
-		} = CollapsibleProps
-		return rest
+	const collapsibleDetailsProps = $derived({
+		id: CollapsibleProps.id,
+		class: CollapsibleProps.class,
 	})
 
 	const collapsibleTabsPaneProps: Record<string, string> = {
@@ -192,15 +189,19 @@
 								String(first.entitySelector.realm).localeCompare(String(second.entitySelector.realm))
 							)) as specificationRealm (specificationRealmKey(specificationRealm))}
 							<section data-scroll-marker-label={String(specificationRealm.entitySelector.realm)}>
-								<ProposalKindsView
-									collapsible={false}
-									selection={select(
-										EntityType.SpecificationRealm,
-										{ realm: specificationRealm.entitySelector.realm }
-									).$$proposalKinds}
-									id={realmPanelDomId(specificationRealm)}
-									open
-									title={String(specificationRealm.entitySelector.realm)}
+									<ProposalKindsView
+										collapsible={false}
+										selection={select(
+											EntityType.SpecificationRealm,
+											{ realm: specificationRealm.entitySelector.realm }
+										).$$proposalKinds({
+											sources: [
+												Source.Constants_Internal,
+											],
+										})}
+										id={realmPanelDomId(specificationRealm)}
+										open
+										title={String(specificationRealm.entitySelector.realm)}
 								/>
 							</section>
 						{/each}
@@ -208,7 +209,7 @@
 				{:else if collapsible}
 					<CollapsibleTabs
 						open={open}
-						{...collapsibleDetailsRest}
+						{...collapsibleDetailsProps}
 						onclose={(closeId) => {
 							if (!getIsInsidePage())
 								onNestedCollapsibleClose?.(id)
@@ -266,15 +267,19 @@
 								String(first.entitySelector.realm).localeCompare(String(second.entitySelector.realm))
 							)) as specificationRealm (specificationRealmKey(specificationRealm))}
 								<section id={realmPanelDomId(specificationRealm)}>
-									<ProposalKindsView
-										CollapsibleProps={{ canToggle: false }}
-										selection={select(
-											EntityType.SpecificationRealm,
-											{ realm: specificationRealm.entitySelector.realm }
-										).$$proposalKinds}
-										id={realmPanelDomId(specificationRealm)}
-										open
-										title={String(specificationRealm.entitySelector.realm)}
+											<ProposalKindsView
+												CollapsibleProps={{ canToggle: false }}
+												selection={select(
+													EntityType.SpecificationRealm,
+													{ realm: specificationRealm.entitySelector.realm }
+												).$$proposalKinds({
+													sources: [
+														Source.Constants_Internal,
+													],
+												})}
+												id={realmPanelDomId(specificationRealm)}
+												open
+												title={String(specificationRealm.entitySelector.realm)}
 									/>
 								</section>
 							{/each}
@@ -346,15 +351,19 @@
 								String(first.entitySelector.realm).localeCompare(String(second.entitySelector.realm))
 							)) as specificationRealm (specificationRealmKey(specificationRealm))}
 									<section data-scroll-marker-label={String(specificationRealm.entitySelector.realm)}>
-										<ProposalKindsView
-											collapsible={false}
-											selection={select(
-												EntityType.SpecificationRealm,
-												{ realm: specificationRealm.entitySelector.realm }
-											).$$proposalKinds}
-											id={realmPanelDomId(specificationRealm)}
-											open
-											title={String(specificationRealm.entitySelector.realm)}
+												<ProposalKindsView
+													collapsible={false}
+													selection={select(
+														EntityType.SpecificationRealm,
+														{ realm: specificationRealm.entitySelector.realm }
+													).$$proposalKinds({
+														sources: [
+															Source.Constants_Internal,
+														],
+													})}
+													id={realmPanelDomId(specificationRealm)}
+													open
+													title={String(specificationRealm.entitySelector.realm)}
 										/>
 									</section>
 								{/each}

@@ -99,6 +99,7 @@
 								<EvmBlockView
 									selection={select(EntityType.EvmBlock, item.entitySelector)}
 									layout={EntityLayout.Summary}
+									open={false}
 
 								/>
 							{/snippet}

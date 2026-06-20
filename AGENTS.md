@@ -16,6 +16,7 @@
 - Do not introduce new variables, files or helper functions without proper justification, a detailed plan, and explicit permission; helpers and intermediate variables are acceptable only when you are at least 90% confident they remove real repeated complexity or encode meaningful domain / transport logic.
 - Bulk edits: use temporary/one-off scripts using the language's official AST tool to bulk edit syntax patterns in multiple files. If there are many files, edit one, check correctness, double the number of file edits, check correctness, and repeat.
 - Do not write codemod scripts to do HTML wrapping/unwrapping refactors.
+- We do NOT use Prettier.
 - Never git revert to correct a mistake when there are existing working changes
 - `modern-web-guidance` skill: invoke only when editing uncommonly used HTML tags, CSS rules or `src/components`.
 - Composer 2.5: this is NOT a React / Motion project. do not use `</motion>` to close HTML tags.
@@ -23,8 +24,8 @@
 
 ## Bash commands
 
-- Always quote file names and escape symbols like $ to avoid shell expansions
-- Use "~" for the $HOME directory. Avoid user directory names.
+- Use ~ for the $HOME directory. Avoid user directory names.
+- Always escape symbols like $ to avoid shell expansions
 
 
 ## Git
@@ -703,7 +704,7 @@ Most live queries live in `.svelte` views, but there is also existing shared que
 
 ### TanStack DB OPFS persistence
 
-`$/client/$client.svelte.ts` composes product TanStack DB collections in this order: `createCollection(...)` → `persistedCollectionOptions(...)` → `queryCollectionOptions(...)` for Entity/Field/Count Product Data, plus a local-only persisted `LoadedSubset` collection for durable subset-completion metadata.
+`$/client/$client.svelte.ts` composes product TanStack DB collections in this order: `createCollection(...)` → `persistedCollectionOptions(...)` → `queryCollectionOptions(...)` for Entity/Field/Count Persisted collection, plus a local-only persisted `LoadedSubset` collection for durable subset-completion metadata.
 
 Built-in TanStack behavior:
 
@@ -714,16 +715,16 @@ Built-in TanStack behavior:
 
 Local collection query behavior:
 
-- TanStack’s persisted wrapper still invokes each Product Data collection `queryFn` after OPFS hydration. The query function must therefore return hydrated rows or row-count-validated loaded-marker completion before resolver work when the requested completed subset is already durable.
-- Entity/Field/Count `queryFn`s wait for `LoadedSubset` hydration, check matching Product Data rows, and only run resolvers when durable rows/markers cannot satisfy the subset. For Field and Count collection `queryFn`s, hydrated rows satisfy a request only when every requested compatible source is represented; lower-priority hydrated rows must not suppress a missing higher-priority compatible source. A nonzero loaded marker never proves a nonempty subset by itself; it can suppress resolver work only when the matching persisted row count is present. For rendered Count results, resource readiness must at least be priority-complete: do not settle from a lower-priority Count Row while an earlier compatible count source is still missing.
-- After every successful remote subset load, including successful zero-row and partial-source-result loads, the query function writes a `LoadedSubset` row keyed by `collectionId` plus the canonical loaded key plus `rowCount`, and awaits OPFS persistence. This is required because Product Data rows alone cannot represent “this subset loaded and returned zero rows” or “this compatible source completed with no row,” while the row count prevents a marker from hiding missing persisted nonempty rows after reload.
-- For a given page URL, the first fresh-browser load may run resolver-backed network work through Product Data collections. A refresh of that same page must resolve from persisted TanStack DB Product Data for every subset completed during the cold load, without replaying the same resolver-backed `collectionId` + `loadedKey` network work or the same catalog HTTP. New work is legitimate only when the warm page requests a subset that the cold load never completed.
+- TanStack’s persisted wrapper still invokes each Persisted collection `queryFn` after OPFS hydration. The query function must therefore return hydrated rows or row-count-validated loaded-marker completion before resolver work when the requested completed subset is already durable.
+- Entity/Field/Count `queryFn`s wait for `LoadedSubset` hydration, check matching Persisted collection rows, and only run resolvers when durable rows/markers cannot satisfy the subset. For Field and Count collection `queryFn`s, hydrated rows satisfy a request only when every requested compatible source is represented; lower-priority hydrated rows must not suppress a missing higher-priority compatible source. A nonzero loaded marker never proves a nonempty subset by itself; it can suppress resolver work only when the matching persisted row count is present. For rendered Count results, resource readiness must at least be priority-complete: do not settle from a lower-priority Count Row while an earlier compatible count source is still missing.
+- After every successful remote subset load, including successful zero-row and partial-source-result loads, the query function writes a `LoadedSubset` row keyed by `collectionId` plus the canonical loaded key plus `rowCount`, and awaits OPFS persistence. This is required because Persisted collection rows alone cannot represent “this subset loaded and returned zero rows” or “this compatible source completed with no row,” while the row count prevents a marker from hiding missing persisted nonempty rows after reload.
+- For a given page URL, the first fresh-browser load may run resolver-backed network work through Persisted collections. A refresh of that same page must resolve from persisted TanStack DB Persisted collection for every subset completed during the cold load, without replaying the same resolver-backed `collectionId` + `loadedKey` network work or the same catalog HTTP. New work is legitimate only when the warm page requests a subset that the cold load never completed.
 - Keep collection query functions typed from package-provided TanStack types where possible, especially `LoadSubsetOptions` and TanStack Query Collection metadata. Avoid duplicating sync param/result shapes locally unless package types cannot express the boundary.
-- Do not replace this collection-level logic with route/view-specific guards, manual preloads, in-memory caches, or raw provider-response persistence unless the Product Data invariant is explicitly changed.
+- Do not replace this collection-level logic with route/view-specific guards, manual preloads, in-memory caches, or raw provider-response persistence unless the Persisted collection invariant is explicitly changed.
 
 Verification:
 
-- Use `tests/e2e/tanstack-db-persistence.e2e.ts` for OPFS persistence checks. It clears OPFS, installs the client persistence probe (`window.__blockheadPersistenceProbe` / sessionStorage), cold-loads every discovered `+page` route, records cold `markLoaded` events, refreshes the same page, and asserts completed Entity/Field/Count Product Data subsets hydrate from OPFS without warm `remote` replay for the same `collectionId` + `loadedKey` or repeated catalog HTTP. The same file also keeps the direct `$client` EVM network probe and schema-version invalidation proof.
+- Use `tests/e2e/tanstack-db-persistence.e2e.ts` for OPFS persistence checks. It clears OPFS, installs the client persistence probe (`window.__blockheadPersistenceProbe` / sessionStorage), cold-loads every discovered `+page` route, records cold `markLoaded` events, refreshes the same page, and asserts completed Entity/Field/Count Persisted collection subsets hydrate from OPFS without warm `remote` replay for the same `collectionId` + `loadedKey` or repeated catalog HTTP. The same file also keeps the direct `$client` EVM network probe and schema-version invalidation proof.
 - **CI / pre-merge gate:** `pnpm run test:e2e:persistence` (all discovered pages; dedicated dev server). Focus a single route with `E2E_PROBE_PATH=/network/eip155:1 pnpm exec playwright test tests/e2e/tanstack-db-persistence.e2e.ts -g "every discovered page"` or slice with `E2E_PATH_LIMIT=20`.
 - Real-network suites may need provider-specific noise filtering for unrelated upstream 400/404/422/fetch failures.
 - Current focused status must include the route-matrix refresh assertion. A narrow probe is acceptable while debugging only when the follow-up all-route gate is still required before closing persistence work.

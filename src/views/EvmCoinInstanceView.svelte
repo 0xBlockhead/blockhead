@@ -41,29 +41,48 @@
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { select } from '$/routes/+layout.svelte'
-	const coinInstance = $derived(selection( {
-		sources: [
-			Source.Coingecko_Rest,
-			Source.Constants_Internal,
-			Source.Lifi_Rest,
-		],
-	}))
-	const coinId = $derived(coinInstance.coinId)
-	const icon = $derived(coinInstance.$icon)
-	const name = $derived(coinInstance.name)
-	const symbol = $derived(coinInstance.symbol)
-	const contract = $derived(coinInstance.$contract)
-	const decimals = $derived(coinInstance.decimals)
-	const caip19 = $derived(coinInstance.caip19)
-	const representation = $derived(coinInstance.representation)
-	const canonicalInstance = $derived(coinInstance.$canonicalInstance({
-		sources: [Source.Coingecko_Rest],
-	}))
-	const outboundBridgeCapabilities = $derived(coinInstance.$$outboundBridgeCapabilities({
-		sources: [Source.Lifi_Rest],
-	}))
-	const inboundBridgeCapabilities = $derived(coinInstance.$$inboundBridgeCapabilities({
-		sources: [Source.Lifi_Rest],
+	const coinInstance = $derived(selection({
+		sources: open ?
+			[
+				Source.Constants_Internal,
+				...(selection.entitySelector.type === CoinInstanceType.Erc20Token ? [
+					Source.Coingecko_Rest,
+				] : []),
+			]
+		:
+			[
+				Source.Constants_Internal,
+				Source.Chainlist_Rest,
+				Source.EthereumLists_Rest,
+			],
+		fields: {
+			coinId: true,
+			symbol: true,
+			...(open && {
+				...(selection.entitySelector.type === CoinInstanceType.Erc20Token && {
+					$canonicalInstance: {
+						sources: [Source.Coingecko_Rest],
+					},
+					$contract: true,
+					$icon: true,
+					caip19: true,
+					name: true,
+				}),
+				decimals: true,
+				representation: {
+					sources: selection.entitySelector.type === CoinInstanceType.Erc20Token ?
+						[Source.Coingecko_Rest]
+					:
+						[Source.Constants_Internal],
+				},
+				$$inboundBridgeCapabilities: {
+					sources: [Source.Lifi_Rest],
+				},
+				$$outboundBridgeCapabilities: {
+					sources: [Source.Lifi_Rest],
+				},
+			}),
+		},
 	}))
 
 	// (Derived)
@@ -106,46 +125,67 @@
 	{...EntityViewProps}
 >
 	{#snippet Icon()}
-		<ResourceBoundary
-			resource={coinInstance}
-		>
-			{#snippet children(coinInstance)}
-				{#if coinInstance.$icon?.entitySelector.url !== undefined}
-					<IconComponent
-						src={coinInstance.$icon.entitySelector.url}
-						alt={coinInstance.symbol ?? coinInstance.name ?? ''}
-					/>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if (
+			open
+			&& selection.entitySelector.type === CoinInstanceType.Erc20Token
+		)}
+			<ResourceBoundary
+				resource={coinInstance}
+			>
+				{#snippet children(coinInstance)}
+					{#if coinInstance.$icon?.entitySelector.url !== undefined}
+						<IconComponent
+							src={coinInstance.$icon.entitySelector.url}
+							alt={coinInstance.symbol ?? coinInstance.name ?? ''}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary
-			resource={coinInstance}
-		>
-			{#snippet children(coinInstance)}
-				<span>
-					{coinInstance.coinId}
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		{#if open}
+			<ResourceBoundary
+				resource={coinInstance}
+			>
+				{#snippet children(coinInstance)}
+					<span>
+						{coinInstance.coinId}
+					</span>
+				{/snippet}
+			</ResourceBoundary>
+		{:else}
+			<span>
+				{selection.entitySelector.type === CoinInstanceType.NativeCurrency ?
+					`Native (${evmChainIdFromCaip2(`${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`)})`
+				:
+					`Token (${evmChainIdFromCaip2(`${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`)})`}
+			</span>
+		{/if}
 	{/snippet}
 
 	{#snippet Title()}
-		<ResourceBoundary
-			resource={coinInstance}
-			placeholderText="Loading…"
-		>
-			{#snippet children(coinInstance)}
-				{coinInstance.symbol ?? coinInstance.name ?? (
-					selection.entitySelector.type === CoinInstanceType.NativeCurrency ?
-						`Native (${evmChainIdFromCaip2(`${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`)})`
-					:
-						`Token (${evmChainIdFromCaip2(`${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`)})`
-				)}
-			{/snippet}
-		</ResourceBoundary>
+		{#if open}
+			<ResourceBoundary
+				resource={coinInstance}
+				placeholderText="Loading…"
+			>
+				{#snippet children(coinInstance)}
+					{coinInstance.symbol ?? coinInstance.name ?? (
+						selection.entitySelector.type === CoinInstanceType.NativeCurrency ?
+							`Native (${evmChainIdFromCaip2(`${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`)})`
+						:
+							`Token (${evmChainIdFromCaip2(`${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`)})`
+					)}
+				{/snippet}
+			</ResourceBoundary>
+		{:else}
+			{selection.entitySelector.type === CoinInstanceType.NativeCurrency ?
+				`Native (${evmChainIdFromCaip2(`${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`)})`
+			:
+				`Token (${evmChainIdFromCaip2(`${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`)})`}
+		{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -158,11 +198,12 @@
 	{/snippet}
 
 	{#snippet Content({})}
-		<ResourceBoundary
-			resource={coinInstance}
-			placeholderText="Loading coin instance…"
-		>
-			{#snippet children(coinInstance)}
+		{#if open}
+			<ResourceBoundary
+				resource={coinInstance}
+				placeholderText="Loading coin instance…"
+			>
+				{#snippet children(coinInstance)}
 				<dl data-column-item="center">
 					<div>
 						<dt>Chain</dt>
@@ -189,6 +230,7 @@
 					</div>
 					{#if (
 						open
+						&& selection.entitySelector.type === CoinInstanceType.Erc20Token
 						&& coinInstance.name !== undefined
 					)}
 						<div>
@@ -219,6 +261,7 @@
 
 					{#if (
 						open
+						&& selection.entitySelector.type === CoinInstanceType.Erc20Token
 						&& coinInstance.caip19 !== undefined
 					)}
 						<div>
@@ -241,6 +284,7 @@
 
 					{#if (
 						open
+						&& selection.entitySelector.type === CoinInstanceType.Erc20Token
 						&& coinInstance.$canonicalInstance
 					)}
 						<div>
@@ -259,8 +303,9 @@
 						</div>
 					{/if}
 				</dl>
-			{/snippet}
-		</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Details({
@@ -292,8 +337,9 @@
 						<CoinBridgeCapabilitiesView
 							CollapsibleProps={{ canToggle: false }}
 							href={resolve('/bridge')}
-							selection={outboundBridgeCapabilities}
+							selection={coinInstance.$$outboundBridgeCapabilities}
 							{id}
+							open={false}
 							title="Outbound"
 						/>
 					{/snippet}
@@ -302,8 +348,9 @@
 						<CoinBridgeCapabilitiesView
 							CollapsibleProps={{ canToggle: false }}
 							href={resolve('/bridge')}
-							selection={inboundBridgeCapabilities}
+							selection={coinInstance.$$inboundBridgeCapabilities}
 							{id}
+							open={false}
 							title="Inbound"
 						/>
 					{/snippet}

@@ -1,7 +1,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import {
+		EntityProxyField,
+		type EntityProxyResource,
+	} from '$/client/$proxy.svelte.ts'
 	import type { EntityFieldValues, EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -43,7 +46,7 @@
 			], fields: { userPrompt: true, assistantText: true, status: true, createdAt: true, ...(open ? ({ providerId: true, promptVersion: true, parentId: true, error: true }) : ({  })) } }),
 		)
 	))
-	const turnError = $derived(turn.field('error'))
+	const turnError = $derived(turn[EntityProxyField]('error'))
 
 
 	// Components

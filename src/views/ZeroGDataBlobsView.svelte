@@ -77,7 +77,7 @@ import { stringify } from 'devalue'
 					<ZeroGDataBlobView
 						selection={select(EntityType.ZeroGDataBlob, item.entitySelector)}
 						layout={EntityLayout.Summary}
-
+						open={false}
 					/>
 				{/snippet}
 					</EntitiesList>

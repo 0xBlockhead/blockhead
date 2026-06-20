@@ -92,7 +92,7 @@
 					<UtxoTransactionView
 						selection={select(EntityType.UtxoTransaction, context!.item.entitySelector)}
 						layout={EntityLayout.Summary}
-
+						open={false}
 					/>
 				{/snippet}
 			</EntitiesList>

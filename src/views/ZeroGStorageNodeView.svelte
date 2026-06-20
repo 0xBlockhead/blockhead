@@ -7,6 +7,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// State
@@ -57,7 +58,10 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={selection( { fields: { $operator: true, balance: true, totalReward: true } })}
+			resource={selection({
+				sources: [Source.ZeroGStorageScan_Rest],
+				fields: { $operator: true, balance: true, totalReward: true },
+			})}
 			placeholderText="Loading 0G storage node…"
 		>
 			{#snippet children(storageNode)}

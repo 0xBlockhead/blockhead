@@ -71,7 +71,7 @@ export const writeLocalBlockheadSessionName = (
 ) => {
 	const now = Date.now()
 	const fields = {
-		...(sessionName.trim() !== '' && { name: sessionName.trim() }),
+		...(sessionName !== '' && { name: sessionName }),
 		status: BlockheadSessionStatus.Draft,
 		createdAt: now,
 		updatedAt: now,

@@ -92,7 +92,11 @@
 	{#snippet Details({ open })}
 		<ProposalKindsView
 			{href}
-			selection={selection.$$proposalKinds}
+			selection={selection.$$proposalKinds({
+				sources: [
+					Source.Constants_Internal,
+				],
+			})}
 			id={`${stringify(selection.entitySelector)}:proposalKinds`}
 
 			title="Proposal kinds"

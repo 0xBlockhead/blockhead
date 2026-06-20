@@ -40,7 +40,7 @@
 		variant: 'trending',
 	}
 
-	const network = $derived(selection( { sources: [Source.Farcaster_Rest], fields: { ...(open ? ({ protocolName: true, homeUrl: true, docsUrl: true, registryLabel: true, topology: true }) : ({  })) } }))
+	const network = $derived(selection( { sources: [Source.Constants_Internal], fields: { ...(open ? ({ protocolName: true, homeUrl: true, docsUrl: true, registryLabel: true, topology: true }) : ({  })) } }))
 
 	const entityViewDetailCarouselScrollProps = {
 		'data-row': 'start align-start',

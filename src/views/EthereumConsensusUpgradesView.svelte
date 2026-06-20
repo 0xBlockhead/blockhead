@@ -99,6 +99,7 @@
 					<EthereumConsensusUpgradeView
 						selection={select(EntityType.EthereumConsensusUpgrade, upgrade.entitySelector)}
 						layout={EntityLayout.Summary}
+						open={false}
 
 					/>
 				{/snippet}

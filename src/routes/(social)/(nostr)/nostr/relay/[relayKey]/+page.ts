@@ -4,7 +4,7 @@ import type { PageLoad } from './$types.ts'
 
 
 export const load: PageLoad = ({ params }) => {
-	const relayUrl = decodeURIComponent(params.relayKey).trim()
+	const relayUrl = decodeURIComponent(params.relayKey)
 	if (!relayUrl.toLowerCase().startsWith('wss://')) error(404, 'Invalid Nostr relay URL')
 	return {
 		selector: { relayUrl },

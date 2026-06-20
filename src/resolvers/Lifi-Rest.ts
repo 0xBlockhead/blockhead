@@ -209,9 +209,9 @@ export default {
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async (entitySelector, context) => {
+				[EvmNetworkSelector.Caip2]: async ({ caip2 }, context) => {
 					const { fetchChains } = await import('$/sources/Lifi/Rest/queries.ts')
-					const lifiChain = (await fetchChains()).chains.find((lifiChainEntry) => lifiChainEntry.id === Number(entitySelector.caip2.reference))
+					const lifiChain = (await fetchChains()).chains.find((lifiChainEntry) => lifiChainEntry.id === Number(caip2.reference))
 					if (lifiChain == null) throw new Error('Lifi_Rest: chain not in LiFi catalog')
 					return networkEntityFieldsFromLifiChain(lifiChain)
 				}
@@ -389,9 +389,9 @@ export default {
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async (entitySelector, _context) => {
+				[EvmNetworkSelector.Caip2]: async ({ caip2 }, _context) => {
 					const { fetchChains } = await import('$/sources/Lifi/Rest/queries.ts')
-					const lifiChain = (await fetchChains()).chains.find((lifiChainEntry) => lifiChainEntry.id === Number(entitySelector.caip2.reference))
+					const lifiChain = (await fetchChains()).chains.find((lifiChainEntry) => lifiChainEntry.id === Number(caip2.reference))
 					if (lifiChain == null) throw new Error('Lifi_Rest: chain not in LiFi catalog for block explorer URLs')
 					return urlEntitiesFromBlockExplorerCatalog(
 						blockExplorerLikeFromExplorersAndInfoUrl({

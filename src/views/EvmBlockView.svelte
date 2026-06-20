@@ -275,15 +275,15 @@
 								resource={block}
 								placeholderText="Loading block…"
 							>
-								{#snippet children(block)}
-									{#if block.$parent}
-											<EvmBlockView
-												selection={select(EntityType.EvmBlock, block.$parent.entitySelector)}
-												layout={EntityLayout.Value}
-												open={false}
-											/>
-										{/if}
-								{/snippet}
+							{#snippet children(block)}
+								{#if block.$parent}
+									<EvmBlockView
+										selection={select(EntityType.EvmBlock, block.$parent.entitySelector)}
+										layout={EntityLayout.Value}
+										open={false}
+									/>
+								{/if}
+							{/snippet}
 							</ResourceBoundary>
 						</dd>
 					</div>
@@ -371,17 +371,18 @@
 				{#snippet SectionTransactions({ id: _txId, label: _txLabel })}
 					<EvmTransactionsView
 						CollapsibleProps={{ canToggle: false }}
-							href={'blockNumber' in selection.entitySelector ?
-									resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]/(block)/transactions', {
+						href={'blockNumber' in selection.entitySelector ?
+								resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]/(block)/transactions', {
 									caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
 									blockNumber: String(selection.entitySelector.blockNumber),
 								})
 						:
 							undefined}
-							selection={block.$$transactions({
+						selection={block.$$transactions({
 							sources: [
 								Source.Blockscout_Rest,
 								Source.Voltaire_JsonRpc,
+								Source.ZeroGChain_JsonRpc,
 							],
 							limit: 100,
 						})}

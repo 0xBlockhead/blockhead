@@ -10,12 +10,11 @@ const clampFxEmbedCount = (count: number) => (
 )
 
 const profileHandleParam = (idOrUsername: string) => {
-	const trimmed = idOrUsername.trim()
 	return (
-		/^\d+$/.test(trimmed) ?
-			`id:${trimmed}`
+		/^\d+$/.test(idOrUsername) ?
+			`id:${idOrUsername}`
 		:
-			trimmed
+			idOrUsername
 	)
 }
 
@@ -33,7 +32,7 @@ export const getUser = async (idOrUsername: string) => (
  */
 export const getStatus = async (id: string) => (
 	fxEmbedGet<FxEmbedSocialThread>(
-		`/status/${encodeURIComponent(id.trim())}`
+		`/status/${encodeURIComponent(id)}`
 	)
 )
 

@@ -93,11 +93,11 @@ export default {
 		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinNetwork,
 			resolve: {
-				[FilecoinNetworkSelector.Network]: async (entitySelector) => {
-					assertFilecoinMainnet(entitySelector.$network)
+				[FilecoinNetworkSelector.Network]: async ({ $network }) => {
+					assertFilecoinMainnet($network)
 					return {
 						$network: {
-							[EntityMetaKey.Selector]: entitySelector.$network,
+							[EntityMetaKey.Selector]: $network,
 						},
 						rpcEndpoints: [
 							{
@@ -306,12 +306,12 @@ export default {
 		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinNetwork,
 			resolve: {
-				[FilecoinNetworkSelector.Network]: async (entitySelector) => {
-					assertFilecoinMainnet(entitySelector.$network)
+				[FilecoinNetworkSelector.Network]: async ({ $network }) => {
+					assertFilecoinMainnet($network)
 					return [
 						{
 							[EntityMetaKey.Selector]: {
-								$network: entitySelector.$network,
+								$network: $network,
 								timestampMs: Date.now(),
 							},
 						},
@@ -327,8 +327,8 @@ export default {
 		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinNetwork,
 			resolve: {
-				[FilecoinNetworkSelector.Network]: async (entitySelector, context) => {
-					assertFilecoinMainnet(entitySelector.$network)
+				[FilecoinNetworkSelector.Network]: async ({ $network }, context) => {
+					assertFilecoinMainnet($network)
 					const {
 						getTipSetByHeight,
 						getHead,
@@ -351,13 +351,13 @@ export default {
 						)
 						return {
 							[EntityMetaKey.Selector]: {
-								$network: entitySelector.$network,
+								$network: $network,
 								height: BigInt(tipset.Height),
 								tipsetKey: tipsetKey(tipset.Cids),
 							},
 							timestampMs: tipset.Blocks[0].Timestamp * 1000,
 							$$blocks: blockRows(
-								entitySelector.$network,
+								$network,
 								tipset
 							),
 						}

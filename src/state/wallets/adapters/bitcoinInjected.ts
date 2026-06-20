@@ -17,14 +17,11 @@ declare global {
 export const createBitcoinInjectedAdapter = (): WalletAdapter => createDiscoveryOnlyAdapter({
 	id: 'bitcoin-injected',
 	candidate: {
-		protocol: WalletProtocol.SatsConnect,
+		protocol: WalletProtocol.BitcoinInjected,
 		discoveryKind: WalletDiscoveryKind.InjectedGlobal,
 		transportKind: WalletTransportKind.InjectedSigner,
 		capabilities: [
-			WalletCapability.Connect,
-			WalletCapability.ListAccounts,
-			WalletCapability.SignMessage,
-			WalletCapability.SignTransaction,
+			WalletCapability.Discover,
 		],
 	},
 	getCandidates: () => (

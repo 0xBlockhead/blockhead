@@ -57,11 +57,11 @@ export default {
 		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.PolkadotNetwork,
 			resolve: {
-				[PolkadotNetworkSelector.Network]: async (entitySelector) => {
-					assertPolkadotMainnet(entitySelector.$network)
+				[PolkadotNetworkSelector.Network]: async ({ $network }) => {
+					assertPolkadotMainnet($network)
 					return {
 						$network: {
-							[EntityMetaKey.Selector]: entitySelector.$network,
+							[EntityMetaKey.Selector]: $network,
 						},
 						rpcEndpoints: [...polkadotMainnetRpcEndpoints],
 					}
@@ -181,8 +181,8 @@ export default {
 		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.PolkadotNetwork,
 			resolve: {
-				[PolkadotNetworkSelector.Network]: async (entitySelector) => {
-					assertPolkadotMainnet(entitySelector.$network)
+				[PolkadotNetworkSelector.Network]: async ({ $network }) => {
+					assertPolkadotMainnet($network)
 					return [
 						{
 							...polkadotMainnetRpcEndpoints[0],
@@ -199,12 +199,12 @@ export default {
 		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.PolkadotNetwork,
 			resolve: {
-				[PolkadotNetworkSelector.Network]: async (entitySelector) => {
-					assertPolkadotMainnet(entitySelector.$network)
+				[PolkadotNetworkSelector.Network]: async ({ $network }) => {
+					assertPolkadotMainnet($network)
 					return [
 						{
 							[EntityMetaKey.Selector]: {
-								$network: entitySelector.$network,
+								$network: $network,
 								timestampMs: Date.now(),
 							},
 						},
@@ -220,8 +220,8 @@ export default {
 		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.PolkadotNetwork,
 			resolve: {
-				[PolkadotNetworkSelector.Network]: async (entitySelector, context) => {
-					assertPolkadotMainnet(entitySelector.$network)
+				[PolkadotNetworkSelector.Network]: async ({ $network }, context) => {
+					assertPolkadotMainnet($network)
 					const {
 						getFinalizedHead,
 						getHeader,
@@ -239,7 +239,7 @@ export default {
 					),
 					}, (_value, blockOffset) => ({
 						[EntityMetaKey.Selector]: {
-							$network: entitySelector.$network,
+							$network: $network,
 							blockNumber: finalizedBlockNumber - BigInt(blockOffset),
 							...(blockOffset === 0 && {
 								hash: finalizedBlockHash,

@@ -16,13 +16,7 @@ export const createTronInjectedAdapter = (): WalletAdapter => createDiscoveryOnl
 		discoveryKind: WalletDiscoveryKind.InjectedGlobal,
 		transportKind: WalletTransportKind.InjectedProvider,
 		capabilities: [
-			WalletCapability.Connect,
-			WalletCapability.ListAccounts,
-			WalletCapability.WatchAccounts,
-			WalletCapability.WatchScopes,
-			WalletCapability.SignMessage,
-			WalletCapability.SignTransaction,
-			WalletCapability.SendTransaction,
+			WalletCapability.Discover,
 		],
 	},
 	getCandidates: () => (

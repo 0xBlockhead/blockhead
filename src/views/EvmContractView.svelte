@@ -21,23 +21,24 @@
 			caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
 			address: selection.entitySelector.address,
 		}),
-		open = $bindable(true),
+		layout = EntityLayout.SummaryDetails,
+		open = $bindable(layout === EntityLayout.SummaryDetails),
 		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.EvmContract>
-			title?: string
-			href?: string
-			open?: boolean
-			collapsible?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-				| 'layout'
-				| 'showTypeAnnotation'
-				| 'CollapsibleProps'
-		>
+				title?: string
+				href?: string
+				layout?: EntityLayout
+				open?: boolean
+				collapsible?: boolean
+			},
+			Pick<
+				ComponentProps<typeof EntityView>,
+					| 'showTypeAnnotation'
+					| 'CollapsibleProps'
+			>
 	> = $props()
 
 
@@ -57,9 +58,6 @@
 	const precompileName = $derived(contract.precompileName({
 		sources: [Source.Constants_Internal],
 	}))
-	
-	const compilationName = $derived(contract.$verification.$compilation.name)
-
 
 	// Components
 	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
@@ -77,6 +75,7 @@
 	entitySelector={selection.entitySelector}
 	{title}
 	{href}
+	{layout}
 	bind:open
 	{collapsible}
 	{...entityViewRest}
@@ -104,37 +103,55 @@
 						{precompileName}
 					{:else}
 						<ResourceBoundary
-							placeholderText="Loading contract name…"
-							resource={contract.$verification.$compilation.fullyQualifiedName}
+							placeholderText="Loading verification…"
+							resource={contract.$verification}
 						>
-							{#snippet children(compilationFullyQualifiedName)}
-								{#if compilationFullyQualifiedName}
-									<code>
-										{compilationFullyQualifiedName
-											.split(':')[0]
-											.split('/')
-											.at(-1)}
-									</code>
-								{:else}
+							{#snippet children(verification)}
+								{#if verification}
 									<ResourceBoundary
-										placeholderText="Loading compilation name…"
-										resource={compilationName}
+										placeholderText="Loading contract name…"
+										resource={verification.$compilation.fullyQualifiedName}
 									>
-										{#snippet children(compilationName)}
-											{#if compilationName}
-												{compilationName}
+										{#snippet children(compilationFullyQualifiedName)}
+											{#if compilationFullyQualifiedName}
+												<code>
+													{compilationFullyQualifiedName
+														.split(':')[0]
+														.split('/')
+														.at(-1)}
+												</code>
 											{:else}
-												<EvmNetworkAccountView
-													selection={select(EntityType.EvmNetworkAccount, {
-														$network: selection.entitySelector.$network,
-														$actor: { address: selection.entitySelector.address },
-													})}
-													layout={EntityLayout.Value}
-													open={false}
-												/>
+												<ResourceBoundary
+													placeholderText="Loading compilation name…"
+													resource={verification.$compilation.name}
+												>
+													{#snippet children(compilationName)}
+														{#if compilationName}
+															{compilationName}
+														{:else}
+															<EvmNetworkAccountView
+																selection={select(EntityType.EvmNetworkAccount, {
+																	$network: selection.entitySelector.$network,
+																	$actor: { address: selection.entitySelector.address },
+																})}
+																layout={EntityLayout.Value}
+																open={false}
+															/>
+														{/if}
+													{/snippet}
+												</ResourceBoundary>
 											{/if}
 										{/snippet}
 									</ResourceBoundary>
+								{:else}
+									<EvmNetworkAccountView
+										selection={select(EntityType.EvmNetworkAccount, {
+											$network: selection.entitySelector.$network,
+											$actor: { address: selection.entitySelector.address },
+										})}
+										layout={EntityLayout.Value}
+										open={false}
+									/>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>

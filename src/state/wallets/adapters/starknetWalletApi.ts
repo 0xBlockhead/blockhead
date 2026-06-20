@@ -19,12 +19,6 @@ export const createStarknetWalletApiAdapter = (): WalletAdapter => createDiscove
 		transportKind: WalletTransportKind.InjectedProvider,
 		capabilities: [
 			WalletCapability.Discover,
-			WalletCapability.Connect,
-			WalletCapability.ListAccounts,
-			WalletCapability.WatchAccounts,
-			WalletCapability.SignMessage,
-			WalletCapability.SignTransaction,
-			WalletCapability.SendTransaction,
 		],
 	},
 	getCandidates: () => (

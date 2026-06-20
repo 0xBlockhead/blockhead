@@ -27,15 +27,6 @@ export const restPath = '/api/v2'
  */
 export const blockscoutV2ItemsCountMax = 50
 
-/**
- * `GET {explorerOrigin}` + `restPath` + `…` is Blockscout’s own HTTP API. Other block-explorer UIs
- * (custom domains, different products) do not serve this path — use chain RPC and/or that product’s client instead.
- */
-export const blockscoutRestV2AtExplorerOrigin = (explorerOrigin: string): boolean => {
-	const h = new URL(explorerOrigin).hostname.toLowerCase()
-	return h.endsWith('.blockscout.com') || h.endsWith('.blockscout.org')
-}
-
 export const blockscoutHostedNetworks = [
 	{
 		chainId: 1,
@@ -132,22 +123,13 @@ export const blockscoutExplorerOriginByChainId: Partial<Record<number, string>> 
 		])
 )
 
-export const blockscoutExplorerOriginForChain = (
-	chainId: number
-): string | undefined => blockscoutExplorerOriginByChainId[chainId]
-
-/** Same predicate Blockscout resolvers use before calling REST v2 list endpoints. */
-export const blockscoutExplorerRestV2SupportedForChain = (chainId: number): boolean => {
-	const origin = blockscoutExplorerOriginForChain(chainId)
-	return origin != null && blockscoutRestV2AtExplorerOrigin(origin)
-}
-
-export const blockscoutExplorerRestV2OriginForChain = (chainId: number): string | undefined => {
-	const origin = blockscoutExplorerOriginForChain(chainId)
-	if (origin == null) return undefined
-	if (!blockscoutRestV2AtExplorerOrigin(origin)) return undefined
-	return origin
-}
+export const blockscoutExplorerRestV2OriginByChainId = Object.fromEntries(
+	blockscoutHostedNetworks
+		.map((entry) => [
+			entry.chainId,
+			`https://${entry.host}`,
+		])
+)
 
 /**
  * Blockscout `/proxy/account-abstraction/*` routes on hosted explorers (`blockscoutHostedNetworks`).
@@ -179,19 +161,16 @@ export const blockscoutErc4337OperationsSupportedChainIds = [
 	84532,
 ] as const satisfies readonly (typeof blockscoutHostedNetworks)[number]['chainId'][]
 
-const blockscoutErc4337OperationsSupportedChainIdSet = new Set<number>(
+export const blockscoutErc4337OperationsSupportedByChainId = Object.fromEntries(
 	blockscoutErc4337OperationsSupportedChainIds
-)
-
-/** `GET …/proxy/account-abstraction/operations` (+ smart-account registry) for this chain. */
-export const blockscoutErc4337OperationsSupported = (chainId: number): boolean => (
-	blockscoutErc4337OperationsSupportedChainIdSet.has(chainId)
+		.map((chainId) => [
+			chainId,
+			true,
+		])
 )
 
 /**
  * Registry leaderboard lists (`bundlers`, `paymasters`, `factories` under `blockscoutAccountAbstractionRegistryListPaths`).
  * Same hosted chains as operations; UI treats resolver failures as section-local (no fallback sources).
  */
-export const blockscoutErc4337RegistryListsSupported = (chainId: number): boolean => (
-	blockscoutErc4337OperationsSupported(chainId)
-)
+export const blockscoutErc4337RegistryListsSupportedByChainId = blockscoutErc4337OperationsSupportedByChainId

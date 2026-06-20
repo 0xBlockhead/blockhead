@@ -17,8 +17,8 @@
 	<VaultView
 		selection={select(EntityType.Vault, {
 			$network: { caip2: { namespace: 'eip155' as const, reference: String(Number(params.chainId)) } },
-			id: hexLowerOfByteSize(decodeURIComponent(params.vaultId).trim(), 20)
-				?? decodeURIComponent(params.vaultId).trim(),
+			id: hexLowerOfByteSize(decodeURIComponent(params.vaultId), 20)
+				?? decodeURIComponent(params.vaultId),
 		})}
 	/>
 </Page>

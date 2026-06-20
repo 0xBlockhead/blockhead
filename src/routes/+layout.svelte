@@ -11,24 +11,38 @@
 
 	import {
 		client,
-		subscribeEntity,
-		type SubscribeSelection,
 	} from '$/client/$client.svelte.ts'
 	import {
-		BLOCKHEAD_PRODUCT_DATA_SCHEMA_VERSION,
+		createPersistenceTrace,
+		installAppClientProbe,
+	} from '$/client/$e2eProbe.ts'
+	import {
+		BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION,
 		BLOCKHEAD_WA_SQLITE_DATABASE_NAME,
 	} from '$/constants/Persistence.ts'
 	import { resolvers } from '$/resolvers/index.ts'
 	import { schema } from '$/schema/index.ts'
-	import type { EntitySelector, EntityType as EntityTypeName } from '$/schema/$schema.ts'
 	import { sourceProviders } from '$/sources/index.ts'
 
 	declare global {
 		interface Window {
 			__blockheadWaSqliteDatabaseNameOverride?: string
-			__blockheadProductDataSchemaVersionOverride?: number
+			__blockheadPersistedCollectionSchemaVersionOverride?: number
 		}
 	}
+
+	const basePersistence = createBrowserWASQLitePersistence({
+		database: await openBrowserWASQLiteOPFSDatabase({
+			databaseName: (
+				typeof window !== 'undefined' ?
+					window.__blockheadWaSqliteDatabaseNameOverride ?? BLOCKHEAD_WA_SQLITE_DATABASE_NAME
+				:
+					BLOCKHEAD_WA_SQLITE_DATABASE_NAME
+			),
+		}),
+		schemaMismatchPolicy: 'reset',
+	})
+	const persistenceTrace = createPersistenceTrace(basePersistence)
 
 	export const appClient = client(
 		{
@@ -49,94 +63,16 @@
 					},
 				},
 			}),
-			persistence: createBrowserWASQLitePersistence({
-				database: await openBrowserWASQLiteOPFSDatabase({
-					databaseName: (
-						typeof window !== 'undefined' ?
-							window.__blockheadWaSqliteDatabaseNameOverride ?? BLOCKHEAD_WA_SQLITE_DATABASE_NAME
-						:
-							BLOCKHEAD_WA_SQLITE_DATABASE_NAME
-					),
-				}),
-				schemaMismatchPolicy: 'reset',
-			}),
+			persistence: persistenceTrace.persistence,
 			schemaVersion: (
 				typeof window !== 'undefined' ?
-					window.__blockheadProductDataSchemaVersionOverride ?? BLOCKHEAD_PRODUCT_DATA_SCHEMA_VERSION
+					window.__blockheadPersistedCollectionSchemaVersionOverride ?? BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION
 				:
-					BLOCKHEAD_PRODUCT_DATA_SCHEMA_VERSION
+					BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION
 			),
+			waitForPersistence: persistenceTrace.waitForPersistence,
 		}
 	)
-
-	if (typeof window !== 'undefined' && '__blockheadPersistenceProbe' in window)
-		Object.defineProperty(window, '__blockheadClientProbe', {
-			value: {
-				events: appClient.events,
-				collectionSizes: () => ({
-					loadedSubsets: appClient.loadedSubsets.size,
-					entities: Object.fromEntries(
-						Object.entries(appClient.entityCollections)
-							.map(([entityType, collection]) => [
-								entityType,
-								collection.size,
-							])
-					),
-					fields: Object.fromEntries(
-						Object.entries(appClient.entityFieldCollections)
-							.map(([entityType, fieldCollections]) => [
-								entityType,
-								Object.fromEntries(
-									Object.entries(fieldCollections)
-										.map(([fieldName, collection]) => [
-											fieldName,
-											collection.size,
-										])
-								),
-							])
-					),
-					counts: Object.fromEntries(
-						Object.entries(appClient.entityFieldCountCollections)
-							.map(([entityType, fieldCollections]) => [
-								entityType,
-								Object.fromEntries(
-									Object.entries(fieldCollections)
-										.map(([fieldName, collection]) => [
-											fieldName,
-											collection?.size ?? 0,
-										])
-								),
-							])
-					),
-				}),
-				queryStates: () => (
-					appClient
-						.queryClient
-						.getQueryCache()
-						.getAll()
-						.map((query) => ({
-							key: query.queryKey.map((segment) => String(segment)),
-							status: query.state.status,
-							fetchStatus: query.state.fetchStatus,
-							error: query.state.error == null ? undefined : String(query.state.error),
-						}))
-				),
-				read: <
-					const _EntityType extends EntityTypeName<typeof schema>,
-					const _Selection extends SubscribeSelection<typeof schema, _EntityType>,
-				>(
-					entityType: _EntityType,
-					entitySelector: EntitySelector<typeof schema, _EntityType>,
-					selection: _Selection,
-				) => subscribeEntity<typeof schema, _EntityType, _Selection>(
-					appClient,
-					entityType,
-					entitySelector,
-					selection,
-				),
-			},
-			configurable: true,
-		})
 
 	export const select = appClient.select
 </script>
@@ -164,6 +100,8 @@
 	let {
 		children,
 	} = $props()
+
+	installAppClientProbe(appClient)
 
 	$effect(() => (
 		mountWalletConnectionRuntime(appClient)

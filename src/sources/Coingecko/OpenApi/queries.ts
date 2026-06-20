@@ -69,7 +69,7 @@ export const getCoinById = async ({
 	publicEnv: SourcePublicEnvFor<Source.Coingecko_OpenApi>
 	coingeckoId: string
 }): Promise<CoingeckoOpenApiCoinById | undefined> => {
-	if (coingeckoId.trim() === '') return undefined
+	if (coingeckoId === '') return undefined
 
 	const response = await coingeckoOpenApiFetch(
 		publicEnv,
@@ -123,7 +123,7 @@ export const getCoinOhlc = async ({
 	vsCurrency: string
 	lookbackDayCount: number
 }): Promise<OhlcCandle[]> => {
-	if (coingeckoId.trim() === '') return []
+	if (coingeckoId === '') return []
 
 	const daysParam = Object.entries(coingeckoOpenApiOhlcDaysByWindow)
 		.find(([windowDays]) => Number(windowDays) === lookbackDayCount)?.[1]
@@ -164,7 +164,7 @@ export const getCoinTickers = async ({
 	publicEnv: SourcePublicEnvFor<Source.Coingecko_OpenApi>
 	coingeckoId: string
 }): Promise<CoingeckoOpenApiCoinTicker[]> => {
-	if (coingeckoId.trim() === '')
+	if (coingeckoId === '')
 		return []
 
 	const searchParams = new URLSearchParams()
@@ -245,7 +245,7 @@ export const getDerivativesExchangeById = async ({
 	exchangeId: string
 	includeTickers?: 'all' | 'unexpired'
 }): Promise<CoingeckoDerivativesExchangeById | undefined> => {
-	if (exchangeId.trim() === '') return undefined
+	if (exchangeId === '') return undefined
 
 	const searchParams = new URLSearchParams()
 	searchParams.set('include_tickers', includeTickers)

@@ -32,11 +32,11 @@ export default {
 		defineResolver(Source.Hyperliquid_JsonRpc, {
 			entityType: EntityType.HyperliquidNetwork,
 			resolve: {
-				[HyperliquidNetworkSelector.Network]: async (entitySelector) => {
-					assertHyperliquidMainnet(entitySelector.$network)
+				[HyperliquidNetworkSelector.Network]: async ({ $network }) => {
+					assertHyperliquidMainnet($network)
 					return {
 						$network: {
-							[EntityMetaKey.Selector]: entitySelector.$network,
+							[EntityMetaKey.Selector]: $network,
 						},
 						rpcEndpoints: [...hyperliquidMainnetRpcEndpoints],
 					}
@@ -153,8 +153,8 @@ export default {
 		defineResolver(Source.Hyperliquid_JsonRpc, {
 			entityType: EntityType.HyperliquidNetwork,
 			resolve: {
-				[HyperliquidNetworkSelector.Network]: async (entitySelector, context) => {
-					assertHyperliquidMainnet(entitySelector.$network)
+				[HyperliquidNetworkSelector.Network]: async ({ $network }, context) => {
+					assertHyperliquidMainnet($network)
 					const { getBlockNumber } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
 					const headBlockHeight = hexToBigInt(await getBlockNumber({
 						rpcUrl: hyperliquidEvmRpcUrl,
@@ -166,7 +166,7 @@ export default {
 						),
 					}, (_value, blockOffset) => ({
 						[EntityMetaKey.Selector]: {
-							$network: entitySelector.$network,
+							$network: $network,
 							height: headBlockHeight - BigInt(blockOffset),
 						},
 					}))
@@ -181,8 +181,8 @@ export default {
 		defineResolver(Source.Hyperliquid_JsonRpc, {
 			entityType: EntityType.HyperliquidNetwork,
 			resolve: {
-				[HyperliquidNetworkSelector.Network]: async (entitySelector, context) => {
-					assertHyperliquidMainnet(entitySelector.$network)
+				[HyperliquidNetworkSelector.Network]: async ({ $network }, context) => {
+					assertHyperliquidMainnet($network)
 					const {
 						getBlockByNumber,
 						getBlockNumber,
@@ -209,14 +209,14 @@ export default {
 						.flatMap((block) => (
 							block?.transactions.map((transaction) => ({
 								[EntityMetaKey.Selector]: {
-									$network: entitySelector.$network,
+									$network: $network,
 									txHash: transaction.hash,
 								},
 								actionType: 'evm',
 								...(transaction.blockNumber != null && {
 									$block: {
 										[EntityMetaKey.Selector]: {
-											$network: entitySelector.$network,
+											$network: $network,
 											height: hexToBigInt(transaction.blockNumber),
 										},
 									},
@@ -224,7 +224,7 @@ export default {
 								...(transaction.from != null && {
 									$account: {
 										[EntityMetaKey.Selector]: {
-											$network: entitySelector.$network,
+											$network: $network,
 											address: transaction.from,
 										},
 									},

@@ -18,7 +18,10 @@ import {
 	getBlockByHash as getEvmBlockByHash,
 	getBlockByNumber as getEvmBlockByNumber,
 	getBlockNumber as getEvmBlockNumber,
+	getTransactionByHash as getEvmTransactionByHash,
+	getTransactionReceipt as getEvmTransactionReceipt,
 } from '$/sources/Evm/JsonRpc/queries.ts'
+import { jsonRpc } from '$/sources/Evm/JsonRpc/client.ts'
 import { isJsonObject, type JsonValue } from '$/typescript/JsonValue.ts'
 
 import {
@@ -423,13 +426,22 @@ export const getRecentBlockWiresForRpcUrl = async ({
 
 export const getTransactionByHashForRpcUrl = async ({
 	rpcUrl,
+	origins,
 	transportType,
 	txHash,
 }: {
 	rpcUrl: string
+	origins: readonly SourceOrigin[]
 	transportType: TransportType
 	txHash: `0x${string}`
 }): Promise<VoltaireTxRpc | null> => {
+	if (transportType === TransportType.Http)
+		return getEvmTransactionByHash({
+			rpcUrl,
+			origins,
+			txHash,
+		})
+
 	const provider = await getProviderForExecutionUrl({
 		url: rpcUrl,
 		transportType,
@@ -443,13 +455,37 @@ export const getTransactionByHashForRpcUrl = async ({
 
 export const debugTraceTransactionForRpcUrl = async ({
 	rpcUrl,
+	origins,
 	transportType,
 	txHash,
 }: {
 	rpcUrl: string
+	origins: readonly SourceOrigin[]
 	transportType: TransportType
 	txHash: `0x${string}`
 }) => {
+	if (transportType === TransportType.Http) {
+		try {
+			const traceJson = await jsonRpc<JsonValue>({
+				rpcUrl,
+				origins,
+				method: 'debug_traceTransaction',
+				params: [
+					txHash,
+					{ tracer: 'callTracer' },
+				],
+			})
+			return (
+				isJsonObject(traceJson) ?
+					parseVoltaireCallTraceRpc(traceJson)
+				:
+					null
+			)
+		} catch {
+			return null
+		}
+	}
+
 	const provider = await getProviderForExecutionUrl({
 		url: rpcUrl,
 		transportType,
@@ -477,13 +513,22 @@ export const debugTraceTransactionForRpcUrl = async ({
 
 export const getTransactionReceiptForRpcUrl = async ({
 	rpcUrl,
+	origins,
 	transportType,
 	txHash,
 }: {
 	rpcUrl: string
+	origins: readonly SourceOrigin[]
 	transportType: TransportType
 	txHash: `0x${string}`
 }): Promise<VoltaireReceiptRpc | null> => {
+	if (transportType === TransportType.Http)
+		return getEvmTransactionReceipt({
+			rpcUrl,
+			origins,
+			txHash,
+		})
+
 	const provider = await getProviderForExecutionUrl({
 		url: rpcUrl,
 		transportType,
@@ -497,16 +542,35 @@ export const getTransactionReceiptForRpcUrl = async ({
 
 export const lookupTransactionByHashForRpcUrl = async ({
 	rpcUrl,
+	origins,
 	transportType,
 	txHash,
 }: {
 	rpcUrl: string
+	origins: readonly SourceOrigin[]
 	transportType: TransportType
 	txHash: `0x${string}`
 }): Promise<{
 	tx: VoltaireTxRpc
 	receipt: VoltaireReceiptRpc | null
 }> => {
+	if (transportType === TransportType.Http) {
+		const tx = await getEvmTransactionByHash({
+			rpcUrl,
+			origins,
+			txHash,
+		})
+		if (tx == null) throw new Error('Transaction not found')
+		return {
+			tx,
+			receipt: await getEvmTransactionReceipt({
+				rpcUrl,
+				origins,
+				txHash,
+			}),
+		}
+	}
+
 	const provider = await getProviderForExecutionUrl({
 		url: rpcUrl,
 		transportType,

@@ -83,7 +83,7 @@ export type NetworkUpgradeRow = {
 // Constants
 
 const upgradeIdSlugSegment = (upgradeId: string): string => (
-	String(upgradeId).trim().toLowerCase().replace(/\s+/g, '-')
+	String(upgradeId).toLowerCase().replace(/\s+/g, '-')
 )
 
 const networkExecutionUpgradeSlugFromParts = (args: {

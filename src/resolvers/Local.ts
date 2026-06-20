@@ -99,9 +99,9 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadWallet,
 			resolve: {
-				[BlockheadWalletSelector.Id]: async (entitySelector) => {
+				[BlockheadWalletSelector.Id]: async ({ id }) => {
 				const catalog = await readNormalizedLocalInternal()
-				const blockheadWallet = catalog.blockheadWallets.find((candidate) => candidate.id === entitySelector.id)
+				const blockheadWallet = catalog.blockheadWallets.find((candidate) => candidate.id === id)
 				if (blockheadWallet == null) throw new Error('Local_Internal: BlockheadWallet not present in local catalog')
 				return {
 					name: blockheadWallet.name,
@@ -131,12 +131,12 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadWalletAccount,
 			resolve: {
-				[BlockheadWalletAccountSelector.Caip10]: async (entitySelector) => {
+				[BlockheadWalletAccountSelector.Caip10]: async ({ caip10 }) => {
 				const catalog = await readNormalizedLocalInternal()
 				const blockheadWalletAccount = catalog.blockheadWalletAccounts.find((candidate) => (
-					candidate.namespace === entitySelector.caip10.namespace
-					&& candidate.reference === entitySelector.caip10.reference
-					&& candidate.accountAddress === entitySelector.caip10.accountAddress
+					candidate.namespace === caip10.namespace
+					&& candidate.reference === caip10.reference
+					&& candidate.accountAddress === caip10.accountAddress
 				))
 				if (blockheadWalletAccount == null) throw new Error('Local_Internal: BlockheadWalletAccount not present in local catalog')
 				return {
@@ -166,9 +166,9 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadWalletConnection,
 			resolve: {
-				[BlockheadWalletConnectionSelector.BlockheadWallet]: async (entitySelector) => {
+				[BlockheadWalletConnectionSelector.BlockheadWallet]: async ({ $wallet }) => {
 				const catalog = await readNormalizedLocalInternal()
-				const blockheadWalletConnection = catalog.blockheadWalletConnections.find((candidate) => candidate.walletId === entitySelector.$wallet.id)
+				const blockheadWalletConnection = catalog.blockheadWalletConnections.find((candidate) => candidate.walletId === $wallet.id)
 				if (blockheadWalletConnection == null) throw new Error('Local_Internal: BlockheadWalletConnection not present in local catalog')
 				return {
 					status: blockheadConnectionStatusByLocalStatus[blockheadWalletConnection.status],
@@ -221,9 +221,9 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadRoom,
 			resolve: {
-				[BlockheadRoomSelector.Id]: async (entitySelector) => {
+				[BlockheadRoomSelector.Id]: async ({ id }) => {
 				const catalog = await readNormalizedLocalInternal()
-				const blockheadRoom = catalog.blockheadRooms.find((candidate) => candidate.id === entitySelector.id)
+				const blockheadRoom = catalog.blockheadRooms.find((candidate) => candidate.id === id)
 				if (blockheadRoom == null) throw new Error('Local_Internal: BlockheadRoom not present in local catalog')
 				return {
 					createdAt: blockheadRoom.createdAt,
@@ -243,9 +243,9 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadSession,
 			resolve: {
-				[BlockheadSessionSelector.Id]: async (entitySelector) => {
+				[BlockheadSessionSelector.Id]: async ({ id }) => {
 				const catalog = await readNormalizedLocalInternal()
-				const blockheadSession = catalog.blockheadSessions.find((candidate) => candidate.id === entitySelector.id)
+				const blockheadSession = catalog.blockheadSessions.find((candidate) => candidate.id === id)
 				if (blockheadSession == null) throw new Error('Local_Internal: BlockheadSession not present in local catalog')
 				return {
 					...(blockheadSession.name != null && { name: blockheadSession.name }),
@@ -271,11 +271,11 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadSessionAction,
 			resolve: {
-				[BlockheadSessionActionSelector.SessionIdActionId]: async (entitySelector) => {
+				[BlockheadSessionActionSelector.SessionIdActionId]: async ({ actionId, sessionId }) => {
 				const catalog = await readNormalizedLocalInternal()
 				const blockheadSessionAction = catalog.blockheadSessionActions.find((candidate) => (
-					candidate.sessionId === entitySelector.sessionId
-					&& candidate.actionId === entitySelector.actionId
+					candidate.sessionId === sessionId
+					&& candidate.actionId === actionId
 				))
 				if (blockheadSessionAction == null) throw new Error('Local_Internal: BlockheadSessionAction not present in local catalog')
 				return {
@@ -304,9 +304,9 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadRoomPeer,
 			resolve: {
-				[BlockheadRoomPeerSelector.Id]: async (entitySelector) => {
+				[BlockheadRoomPeerSelector.Id]: async ({ id }) => {
 				const catalog = await readNormalizedLocalInternal()
-				const blockheadRoomPeer = catalog.blockheadRoomPeers.find((candidate) => candidate.id === entitySelector.id)
+				const blockheadRoomPeer = catalog.blockheadRoomPeers.find((candidate) => candidate.id === id)
 				if (blockheadRoomPeer == null) throw new Error('Local_Internal: BlockheadRoomPeer not present in local catalog')
 				return {
 					$room: { [EntityMetaKey.Selector]: { id: blockheadRoomPeer.roomId } },
@@ -336,9 +336,9 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadSharedAddress,
 			resolve: {
-				[BlockheadSharedAddressSelector.Id]: async (entitySelector) => {
+				[BlockheadSharedAddressSelector.Id]: async ({ id }) => {
 				const catalog = await readNormalizedLocalInternal()
-				const blockheadSharedAddress = catalog.blockheadSharedAddresses.find((candidate) => candidate.id === entitySelector.id)
+				const blockheadSharedAddress = catalog.blockheadSharedAddresses.find((candidate) => candidate.id === id)
 				if (blockheadSharedAddress == null) {
 					throw new Error('Local_Internal: BlockheadSharedAddress not present in local catalog')
 					}
@@ -366,9 +366,9 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.StateChannel,
 			resolve: {
-				[StateChannelSelector.Id]: async (entitySelector) => {
+				[StateChannelSelector.Id]: async ({ id }) => {
 				const catalog = await readNormalizedLocalInternal()
-				const stateChannel = catalog.stateChannels.find((candidate) => candidate.id === entitySelector.id)
+				const stateChannel = catalog.stateChannels.find((candidate) => candidate.id === id)
 					if (stateChannel == null) throw new Error('Local_Internal: StateChannel not present in local catalog')
 					const assetId = await coinInstanceIdForNormalizedStateChannelRow(stateChannel)
 					return {
@@ -407,9 +407,9 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.StateChannelDeposit,
 			resolve: {
-				[StateChannelDepositSelector.Id]: async (entitySelector) => {
+				[StateChannelDepositSelector.Id]: async ({ id }) => {
 				const catalog = await readNormalizedLocalInternal()
-				const stateChannelDeposit = catalog.stateChannelDeposits.find((candidate) => candidate.id === entitySelector.id)
+				const stateChannelDeposit = catalog.stateChannelDeposits.find((candidate) => candidate.id === id)
 				if (stateChannelDeposit == null) {
 					throw new Error('Local_Internal: StateChannelDeposit not present in local catalog')
 					}
@@ -437,9 +437,9 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.StateChannelTransfer,
 			resolve: {
-				[StateChannelTransferSelector.Id]: async (entitySelector) => {
+				[StateChannelTransferSelector.Id]: async ({ id }) => {
 				const catalog = await readNormalizedLocalInternal()
-				const stateChannelTransfer = catalog.stateChannelTransfers.find((candidate) => candidate.id === entitySelector.id)
+				const stateChannelTransfer = catalog.stateChannelTransfers.find((candidate) => candidate.id === id)
 				if (stateChannelTransfer == null) {
 					throw new Error('Local_Internal: StateChannelTransfer not present in local catalog')
 					}
@@ -469,9 +469,9 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.StateChannelState,
 			resolve: {
-				[StateChannelStateSelector.Id]: async (entitySelector) => {
+				[StateChannelStateSelector.Id]: async ({ id }) => {
 				const catalog = await readNormalizedLocalInternal()
-				const stateChannelState = catalog.stateChannelStates.find((candidate) => candidate.id === entitySelector.id)
+				const stateChannelState = catalog.stateChannelStates.find((candidate) => candidate.id === id)
 				if (stateChannelState == null) {
 					throw new Error('Local_Internal: StateChannelState not present in local catalog')
 				}
@@ -507,9 +507,9 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadAgentConversation,
 			resolve: {
-				[BlockheadAgentConversationSelector.Id]: async (entitySelector) => {
+				[BlockheadAgentConversationSelector.Id]: async ({ id }) => {
 				const catalog = await readNormalizedLocalInternal()
-				const blockheadAgentConversation = catalog.blockheadAgentConversations.find((candidate) => candidate.id === entitySelector.id)
+				const blockheadAgentConversation = catalog.blockheadAgentConversations.find((candidate) => candidate.id === id)
 				if (blockheadAgentConversation == null) {
 					throw new Error('Local_Internal: BlockheadAgentConversation not present in local catalog')
 				}
@@ -539,9 +539,9 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadAgentConversationTurn,
 			resolve: {
-				[BlockheadAgentConversationTurnSelector.Id]: async (entitySelector) => {
+				[BlockheadAgentConversationTurnSelector.Id]: async ({ id }) => {
 				const catalog = await readNormalizedLocalInternal()
-				const blockheadAgentConversationTurn = catalog.blockheadAgentConversationTurns.find((candidate) => candidate.id === entitySelector.id)
+				const blockheadAgentConversationTurn = catalog.blockheadAgentConversationTurns.find((candidate) => candidate.id === id)
 				if (blockheadAgentConversationTurn == null) {
 					throw new Error('Local_Internal: BlockheadAgentConversationTurn not present in local catalog')
 				}
@@ -869,10 +869,10 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadRoom,
 			resolve: {
-				[BlockheadRoomSelector.Id]: async (entitySelector, context) => (
+				[BlockheadRoomSelector.Id]: async ({ id }, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadRoomPeers.filter((roomPeer) => (
-						roomPeer.roomId === entitySelector.id
+						roomPeer.roomId === id
 					)),
 					context
 				)

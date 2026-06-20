@@ -41,7 +41,7 @@ export default {
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.One,
 			defaultSources: [
-				Source.Farcaster_Rest,
+				Source.Constants_Internal,
 			],
 		},
 		{
@@ -50,7 +50,7 @@ export default {
 			primitiveType: UrlString,
 			cardinality: EntityFieldCardinality.One,
 			defaultSources: [
-				Source.Farcaster_Rest,
+				Source.Constants_Internal,
 			],
 		},
 		{
@@ -59,7 +59,7 @@ export default {
 			primitiveType: UrlString,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
-				Source.Farcaster_Rest,
+				Source.Constants_Internal,
 			],
 		},
 		{
@@ -68,7 +68,7 @@ export default {
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.One,
 			defaultSources: [
-				Source.Farcaster_Rest,
+				Source.Constants_Internal,
 			],
 		},
 		{
@@ -77,7 +77,7 @@ export default {
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.One,
 			defaultSources: [
-				Source.Farcaster_Rest,
+				Source.Constants_Internal,
 			],
 		},
 		{

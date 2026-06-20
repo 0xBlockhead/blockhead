@@ -21,10 +21,10 @@ export const playwrightColorScheme = (): NonNullable<BrowserContextOptions['colo
 export const playwrightReducedMotion = (): NonNullable<BrowserContextOptions['reducedMotion']> => {
 	const v = process.env.PLAYWRIGHT_REDUCED_MOTION?.toLowerCase()
 	return (
-		v === 'no-preference' ?
-			'no-preference'
-		:
+		v === 'reduce' ?
 			'reduce'
+		:
+			'no-preference'
 	)
 }
 

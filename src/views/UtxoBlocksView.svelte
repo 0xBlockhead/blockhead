@@ -92,7 +92,7 @@
 					<UtxoBlockView
 						selection={select(EntityType.UtxoBlock, context!.item.entitySelector)}
 						layout={EntityLayout.Summary}
-
+						open={false}
 					/>
 				{/snippet}
 			</EntitiesList>

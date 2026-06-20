@@ -104,6 +104,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Blockscout_Rest,
+				Source.ZeroGChain_JsonRpc,
 			],
 		},
 		{

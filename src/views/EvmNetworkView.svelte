@@ -19,6 +19,7 @@
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -145,10 +146,6 @@
 
 	const networkEnvironment = $derived(network.environment)
 
-	const networkNativeCoin = $derived(network.$nativeCoin)
-
-	const networkNativeCoinInstance = $derived(network.$nativeCoinInstance)
-
 	const networkParent = $derived(network.$parent)
 
 	const networkMainnet = $derived(network.$mainnet({
@@ -230,7 +227,6 @@
 	import BeaconValidatorsView from '$/views/BeaconValidatorsView.svelte'
 	import BeaconWithdrawalsView from '$/views/BeaconWithdrawalsView.svelte'
 	import EvmCoinInstanceView from '$/views/EvmCoinInstanceView.svelte'
-	import CoinView from '$/views/CoinView.svelte'
 	import EvmBlobsView from '$/views/EvmBlobsView.svelte'
 	import EvmBlocksView from '$/views/EvmBlocksView.svelte'
 	import EvmContractsView from '$/views/EvmContractsView.svelte'
@@ -531,32 +527,22 @@
 			{/if}
 
 			{#if open}
-				<ResourceBoundary resource={networkNativeCoinInstance}>
-					{#snippet children(nativeCoinInstance)}
-						{#if nativeCoinInstance?.entitySelector !== undefined}
-						<div>
-							<dt>Native currency</dt>
-							<dd>
-								<a
-									href={resolve(
-										'/(assets)/(coinInstances)/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug]',
-										{
-											chainId: String(chainId),
-											coinInstanceSlug: 'native',
-										},
-									)}
-								>
-									<ResourceBoundary resource={networkNativeCoin}>
-										{#snippet children(nativeCoin)}
-											{nativeCoin?.entitySelector.coinId ?? `Chain ${chainId} native`}
-										{/snippet}
-									</ResourceBoundary>
-								</a>
-							</dd>
-						</div>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+				<div>
+					<dt>Native currency</dt>
+					<dd>
+						<a
+							href={resolve(
+								'/(assets)/(coinInstances)/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug]',
+								{
+									chainId: String(chainId),
+									coinInstanceSlug: 'native',
+								},
+							)}
+						>
+							Native ({String(chainId)})
+						</a>
+					</dd>
+				</div>
 			{/if}
 
 			{#if open}
@@ -903,6 +889,7 @@
 			networkSelector
 		).$$beaconValidators}
 									id={`${id}-validators`}
+									open={false}
 									title="Recent proposers"
 								/>
 							{/snippet}
@@ -1051,6 +1038,7 @@
 			networkSelector
 		).$$erc4337SmartAccounts}
 								id={`${id}-list`}
+								open={false}
 
 								title={label}
 							/>
@@ -1063,6 +1051,7 @@
 			networkSelector
 		).$$erc4337Bundlers}
 								id={`${id}-list`}
+								open={false}
 
 								title={label}
 							/>
@@ -1075,6 +1064,7 @@
 			networkSelector
 		).$$erc4337Paymasters}
 								id={`${id}-list`}
+								open={false}
 
 								title={label}
 							/>
@@ -1087,6 +1077,7 @@
 			networkSelector
 		).$$userOperations}
 								id={`${id}-list`}
+								open={false}
 
 							/>
 						{/snippet}
@@ -1098,6 +1089,7 @@
 			networkSelector
 		).$$erc4337AccountFactories}
 								id={`${id}-list`}
+								open={false}
 
 								title="Account factories"
 							/>
@@ -1143,49 +1135,15 @@
 								UnorderedListProps={{ orientation: ListOrientation.Column }}
 							>
 								{#snippet body()}
-										<ResourceBoundary resource={networkNativeCoinInstance}>
-										{#snippet children(nativeCoinInstance)}
-											{#if nativeCoinInstance?.entitySelector !== undefined}
-												<EvmCoinInstanceView
-													selection={select(EntityType.EvmCoinInstance, nativeCoinInstance.entitySelector)}
-													layout={EntityLayout.Summary}
-													title="Native coin"
-												/>
-											{:else}
-												<p data-text="muted">
-													No native coin deployment mapped for this network.
-												</p>
-											{/if}
-										{/snippet}
-									</ResourceBoundary>
-
-										<ResourceBoundary resource={networkNativeCoin}>
-										{#snippet children(nativeCoin)}
-											{#if nativeCoin?.entitySelector !== undefined}
-												<CoinView
-													selection={select(EntityType.Coin, nativeCoin.entitySelector)}
-													layout={EntityLayout.Summary}
-												/>
-											{:else}
-												<div data-row="wrap align-center gap-2">
-													<p data-text="muted">
-														No logical coin catalog match for this native deployment.
-													</p>
-													<Tooltip contentProps={{ side: 'top' }}>
-														{#snippet Content()}
-															<p>
-																The deployment still resolves through <code>CoinInstance</code>; the registry symbol just does not map to a catalog <code>Coin</code> yet.
-															</p>
-														{/snippet}
-														<abbr
-															class="entity-heading-tip"
-															aria-label="Logical coin mapping"
-														>ⓘ</abbr>
-													</Tooltip>
-												</div>
-											{/if}
-										{/snippet}
-									</ResourceBoundary>
+									<EvmCoinInstanceView
+										selection={select(EntityType.EvmCoinInstance, {
+											$network: networkSelector,
+											type: CoinInstanceType.NativeCurrency,
+										})}
+										layout={EntityLayout.Summary}
+										open={false}
+										title="Native coin"
+									/>
 								{/snippet}
 							</EntitiesList>
 							{/snippet}
@@ -1209,6 +1167,7 @@
 			networkSelector
 		).$$erc20TokenTransfers}
 								id={`${id}-list`}
+								open={false}
 
 								title={label}
 							/>
@@ -1221,6 +1180,7 @@
 			networkSelector
 		).$$nftTokenTransfers}
 								id={`${id}-list`}
+								open={false}
 
 								title={label}
 							/>

@@ -38,19 +38,15 @@
 		),
 	)
 
-	const utxoNetwork = $derived(
-		selection({
-				sources: [
-					Source.Blockchair_Rest,
-					Source.Esplora_Rest,
-					Source.MempoolSpace_Rest,
-					Source.BitcoinCore_JsonRpc,
-					Source.LitecoinCore_JsonRpc,
-					Source.DogecoinCore_JsonRpc,
-					Source.BitcoinCashNode_JsonRpc,
-					Source.Zcashd_JsonRpc,
-				],
-			},
+	const isBitcoinNetwork = $derived(
+		(
+			'slug' in selection.entitySelector.$network
+			&& selection.entitySelector.$network.slug === 'bitcoin'
+		)
+		|| (
+			'caip2' in selection.entitySelector.$network
+			&& selection.entitySelector.$network.caip2.namespace === 'bip122'
+			&& selection.entitySelector.$network.caip2.reference === '000000000019d6689c085ae165831e93'
 		),
 	)
 
@@ -70,10 +66,6 @@
 	// (Derived)
 	const networkSelectorKey = $derived(
 		stringify(selection.entitySelector),
-	)
-	const isBitcoinNetwork = $derived(
-		'slug' in selection.entitySelector.$network
-		&& selection.entitySelector.$network.slug === 'bitcoin',
 	)
 
 
@@ -131,8 +123,23 @@
 		<dl class="network-summary-head" data-column-item="center">
 			{#if isBitcoinNetwork}
 				<ResourceBoundary resource={
-		utxoNetwork.$$blocks({
+		selection.$$blocks({
 			limit: 1,
+			sources: isBitcoinNetwork ?
+				[
+					Source.MempoolSpace_Rest,
+				]
+			:
+				[
+					Source.Blockchair_Rest,
+					Source.Esplora_Rest,
+					Source.MempoolSpace_Rest,
+					Source.BitcoinCore_JsonRpc,
+					Source.LitecoinCore_JsonRpc,
+					Source.DogecoinCore_JsonRpc,
+					Source.BitcoinCashNode_JsonRpc,
+					Source.Zcashd_JsonRpc,
+				],
 		})
 	}>
 					{#snippet children(blocks)}
@@ -144,6 +151,7 @@
 									<UtxoBlockView
 										selection={select(EntityType.UtxoBlock, block[EntityMetaKey.Selector])}
 										layout={EntityLayout.Value}
+										open={false}
 									/>
 								</dd>
 							</div>
@@ -152,8 +160,23 @@
 				</ResourceBoundary>
 
 				<ResourceBoundary resource={
-		utxoNetwork.$$timestamps({
+		selection.$$timestamps({
 			limit: 1,
+			sources: isBitcoinNetwork ?
+				[
+					Source.MempoolSpace_Rest,
+				]
+			:
+				[
+					Source.Blockchair_Rest,
+					Source.Esplora_Rest,
+					Source.MempoolSpace_Rest,
+					Source.BitcoinCore_JsonRpc,
+					Source.LitecoinCore_JsonRpc,
+					Source.DogecoinCore_JsonRpc,
+					Source.BitcoinCashNode_JsonRpc,
+					Source.Zcashd_JsonRpc,
+				],
 			fields: {
 				suggestedTransactionFeePerByteSats: true,
 			},
@@ -227,7 +250,24 @@
 			{#snippet SectionUtxoBlocks({ id, label }: { id: string, label: string })}
 				<UtxoBlocksView
 					CollapsibleProps={{ canToggle: false }}
-					selection={selection.$$blocks}
+					selection={selection.$$blocks({
+						sources: isBitcoinNetwork ?
+							[
+								Source.Esplora_Rest,
+								Source.MempoolSpace_Rest,
+							]
+						:
+							[
+								Source.Blockchair_Rest,
+								Source.Esplora_Rest,
+								Source.MempoolSpace_Rest,
+								Source.BitcoinCore_JsonRpc,
+								Source.LitecoinCore_JsonRpc,
+								Source.DogecoinCore_JsonRpc,
+								Source.BitcoinCashNode_JsonRpc,
+								Source.Zcashd_JsonRpc,
+							],
+					})}
 					href={href == null ? '' : `${href}/blocks`}
 					id={`${id}-list`}
 					title={label}
@@ -237,7 +277,24 @@
 			{#snippet SectionUtxoTransactions({ id, label }: { id: string, label: string })}
 				<UtxoTransactionsView
 					CollapsibleProps={{ canToggle: false }}
-					selection={selection.$$transactions}
+					selection={selection.$$transactions({
+						sources: isBitcoinNetwork ?
+							[
+								Source.Esplora_Rest,
+								Source.MempoolSpace_Rest,
+							]
+						:
+							[
+								Source.Blockchair_Rest,
+								Source.Esplora_Rest,
+								Source.MempoolSpace_Rest,
+								Source.BitcoinCore_JsonRpc,
+								Source.LitecoinCore_JsonRpc,
+								Source.DogecoinCore_JsonRpc,
+								Source.BitcoinCashNode_JsonRpc,
+								Source.Zcashd_JsonRpc,
+							],
+					})}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -246,7 +303,38 @@
 			{#snippet SectionUtxoMempoolFees({ id, label }: { id: string, label: string })}
 				<UtxoNetwork_TimestampsView
 					CollapsibleProps={{ canToggle: false }}
-					selection={selection.$$timestamps}
+					selection={selection.$$timestamps({
+						sources: isBitcoinNetwork ?
+							[
+								Source.MempoolSpace_Rest,
+							]
+						:
+							[
+								Source.Blockchair_Rest,
+								Source.Esplora_Rest,
+								Source.MempoolSpace_Rest,
+								Source.BitcoinCore_JsonRpc,
+								Source.LitecoinCore_JsonRpc,
+								Source.DogecoinCore_JsonRpc,
+								Source.BitcoinCashNode_JsonRpc,
+								Source.Zcashd_JsonRpc,
+							],
+					})}
+					sources={isBitcoinNetwork ?
+						[
+							Source.MempoolSpace_Rest,
+						]
+					:
+						[
+							Source.Blockchair_Rest,
+							Source.Esplora_Rest,
+							Source.MempoolSpace_Rest,
+							Source.BitcoinCore_JsonRpc,
+							Source.LitecoinCore_JsonRpc,
+							Source.DogecoinCore_JsonRpc,
+							Source.BitcoinCashNode_JsonRpc,
+							Source.Zcashd_JsonRpc,
+						]}
 					id={`${id}-list`}
 					title={label}
 				/>

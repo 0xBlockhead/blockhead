@@ -1,4 +1,4 @@
-import { WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
+import { WalletCapability, WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
 import type { WalletAdapter, WalletCandidate } from './types.ts'
 
@@ -16,6 +16,7 @@ export const createDiscoveryOnlyAdapter = ({
 		updateCandidates(getCandidates().map((discoveredCandidate) => ({
 			...candidate,
 			...discoveredCandidate,
+			capabilities: [WalletCapability.Discover],
 		})))
 
 		return () => {}

@@ -34,11 +34,11 @@ export default {
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidNetwork,
 			resolve: {
-				[HyperliquidNetworkSelector.Network]: async (entitySelector) => {
-					assertHyperliquidMainnet(entitySelector.$network)
+				[HyperliquidNetworkSelector.Network]: async ({ $network }) => {
+					assertHyperliquidMainnet($network)
 					return {
 						$network: {
-							[EntityMetaKey.Selector]: entitySelector.$network,
+							[EntityMetaKey.Selector]: $network,
 						},
 						restEndpoints: [...hyperliquidMainnetRestEndpoints],
 					}
@@ -183,8 +183,8 @@ export default {
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidNetwork,
 			resolve: {
-				[HyperliquidNetworkSelector.Network]: async (entitySelector) => {
-					assertHyperliquidMainnet(entitySelector.$network)
+				[HyperliquidNetworkSelector.Network]: async ({ $network }) => {
+					assertHyperliquidMainnet($network)
 					const {
 						getMeta,
 						getSpotMeta,
@@ -202,7 +202,7 @@ export default {
 					return [
 						{
 							[EntityMetaKey.Selector]: {
-								$network: entitySelector.$network,
+								$network: $network,
 								timestampMs: Date.now(),
 							},
 							perpMarketCount: perpMeta.universe.length,
@@ -228,20 +228,20 @@ export default {
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidNetwork,
 			resolve: {
-				[HyperliquidNetworkSelector.Network]: async (entitySelector, context) => {
-					assertHyperliquidMainnet(entitySelector.$network)
+				[HyperliquidNetworkSelector.Network]: async ({ $network }, context) => {
+					assertHyperliquidMainnet($network)
 					const { getValidatorSummaries } = await import('$/sources/Hyperliquid/Rest/queries.ts')
 					return (await getValidatorSummaries({ restBaseUrl: hyperliquidMainnetRestEndpoints[0].restBaseUrl }))
 						.slice(0, resolverContextRowLimit(context))
 						.map((validator) => ({
 							[EntityMetaKey.Selector]: {
-								$network: entitySelector.$network,
+								$network: $network,
 								validator: validator.validator,
 							},
 							name: validator.name,
 							$signer: {
 								[EntityMetaKey.Selector]: {
-									$network: entitySelector.$network,
+									$network: $network,
 									address: validator.signer,
 								},
 							},
@@ -262,14 +262,14 @@ export default {
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidNetwork,
 			resolve: {
-				[HyperliquidNetworkSelector.Network]: async (entitySelector, context) => {
-					assertHyperliquidMainnet(entitySelector.$network)
+				[HyperliquidNetworkSelector.Network]: async ({ $network }, context) => {
+					assertHyperliquidMainnet($network)
 					const { getMeta } = await import('$/sources/Hyperliquid/Rest/queries.ts')
 					return (await getMeta({ restBaseUrl: hyperliquidMainnetRestEndpoints[0].restBaseUrl })).universe
 						.slice(0, resolverContextRowLimit(context))
 						.map((market) => ({
 							[EntityMetaKey.Selector]: {
-								$network: entitySelector.$network,
+								$network: $network,
 								coin: market.name,
 							},
 							maxLeverage: market.maxLeverage,
@@ -288,14 +288,14 @@ export default {
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidNetwork,
 			resolve: {
-				[HyperliquidNetworkSelector.Network]: async (entitySelector, context) => {
-					assertHyperliquidMainnet(entitySelector.$network)
+				[HyperliquidNetworkSelector.Network]: async ({ $network }, context) => {
+					assertHyperliquidMainnet($network)
 					const { getSpotMeta } = await import('$/sources/Hyperliquid/Rest/queries.ts')
 					return (await getSpotMeta({ restBaseUrl: hyperliquidMainnetRestEndpoints[0].restBaseUrl })).tokens
 						.slice(0, resolverContextRowLimit(context))
 						.map((token) => ({
 							[EntityMetaKey.Selector]: {
-								$network: entitySelector.$network,
+								$network: $network,
 								assetId: token.index,
 							},
 							name: token.name,

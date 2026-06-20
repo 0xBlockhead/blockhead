@@ -168,11 +168,11 @@ export default {
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroNetwork,
 			resolve: {
-				[MoneroNetworkSelector.Network]: async (entitySelector) => {
-					assertMoneroMainnet(entitySelector.$network)
+				[MoneroNetworkSelector.Network]: async ({ $network }) => {
+					assertMoneroMainnet($network)
 					return {
 						$network: {
-							[EntityMetaKey.Selector]: entitySelector.$network,
+							[EntityMetaKey.Selector]: $network,
 						},
 						rpcEndpoints: [...moneroMainnetRpcEndpoints],
 					}
@@ -356,8 +356,8 @@ export default {
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroNetwork,
 			resolve: {
-				[MoneroNetworkSelector.Network]: async (entitySelector) => {
-					assertMoneroMainnet(entitySelector.$network)
+				[MoneroNetworkSelector.Network]: async ({ $network }) => {
+					assertMoneroMainnet($network)
 					const { getInfo } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
 					const info = await getInfo({
 						rpcUrl: moneroMainnetRpcEndpoints[0].url,
@@ -365,7 +365,7 @@ export default {
 					return [
 						{
 							[EntityMetaKey.Selector]: {
-								$network: entitySelector.$network,
+								$network: $network,
 								timestampMs: Date.now(),
 							},
 							height: BigInt(info.height),
@@ -428,8 +428,8 @@ export default {
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroNetwork,
 			resolve: {
-				[MoneroNetworkSelector.Network]: async (entitySelector, context) => {
-					assertMoneroMainnet(entitySelector.$network)
+				[MoneroNetworkSelector.Network]: async ({ $network }, context) => {
+					assertMoneroMainnet($network)
 					const { getInfo } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
 					const info = await getInfo({
 						rpcUrl: moneroMainnetRpcEndpoints[0].url,
@@ -442,7 +442,7 @@ export default {
 						),
 					}, (_value, blockOffset) => ({
 						[EntityMetaKey.Selector]: {
-							$network: entitySelector.$network,
+							$network: $network,
 							height: headBlockHeight - BigInt(blockOffset),
 							...(blockOffset === 0 && {
 								hash: info.top_block_hash,

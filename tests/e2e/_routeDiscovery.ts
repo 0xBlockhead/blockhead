@@ -25,8 +25,18 @@ const encodeUrlSegment = (segment: string) => (
 		encodeURIComponent(segment)
 )
 
-const encodeDynamicUrlSegment = (segment: string) => (
-	segment.includes('/') || segment.includes(':') ?
+const encodeDynamicUrlSegment = (
+	segment: string,
+	matcherKey?: string
+) => (
+	matcherKey === 'networkCaip2'
+	|| matcherKey === 'eip155NetworkCaip2' ?
+		segment
+	:
+	(
+		segment.includes('/')
+		|| segment.includes(':')
+	) ?
 		encodeURIComponent(encodeURIComponent(segment))
 	:
 		encodeUrlSegment(segment)
@@ -131,7 +141,7 @@ const expandMixedSegment = (
 				urlSegment: (
 					expandedContext.urlSegment
 					+ segment.slice(expandedContext.offset, part.index)
-					+ encodeDynamicUrlSegment(fixture)
+					+ encodeDynamicUrlSegment(fixture, matcherKey)
 				),
 				offset: part.index + part[0].length,
 			}))
@@ -206,7 +216,7 @@ const pageFileToPathname = (absPath: string) => {
 				...context,
 				urlSegments: [
 					...context.urlSegments,
-					encodeDynamicUrlSegment(fixture),
+					encodeDynamicUrlSegment(fixture, matcherKey),
 				],
 				params: {
 					...context.params,

@@ -19,6 +19,7 @@ import {
 	getBoundaryProbeEvents,
 	installBoundaryProbe,
 	installChainlistRpcsJsonStub,
+	jsonStringifyForExpectMessage,
 	resetBoundaryProbe,
 	type RouteBoundaryReport,
 	summarizeRouteBoundaryReport,
@@ -32,7 +33,7 @@ import { discoverPathnamesFromRoutes } from './_routeDiscovery.ts'
 declare global {
 	interface Window {
 		__blockheadWaSqliteDatabaseNameOverride?: string
-		__blockheadProductDataSchemaVersionOverride?: number
+		__blockheadPersistedCollectionSchemaVersionOverride?: number
 	}
 }
 
@@ -117,7 +118,7 @@ const installRoutePageDiagnostics = (page: import('@playwright/test').Page) => {
 					diagnostics.console.push({
 						type: message.type(),
 						text: values.length > 0 ?
-							`${message.text()} ${JSON.stringify(values)}`
+							`${message.text()} ${jsonStringifyForExpectMessage(values)}`
 						:
 							message.text(),
 					})
@@ -334,7 +335,7 @@ test.describe('boundary updates (every +page route)', () => {
 		page.setDefaultNavigationTimeout(gotoLoadTimeoutMs)
 		await page.addInitScript(({ databaseName, schemaVersion }) => {
 			window.__blockheadWaSqliteDatabaseNameOverride = databaseName
-			window.__blockheadProductDataSchemaVersionOverride = schemaVersion
+			window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
 		}, {
 			databaseName: `blockhead-boundary-probe-${testInfo.workerIndex}-${testInfo.retry}-${testInfo.repeatEachIndex}-${Date.now()}.sqlite`,
 			schemaVersion: Date.now(),
@@ -370,7 +371,7 @@ test.describe('boundary updates (every +page route)', () => {
 			page.setDefaultNavigationTimeout(gotoLoadTimeoutMs)
 			await page.addInitScript(({ databaseName, schemaVersion }) => {
 				window.__blockheadWaSqliteDatabaseNameOverride = databaseName
-				window.__blockheadProductDataSchemaVersionOverride = schemaVersion
+				window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
 			}, {
 				databaseName: `blockhead-boundary-${testInfo.workerIndex}-${testInfo.retry}-${testInfo.repeatEachIndex}-${index}-${Date.now()}.sqlite`,
 				schemaVersion: Date.now(),

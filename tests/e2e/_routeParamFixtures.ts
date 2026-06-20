@@ -50,9 +50,29 @@ const LENS_PROBE_POST_ID = '161m1s2r2av9deyh2a3' as const
 const ZERO_G_PROBE_STORAGE_NODE_ID = '0x103E5184A40f98b4dA4AF91b22C588E44b271618' as const
 const ZERO_G_PROBE_TX_HASH = '0xa52e05ff31336c64036189253acf2fc174f4460eae786138de053fbd23ff03e6' as const
 
-const UTXO_PROBE_ADDRESS_BY_NETWORK_SLUG: Record<string, string> = {
+const REAL_URL_FIXTURES = [
+	'https://ethereum.org',
+	'https://chainid.network/chains.json',
+	'https://explorer.bitcoinunlimited.info/',
+] as const
+
+const UTXO_PROBE_ADDRESS_BY_NETWORK_SLUG: Partial<Record<string, string>> = {
 	bitcoin: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
 	'bitcoin-cash': 'bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a',
+}
+
+const UTXO_PROBE_BLOCK_HEIGHT_BY_NETWORK_SLUG: Partial<Record<string, string>> = {
+	bitcoin: '900000',
+	'bitcoin-cash': '900000',
+}
+
+const PROBE_BLOCK_HEIGHT_BY_NETWORK_SLUG: Partial<Record<string, string>> = {
+	cosmos: '25300000',
+}
+
+const UTXO_PROBE_TX_ID_BY_NETWORK_SLUG: Partial<Record<string, string>> = {
+	bitcoin: '4d3e4007c50313d031ffb3f180d0bd6b37192e1c852ec9f9a16ad1db957707c6',
+	'bitcoin-cash': '9c3f790921eab71fe9b210a9884c81708dc55d9444bba8c54394b827e2cf7f5a',
 }
 
 const PRIMARY_NETWORK_CAIP2_FIXTURES = networks
@@ -363,11 +383,27 @@ export const e2eRouteParamFixtureVariantsForContext = (
 	if (paramKey === 'txId' && path.includes('network/transactions') && selectedParams.networkSlug === '0g')
 		return [ZERO_G_PROBE_TX_HASH]
 
+	if (paramKey === 'txId' && path.includes('network/transactions') && selectedParams.networkSlug)
+		return [
+			UTXO_PROBE_TX_ID_BY_NETWORK_SLUG[selectedParams.networkSlug]
+			?? e2eRouteParamFixtureForContext(paramKey, staticSegments),
+		]
+
+	if (paramKey === 'height' && path.includes('network/blocks') && selectedParams.networkSlug)
+		return [
+			PROBE_BLOCK_HEIGHT_BY_NETWORK_SLUG[selectedParams.networkSlug]
+			?? UTXO_PROBE_BLOCK_HEIGHT_BY_NETWORK_SLUG[selectedParams.networkSlug]
+			?? e2eRouteParamFixtureForContext(paramKey, staticSegments),
+		]
+
 	if (paramKey === 'address' && path.includes('network/address') && selectedParams.networkSlug)
 		return [
 			UTXO_PROBE_ADDRESS_BY_NETWORK_SLUG[selectedParams.networkSlug]
 			?? e2eRouteParamFixtureForContext(paramKey, staticSegments),
 		]
+
+	if (paramKey === 'url' && path === 'url')
+		return [...REAL_URL_FIXTURES]
 
 	return [
 		e2eRouteParamFixtureForContext(paramKey, staticSegments),

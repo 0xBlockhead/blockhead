@@ -99,6 +99,7 @@
 					<EthereumExecutionUpgradeView
 						selection={select(EntityType.EthereumExecutionUpgrade, upgrade.entitySelector)}
 						layout={EntityLayout.Summary}
+						open={false}
 
 					/>
 				{/snippet}

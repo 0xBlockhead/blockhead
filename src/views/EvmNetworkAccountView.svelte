@@ -70,12 +70,36 @@
 	const primaryName = $derived(actor.$primaryName)
 	const actorIcon = $derived(actor.$icon)
 
+	const isZeroGNetworkAccount = $derived(
+		selection.entitySelector.$network.caip2.namespace === 'eip155'
+		&& selection.entitySelector.$network.caip2.reference === '16661',
+	)
 	const evmNetworkAccount = $derived(selection( {
-		sources: [Source.Blockscout_Rest],
+		sources: isZeroGNetworkAccount ?
+			[Source.ZeroGChain_JsonRpc]
+		:
+			[Source.Blockscout_Rest],
+		fields: isZeroGNetworkAccount ?
+			{ isContract: true }
+		:
+			{
+				transactionCount: true,
+				tokenTransferCount: true,
+				isContract: true,
+				nftCount: true,
+				firstTransactionAt: true,
+				lastTransactionAt: true,
+				contractPositions: true,
+			},
 	}))
-	const ownedCoins = $derived(evmNetworkAccount.$$ownedCoins({
-		sources: [Source.Allium_Rest],
-	}))
+	const ownedCoins = $derived(
+		isZeroGNetworkAccount ?
+			undefined
+		:
+			evmNetworkAccount.$$ownedCoins({
+				sources: [Source.Allium_Rest],
+			}),
+	)
 	const isContract = $derived(evmNetworkAccount.isContract)
 	const transactions = $derived(evmNetworkAccount.$$transactions)
 	const tokenTransfers = $derived(evmNetworkAccount.$$tokenTransfers)
@@ -143,6 +167,13 @@
 		<ResourceBoundary
 			resource={actor}
 		>
+			{#snippet Pending()}
+				<TruncatedValue
+					format={TruncatedValueFormat.Visual}
+					value={selection.entitySelector.$actor.address}
+				/>
+			{/snippet}
+
 			{#snippet children(actor)}
 				{#if actor.$primaryName?.entitySelector.name}
 					{actor.$primaryName?.entitySelector.name}
@@ -228,7 +259,7 @@
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen}
+			{#if contentOpen && !isZeroGNetworkAccount}
 				<div>
 					<dt>Transactions</dt>
 					<dd>
@@ -270,7 +301,7 @@
 					{/snippet}
 				</ResourceBoundary>
 			{/if}
-			{#if contentOpen}
+			{#if contentOpen && !isZeroGNetworkAccount}
 				<div>
 					<dt>Token transfers</dt>
 					<dd>
@@ -287,7 +318,7 @@
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen}
+			{#if contentOpen && !isZeroGNetworkAccount}
 				<div>
 					<dt>NFT items</dt>
 					<dd>
@@ -304,7 +335,7 @@
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen}
+			{#if contentOpen && !isZeroGNetworkAccount}
 				<div>
 					<dt>First activity at</dt>
 					<dd>
@@ -321,7 +352,7 @@
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen}
+			{#if contentOpen && !isZeroGNetworkAccount}
 				<div>
 					<dt>Last activity at</dt>
 					<dd>
@@ -344,130 +375,134 @@
 	{#snippet Details({
 		open: detailsOpen,
 	})}
-		<CollapsibleTabs
-			id={`${evmNetworkAccountDetailAnchorKey}:carousel-balances`}
-			sectionIdPrefix={evmNetworkAccountDetailAnchorKey}
-			sections={collapsibleTabsSections([
-				{ id: 'actor-balances-tokens', label: 'Tokens' },
-				{ id: 'actor-contract-positions', label: 'Positions' },
-			])}
-			data-card
-			class="actor-network-view-collapsible-balances"
-		>
-			{#snippet Summary({ open: _balancesSummary })}
-				<header data-row-item="flexible" data-row="wrap gap-4">
-					<HeadingComponent>Balances</HeadingComponent>
-				</header>
-			{/snippet}
+		{#if !isZeroGNetworkAccount}
+			<CollapsibleTabs
+				id={`${evmNetworkAccountDetailAnchorKey}:carousel-balances`}
+				sectionIdPrefix={evmNetworkAccountDetailAnchorKey}
+				sections={collapsibleTabsSections([
+					{ id: 'actor-balances-tokens', label: 'Tokens' },
+					{ id: 'actor-contract-positions', label: 'Positions' },
+				])}
+				data-card
+				class="actor-network-view-collapsible-balances"
+			>
+				{#snippet Summary({ open: _balancesSummary })}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Balances</HeadingComponent>
+					</header>
+				{/snippet}
 
-			{#snippet SectionActorBalancesTokens({ id: _tokensId, label: _tokensLabel })}
-				<BalancesView
-					CollapsibleProps={{ canToggle: false }}
-					href={href}
-					collapsible={false}
-					selection={selection.$$ownedCoins}
-					id={`${evmNetworkAccountDetailAnchorKey}:actor-owned-coins`}
-					title="Tokens"
-				/>
-			{/snippet}
+				{#snippet SectionActorBalancesTokens({ id: _tokensId, label: _tokensLabel })}
+					<BalancesView
+						CollapsibleProps={{ canToggle: false }}
+						href={href}
+						collapsible={false}
+						selection={selection.$$ownedCoins}
+						id={`${evmNetworkAccountDetailAnchorKey}:actor-owned-coins`}
+						title="Tokens"
+					/>
+				{/snippet}
 
-			{#snippet SectionActorContractPositions({ id: _positionsId, label: _positionsLabel })}
-				<ResourceBoundary
-					resource={evmNetworkAccount}
-					placeholderText="Loading positions…"
-				>
-					{#snippet children(evmNetworkAccount)}
-						{#if evmNetworkAccount.contractPositions.values.length}
-							<ul data-evmNetworkAccounts="unstyled">
-								{#each evmNetworkAccount.contractPositions.values as contractPosition (`${contractPosition.protocol.key}:${contractPosition.name}`)}
-									<li data-column="gap-1">
-										<div data-row="wrap align-baseline gap-2">
-											<strong>{contractPosition.name}</strong>
-											<span data-text="muted">{contractPosition.protocol.name}</span>
-										</div>
-										{#if contractPosition.pool != null}
-											<div data-row="wrap align-center gap-2">
-												<EvmContractView
-													selection={select(EntityType.EvmContract, {
-														$network: selection.entitySelector.$network,
-														address: contractPosition.pool.address,
-													})}
-													layout={EntityLayout.Title}
-													open={false}
-													/>
-												{#if contractPosition.pool.name != null}
-													<span data-text="muted">{contractPosition.pool.name}</span>
-												{/if}
+				{#snippet SectionActorContractPositions({ id: _positionsId, label: _positionsLabel })}
+					<ResourceBoundary
+						resource={evmNetworkAccount}
+						placeholderText="Loading positions…"
+					>
+						{#snippet children(evmNetworkAccount)}
+							{#if evmNetworkAccount.contractPositions.values.length}
+								<ul data-evmNetworkAccounts="unstyled">
+									{#each evmNetworkAccount.contractPositions.values as contractPosition (`${contractPosition.protocol.key}:${contractPosition.name}`)}
+										<li data-column="gap-1">
+											<div data-row="wrap align-baseline gap-2">
+												<strong>{contractPosition.name}</strong>
+												<span data-text="muted">{contractPosition.protocol.name}</span>
 											</div>
-										{/if}
-										<div data-text="annotation">
-											Value {String(contractPosition.value)}
-										</div>
-									</li>
-								{/each}
-							</ul>
-						{:else}
-							<p data-text="muted">
-								No contract positions on this evmNetworkAccount.
-							</p>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</CollapsibleTabs>
+											{#if contractPosition.pool != null}
+												<div data-row="wrap align-center gap-2">
+													<EvmContractView
+														selection={select(EntityType.EvmContract, {
+															$network: selection.entitySelector.$network,
+															address: contractPosition.pool.address,
+														})}
+														layout={EntityLayout.Title}
+														open={false}
+														/>
+													{#if contractPosition.pool.name != null}
+														<span data-text="muted">{contractPosition.pool.name}</span>
+													{/if}
+												</div>
+											{/if}
+											<div data-text="annotation">
+												Value {String(contractPosition.value)}
+											</div>
+										</li>
+									{/each}
+								</ul>
+							{:else}
+								<p data-text="muted">
+									No contract positions on this evmNetworkAccount.
+								</p>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</CollapsibleTabs>
+		{/if}
 
-		<CollapsibleTabs
-			id={`${evmNetworkAccountDetailAnchorKey}:carousel-activity`}
-			sectionIdPrefix={evmNetworkAccountDetailAnchorKey}
-			sections={[
-				{ id: 'activity-transactions', label: 'Transactions' },
-				{ id: 'activity-token-transfers', label: 'Token transfers' },
-				{ id: 'activity-internal-transfers', label: 'Internal transfers' },
-			]}
-			data-card
-			class="actor-network-view-collapsible-activity"
-		>
-			{#snippet Summary({ open: _activitySummary })}
-				<header data-row-item="flexible" data-row="wrap gap-4">
-					<HeadingComponent>Activity</HeadingComponent>
-				</header>
-			{/snippet}
+		{#if !isZeroGNetworkAccount}
+			<CollapsibleTabs
+				id={`${evmNetworkAccountDetailAnchorKey}:carousel-activity`}
+				sectionIdPrefix={evmNetworkAccountDetailAnchorKey}
+				sections={[
+					{ id: 'activity-transactions', label: 'Transactions' },
+					{ id: 'activity-token-transfers', label: 'Token transfers' },
+					{ id: 'activity-internal-transfers', label: 'Internal transfers' },
+				]}
+				data-card
+				class="actor-network-view-collapsible-activity"
+			>
+				{#snippet Summary({ open: _activitySummary })}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
 
-			{#snippet SectionActivityTransactions({ id: _transactionsId, label: _transactionsLabel })}
-				<EvmTransactionsView
-					CollapsibleProps={{ canToggle: false }}
-					href={href}
-					collapsible={false}
-						selection={evmNetworkAccount.$$transactions({
-						sources: [Source.Blockscout_Rest],
-						limit: 32,
-					})}
-					id={`${evmNetworkAccountDetailAnchorKey}:activity-tx`}
-				/>
-			{/snippet}
+				{#snippet SectionActivityTransactions({ id: _transactionsId, label: _transactionsLabel })}
+					<EvmTransactionsView
+						CollapsibleProps={{ canToggle: false }}
+						href={href}
+						collapsible={false}
+							selection={evmNetworkAccount.$$transactions({
+							sources: [Source.Blockscout_Rest],
+							limit: 32,
+						})}
+						id={`${evmNetworkAccountDetailAnchorKey}:activity-tx`}
+					/>
+				{/snippet}
 
-			{#snippet SectionActivityTokenTransfers({ id: _tokenTransfersId, label: _tokenTransfersLabel })}
-				<EvmTokenTransfersView
-					CollapsibleProps={{ canToggle: false }}
-					href={href}
-					collapsible={false}
-					selection={selection.$$tokenTransfers}
-					id={`${evmNetworkAccountDetailAnchorKey}:activity-token-tx-transfers`}
-					title="Token transfers"
-				/>
-			{/snippet}
+				{#snippet SectionActivityTokenTransfers({ id: _tokenTransfersId, label: _tokenTransfersLabel })}
+					<EvmTokenTransfersView
+						CollapsibleProps={{ canToggle: false }}
+						href={href}
+						collapsible={false}
+						selection={selection.$$tokenTransfers}
+						id={`${evmNetworkAccountDetailAnchorKey}:activity-token-tx-transfers`}
+						title="Token transfers"
+					/>
+				{/snippet}
 
-			{#snippet SectionActivityInternalTransfers({ id: _internalTransfersId, label: _internalTransfersLabel })}
-				<EvmInternalTransfersView
-					CollapsibleProps={{ canToggle: false }}
-					href={href}
-					collapsible={false}
-					selection={selection.$$internalTransfers}
-					id={`${evmNetworkAccountDetailAnchorKey}:activity-internal-tx`}
-					title="Internal transfers"
-				/>
-			{/snippet}
-		</CollapsibleTabs>
+				{#snippet SectionActivityInternalTransfers({ id: _internalTransfersId, label: _internalTransfersLabel })}
+					<EvmInternalTransfersView
+						CollapsibleProps={{ canToggle: false }}
+						href={href}
+						collapsible={false}
+						selection={selection.$$internalTransfers}
+						id={`${evmNetworkAccountDetailAnchorKey}:activity-internal-tx`}
+						title="Internal transfers"
+					/>
+				{/snippet}
+			</CollapsibleTabs>
+		{/if}
 
 		{#if pageContent}
 			{@render pageContent()}

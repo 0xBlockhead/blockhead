@@ -2,7 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -43,9 +42,15 @@
 			sources: [
 				Source.Constants_Internal,
 			],
+			fields: {
+				activationBlock: true,
+				activationEpoch: true,
+				activationTimestampMs: true,
+				$networkExecutionUpgrade: true,
+				$networkConsensusUpgrade: true,
+			},
 		},
 	))
-	const name = $derived(networkUpgrade.name)
 	const activationBlock = $derived(networkUpgrade.activationBlock)
 	const activationEpoch = $derived(networkUpgrade.activationEpoch)
 	const activationTimestampMs = $derived(networkUpgrade.activationTimestampMs)
@@ -58,7 +63,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import EvmBlockView from '$/views/EvmBlockView.svelte'
 	import EthereumConsensusUpgradeView from '$/views/EthereumConsensusUpgradeView.svelte'
 	import EthereumExecutionUpgradeView from '$/views/EthereumExecutionUpgradeView.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
@@ -81,14 +85,7 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<ResourceBoundary
-			resource={name}
-			placeholderText="Loading network upgrade…"
-		>
-			{#snippet children(name)}
-				{name ?? selection.entitySelector.upgradeId}
-			{/snippet}
-		</ResourceBoundary>
+		{selection.entitySelector.upgradeId}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -116,14 +113,7 @@
 							<div>
 								<dt>Activation block</dt>
 								<dd>
-									<EvmBlockView
-										selection={select(EntityType.EvmBlock, {
-											$network: selection.entitySelector.$network,
-											blockNumber: BigInt(activationBlock),
-										})}
-										layout={EntityLayout.Value}
-										open={false}
-									/>
+									<NumberValue value={activationBlock} />
 								</dd>
 							</div>
 						{/if}

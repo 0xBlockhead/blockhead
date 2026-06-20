@@ -1,7 +1,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import {
+		EntityProxyField,
+		type EntityProxyResource,
+	} from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -102,7 +105,7 @@
 
 	{#snippet Content({})}
 		<dl data-column-item="center">
-			<ResourceBoundary resource={mevRelayProposerPayloadDelivered.field('value')} placeholderText="Loading builder bid value…">
+			<ResourceBoundary resource={mevRelayProposerPayloadDelivered[EntityProxyField]('value')} placeholderText="Loading builder bid value…">
 				{#snippet children(value)}
 					{#if value !== undefined}
 						<div>

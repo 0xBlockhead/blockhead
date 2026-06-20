@@ -11,17 +11,19 @@
 		selection,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
+		sources = [
+			Source.Blockchair_Rest,
+		],
 	}: {
 		selection: EntityProxyResource<typeof schema, EntityType.UtxoNetwork_Timestamp>
 		layout?: EntityLayout
 		open?: boolean
+		sources?: readonly Source[]
 	} = $props()
 
 
 	const snapshot = $derived(selection({
-			sources: [
-				Source.Blockchair_Rest,
-			],
+			sources,
 		},
 	))
 	const bestBlockHeight = $derived(snapshot.bestBlockHeight)

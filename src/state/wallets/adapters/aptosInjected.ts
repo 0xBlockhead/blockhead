@@ -11,18 +11,14 @@ declare global {
 	}
 }
 
-export const createAptosAip62Adapter = (): WalletAdapter => createDiscoveryOnlyAdapter({
-	id: 'aptos-aip62',
+export const createAptosInjectedAdapter = (): WalletAdapter => createDiscoveryOnlyAdapter({
+	id: 'aptos-injected',
 	candidate: {
-		protocol: WalletProtocol.AptosAip62,
+		protocol: WalletProtocol.AptosInjected,
 		discoveryKind: WalletDiscoveryKind.InjectedGlobal,
 		transportKind: WalletTransportKind.InjectedSigner,
 		capabilities: [
-			WalletCapability.Connect,
-			WalletCapability.ListAccounts,
-			WalletCapability.WatchAccounts,
-			WalletCapability.SignMessage,
-			WalletCapability.SignTransaction,
+			WalletCapability.Discover,
 		],
 	},
 	getCandidates: () => (

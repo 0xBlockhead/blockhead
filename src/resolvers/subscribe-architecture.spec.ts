@@ -3,7 +3,7 @@ import {
 	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import {
-	BLOCKHEAD_PRODUCT_DATA_SCHEMA_VERSION,
+	BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION,
 } from '$/constants/Persistence.ts'
 import {
 	describe,
@@ -268,7 +268,7 @@ describe('client resolver architecture', () => {
 		}
 	})
 
-	it('keeps Ethereum network upgrade constants free of Product Data row construction', () => {
+	it('keeps Ethereum network upgrade constants free of Persisted collection row construction', () => {
 		const source = scannedSourceByFilePath[join(srcPath, 'constants', 'EthereumNetworkUpgrades.ts')]
 
 		expect(source).not.toMatch(/\$\/schema\/(?:\$schema|EntityType|index)\.ts/)
@@ -358,7 +358,7 @@ describe('client resolver architecture', () => {
 		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Voltaire', 'index.ts')]).toMatch(/\$\/sources\/Voltaire\/JsonRpc\/executionEndpoints\.ts/)
 	})
 
-	it('keeps generic lib out of Product Data and provider ownership', () => {
+	it('keeps generic lib out of Persisted collection and provider ownership', () => {
 		for (const filePath of scannedSourceFiles.filter((path) => (
 			path.startsWith(join(srcPath, 'lib'))
 			&& !path.endsWith(join('lib', 'db', 'queryResource.svelte.ts'))
@@ -487,19 +487,19 @@ describe('client resolver architecture', () => {
 		}
 	})
 
-	it('keeps persisted Product Data schema version explicit at the app persistence edge', () => {
+	it('keeps persisted collection schema version explicit at the app persistence edge', () => {
 		const clientSource = scannedSourceByFilePath[join(srcPath, 'client', '$client.svelte.ts')]
 		const layoutSource = scannedSourceByFilePath[join(srcPath, 'routes', '+layout.svelte')]
 		const persistenceSource = scannedSourceByFilePath[join(srcPath, 'constants', 'Persistence.ts')]
 
-		expect(BLOCKHEAD_PRODUCT_DATA_SCHEMA_VERSION).toBeGreaterThan(1)
-		expect(persistenceSource).toMatch(/\bBLOCKHEAD_PRODUCT_DATA_SCHEMA_VERSION\b/)
-		expect(persistenceSource).not.toMatch(/\bexport const BLOCKHEAD_PRODUCT_DATA_SCHEMA_VERSION = 1\b/)
+		expect(BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION).toBeGreaterThan(1)
+		expect(persistenceSource).toMatch(/\bBLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION\b/)
+		expect(persistenceSource).not.toMatch(/\bexport const BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION = 1\b/)
 		expect(clientSource).not.toMatch(/schemaVersion\s*=\s*1/)
 		expect(clientSource).toMatch(/schemaVersion:\s*number/)
-		expect(layoutSource).toMatch(/\bBLOCKHEAD_PRODUCT_DATA_SCHEMA_VERSION\b/)
+		expect(layoutSource).toMatch(/\bBLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION\b/)
 		expect(layoutSource).toMatch(/schemaVersion:\s*\(/)
-		expect(layoutSource).toMatch(/:\s*BLOCKHEAD_PRODUCT_DATA_SCHEMA_VERSION\s*\)/)
+		expect(layoutSource).toMatch(/:\s*BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION\s*\)/)
 	})
 
 	it('keeps Solana block selector support on explicit selector resolver branches', () => {
@@ -969,7 +969,7 @@ describe('client resolver architecture', () => {
 		}
 	})
 
-	it('keeps views, components, and routes from reading raw Product Data collections', () => {
+	it('keeps views, components, and routes from reading raw Persisted collections', () => {
 		for (const filePath of [
 			...scannedSourceFiles.filter((sourceFilePath) => sourceFilePath.startsWith(join(srcPath, 'views'))),
 			...scannedSourceFiles.filter((sourceFilePath) => sourceFilePath.startsWith(join(srcPath, 'components'))),
@@ -1108,7 +1108,7 @@ describe('client resolver architecture', () => {
 		expect(scannedSourceByFilePath[join(srcPath, 'views', 'MarketOhlcHub.svelte')]).not.toMatch(/\blookbackDayCount\s*\*\s*24\b/)
 	})
 
-	it('does not export legacy raw Product Data collection aliases from app layout', () => {
+	it('does not export legacy raw Persisted collection aliases from app layout', () => {
 		expect(scannedSourceByFilePath[join(srcPath, 'routes', '+layout.svelte')]).not.toMatch(
 			/\bexport const entity(?:CollectionByEntityType|FieldCollections|FieldCountCollections|CollectionsQueryClient)\b/
 		)

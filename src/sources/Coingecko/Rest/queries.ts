@@ -39,7 +39,7 @@ export const getCoin = async (
 	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
 	coingeckoId: string
 ): Promise<CoingeckoCoin | undefined> => {
-	if (coingeckoId.trim() === '') return undefined
+	if (coingeckoId === '') return undefined
 
 	const res = await coingeckoRestFetch(
 		publicEnv,
@@ -67,7 +67,7 @@ export const getCoinMarketSpot = async (
 	volume24hUsd?: number
 	lastUpdatedAtSec: number
 } | undefined> => {
-	if (coingeckoId.trim() === '') return undefined
+	if (coingeckoId === '') return undefined
 
 	const res = await coingeckoRestFetch(
 		publicEnv,
@@ -104,7 +104,7 @@ export const getCoinByAssetPlatformContract = async ({
 	assetPlatformId: string
 	contractAddress: `0x${string}`
 }): Promise<CoingeckoCoin | undefined> => {
-	if (assetPlatformId.trim() === '') return undefined
+	if (assetPlatformId === '') return undefined
 
 	const res = await coingeckoRestFetch(
 		publicEnv,
@@ -179,7 +179,7 @@ export const getSimplePriceUsd = async ({
 	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>
 	coingeckoId: string
 }) => {
-	if (coingeckoId.trim() === '') return undefined
+	if (coingeckoId === '') return undefined
 
 	const res = await coingeckoRestFetch(
 		publicEnv,
@@ -247,7 +247,7 @@ export const getCoinOhlc = async ({
 	vs: string
 	lookbackDayCount: number
 }): Promise<OhlcCandle[]> => {
-	if (coingeckoId.trim() === '') return []
+	if (coingeckoId === '') return []
 
 	const searchParams = new URLSearchParams()
 	searchParams.set('vs_currency', vs)

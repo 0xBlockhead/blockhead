@@ -50,11 +50,11 @@ export default {
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoNetwork,
 			resolve: {
-				[UtxoNetworkSelector.Network]: async (entitySelector) => {
-					assertBitcoinMainnet(entitySelector.$network)
+				[UtxoNetworkSelector.Network]: async ({ $network }) => {
+					assertBitcoinMainnet($network)
 					return {
 						$network: {
-							[EntityMetaKey.Selector]: entitySelector.$network,
+							[EntityMetaKey.Selector]: $network,
 						},
 					}
 				}
@@ -273,10 +273,10 @@ export default {
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoNetwork,
 			resolve: {
-				[UtxoNetworkSelector.Network]: async (entitySelector) => {
-					assertBitcoinMainnet(entitySelector.$network)
+				[UtxoNetworkSelector.Network]: async ({ $network }) => {
+					assertBitcoinMainnet($network)
 					return {
-						[EntityMetaKey.Selector]: entitySelector.$network,
+						[EntityMetaKey.Selector]: $network,
 					}
 				}
 			},
@@ -289,8 +289,8 @@ export default {
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoNetwork,
 			resolve: {
-				[UtxoNetworkSelector.Network]: async (entitySelector) => {
-					assertBitcoinMainnet(entitySelector.$network)
+				[UtxoNetworkSelector.Network]: async ({ $network }) => {
+					assertBitcoinMainnet($network)
 					const {
 						getBlocks,
 						getMempoolStats,
@@ -306,7 +306,7 @@ export default {
 					return [
 						{
 							[EntityMetaKey.Selector]: {
-								$network: entitySelector.$network,
+								$network: $network,
 								timestampMs: Date.now(),
 							},
 							bestBlockHeight: BigInt(block.height),
@@ -327,13 +327,13 @@ export default {
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoNetwork,
 			resolve: {
-				[UtxoNetworkSelector.Network]: async (entitySelector, context) => {
-					assertBitcoinMainnet(entitySelector.$network)
+				[UtxoNetworkSelector.Network]: async ({ $network }, context) => {
+					assertBitcoinMainnet($network)
 					const { getBlocks } = await import('$/sources/MempoolSpace/Rest/queries.ts')
 					const blocks = await getBlocks({ restBaseUrl: bitcoinNetworkBySlug.bitcoin.mempoolSpaceRestBaseUrl })
 					return blocks.slice(0, resolverContextRowLimit(context)).map((block) => ({
 						[EntityMetaKey.Selector]: {
-							$network: entitySelector.$network,
+							$network: $network,
 							height: BigInt(block.height),
 							hash: block.id,
 						},
@@ -349,13 +349,13 @@ export default {
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoNetwork,
 			resolve: {
-				[UtxoNetworkSelector.Network]: async (entitySelector, context) => {
-					assertBitcoinMainnet(entitySelector.$network)
+				[UtxoNetworkSelector.Network]: async ({ $network }, context) => {
+					assertBitcoinMainnet($network)
 					const { getMempoolTxids } = await import('$/sources/MempoolSpace/Rest/queries.ts')
 					const txids = await getMempoolTxids({ restBaseUrl: bitcoinNetworkBySlug.bitcoin.mempoolSpaceRestBaseUrl })
 					return txids.slice(0, resolverContextRowLimit(context)).map((txId) => ({
 						[EntityMetaKey.Selector]: {
-							$network: entitySelector.$network,
+							$network: $network,
 							txId,
 						},
 					}))

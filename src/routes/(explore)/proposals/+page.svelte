@@ -2,6 +2,7 @@
 	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Components
@@ -12,11 +13,15 @@
 
 <Page>
 	<SpecificationRealmsView
-		selection={select(
-			EntityType._Global,
-			{ scope: '$$specificationRealms' }
-		).$$specificationRealms}
-		id="proposal-realms"
-		title="Proposals"
-	/>
+			selection={select(
+				EntityType._Global,
+				{ scope: '$$specificationRealms' }
+			).$$specificationRealms({
+				sources: [
+					Source.Constants_Internal,
+				],
+			})}
+			id="proposal-realms"
+			title="Proposals"
+		/>
 </Page>

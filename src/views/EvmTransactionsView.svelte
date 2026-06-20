@@ -125,6 +125,7 @@ import { resolve } from '$app/paths'
 											transactionId: t.txHash,
 										})}
 									layout={EntityLayout.Summary}
+									open={false}
 
 									collapsible={false}
 									showTypeAnnotation={false}
@@ -133,6 +134,7 @@ import { resolve } from '$app/paths'
 								<EvmTransactionView
 									selection={select(EntityType.EvmTransaction, t)}
 									layout={EntityLayout.Summary}
+									open={false}
 
 									collapsible={false}
 									showTypeAnnotation={false}

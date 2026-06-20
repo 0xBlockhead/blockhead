@@ -7,11 +7,11 @@ export default {
 	origins: [
 		{
 			origin: 'https://entrypoint-finney.opentensor.ai',
-			corsEnabled: true,
+			corsEnabled: false,
 		},
 		{
 			origin: 'https://lite.chain.opentensor.ai',
-			corsEnabled: true,
+			corsEnabled: false,
 		},
 	],
 	sources: [

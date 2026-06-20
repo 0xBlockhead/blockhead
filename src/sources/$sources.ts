@@ -33,7 +33,7 @@ export const requiredPublicEnvString = (
 	publicEnv: SourcePublicEnv,
 	key: string
 ): string => {
-	const value = publicEnv[key].trim()
+	const value = (publicEnv[key] ?? '').trim()
 	if (value === '')
 		throw new Error(`Missing or empty required env: ${key}`)
 
@@ -44,7 +44,7 @@ export const optionalPublicEnvString = (
 	publicEnv: SourcePublicEnv,
 	key: string
 ): string | undefined => {
-	const value = publicEnv[key].trim()
+	const value = (publicEnv[key] ?? '').trim()
 	if (value === '')
 		return undefined
 
@@ -74,10 +74,15 @@ export const indexSourceProviders = <
 			return {}
 
 		const subset = Object.fromEntries(
-			envSchema.props.map((property) => [
-				String(property.key),
-				resolverPublicEnv[String(property.key)],
-			])
+			envSchema.props.flatMap((property) => (
+				(resolverPublicEnv[String(property.key)] ?? '').trim() === '' ?
+					[]
+				:
+					[[
+						String(property.key),
+						resolverPublicEnv[String(property.key)] ?? '',
+					]]
+			))
 		) satisfies SourcePublicEnv
 		const out = envSchema(subset)
 		if (out instanceof arktype.errors)

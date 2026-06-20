@@ -36,12 +36,12 @@
 						networkUpgrade.slug.length > 0 ?
 							networkUpgrade.slug
 						:
-							String(networkUpgrade.upgradeId).trim().toLowerCase().replace(/\s+/g, '-')
+							String(networkUpgrade.upgradeId).toLowerCase().replace(/\s+/g, '-')
 					)
 					const { upgradeId } = networkUpgrade
-					const segmentSlug = String(segment).trim().toLowerCase().replace(/\s+/g, '-')
-					const slugSegment = String(slug).trim().toLowerCase().replace(/\s+/g, '-')
-					const upgradeIdSegment = String(upgradeId).trim().toLowerCase().replace(/\s+/g, '-')
+					const segmentSlug = String(segment).toLowerCase().replace(/\s+/g, '-')
+					const slugSegment = String(slug).toLowerCase().replace(/\s+/g, '-')
+					const upgradeIdSegment = String(upgradeId).toLowerCase().replace(/\s+/g, '-')
 					return (
 						segment === upgradeId
 						|| segment === slug
@@ -62,7 +62,7 @@
 					|| chainId === 17_000
 				) {
 					const aliasRow = ethereumMainnetNetworkUpgradeSlugAliasBySegmentSlug[
-						String(segment).trim().toLowerCase().replace(/\s+/g, '-')
+						String(segment).toLowerCase().replace(/\s+/g, '-')
 					]
 					if (aliasRow != null) {
 						return (

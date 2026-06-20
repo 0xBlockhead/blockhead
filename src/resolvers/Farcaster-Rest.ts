@@ -296,6 +296,7 @@ export default {
 						hash: castHash,
 						username,
 						hashPrefix: zeroXLowerHexCastHash(hashPrefix),
+						clientUrl: `https://warpcast.com/${username}/${zeroXLowerHexCastHash(hashPrefix)}`,
 						$author: {
 							[EntityMetaKey.Selector]: {
 								fid: cast.author.fid,
@@ -315,6 +316,7 @@ export default {
 				hash: (cast) => cast.hash,
 				username: (cast) => cast.username,
 				hashPrefix: (cast) => cast.hashPrefix,
+				clientUrl: (cast) => cast.clientUrl,
 				$author: (cast) => cast.$author,
 				text: (cast) => cast.text,
 				timestamp: (cast) => cast.timestamp,

@@ -65,13 +65,13 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-				<ResourceBoundary resource={selection({
-							sources: [Source.Lens_Graphql],
-							limit,
-							fields: {
-								timestamp: true,
-							},
-					})} placeholderText="Loading Lens network…">
+			<ResourceBoundary
+				resource={selection({
+					sources: [Source.Lens_Graphql],
+					limit,
+				})}
+				placeholderText="Loading Lens network…"
+			>
 				{#snippet children(posts)}
 					<EntitiesList
 						collapsible={false}

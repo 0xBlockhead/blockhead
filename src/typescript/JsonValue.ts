@@ -27,6 +27,5 @@ export const jsonMessage = (value: JsonValue | undefined): string | undefined =>
 	if (!isJsonObject(value) || !isJsonString(value.message))
 		return undefined
 
-	const trimmed = value.message.trim()
-	return trimmed === '' ? undefined : trimmed
+	return value.message === '' ? undefined : value.message
 }

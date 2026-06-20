@@ -7,7 +7,7 @@ import {
 	writeLocalBlockheadWalletConnection,
 } from '$/collections/localMutations.ts'
 import { SvelteMap } from 'svelte/reactivity'
-import { createAptosAip62Adapter } from './adapters/aptosAip62.ts'
+import { createAptosInjectedAdapter } from './adapters/aptosInjected.ts'
 import { createBitcoinInjectedAdapter } from './adapters/bitcoinInjected.ts'
 import { createCardanoCip30Adapter } from './adapters/cardanoCip30.ts'
 import { createCosmosOfflineSignerAdapter } from './adapters/cosmosOfflineSigner.ts'
@@ -48,7 +48,7 @@ const createWalletRuntimeState = (
 	const adapters = [
 		createEip6963Adapter(),
 		createWalletStandardAdapter(),
-		createAptosAip62Adapter(),
+		createAptosInjectedAdapter(),
 		createCardanoCip30Adapter(),
 		createBitcoinInjectedAdapter(),
 		createCosmosOfflineSignerAdapter(),

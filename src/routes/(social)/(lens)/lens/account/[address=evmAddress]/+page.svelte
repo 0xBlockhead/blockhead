@@ -7,7 +7,7 @@
 	} = $props()
 
 	const selector = $derived.by(() => {
-		const raw = decodeURIComponent(params.address).trim()
+		const raw = decodeURIComponent(params.address)
 		if (raw.startsWith('legacy:'))
 			return { legacyProfileId: raw.slice('legacy:'.length) }
 

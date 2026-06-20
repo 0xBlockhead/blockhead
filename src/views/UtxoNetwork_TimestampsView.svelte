@@ -19,6 +19,16 @@
 		open = $bindable(true),
 		id,
 		href = '',
+		sources = [
+			Source.Blockchair_Rest,
+			Source.Esplora_Rest,
+			Source.MempoolSpace_Rest,
+			Source.BitcoinCore_JsonRpc,
+			Source.LitecoinCore_JsonRpc,
+			Source.DogecoinCore_JsonRpc,
+			Source.BitcoinCashNode_JsonRpc,
+			Source.Zcashd_JsonRpc,
+		],
 		...EntitiesListProps
 	}: WithRest<
 		{
@@ -27,6 +37,7 @@
 			open?: boolean
 			id: string
 			href?: string
+			sources?: readonly Source[]
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
@@ -64,16 +75,7 @@
 		{#if open}
 			<ResourceBoundary
 				resource={selection({
-						sources: [
-							Source.Blockchair_Rest,
-							Source.Esplora_Rest,
-							Source.MempoolSpace_Rest,
-							Source.BitcoinCore_JsonRpc,
-							Source.LitecoinCore_JsonRpc,
-							Source.DogecoinCore_JsonRpc,
-							Source.BitcoinCashNode_JsonRpc,
-							Source.Zcashd_JsonRpc,
-						],
+						sources,
 						limit: 16,
 					})}
 				placeholderText="Loading timestamps…"
@@ -102,7 +104,7 @@
 					<UtxoNetwork_TimestampView
 						selection={select(EntityType.UtxoNetwork_Timestamp, context!.item.entitySelector)}
 						layout={EntityLayout.Summary}
-
+						{sources}
 					/>
 				{/snippet}
 			</EntitiesList>

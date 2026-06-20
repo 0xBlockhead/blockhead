@@ -1709,15 +1709,11 @@ export const resolveProbeEntitySelector = async (
 ): Promise<EntitySelector<typeof schema, EntityType>> => {
 	if (entityType === EntityType.Coin_Timestamp) {
 		const {
-			blockscoutExplorerOriginForChain,
-			blockscoutRestV2AtExplorerOrigin,
+			blockscoutExplorerRestV2OriginByChainId,
 		} = await import('$/sources/Blockscout/Rest/constants.ts')
 		const { getStats } = await import('$/sources/Blockscout/Rest/queries.ts')
-		const origin = blockscoutExplorerOriginForChain(mainnetChainId)
-		if (
-			origin == null
-			|| !blockscoutRestV2AtExplorerOrigin(origin)
-		) {
+		const origin = blockscoutExplorerRestV2OriginByChainId[mainnetChainId]
+		if (origin == null) {
 			throw new Error('assert-loaded-resolvers: mainnet Blockscout stats unavailable for Coin_Timestamp probe')
 		}
 		const stats = await getStats({ explorerOrigin: origin })

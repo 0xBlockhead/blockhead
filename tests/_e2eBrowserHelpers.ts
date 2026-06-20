@@ -3,7 +3,8 @@ import { expect, type Locator, type Page, type TestInfo } from '@playwright/test
 import { ipfsPublicGateways } from '$/constants/IpfsProtocol.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import { gatewayUrls as swarmGatewayUrls } from '$/sources/Swarm/Rest/constants.ts'
-import { voltaireJsonRpcUrlWithTransportForChain } from '$/sources/Voltaire/index.ts'
+import { voltaireJsonRpcTransportWithOriginsByChainId } from '$/sources/Voltaire/index.ts'
+import type { JsonObject } from '$/typescript/JsonValue.ts'
 
 export { e2eBrowserNewContextOptions } from '../playwright.env.ts'
 
@@ -27,8 +28,9 @@ declare global {
 		__e2eViewTransitionFinishes?: number
 		__e2eViewTransitionUpdates?: number
 		__blockheadClientProbe?: BlockheadClientProbe
-		__blockheadPersistenceProbe?: BlockheadPersistenceProbeEvent[]
-		__blockheadProductDataSchemaVersionOverride?: number
+		__blockheadClientProbeEnabled?: boolean
+		__blockheadPersistenceTrace?: PersistenceTraceEvent[]
+		__blockheadPersistedCollectionSchemaVersionOverride?: number
 		__blockheadBoundaryProbe?: BoundaryUpdateEvent[]
 		__blockheadBoundaryProbeActive?: BoundaryLoadingProbeRow[]
 	}
@@ -59,6 +61,7 @@ export type BoundaryDomRow = {
 	key: string | null
 	state: 'failed' | 'loading'
 	message: string
+	context: string
 }
 
 export type BoundarySlowRow = {
@@ -124,7 +127,7 @@ export type RouteBoundaryReport = {
 	issues: string[]
 }
 
-export type ProductCollectionSyncEvent = {
+export type PersistedCollectionSyncEvent = {
 	collection:
 		| {
 			kind: 'Entity'
@@ -140,45 +143,36 @@ export type ProductCollectionSyncEvent = {
 	key: string
 }
 
-export type ProductCollectionSizes = {
-	loadedSubsets: number
-	entities: Record<string, number>
-	fields: Record<string, Record<string, number>>
-	counts: Record<string, Record<string, number>>
+export type PersistedCollectionLoadEvent = {
+	type: string
+	collectionId: string
+	key: string
+	decision?: string
+	status?: string
+	rowCount?: number
+	sourceRowCounts?: Partial<Record<string, number>>
+	reason?: string
+	error?: string
+	trace?: JsonObject
 }
 
-export type ProductSubscribeError = {
-	selectorAddress: readonly string[]
-	dimension: string
-	entityType: string
-	fieldName?: string
-	message: string
-}
-
-export type ClientProbeResource<_Result> = Promise<_Result> & {
-	readonly current: _Result | undefined
-	readonly error: readonly ProductSubscribeError[] | undefined
-	readonly loading: boolean
-	readonly ready: boolean
-	subscribe: (listener: () => void) => () => void
-}
-
-export type ProductProbePayload = {
-	fields: {
-		name?: string
-		$$rpcUrls?: {
-			values: readonly object[]
-			totalCount?: number
-		}
-	}
+export type PersistenceTraceEvent = {
+	type: string
+	collectionId: string
+	mutationCount?: number
+	rowMetadataMutationCount?: number
+	collectionMetadataMutationCount?: number
+	subsetRowCount?: number
+	collectionMetadataCount?: number
+	error?: string
 }
 
 export type BlockheadClientProbe = {
 	events: {
-		collectionSync: ProductCollectionSyncEvent[]
+		collectionSync: PersistedCollectionSyncEvent[]
+		collectionLoads: PersistedCollectionLoadEvent[]
 	}
 	collectionSizes: () => {
-		loadedSubsets: number
 		entities: Record<string, number>
 		fields: Record<string, Record<string, number>>
 		counts: Record<string, Record<string, number>>
@@ -189,142 +183,38 @@ export type BlockheadClientProbe = {
 		fetchStatus: string
 		error?: string
 	}[]
-	read: (
-		entityType: string,
-		entitySelector: object,
-		selection: object
-	) => ClientProbeResource<ProductProbePayload>
 }
-
-export type BlockheadPersistenceProbeDecision = (
-	| 'hydrated-rows'
-	| 'loaded-marker'
-	| 'snapshot'
-	| 'remote'
-)
-
-export type BlockheadPersistenceProbeEvent = (
-	| {
-		kind: 'loadSubset'
-		collectionId: string
-		decision: BlockheadPersistenceProbeDecision
-		loadedKey: string
-		hydratedRowCount?: number
-		loadedMarkerRowCount?: number
-		loadedMarkerSourceRowCounts?: Record<string, number>
-		at: number
-	}
-	| {
-		kind: 'queryFn'
-		collectionId: string
-		loadedKey: string
-		at: number
-	}
-	| {
-		kind: 'markLoaded'
-		collectionId: string
-		loadedKey: string
-		rowCount: number
-		sourceRowCounts: Record<string, number>
-		at: number
-	}
-)
 
 export const networksCatalogFieldCollectionId = 'EntityFieldCollection:_Global:$$networks'
 
 export const installPersistenceProbe = (page: Page) => (
-	page.addInitScript((storageKey) => {
-		const stored = sessionStorage.getItem(storageKey)
-		window.__blockheadPersistenceProbe = (
-			stored != null && stored !== '' ?
-				JSON.parse(stored)
-			:
-				[]
-		)
-	}, '__blockheadPersistenceProbe')
+	page.addInitScript(() => {
+		window.__blockheadClientProbeEnabled = true
+	})
 )
 
 export const clearPersistenceProbe = (page: Page) => (
 	page.evaluate(() => {
-		sessionStorage.removeItem('__blockheadPersistenceProbe')
-		window.__blockheadPersistenceProbe = []
+		if (window.__blockheadClientProbe != null)
+			window.__blockheadClientProbe.events.collectionLoads.length = 0
 	})
 )
 
-export const getPersistenceProbeEvents = (page: Page) => (
-	page.evaluate(() => (
-		window.__blockheadPersistenceProbe ?? []
-	))
-)
-
-export const persistenceShortCircuitDecisions: readonly BlockheadPersistenceProbeDecision[] = [
-	'hydrated-rows',
-	'loaded-marker',
-	'snapshot',
-]
-
-export const waitForPersistenceMarkLoaded = (
-	page: Page,
-	collectionId: string
-) => (
-	page.waitForFunction(
-		(expectedCollectionId) => (
-			(window.__blockheadPersistenceProbe ?? []).some((event) => (
-				event.kind === 'markLoaded'
-				&& event.collectionId === expectedCollectionId
+export const getPersistenceProbeEvents = async (page: Page) => {
+	let lastError: object | string | undefined
+	for (let attempt = 0; attempt < 5; attempt += 1) {
+		try {
+			return await page.evaluate(() => (
+				window.__blockheadClientProbe?.events.collectionLoads ?? []
 			))
-		),
-		collectionId,
-		{ timeout: 120_000 }
-	)
-)
-
-export const waitForPersistenceShortCircuit = (
-	page: Page,
-	collectionId: string,
-	options?: {
-		startIndex?: number
-		loadedKey?: string
+		} catch (error) {
+			lastError = error instanceof Error ? error : String(error)
+			await page.waitForLoadState('domcontentloaded', { timeout: 30_000 }).catch(() => {})
+			await page.waitForTimeout(250)
+		}
 	}
-) => (
-	page.waitForFunction(
-		({
-			expectedCollectionId,
-			fromIndex,
-			expectedLoadedKey,
-			shortCircuitDecisions,
-		}) => (
-			(window.__blockheadPersistenceProbe ?? [])
-				.slice(fromIndex)
-				.some((event) => (
-					event.kind === 'loadSubset'
-					&& event.collectionId === expectedCollectionId
-					&& shortCircuitDecisions.includes(event.decision)
-					&& (
-						expectedLoadedKey == null
-						|| event.loadedKey === expectedLoadedKey
-					)
-				))
-		),
-		{
-			expectedCollectionId: collectionId,
-			fromIndex: options?.startIndex ?? 0,
-			expectedLoadedKey: options?.loadedKey,
-			shortCircuitDecisions: persistenceShortCircuitDecisions,
-		},
-		{ timeout: 120_000 }
-	)
-)
-
-export const persistenceMarkLoadedEvent = (
-	events: BlockheadPersistenceProbeEvent[],
-	collectionId: string
-) => (
-	events.find((event) => (
-		event.kind === 'markLoaded'
-		&& event.collectionId === collectionId
-	))
-)
+	throw lastError
+}
 
 export const installBoundaryProbe = (page: Page) => (
 	page.addInitScript(() => {
@@ -349,6 +239,23 @@ export const installBoundaryProbe = (page: Page) => (
 				element.textContent.replace(/\s+/g, ' ').trim().slice(0, 500)
 
 			)
+		}
+		const rowContext = (element: Element) => {
+			const pieces = []
+			for (let parent = element.parentElement; parent != null && parent.id !== 'main'; parent = parent.parentElement) {
+				const scrollMarkerLabel = parent.getAttribute('data-scroll-marker-label')
+				if (scrollMarkerLabel)
+					pieces.push(scrollMarkerLabel)
+
+				const ariaLabel = parent.getAttribute('aria-label')
+				if (ariaLabel)
+					pieces.push(ariaLabel)
+
+				const id = parent.getAttribute('id')
+				if (id)
+					pieces.push(`#${id}`)
+			}
+			return pieces.slice(0, 8).join(' > ')
 		}
 
 		const rowKey = (element: Element) => (
@@ -565,6 +472,12 @@ export const getBoundaryProbeEvents = (page: Page) => (
 	))
 )
 
+const getBoundaryProbeEventCount = (page: Page) => (
+	page.evaluate(() => (
+		window.__blockheadBoundaryProbe?.length ?? 0
+	))
+)
+
 export const getBoundaryProbeActive = (page: Page) => (
 	page.evaluate(() => (
 		window.__blockheadBoundaryProbeActive ?? []
@@ -581,6 +494,23 @@ export const snapshotBoundaryMain = (page: Page) => (
 				element.textContent.replace(/\s+/g, ' ').trim().slice(0, 500)
 
 			)
+		}
+		const rowContext = (element: Element) => {
+			const pieces = []
+			for (let parent = element.parentElement; parent != null && parent.id !== 'main'; parent = parent.parentElement) {
+				const scrollMarkerLabel = parent.getAttribute('data-scroll-marker-label')
+				if (scrollMarkerLabel)
+					pieces.push(scrollMarkerLabel)
+
+				const ariaLabel = parent.getAttribute('aria-label')
+				if (ariaLabel)
+					pieces.push(ariaLabel)
+
+				const id = parent.getAttribute('id')
+				if (id)
+					pieces.push(`#${id}`)
+			}
+			return pieces.slice(0, 8).join(' > ')
 		}
 
 		const main = document.querySelector('#main')
@@ -604,18 +534,27 @@ export const snapshotBoundaryMain = (page: Page) => (
 			),
 			state: 'failed' as const,
 			message: rowMessage(element),
+			context: rowContext(element),
 		}))
 
 		const loading = [...main.querySelectorAll('.loading, [aria-busy="true"]')].map((element) => ({
 			key: element.getAttribute('data-error'),
 			state: 'loading' as const,
 			message: rowMessage(element),
+			context: rowContext(element),
 		}))
 
 		const contentMarkerCount = main.querySelectorAll(
 			'section, dl, ul, ol, [data-card], h1, h2, h3, table, pre, canvas'
 			).length
-		const textLength = main.textContent.replace(/\s+/g, ' ').trim().length
+		const textLength = (
+			failed.length === 0
+			&& loading.length === 0
+			&& contentMarkerCount === 0 ?
+				main.textContent.replace(/\s+/g, ' ').trim().length
+			:
+				24
+		)
 
 		const empty = (
 			failed.length === 0
@@ -678,10 +617,8 @@ export const waitForBoundarySettle = async (
 
 	while (Date.now() < deadline) {
 		let snapshot: BoundaryMainSnapshot
-		let events: BoundaryUpdateEvent[]
 		try {
 			snapshot = await withProbeTimeout('snapshotBoundaryMain', snapshotBoundaryMain(page))
-			events = await withProbeTimeout('getBoundaryProbeEvents', getBoundaryProbeEvents(page))
 		}
 		catch {
 			return {
@@ -693,10 +630,12 @@ export const waitForBoundarySettle = async (
 				contentMarkerCount: 0,
 			}
 		}
+		const eventCount = await withProbeTimeout('getBoundaryProbeEventCount', getBoundaryProbeEventCount(page))
+			.catch(() => -1)
 		const signature = JSON.stringify({
 			loading: snapshot.loading.length,
 			failed: snapshot.failed.length,
-			events: events.length,
+			events: eventCount,
 		})
 
 		if (
@@ -1695,6 +1634,89 @@ export const l2BeatScalingSummaryWire = (url: string, method: string) => (
 	)
 )
 
+export const MOCK_COINGECKO_ASSET_PLATFORMS_BODY = JSON.stringify([
+	{
+		id: 'ethereum',
+		name: 'Ethereum',
+		chain_identifier: 1,
+		native_coin_id: 'ethereum',
+	},
+	{
+		id: 'optimistic-ethereum',
+		name: 'Optimism',
+		chain_identifier: 10,
+		native_coin_id: 'ethereum',
+	},
+	{
+		id: 'arbitrum-one',
+		name: 'Arbitrum One',
+		chain_identifier: 42161,
+		native_coin_id: 'ethereum',
+	},
+	{
+		id: 'base',
+		name: 'Base',
+		chain_identifier: 8453,
+		native_coin_id: 'ethereum',
+	},
+	{
+		id: 'polygon-pos',
+		name: 'Polygon POS',
+		chain_identifier: 137,
+		native_coin_id: 'matic-network',
+	},
+	{
+		id: 'binance-smart-chain',
+		name: 'BNB Smart Chain',
+		chain_identifier: 56,
+		native_coin_id: 'binancecoin',
+	},
+])
+
+export const coingeckoAssetPlatformsWire = (url: string, method: string) => (
+	method === 'GET'
+	&& url.includes('/asset_platforms')
+	&& (
+		url.includes('api.coingecko.com')
+		|| (url.includes('api-proxy') && url.includes('api.coingecko.com'))
+	)
+)
+
+export const MOCK_COINGECKO_ETHEREUM_COIN_BODY = JSON.stringify({
+	id: 'ethereum',
+	symbol: 'eth',
+	name: 'Ethereum',
+	asset_platform_id: null,
+	platforms: {},
+	detail_platforms: {
+		ethereum: {
+			decimal_place: 18,
+		},
+	},
+	market_data: {
+		current_price: {
+			usd: 3000,
+		},
+		market_cap: {
+			usd: 360000000000,
+		},
+		market_cap_rank: 2,
+		total_volume: {
+			usd: 12000000000,
+		},
+		last_updated: '2026-01-01T00:00:00.000Z',
+	},
+})
+
+export const coingeckoEthereumCoinWire = (url: string, method: string) => (
+	method === 'GET'
+	&& url.includes('/coins/ethereum')
+	&& (
+		url.includes('api.coingecko.com')
+		|| (url.includes('api-proxy') && url.includes('api.coingecko.com'))
+	)
+)
+
 export const tradingViewCryptoScanWire = (url: string, method: string) => (
 	method === 'POST'
 	&& url.includes('/crypto/scan')
@@ -1704,8 +1726,211 @@ export const tradingViewCryptoScanWire = (url: string, method: string) => (
 	)
 )
 
+export const openchainSignatureWire = (url: string, method: string) => (
+	method === 'GET'
+	&& url.includes('/signature-database/v1/lookup')
+	&& (
+		url.includes('api.4byte.sourcify.dev')
+		|| (url.includes('api-proxy') && url.includes('api.4byte.sourcify.dev'))
+	)
+)
+
+export const openchainDirectoryWire = (url: string, method: string) => (
+	method === 'GET'
+	&& (
+		url.includes('/api/v1/signatures/')
+		|| url.includes('/api/v1/event-signatures/')
+	)
+	&& (
+		url.includes('www.4byte.directory')
+		|| (url.includes('api-proxy') && url.includes('www.4byte.directory'))
+	)
+)
+
+export const openchainSignatureBody = (url: string) => {
+	const decodedUrl = decodeURIComponent(url)
+	return JSON.stringify({
+		ok: true,
+		result: {
+			function: {
+				'0xa9059cbb': [
+					{ name: 'transfer(address,uint256)' },
+				],
+			},
+			event: {
+				'0x000000000000000000000000000000000000000000000000000000000a9059cbb': [
+					{ name: 'Transfer(address,address,uint256)' },
+				],
+			},
+			error: decodedUrl.includes('function=') ?
+				{
+					'0xa9059cbb': [
+						{ name: 'TransferFailed(address,uint256)' },
+					],
+				}
+			:
+				{},
+		},
+	})
+}
+
+export const MOCK_OPENCHAIN_DIRECTORY_BODY = JSON.stringify({
+	results: [
+		{
+			text_signature: 'Transfer(address,address,uint256)',
+		},
+	],
+})
+
+export const MOCK_FARCASTER_ALL_CHANNELS_BODY = JSON.stringify({
+	result: {
+		channels: [
+			{
+				id: 'ethereum',
+				name: 'Ethereum',
+				url: 'https://warpcast.com/~/channel/ethereum',
+				description: 'E2E Ethereum channel',
+			},
+			{
+				id: 'developers',
+				name: 'Developers',
+				url: 'https://warpcast.com/~/channel/developers',
+				description: 'E2E Developers channel',
+			},
+		],
+	},
+	next: {},
+})
+
+export const MOCK_FARCASTER_CHANNEL_BODY = JSON.stringify({
+	result: {
+		channel: {
+			id: 'ethereum',
+			name: 'Ethereum',
+			url: 'https://warpcast.com/~/channel/ethereum',
+			description: 'E2E Ethereum channel',
+		},
+	},
+})
+
+export const MOCK_FARCASTER_USER_THREAD_CASTS_BODY = JSON.stringify({
+	result: {
+		casts: [
+			{
+				hash: '0xe4f2e1c70d72388a98dba2a2511a9b480840e544',
+				threadHash: '0xe4f2e1c70d72388a98dba2a2511a9b480840e544',
+				author: {
+					fid: 3,
+					username: 'dwr',
+				},
+				text: 'E2E Farcaster cast',
+				timestamp: 1_700_000_000,
+				replies: {
+					count: 0,
+				},
+				reactions: {
+					count: 0,
+				},
+				recasts: {
+					count: 0,
+				},
+				quoteCount: 0,
+			},
+		],
+	},
+})
+
+export const MOCK_FARCASTER_CHANNEL_FOLLOWERS_BODY = JSON.stringify({
+	result: {
+		users: [
+			{
+				fid: 3,
+				followedAt: 1_700_000_000,
+			},
+		],
+	},
+	next: {},
+})
+
+export const MOCK_FARCASTER_CHANNEL_MEMBERS_BODY = JSON.stringify({
+	result: {
+		members: [
+			{
+				fid: 3,
+				memberAt: 1_700_000_000,
+			},
+		],
+	},
+	next: {},
+})
+
+export const MOCK_FARCASTER_USER_FOLLOWING_CHANNELS_BODY = JSON.stringify({
+	result: {
+		channels: [
+			{
+				id: 'memes',
+				name: 'Memes',
+				url: 'https://warpcast.com/~/channel/memes',
+				description: 'E2E Memes channel',
+			},
+		],
+	},
+	next: {},
+})
+
+export const farcasterRestWire = (url: string, method: string) => (
+	method === 'GET'
+	&& (
+		url.includes('api.farcaster.xyz')
+		|| url.includes('farcaster.xyz')
+		|| (url.includes('api-proxy') && url.includes('farcaster'))
+	)
+)
+
+export const snapchainRestWire = (url: string, method: string) => (
+	method === 'GET'
+	&& (
+		url.includes('hub.pinata.cloud/v1/')
+		|| url.includes('snap.farcaster.xyz')
+		|| url.includes('pop.farcaster.xyz')
+		|| url.includes('haatz.quilibrium.com')
+		|| (url.includes('api-proxy') && (
+			url.includes('hub.pinata.cloud')
+			|| url.includes('snap.farcaster.xyz')
+			|| url.includes('pop.farcaster.xyz')
+			|| url.includes('haatz.quilibrium.com')
+		))
+	)
+)
+
+const snapchainPageBody = JSON.stringify({ messages: [] })
+const snapchainFidsBody = JSON.stringify({ fids: [3, 2] })
+const snapchainUsernameProofsBody = JSON.stringify({
+	proofs: [
+		{ name: 'e2e' },
+	],
+})
+const snapchainCast = {
+	hash: '0xe4f2e1c70d72388a98dba2a2511a9b480840e544',
+	data: {
+		fid: 3,
+		timestamp: 1_700_000_000,
+		castAddBody: {
+			text: 'E2E Snapchain cast',
+			mentions: [],
+			embeds: [],
+		},
+	},
+}
+const snapchainCastBody = JSON.stringify(snapchainCast)
+const snapchainCastPageBody = JSON.stringify({
+	messages: [
+		snapchainCast,
+	],
+})
+
 /**
-	* Stubs Chainlist `rpcs.json`, ethereum-lists `chains.json`, L2Beat scaling summary, TradingView crypto scan, and public IPFS gateway GETs.
+	* Stubs Chainlist `rpcs.json`, ethereum-lists `chains.json`, Coingecko asset platforms, L2Beat scaling summary, TradingView crypto scan, Openchain signature lookups, Farcaster/Snapchain public reads, and public IPFS gateway GETs.
 	* One-off real catalog runs: `E2E_USE_E2E_HTTP_STUBS=0 pnpm exec playwright test …` (OPFS / warm-reload tests may need the stub).
 	*/
 export const installChainlistRpcsJsonStub = async (page: Page) => {
@@ -1754,6 +1979,22 @@ export const installChainlistRpcsJsonStub = async (page: Page) => {
 			})
 			return
 		}
+		if (coingeckoAssetPlatformsWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: MOCK_COINGECKO_ASSET_PLATFORMS_BODY,
+			})
+			return
+		}
+		if (coingeckoEthereumCoinWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: MOCK_COINGECKO_ETHEREUM_COIN_BODY,
+			})
+			return
+		}
 		if (tradingViewCryptoScanWire(url, method)) {
 			let tickers: string[] = []
 			try {
@@ -1779,6 +2020,83 @@ export const installChainlistRpcsJsonStub = async (page: Page) => {
 			})
 			return
 		}
+		if (openchainSignatureWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: openchainSignatureBody(url),
+			})
+			return
+		}
+		if (openchainDirectoryWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: MOCK_OPENCHAIN_DIRECTORY_BODY,
+			})
+			return
+		}
+		if (farcasterRestWire(url, method)) {
+			const decodedUrl = decodeURIComponent(url)
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: (
+					decodedUrl.includes('/~api/v2/user-thread-casts') ?
+						MOCK_FARCASTER_USER_THREAD_CASTS_BODY
+					:
+					decodedUrl.includes('/v1/channel-followers') ?
+						MOCK_FARCASTER_CHANNEL_FOLLOWERS_BODY
+					:
+					decodedUrl.includes('/v1/channel-members') ?
+						MOCK_FARCASTER_CHANNEL_MEMBERS_BODY
+					:
+					decodedUrl.includes('/v1/user-following-channels') ?
+						MOCK_FARCASTER_USER_FOLLOWING_CHANNELS_BODY
+					:
+						decodedUrl.includes('/v2/all-channels') ?
+						MOCK_FARCASTER_ALL_CHANNELS_BODY
+					:
+						decodedUrl.includes('/v1/channel') ?
+							MOCK_FARCASTER_CHANNEL_BODY
+						:
+							decodedUrl.includes('/fc/primary-address') ?
+								JSON.stringify({ result: { address: {} } })
+							:
+								JSON.stringify({ result: {} })
+				),
+			})
+			return
+		}
+		if (snapchainRestWire(url, method)) {
+			const decodedUrl = decodeURIComponent(url)
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: (
+					decodedUrl.includes('/v1/castById') ?
+						snapchainCastBody
+					:
+						(
+							decodedUrl.includes('/v1/castsByFid')
+							|| decodedUrl.includes('/v1/castsByParent')
+						) ?
+							snapchainCastPageBody
+					:
+					decodedUrl.includes('/v1/fids') ?
+						snapchainFidsBody
+					:
+						decodedUrl.includes('/v1/userNameProofsByFid') ?
+							snapchainUsernameProofsBody
+						:
+							decodedUrl.includes('/v1/onChainEventsByFid') ?
+								JSON.stringify({ events: [] })
+							:
+								snapchainPageBody
+				),
+			})
+			return
+		}
 		await route.continue()
 	})
 }
@@ -1791,10 +2109,10 @@ export const assertMainSettled = async (
 	await expectMainVisible(page, timeoutMs, diagnostics)
 	const snapshot = await waitForBoundarySettle(page, { timeoutMs })
 	expect(
-		snapshot.failed.map((row) => `${row.key ?? 'unknown'}: ${row.message}`)
+		snapshot.failed.map((row) => `${row.key ?? 'unknown'}: ${row.message}${row.context ? ` (${row.context})` : ''}`)
 		).toEqual([])
 	expect(
-		snapshot.loading.map((row) => `${row.key ?? 'unknown'}: ${row.message}`)
+		snapshot.loading.map((row) => `${row.key ?? 'unknown'}: ${row.message}${row.context ? ` (${row.context})` : ''}`)
 		).toEqual([])
 	expect(
 		snapshot.empty ?
@@ -1846,11 +2164,12 @@ export const blockStreamBlocksConsoleEvent = (page: Page, timeoutMs = 90_000) =>
 )
 
 /**
-	* HTTP JSON-RPC URL aligned with app `voltaireJsonRpcUrlWithTransportForChain`.
+	* HTTP JSON-RPC URL aligned with app `voltaireJsonRpcTransportWithOriginsByChainId`.
 	* Playwright preflight uses `fetch` only, so WebSocket-only chains cannot use this probe.
 	*/
 export const publicJsonRpcHttpUrlForChainE2e = async (chainId: number) => {
-	const t = voltaireJsonRpcUrlWithTransportForChain(chainId)
+	const t = Object.entries(voltaireJsonRpcTransportWithOriginsByChainId)
+		.find(([candidateChainId]) => Number(candidateChainId) === chainId)?.[1]
 	if (t == null) return null
 	if (t.transportType === TransportType.Http) return t.rpcUrl
 	return null

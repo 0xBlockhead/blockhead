@@ -157,11 +157,11 @@ const listEventsFromRelays = async (filter: {
  * GET /v0/events/e/{id}
  */
 export const getEventById = async (eventId: string) => (
-	await getEventByIdFromRelays(eventId.trim().toLowerCase())
+	await getEventByIdFromRelays(eventId.toLowerCase())
 		.then((event) => ({ event }))
 		.catch(async () => (
 			await nostrBandGet<NostrBandEventById>(
-				`/events/e/${encodeURIComponent(eventId.trim().toLowerCase())}`
+				`/events/e/${encodeURIComponent(eventId.toLowerCase())}`
 			)
 		))
 )
@@ -171,7 +171,7 @@ export const getEventById = async (eventId: string) => (
  */
 export const getProfileByPubkey = async (pubkey: string) => (
 	nostrBandGet<NostrBandProfileSearch>(
-		`/users/profile/${encodeURIComponent(pubkey.trim().toLowerCase())}`
+		`/users/profile/${encodeURIComponent(pubkey.toLowerCase())}`
 	)
 )
 
@@ -238,7 +238,7 @@ export const listRecentArticles = async (limit: number) => (
  */
 export const listAuthorTextNotes = async (pubkey: string, limit: number) => (
 	nostrBandGet<NostrBandRecentEvents>(
-		`/events/authors/${encodeURIComponent(pubkey.trim().toLowerCase())}`,
+		`/events/authors/${encodeURIComponent(pubkey.toLowerCase())}`,
 		{
 			limit: clampNostrBandLimit(limit),
 			kinds: '1',
@@ -251,7 +251,7 @@ export const listAuthorTextNotes = async (pubkey: string, limit: number) => (
  */
 export const listAuthorReposts = async (pubkey: string, limit: number) => (
 	nostrBandGet<NostrBandEventsList>(
-		`/events/authors/${encodeURIComponent(pubkey.trim().toLowerCase())}`,
+		`/events/authors/${encodeURIComponent(pubkey.toLowerCase())}`,
 		{
 			limit: clampNostrBandLimit(limit),
 			kinds: '6',
@@ -265,7 +265,7 @@ export const listAuthorReposts = async (pubkey: string, limit: number) => (
 export const listAuthorArticles = async (pubkey: string, limit: number) => (
 	await listEventsFromRelays({
 		authors: [
-			pubkey.trim().toLowerCase(),
+			pubkey.toLowerCase(),
 		],
 		limit,
 		kinds: [
@@ -275,7 +275,7 @@ export const listAuthorArticles = async (pubkey: string, limit: number) => (
 		(events) => ({ events }),
 		async () => (
 			await nostrBandGet<NostrBandEventsList>(
-				`/events/authors/${encodeURIComponent(pubkey.trim().toLowerCase())}`,
+				`/events/authors/${encodeURIComponent(pubkey.toLowerCase())}`,
 				{
 					limit: clampNostrBandLimit(limit),
 					kinds: '30023',
@@ -290,7 +290,7 @@ export const listAuthorArticles = async (pubkey: string, limit: number) => (
  */
 export const listNoteReplies = async (eventId: string, limit: number) => (
 	nostrBandGet<NostrBandEventsList>(
-		`/events/e/${encodeURIComponent(eventId.trim().toLowerCase())}/reply`,
+		`/events/e/${encodeURIComponent(eventId.toLowerCase())}/reply`,
 		{
 			kinds: '1',
 			limit: clampNostrBandLimit(limit),
@@ -303,7 +303,7 @@ export const listNoteReplies = async (eventId: string, limit: number) => (
  */
 export const listNoteReactions = async (eventId: string, limit: number) => (
 	nostrBandGet<NostrBandEventsList>(
-		`/events/e/${encodeURIComponent(eventId.trim().toLowerCase())}/related`,
+		`/events/e/${encodeURIComponent(eventId.toLowerCase())}/related`,
 		{
 			limit: clampNostrBandLimit(limit),
 			kinds: '7',

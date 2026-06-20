@@ -10,7 +10,7 @@
 	let { children } = $props()
 
 	const eventId = $derived(
-		decodeURIComponent(page.params.eventId ?? '').trim().toLowerCase(),
+		decodeURIComponent(page.params.eventId ?? '').toLowerCase(),
 	)
 
 

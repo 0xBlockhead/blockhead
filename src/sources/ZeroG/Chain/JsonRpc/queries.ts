@@ -100,3 +100,19 @@ export const getTransactionReceipt = ({
 		params: [txHash],
 	})
 )
+
+export const getCode = ({
+	address,
+	blockNumber = 'latest',
+}: {
+	address: `0x${string}`
+	blockNumber?: bigint | 'latest'
+}) => (
+	zeroGJsonRpc<`0x${string}`>({
+		method: 'eth_getCode',
+		params: [
+			address,
+			quantityHex(blockNumber),
+		],
+	})
+)

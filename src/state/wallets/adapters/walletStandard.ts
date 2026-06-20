@@ -35,13 +35,6 @@ export const createWalletStandardAdapter = (): WalletAdapter => ({
 				transportKind: WalletTransportKind.InjectedSigner,
 				capabilities: [
 					WalletCapability.Discover,
-					WalletCapability.Connect,
-					WalletCapability.Reconnect,
-					WalletCapability.ListAccounts,
-					WalletCapability.WatchAccounts,
-					WalletCapability.SignMessage,
-					WalletCapability.SignTransaction,
-					WalletCapability.SendTransaction,
 				],
 			}))
 		)

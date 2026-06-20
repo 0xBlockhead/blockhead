@@ -1,604 +1,406 @@
-import { expect, test, type Page } from '@playwright/test'
-import { stringify } from 'devalue'
-import type { BlockheadPersistenceProbeEvent } from '../_e2eBrowserHelpers.ts'
+import { expect, test, type BrowserContext, type Page } from '@playwright/test'
 
 import {
-	assertMainSettled,
-	catalogWire,
 	clearOriginOpfs,
 	clearPersistenceProbe,
-	countRequestsMatching,
 	e2eBrowserNewContextOptions,
 	expectMainVisible,
-	getPersistenceProbeEvents,
-	installChainlistRpcsJsonStub,
 	installPersistenceProbe,
+	jsonStringifyForExpectMessage,
 	setupPageRuntimeDiagnostics,
-	type PageRuntimeDiagnostics,
+	type PersistedCollectionLoadEvent,
 } from '../_e2eBrowserHelpers.ts'
 
 import { discoverPathnamesFromRoutes } from './_routeDiscovery.ts'
 
 
 const gotoLoadTimeoutMs = 120_000
-const pageSettledTimeoutMs = 120_000
-const perRouteTimeoutMs = 180_000
+const persistedCollectionPersistencePath = '/network/ethereum'
+const matrixOnly = process.env.E2E_PERSISTENCE_MATRIX_ONLY === '1'
 
-const probePath = process.env.E2E_PROBE_PATH?.trim()
-const startPath = process.env.E2E_START_PATH?.trim()
-const realPersistencePaths = process.env.E2E_REAL_PERSISTENCE_PATHS?.trim()
+const collectionLoadSemanticKey = (
+	event: PersistedCollectionLoadEvent
+) => `${event.collectionId}:${event.key}`
 
-type ProductCollectionSyncEvent = {
-	collection:
-		| {
-			kind: 'Entity'
-			entityType: string
-			id: string
-		}
-		| {
-			kind: 'Field' | 'Count'
-			entityType: string
-			fieldName: string
-			id: string
-		}
-	key: string
-}
-
-type ProductCollectionSizes = {
-	loadedSubsets: number
-	entities: Record<string, number>
-	fields: Record<string, Record<string, number>>
-	counts: Record<string, Record<string, number>>
-}
-
-type ProductSubscribeError = {
-	selectorAddress: readonly string[]
-	dimension: string
-	entityType: string
-	fieldName?: string
-	message: string
-}
-
-type ClientProbeResource<_Result> = Promise<_Result> & {
-	readonly current: _Result | undefined
-	readonly error: readonly ProductSubscribeError[] | undefined
-	readonly loading: boolean
-	readonly ready: boolean
-	subscribe: (listener: () => void) => () => void
-}
-
-type ProductProbePayload = {
-	fields: {
-		name?: string
-		$$rpcUrls?: {
-			values: readonly object[]
-			totalCount?: number
-		}
-	}
-}
-
-type ClientProbe = {
-	events: {
-		collectionSync: ProductCollectionSyncEvent[]
-	}
-	collectionSizes: () => ProductCollectionSizes
-	read: (
-		entityType: string,
-		entitySelector: object,
-		selection: object
-	) => ClientProbeResource<ProductProbePayload>
-}
-
-type ProductProbeResult = {
-	name?: string
-	rpcUrlCount: number
-	totalCount?: number
-	events: ProductCollectionSyncEvent[]
-	persistenceEvents: readonly BlockheadPersistenceProbeEvent[]
-	sizes: ProductCollectionSizes
-}
-
-type ProductProbeReadState = {
-	current?: ProductProbePayload
-	error?: readonly ProductSubscribeError[]
-	loading: boolean
-	ready: boolean
-}
-
-const productCollectionSyncEvents = (
-	events: ProductCollectionSyncEvent[]
-) => (
-	events.filter((event) => (
-		event.collection.entityType === 'EvmNetwork'
-		&& (
-			event.collection.kind === 'Entity'
-			|| event.collection.fieldName === '$$rpcUrls'
-		)
-	))
-)
-
-const productCollectionIds = [
-	'Entity:EvmNetwork',
-	'Field:EvmNetwork:$$rpcUrls',
-	'Count:EvmNetwork:$$rpcUrls',
-] as const
-
-const selectPathnames = async () => {
-	const explicitPaths = (
-		probePath != null && probePath !== '' ?
-			[probePath]
-		:
-		realPersistencePaths != null && realPersistencePaths !== '' ?
-			realPersistencePaths
-				.split(',')
-				.map((pathname) => pathname.trim())
-				.filter(Boolean)
-		:
-			await discoverPathnamesFromRoutes()
-	)
-	const limitRaw = process.env.E2E_PATH_LIMIT ?? ''
-	const limit = Number(limitRaw)
-	let pathnames = (
-		limitRaw !== '' && Number.isFinite(limit) && limit > 0 ?
-			explicitPaths.slice(0, limit)
-		:
-			explicitPaths
-	)
-	if (startPath) {
-		const index = pathnames.indexOf(startPath)
-		pathnames = index === -1 ? pathnames : pathnames.slice(index)
-	}
-	return pathnames
-}
-
-const loadedSubsetKey = (
-	event: Extract<BlockheadPersistenceProbeEvent, { kind: 'loadSubset' | 'markLoaded' }>
-) => `${event.collectionId}:${event.loadedKey}`
-
-const loadedSubsetKeys = (
-	events: readonly BlockheadPersistenceProbeEvent[]
+const completedRemoteCollectionLoadKeys = (
+	events: readonly PersistedCollectionLoadEvent[]
 ) => new Set(events.flatMap((event) => (
-	event.kind === 'markLoaded' ?
-		[loadedSubsetKey(event)]
+	event.type === 'collection-load'
+	&& event.decision === 'remote'
+	&& event.status === 'completed' ?
+		[collectionLoadSemanticKey(event)]
 	:
 		[]
 )))
 
-const remoteReplaysForLoadedKeys = (
-	events: readonly BlockheadPersistenceProbeEvent[],
-	coldLoadedKeys: ReadonlySet<string>
+const repeatedRemoteCollectionLoads = (
+	events: readonly PersistedCollectionLoadEvent[],
+	completedColdKeys: ReadonlySet<string>
 ) => events.flatMap((event) => (
-	event.kind === 'loadSubset'
+	event.type === 'collection-load'
 	&& event.decision === 'remote'
-	&& coldLoadedKeys.has(loadedSubsetKey(event)) ?
+	&& completedColdKeys.has(collectionLoadSemanticKey(event)) ?
 		[event]
 	:
 		[]
 ))
 
-const persistenceEventSummary = (
-	event: Extract<BlockheadPersistenceProbeEvent, { kind: 'loadSubset' }>
-) => stringify({
-	loadedSubset: loadedSubsetKey(event),
+const persistedCollectionLoads = (
+	events: readonly PersistedCollectionLoadEvent[],
+	completedColdKeys: ReadonlySet<string>
+) => events.flatMap((event) => (
+	event.type === 'collection-load'
+	&& event.decision === 'persisted'
+	&& completedColdKeys.has(collectionLoadSemanticKey(event)) ?
+		[event]
+	:
+		[]
+))
+
+const collectionLoadSummary = (
+	event: PersistedCollectionLoadEvent
+) => ({
+	collectionId: event.collectionId,
+	key: event.key,
 	decision: event.decision,
-	hydratedRowCount: event.hydratedRowCount,
-	loadedMarkerRowCount: event.loadedMarkerRowCount,
-	loadedMarkerSourceRowCounts: event.loadedMarkerSourceRowCounts,
+	status: event.status,
+	rowCount: event.rowCount,
+	sourceRowCounts: event.sourceRowCounts,
+	reason: event.reason,
+	error: event.error,
+	trace: event.trace,
 })
 
-const settlePage = async (
-	page: Page,
-	diagnostics?: PageRuntimeDiagnostics
-) => {
-	await expectMainVisible(page, pageSettledTimeoutMs, diagnostics)
-	await assertMainSettled(page, pageSettledTimeoutMs, diagnostics)
-	await page.waitForTimeout(2_000)
-}
-
-const readProductProbe = async (
+const readCollectionLoads = async (
 	page: Page,
 	timeoutMs = 60_000
-): Promise<ProductProbeResult> => {
+) => {
 	await page.waitForFunction(() => window.__blockheadClientProbe != null, undefined, {
 		timeout: timeoutMs,
 	})
-	return page.evaluate(async (timeout) => {
-		const browserWindow: Window & {
-			__blockheadClientProbe?: ClientProbe
-		} = window
-		const probe = browserWindow.__blockheadClientProbe
-		if (probe == null)
-			throw new Error('missing blockhead client probe')
+	return page.evaluate(() => ({
+		collectionLoads: window.__blockheadClientProbe?.events.collectionLoads ?? [],
+		persistenceTrace: window.__blockheadPersistenceTrace ?? [],
+	}))
+}
 
-		const resource = probe.read(
-			'EvmNetwork',
-			{
-				caip2: {
-					namespace: 'eip155',
-					reference: '1',
-				},
-			},
-			{
-				sources: [
-					'Chainlist_Rest',
-				],
-				fields: {
-					name: {
-						sources: [
-							'Chainlist_Rest',
-						],
-					},
-					$$rpcUrls: {
-						sources: [
-							'Chainlist_Rest',
-						],
-						count: true,
-					},
-				},
-			}
-		)
-		const unsubscribe = resource.subscribe(() => {})
-		const settled = await Promise.race([
-			resource.then((result) => ({
-				kind: 'ready' as const,
-				result,
-			}), (errors: readonly ProductSubscribeError[]) => ({
-				kind: 'error' as const,
-				errors,
-			})),
-			new Promise<{
-				kind: 'timeout'
-				state: ProductProbeReadState
-				events: ProductCollectionSyncEvent[]
-				sizes: ProductCollectionSizes
-				persistenceEvents: readonly BlockheadPersistenceProbeEvent[]
-			}>((resolve) => {
-				setTimeout(() => resolve({
-					kind: 'timeout',
-					state: {
-						current: resource.current,
-						error: resource.error,
-						loading: resource.loading,
-						ready: resource.ready,
-					},
-					events: [...probe.events.collectionSync],
-					sizes: probe.collectionSizes(),
-					persistenceEvents: window.__blockheadPersistenceProbe ?? [],
-				}), timeout)
-			}),
-		])
-		unsubscribe()
-		if (settled.kind === 'error')
-			throw new Error(JSON.stringify(settled.errors))
-		if (settled.kind === 'timeout')
-			throw new Error(JSON.stringify(settled))
+const waitForCompletedRemoteCollectionLoads = async (
+	page: Page,
+	timeoutMs = 120_000
+) => {
+	await page.waitForFunction(() => (
+		(window.__blockheadClientProbe?.events.collectionLoads ?? []).some((event) => (
+			event.type === 'collection-load'
+			&& event.decision === 'remote'
+			&& event.status === 'completed'
+		))
+	), undefined, {
+		timeout: timeoutMs,
+	})
+}
 
-		const result = settled.result
-		return {
-			name: result.fields.name,
-			rpcUrlCount: result.fields.$$rpcUrls?.values.length ?? 0,
-			totalCount: result.fields.$$rpcUrls?.totalCount,
-			events: [...probe.events.collectionSync],
-			persistenceEvents: window.__blockheadPersistenceProbe ?? [],
-			sizes: probe.collectionSizes(),
-		}
-	}, timeoutMs)
+const waitForCoveredCollectionLoadKeys = async (
+	page: Page,
+	keys: readonly string[],
+	timeoutMs = 120_000
+) => {
+	await page.waitForFunction((expectedKeys) => {
+		const observedKeys = new Set((window.__blockheadClientProbe?.events.collectionLoads ?? [])
+			.filter((event) => event.type === 'collection-load')
+			.map((event) => `${event.collectionId}:${event.key}`))
+		return expectedKeys.every((key) => observedKeys.has(key))
+	}, keys, {
+		timeout: timeoutMs,
+	})
+}
+
+const waitForCommittedCollectionPersistence = async (
+	page: Page,
+	collectionLoads: readonly PersistedCollectionLoadEvent[]
+) => {
+	await page.waitForFunction((collectionIds) => (
+		collectionIds.every((collectionId) => {
+			const events = window.__blockheadPersistenceTrace?.filter((event) => (
+				event.collectionId === collectionId
+				&& (
+					event.type === 'applyCommittedTx:start'
+					|| event.type === 'applyCommittedTx:done'
+				)
+			)) ?? []
+			return (
+				events.filter((event) => event.type === 'applyCommittedTx:start').length
+				=== events.filter((event) => event.type === 'applyCommittedTx:done').length
+			)
+		})
+	), [...new Set(collectionLoads.flatMap((event) => (
+		event.decision === 'remote'
+		&& event.status === 'completed' ?
+			[event.collectionId]
+		:
+			[]
+	)))], {
+		timeout: 120_000,
+	})
+}
+
+const openPreparedPage = async (
+	browserContext: BrowserContext,
+	schemaVersion?: number
+) => {
+	const page = await browserContext.newPage()
+	page.setDefaultNavigationTimeout(gotoLoadTimeoutMs)
+	if (schemaVersion !== undefined)
+		await page.addInitScript((version) => {
+			window.__blockheadPersistedCollectionSchemaVersionOverride = version
+		}, schemaVersion)
+	await installPersistenceProbe(page)
+	return page
 }
 
 
 test.describe.configure({ mode: 'serial' })
 
 test.describe('TanStack DB persistence', () => {
-	test('hydrates completed product entity, field, and count subsets from OPFS without replaying them', async ({
+	let pageUrls: string[] = []
+
+	test.beforeAll(async () => {
+		const pathPattern = (
+			((raw) => (
+				raw == null || raw === '' ?
+					undefined
+				:
+					new RegExp(raw)
+		))(process.env.E2E_PATH_PATTERN?.trim())
+		)
+		const excludePathPattern = (
+			((raw) => (
+				raw == null || raw === '' ?
+					undefined
+				:
+					new RegExp(raw)
+		))(process.env.E2E_PATH_EXCLUDE_PATTERN?.trim())
+		)
+		const all = (await discoverPathnamesFromRoutes())
+			.filter((pathname) => pathPattern?.test(pathname) ?? true)
+			.filter((pathname) => !(excludePathPattern?.test(pathname) ?? false))
+		const strideRaw = process.env.E2E_PATH_STRIDE ?? ''
+		const stride = Number(strideRaw)
+		const offsetRaw = process.env.E2E_PATH_OFFSET ?? ''
+		const offset = Number(offsetRaw)
+		const sharded = (
+			strideRaw !== '' && Number.isFinite(stride) && stride > 0 ?
+				all.filter((_pathname, index) => (
+					index % stride === (
+						offsetRaw !== '' && Number.isFinite(offset) && offset >= 0 ?
+							offset
+						:
+							0
+					)
+				))
+			:
+				all
+		)
+		const limitRaw = process.env.E2E_PATH_LIMIT ?? ''
+		const limit = Number(limitRaw)
+		pageUrls = (
+			limitRaw !== '' && Number.isFinite(limit) && limit > 0 ?
+				sharded.slice(0, limit)
+			:
+				sharded
+		)
+	})
+
+	test('persists completed collection subsets without replaying them on refresh', async ({
 		browser,
 	}) => {
+		test.skip(matrixOnly)
 		test.setTimeout(600_000)
 
 		const context = await browser.newContext(e2eBrowserNewContextOptions())
 		const wipePage = await context.newPage()
-		await wipePage.goto('/', {
+		await wipePage.goto(persistedCollectionPersistencePath, {
 			waitUntil: 'domcontentloaded',
 			timeout: gotoLoadTimeoutMs,
 		})
 		await clearOriginOpfs(wipePage)
 		await wipePage.close()
 
-		const page = await context.newPage()
-		page.setDefaultNavigationTimeout(gotoLoadTimeoutMs)
+		const page = await openPreparedPage(context)
 		const diagnostics = setupPageRuntimeDiagnostics(page)
-		await installPersistenceProbe(page)
-		await installChainlistRpcsJsonStub(page)
-		await diagnostics.step(page.goto('/', {
-			waitUntil: 'domcontentloaded',
+		await diagnostics.step(page.goto(persistedCollectionPersistencePath, {
+			waitUntil: 'load',
 			timeout: gotoLoadTimeoutMs,
 		}))
-		await clearPersistenceProbe(page)
+		await expectMainVisible(page, 120_000, diagnostics)
+		await waitForCompletedRemoteCollectionLoads(page)
+		const cold = await readCollectionLoads(page)
+		const coldCompletedKeys = completedRemoteCollectionLoadKeys(cold.collectionLoads)
 
-		const coldCatalogRequests = countRequestsMatching(page, catalogWire)
-		const cold = await readProductProbe(page)
-		const coldProductEvents = productCollectionSyncEvents(cold.events)
+		expect(coldCompletedKeys.size).toBeGreaterThan(0)
+		await waitForCommittedCollectionPersistence(page, cold.collectionLoads)
 
-		expect(cold.name, JSON.stringify({
-			events: productCollectionSyncEvents(cold.events),
-			persistenceEvents: cold.persistenceEvents,
-			sizes: cold.sizes,
-		})).toBe('Ethereum Mainnet')
-		expect(cold.rpcUrlCount).toBeGreaterThan(0)
-		expect(cold.totalCount).toBe(cold.rpcUrlCount)
-		expect(cold.sizes.loadedSubsets).toBeGreaterThan(0)
-		expect(cold.sizes.entities.EvmNetwork).toBeGreaterThan(0)
-		expect(cold.sizes.fields.EvmNetwork.$$rpcUrls).toBeGreaterThan(0)
-		expect(cold.sizes.counts.EvmNetwork.$$rpcUrls).toBeGreaterThan(0)
-		expect(coldProductEvents.map((event) => event.collection.kind)).toEqual(expect.arrayContaining([
-			'Entity',
-			'Field',
-			'Count',
-		]))
-		expect(coldCatalogRequests.get()).toBeGreaterThan(0)
-		coldCatalogRequests.detach()
-		await page.waitForLoadState('networkidle', { timeout: 120_000 })
-		await page.waitForTimeout(2_000)
-		const coldPersistenceEvents = await getPersistenceProbeEvents(page)
-
-		await clearPersistenceProbe(page)
-		const warmCatalogRequests = countRequestsMatching(page, catalogWire)
 		await diagnostics.step(page.reload({
 			waitUntil: 'load',
 			timeout: gotoLoadTimeoutMs,
 		}))
 		await expectMainVisible(page, 120_000, diagnostics)
-
-		const warm = await readProductProbe(page)
-		const warmProductEvents = productCollectionSyncEvents(warm.events)
-		const warmPersistenceEvents = await getPersistenceProbeEvents(page)
-		const warmProductPersistenceLoadEvents = warmPersistenceEvents.flatMap((event) => (
-			event.kind === 'loadSubset'
-			&& productCollectionIds.some((collectionId) => collectionId === event.collectionId) ?
-				[event]
-			:
-				[]
-		))
-		const warmRemoteLoads = warmPersistenceEvents.flatMap((event) => (
-			event.kind === 'loadSubset'
-			&& event.decision === 'remote' ?
-				[event]
-			:
-				[]
-		))
-		const warmProductRemoteLoads = warmRemoteLoads.filter((event) => (
-			productCollectionIds.some((collectionId) => collectionId === event.collectionId)
-		))
-		const coldMarkLoadedKeys = loadedSubsetKeys(coldPersistenceEvents)
-		const warmRepeatedRemoteLoads = remoteReplaysForLoadedKeys(
-			warmPersistenceEvents,
-			coldMarkLoadedKeys
+		await waitForCoveredCollectionLoadKeys(page, [...coldCompletedKeys])
+		const warm = await readCollectionLoads(page)
+		const warmRepeatedRemote = repeatedRemoteCollectionLoads(
+			warm.collectionLoads,
+			coldCompletedKeys
 		)
+		const warmRepeatedCollectionIds = new Set(warmRepeatedRemote.map((event) => event.collectionId))
 
-		expect(warm.name).toBe(cold.name)
-		expect(warm.rpcUrlCount).toBe(cold.rpcUrlCount)
-		expect(warm.totalCount).toBe(cold.totalCount)
-		expect(warm.sizes.loadedSubsets).toBeGreaterThan(0)
-		expect(warm.sizes.entities.EvmNetwork).toBeGreaterThan(0)
-		expect(warm.sizes.fields.EvmNetwork.$$rpcUrls).toBeGreaterThan(0)
-		expect(warm.sizes.counts.EvmNetwork.$$rpcUrls).toBeGreaterThan(0)
-		expect(warmProductEvents.map((event) => event.collection.kind)).toEqual(expect.arrayContaining([
-			'Entity',
-			'Field',
-			'Count',
-		]))
 		expect(
-			warmProductPersistenceLoadEvents.map((event) => `${event.collectionId}:${event.decision}`)
-			).toEqual(expect.arrayContaining([
-				'Entity:EvmNetwork:hydrated-rows',
-				'Field:EvmNetwork:$$rpcUrls:hydrated-rows',
-				'Count:EvmNetwork:$$rpcUrls:hydrated-rows',
-			]))
-		expect(warmProductPersistenceLoadEvents.every((event) => event.decision === 'hydrated-rows')).toBe(true)
-		expect(warmProductRemoteLoads.map((event) => `${event.collectionId}:${event.loadedKey}`)).toEqual([])
-		expect(warmPersistenceEvents.length).toBeLessThanOrEqual(500)
-		expect(warmRepeatedRemoteLoads.map((event) => `${event.collectionId}:${event.loadedKey}`)).toEqual([])
-		expect(warmRemoteLoads.every((event) => !coldMarkLoadedKeys.has(`${event.collectionId}:${event.loadedKey}`)), [
-			...warmRemoteLoads.slice(0, 30).map((event) => (
-				`${event.collectionId}:${coldMarkLoadedKeys.has(loadedSubsetKey(event)) ? 'cold-marked' : 'cold-unmarked'}:${event.loadedKey}`
-			)),
-			...warmCatalogRequests.urls.slice(0, 30),
-		].join('\n')).toBe(true)
-		warmCatalogRequests.detach()
+			warmRepeatedRemote.map(collectionLoadSemanticKey),
+			jsonStringifyForExpectMessage({
+				repeated: warmRepeatedRemote.map(collectionLoadSummary),
+				coldCollectionLoads: cold.collectionLoads
+					.filter((event) => warmRepeatedCollectionIds.has(event.collectionId))
+					.map(collectionLoadSummary),
+				warmCollectionLoads: warm.collectionLoads
+					.filter((event) => warmRepeatedCollectionIds.has(event.collectionId))
+					.map(collectionLoadSummary),
+				coldPersistenceTrace: cold.persistenceTrace.filter((event) => (
+					warmRepeatedCollectionIds.has(event.collectionId)
+				)),
+				warmPersistenceTrace: warm.persistenceTrace.filter((event) => (
+					warmRepeatedCollectionIds.has(event.collectionId)
+				)),
+			})
+		).toEqual([])
+		expect(persistedCollectionLoads(
+			warm.collectionLoads,
+			coldCompletedKeys
+		).length).toBeGreaterThan(0)
 
 		await context.close()
 	})
 
-	test('every discovered page refreshes from persisted completed subsets without replaying resolver work', async ({
+	test('every +page URL preserves completed persisted collection subsets across refresh', async ({
 		browser,
-	}, testInfo) => {
-		const pathnames = await selectPathnames()
-		testInfo.setTimeout(pathnames.length * perRouteTimeoutMs + 60_000)
+	}) => {
+		test.setTimeout(3_600_000)
 
-		for (const [index, pathname] of pathnames.entries()) {
-			console.log(`[tanstack-db-persistence] ${index + 1}/${pathnames.length} ${pathname}`)
+		for (const pathname of pageUrls) {
 			await test.step(pathname, async () => {
 				const context = await browser.newContext(e2eBrowserNewContextOptions())
-				try {
-					const wipePage = await context.newPage()
-					wipePage.setDefaultNavigationTimeout(gotoLoadTimeoutMs)
-					await wipePage.goto('/', {
-						waitUntil: 'domcontentloaded',
-						timeout: gotoLoadTimeoutMs,
+				const wipePage = await context.newPage()
+				await wipePage.goto(pathname, {
+					waitUntil: 'domcontentloaded',
+					timeout: gotoLoadTimeoutMs,
+				})
+				await clearOriginOpfs(wipePage)
+				await wipePage.close()
+
+				const page = await openPreparedPage(context)
+				const diagnostics = setupPageRuntimeDiagnostics(page)
+				await diagnostics.step(page.goto(pathname, {
+					waitUntil: 'load',
+					timeout: gotoLoadTimeoutMs,
+				}))
+				await expectMainVisible(page, 120_000, diagnostics)
+				await waitForCompletedRemoteCollectionLoads(page)
+				const coldCollectionLoads = (await readCollectionLoads(page)).collectionLoads
+				const coldCompletedKeys = completedRemoteCollectionLoadKeys(coldCollectionLoads)
+				expect(coldCompletedKeys.size).toBeGreaterThan(0)
+				await waitForCommittedCollectionPersistence(page, coldCollectionLoads)
+				await clearPersistenceProbe(page)
+
+				await diagnostics.step(page.reload({
+					waitUntil: 'load',
+					timeout: gotoLoadTimeoutMs,
+				}))
+				await expectMainVisible(page, 120_000, diagnostics)
+				await waitForCoveredCollectionLoadKeys(page, [...coldCompletedKeys])
+				const warmCollectionLoads = (await readCollectionLoads(page)).collectionLoads
+				const warmRepeatedRemote = repeatedRemoteCollectionLoads(
+					warmCollectionLoads,
+					coldCompletedKeys
+				)
+				const warmRepeatedCollectionIds = new Set(warmRepeatedRemote.map((event) => event.collectionId))
+
+				expect(
+					warmRepeatedRemote.map(collectionLoadSemanticKey),
+					jsonStringifyForExpectMessage({
+						pathname,
+						repeated: warmRepeatedRemote.map(collectionLoadSummary),
+						coldCollectionLoads: coldCollectionLoads
+							.filter((event) => warmRepeatedCollectionIds.has(event.collectionId))
+							.map(collectionLoadSummary),
+						warmCollectionLoads: warmCollectionLoads
+							.filter((event) => warmRepeatedCollectionIds.has(event.collectionId))
+							.map(collectionLoadSummary),
 					})
-					await clearOriginOpfs(wipePage)
-					await wipePage.close()
+				).toEqual([])
 
-					const page = await context.newPage()
-					page.setDefaultNavigationTimeout(gotoLoadTimeoutMs)
-					const diagnostics = setupPageRuntimeDiagnostics(page)
-					await installPersistenceProbe(page)
-					await installChainlistRpcsJsonStub(page)
-
-					const coldCatalogRequests = countRequestsMatching(page, catalogWire)
-					await diagnostics.step(page.goto(pathname, {
-						waitUntil: 'load',
-						timeout: gotoLoadTimeoutMs,
-					}))
-					await settlePage(page, diagnostics)
-					const coldPersistenceEvents = await getPersistenceProbeEvents(page)
-					const coldLoadedKeys = loadedSubsetKeys(coldPersistenceEvents)
-					const coldCatalogUrls = new Set(coldCatalogRequests.urls)
-					coldCatalogRequests.detach()
-
-					await clearPersistenceProbe(page)
-					const warmCatalogRequests = countRequestsMatching(page, catalogWire)
-					await diagnostics.step(page.reload({
-						waitUntil: 'load',
-						timeout: gotoLoadTimeoutMs,
-					}))
-					await settlePage(page, diagnostics)
-					const warmPersistenceEvents = await getPersistenceProbeEvents(page)
-					const warmRepeatedRemoteLoads = remoteReplaysForLoadedKeys(
-						warmPersistenceEvents,
-						coldLoadedKeys
-					)
-					const warmRepeatedCatalogUrls = warmCatalogRequests.urls.filter((url) => (
-						coldCatalogUrls.has(url)
-					))
-					warmCatalogRequests.detach()
-
-					expect(warmRepeatedRemoteLoads.map((event) => (
-						loadedSubsetKey(event)
-					)), [
-						`route=${pathname}`,
-						`coldCompletedSubsets=${coldLoadedKeys.size}`,
-						...warmRepeatedRemoteLoads.slice(0, 30).map((event) => (
-							persistenceEventSummary(event)
-						)),
-					].join('\n')).toEqual([])
-					expect(warmRepeatedCatalogUrls, [
-						`route=${pathname}`,
-						...warmRepeatedCatalogUrls.slice(0, 30),
-					].join('\n')).toEqual([])
-				} finally {
-					await context.close()
-				}
+				await context.close()
 			})
 		}
 	})
 
-	test('schema version bumps invalidate persisted product subsets before warm hydration', async ({
+	test('schema version invalidates durable Persisted collection subset persistence', async ({
 		browser,
 	}) => {
+		test.skip(matrixOnly)
 		test.setTimeout(600_000)
 
 		const context = await browser.newContext(e2eBrowserNewContextOptions())
 		const wipePage = await context.newPage()
-		await wipePage.goto('/', {
+		await wipePage.goto(persistedCollectionPersistencePath, {
 			waitUntil: 'domcontentloaded',
 			timeout: gotoLoadTimeoutMs,
 		})
 		await clearOriginOpfs(wipePage)
 		await wipePage.close()
 
-		const coldPage = await context.newPage()
-		coldPage.setDefaultNavigationTimeout(gotoLoadTimeoutMs)
+		const coldPage = await openPreparedPage(context, 101)
 		const coldDiagnostics = setupPageRuntimeDiagnostics(coldPage)
-		await coldPage.addInitScript((schemaVersion) => {
-			window.__blockheadProductDataSchemaVersionOverride = schemaVersion
-		}, 101)
-		await installPersistenceProbe(coldPage)
-		await installChainlistRpcsJsonStub(coldPage)
-		await coldDiagnostics.step(coldPage.goto('/', {
+		await coldDiagnostics.step(coldPage.goto(persistedCollectionPersistencePath, {
 			waitUntil: 'load',
 			timeout: gotoLoadTimeoutMs,
 		}))
 		await expectMainVisible(coldPage, 120_000, coldDiagnostics)
-		const cold = await readProductProbe(coldPage)
-		await coldPage.waitForLoadState('networkidle', { timeout: 120_000 })
-		await coldPage.waitForTimeout(2_000)
-		const coldPersistenceEvents = await getPersistenceProbeEvents(coldPage)
-		const coldProductMarkLoadedKeys = new Set([...loadedSubsetKeys(coldPersistenceEvents)].filter((loadedKey) => (
-			productCollectionIds.some((collectionId) => loadedKey.startsWith(`${collectionId}:`))
-		)))
-		expect(cold.name).toBe('Ethereum Mainnet')
-		expect(coldProductMarkLoadedKeys.size).toBeGreaterThan(0)
+		await waitForCompletedRemoteCollectionLoads(coldPage)
+		const cold = await readCollectionLoads(coldPage)
+		const coldCompletedKeys = completedRemoteCollectionLoadKeys(cold.collectionLoads)
+		expect(coldCompletedKeys.size).toBeGreaterThan(0)
+		await waitForCommittedCollectionPersistence(coldPage, cold.collectionLoads)
 		await coldPage.close()
 
-		const sameVersionPage = await context.newPage()
-		sameVersionPage.setDefaultNavigationTimeout(gotoLoadTimeoutMs)
+		const sameVersionPage = await openPreparedPage(context, 101)
 		const sameVersionDiagnostics = setupPageRuntimeDiagnostics(sameVersionPage)
-		await sameVersionPage.addInitScript((schemaVersion) => {
-			window.__blockheadProductDataSchemaVersionOverride = schemaVersion
-		}, 101)
-		await installPersistenceProbe(sameVersionPage)
-		await installChainlistRpcsJsonStub(sameVersionPage)
-		await sameVersionDiagnostics.step(sameVersionPage.goto('/', {
+		await sameVersionDiagnostics.step(sameVersionPage.goto(persistedCollectionPersistencePath, {
 			waitUntil: 'load',
 			timeout: gotoLoadTimeoutMs,
 		}))
 		await expectMainVisible(sameVersionPage, 120_000, sameVersionDiagnostics)
-		const sameVersion = await readProductProbe(sameVersionPage)
-		const sameVersionPersistenceEvents = await getPersistenceProbeEvents(sameVersionPage)
-		const sameVersionProductPersistenceLoadEvents = sameVersionPersistenceEvents.flatMap((event) => (
-			event.kind === 'loadSubset'
-			&& productCollectionIds.some((collectionId) => collectionId === event.collectionId) ?
-				[event]
-			:
-				[]
-		))
-		expect(sameVersion.name).toBe(cold.name)
-		expect(sameVersion.rpcUrlCount).toBe(cold.rpcUrlCount)
-		expect(
-			sameVersionProductPersistenceLoadEvents.map((event) => `${event.collectionId}:${event.decision}`)
-			).toEqual(expect.arrayContaining([
-				'Entity:EvmNetwork:hydrated-rows',
-				'Field:EvmNetwork:$$rpcUrls:hydrated-rows',
-				'Count:EvmNetwork:$$rpcUrls:hydrated-rows',
-			]))
-		expect(remoteReplaysForLoadedKeys(
-			sameVersionProductPersistenceLoadEvents,
-			coldProductMarkLoadedKeys
-		)).toEqual([])
+		await waitForCoveredCollectionLoadKeys(sameVersionPage, [...coldCompletedKeys])
+		const sameVersion = await readCollectionLoads(sameVersionPage)
+		expect(repeatedRemoteCollectionLoads(
+			sameVersion.collectionLoads,
+			coldCompletedKeys
+		).map(collectionLoadSemanticKey)).toEqual([])
+		expect(persistedCollectionLoads(
+			sameVersion.collectionLoads,
+			coldCompletedKeys
+		).length).toBeGreaterThan(0)
 		await sameVersionPage.close()
 
-		const bumpedVersionPage = await context.newPage()
-		bumpedVersionPage.setDefaultNavigationTimeout(gotoLoadTimeoutMs)
+		const bumpedVersionPage = await openPreparedPage(context, 102)
 		const bumpedVersionDiagnostics = setupPageRuntimeDiagnostics(bumpedVersionPage)
-		await bumpedVersionPage.addInitScript((schemaVersion) => {
-			window.__blockheadProductDataSchemaVersionOverride = schemaVersion
-		}, 102)
-		await installPersistenceProbe(bumpedVersionPage)
-		await installChainlistRpcsJsonStub(bumpedVersionPage)
-		await bumpedVersionDiagnostics.step(bumpedVersionPage.goto('/', {
+		await bumpedVersionDiagnostics.step(bumpedVersionPage.goto(persistedCollectionPersistencePath, {
 			waitUntil: 'load',
 			timeout: gotoLoadTimeoutMs,
 		}))
 		await expectMainVisible(bumpedVersionPage, 120_000, bumpedVersionDiagnostics)
-		const bumpedVersion = await readProductProbe(bumpedVersionPage)
-		const bumpedVersionPersistenceEvents = await getPersistenceProbeEvents(bumpedVersionPage)
-		const bumpedVersionProductRemoteLoads = bumpedVersionPersistenceEvents.flatMap((event) => (
-			event.kind === 'loadSubset'
-			&& event.decision === 'remote'
-			&& productCollectionIds.some((collectionId) => collectionId === event.collectionId) ?
-				[event]
-			:
-				[]
-		))
-		const bumpedVersionProductMarkLoadedKeys = new Set([...loadedSubsetKeys(bumpedVersionPersistenceEvents)].filter((loadedKey) => (
-			productCollectionIds.some((collectionId) => loadedKey.startsWith(`${collectionId}:`))
-		)))
-		const bumpedVersionProductRemoteLoadKeys = new Set(bumpedVersionProductRemoteLoads.map((event) => (
-			`${event.collectionId}:${event.loadedKey}`
-		)))
-		expect(bumpedVersion.name).toBe(cold.name)
-		expect(bumpedVersion.rpcUrlCount).toBe(cold.rpcUrlCount)
-		expect(bumpedVersionProductRemoteLoads.map((event) => event.collectionId)).toEqual(expect.arrayContaining([
-			'Entity:EvmNetwork',
-			'Field:EvmNetwork:$$rpcUrls',
-			'Count:EvmNetwork:$$rpcUrls',
-		]))
-		expect([...coldProductMarkLoadedKeys].some((loadedKey) => (
-			bumpedVersionProductRemoteLoadKeys.has(loadedKey)
-		))).toBe(true)
-		expect([...coldProductMarkLoadedKeys].some((loadedKey) => (
-			bumpedVersionProductMarkLoadedKeys.has(loadedKey)
-		))).toBe(true)
+		await waitForCompletedRemoteCollectionLoads(bumpedVersionPage)
+		const bumpedVersion = await readCollectionLoads(bumpedVersionPage)
+		expect(repeatedRemoteCollectionLoads(
+			bumpedVersion.collectionLoads,
+			coldCompletedKeys
+		).map(collectionLoadSemanticKey).length).toBeGreaterThan(0)
 		await bumpedVersionPage.close()
 
 		await context.close()

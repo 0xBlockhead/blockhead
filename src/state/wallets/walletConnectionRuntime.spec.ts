@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { stringify } from 'devalue'
 
-import { createAptosAip62Adapter } from './adapters/aptosAip62.ts'
+import { createAptosInjectedAdapter } from './adapters/aptosInjected.ts'
 import { createBitcoinInjectedAdapter } from './adapters/bitcoinInjected.ts'
 import { createCardanoCip30Adapter } from './adapters/cardanoCip30.ts'
 import { createCosmosOfflineSignerAdapter } from './adapters/cosmosOfflineSigner.ts'
@@ -9,13 +9,16 @@ import { createDiscoveryOnlyAdapter } from './adapters/createDiscoveryOnlyAdapte
 import { eipCandidateFromDetail, eipConnectionFromAccounts } from './adapters/eip6963.ts'
 import { createPolkadotInjectedWeb3Adapter } from './adapters/polkadotInjectedWeb3.ts'
 import { createStarknetWalletApiAdapter } from './adapters/starknetWalletApi.ts'
+import { createTronInjectedAdapter } from './adapters/tronInjected.ts'
 import { createWalletStandardAdapter } from './adapters/walletStandard.ts'
 import type { WalletCandidate } from './adapters/types.ts'
 import {
 	WalletCapability,
 	WalletDiscoveryKind,
+	WalletImplementationStatus,
 	WalletProtocol,
 	WalletTransportKind,
+	walletConnectionMethods,
 } from '$/constants/Wallet.ts'
 import { ActionType } from '$/constants/actions.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
@@ -85,6 +88,29 @@ describe('wallet connection runtime normalization', () => {
 				},
 			],
 		})
+	})
+
+	it('keeps implemented catalog methods aligned with mounted adapter protocols', () => {
+		const mountedProtocols = [
+			WalletProtocol.Eip6963,
+			WalletProtocol.WalletStandard,
+			WalletProtocol.AptosInjected,
+			WalletProtocol.CardanoCip30,
+			WalletProtocol.BitcoinInjected,
+			WalletProtocol.CosmosOfflineSigner,
+			WalletProtocol.TronTip1193,
+			WalletProtocol.StarknetWalletApi,
+			WalletProtocol.PolkadotInjectedWeb3,
+		]
+
+		expect(walletConnectionMethods
+			.filter((walletConnectionMethod) => (
+				walletConnectionMethod.implementationStatus === WalletImplementationStatus.Implemented
+				|| walletConnectionMethod.implementationStatus === WalletImplementationStatus.DiscoveryImplemented
+			))
+			.map((walletConnectionMethod) => walletConnectionMethod.protocol)
+			.toSorted()
+		).toEqual(mountedProtocols.toSorted())
 	})
 
 	it('returns disconnected rows for discovery-only adapters without prompting', async () => {
@@ -431,8 +457,8 @@ describe('wallet connection runtime normalization', () => {
 			pontem: {},
 		})
 
-			const updates: WalletCandidate[][] = []
-		const cleanup = createAptosAip62Adapter().start((candidates) => {
+		const updates: WalletCandidate[][] = []
+		const cleanup = createAptosInjectedAdapter().start((candidates) => {
 			updates.push(candidates)
 		})
 
@@ -440,17 +466,20 @@ describe('wallet connection runtime normalization', () => {
 			expect.objectContaining({
 				id: 'aptos:petra',
 				name: 'Petra',
-				protocol: WalletProtocol.AptosAip62,
+				protocol: WalletProtocol.AptosInjected,
+				capabilities: [WalletCapability.Discover],
 			}),
 			expect.objectContaining({
 				id: 'aptos:martian',
 				name: 'Martian',
-				protocol: WalletProtocol.AptosAip62,
+				protocol: WalletProtocol.AptosInjected,
+				capabilities: [WalletCapability.Discover],
 			}),
 			expect.objectContaining({
 				id: 'aptos:pontem',
 				name: 'Pontem',
-				protocol: WalletProtocol.AptosAip62,
+				protocol: WalletProtocol.AptosInjected,
+				capabilities: [WalletCapability.Discover],
 			}),
 		])
 
@@ -548,7 +577,7 @@ describe('wallet connection runtime normalization', () => {
 			XverseProviders: {},
 		})
 
-			const updates: WalletCandidate[][] = []
+		const updates: WalletCandidate[][] = []
 		const cleanup = createBitcoinInjectedAdapter().start((candidates) => {
 			updates.push(candidates)
 		})
@@ -557,22 +586,26 @@ describe('wallet connection runtime normalization', () => {
 			expect.objectContaining({
 				id: 'bitcoin:leather',
 				name: 'Leather',
-				protocol: WalletProtocol.SatsConnect,
+				protocol: WalletProtocol.BitcoinInjected,
+				capabilities: [WalletCapability.Discover],
 			}),
 			expect.objectContaining({
 				id: 'bitcoin:xverse',
 				name: 'Xverse',
-				protocol: WalletProtocol.SatsConnect,
+				protocol: WalletProtocol.BitcoinInjected,
+				capabilities: [WalletCapability.Discover],
 			}),
 			expect.objectContaining({
 				id: 'bitcoin:unisat',
 				name: 'UniSat',
-				protocol: WalletProtocol.SatsConnect,
+				protocol: WalletProtocol.BitcoinInjected,
+				capabilities: [WalletCapability.Discover],
 			}),
 			expect.objectContaining({
 				id: 'bitcoin:magiceden',
 				name: 'Magic Eden',
-				protocol: WalletProtocol.SatsConnect,
+				protocol: WalletProtocol.BitcoinInjected,
+				capabilities: [WalletCapability.Discover],
 			}),
 		])
 
@@ -585,7 +618,7 @@ describe('wallet connection runtime normalization', () => {
 			leap: {},
 		})
 
-			const updates: WalletCandidate[][] = []
+		const updates: WalletCandidate[][] = []
 		const cleanup = createCosmosOfflineSignerAdapter().start((candidates) => {
 			updates.push(candidates)
 		})
@@ -595,11 +628,35 @@ describe('wallet connection runtime normalization', () => {
 				id: 'cosmos:keplr',
 				name: 'Keplr',
 				protocol: WalletProtocol.CosmosOfflineSigner,
+				capabilities: [WalletCapability.Discover],
 			}),
 			expect.objectContaining({
 				id: 'cosmos:leap',
 				name: 'Leap',
 				protocol: WalletProtocol.CosmosOfflineSigner,
+				capabilities: [WalletCapability.Discover],
+			}),
+		])
+
+		cleanup()
+	})
+
+	it('discovers TRON injected provider globals without connecting', () => {
+		vi.stubGlobal('window', {
+			tronLink: {},
+		})
+
+		const updates: WalletCandidate[][] = []
+		const cleanup = createTronInjectedAdapter().start((candidates) => {
+			updates.push(candidates)
+		})
+
+		expect(updates.at(-1)).toEqual([
+			expect.objectContaining({
+				id: 'tron:injected',
+				name: 'TRON injected wallet',
+				protocol: WalletProtocol.TronTip1193,
+				capabilities: [WalletCapability.Discover],
 			}),
 		])
 
@@ -612,7 +669,7 @@ describe('wallet connection runtime normalization', () => {
 			starknet_braavos: {},
 		})
 
-			const updates: WalletCandidate[][] = []
+		const updates: WalletCandidate[][] = []
 		const cleanup = createStarknetWalletApiAdapter().start((candidates) => {
 			updates.push(candidates)
 		})
@@ -622,11 +679,13 @@ describe('wallet connection runtime normalization', () => {
 				id: 'starknet:argentx',
 				name: 'Argent X',
 				protocol: WalletProtocol.StarknetWalletApi,
+				capabilities: [WalletCapability.Discover],
 			}),
 			expect.objectContaining({
 				id: 'starknet:braavos',
 				name: 'Braavos',
 				protocol: WalletProtocol.StarknetWalletApi,
+				capabilities: [WalletCapability.Discover],
 			}),
 		])
 
@@ -649,7 +708,7 @@ describe('wallet connection runtime normalization', () => {
 		})
 
 		const adapter = createWalletStandardAdapter()
-			const updates: WalletCandidate[][] = []
+		const updates: WalletCandidate[][] = []
 		const cleanup = adapter.start((candidates) => {
 			updates.push(candidates)
 		})
@@ -670,6 +729,7 @@ describe('wallet connection runtime normalization', () => {
 			name: 'Standard Wallet',
 			icon: 'standard-icon',
 			protocol: WalletProtocol.WalletStandard,
+			capabilities: [WalletCapability.Discover],
 		}))
 
 		cleanup()
