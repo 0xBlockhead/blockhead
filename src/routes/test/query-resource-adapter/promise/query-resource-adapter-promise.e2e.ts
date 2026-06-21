@@ -1,5 +1,10 @@
 import { expect, test, type Page } from '@playwright/test'
 
+import {
+	expectMainAttached,
+	setupPageRuntimeDiagnostics,
+} from '../../../../../tests/_e2eBrowserHelpers.ts'
+
 const svelteReactivityMessages = [
 	'await_reactivity_loss',
 	'derived_inert',
@@ -18,13 +23,18 @@ const expectNoSvelteReactivityWarnings = (
 	return () => expect(svelteWarnings).toEqual([])
 }
 
-test('queryResource maps TanStack DB snapshots to SvelteKit resource promise state', async ({ page }) => {
-	const expectNoWarnings = expectNoSvelteReactivityWarnings(page)
-	await page.goto('/test/query-resource-adapter/promise', {
+const openRoute = async (page: Page) => {
+	const diagnostics = setupPageRuntimeDiagnostics(page)
+	await diagnostics.step(page.goto('/test/query-resource-adapter/promise', {
 		waitUntil: 'load',
 		timeout: 120_000,
-	})
-	await expect(page.locator('#main')).toBeAttached({ timeout: 120_000 })
+	}))
+	await expectMainAttached(page, 120_000, diagnostics)
+}
+
+test('queryResource maps TanStack DB snapshots to SvelteKit resource promise state', async ({ page }) => {
+	const expectNoWarnings = expectNoSvelteReactivityWarnings(page)
+	await openRoute(page)
 	await expect(page.getByRole('heading', { level: 1 })).toHaveText('Query resource adapter promise test route')
 	await expect(page.getByTestId('adapter-awaited')).toHaveText('pending')
 	await expect(page.getByTestId('adapter-awaited-second')).toHaveText('pending')
@@ -71,11 +81,7 @@ test('queryResource maps TanStack DB snapshots to SvelteKit resource promise sta
 
 test('queryResource rejects before the first ready value and then recovers', async ({ page }) => {
 	const expectNoWarnings = expectNoSvelteReactivityWarnings(page)
-	await page.goto('/test/query-resource-adapter/promise', {
-		waitUntil: 'load',
-		timeout: 120_000,
-	})
-	await expect(page.locator('#main')).toBeAttached({ timeout: 120_000 })
+	await openRoute(page)
 
 	await page.getByTestId('adapter-error-button').click()
 	await expect(page.getByTestId('adapter-awaited')).toHaveText('Adapter failure')

@@ -3,10 +3,10 @@ import type { Page } from '@playwright/test'
 
 import {
 	assertMainSettled,
-	collectIssues,
+	expectMainVisible,
 	installChainlistRpcsJsonStub,
 	installPersistenceProbe,
-	type PersistedCollectionSyncEvent,
+	setupPageRuntimeDiagnostics,
 } from '../_e2eBrowserHelpers.ts'
 
 const pageErrors = (issues: string[]) => (
@@ -33,7 +33,7 @@ const readFieldSyncs = (
 	if (probe == null)
 		throw new Error('missing blockhead client probe')
 
-	return probe.events.collectionSync.flatMap((event: PersistedCollectionSyncEvent) => (
+	return probe.events.collectionSync.flatMap((event) => (
 		event.collection.kind === 'Field' ?
 			[{
 				entityType: event.collection.entityType,
@@ -126,17 +126,20 @@ const openEvmNetworkRoute = async (
 		storageTypes: 'all',
 	})
 	await cdpSession.detach()
-	const issues = collectIssues(page)
+	const diagnostics = setupPageRuntimeDiagnostics(page)
 	const requestUrls: string[] = []
 	page.on('request', (request) => {
 		requestUrls.push(request.url())
 	})
 	await page.goto(pathname, { waitUntil: 'load' })
-	await expect(page.locator('#main')).toBeVisible()
+	await expectMainVisible(page, 120_000, diagnostics)
 	if (options.settle !== false)
-		await assertMainSettled(page, 120_000)
+		await assertMainSettled(page, 120_000, diagnostics)
 
-	return { issues, requestUrls }
+	return {
+		issues: diagnostics.issues,
+		requestUrls,
+	}
 }
 
 const assertNoAccountAbstractionListRequests = (
@@ -253,7 +256,6 @@ test.describe('EVM network nested routes only start route-owned field collection
 			{ settle: false }
 		)
 
-		await expect(page.locator('#main')).toBeVisible()
 		await page.waitForTimeout(10_000)
 		await assertNoFieldSyncs(page, [
 			{

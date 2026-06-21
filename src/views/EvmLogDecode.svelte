@@ -12,7 +12,7 @@
 		topics,
 		data,
 		emitterContractId,
-		open = false,
+		open,
 	}: {
 		topics: string[]
 		data?: string

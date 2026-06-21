@@ -4,19 +4,20 @@ import { e2eEvmExplorerRoutePaths } from '$/routes/api/e2e/assert-loaded-resolve
 
 import {
 	assertMainSettled,
-	collectIssues,
+	expectMainVisible,
+	setupPageRuntimeDiagnostics,
 } from '../_e2eBrowserHelpers.ts'
 
 
 test.describe('Evm calldata decoder', () => {
 	test('decoder page: heading and calldata form', async ({ page }) => {
 		test.setTimeout(300_000)
-		const issues = collectIssues(page)
+		const diagnostics = setupPageRuntimeDiagnostics(page)
 		await page.goto(e2eEvmExplorerRoutePaths.calldataDecoder, { waitUntil: 'domcontentloaded' })
-		await expect(page.locator('#main')).toBeAttached({ timeout: 120_000 })
-		await assertMainSettled(page)
+		await expectMainVisible(page, 120_000, diagnostics)
+		await assertMainSettled(page, 120_000, diagnostics)
 		await expect(page.locator('form.calldata-decoder-form')).toBeAttached()
 		await expect(page.locator('form.calldata-decoder-form textarea')).toBeAttached()
-		expect(issues).toEqual([])
+		expect(diagnostics.issues).toEqual([])
 	})
 })

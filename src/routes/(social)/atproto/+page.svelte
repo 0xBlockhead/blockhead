@@ -12,6 +12,5 @@
 		selection={select(EntityType.AtprotoNetwork, {
 			scope: 'AtprotoNetwork',
 		})}
-		open={false}
 	/>
 </Page>

@@ -4,7 +4,10 @@ import { ipfsPublicGateways } from '$/constants/IpfsProtocol.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import { gatewayUrls as swarmGatewayUrls } from '$/sources/Swarm/Rest/constants.ts'
 import { voltaireJsonRpcTransportWithOriginsByChainId } from '$/sources/Voltaire/index.ts'
-import type { JsonObject } from '$/typescript/JsonValue.ts'
+import type {
+	ClientProbe as BlockheadClientProbe,
+	PersistenceTraceEvent,
+} from '$/client/$e2eProbe.ts'
 
 export { e2eBrowserNewContextOptions } from '../playwright.env.ts'
 
@@ -31,6 +34,7 @@ declare global {
 		__blockheadClientProbeEnabled?: boolean
 		__blockheadPersistenceTrace?: PersistenceTraceEvent[]
 		__blockheadPersistedCollectionSchemaVersionOverride?: number
+		__blockheadWaSqliteDatabaseNameOverride?: string
 		__blockheadBoundaryProbe?: BoundaryUpdateEvent[]
 		__blockheadBoundaryProbeActive?: BoundaryLoadingProbeRow[]
 	}
@@ -127,22 +131,6 @@ export type RouteBoundaryReport = {
 	issues: string[]
 }
 
-export type PersistedCollectionSyncEvent = {
-	collection:
-		| {
-			kind: 'Entity'
-			entityType: string
-			id: string
-		}
-		| {
-			kind: 'Field' | 'Count'
-			entityType: string
-			fieldName: string
-			id: string
-		}
-	key: string
-}
-
 export type PersistedCollectionLoadEvent = {
 	type: string
 	collectionId: string
@@ -153,36 +141,6 @@ export type PersistedCollectionLoadEvent = {
 	sourceRowCounts?: Partial<Record<string, number>>
 	reason?: string
 	error?: string
-	trace?: JsonObject
-}
-
-export type PersistenceTraceEvent = {
-	type: string
-	collectionId: string
-	mutationCount?: number
-	rowMetadataMutationCount?: number
-	collectionMetadataMutationCount?: number
-	subsetRowCount?: number
-	collectionMetadataCount?: number
-	error?: string
-}
-
-export type BlockheadClientProbe = {
-	events: {
-		collectionSync: PersistedCollectionSyncEvent[]
-		collectionLoads: PersistedCollectionLoadEvent[]
-	}
-	collectionSizes: () => {
-		entities: Record<string, number>
-		fields: Record<string, Record<string, number>>
-		counts: Record<string, Record<string, number>>
-	}
-	queryStates: () => {
-		key: string[]
-		status: string
-		fetchStatus: string
-		error?: string
-	}[]
 }
 
 export const networksCatalogFieldCollectionId = 'EntityFieldCollection:_Global:$$networks'
@@ -1199,69 +1157,45 @@ export const expectMainVisible = async (
 	}
 }
 
+export const expectMainAttached = async (
+	page: Page,
+	timeoutMs = 120_000,
+	diagnostics?: PageRuntimeDiagnostics
+) => {
+	try {
+		await (
+			diagnostics ?
+				diagnostics.step(expect(page.locator('#main')).toBeAttached({ timeout: timeoutMs }))
+			:
+				expect(page.locator('#main')).toBeAttached({ timeout: timeoutMs })
+		)
+	}
+	catch (error) {
+		throw new Error(
+			[
+				`#main did not become attached within ${timeoutMs}ms`,
+				`url=${page.url()}`,
+				`runtime issues:\n${diagnostics?.summary() || '(no diagnostics installed or no browser runtime issues captured)'}`,
+				`page snapshot:\n${await pageFailureSnapshot(page)}`,
+			].join('\n\n'),
+			{ cause: error }
+		)
+	}
+}
+
 /**
 	* Fail-fast gate for live network pages: `step()` races each await against first pageerror / critical console.error.
 	* Matches filters in `network.e2e.ts` (ignore HTTP 4xx/5xx, resolver fetch noise, WSS drop copy).
 	*/
 export const setupNetworkLiveFailFast = (page: Page) => {
-	let failed = false
-	let rejectRuntimeError: ((error: Error) => void) | undefined
-	const runtimeError = new Promise<never>((_, reject) => {
-		rejectRuntimeError = reject
+	const diagnostics = setupPageRuntimeDiagnostics(page, {
+		ignoreTransientDevLoad: true,
 	})
-	const failFast = (error: Error) => {
-		if (failed) return
-		failed = true
-		rejectRuntimeError?.(error)
+
+	return {
+		step: diagnostics.step,
+		diagnostics,
 	}
-	const step = async <_Value>(promise: Promise<_Value>) => {
-		await Promise.race([
-			promise,
-			runtimeError,
-		])
-	}
-
-	page.on('pageerror', (error) => {
-		failFast(new Error(`pageerror: ${error.message}`))
-	})
-
-	page.on('crash', () => {
-		failFast(new Error('Browser tab crashed'))
-	})
-
-	page.on('console', (message) => {
-		if (
-			message.type() === 'error'
-			&& !message.text().includes('Failed to load resource: the server responded with a status of 400')
-			&& !message.text().includes('Failed to load resource: the server responded with a status of 403')
-			&& !message.text().includes('Failed to load resource: the server responded with a status of 404')
-			&& !message.text().includes('Failed to load resource: the server responded with a status of 422')
-			&& !message.text().includes('Failed to load resource: the server responded with a status of 429')
-			&& !message.text().includes('Failed to load resource: the server responded with a status of 500')
-			&& !message.text().includes('Failed to load resource: the server responded with a status of 502')
-			&& !message.text().includes('Failed to load resource: the server responded with a status of 503')
-			&& !message.text().includes('[vite] Failed to reload')
-			&& !message.text().includes('Failed to fetch dynamically imported module')
-			&& !message.text().includes('Failed to load resource: net::ERR_QUIC_PROTOCOL_ERROR')
-			&& !message.text().includes('Failed to load resource: net::ERR_CONNECTION_REFUSED')
-			&& !message.text().includes('Failed to load resource: net::ERR_FAILED')
-			&& !message.text().includes('has been blocked by CORS policy')
-			&& !message.text().includes('Voltaire: block stream ended')
-			&& !(
-				message.text().includes('[QueryCollection]')
-				&& (
-					/resolver\(s\) failed/.test(message.text())
-					|| /Fetch failed \(\d{3}/.test(message.text())
-				)
-			)
-		) failFast(new Error(`console error: ${message.text()}`))
-		if (
-			message.type() === 'warning'
-			&& message.text().includes('Calling .preload() on a collection with syncMode "on-demand" is a no-op')
-		) failFast(new Error(`console warning: ${message.text()}`))
-	})
-
-	return { step }
 }
 
 export const clearOriginOpfs = (page: Page) => (

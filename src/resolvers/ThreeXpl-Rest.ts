@@ -68,7 +68,7 @@ export default {
 					const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 					const wireBlock = await fetchBlock({
 						blockchain: threeXplBlockchain($network),
-						block: hash,
+						block: height.toString(),
 					})
 					return {
 						hash,
@@ -288,7 +288,7 @@ export default {
 						(
 						await fetchBlock({
 							blockchain: threeXplBlockchain($network),
-							block: hash,
+							block: height.toString(),
 						})
 						).data.events
 						).map((txHash) => ({

@@ -1,16 +1,34 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 
-test('queryResource maps TanStack DB snapshots to SvelteKit resource getters', async ({ page }) => {
-	await page.goto('/test/query-resource-adapter/getters', {
+import {
+	expectMainAttached,
+	setupPageRuntimeDiagnostics,
+} from '../../../../../tests/_e2eBrowserHelpers.ts'
+
+const openRoute = async (page: Page) => {
+	const diagnostics = setupPageRuntimeDiagnostics(page)
+	await diagnostics.step(page.goto('/test/query-resource-adapter/getters', {
 		waitUntil: 'load',
 		timeout: 120_000,
-	})
-	await expect(page.locator('#main')).toBeAttached({ timeout: 120_000 })
+	}))
+	await expectMainAttached(page, 120_000, diagnostics)
+}
+
+test('queryResource maps TanStack DB snapshots to SvelteKit resource getters', async ({ page }) => {
+	await openRoute(page)
 	await expect(page.getByRole('heading', { level: 1 })).toHaveText('Query resource adapter getter test route')
 	await expect(page.getByTestId('adapter-current')).toHaveText('')
 	await expect(page.getByTestId('adapter-loading')).toHaveText('true')
 	await expect(page.getByTestId('adapter-ready')).toHaveText('false')
 	await expect(page.getByTestId('adapter-error')).toHaveText('')
+	await expect(page.getByTestId('initialized-resource-current')).toHaveText('')
+	await expect(page.getByTestId('initialized-resource-loading')).toHaveText('true')
+	await expect(page.getByTestId('initialized-resource-ready')).toHaveText('false')
+
+	await page.getByTestId('initialized-resource-resolve').click()
+	await expect(page.getByTestId('initialized-resource-current')).toHaveText('Initialized value')
+	await expect(page.getByTestId('initialized-resource-loading')).toHaveText('false')
+	await expect(page.getByTestId('initialized-resource-ready')).toHaveText('true')
 
 	await page.getByTestId('adapter-ready-button').click()
 	await expect(page.getByTestId('adapter-current')).toHaveText('Ready value')
@@ -54,11 +72,7 @@ test('queryResource maps TanStack DB snapshots to SvelteKit resource getters', a
 })
 
 test('queryResource keeps getters unready when the first settled snapshot is an error', async ({ page }) => {
-	await page.goto('/test/query-resource-adapter/getters', {
-		waitUntil: 'load',
-		timeout: 120_000,
-	})
-	await expect(page.locator('#main')).toBeAttached({ timeout: 120_000 })
+	await openRoute(page)
 
 	await page.getByTestId('adapter-error-button').click()
 	await expect(page.getByTestId('adapter-current')).toHaveText('')

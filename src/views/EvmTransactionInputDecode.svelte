@@ -10,7 +10,7 @@
 	// State
 	let {
 		input,
-		open = false,
+		open,
 	}: {
 		input: string
 		open?: boolean

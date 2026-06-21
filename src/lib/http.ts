@@ -114,12 +114,13 @@ export const jsonErrorHintFromResponse = async (
 	catch {
 		return undefined
 	}
-	return jsonMessage(parsed) ?? (
+	const message = jsonMessage(parsed) ?? (
 		isJsonObject(parsed) ?
 			jsonMessage(parsed.error)
 		:
 			undefined
 	)
+	return message?.trim() === '' ? undefined : message?.trim()
 }
 
 

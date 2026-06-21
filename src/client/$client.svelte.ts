@@ -57,12 +57,10 @@ import {
 	type SourcePublicEnv,
 	indexSourceProviders,
 } from '$/sources/$sources.ts'
-import type { JsonObject } from '$/typescript/JsonValue.ts'
 
 
 export enum ClientEventType {
 	CollectionLoad = 'collection-load',
-	ResolverFailure = 'resolver-failure',
 }
 
 export enum CollectionLoadDecision {
@@ -82,10 +80,6 @@ export enum PersistedCollectionSourceStatus {
 	Failed = 'failed',
 }
 
-enum PersistedCollectionMetaKey {
-	LoadedSubsets = '__loadedSubsets',
-}
-
 export type ClientEvent = {
 	type: ClientEventType
 	collectionId: string
@@ -93,16 +87,9 @@ export type ClientEvent = {
 	decision?: CollectionLoadDecision
 	status?: PersistedCollectionLoadStatus
 	rowCount?: number
-	writtenRowCount?: number
-	writtenKeys?: (string | number)[]
-	collectionStatus?: string
-	collectionSubscriberCount?: number
-	persistedRowCount?: number
-	collectionRowCount?: number
 	sourceRowCounts?: Partial<Record<string, number>>
 	reason?: string
 	error?: string
-	trace?: JsonObject
 }
 
 type PersistedCollectionLoadedSubset = {
@@ -139,7 +126,6 @@ export type PersistedCollectionLoadFailures = {
 
 type PersistedCollectionRow = {
 	[EntityMetaKey.Source]: string
-	[PersistedCollectionMetaKey.LoadedSubsets]?: Partial<Record<string, PersistedCollectionLoadedSubset>>
 }
 
 type PersistedCollectionSyncOptions<_Row extends PersistedCollectionRow> = {
@@ -153,6 +139,7 @@ type PersistedCollectionSyncOptions<_Row extends PersistedCollectionRow> = {
 	waitForPersistence?(collectionId: string): Promise<void>
 	events: ClientEvent[]
 	collectionLoadFailures: PersistedCollectionLoadFailures
+	setWriteRows(writeRows: (rows: readonly _Row[]) => void): void
 }
 
 type EntityResolvedFields<
@@ -211,7 +198,10 @@ export type PersistedCollectionRowCollection<
 
 type PersistedCollectionRowCollectionUtils<
 	_Row extends object,
-> = UtilsRecord
+> = UtilsRecord & {
+	dataUpdatedAt: number
+	writeUpsert(row: _Row | readonly _Row[]): void
+}
 
 type EntityCollectionWriteSurface = {
 	delete(key: string | number): void
@@ -252,7 +242,7 @@ export type ClientContext<
 	resolverIndexes: ResolverIndexes<_Schema, _Source, ResolverContext>
 	resolverPublicEnvBySource: ReadonlyMap<string, SourcePublicEnv>
 	enabledSources: ReadonlySet<_Source>
-	collectionLoadFailures: PersistedCollectionLoadFailure[]
+	collectionLoadFailures: PersistedCollectionLoadFailures
 	queryClient: QueryClient
 	events: ClientEvent[]
 	schemaVersion: number
@@ -263,19 +253,6 @@ export type ClientContext<
 		entitySelector: EntitySelector<_Schema, _EntityType>,
 		selection?: SubscribeSelection<_Schema, _EntityType>
 	) => EntityProxyResource<_Schema, _EntityType>
-	debug: {
-		collectionSizes: () => {
-			entities: Record<string, number>
-			fields: Record<string, Record<string, number>>
-			counts: Record<string, Record<string, number>>
-		}
-		queryStates: () => {
-			key: string[]
-			status: string
-			fetchStatus: string
-			error: string | undefined
-		}[]
-	}
 }
 
 export type SubscribeSelection<
@@ -438,19 +415,15 @@ const persistedCollectionLoadedSubset = (
 const productSourceRowCounts = (
 	rows: readonly PersistedCollectionRow[],
 	sources: readonly string[] = []
-): Partial<Record<string, number>> => Object.fromEntries(
-	[
-		...new Set([
-			...sources,
-			...rows.map((row) => row[EntityMetaKey.Source]),
-		]),
-	]
-		.toSorted()
-		.map((source) => [
-			source,
-			rows.filter((row) => row[EntityMetaKey.Source] === source).length,
-		])
-)
+): Partial<Record<string, number>> => {
+	const counts = new Map(sources.map((source) => [
+		source,
+		0,
+	]))
+	for (const row of rows)
+		counts.set(row[EntityMetaKey.Source], (counts.get(row[EntityMetaKey.Source]) ?? 0) + 1)
+	return Object.fromEntries([...counts.entries()].toSorted(([left], [right]) => left.localeCompare(right)))
+}
 
 const productSubsetLoadedMissReason = (
 	collectionId: string,
@@ -484,6 +457,27 @@ const productSubsetLoadedMissReason = (
 	return undefined
 }
 
+const persistedCollectionUtils = <
+	_Row extends PersistedCollectionRow
+>() => {
+	let writeRows = (_rows: readonly _Row[]) => {
+		throw new Error('Persisted collection sync was written before it started')
+	}
+	const utils: PersistedCollectionRowCollectionUtils<_Row> = {
+		dataUpdatedAt: 0,
+		writeUpsert(row) {
+			utils.dataUpdatedAt = Date.now()
+			writeRows(Array.isArray(row) ? row : [row])
+		},
+	}
+	return {
+		utils,
+		setWriteRows(nextWriteRows: (rows: readonly _Row[]) => void) {
+			writeRows = nextWriteRows
+		},
+	}
+}
+
 const persistedCollectionSync = <
 	const _Row extends PersistedCollectionRow,
 >({
@@ -497,9 +491,9 @@ const persistedCollectionSync = <
 	waitForPersistence,
 	events,
 	collectionLoadFailures,
+	setWriteRows,
 }: PersistedCollectionSyncOptions<_Row>): SyncConfig<_Row, string | number> => {
 	const inFlightLoads = new Map<string, Promise<void>>()
-	let loadQueue = Promise.resolve()
 
 	return {
 		sync: ({
@@ -509,7 +503,26 @@ const persistedCollectionSync = <
 			commit,
 			markReady,
 			metadata,
-		}) => ({
+		}) => {
+			setWriteRows((rows) => {
+				begin({
+					immediate: true,
+				})
+				for (const row of rows) {
+					if (collection.has(getKey(row)))
+						write({
+							type: 'delete',
+							value: row,
+						})
+
+					write({
+						type: 'insert',
+						value: row,
+					})
+				}
+				commit()
+			})
+			return {
 			loadSubset: async (loadSubsetOptions) => {
 				const key = loadedKey(loadSubsetOptions)
 				const inFlightLoad = inFlightLoads.get(key)
@@ -518,16 +531,11 @@ const persistedCollectionSync = <
 					return
 				}
 
-					const load = loadQueue.then(async () => {
+					const load = (async () => {
 						const requestedSources = sources(loadSubsetOptions)
 						const rows = persistedRows(loadSubsetOptions, collection.toArray)
 						const metadataKey = `loadedSubset:${schemaVersion}:${key}`
-						const marker = (
-							persistedCollectionLoadedSubset(metadata?.collection.get(metadataKey))
-						?? rows
-							.map((row) => persistedCollectionLoadedSubset(row[PersistedCollectionMetaKey.LoadedSubsets]?.[metadataKey]))
-							.find((candidate) => candidate !== undefined)
-					)
+						const marker = persistedCollectionLoadedSubset(metadata?.collection.get(metadataKey))
 					const missReason = productSubsetLoadedMissReason(
 						collectionId,
 						key,
@@ -554,11 +562,6 @@ const persistedCollectionSync = <
 							status: PersistedCollectionLoadStatus.Completed,
 							rowCount: marker.rowCount,
 							sourceRowCounts: marker.sourceRowCounts,
-							trace: {
-								metadataMarker: persistedCollectionLoadedSubset(metadata?.collection.get(metadataKey)) !== undefined,
-								rowMarker: rows.some((row) => persistedCollectionLoadedSubset(row[PersistedCollectionMetaKey.LoadedSubsets]?.[metadataKey]) !== undefined),
-								metadataMarkerCount: metadata?.collection.list('loadedSubset:').length ?? 0,
-							},
 						})
 						markReady()
 						return
@@ -625,24 +628,14 @@ const persistedCollectionSync = <
 							sourceRowCounts,
 						}
 							begin()
-							for (const row of rows) {
-								const currentRow = collection.get(getKey(row))
+							for (const row of rows)
 								write({
 									type: 'update',
-									value: {
-										...row,
-										[PersistedCollectionMetaKey.LoadedSubsets]: {
-											...currentRow?.[PersistedCollectionMetaKey.LoadedSubsets],
-											...row[PersistedCollectionMetaKey.LoadedSubsets],
-											[metadataKey]: nextMarker,
-										},
-								},
-							})
-						}
+									value: row,
+								})
 
 						metadata?.collection.set(metadataKey, nextMarker)
 						commit()
-						const visibleRows = persistedRows(loadSubsetOptions, collection.toArray)
 
 						events.push({
 							type: ClientEventType.CollectionLoad,
@@ -654,31 +647,8 @@ const persistedCollectionSync = <
 							:
 								PersistedCollectionLoadStatus.Partial,
 							rowCount: rows.length,
-							writtenRowCount: rows.filter((row) => collection.get(getKey(row)) !== undefined).length,
-							writtenKeys: rows.map(getKey),
-							collectionStatus: collection.status,
-							collectionSubscriberCount: collection.subscriberCount,
-							persistedRowCount: visibleRows.length,
-							collectionRowCount: collection.toArray.length,
 							sourceRowCounts,
 							reason: missReason,
-							trace: {
-								metadataMarkerAfterSet: persistedCollectionLoadedSubset(metadata?.collection.get(metadataKey)) !== undefined,
-								metadataMarkerCountAfterSet: metadata?.collection.list('loadedSubset:').length ?? 0,
-								loadedOutcomeCount: loaded.outcomes.length,
-								completedOutcomeSources: loaded.outcomes.flatMap((outcome) => (
-									outcome.status === PersistedCollectionSourceStatus.Completed ?
-										[outcome.source]
-									:
-										[]
-								)),
-								failedOutcomeSources: loaded.outcomes.flatMap((outcome) => (
-									outcome.status === PersistedCollectionSourceStatus.Failed ?
-										[outcome.source]
-									:
-										[]
-								)),
-							},
 						})
 							for (const outcome of loaded.outcomes) {
 								if (outcome.status === PersistedCollectionSourceStatus.Failed)
@@ -726,8 +696,7 @@ const persistedCollectionSync = <
 						})
 						throw error
 					}
-					})
-					loadQueue = load.catch(() => {})
+					})()
 					inFlightLoads.set(key, load)
 				try {
 					await load
@@ -735,7 +704,8 @@ const persistedCollectionSync = <
 					inFlightLoads.delete(key)
 				}
 			},
-		}),
+			}
+		},
 	}
 }
 
@@ -839,6 +809,20 @@ const parentSelectorsFromSubset = (
 	selector: parse(selectorKey),
 	selectorKey,
 }))
+
+const countFilterKeysFromSubset = (
+	subset: ReturnType<typeof parseResolverSubset>
+) => new Set(
+	subset.filters.flatMap((filter) => {
+		if (filter.fieldPath[0] !== 'filterKey')
+			return []
+		if (filter.operator === 'eq')
+			return [String(filter.value)]
+		if (Array.isArray(filter.value))
+			return filter.value.map(String)
+		return []
+	})
+)
 
 const fieldConditionValue = <
 	const _Schema extends Schema
@@ -962,14 +946,6 @@ const loadEntityRows = async <
 					subset
 				)
 				if (snapshot === undefined)
-					return {
-						rows: [],
-						outcomes: [{
-							source: String(resolver.source),
-							status: PersistedCollectionSourceStatus.Completed,
-						}],
-					}
-				if (snapshot === null)
 					return {
 						rows: [],
 						outcomes: [{
@@ -1105,14 +1081,6 @@ const loadFieldRows = async <
 					subset
 				)
 				if (snapshot === undefined)
-					return {
-						rows: [],
-						outcomes: [{
-							source: String(resolverPart.source),
-							status: PersistedCollectionSourceStatus.Completed,
-						}],
-					}
-				if (snapshot === null)
 					return fieldCanCompleteEmpty(
 						context,
 						entityType,
@@ -1126,15 +1094,15 @@ const loadFieldRows = async <
 								status: PersistedCollectionSourceStatus.Completed,
 							}],
 						}
-					:
-						{
-							rows: [],
-							outcomes: [{
-								source: String(resolverPart.source),
-								status: PersistedCollectionSourceStatus.Failed,
-								error: `${entityType}.${fieldName}.${String(resolverPart.source)} returned empty for required field`,
-							}],
-						}
+						:
+							{
+								rows: [],
+								outcomes: [{
+									source: String(resolverPart.source),
+									status: PersistedCollectionSourceStatus.Failed,
+									error: `${entityType}.${fieldName}.${String(resolverPart.source)} returned undefined snapshot for required field`,
+								}],
+							}
 
 				if (resolverPart.select == null)
 					return {
@@ -1248,6 +1216,7 @@ const loadCountRows = async <
 	const subset = parseResolverSubset(loadSubsetOptions)
 	const entityDefinition = context.entityDefinitionByType[entityType]
 	const definition = fieldDefinition(entityDefinition, fieldName)
+	const filterKeys = countFilterKeysFromSubset(subset)
 	const resolverParts = context.resolverIndexes.resolverCountPartsByEntityTypeAndFieldName[
 		resolverPartsKey(entityType, fieldName)
 	] ?? []
@@ -1286,14 +1255,6 @@ const loadCountRows = async <
 					subset
 				)
 				if (snapshot === undefined)
-					return {
-						rows: [],
-						outcomes: [{
-							source: String(resolverPart.source),
-							status: PersistedCollectionSourceStatus.Completed,
-						}],
-					}
-				if (snapshot === null)
 					return fieldCanCompleteEmpty(
 						context,
 						entityType,
@@ -1307,15 +1268,15 @@ const loadCountRows = async <
 								status: PersistedCollectionSourceStatus.Completed,
 							}],
 						}
-					:
-						{
-							rows: [],
-							outcomes: [{
-								source: String(resolverPart.source),
-								status: PersistedCollectionSourceStatus.Failed,
-								error: `${entityType}.${fieldName}.${String(resolverPart.source)} returned empty for required count`,
-							}],
-						}
+						:
+							{
+								rows: [],
+								outcomes: [{
+									source: String(resolverPart.source),
+									status: PersistedCollectionSourceStatus.Failed,
+									error: `${entityType}.${fieldName}.${String(resolverPart.source)} returned undefined snapshot for required count`,
+								}],
+							}
 
 				if (resolverPart.resolveCount == null)
 					return {
@@ -1342,7 +1303,7 @@ const loadCountRows = async <
 								subset
 							)
 						),
-						filterKey: stringify({}),
+						filterKey: [...filterKeys][0] ?? stringify({}),
 					}],
 					outcomes: [{
 						source: String(resolverPart.source),
@@ -1438,6 +1399,7 @@ export const client = <
 		}
 	for (const entityDefinition of schema) {
 		entityDefinitionByType[entityDefinition.entityType] = entityDefinition
+		const entityCollectionUtils = persistedCollectionUtils<EntityCollectionItem<_Schema>>()
 		entityCollections[entityDefinition.entityType] = createCollection<
 			EntityCollectionItem<_Schema>,
 			string | number,
@@ -1498,6 +1460,7 @@ export const client = <
 					waitForPersistence,
 					events,
 					collectionLoadFailures,
+					setWriteRows: entityCollectionUtils.setWriteRows,
 				}),
 				getKey: (row) => stringify([
 					row[EntityMetaKey.Source],
@@ -1505,11 +1468,14 @@ export const client = <
 				]),
 				persistence,
 				schemaVersion,
+				utils: entityCollectionUtils.utils,
+				onDelete: async () => {},
 			})
 		)
 		entityFieldCollections[entityDefinition.entityType] = {}
 		entityFieldCountCollections[entityDefinition.entityType] = {}
 		for (const definition of entityFieldDefinitions(entityDefinition)) {
+			const entityFieldCollectionUtils = persistedCollectionUtils<EntityFieldCollectionItem<_Schema>>()
 			entityFieldCollections[entityDefinition.entityType][definition.name] = createCollection<
 				EntityFieldCollectionItem<_Schema>,
 				string | number,
@@ -1569,6 +1535,7 @@ export const client = <
 						waitForPersistence,
 						events,
 						collectionLoadFailures,
+						setWriteRows: entityFieldCollectionUtils.setWriteRows,
 					}),
 					getKey: (row) => stringify([
 						row[EntityMetaKey.Source],
@@ -1577,13 +1544,16 @@ export const client = <
 					]),
 					persistence,
 					schemaVersion,
+					utils: entityFieldCollectionUtils.utils,
+					onDelete: async () => {},
 				})
 			)
 			if (
 				definition.type === EntityFieldType.EntitiesReference
 				|| definition.cardinality === EntityFieldCardinality.Many
 				|| definition.cardinality === EntityFieldCardinality.ZeroOrMany
-			)
+			) {
+				const entityFieldCountCollectionUtils = persistedCollectionUtils<EntityFieldCountCollectionItem<_Schema>>()
 				entityFieldCountCollections[entityDefinition.entityType][definition.name] = createCollection<
 					EntityFieldCountCollectionItem<_Schema>,
 					string | number,
@@ -1621,6 +1591,7 @@ export const client = <
 							},
 							persistedRows: (loadSubsetOptions, rows) => {
 									const subset = parseResolverSubset(loadSubsetOptions)
+									const filterKeys = countFilterKeysFromSubset(subset)
 									const sources = resolvableSources(
 										subset,
 										definition.defaultSources,
@@ -1631,6 +1602,7 @@ export const client = <
 								return rows.filter((row) => (
 									sources.has(row[EntityMetaKey.Source])
 									&& subset.parentSelectorKeys.includes(row[EntityMetaKey.ParentSelectorKey])
+									&& (filterKeys.size === 0 || filterKeys.has(row.filterKey))
 								))
 							},
 							loadRows: (loadSubsetOptions, sources) => loadCountRows(
@@ -1643,6 +1615,7 @@ export const client = <
 							waitForPersistence,
 							events,
 							collectionLoadFailures,
+							setWriteRows: entityFieldCountCollectionUtils.setWriteRows,
 						}),
 						getKey: (row) => stringify([
 							row[EntityMetaKey.Source],
@@ -1651,8 +1624,11 @@ export const client = <
 						]),
 						persistence,
 						schemaVersion,
+						utils: entityFieldCountCollectionUtils.utils,
+						onDelete: async () => {},
 					})
 				)
+			}
 		}
 	}
 
@@ -1679,49 +1655,6 @@ export const client = <
 			entitySelector,
 			selection
 		),
-		debug: {
-			collectionSizes: () => ({
-				entities: Object.fromEntries(
-					Object.entries(entityCollections).map(([entityType, collection]) => [
-						entityType,
-						collection.size,
-					])
-				),
-				fields: Object.fromEntries(
-					Object.entries(entityFieldCollections).map(([entityType, collections]) => [
-						entityType,
-						Object.fromEntries(
-							Object.entries(collections).map(([fieldName, collection]) => [
-								fieldName,
-								collection.size,
-							])
-						),
-					])
-				),
-				counts: Object.fromEntries(
-					Object.entries(entityFieldCountCollections).map(([entityType, collections]) => [
-						entityType,
-						Object.fromEntries(
-							Object.entries(collections).map(([fieldName, collection]) => [
-								fieldName,
-								collection?.size ?? 0,
-							])
-						),
-					])
-				),
-			}),
-			queryStates: () => (
-				queryClient
-					.getQueryCache()
-					.getAll()
-					.map((query) => ({
-						key: query.queryKey.map((segment) => String(segment)),
-						status: query.state.status,
-						fetchStatus: query.state.fetchStatus,
-						error: query.state.error == null ? undefined : String(query.state.error),
-					}))
-			),
-		},
 	}
 
 	return context

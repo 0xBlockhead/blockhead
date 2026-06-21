@@ -2,8 +2,9 @@ import { expect, test } from '@playwright/test'
 
 import {
 	assertMainSettled,
-	collectIssues,
+	expectMainVisible,
 	installChainlistRpcsJsonStub,
+	setupPageRuntimeDiagnostics,
 } from '../../../../../../../../../../tests/_e2eBrowserHelpers.ts'
 
 const transactionWithReceiptLogs = (
@@ -15,30 +16,32 @@ test.describe('Evm transaction logs', () => {
 	test('transaction page renders receipt log rows from the selected $$logs field', async ({ page }) => {
 		test.setTimeout(300_000)
 		await installChainlistRpcsJsonStub(page)
-		const issues = collectIssues(page)
+		const diagnostics = setupPageRuntimeDiagnostics(page)
 
 		await page.goto(`/network/eip155:1/tx/${transactionWithReceiptLogs}`, { waitUntil: 'load' })
-		await assertMainSettled(page, 120_000)
+		await expectMainVisible(page, 120_000, diagnostics)
+		await assertMainSettled(page, 120_000, diagnostics)
 		await expect(page.locator(`#main a[href$="/tx/${transactionWithReceiptLogs}/log/981"]`)).toBeVisible({ timeout: 120_000 })
 		await expect(page.locator(`#main a[href$="/tx/${transactionWithReceiptLogs}/log/982"]`)).toBeVisible({ timeout: 120_000 })
 
-		expect(issues, issues.join('\n')).toEqual([])
+		expect(diagnostics.issues, diagnostics.issues.join('\n')).toEqual([])
 	})
 
 	test('log detail page renders a selector-owned receipt log', async ({ page }) => {
 		test.setTimeout(300_000)
 		await installChainlistRpcsJsonStub(page)
-		const issues = collectIssues(page)
+		const diagnostics = setupPageRuntimeDiagnostics(page)
 
 		await page.goto(`/network/eip155:1/tx/${transactionWithReceiptLogs}/log/981`, { waitUntil: 'load' })
-		await assertMainSettled(page, 120_000)
+		await expectMainVisible(page, 120_000, diagnostics)
+		await assertMainSettled(page, 120_000, diagnostics)
 		await expect(page).toHaveURL((url) => (
 			url.pathname === `/network/eip155:1/tx/${transactionWithReceiptLogs}/log/981`
 		))
 		await expect(page.locator(`#main a[href$="/tx/${transactionWithReceiptLogs}/log/981"]`).first()).toBeAttached({ timeout: 120_000 })
 		await expect(page.locator('#main [data-column]').first()).toBeAttached({ timeout: 120_000 })
 
-		expect(issues, issues.join('\n')).toEqual([])
+		expect(diagnostics.issues, diagnostics.issues.join('\n')).toEqual([])
 	})
 
 	test('transaction and log routes reject invalid selector params', async ({ page }) => {

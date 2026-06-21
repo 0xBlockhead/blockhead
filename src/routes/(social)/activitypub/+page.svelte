@@ -12,6 +12,5 @@
 		selection={select(EntityType.ActivityPubNetwork, {
 			scope: 'ActivityPubNetwork',
 		})}
-		open={false}
 	/>
 </Page>

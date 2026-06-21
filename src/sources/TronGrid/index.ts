@@ -16,7 +16,7 @@ export default {
 	label: 'TronGrid',
 	origins: tronGridRestEndpoints.map((endpoint) => ({
 		origin: endpoint.restBaseUrl,
-		corsEnabled: true,
+		corsEnabled: false,
 	})),
 	sources: [
 		TronGridRest,

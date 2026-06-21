@@ -13,12 +13,10 @@
 import { expect, test, type Page, type TestInfo } from '@playwright/test'
 
 import {
-	assertMainSettled,
 	browserDevServerContaminationError,
 	collectBrowserCorsPolicyViolations,
 	expectMainVisible,
 	installChainlistRpcsJsonStub,
-	type PageRuntimeDiagnostics,
 	setupPageRuntimeDiagnostics,
 } from '../_e2eBrowserHelpers.ts'
 
@@ -58,15 +56,12 @@ const browserNetworkActivityCounter = (page: Page) => {
 	return () => count
 }
 
-/** After `#main` + alerts settle, wait for a quiet browser-network window (CORS logs often lag paint). */
+/** After `#main` is visible, wait for a quiet browser-network window (CORS logs often lag paint). */
 const waitForPageFetchSettle = async (
 	page: Page,
 	violationCount: () => number,
-	networkActivityCount: () => number,
-	diagnostics?: PageRuntimeDiagnostics
+	networkActivityCount: () => number
 ) => {
-	await assertMainSettled(page, settleTimeoutMs, diagnostics)
-
 	await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {})
 
 	const deadline = Date.now() + settleTimeoutMs
@@ -131,6 +126,13 @@ test.describe('cors policy (no blocked cross-origin fetches)', () => {
 		test.skip(probePath == null || probePath === '', 'set E2E_PROBE_PATH')
 		testInfo.setTimeout(settleTimeoutMs + gotoLoadTimeoutMs + 60_000)
 		page.setDefaultNavigationTimeout(gotoLoadTimeoutMs)
+		await page.addInitScript(({ databaseName, schemaVersion }) => {
+			window.__blockheadWaSqliteDatabaseNameOverride = databaseName
+			window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
+		}, {
+			databaseName: `blockhead-cors-probe-${testInfo.workerIndex}-${testInfo.retry}-${testInfo.repeatEachIndex}-${Date.now()}.sqlite`,
+			schemaVersion: Date.now(),
+		})
 		await installChainlistRpcsJsonStub(page)
 		const diagnostics = setupPageRuntimeDiagnostics(page)
 		const violations = collectBrowserCorsPolicyViolations(page)
@@ -142,10 +144,10 @@ test.describe('cors policy (no blocked cross-origin fetches)', () => {
 					waitUntil: 'load',
 					timeout: gotoLoadTimeoutMs,
 				}))
-				await expectMainVisible(page, settleTimeoutMs, diagnostics)
-				await waitForPageFetchSettle(page, () => violations.length, networkActivityCount, diagnostics)
-			})(),
-			devServerContaminationGate,
+					await expectMainVisible(page, settleTimeoutMs, diagnostics)
+					await waitForPageFetchSettle(page, () => violations.length, networkActivityCount)
+				})(),
+				devServerContaminationGate,
 		])
 		await assertNoCorsViolations(page, violations, probePath!, testInfo)
 	})
@@ -169,7 +171,7 @@ test.describe('cors policy (no blocked cross-origin fetches)', () => {
 
 		testInfo.setTimeout(pageUrls.length * (settleTimeoutMs + gotoLoadTimeoutMs + corsQuietMs + 30_000) + 60_000)
 
-		for (const path of pageUrls) {
+		for (const [index, path] of pageUrls.entries()) {
 			await test.step(path, async () => {
 				console.log(`[cors-policy] ${path}`)
 				const page = await browser.newPage()
@@ -178,6 +180,13 @@ test.describe('cors policy (no blocked cross-origin fetches)', () => {
 				const networkActivityCount = browserNetworkActivityCounter(page)
 				try {
 					page.setDefaultNavigationTimeout(gotoLoadTimeoutMs)
+					await page.addInitScript(({ databaseName, schemaVersion }) => {
+						window.__blockheadWaSqliteDatabaseNameOverride = databaseName
+						window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
+					}, {
+						databaseName: `blockhead-cors-${testInfo.workerIndex}-${testInfo.retry}-${testInfo.repeatEachIndex}-${index}-${Date.now()}.sqlite`,
+						schemaVersion: Date.now(),
+					})
 					await installChainlistRpcsJsonStub(page)
 					const devServerContaminationGate = routeViewSmokeDevServerContaminationGate(page)
 					await Promise.race([
@@ -185,10 +194,10 @@ test.describe('cors policy (no blocked cross-origin fetches)', () => {
 							await diagnostics.step(page.goto(path, {
 								waitUntil: 'load',
 								timeout: gotoLoadTimeoutMs,
-							}))
-							await expectMainVisible(page, settleTimeoutMs, diagnostics)
-							await waitForPageFetchSettle(page, () => violations.length, networkActivityCount, diagnostics)
-						})(),
+								}))
+								await expectMainVisible(page, settleTimeoutMs, diagnostics)
+								await waitForPageFetchSettle(page, () => violations.length, networkActivityCount)
+							})(),
 						devServerContaminationGate,
 					])
 					await assertNoCorsViolations(page, violations, path, testInfo)

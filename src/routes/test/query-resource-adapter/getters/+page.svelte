@@ -24,6 +24,27 @@
 			}
 		},
 	)
+	let resolveInitializedResource: (() => void) | undefined
+	let initializedQuery = $state<TanStackLiveQuerySnapshot<string>>({
+		data: 'Premature value',
+		isLoading: false,
+		isError: false,
+		isReady: true,
+		status: 'ready',
+	})
+	const initializedQueryListeners = new Set<() => void>()
+	const initializedResource = new TanStackLiveQueryResource(
+		() => initializedQuery,
+		(update) => {
+			initializedQueryListeners.add(update)
+			return () => {
+				initializedQueryListeners.delete(update)
+			}
+		},
+		() => new Promise<void>((resolve) => {
+			resolveInitializedResource = resolve
+		})
+	)
 
 	const applyQuery = (
 		nextQuery: TanStackLiveQuerySnapshot<string>,
@@ -35,6 +56,19 @@
 		query.error = nextQuery.error
 		query.status = nextQuery.status
 		for (const listener of queryListeners)
+			listener()
+	}
+
+	const resolveInitialized = () => {
+		initializedQuery = {
+			data: 'Initialized value',
+			isLoading: false,
+			isError: false,
+			isReady: true,
+			status: 'ready',
+		}
+		resolveInitializedResource?.()
+		for (const listener of initializedQueryListeners)
 			listener()
 	}
 </script>
@@ -149,5 +183,27 @@
 
 		<dt>error</dt>
 		<dd data-testid="adapter-error">{resource.error === undefined ? '' : String(resource.error)}</dd>
+	</dl>
+</section>
+
+<section>
+	<h2>Initialized resource</h2>
+
+	<button
+		data-testid="initialized-resource-resolve"
+		onclick={resolveInitialized}
+	>
+		Resolve initialized resource
+	</button>
+
+	<dl>
+		<dt>current</dt>
+		<dd data-testid="initialized-resource-current">{initializedResource.current ?? ''}</dd>
+
+		<dt>loading</dt>
+		<dd data-testid="initialized-resource-loading">{String(initializedResource.loading)}</dd>
+
+		<dt>ready</dt>
+		<dd data-testid="initialized-resource-ready">{String(initializedResource.ready)}</dd>
 	</dl>
 </section>

@@ -64,6 +64,7 @@ const UTXO_PROBE_ADDRESS_BY_NETWORK_SLUG: Partial<Record<string, string>> = {
 const UTXO_PROBE_BLOCK_HEIGHT_BY_NETWORK_SLUG: Partial<Record<string, string>> = {
 	bitcoin: '900000',
 	'bitcoin-cash': '900000',
+	zcash: '2000000',
 }
 
 const PROBE_BLOCK_HEIGHT_BY_NETWORK_SLUG: Partial<Record<string, string>> = {

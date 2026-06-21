@@ -45,11 +45,18 @@ const promiseWithResolvers = <Value>() => {
 export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> {
 	#query: () => TanStackLiveQuerySnapshot<Data>
 	#subscribeToSource: (update: () => void) => () => void
+	#initialize: (() => Promise<void>) | undefined
 	#unsubscribe: (() => void) | undefined
 	#first = promiseWithResolvers<void>()
 	#loading = $state(true)
 	#ready = $state(false)
 	#raw = $state.raw<{ readonly value: Data } | undefined>()
+	#current = $derived.by(() => (
+		this.#ready ?
+			this.#raw?.value
+		:
+			undefined
+	))
 	#error = $state.raw<QueryResourceError | undefined>()
 	#promise = $state.raw(this.#first.promise)
 	#resolveFirst: ((value: void) => void) | undefined = this.#first.resolve
@@ -74,14 +81,13 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 
 	constructor(
 		query: () => TanStackLiveQuerySnapshot<Data>,
-		subscribeToSource: (update: () => void) => () => void = () => () => {}
+		subscribeToSource: (update: () => void) => () => void = () => () => {},
+		initialize?: () => Promise<void>
 	) {
 		this.#query = query
 		this.#subscribeToSource = subscribeToSource
+		this.#initialize = initialize
 		this.#promise.catch(() => {})
-		untrack(() => {
-			this.#apply(this.#query())
-		})
 	}
 
 	#subscribe() {
@@ -100,10 +106,16 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 			return
 
 		this.#started = true
-		untrack(() => {
-			this.#apply(this.#query())
-		})
 		this.#subscribe()
+		void (this.#initialize?.() ?? Promise.resolve())
+			.then(() => {
+				untrack(() => {
+					this.#apply(this.#query())
+				})
+			})
+			.catch((error) => {
+				this.fail(error instanceof Error ? error : String(error))
+			})
 	}
 
 	#apply(
@@ -170,10 +182,7 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 
 	get current() {
 		this.#start()
-		return this.#ready ?
-			this.#raw?.value
-		:
-			undefined
+		return this.#current
 	}
 
 	get error() {

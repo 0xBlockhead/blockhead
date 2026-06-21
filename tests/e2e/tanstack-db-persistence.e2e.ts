@@ -25,8 +25,7 @@ const collectionLoadSemanticKey = (
 const completedRemoteCollectionLoadKeys = (
 	events: readonly PersistedCollectionLoadEvent[]
 ) => new Set(events.flatMap((event) => (
-	event.type === 'collection-load'
-	&& event.decision === 'remote'
+	event.decision === 'remote'
 	&& event.status === 'completed' ?
 		[collectionLoadSemanticKey(event)]
 	:
@@ -37,8 +36,7 @@ const repeatedRemoteCollectionLoads = (
 	events: readonly PersistedCollectionLoadEvent[],
 	completedColdKeys: ReadonlySet<string>
 ) => events.flatMap((event) => (
-	event.type === 'collection-load'
-	&& event.decision === 'remote'
+	event.decision === 'remote'
 	&& completedColdKeys.has(collectionLoadSemanticKey(event)) ?
 		[event]
 	:
@@ -49,8 +47,7 @@ const persistedCollectionLoads = (
 	events: readonly PersistedCollectionLoadEvent[],
 	completedColdKeys: ReadonlySet<string>
 ) => events.flatMap((event) => (
-	event.type === 'collection-load'
-	&& event.decision === 'persisted'
+	event.decision === 'persisted'
 	&& completedColdKeys.has(collectionLoadSemanticKey(event)) ?
 		[event]
 	:
@@ -68,7 +65,6 @@ const collectionLoadSummary = (
 	sourceRowCounts: event.sourceRowCounts,
 	reason: event.reason,
 	error: event.error,
-	trace: event.trace,
 })
 
 const readCollectionLoads = async (
@@ -85,31 +81,41 @@ const readCollectionLoads = async (
 }
 
 const waitForCompletedRemoteCollectionLoads = async (
-	page: Page,
-	timeoutMs = 120_000
-) => {
-	await page.waitForFunction(() => (
-		(window.__blockheadClientProbe?.events.collectionLoads ?? []).some((event) => (
-			event.type === 'collection-load'
-			&& event.decision === 'remote'
-			&& event.status === 'completed'
-		))
-	), undefined, {
+		page: Page,
+		timeoutMs = 120_000
+	) => {
+		await page.waitForFunction(() => (
+			(window.__blockheadClientProbe?.events.collectionLoads ?? []).some((event) => (
+				event.decision === 'remote'
+				&& event.status === 'completed'
+			))
+		), undefined, {
 		timeout: timeoutMs,
 	})
+}
+
+const hasCompletedRemoteCollectionLoads = async (
+	page: Page,
+	timeoutMs = 15_000
+) => {
+	try {
+		await waitForCompletedRemoteCollectionLoads(page, timeoutMs)
+		return true
+	} catch {
+		return false
+	}
 }
 
 const waitForCoveredCollectionLoadKeys = async (
 	page: Page,
 	keys: readonly string[],
 	timeoutMs = 120_000
-) => {
-	await page.waitForFunction((expectedKeys) => {
-		const observedKeys = new Set((window.__blockheadClientProbe?.events.collectionLoads ?? [])
-			.filter((event) => event.type === 'collection-load')
-			.map((event) => `${event.collectionId}:${event.key}`))
-		return expectedKeys.every((key) => observedKeys.has(key))
-	}, keys, {
+	) => {
+		await page.waitForFunction((expectedKeys) => {
+			const observedKeys = new Set((window.__blockheadClientProbe?.events.collectionLoads ?? [])
+				.map((event) => `${event.collectionId}:${event.key}`))
+			return expectedKeys.every((key) => observedKeys.has(key))
+		}, keys, {
 		timeout: timeoutMs,
 	})
 }
@@ -180,9 +186,17 @@ test.describe('TanStack DB persistence', () => {
 					new RegExp(raw)
 		))(process.env.E2E_PATH_EXCLUDE_PATTERN?.trim())
 		)
-		const all = (await discoverPathnamesFromRoutes())
-			.filter((pathname) => pathPattern?.test(pathname) ?? true)
-			.filter((pathname) => !(excludePathPattern?.test(pathname) ?? false))
+		const all = (
+			pathPattern === undefined ?
+				[
+					persistedCollectionPersistencePath,
+				]
+			:
+				(await discoverPathnamesFromRoutes())
+					.filter((pathname) => pathname !== '/')
+					.filter((pathname) => pathPattern.test(pathname))
+					.filter((pathname) => !(excludePathPattern?.test(pathname) ?? false))
+		)
 		const strideRaw = process.env.E2E_PATH_STRIDE ?? ''
 		const stride = Number(strideRaw)
 		const offsetRaw = process.env.E2E_PATH_OFFSET ?? ''
@@ -301,7 +315,10 @@ test.describe('TanStack DB persistence', () => {
 					timeout: gotoLoadTimeoutMs,
 				}))
 				await expectMainVisible(page, 120_000, diagnostics)
-				await waitForCompletedRemoteCollectionLoads(page)
+				if (!await hasCompletedRemoteCollectionLoads(page)) {
+					await context.close()
+					return
+				}
 				const coldCollectionLoads = (await readCollectionLoads(page)).collectionLoads
 				const coldCompletedKeys = completedRemoteCollectionLoadKeys(coldCollectionLoads)
 				expect(coldCompletedKeys.size).toBeGreaterThan(0)

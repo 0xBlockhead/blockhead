@@ -28,7 +28,6 @@
 		selection={select(EntityType._Global, { scope: 'Explore' })}
 		title="Explore"
 		href={resolve('/explore')}
-		open={false}
 	>
 		{#snippet children({ open: hubOpen,
 		})}

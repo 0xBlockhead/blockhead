@@ -25,7 +25,7 @@ export default {
 	label: 'NEAR RPC',
 	origins: nearMainnetRpcEndpoints.map((endpoint) => ({
 		origin: new URL(endpoint.url).origin,
-		corsEnabled: true,
+		corsEnabled: false,
 	})),
 	sources: [
 		NearRpcJsonRpc,

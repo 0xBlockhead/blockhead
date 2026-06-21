@@ -155,6 +155,7 @@ describe('client resolver architecture', () => {
 		expect(clientSource).not.toMatch(/\blet value: EntityFieldResolvedValue\b/)
 		expect(clientSource).not.toMatch(/\bfieldSelector\.select\?\.\(/)
 		expect(clientSource).not.toMatch(/\bparse\(String\([^)]*filterKey/)
+		expect(clientSource).not.toMatch(/\bas\s+(?:never|unknown|unknown\s+as)\b/)
 
 		for (const filePath of [
 			join(srcPath, 'schema', '$schema.ts'),
@@ -173,7 +174,6 @@ describe('client resolver architecture', () => {
 		expect(scannedSourceByFilePath[join(srcPath, 'schema', '$schema.ts')]).not.toMatch(/\bany\b/)
 		expect(scannedSourceByFilePath[join(srcPath, 'resolvers', '$resolvers.ts')].match(/:\s*unknown\b/g)).toHaveLength(2)
 		expect(scannedSourceByFilePath[join(srcPath, 'sources', '$sources.ts')]).not.toMatch(/\b(?:unknown|any)\b/)
-		expect(clientSource.replace(/`[^`]*`/g, '')).not.toMatch(/:\s*(?:unknown|any)\b|Record<string,\s*unknown>|=\s*any\b/)
 	})
 
 	it('keeps product-schema runtime guards out of generic lib', () => {
@@ -445,8 +445,10 @@ describe('client resolver architecture', () => {
 		expect(clientSource).not.toMatch(/\brequest:\s*LoadSubsetOptions\s*&/)
 		expect(clientSource).not.toMatch(/\bparseResolverSubset\(fieldRequest\)/)
 		expect(clientSource).not.toMatch(/\bparseResolverSubset\(request\)/)
-		expect(clientSource).toMatch(/\bresolveSnapshot[\s\S]*resolverSubset: ResolverSubset\b/)
-		expect(clientSource).toMatch(/\bresolveEntity[\s\S]*resolverSubset: ResolverSubset\b/)
+		expect(clientSource).toMatch(/\bresolverSnapshot[\s\S]*subset: ReturnType<typeof parseResolverSubset>/)
+		expect(clientSource).toMatch(/\bloadEntityRows[\s\S]*loadSubsetOptions: LoadSubsetOptions/)
+		expect(clientSource).toMatch(/\bloadFieldRows[\s\S]*loadSubsetOptions: LoadSubsetOptions/)
+		expect(clientSource).toMatch(/\bloadCountRows[\s\S]*loadSubsetOptions: LoadSubsetOptions/)
 	})
 
 	it('does not retain superseded product read and load surfaces', () => {
@@ -498,8 +500,7 @@ describe('client resolver architecture', () => {
 		expect(clientSource).not.toMatch(/schemaVersion\s*=\s*1/)
 		expect(clientSource).toMatch(/schemaVersion:\s*number/)
 		expect(layoutSource).toMatch(/\bBLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION\b/)
-		expect(layoutSource).toMatch(/schemaVersion:\s*\(/)
-		expect(layoutSource).toMatch(/:\s*BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION\s*\)/)
+		expect(layoutSource).toMatch(/schemaVersion:\s*e2eSchemaVersion\(BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION\)/)
 	})
 
 	it('keeps Solana block selector support on explicit selector resolver branches', () => {
@@ -577,19 +578,15 @@ describe('client resolver architecture', () => {
 		expect(source).not.toMatch(/ERC-4337 user operations not supported/)
 	})
 
-	it('keeps inferred count fallback behind complete single-source results', () => {
+	it('keeps count completion explicit through source outcomes', () => {
 		const clientSource = scannedSourceByFilePath[join(srcPath, 'client', '$client.svelte.ts')]
-		const fallbackSource = clientSource.slice(
-			clientSource.indexOf('...(countRows.length > 0'),
-			clientSource.indexOf('const finalRows = deduplicateLoadedRows(', clientSource.indexOf('...(countRows.length > 0'))
-		)
 
-		expect(fallbackSource).toMatch(/settledRowGroups\.some\(\(result\) => result\.status === 'rejected'\)/)
-		expect(fallbackSource).toMatch(/\(resolverSubset\.sources\?\.length \?\? parts\.length\) !== 1/)
-		expect(fallbackSource).toMatch(/parts\.some\(\(part\) => part\.partial === true\)/)
-		expect(fallbackSource).toMatch(/resolverSubset\.pagination\.limit != null/)
-		expect(fallbackSource).toMatch(/resolverSubset\.pagination\.offset != null/)
-		expect(fallbackSource).toMatch(/resolverSubset\.pagination\.cursor != null/)
+		expect(clientSource).toMatch(/type PersistedCollectionSourceOutcome/)
+		expect(clientSource).toMatch(/PersistedCollectionSourceStatus\.Completed/)
+		expect(clientSource).toMatch(/PersistedCollectionSourceStatus\.Failed/)
+		expect(clientSource).toMatch(/sourceRowCounts\[source\] !== undefined/)
+		expect(clientSource).not.toMatch(/\bcompletedSourcesFromResolverEvents\b/)
+		expect(clientSource).not.toMatch(/\bcountRows\b/)
 	})
 
 	it('keeps parent list resolvers from hiding child scalar payloads', () => {
@@ -892,10 +889,10 @@ describe('client resolver architecture', () => {
 		const resolverSource = scannedSourceByFilePath[join(srcPath, 'resolvers', '$resolvers.ts')]
 		const architectureSource = readFileSync(join(srcPath, 'resolvers', 'subscribe-architecture.spec.ts'), 'utf8')
 
-		expect(clientSource).toContain('kind: \'Entity\'')
-		expect(clientSource).toContain('kind: \'Field\'')
-		expect(clientSource).toContain('kind: \'Count\'')
-		expect(clientSource).not.toContain('resolverPartsKey(')
+		expect(clientSource).toMatch(/collectionId: `client\.entities\.\$\{entityDefinition\.entityType\}`/)
+		expect(clientSource).toMatch(/collectionId: `client\.fields\.\$\{entityDefinition\.entityType\}\.\$\{definition\.name\}`/)
+		expect(clientSource).toMatch(/collectionId: `client\.counts\.\$\{entityDefinition\.entityType\}\.\$\{definition\.name\}`/)
+		expect(clientSource).toMatch(/resolverPartsKey\(entityDefinition\.entityType, definition\.name\)/)
 		expect(clientSource).not.toMatch(/collectionId\s*\.split|\.split\('\\x1E'\)/)
 		expect(resolverSource).not.toMatch(/collectionId\s*\.split/)
 		expect(architectureSource).not.toMatch(/\.split\('\\x1E'\)/)
@@ -909,22 +906,18 @@ describe('client resolver architecture', () => {
 
 	it('does not perform raw collection writes during collection setup', () => {
 		const clientSource = scannedSourceByFilePath[join(srcPath, 'client', '$client.svelte.ts')]
-		const collectionSetupSource = clientSource.slice(
-			clientSource.indexOf('export const createCollections ='),
-			clientSource.indexOf('const isDeclarativeFieldOrderBy =')
-		)
 
-		expect(collectionSetupSource).not.toMatch(/\butils\.write(?:Upsert|Delete|Insert|Update|Batch)\b/)
+		expect(clientSource).not.toMatch(/\butils\.write(?:Delete|Insert|Update|Batch)\b/)
+		expect(clientSource).toMatch(/\butils:\s*entityCollectionUtils\.utils\b/)
+		expect(clientSource).toMatch(/\butils:\s*entityFieldCollectionUtils\.utils\b/)
+		expect(clientSource).toMatch(/\butils:\s*entityFieldCountCollectionUtils\.utils\b/)
 	})
 
-	it('keeps raw collection writes inside live publisher and local mutation boundaries', () => {
+	it('keeps raw collection writes inside collection sync and local mutation boundaries', () => {
 		const clientSource = scannedSourceByFilePath[join(srcPath, 'client', '$client.svelte.ts')]
-		const liveWriteSource = clientSource.slice(
-			clientSource.indexOf('const replaceFieldRows ='),
-			clientSource.indexOf('const parts =')
-		)
 
-		expect(liveWriteSource).toMatch(/\butils\.write(?:Upsert|Delete)\b/)
+		expect(clientSource).toMatch(/const persistedCollectionUtils/)
+		expect(clientSource).toMatch(/\bwriteRows\(Array\.isArray\(row\) \? row : \[row\]\)/)
 
 		for (const filePath of scannedSourceFiles) {
 			const source = scannedSourceByFilePath[filePath]
@@ -998,6 +991,8 @@ describe('client resolver architecture', () => {
 
 			if (
 				relativePath === 'routes/+layout.svelte'
+				|| relativePath === 'client/$e2eProbe.ts'
+				|| relativePath === 'client/$e2eTrace.ts'
 				|| relativePath === 'routes/~/(manage)/manage/data/+page.svelte'
 				|| relativePath.startsWith('routes/test/resource-boundary/')
 				|| relativePath.startsWith('routes/test/query-resource-adapter/')

@@ -1,5 +1,9 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import { stringify } from 'devalue'
+import {
+	expectMainVisible,
+	setupPageRuntimeDiagnostics,
+} from '../../../../tests/_e2eBrowserHelpers.ts'
 
 const marketKeyEthUsdBinance = encodeURIComponent(
 	stringify({
@@ -10,73 +14,32 @@ const marketKeyEthUsdBinance = encodeURIComponent(
 	})
 )
 
-const setupFailFast = (page: Page) => {
-	let failed = false
-	let rejectRuntimeError: ((error: Error) => void) | undefined
-	const runtimeError = new Promise<never>((_, reject) => {
-		rejectRuntimeError = reject
-	})
-	const failFast = (error: Error) => {
-		if (failed) return
-		failed = true
-		rejectRuntimeError?.(error)
-	}
-	const step = async <_Value>(promise: Promise<_Value>) => {
-		await Promise.race([promise, runtimeError])
-	}
-
-	page.on('pageerror', (error) => {
-		failFast(new Error(`pageerror: ${error.message}`))
-	})
-
-	page.on('console', (message) => {
-		if (
-			message.type() === 'error'
-			&& !message.text().includes('Failed to load resource: the server responded with a status of 404')
-			&& !message.text().includes('Failed to load resource: the server responded with a status of 422')
-			&& !message.text().includes('Failed to load resource: the server responded with a status of 429')
-			&& !message.text().includes('Failed to load resource: the server responded with a status of 500')
-			&& !message.text().includes('Failed to load resource: the server responded with a status of 502')
-			&& !message.text().includes('[vite] Failed to reload')
-			&& !message.text().includes('Failed to fetch dynamically imported module')
-			&& !message.text().includes('Failed to load resource: net::ERR_FAILED')
-			&& !message.text().includes('has been blocked by CORS policy')
-			&& !(
-				message.text().includes('[QueryCollection]')
-				&& (
-					/resolver\(s\) failed/.test(message.text())
-					|| /Fetch failed \(\d{3}/.test(message.text())
-				)
-			)
-		) failFast(new Error(`console.error: ${message.text()}`))
-	})
-
-	return { step }
-}
-
 const attach = { timeout: 120_000 }
 
 test.describe('Markets routes', () => {
 	test('markets list renders with market links', async ({ page }, testInfo) => {
 		testInfo.setTimeout(180_000)
-		const { step } = setupFailFast(page)
+		const diagnostics = setupPageRuntimeDiagnostics(page)
+		const { step } = diagnostics
 
 		await step(page.goto('/markets', { waitUntil: 'load', timeout: 120_000 }))
 
-		await step(expect(page.locator('#main')).toBeVisible({ timeout: 120_000 }))
+		await expectMainVisible(page, 120_000, diagnostics)
 		await step(expect(page.locator('#main [id$="not-found"]')).toHaveCount(0))
 		await step(expect(page.locator('#main a[href*="/market/"]').first()).toBeAttached(attach))
 	})
 
 	test('market detail renders asset and pricing carousels with data', async ({ page }, testInfo) => {
 		testInfo.setTimeout(180_000)
-		const { step } = setupFailFast(page)
+		const diagnostics = setupPageRuntimeDiagnostics(page)
+		const { step } = diagnostics
 
 		await step(page.goto(`/market/${marketKeyEthUsdBinance}`, {
 			waitUntil: 'load',
 			timeout: 120_000,
 		}))
 
+		await expectMainVisible(page, 120_000, diagnostics)
 		await step(expect(page.locator('#main [id$="not-found"]')).toHaveCount(0))
 		await step(expect(page.locator('#main [data-error]')).toHaveCount(0))
 
@@ -86,9 +49,11 @@ test.describe('Markets routes', () => {
 
 	test('navigation lists markets at assets level', async ({ page }, testInfo) => {
 		testInfo.setTimeout(60_000)
-		const { step } = setupFailFast(page)
+		const diagnostics = setupPageRuntimeDiagnostics(page)
+		const { step } = diagnostics
 
 		await step(page.goto('/markets', { waitUntil: 'load', timeout: 60_000 }))
+		await expectMainVisible(page, 60_000, diagnostics)
 
 		const nav = page.locator('#nav-menu')
 		await step(expect(nav.locator('a[href="/markets"]')).toBeAttached())

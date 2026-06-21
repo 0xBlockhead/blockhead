@@ -30,6 +30,8 @@ describe('client resolver stack architecture', () => {
 	it('keeps the client implementation in the original files', () => {
 		expect(readdirSync(clientDirectory).toSorted()).toEqual([
 			'$client.svelte.ts',
+			'$e2eProbe.ts',
+			'$e2eTrace.ts',
 			'$proxy.svelte.ts',
 			'$subscribe.svelte.ts',
 			'client-resolver-stack.spec.ts',
@@ -43,6 +45,14 @@ describe('client resolver stack architecture', () => {
 		expect(source('$subscribe.svelte.ts')).not.toMatch(/LoadedSubset|loadedSubsets|rowCount|sourceRowCounts|metadata\.collection|persistedCollectionOptions|queryCollectionOptions/)
 	})
 
+	it('keeps E2E tracing isolated from the production client', () => {
+		expect(source('$client.svelte.ts')).not.toMatch(/__blockhead|PersistenceTrace|trace:/)
+		expect(source('$subscribe.svelte.ts')).not.toMatch(/__blockhead|PersistenceTrace|trace:/)
+		expect(source('$e2eProbe.ts')).toMatch(/__blockheadClientProbe/)
+		expect(source('$e2eProbe.ts')).toMatch(/PersistenceTraceEvent/)
+		expect(source('$e2eTrace.ts')).toMatch(/traceE2ECollections/)
+	})
+
 	it('keeps Persisted collection query functions from using hydrated rows for the persistence gate', () => {
 		const clientSource = source('$client.svelte.ts')
 		for (const queryFunction of [
@@ -52,11 +62,36 @@ describe('client resolver stack architecture', () => {
 		]) {
 			const start = clientSource.indexOf(`const ${queryFunction}`)
 			expect(start).toBeGreaterThanOrEqual(0)
+			const nextConst = clientSource.indexOf('\nconst ', start + 1)
+			const nextExport = clientSource.indexOf('\nexport const ', start + 1)
 			const body = clientSource.slice(
 				start,
-				clientSource.indexOf('\nconst ', start + 1)
+				Math.min(
+					...[
+						nextConst,
+						nextExport,
+					].filter((index) => index >= 0)
+				)
 			)
 			expect(body).not.toMatch(/collection\.toArray|collection\.values|collection\.size|collection\.has/)
+		}
+	})
+
+	it('keeps undefined snapshot completion gated by schema cardinality', () => {
+		const clientSource = source('$client.svelte.ts')
+		for (const queryFunction of [
+			'loadFieldRows',
+			'loadCountRows',
+		]) {
+			const start = clientSource.indexOf(`const ${queryFunction}`)
+			expect(start).toBeGreaterThanOrEqual(0)
+			const nextConst = clientSource.indexOf('\nconst ', start + 1)
+			const body = clientSource.slice(
+				start,
+				nextConst
+			)
+			expect(body).toMatch(/if \(snapshot === undefined\)[\s\S]*fieldCanCompleteEmpty/)
+			expect(body).not.toMatch(/snapshot (?:==|===) null/)
 		}
 	})
 

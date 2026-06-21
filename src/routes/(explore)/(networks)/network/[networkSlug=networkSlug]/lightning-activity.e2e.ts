@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test'
 
 import {
 	assertMainSettled,
+	expectMainVisible,
 	installChainlistRpcsJsonStub,
 } from '../../../../../../tests/_e2eBrowserHelpers.ts'
 
@@ -29,6 +30,7 @@ test.describe('/network/lightning activity routes', () => {
 			await installChainlistRpcsJsonStub(page)
 
 			const {
+				diagnostics,
 				step,
 				flushArtifacts,
 			} = setupRouteViewSmokePage(page)
@@ -38,11 +40,9 @@ test.describe('/network/lightning activity routes', () => {
 					waitUntil: 'domcontentloaded',
 					timeout: routeViewSmokeTimeoutsMs.goto,
 				}))
-				await step(expect(page.locator('#main')).toBeAttached({
-					timeout: routeViewSmokeTimeoutsMs.mainSelector,
-				}))
+				await expectMainVisible(page, routeViewSmokeTimeoutsMs.mainSelector, diagnostics)
 				await step(expect(page.locator('#main [data-error]')).toHaveCount(0))
-				await step(assertMainSettled(page, routeViewSmokeTimeoutsMs.mainSelector))
+				await step(assertMainSettled(page, routeViewSmokeTimeoutsMs.mainSelector, diagnostics))
 			}
 			catch (error) {
 				await flushArtifacts(testInfo)

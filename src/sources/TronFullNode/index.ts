@@ -1,3 +1,5 @@
+import { type as arktype } from 'arktype'
+
 import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 import TronFullNodeRest from '$/sources/TronFullNode/Rest/index.ts'
 
@@ -14,6 +16,9 @@ export const tronFullNodeRestEndpoints = [
 export default {
 	provider: SourceProvider.TronFullNode,
 	label: 'TRON FullNode',
+	env: arktype({
+		PUBLIC_TRON_FULL_NODE_REST_BASE_URL: 'string',
+	}),
 	origins: tronFullNodeRestEndpoints.map((endpoint) => ({
 		origin: endpoint.restBaseUrl,
 		corsEnabled: false,

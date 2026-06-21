@@ -118,7 +118,12 @@ const subscribeToLiveQueryCollections = (
 	queries: readonly {
 		collection: {
 			readonly status: CollectionStatus
+			readonly isLoadingSubset: boolean
 			onFirstReady(update: () => void): void
+			on(
+				event: 'loadingSubset:change',
+				update: () => void
+			): () => void
 			preload(): Promise<void>
 			subscribeChanges(
 				update: () => void,
@@ -136,7 +141,7 @@ const subscribeToLiveQueryCollections = (
 ) => {
 	const subscriptions = [
 		subscribeToFailures(update),
-		...queries.map((query) => {
+		...queries.flatMap((query) => {
 		query.collection.onFirstReady(update)
 		const subscription = query.collection.subscribeChanges(update, {
 			includeInitialState: true,
@@ -145,7 +150,9 @@ const subscribeToLiveQueryCollections = (
 		if (query.collection.status === 'idle')
 			query.collection.preload().catch(update)
 
-			return subscription.unsubscribe
+			return [
+				subscription.unsubscribe,
+			]
 		}),
 	]
 	return () => {
@@ -154,11 +161,57 @@ const subscribeToLiveQueryCollections = (
 	}
 }
 
+const waitForLiveQueryCollections = (
+	queries: readonly {
+		collection: {
+			readonly status: CollectionStatus
+			readonly isLoadingSubset: boolean
+			onFirstReady(update: () => void): void
+			on(
+				event: 'loadingSubset:change',
+				update: () => void
+			): () => void
+			preload(): Promise<void>
+		}
+	}[]
+) => (
+	new Promise<void>((resolve) => {
+		const subscriptions: (() => void)[] = []
+		const done = () => (
+			queries.every((query) => (
+				query.collection.status === 'ready'
+				&& !query.collection.isLoadingSubset
+			))
+		)
+		const complete = () => {
+			if (!done())
+				return
+
+			for (const subscription of subscriptions)
+				subscription()
+			resolve()
+		}
+
+		for (const query of queries) {
+			query.collection.onFirstReady(complete)
+			subscriptions.push(query.collection.on('loadingSubset:change', complete))
+			if (query.collection.status === 'idle')
+				query.collection.preload().catch(complete)
+		}
+		queueMicrotask(complete)
+	})
+)
+
 const liveQuerySnapshot = <Data>(
 	collection: {
 		readonly status: CollectionStatus
+		readonly isLoadingSubset: boolean
 		readonly toArray: readonly Data[]
 		onFirstReady(update: () => void): void
+		on(
+			event: 'loadingSubset:change',
+			update: () => void
+		): () => void
 		preload(): Promise<void>
 		subscribeChanges(
 			update: () => void,
@@ -169,22 +222,23 @@ const liveQuerySnapshot = <Data>(
 		): {
 			unsubscribe(): void
 		}
-	}
+	},
+	data = () => collection.toArray
 ) => {
 	const isReady = () => collection.status === 'ready'
 	return {
 		collection,
 		get data() {
-			return collection.toArray
+			return data()
 		},
 		get isError() {
 			return collection.status === 'error'
 		},
 		get isLoading() {
-			return !isReady()
+			return !isReady() || collection.isLoadingSubset
 		},
 		get isReady() {
-			return isReady()
+			return isReady() && !collection.isLoadingSubset
 		},
 		get status() {
 			return collection.status
@@ -337,7 +391,8 @@ const fieldDataFromRows = <
 	rows: readonly EntityFieldCollectionItem<_Schema>[],
 	countRows: readonly EntityFieldCountCollectionItem<_Schema>[],
 	entityRows: readonly EntityCollectionItem<_Schema, _EntityType>[] = [],
-	sources?: readonly string[]
+	sources?: readonly string[],
+	count = false
 ) => {
 	const definition = entityFieldDefinitions(context.entityDefinitionByType[entityType])
 		.find((candidate) => candidate.name === fieldName)
@@ -376,8 +431,8 @@ const fieldDataFromRows = <
 			fieldName,
 			values,
 			entities: values,
-			...(countRows.length > 0 && {
-				totalCount: countRows[0][EntityMetaKey.Value],
+			...((count || countRows.length > 0) && {
+				totalCount: countRows[0]?.[EntityMetaKey.Value] ?? values.length,
 			}),
 		}
 
@@ -546,9 +601,23 @@ export const subscribeEntityField = <
 			selection.count === true
 		)
 
+	const liveQueries = (
+		queries.counts === undefined ?
+			[
+				queries.entityRows,
+				queries.rows,
+			]
+		:
+			[
+				queries.entityRows,
+				queries.rows,
+				queries.counts,
+			]
+	)
+
 	return new TanStackLiveQueryResource(() => asQuerySnapshot(
 		queries.counts === undefined ?
-				[{
+			[{
 						...queries.rows,
 						...(queries.rowsFailure() !== undefined && {
 							isComplete: true,
@@ -601,23 +670,14 @@ export const subscribeEntityField = <
 			queries.rows.data,
 			queries.counts?.data ?? [],
 			queries.entityRows.data,
-			queries.sources
+			queries.sources,
+			selection.count === true
 		)
 	), (update) => subscribeToLiveQueryCollections(
-		queries.counts === undefined ?
-			[
-				queries.entityRows,
-				queries.rows,
-			]
-		:
-		[
-			queries.entityRows,
-			queries.rows,
-			queries.counts,
-		],
+		liveQueries,
 		update,
 		context.collectionLoadFailures.subscribe
-	))
+	), () => waitForLiveQueryCollections(liveQueries))
 }
 
 export const subscribeEntity = <
@@ -705,6 +765,19 @@ export const subscribeEntity = <
 			),
 		}))
 
+	const liveQueries = [
+		entityRows,
+		...fields.flatMap(({ queries }) => (
+			queries.counts === undefined ?
+				[queries.rows]
+			:
+				[
+					queries.rows,
+					queries.counts,
+				]
+		)),
+	]
+
 	return new TanStackLiveQueryResource(() => {
 		const fieldValues: EntityCollectionItem<_Schema, _EntityType>[typeof EntityMetaKey.Fields] = {}
 		for (const {
@@ -720,7 +793,10 @@ export const subscribeEntity = <
 					queries.rows.data,
 					queries.counts?.data ?? [],
 					entityRows.data,
-					queries.sources
+					queries.sources,
+					fieldSelection !== true
+					&& fieldSelection !== undefined
+					&& fieldSelection.count === true
 				)
 
 		return asQuerySnapshot(
@@ -796,19 +872,8 @@ export const subscribeEntity = <
 			}
 		)
 	}, (update) => subscribeToLiveQueryCollections(
-		[
-			entityRows,
-			...fields.flatMap(({ queries }) => (
-				queries.counts === undefined ?
-					[queries.rows]
-				:
-					[
-						queries.rows,
-						queries.counts,
-				]
-			)),
-		],
+		liveQueries,
 		update,
 		context.collectionLoadFailures.subscribe
-	))
+	), () => waitForLiveQueryCollections(liveQueries))
 }

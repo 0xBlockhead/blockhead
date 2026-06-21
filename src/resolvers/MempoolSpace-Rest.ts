@@ -72,7 +72,6 @@ export default {
 					assertBitcoinMainnet($network)
 					const {
 						getBlock,
-						getBlockHashByHeight,
 					} = await import('$/sources/MempoolSpace/Rest/queries.ts')
 					const block = await getBlock({
 						restBaseUrl: bitcoinNetworkBySlug.bitcoin.mempoolSpaceRestBaseUrl,

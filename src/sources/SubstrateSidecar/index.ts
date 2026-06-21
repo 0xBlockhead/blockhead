@@ -1,3 +1,5 @@
+import { type as arktype } from 'arktype'
+
 import { TransportType } from '$/constants/TransportType.ts'
 import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 import SubstrateSidecarRest from '$/sources/SubstrateSidecar/Rest/index.ts'
@@ -23,6 +25,9 @@ export const substrateSidecarRestEndpoints = [
 export default {
 	provider: SourceProvider.SubstrateSidecar,
 	label: 'Substrate API Sidecar',
+	env: arktype({
+		PUBLIC_SUBSTRATE_SIDECAR_REST_BASE_URL: 'string',
+	}),
 	origins: substrateSidecarRestEndpoints.map((endpoint) => ({
 		origin: new URL(endpoint.url).origin,
 		corsEnabled: false,

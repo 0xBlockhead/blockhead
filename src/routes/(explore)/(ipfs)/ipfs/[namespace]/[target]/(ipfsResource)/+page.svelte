@@ -26,7 +26,6 @@
 	<Page>
 		<IpfsResourceView
 			selection={select(EntityType.IpfsResource, selector)}
-			open={false}
 		/>
 	</Page>
 {:else}

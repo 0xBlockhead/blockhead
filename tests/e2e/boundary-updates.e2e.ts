@@ -30,14 +30,6 @@ import { e2eBoundaryLiveOptionalPathnames } from './_routeParamFixtures.ts'
 import { discoverPathnamesFromRoutes } from './_routeDiscovery.ts'
 
 
-declare global {
-	interface Window {
-		__blockheadWaSqliteDatabaseNameOverride?: string
-		__blockheadPersistedCollectionSchemaVersionOverride?: number
-	}
-}
-
-
 const gotoLoadTimeoutMs = 120_000
 
 const settleTimeoutMs = (() => {
@@ -290,6 +282,74 @@ const attachBoundaryArtifacts = async (
 	})
 }
 
+const attachClientTraceArtifact = async (
+	page: import('@playwright/test').Page,
+	testInfo: import('@playwright/test').TestInfo,
+	pathname: string,
+	report: RouteBoundaryReport
+) => {
+	if (report.issues.length === 0) return
+
+	const trace = await page.evaluate(() => {
+		const collections = window.__blockheadClientProbe?.traceCollections()
+		const rowCountsByCollection = (rowsByEntityType: Record<string, { readonly length: number }>) => (
+			Object.fromEntries(
+				Object.entries(rowsByEntityType)
+					.filter(([, rows]) => rows.length > 0)
+					.map(([collectionName, rows]) => [
+						collectionName,
+						rows.length,
+					])
+			)
+		)
+		const nestedRowCountsByCollection = (rowsByEntityTypeAndFieldName: Record<string, Record<string, { readonly length: number }>>) => (
+			Object.fromEntries(
+				Object.entries(rowsByEntityTypeAndFieldName)
+					.map(([entityType, rowsByFieldName]) => [
+						entityType,
+						rowCountsByCollection(rowsByFieldName),
+					])
+					.filter(([, rowCounts]) => Object.keys(rowCounts).length > 0)
+			)
+		)
+		const loadCountByCollection = (
+			Object.groupBy(
+				collections?.collectionLoads ?? [],
+				(event) => `${event.collectionId}:${event.decision ?? 'unknown'}:${event.status ?? 'unknown'}`
+			)
+		)
+		return {
+			probeEnabled: window.__blockheadClientProbeEnabled === true,
+			probeInstalled: window.__blockheadClientProbe != null,
+			loadCounts: Object.fromEntries(
+				Object.entries(loadCountByCollection).map(([key, events]) => [
+					key,
+					events.length,
+				])
+			),
+			recentLoads: collections?.collectionLoads.slice(-40).map((event) => ({
+				collectionId: event.collectionId,
+				decision: event.decision,
+				status: event.status,
+				rowCount: event.rowCount,
+				sourceRowCounts: event.sourceRowCounts,
+				reason: event.reason,
+				error: event.error,
+			})) ?? [],
+			rowCounts: {
+				entities: rowCountsByCollection(collections?.collectionRows.entities ?? {}),
+				fields: nestedRowCountsByCollection(collections?.collectionRows.fields ?? {}),
+				counts: nestedRowCountsByCollection(collections?.collectionRows.counts ?? {}),
+			},
+		}
+	})
+	console.log(`[client trace] ${pathname} ${JSON.stringify(trace, null, 2)}`)
+	await testInfo.attach(`client-trace-${pathname.replace(/\//g, '_') || 'root'}.json`, {
+		body: JSON.stringify(trace, null, 2),
+		contentType: 'application/json',
+	})
+}
+
 const assertBoundaryReports = (reports: RouteBoundaryReport[]) => {
 	const issueRoutes = reports.filter((report) => (
 		report.issues.length > 0
@@ -334,6 +394,7 @@ test.describe('boundary updates (every +page route)', () => {
 		testInfo.setTimeout(settleTimeoutMs + gotoLoadTimeoutMs + 60_000)
 		page.setDefaultNavigationTimeout(gotoLoadTimeoutMs)
 		await page.addInitScript(({ databaseName, schemaVersion }) => {
+			window.__blockheadClientProbeEnabled = true
 			window.__blockheadWaSqliteDatabaseNameOverride = databaseName
 			window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
 		}, {
@@ -359,6 +420,7 @@ test.describe('boundary updates (every +page route)', () => {
 		await installChainlistRpcsJsonStub(page)
 
 		const report = await collectRouteBoundaryReport(page, probePath!, diagnostics)
+		await attachClientTraceArtifact(page, testInfo, probePath!, report)
 		await attachBoundaryArtifacts(testInfo, [report])
 		if (!reportOnly)
 			assertBoundaryReports([report])
@@ -370,6 +432,7 @@ test.describe('boundary updates (every +page route)', () => {
 			testInfo.setTimeout(settleTimeoutMs + gotoLoadTimeoutMs + 60_000)
 			page.setDefaultNavigationTimeout(gotoLoadTimeoutMs)
 			await page.addInitScript(({ databaseName, schemaVersion }) => {
+				window.__blockheadClientProbeEnabled = true
 				window.__blockheadWaSqliteDatabaseNameOverride = databaseName
 				window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
 			}, {
@@ -396,6 +459,7 @@ test.describe('boundary updates (every +page route)', () => {
 
 			console.log(`[boundary route] ${index + 1}/${routePathnames.length} ${pathname}`)
 			const report = await collectRouteBoundaryReport(page, pathname, diagnostics)
+			await attachClientTraceArtifact(page, testInfo, pathname, report)
 			await attachBoundaryArtifacts(testInfo, [report])
 			if (!reportOnly)
 				assertBoundaryReports([report])

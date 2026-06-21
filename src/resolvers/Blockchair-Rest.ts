@@ -47,10 +47,15 @@ const blockchairChain = (
 	throw new Error(`Blockchair_Rest: unsupported UTXO network ${caip2.namespace}:${caip2.reference}`)
 }
 
+const firstDashboardEntry = <_Row>(dashboardRows: Record<string, _Row>, subject: string) => {
+	for (const dashboardEntry of Object.entries(dashboardRows))
+		return dashboardEntry
+
+	throw new Error(`Blockchair_Rest: no dashboard for ${subject}`)
+}
+
 const firstDashboardRow = <_Row>(dashboardRows: Record<string, _Row>, subject: string) => {
-	const dashboardRow = Object.values(dashboardRows)[0]
-	if (dashboardRow == null) throw new Error(`Blockchair_Rest: no dashboard for ${subject}`)
-	return dashboardRow
+	return firstDashboardEntry(dashboardRows, subject)[1]
 }
 
 const timestampMsFromBlockchairTime = (time: string | undefined) => (
@@ -119,10 +124,34 @@ export default {
 
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoBlock,
-			resolve: {
-				[UtxoBlockSelector.NetworkHeightHash]: async ({ $network, hash }) => {
-					const { getBitcoinLikeBlockDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
-					const dashboard = firstDashboardRow(
+				resolve: {
+					[UtxoBlockSelector.NetworkHeight]: async ({ $network, height }) => {
+						const { getBitcoinLikeBlockDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
+						const [hash, dashboard] = firstDashboardEntry(
+							(
+							await getBitcoinLikeBlockDashboard({
+								chain: blockchairChain($network),
+								block: height,
+							})
+							).data,
+							height.toString()
+						)
+						return {
+							hash,
+							timestampMs: dashboard.block.time == null ? undefined : Date.parse(dashboard.block.time),
+							merkleRoot: dashboard.block.merkle_root,
+							...(dashboard.block.nonce != null && {
+								nonce: dashboard.block.nonce,
+							}),
+							difficulty: dashboard.block.difficulty,
+							sizeBytes: dashboard.block.size,
+							weightUnits: dashboard.block.weight,
+							transactionCount: dashboard.block.transaction_count,
+						}
+					},
+					[UtxoBlockSelector.NetworkHeightHash]: async ({ $network, hash }) => {
+						const { getBitcoinLikeBlockDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
+						const dashboard = firstDashboardRow(
 						(
 						await getBitcoinLikeBlockDashboard({
 							chain: blockchairChain($network),
@@ -414,10 +443,28 @@ export default {
 
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoBlock,
-			resolve: {
-				[UtxoBlockSelector.NetworkHeightHash]: async ({ $network, hash }) => {
-					const { getBitcoinLikeBlockDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
-					const dashboard = firstDashboardRow(
+				resolve: {
+					[UtxoBlockSelector.NetworkHeight]: async ({ $network, height }) => {
+						const { getBitcoinLikeBlockDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
+						const dashboard = firstDashboardRow(
+							(
+							await getBitcoinLikeBlockDashboard({
+								chain: blockchairChain($network),
+								block: height,
+							})
+							).data,
+							height.toString()
+						)
+						return dashboard.transactions.map((transaction) => ({
+							[EntityMetaKey.Selector]: {
+								$network,
+								txId: transaction.hash,
+							},
+						}))
+					},
+					[UtxoBlockSelector.NetworkHeightHash]: async ({ $network, hash }) => {
+						const { getBitcoinLikeBlockDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
+						const dashboard = firstDashboardRow(
 						(
 						await getBitcoinLikeBlockDashboard({
 							chain: blockchairChain($network),

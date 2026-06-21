@@ -29,12 +29,12 @@
 
 <Page>
 	<ResourceBoundary resource={network}>
-		{#snippet children(network)}
-			{#if network.fields.namespace === NetworkNamespace.Lightning}
+			{#snippet children(network)}
+				{#if network.fields.namespace === NetworkNamespace.Lightning}
 					<LightningNodeView
 						selection={select(EntityType.LightningNode, {
 							$network: { slug: params.networkSlug },
-							publicKey: EvmAddress.assert(params.pubkey),
+							publicKey: params.pubkey,
 						})}
 					/>
 				{:else if network.fields.namespace === NetworkNamespace.ZeroG}

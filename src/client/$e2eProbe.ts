@@ -2,6 +2,10 @@ import type {
 	ClientContext,
 	ClientEvent,
 } from '$/client/$client.svelte.ts'
+import {
+	traceE2ECollections,
+	type E2ECollectionTrace,
+} from '$/client/$e2eTrace.ts'
 import type { Schema } from '$/schema/$schema.ts'
 import type {
 	LoadSubsetOptions,
@@ -13,7 +17,10 @@ import type {
 } from '@tanstack/db-sqlite-persistence-core'
 
 
-const e2eProbeEnabled = import.meta.env.VITE_BLOCKHEAD_E2E_PROBE === '1'
+const e2eProbeEnabled = (
+	import.meta.env.DEV
+	|| import.meta.env.VITE_BLOCKHEAD_E2E_PROBE === '1'
+)
 
 export type PersistenceTraceEvent = {
 	type: string
@@ -26,13 +33,39 @@ export type PersistenceTraceEvent = {
 	error?: string
 }
 
+export type ClientProbeCollectionSyncEvent = {
+	collection:
+		| {
+			kind: 'Entity'
+			entityType: string
+			id: string
+		}
+		| {
+			kind: 'Field' | 'Count'
+			entityType: string
+			fieldName: string
+			id: string
+		}
+	key: string
+}
+
 export type ClientProbe = {
 	events: {
-		collectionSync: []
+		collectionSync: ClientProbeCollectionSyncEvent[]
 		collectionLoads: ClientEvent[]
 	}
-	collectionSizes: () => object
-	queryStates: () => object[]
+	collectionSizes: () => {
+		entities: Record<string, number>
+		fields: Record<string, Record<string, number>>
+		counts: Record<string, Record<string, number>>
+	}
+	queryStates: () => {
+		key: string[]
+		status: string
+		fetchStatus: string
+		error?: string
+	}[]
+	traceCollections: () => E2ECollectionTrace
 }
 
 declare global {
@@ -40,8 +73,28 @@ declare global {
 		__blockheadClientProbeEnabled?: boolean
 		__blockheadClientProbe?: ClientProbe
 		__blockheadPersistenceTrace?: PersistenceTraceEvent[]
+		__blockheadWaSqliteDatabaseNameOverride?: string
+		__blockheadPersistedCollectionSchemaVersionOverride?: number
 	}
 }
+
+export const e2eDatabaseName = (
+	defaultDatabaseName: string
+) => (
+	typeof window !== 'undefined' ?
+		window.__blockheadWaSqliteDatabaseNameOverride ?? defaultDatabaseName
+	:
+		defaultDatabaseName
+)
+
+export const e2eSchemaVersion = (
+	defaultSchemaVersion: number
+) => (
+	typeof window !== 'undefined' ?
+		window.__blockheadPersistedCollectionSchemaVersionOverride ?? defaultSchemaVersion
+	:
+		defaultSchemaVersion
+)
 
 const clientProbeRequested = () => (
 	e2eProbeEnabled
@@ -55,7 +108,7 @@ const pushPersistenceTrace = (event: PersistenceTraceEvent) => {
 	window.__blockheadPersistenceTrace.push(event)
 }
 
-export const createPersistenceTrace = <
+export const createE2EClientInstrumentation = <
 	const _Persistence extends PersistedCollectionPersistence
 >(
 	basePersistence: _Persistence
@@ -165,8 +218,48 @@ export const installAppClientProbe = <
 				collectionSync: [],
 				collectionLoads: appClient.events,
 			},
-			collectionSizes: appClient.debug.collectionSizes,
-			queryStates: appClient.debug.queryStates,
+			collectionSizes: () => ({
+				entities: Object.fromEntries(
+					Object.entries(appClient.entityCollections).map(([entityType, collection]) => [
+						entityType,
+						collection.size,
+					])
+				),
+				fields: Object.fromEntries(
+					Object.entries(appClient.entityFieldCollections).map(([entityType, collections]) => [
+						entityType,
+						Object.fromEntries(
+							Object.entries(collections).map(([fieldName, collection]) => [
+								fieldName,
+								collection.size,
+							])
+						),
+					])
+				),
+				counts: Object.fromEntries(
+					Object.entries(appClient.entityFieldCountCollections).map(([entityType, collections]) => [
+						entityType,
+						Object.fromEntries(
+							Object.entries(collections).map(([fieldName, collection]) => [
+								fieldName,
+								collection?.size ?? 0,
+							])
+						),
+					])
+				),
+			}),
+			queryStates: () => (
+				appClient.queryClient
+					.getQueryCache()
+					.getAll()
+					.map((query) => ({
+						key: query.queryKey.map((segment) => String(segment)),
+						status: query.state.status,
+						fetchStatus: query.state.fetchStatus,
+						error: query.state.error == null ? undefined : String(query.state.error),
+					}))
+			),
+			traceCollections: () => traceE2ECollections(appClient),
 		},
 		configurable: true,
 	})

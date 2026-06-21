@@ -32,7 +32,7 @@ export default {
 	]
 		.map((origin) => ({
 			origin,
-			corsEnabled: true,
+			corsEnabled: false,
 		})),
 	sources: [
 		SolanaJsonRpc,

@@ -187,10 +187,49 @@ export default {
 
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroBlock,
-			resolve: {
-				[MoneroBlockSelector.NetworkHeightHash]: async ({ $network, height }) => {
-					assertMoneroMainnet($network)
-					const { getBlock } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
+				resolve: {
+					[MoneroBlockSelector.NetworkHeight]: async ({ $network, height }) => {
+						assertMoneroMainnet($network)
+						const { getBlock } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
+						const block = await getBlock({
+							rpcUrl: moneroMainnetRpcEndpoints[0].url,
+							height: height,
+						})
+						return {
+							hash: block.block_header.hash,
+							...(block.block_header.height > 0 && {
+								$parent: {
+									[EntityMetaKey.Selector]: {
+										$network: $network,
+										height: BigInt(block.block_header.height - 1),
+										hash: block.block_header.prev_hash,
+									},
+								},
+							}),
+							timestampMs: block.block_header.timestamp * 1000,
+							difficulty: BigInt(block.block_header.difficulty),
+							weightBytes: block.block_header.block_weight,
+							$$transactions: [
+								block.miner_tx_hash,
+								...(block.tx_hashes ?? []),
+							].map((txHash) => ({
+								[EntityMetaKey.Selector]: {
+									$network,
+									txHash,
+								},
+								$block: {
+									[EntityMetaKey.Selector]: {
+										$network,
+										height,
+										hash: block.block_header.hash,
+									},
+								},
+							})),
+						}
+					},
+					[MoneroBlockSelector.NetworkHeightHash]: async ({ $network, height }) => {
+						assertMoneroMainnet($network)
+						const { getBlock } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
 					const block = await getBlock({
 						rpcUrl: moneroMainnetRpcEndpoints[0].url,
 						height: height,

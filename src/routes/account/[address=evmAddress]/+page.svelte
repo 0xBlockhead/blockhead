@@ -17,6 +17,5 @@
 <Page>
 	<EvmAccountView
 		selection={select(EntityType.EvmAccount, data.selector)}
-		open={false}
 	/>
 </Page>

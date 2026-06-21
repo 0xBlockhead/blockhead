@@ -7,18 +7,11 @@ import {
 	installChainlistRpcsJsonStub,
 	installPersistenceProbe,
 	jsonStringifyForExpectMessage,
+	setupPageRuntimeDiagnostics,
 	type PersistedCollectionLoadEvent,
 } from '../_e2eBrowserHelpers.ts'
 
 import { discoverPathnamesFromRoutes } from './_routeDiscovery.ts'
-
-
-declare global {
-	interface Window {
-		__blockheadWaSqliteDatabaseNameOverride?: string
-		__blockheadPersistedCollectionSchemaVersionOverride?: number
-	}
-}
 
 
 const probePath = process.env.E2E_PROBE_PATH?.trim()
@@ -90,13 +83,14 @@ test.describe('dynamic routes resolve from real sources', () => {
 				schemaVersion: Date.now(),
 			})
 			await installChainlistRpcsJsonStub(page)
+			const diagnostics = setupPageRuntimeDiagnostics(page)
 
-			await page.goto(pathname, {
+			await diagnostics.step(page.goto(pathname, {
 				waitUntil: 'domcontentloaded',
 				timeout: 120_000,
-			})
-			await expectMainVisible(page, 120_000)
-			await assertMainSettled(page, 120_000)
+			}))
+			await expectMainVisible(page, 120_000, diagnostics)
+			await assertMainSettled(page, 120_000, diagnostics)
 			await page.waitForTimeout(2_000)
 
 			const events = await getPersistenceProbeEvents(page)

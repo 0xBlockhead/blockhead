@@ -6,11 +6,12 @@ import {
 	chunk,
 	clickInternalNavHrefs,
 	clearOriginOpfs,
-	collectIssues,
+	expectMainVisible,
 	expandClosedAncestors,
 	installChainlistRpcsJsonStub,
 	navMenu,
 	orderedInternalNavHrefs,
+	setupPageRuntimeDiagnostics,
 } from '../_e2eBrowserHelpers.ts'
 
 
@@ -24,12 +25,12 @@ test.describe('sidebar navigation', () => {
 	test('Networks via sidebar after cold OPFS (chainlist stub)', async ({ page }) => {
 		test.setTimeout(120_000)
 		await installChainlistRpcsJsonStub(page)
-		const issues = collectIssues(page)
+		const diagnostics = setupPageRuntimeDiagnostics(page)
 		const menu = navMenu(page)
-		await page.goto('/', { waitUntil: 'load', timeout: 15_000 })
+		await diagnostics.step(page.goto('/', { waitUntil: 'load', timeout: 15_000 }))
 		await clearOriginOpfs(page)
-		await page.reload({ waitUntil: 'load', timeout: 30_000 })
-		await page.waitForSelector('#nav-menu', { state: 'visible', timeout: 30_000 })
+		await diagnostics.step(page.reload({ waitUntil: 'load', timeout: 30_000 }))
+		await diagnostics.step(page.waitForSelector('#nav-menu', { state: 'visible', timeout: 30_000 }))
 		const networksLink = menu.locator('a[href="/networks"]')
 		await expandClosedAncestors(networksLink)
 		await networksLink.click()
@@ -39,28 +40,29 @@ test.describe('sidebar navigation', () => {
 		)
 		await expect(page).toHaveURL((u) => u.pathname === '/networks')
 		await coldRpcs
+		await expectMainVisible(page, 120_000, diagnostics)
 		const ethereumMainnetHref = page.locator('#networks').locator('a[href$="/network/eip155:1"]').first()
 		await expect(ethereumMainnetHref).toBeVisible({ timeout: 90_000 })
-		await assertMainSettled(page)
-		expect(issues, issues.join('\n\n')).toEqual([])
+		await assertMainSettled(page, 120_000, diagnostics)
+		expect(diagnostics.issues, diagnostics.issues.join('\n\n')).toEqual([])
 	})
 
 	for (let ci = 0; ci < MAX_SIDEBAR_SHARDS; ci += 1) {
 		test(`shard ${ci}`, async ({ page }) => {
 			test.setTimeout(600_000)
 			await installChainlistRpcsJsonStub(page)
-			const issues = collectIssues(page)
+			const diagnostics = setupPageRuntimeDiagnostics(page)
 			const menu = navMenu(page)
-			await page.goto('/', { waitUntil: 'load', timeout: 15_000 })
+			await diagnostics.step(page.goto('/', { waitUntil: 'load', timeout: 15_000 }))
 			await clearOriginOpfs(page)
-			await page.reload({ waitUntil: 'load', timeout: 15_000 })
+			await diagnostics.step(page.reload({ waitUntil: 'load', timeout: 15_000 }))
 			await expect(menu).toBeVisible({ timeout: 15_000 })
 			const all = await orderedInternalNavHrefs(menu)
 			const hrefs = chunk(all, NAV_CHUNK)[ci] ?? []
 			if (hrefs.length === 0)
 				return
 			await clickInternalNavHrefs(page, menu, hrefs)
-			expect(issues, issues.join('\n\n')).toEqual([])
+			expect(diagnostics.issues, diagnostics.issues.join('\n\n')).toEqual([])
 		})
 	}
 })
@@ -76,9 +78,10 @@ test.describe('collections query lifecycle', () => {
 	test('join-heavy Farcaster feed settles with no console issues', async ({ page }) => {
 		test.setTimeout(120_000)
 		await installChainlistRpcsJsonStub(page)
-		const issues = collectIssues(page)
-		await page.goto('/farcaster/feed', { waitUntil: 'load', timeout: 30_000 })
-		await assertMainSettled(page)
-		expect(issues, issues.join('\n\n')).toEqual([])
+		const diagnostics = setupPageRuntimeDiagnostics(page)
+		await diagnostics.step(page.goto('/farcaster/feed', { waitUntil: 'load', timeout: 30_000 }))
+		await expectMainVisible(page, 120_000, diagnostics)
+		await assertMainSettled(page, 120_000, diagnostics)
+		expect(diagnostics.issues, diagnostics.issues.join('\n\n')).toEqual([])
 	})
 })

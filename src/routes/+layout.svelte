@@ -13,7 +13,9 @@
 		client,
 	} from '$/client/$client.svelte.ts'
 	import {
-		createPersistenceTrace,
+		createE2EClientInstrumentation,
+		e2eDatabaseName,
+		e2eSchemaVersion,
 		installAppClientProbe,
 	} from '$/client/$e2eProbe.ts'
 	import {
@@ -24,25 +26,13 @@
 	import { schema } from '$/schema/index.ts'
 	import { sourceProviders } from '$/sources/index.ts'
 
-	declare global {
-		interface Window {
-			__blockheadWaSqliteDatabaseNameOverride?: string
-			__blockheadPersistedCollectionSchemaVersionOverride?: number
-		}
-	}
-
 	const basePersistence = createBrowserWASQLitePersistence({
 		database: await openBrowserWASQLiteOPFSDatabase({
-			databaseName: (
-				typeof window !== 'undefined' ?
-					window.__blockheadWaSqliteDatabaseNameOverride ?? BLOCKHEAD_WA_SQLITE_DATABASE_NAME
-				:
-					BLOCKHEAD_WA_SQLITE_DATABASE_NAME
-			),
+			databaseName: e2eDatabaseName(BLOCKHEAD_WA_SQLITE_DATABASE_NAME),
 		}),
 		schemaMismatchPolicy: 'reset',
 	})
-	const persistenceTrace = createPersistenceTrace(basePersistence)
+	const e2eInstrumentation = createE2EClientInstrumentation(basePersistence)
 
 	export const appClient = client(
 		{
@@ -63,14 +53,9 @@
 					},
 				},
 			}),
-			persistence: persistenceTrace.persistence,
-			schemaVersion: (
-				typeof window !== 'undefined' ?
-					window.__blockheadPersistedCollectionSchemaVersionOverride ?? BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION
-				:
-					BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION
-			),
-			waitForPersistence: persistenceTrace.waitForPersistence,
+			persistence: e2eInstrumentation.persistence,
+			schemaVersion: e2eSchemaVersion(BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION),
+			waitForPersistence: e2eInstrumentation.waitForPersistence,
 		}
 	)
 

@@ -132,7 +132,18 @@
 									<dt>Head tipset</dt>
 									<dd id="network-summary-head-block">
 										<ResourceBoundary
-											resource={latestTimestamp}
+											resource={select(
+												EntityType.FilecoinNetwork_Timestamp,
+												latestTimestamp[EntityMetaKey.Selector],
+												{
+													sources: [
+														Source.Lotus_JsonRpc,
+													],
+													fields: {
+														$headTipset: true,
+													},
+												},
+											)}
 											placeholderText="Loading Filecoin timestamp…"
 										>
 											{#snippet children(latestTimestamp)}

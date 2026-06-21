@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
 import {
-	collectIssues,
+	setupPageRuntimeDiagnostics,
 	getViewTransitionSpy,
 	installViewTransitionStartSpy,
 } from '../_e2eBrowserHelpers.ts'
@@ -75,8 +75,8 @@ test.describe('list view transitions (RefinableList demo)', () => {
 	test('enabled route: quiet load, one transition per native sort/search/clear action', async ({
 		page,
 	}) => {
-		const issues = collectIssues(page)
-		await page.goto('/demo/list-view-transitions', { waitUntil: 'load' })
+		const diagnostics = setupPageRuntimeDiagnostics(page)
+		await diagnostics.step(page.goto('/demo/list-view-transitions', { waitUntil: 'load' }))
 		await assertViewTransitionEnvironment(page)
 
 		await expect(rowLabels(page)).toHaveText([ 'Alpha', 'Bravo', 'Candle' ])
@@ -108,15 +108,15 @@ test.describe('list view transitions (RefinableList demo)', () => {
 		await assertSingleViewTransitionPulse(page, beforeClear)
 		await expect(rowLabels(page)).toHaveText([ 'Candle', 'Bravo', 'Alpha' ])
 
-		const serious = issues.filter((i) => !isBenignResourceError(i))
+		const serious = diagnostics.issues.filter((i) => !isBenignResourceError(i))
 		expect(serious, `browser issues: ${serious.join('\n')}`).toEqual([])
 	})
 
 	test('disabled route: native sort/search/clear update rows without starting transitions', async ({
 		page,
 	}) => {
-		const issues = collectIssues(page)
-		await page.goto('/demo/list-view-transitions-novt', { waitUntil: 'load' })
+		const diagnostics = setupPageRuntimeDiagnostics(page)
+		await diagnostics.step(page.goto('/demo/list-view-transitions-novt', { waitUntil: 'load' }))
 		await assertViewTransitionEnvironment(page)
 
 		await expect(rowLabels(page)).toHaveText([ 'Alpha', 'Bravo', 'Candle' ])
@@ -147,7 +147,7 @@ test.describe('list view transitions (RefinableList demo)', () => {
 		await assertNoViewTransitionPulse(page, beforeClear)
 		await expect(rowLabels(page)).toHaveText([ 'Candle', 'Bravo', 'Alpha' ])
 
-		const serious = issues.filter((i) => !isBenignResourceError(i))
+		const serious = diagnostics.issues.filter((i) => !isBenignResourceError(i))
 		expect(serious, `browser issues: ${serious.join('\n')}`).toEqual([])
 	})
 })

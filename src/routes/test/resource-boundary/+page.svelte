@@ -182,6 +182,9 @@
 			},
 		},
 	)
+	let realSelectedScalar = $derived(
+		realSelectedScalarResource.current
+	)
 	let realSelectedDirectOnly = $derived(
 		realSelectedDirectOnlyResource.current
 	)
@@ -446,8 +449,6 @@
 	</button>
 
 	{#if showRealSelectedScalarResource}
-		{@const realSelectedScalar = realSelectedScalarResource.current}
-
 		<p data-testid="real-resource-direct-scalars">
 			{realSelectedScalar?.fields.name ?? ''}:{realSelectedScalar?.fields.status ?? ''}
 		</p>

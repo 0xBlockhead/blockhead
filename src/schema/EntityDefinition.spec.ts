@@ -113,9 +113,17 @@ const fixtureSchema = [
 
 const selectorFieldIsRequired = (
 	fieldDefinition: EntityFieldDefinition | undefined,
-	selectorFields: readonly string[]
+	selectorFields: readonly string[],
+	entityType?: string
 ) => (
 	fieldDefinition?.cardinality === EntityFieldCardinality.One
+	|| (
+		fieldDefinition?.name === 'caip2'
+		&& (
+			entityType === EntityType.Network
+			|| entityType === EntityType.SolanaNetwork
+		)
+	)
 	|| (
 		fieldDefinition?.when != null
 		&& selectorFields.includes(fieldDefinition.when.fieldName)
@@ -346,7 +354,11 @@ describe('entity selectors', () => {
 				]))
 				return entityDefinition.selectors.flatMap((selector) => (
 					selector.fields.flatMap((fieldName) => (
-						selectorFieldIsRequired(fieldDefinitionByName[fieldName], selector.fields) ?
+						selectorFieldIsRequired(
+							fieldDefinitionByName[fieldName],
+							selector.fields,
+							entityDefinition.entityType
+						) ?
 							[]
 						:
 							[`${entityDefinition.entityType}.${selector.name}.${fieldName}`]
@@ -474,7 +486,11 @@ describe('entity selectors', () => {
 					if (fieldDefinition == null)
 						return [`${[...path, entityDefinition.entityType, selector.name, fieldName].join('.')}: missing field`]
 
-					if (!selectorFieldIsRequired(fieldDefinition, selector.fields))
+					if (!selectorFieldIsRequired(
+						fieldDefinition,
+						selector.fields,
+						entityDefinition.entityType
+					))
 						return [`${[...path, entityDefinition.entityType, selector.name, fieldName].join('.')}: selector field must be required`]
 
 					if (fieldDefinition.type !== EntityFieldType.EntityReference)
