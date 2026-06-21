@@ -221,23 +221,27 @@
 				</ResourceBoundary>
 
 				{#if contentOpen}
-					<ResourceBoundary resource={topics} placeholderText="Loading decode topics…">
-						{#snippet children(topics)}
-							<ResourceBoundary resource={data} placeholderText="Loading decode data…">
-								{#snippet children(data)}
-									{#if topics?.length && data != null}
-										<div>
-											<dt>ABI decode</dt>
-											<dd>
-												<EvmLogDecode
-													topics={topics}
-													{data}
-													emitterContractId={emitter?.entitySelector}
-													open={contentOpen}
-												/>
-											</dd>
-										</div>
-									{/if}
+					<ResourceBoundary resource={emitter} placeholderText="Loading decode emitter…">
+						{#snippet children(emitter)}
+							<ResourceBoundary resource={topics} placeholderText="Loading decode topics…">
+								{#snippet children(topics)}
+									<ResourceBoundary resource={data} placeholderText="Loading decode data…">
+										{#snippet children(data)}
+											{#if topics?.length && data != null}
+												<div>
+													<dt>ABI decode</dt>
+													<dd>
+														<EvmLogDecode
+															topics={topics}
+															{data}
+															emitterContractId={emitter?.entitySelector}
+															open={contentOpen}
+														/>
+													</dd>
+												</div>
+											{/if}
+										{/snippet}
+									</ResourceBoundary>
 								{/snippet}
 							</ResourceBoundary>
 						{/snippet}

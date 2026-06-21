@@ -141,7 +141,7 @@
 					{#if _contentOpen}
 						<div>
 							<dt>Accounts</dt>
-							<dd>{String(atprotoNetwork.fields.$$atprotoActors.values.length )}</dd>
+							<dd>{String(atprotoNetwork.fields.$$atprotoActors?.values.length ?? 0)}</dd>
 						</div>
 
 						{#if atprotoNetwork.fields.topology}

@@ -89,11 +89,11 @@
 					{@const row = item}
 					{@const rowId = row.entitySelector}
 					<EvmNetwork_GasFee_BlockView
-						selection={select(EntityType.EvmNetwork_GasFee_Block, rowId)}
-							href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]', {
-							caip2: `${rowId.$network.caip2.namespace}:${rowId.$network.caip2.reference}`,
-								blockNumber: String(rowId.blockNumber),
-						})}
+							selection={select(EntityType.EvmNetwork_GasFee_Block, rowId)}
+								href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]', {
+								caip2: `eip155:${rowId.$network.caip2.reference}`,
+									blockNumber: String(rowId.blockNumber),
+							})}
 						layout={EntityLayout.Summary}
 
 					/>

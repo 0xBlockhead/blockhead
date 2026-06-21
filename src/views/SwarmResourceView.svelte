@@ -2,7 +2,7 @@
 	// Types/constants
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityProxyCurrent } from '$/client/$proxy.svelte.ts'
+	import type { EntityResourceData } from '$/client/$subscribe.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -10,7 +10,7 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
-	type SwarmResource = EntityProxyCurrent<typeof schema, EntityType.SwarmResource>
+	type SwarmResource = EntityResourceData<typeof schema, EntityType.SwarmResource>
 
 
 	// Context

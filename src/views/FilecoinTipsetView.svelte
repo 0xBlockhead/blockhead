@@ -85,10 +85,10 @@
 						<dd>{selection.entitySelector.tipsetKey}</dd>
 					</div>
 
-						{#if (tipset.fields.$$blocks.values.length ) > 0}
+						{#if (tipset.fields.$$blocks?.values.length ?? 0) > 0}
 							<div>
 								<dt>Blocks</dt>
-								<dd><NumberValue value={tipset.fields.$$blocks.values.length } /></dd>
+								<dd><NumberValue value={tipset.fields.$$blocks?.values.length ?? 0} /></dd>
 							</div>
 						{/if}
 

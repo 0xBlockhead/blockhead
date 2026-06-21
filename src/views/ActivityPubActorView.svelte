@@ -235,15 +235,15 @@
 							metrics={[
 								{
 									label: 'Followers',
-									resource: actor.fields.$$timestamps.values.at(0)?.followersCount,
+									value: actor.fields.$$timestamps?.values.at(0)?.followersCount,
 								},
 								{
 									label: 'Following',
-									resource: actor.fields.$$timestamps.values.at(0)?.followingCount,
+									value: actor.fields.$$timestamps?.values.at(0)?.followingCount,
 								},
 								{
 									label: 'Statuses',
-									resource: actor.fields.$$timestamps.values.at(0)?.statusesCount,
+									value: actor.fields.$$timestamps?.values.at(0)?.statusesCount,
 								},
 							]}
 						/>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { PageProps } from './$types'
 	import { NetworkNamespace } from '$/constants/Network.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
@@ -7,7 +8,7 @@
 	// State
 	let {
 		params,
-	} = $props()
+	}: PageProps = $props()
 
 	const network = $derived(select(EntityType.Network,
 		{

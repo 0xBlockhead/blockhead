@@ -102,15 +102,19 @@
 		>
 			{#snippet children(walletConnection)}
 				<dl data-column-item="center">
-					<div>
-						<dt>Status</dt>
-						<dd>{blockheadWalletConnectionStatusByStatus[walletConnection.fields.status].label}</dd>
-					</div>
+					{#if walletConnection.fields.status !== undefined}
+						<div>
+							<dt>Status</dt>
+							<dd>{blockheadWalletConnectionStatusByStatus[walletConnection.fields.status].label}</dd>
+						</div>
+					{/if}
 
-					<div>
-						<dt>Protocol</dt>
-						<dd>{walletProtocolByProtocol[walletConnection.fields.protocol].label}</dd>
-					</div>
+					{#if walletConnection.fields.protocol !== undefined}
+						<div>
+							<dt>Protocol</dt>
+							<dd>{walletProtocolByProtocol[walletConnection.fields.protocol].label}</dd>
+						</div>
+					{/if}
 
 					<div>
 						<dt>Transport</dt>
@@ -220,7 +224,7 @@
 					{/snippet}
 
 					{#snippet SectionWalletAccounts()}
-						{#if walletConnection.fields.$$connectedAccounts.entities.length}
+						{#if walletConnection.fields.$$connectedAccounts?.entities.length}
 							<ul data-column="gap-1">
 								{#each walletConnection.fields.$$connectedAccounts.entities as account (stringify(account.entitySelector))}
 									<li>
@@ -236,9 +240,9 @@
 					{/snippet}
 
 					{#snippet SectionWalletScopes()}
-						{#if walletConnection.scopes.length}
+						{#if walletConnection.fields.scopes !== undefined && walletConnection.fields.scopes.length > 0}
 							<ul data-column="gap-1">
-								{#each walletConnection.scopes as scope (`${scope.namespace}:${scope.reference}`)}
+								{#each walletConnection.fields.scopes as scope (`${scope.namespace}:${scope.reference}`)}
 									<li>
 										<code>{scope.namespace}:{scope.reference}</code>
 									</li>

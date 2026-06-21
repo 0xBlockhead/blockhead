@@ -124,11 +124,13 @@
 			{#snippet SectionLogosExecution()}
 						<ResourceBoundary resource={network}>
 							{#snippet children(network)}
-								{#if network.fields.$$executionEnvironments.values.length > 0}
-									<p><strong>Execution environments:</strong> {network.fields.$$executionEnvironments.values.length }</p>
+								{#if (network.fields.$$executionEnvironments?.values.length ?? 0) > 0}
+									<p><strong>Execution environments:</strong> {network.fields.$$executionEnvironments?.values.length ?? 0}</p>
 								{/if}
 
-							<p><strong>Environment:</strong> {networkEnvironmentByEnvironment[network.fields.environment].label}</p>
+							{#if network.fields.environment !== undefined}
+								<p><strong>Environment:</strong> {networkEnvironmentByEnvironment[network.fields.environment].label}</p>
+							{/if}
 					{/snippet}
 				</ResourceBoundary>
 			{/snippet}
@@ -136,8 +138,8 @@
 			{#snippet SectionLogosConsensus()}
 						<ResourceBoundary resource={network}>
 							{#snippet children(network)}
-								{#if network.fields.$$consensusMechanisms.values.length > 0}
-									<p><strong>Consensus mechanisms:</strong> {network.fields.$$consensusMechanisms.values.length }</p>
+								{#if (network.fields.$$consensusMechanisms?.values.length ?? 0) > 0}
+									<p><strong>Consensus mechanisms:</strong> {network.fields.$$consensusMechanisms?.values.length ?? 0}</p>
 								{:else}
 								<p data-text="muted">No consensus mechanisms mapped for this network yet.</p>
 							{/if}

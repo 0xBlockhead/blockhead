@@ -122,7 +122,7 @@
 							},
 						)}>
 						{#snippet children(moneroNetwork)}
-							{@const block = moneroNetwork.fields.$$blocks.values.at(0)}
+							{@const block = moneroNetwork.fields.$$blocks?.values.at(0)}
 							{#if block != null}
 								<div>
 									<dt>Head block</dt>
@@ -137,15 +137,17 @@
 						{/snippet}
 					</ResourceBoundary>
 
-					<div>
-						<dt>Environment</dt>
-						<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
-					</div>
+					{#if network.fields.environment !== undefined}
+						<div>
+							<dt>Environment</dt>
+							<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
+						</div>
+					{/if}
 
-					{#if (network.fields.$$nativeAssets.values.length ) > 0}
+					{#if (network.fields.$$nativeAssets?.values.length ?? 0) > 0}
 						<div>
 							<dt>Native asset</dt>
-							<dd>{network.fields.$$nativeAssets.values.length }</dd>
+							<dd>{network.fields.$$nativeAssets?.values.length ?? 0}</dd>
 						</div>
 					{/if}
 				</dl>

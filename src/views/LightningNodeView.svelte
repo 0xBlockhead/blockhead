@@ -109,7 +109,7 @@
 						</div>
 					{/if}
 
-					{#each open ? lightningNode.fields.networkAddresses.values : [] as address (address)}
+					{#each open ? (lightningNode.fields.networkAddresses?.values ?? []) : [] as address (address)}
 						<div>
 							<dt>Address</dt>
 							<dd><code>{address}</code></dd>

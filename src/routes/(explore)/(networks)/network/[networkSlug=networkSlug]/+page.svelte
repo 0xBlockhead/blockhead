@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { PageProps } from './$types'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -11,7 +12,7 @@
 	// State
 	let {
 		params,
-	} = $props()
+	}: PageProps = $props()
 
 
 	// Components

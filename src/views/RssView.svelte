@@ -107,7 +107,7 @@
 					{#if open}
 						<div>
 							<dt>Feeds</dt>
-							<dd>{String(rssNetwork.fields.$$rssFeeds.values.length)}</dd>
+							<dd>{String(rssNetwork.fields.$$rssFeeds?.values.length ?? 0)}</dd>
 						</div>
 					{/if}
 

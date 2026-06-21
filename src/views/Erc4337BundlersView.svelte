@@ -11,6 +11,10 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
 		selection,
@@ -87,7 +91,7 @@
 
 				{#snippet Item({ item: bundler })}
 					<Erc4337BundlerView
-						selection={bundler}
+						selection={select(EntityType.Erc4337Bundler, bundler[EntityMetaKey.Selector])}
 						layout={EntityLayout.Summary}
 
 					/>

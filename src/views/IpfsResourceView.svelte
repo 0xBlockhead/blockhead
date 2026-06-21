@@ -374,15 +374,17 @@
 					resource={ipfs}
 				>
 					{#snippet children(ipfs)}
-						<FileDetails
-							contentSize={ipfs.fields.contentLength}
-							contentType={ipfs.fields.contentType}
-							displayType={ipfs.fields.displayType}
-							extension={ipfs.fields.extension}
-							fileName={ipfs.fields.fileName}
-							src={ipfs.fields.gatewayUrl}
-							text={ipfs.fields.text}
-						/>
+						{#if ipfs.fields.displayType !== undefined}
+							<FileDetails
+								contentSize={ipfs.fields.contentLength}
+								contentType={ipfs.fields.contentType}
+								displayType={ipfs.fields.displayType}
+								extension={ipfs.fields.extension}
+								fileName={ipfs.fields.fileName}
+								src={ipfs.fields.gatewayUrl}
+								text={ipfs.fields.text}
+							/>
+						{/if}
 					{/snippet}
 				</ResourceBoundary>
 			{/snippet}

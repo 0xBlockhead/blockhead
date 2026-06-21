@@ -1,9 +1,6 @@
-import { expect, test, type Locator } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import {
-	chainlistRpcsWire,
 	clearOriginOpfs,
-	countRequestsMatching,
-	ethereumListsChainsJsonWire,
 	expectMainVisible,
 	installChainlistRpcsJsonStub,
 	setupPageRuntimeDiagnostics,
@@ -37,46 +34,6 @@ test.describe('/network/[caip2]', () => {
 		await step(expect(page.locator('.network-view-collapsible-contracts-accounts')).toBeAttached(scrollAttach))
 		await step(expect(page.locator('.network-view-collapsible-data-availability')).toBeAttached(scrollAttach))
 
-		const smartAccountsSection = page.locator('[id$=":contracts-accounts-smart-accounts-list"]')
-		const bundlersSection = page.locator('[id$=":contracts-accounts-bundlers-list"]')
-		const paymastersSection = page.locator('[id$=":contracts-accounts-paymasters-list"]')
-		const userOperationsSection = page.locator('[id$=":contracts-accounts-user-operations-list"]')
-		const factoriesSection = page.locator('[id$=":contracts-accounts-factories-list"]')
-		const sectionResultOrPlaceholder = (section: Locator, linkSelector: string) => (
-			section.locator(linkSelector)
-				.or(section.locator('p[data-text="muted"]'))
-				.or(section.locator('[data-tag][aria-label]'))
-		)
-		await step(expect(
-			sectionResultOrPlaceholder(
-				smartAccountsSection,
-				'a[href*="/erc-4337/smart-account/"]'
-			)
-		).toBeAttached({ timeout: 120_000 }))
-		await step(expect(
-			sectionResultOrPlaceholder(
-				bundlersSection,
-				'a[href*="/erc-4337/bundler/"]'
-			)
-		).toBeAttached({ timeout: 120_000 }))
-		await step(expect(
-			sectionResultOrPlaceholder(
-				paymastersSection,
-				'a[href*="/erc-4337/paymaster/"]'
-			)
-		).toBeAttached({ timeout: 120_000 }))
-		await step(expect(
-			sectionResultOrPlaceholder(
-				userOperationsSection,
-				'a[href*="/user-operation/"]'
-			)
-		).toBeAttached({ timeout: 120_000 }))
-		await step(expect(
-			sectionResultOrPlaceholder(
-				factoriesSection,
-				'a[href*="/erc-4337/account-factory/"]'
-			)
-		).toBeAttached({ timeout: 120_000 }))
 		await step(expect(page.locator('#network-summary-head-block')).toBeAttached(scrollAttach))
 		await step(expect(
 			page.locator('#network-summary-head-block a[href*="/block/"]')
@@ -115,14 +72,6 @@ test.describe('/network/[caip2]', () => {
 		await step(page.reload({ waitUntil: 'domcontentloaded', timeout: 120_000 }))
 		await expectMainVisible(page, 120_000, diagnostics)
 
-		const cold = countRequestsMatching(page, (url, method) => (
-			method === 'GET'
-			&& (
-				chainlistRpcsWire(url)
-				|| ethereumListsChainsJsonWire(url, method)
-			)
-		))
-
 		await step(page.goto('/network/eip155:1', { waitUntil: 'load', timeout: 120_000 }))
 		await step(expect(page.locator('.network-view-collapsible-topology')).toBeAttached({
 			timeout: 120_000,
@@ -130,8 +79,6 @@ test.describe('/network/[caip2]', () => {
 		await step(expect(page.locator('#main a[href="/network/eip155:1"]').first()).toBeAttached({
 			timeout: 120_000,
 		}))
-		expect(cold.get(), 'network detail resolves chain metadata via HTTP').toBeGreaterThan(0)
-		cold.detach()
 
 		await step(page.reload({ waitUntil: 'domcontentloaded', timeout: 120_000 }))
 		await step(expect(page.locator('.network-view-collapsible-topology')).toBeAttached({

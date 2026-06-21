@@ -185,11 +185,11 @@
 							metrics={[
 								{
 									label: 'Likes',
-									resource: comment.fields.$$timestamps.values.at(0)?.likeCount,
+									value: comment.fields.$$timestamps?.values.at(0)?.likeCount,
 								},
 								{
 									label: 'Replies',
-									resource: comment.fields.$$timestamps.values.at(0)?.replyCount,
+									value: comment.fields.$$timestamps?.values.at(0)?.replyCount,
 								},
 							]}
 						/>
@@ -323,6 +323,7 @@
 			>
 				{#snippet children(repliesParent)}
 					{#if repliesParent.fields.$parentComment === undefined}
+						{@const replyCount = repliesParent.fields.$$replies?.values.length ?? 0}
 							<EntitiesList
 								entityType={EntityType.YouTubeComment}
 								href={resolve('/(social)/(youtube)/youtube/comment/[videoId]/[commentId]', {
@@ -330,7 +331,7 @@
 									commentId: encodeURIComponent(selection.entitySelector.commentId),
 								})}
 								id={`${idKey}:replies`}
-								title={`Replies (${String(repliesParent.fields.$$replies.values.length)})`}
+								title={`Replies (${String(replyCount)})`}
 								collapsible={false}
 							>
 							{#snippet body()}
@@ -348,7 +349,7 @@
 												commentId: encodeURIComponent(selection.entitySelector.commentId),
 											})}
 											id={`${idKey}:replies-items`}
-											title={`Replies (${String(repliesParent.fields.$$replies.values.length)})`}
+											title={`Replies (${String(replyCount)})`}
 											items={replies.values}
 											placeholderText="Loading replies…"
 											getKey={(comment) => stringify(comment.entitySelector)}
@@ -359,7 +360,7 @@
 											{#snippet Empty()}
 												<p data-text="muted">
 													{
-														repliesParent.fields.$$replies.values.length === 0 ?
+														replyCount === 0 ?
 															'No replies yet.'
 														:
 															'Replies could not be loaded.'

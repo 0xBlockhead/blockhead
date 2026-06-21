@@ -1518,6 +1518,128 @@ export const catalogWire = (url: string, method: string) => (
 	)
 )
 
+const beaconRestWire = (url: string, method: string) => (
+	method === 'GET'
+	&& (
+		url.includes('ethereum-beacon-api.publicnode.com')
+		|| (
+			url.includes('api-proxy')
+			&& url.includes('ethereum-beacon-api.publicnode.com')
+		)
+	)
+)
+
+const MOCK_BEACON_ROOT = `0x${'11'.repeat(32)}`
+const MOCK_BEACON_SIGNATURE = `0x${'22'.repeat(96)}`
+const MOCK_BEACON_HEADER_BODY = JSON.stringify({
+	data: {
+		root: MOCK_BEACON_ROOT,
+		canonical: true,
+		header: {
+			message: {
+				slot: '12345',
+				proposer_index: '1',
+				parent_root: MOCK_BEACON_ROOT,
+				state_root: MOCK_BEACON_ROOT,
+				body_root: MOCK_BEACON_ROOT,
+			},
+			signature: MOCK_BEACON_SIGNATURE,
+		},
+	},
+})
+
+const MOCK_BEACON_BLOCK_BODY = JSON.stringify({
+	data: {
+		message: {
+			body: {
+				attestations: [],
+				proposer_slashings: [],
+				attester_slashings: [],
+				execution_payload: {
+					withdrawals: [],
+				},
+			},
+		},
+	},
+})
+
+const beaconRestBody = (url: string) => (
+	url.includes('/eth/v1/beacon/headers/') ?
+		MOCK_BEACON_HEADER_BODY
+	:
+	url.includes('/eth/v2/beacon/blocks/') ?
+		MOCK_BEACON_BLOCK_BODY
+	:
+	url.includes('/eth/v1/beacon/states/head/committees') ?
+		JSON.stringify({
+			data: [
+				{
+					slot: '12345',
+					index: '0',
+					validators: ['1'],
+				},
+			],
+		})
+	:
+	url.includes('/eth/v1/beacon/states/head/sync_committees') ?
+		JSON.stringify({
+			data: {
+				validators: ['1'],
+			},
+		})
+	:
+	url.includes('/eth/v1/beacon/states/head/finality_checkpoints') ?
+		JSON.stringify({
+			data: {
+				previous_justified: {
+					epoch: '384',
+					root: MOCK_BEACON_ROOT,
+				},
+				current_justified: {
+					epoch: '385',
+					root: MOCK_BEACON_ROOT,
+				},
+				finalized: {
+					epoch: '383',
+					root: MOCK_BEACON_ROOT,
+				},
+			},
+		})
+	:
+	url.includes('/eth/v1/beacon/states/head/validators/') ?
+		JSON.stringify({
+			data: {
+				balance: '32000000000',
+				status: 'active_ongoing',
+				validator: {
+					pubkey: `0x${'33'.repeat(48)}`,
+					effective_balance: '32000000000',
+					slashed: false,
+				},
+			},
+		})
+	:
+	url.includes('/eth/v1/beacon/genesis') ?
+		JSON.stringify({
+			data: {
+				genesis_time: '1606824023',
+			},
+		})
+	:
+	url.includes('/eth/v1/config/fork_schedule') ?
+		JSON.stringify({
+			data: [
+				{
+					epoch: '0',
+					previous_version: '0x00000000',
+					current_version: '0x00000000',
+				},
+			],
+		})
+	:
+		MOCK_BEACON_HEADER_BODY
+)
+
 /**
 	* L2Beat scaling summary — only projects that map to {@link MOCK_CHAINLIST_RPCS_JSON_BODY}
 	* chain ids via `chainIdByL2BeatProjectId`, so e2e does not hydrate extra `Network` rows that
@@ -1902,6 +2024,14 @@ export const installChainlistRpcsJsonStub = async (page: Page) => {
 				status: 200,
 				contentType: 'application/json',
 				body: MOCK_ETHEREUM_LISTS_CHAINS_JSON_BODY,
+			})
+			return
+		}
+		if (beaconRestWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: beaconRestBody(url),
 			})
 			return
 		}

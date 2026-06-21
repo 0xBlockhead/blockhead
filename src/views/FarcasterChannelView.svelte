@@ -218,7 +218,7 @@
 							placeholderText="Loading Farcaster channel (channel id / slug)…"
 						>
 							{#snippet children(channel)}
-								{#if channel.fields.$$moderators.values.length}
+								{#if channel.fields.$$moderators?.values.length}
 									<ul>
 										{#each channel.fields.$$moderators.values as mod (String(mod[EntityMetaKey.Selector].fid))}
 											<li>

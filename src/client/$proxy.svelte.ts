@@ -2,6 +2,7 @@ import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 import type {
 	ClientContext,
 	SubscribeSelection,
+	SubscribeEntityReferenceResult,
 } from '$/client/$client.svelte.ts'
 import {
 	subscribeEntity,
@@ -42,14 +43,8 @@ export type EntityProxyEntitiesData<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
 > = {
-	values: readonly {
-		readonly [EntityMetaKey.Selector]: EntitySelector<_Schema, _EntityType>
-		readonly entitySelector: EntitySelector<_Schema, _EntityType>
-	}[]
-	entities: readonly {
-		readonly [EntityMetaKey.Selector]: EntitySelector<_Schema, _EntityType>
-		readonly entitySelector: EntitySelector<_Schema, _EntityType>
-	}[]
+	values: readonly SubscribeEntityReferenceResult<_Schema, _EntityType>[]
+	entities: readonly SubscribeEntityReferenceResult<_Schema, _EntityType>[]
 	totalCount?: number
 }
 
@@ -59,7 +54,7 @@ export type EntityProxyEntitiesResource<
 > = (
 	& SvelteKitResource<EntityProxyEntitiesData<_Schema, _EntityType>>
 	& ((
-		selection?: SubscribeSelection<_Schema, EntityType<_Schema>>
+		selection?: SubscribeSelection<_Schema, _EntityType>
 	) => EntityProxyEntitiesResource<_Schema, _EntityType>)
 	& {
 		entityType: EntityType<_Schema>

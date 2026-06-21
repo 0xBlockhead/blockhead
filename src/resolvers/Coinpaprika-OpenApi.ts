@@ -109,6 +109,8 @@ export default {
 					const logoMedia = mediaFromUrl(coin.logo, MediaType.Image)
 					const coinName = coin.name ?? ''
 					const coinSymbol = coin.symbol ?? ''
+					if (decimals == null)
+						throw new Error('Coinpaprika_OpenApi: coin decimals not mapped')
 
 					return {
 						name: (
@@ -123,6 +125,7 @@ export default {
 							:
 								coinSymbol.toUpperCase()
 						),
+						decimals,
 						...(logoMedia != null && { $logo: logoMedia }),
 					}
 				}
@@ -131,6 +134,7 @@ export default {
 			fields: {
 				name: (coin) => coin.name,
 				symbol: (coin) => coin.symbol,
+				decimals: (coin) => coin.decimals,
 				$logo: (coin) => coin.$logo,
 			},
 		}),

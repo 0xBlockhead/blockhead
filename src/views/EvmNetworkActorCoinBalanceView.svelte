@@ -2,7 +2,7 @@
 	// Types/constants
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntitySelector } from '$/schema/$schema.ts'
+	import { EntityMetaKey, type EntitySelector } from '$/schema/$schema.ts'
 	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -36,6 +36,13 @@
 	const actorCoinDetailAnchorKey = $derived(stringify(selection.entitySelector))
 	const actorCoin = $derived(selection( {
 		sources: [Source.Allium_Rest],
+		fields: {
+			$coinInstance: {
+				fields: {
+					$contract: true,
+				},
+			},
+		},
 	}))
 	const symbol = $derived(actorCoin.symbol)
 	const balance = $derived(actorCoin.balance)
@@ -172,25 +179,16 @@
 						{#snippet children(coinInstance)}
 							{#if coinInstance?.entitySelector.type === CoinInstanceType.NativeCurrency}
 								Native gas token (chain issuance)
-							{:else}
-								<ResourceBoundary
-									resource={actorCoin.$coinInstance.$contract}
-									placeholderText="Loading token contract…"
-								>
-									{#snippet children(coinInstanceContract)}
-										{#if coinInstanceContract}
-											<EvmContractView
-												selection={select(EntityType.EvmContract, coinInstanceContract.entitySelector)}
-												layout={EntityLayout.Value}
+							{:else if coinInstance?.$contract !== undefined}
+								<EvmContractView
+									selection={select(EntityType.EvmContract, coinInstance.$contract[EntityMetaKey.Selector])}
+									layout={EntityLayout.Value}
 
-												showTypeAnnotation={false}
-												open={false}
-												/>
-										{:else}
-											—
-										{/if}
-									{/snippet}
-								</ResourceBoundary>
+									showTypeAnnotation={false}
+									open={false}
+								/>
+							{:else}
+								—
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

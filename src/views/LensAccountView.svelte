@@ -183,11 +183,11 @@
 							metrics={[
 								{
 									label: 'Followers',
-									resource: lensAccount.fields.$$timestamps.values.at(0)?.followerCount,
+									value: lensAccount.fields.$$timestamps?.values.at(0)?.followerCount,
 								},
 								{
 									label: 'Following',
-									resource: lensAccount.fields.$$timestamps.values.at(0)?.followingCount,
+									value: lensAccount.fields.$$timestamps?.values.at(0)?.followingCount,
 								},
 							]}
 						/>

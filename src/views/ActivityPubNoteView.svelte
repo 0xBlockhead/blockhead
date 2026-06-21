@@ -330,11 +330,11 @@
 									</div>
 								</dd>
 							</div>
-								{#if (note.fields.$$media.values.length ) > 0}
-									<div>
-									<dt>Media</dt>
-									<dd>
-										<div data-column="gap-3">
+									{#if note.fields.$$media !== undefined && note.fields.$$media.values.length > 0}
+										<div>
+										<dt>Media</dt>
+										<dd>
+											<div data-column="gap-3">
 											{#each note.fields.$$media.values as media (media[EntityMetaKey.Selector].url)}
 												<Media
 													alt=""
@@ -425,18 +425,18 @@
 					{#snippet children(note)}
 						<SocialMetricSnapshotRows
 							metrics={[
-								{
-									label: 'Favourites',
-									resource: note.fields.$$timestamps.values.at(0)?.favouriteCount,
-								},
-								{
-									label: 'Reblogs',
-									resource: note.fields.$$timestamps.values.at(0)?.reblogCount,
-								},
-								{
-									label: 'Replies',
-									resource: note.fields.$$timestamps.values.at(0)?.replyCount,
-								},
+									{
+										label: 'Favourites',
+										value: note.fields.$$timestamps?.values.at(0)?.favouriteCount,
+									},
+									{
+										label: 'Reblogs',
+										value: note.fields.$$timestamps?.values.at(0)?.reblogCount,
+									},
+									{
+										label: 'Replies',
+										value: note.fields.$$timestamps?.values.at(0)?.replyCount,
+									},
 							]}
 						/>
 					{/snippet}

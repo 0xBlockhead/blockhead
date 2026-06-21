@@ -131,7 +131,7 @@
 					},
 				)} placeholderText="Loading head block…">
 				{#snippet children(hyperliquidNetwork)}
-					{@const block = hyperliquidNetwork.fields.$$blocks.values.at(0)}
+					{@const block = hyperliquidNetwork.fields.$$blocks?.values.at(0)}
 					{#if block != null}
 						<div>
 							<dt>Head block</dt>
@@ -151,7 +151,11 @@
 					{#if open}
 						<div>
 							<dt>Environment</dt>
-							<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
+							<dd>
+								{#if network.fields.environment !== undefined}
+									{networkEnvironmentByEnvironment[network.fields.environment].label}
+								{/if}
+							</dd>
 						</div>
 					{/if}
 

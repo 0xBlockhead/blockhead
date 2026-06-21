@@ -252,27 +252,27 @@
 							metrics={[
 								{
 									label: 'Comments',
-									resource: lensPost.fields.$$timestamps.values.at(0)?.commentCount,
+									value: lensPost.fields.$$timestamps?.values.at(0)?.commentCount,
 								},
 								{
 									label: 'Reposts',
-									resource: lensPost.fields.$$timestamps.values.at(0)?.repostCount,
+									value: lensPost.fields.$$timestamps?.values.at(0)?.repostCount,
 								},
 								{
 									label: 'Quotes',
-									resource: lensPost.fields.$$timestamps.values.at(0)?.quoteCount,
+									value: lensPost.fields.$$timestamps?.values.at(0)?.quoteCount,
 								},
 								{
 									label: 'Bookmarks',
-									resource: lensPost.fields.$$timestamps.values.at(0)?.bookmarkCount,
+									value: lensPost.fields.$$timestamps?.values.at(0)?.bookmarkCount,
 								},
 								{
 									label: 'Collects',
-									resource: lensPost.fields.$$timestamps.values.at(0)?.collectCount,
+									value: lensPost.fields.$$timestamps?.values.at(0)?.collectCount,
 								},
 								{
 									label: 'Reactions',
-									resource: lensPost.fields.$$timestamps.values.at(0)?.reactionCount,
+									value: lensPost.fields.$$timestamps?.values.at(0)?.reactionCount,
 								},
 							]}
 						/>

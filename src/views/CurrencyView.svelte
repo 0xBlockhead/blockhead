@@ -107,11 +107,11 @@
 						placeholderText="Loading currency…"
 					>
 						{#snippet children(currency)}
-							{@const marketCap = currency.fields.$$timestamps.values[0]?.marketCap}
+							{@const marketCap = currency.fields.$$timestamps?.values[0]?.marketCap}
 							{#if marketCap !== undefined}
 								<CurrencyAmount
 									currency="USD"
-									resource={marketCap}
+									value={marketCap}
 								/>
 							{/if}
 						{/snippet}

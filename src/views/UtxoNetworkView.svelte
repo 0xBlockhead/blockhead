@@ -34,6 +34,11 @@
 				sources: [
 					Source.Constants_Internal,
 				],
+				fields: {
+					slug: true,
+					name: true,
+					environment: true,
+				},
 			},
 		),
 	)
@@ -185,18 +190,12 @@
 					{#snippet children(timestamps)}
 						{@const timestamp = timestamps.values[0]}
 						{#if timestamp != null}
-							<ResourceBoundary
-								resource={timestamp.suggestedTransactionFeePerByteSats}
-							>
-								{#snippet children(suggestedTransactionFeePerByteSats)}
-									{#if suggestedTransactionFeePerByteSats != null}
-										<div>
-											<dt>Suggested fee</dt>
-											<dd><NumberValue value={suggestedTransactionFeePerByteSats} /> sat/vB</dd>
-										</div>
-									{/if}
-								{/snippet}
-							</ResourceBoundary>
+							{#if timestamp.suggestedTransactionFeePerByteSats != null}
+								<div>
+									<dt>Suggested fee</dt>
+									<dd><NumberValue value={timestamp.suggestedTransactionFeePerByteSats} /> sat/vB</dd>
+								</div>
+							{/if}
 						{/if}
 					{/snippet}
 				</ResourceBoundary>
@@ -204,12 +203,14 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={network.environment}>
-				{#snippet children(environment)}
-					<div>
-						<dt>Environment</dt>
-						<dd>{networkEnvironmentByEnvironment[environment].label}</dd>
-					</div>
+			<ResourceBoundary resource={network}>
+				{#snippet children(network)}
+					{#if network.fields.environment !== undefined}
+						<div>
+							<dt>Environment</dt>
+							<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
+						</div>
+					{/if}
 				{/snippet}
 			</ResourceBoundary>
 

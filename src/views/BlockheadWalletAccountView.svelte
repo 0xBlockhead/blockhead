@@ -112,7 +112,7 @@
 							<dt>Network</dt>
 							<dd>
 								<NetworkView
-									selection={walletAccount.fields.$network}
+									selection={select(EntityType.Network, walletAccount.fields.$network[EntityMetaKey.Selector])}
 
 									layout={EntityLayout.Value}
 								/>
@@ -123,7 +123,7 @@
 					{#if open}
 						<div>
 							<dt>Capabilities</dt>
-							<dd>{walletAccount.fields.capabilities.join(', ')}</dd>
+							<dd>{walletAccount.fields.capabilities?.join(', ')}</dd>
 						</div>
 					{/if}
 				</dl>

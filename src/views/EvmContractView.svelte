@@ -106,44 +106,28 @@
 							placeholderText="Loading verification…"
 							resource={contract.$verification}
 						>
-							{#snippet children(verification)}
-								{#if verification}
-									<ResourceBoundary
-										placeholderText="Loading contract name…"
-										resource={verification.$compilation.fullyQualifiedName}
-									>
-										{#snippet children(compilationFullyQualifiedName)}
-											{#if compilationFullyQualifiedName}
-												<code>
-													{compilationFullyQualifiedName
-														.split(':')[0]
-														.split('/')
-														.at(-1)}
-												</code>
-											{:else}
-												<ResourceBoundary
-													placeholderText="Loading compilation name…"
-													resource={verification.$compilation.name}
-												>
-													{#snippet children(compilationName)}
-														{#if compilationName}
-															{compilationName}
-														{:else}
-															<EvmNetworkAccountView
-																selection={select(EntityType.EvmNetworkAccount, {
-																	$network: selection.entitySelector.$network,
-																	$actor: { address: selection.entitySelector.address },
-																})}
-																layout={EntityLayout.Value}
-																open={false}
-															/>
-														{/if}
-													{/snippet}
-												</ResourceBoundary>
-											{/if}
-										{/snippet}
-									</ResourceBoundary>
-								{:else}
+								{#snippet children(verification)}
+									{#if verification}
+										{#if verification.$compilation?.fullyQualifiedName !== undefined}
+											<code>
+												{verification.$compilation.fullyQualifiedName
+													.split(':')[0]
+													.split('/')
+													.at(-1)}
+											</code>
+										{:else if verification.$compilation?.name !== undefined}
+											{verification.$compilation.name}
+										{:else}
+											<EvmNetworkAccountView
+												selection={select(EntityType.EvmNetworkAccount, {
+													$network: selection.entitySelector.$network,
+													$actor: { address: selection.entitySelector.address },
+												})}
+												layout={EntityLayout.Value}
+												open={false}
+											/>
+										{/if}
+									{:else}
 									<EvmNetworkAccountView
 										selection={select(EntityType.EvmNetworkAccount, {
 											$network: selection.entitySelector.$network,

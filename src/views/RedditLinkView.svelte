@@ -146,11 +146,11 @@
 						metrics={[
 							{
 								label: 'Score',
-								resource: link.fields.$$timestamps.values.at(0)?.score,
+								value: link.fields.$$timestamps?.values.at(0)?.score,
 							},
 							{
 								label: 'Comments',
-								resource: link.fields.$$timestamps.values.at(0)?.commentCount,
+								value: link.fields.$$timestamps?.values.at(0)?.commentCount,
 							},
 						]}
 					/>

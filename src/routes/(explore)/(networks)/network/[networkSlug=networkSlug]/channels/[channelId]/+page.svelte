@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { PageProps } from './$types'
 	import { NetworkNamespace } from '$/constants/Network.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -12,7 +13,7 @@
 	// State
 	let {
 		params,
-	} = $props()
+	}: PageProps = $props()
 
 	const network = $derived(select(EntityType.Network,
 		{
@@ -37,7 +38,7 @@
 			{#if network.fields.namespace === NetworkNamespace.Lightning}
 				<LightningChannelView
 					selection={select(EntityType.LightningChannel, {
-						$network: { slug: network.fields.slug },
+						$network: { slug: params.networkSlug },
 						channelId: params.channelId,
 					})}
 				/>

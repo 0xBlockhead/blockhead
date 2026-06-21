@@ -204,7 +204,7 @@
 							placeholderText="Loading Farcaster profile (FID)…"
 						>
 							{#snippet children(farcasterUser)}
-									{#if farcasterUser.fields.$$verifiedAddresses.values.length}
+									{#if farcasterUser.fields.$$verifiedAddresses?.values.length}
 										<ul data-column="gap-2">
 											{#each farcasterUser.fields.$$verifiedAddresses.values as verification (stringify(verification[EntityMetaKey.Selector]))}
 												<li>

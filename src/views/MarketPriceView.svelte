@@ -141,7 +141,7 @@
 
 			{#snippet children(marketPrice)}
 				{@const headQuoteId = (
-					marketPrice.fields.$$quotes.values
+					marketPrice.fields.$$quotes?.values
 						.toSorted((leftQuote, rightQuote) => (
 							rightQuote[EntityMetaKey.Selector].timestampMs
 								- leftQuote[EntityMetaKey.Selector].timestampMs
@@ -180,7 +180,7 @@
 					>
 							{#snippet children(marketPrice)}
 								{@const headQuoteId = (
-								marketPrice.fields.$$quotes.values
+								marketPrice.fields.$$quotes?.values
 									.toSorted((leftQuote, rightQuote) => (
 										rightQuote[EntityMetaKey.Selector].timestampMs
 											- leftQuote[EntityMetaKey.Selector].timestampMs

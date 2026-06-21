@@ -105,14 +105,14 @@
 					{#if open}
 						<div>
 							<dt>Channels</dt>
-							<dd>{String(network.fields.$$youtubeChannels.values.length)}</dd>
+							<dd>{String(network.fields.$$youtubeChannels?.values.length ?? 0)}</dd>
 						</div>
 					{/if}
 
 					{#if open}
 						<div>
 							<dt>Playlists</dt>
-							<dd>{String(network.fields.$$youtubePlaylists.values.length)}</dd>
+							<dd>{String(network.fields.$$youtubePlaylists?.values.length ?? 0)}</dd>
 						</div>
 					{/if}
 

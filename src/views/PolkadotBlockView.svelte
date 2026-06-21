@@ -100,17 +100,17 @@
 						</div>
 					{/if}
 
-						{#if (block.fields.$$extrinsics.values.length ) > 0}
+						{#if (block.fields.$$extrinsics?.values.length ?? 0) > 0}
 							<div>
 								<dt>Extrinsics</dt>
-								<dd><NumberValue value={block.fields.$$extrinsics.values.length } /></dd>
+								<dd><NumberValue value={block.fields.$$extrinsics?.values.length ?? 0} /></dd>
 							</div>
 						{/if}
 
-						{#if (block.fields.$$events.values.length ) > 0}
+						{#if (block.fields.$$events?.values.length ?? 0) > 0}
 							<div>
 								<dt>Events</dt>
-								<dd><NumberValue value={block.fields.$$events.values.length } /></dd>
+								<dd><NumberValue value={block.fields.$$events?.values.length ?? 0} /></dd>
 							</div>
 						{/if}
 

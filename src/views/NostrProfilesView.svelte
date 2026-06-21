@@ -94,7 +94,7 @@
 						id={`${id}-items`}
 						{title}
 						open={true}
-						items={network.fields.$$nostrProfiles.values}
+						items={network.fields.$$nostrProfiles?.values ?? []}
 						getKey={(profile) => stringify(profile[EntityMetaKey.Selector])}
 						getSortValue={(profile) => profile[EntityMetaKey.Selector].pubkey}
 						UnorderedListProps={{ orientation: ListOrientation.Column }}

@@ -93,7 +93,7 @@
 					{#snippet children(network)}
 							<div>
 								<dt>Conversations</dt>
-								<dd>{String(network.fields.$$xmtpConversations.values.length )}</dd>
+								<dd>{String(network.fields.$$xmtpConversations?.values.length ?? 0)}</dd>
 							</div>
 
 						<div>

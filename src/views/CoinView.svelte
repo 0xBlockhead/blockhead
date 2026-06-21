@@ -242,7 +242,7 @@
 											<CurrencyAmount
 												currency="USD"
 												scale={1}
-												resource={marketCapUsd}
+												value={marketCapUsd}
 											/>
 										{/if}
 								{/snippet}
@@ -304,7 +304,7 @@
 						sections={collapsibleTabsSections([
 							{ id: 'coin-instances', label: 'Instances' },
 							{ id: 'coin-wrapped', label: 'Wrapped' },
-							...(coin.fields.$$bridgeCapabilities.values.length ? [{ id: 'coin-bridge-capabilities', label: 'Bridge capabilities' }] : []),
+							...(coin.fields.$$bridgeCapabilities?.values.length ? [{ id: 'coin-bridge-capabilities', label: 'Bridge capabilities' }] : []),
 						])}
 						class="coin-view-collapsible-topology"
 						data-card
@@ -344,7 +344,7 @@
 						{/snippet}
 
 						{#snippet SectionCoinBridgeCapabilities({ id, label })}
-							{#if coin.fields.$$bridgeCapabilities.values.length}
+							{#if coin.fields.$$bridgeCapabilities?.values.length}
 								<CoinBridgeCapabilitiesView
 									CollapsibleProps={{ canToggle: false }}
 									href={resolve('/bridge')}

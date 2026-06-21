@@ -784,13 +784,37 @@ export default {
 					const { coinById } = await import('$/constants/Coin.ts')
 					const coin = coinById[coinId]
 					return {
+						name: coin.symbol,
 						symbol: coin.symbol,
 					}
 				}
 			},
 		})({
 			fields: {
+				name: (coin) => coin.name,
 				symbol: (coin) => coin.symbol,
+			},
+		}),
+
+		defineResolver(Source.Constants_Internal, {
+			entityType: EntityType.Coin,
+			resolve: {
+				[CoinSelector.CoinId]: async ({ coinId }) => {
+					if (coinId === CoinId.BTC)
+						return {
+							decimals: 8,
+						}
+					if (coinId === CoinId.ETH)
+						return {
+							decimals: 18,
+						}
+
+					throw new Error(`Constants_Internal: Coin ${coinId} decimals not in catalog`)
+				}
+			},
+		})({
+			fields: {
+				decimals: (coin) => coin.decimals,
 			},
 		}),
 
@@ -3241,7 +3265,7 @@ export default {
 			},
 		})({
 			fields: {
-				$$contracts: (entity) => entity,
+				$$precompiles: (entity) => entity,
 			},
 		}),
 

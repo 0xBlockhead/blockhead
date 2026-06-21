@@ -10,11 +10,7 @@
 	import { stringify } from 'devalue'
 	import { EntitiesListLayout } from '$/components/EntitiesListLayout.ts'
 
-	type SpecificationProposalsResource =
-		| EntityProxyEntitiesResource<typeof schema, EntityType.SpecificationProposal, EntityType.SpecificationProposalKind>
-		| EntityProxyEntitiesResource<typeof schema, EntityType.SpecificationProposal, EntityType.EthereumConsensusUpgrade>
-		| EntityProxyEntitiesResource<typeof schema, EntityType.SpecificationProposal, EntityType.EthereumExecutionUpgrade>
-		| EntityProxyEntitiesResource<typeof schema, EntityType.SpecificationProposal, EntityType.EthereumNetworkUpgrade>
+	type SpecificationProposalsResource = EntityProxyEntitiesResource<typeof schema, EntityType.SpecificationProposal>
 
 
 	// Context

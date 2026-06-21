@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { PageProps } from './$types'
 	import { NetworkNamespace } from '$/constants/Network.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -11,7 +12,7 @@
 	// State
 	let {
 		params,
-	} = $props()
+	}: PageProps = $props()
 
 	const network = $derived(select(EntityType.Network,
 		{
@@ -52,7 +53,7 @@
 						EntityType.UtxoNetwork,
 						{
 							$network: network.fields.caip2 == null ?
-								{ slug: network.fields.slug }
+								{ slug: params.networkSlug }
 							:
 								{ caip2: network.fields.caip2 },
 						}
@@ -84,7 +85,7 @@
 						EntityType.CosmosNetwork,
 						{
 							$network: network.fields.caip2 == null ?
-								{ slug: network.fields.slug }
+								{ slug: params.networkSlug }
 							:
 								{ caip2: network.fields.caip2 },
 						}
@@ -100,7 +101,7 @@
 						EntityType.FilecoinNetwork,
 						{
 							$network: network.fields.caip2 == null ?
-								{ slug: network.fields.slug }
+								{ slug: params.networkSlug }
 							:
 								{ caip2: network.fields.caip2 },
 						}
@@ -117,7 +118,7 @@
 						EntityType.PolkadotNetwork,
 						{
 							$network: network.fields.caip2 == null ?
-								{ slug: network.fields.slug }
+								{ slug: params.networkSlug }
 							:
 								{ caip2: network.fields.caip2 },
 						}
@@ -144,7 +145,7 @@
 						EntityType.TronNetwork,
 						{
 							$network: network.fields.caip2 == null ?
-								{ slug: network.fields.slug }
+								{ slug: params.networkSlug }
 							:
 								{ caip2: network.fields.caip2 },
 						}
@@ -160,7 +161,7 @@
 						EntityType.MoneroNetwork,
 						{
 							$network: network.fields.caip2 == null ?
-								{ slug: network.fields.slug }
+								{ slug: params.networkSlug }
 							:
 								{ caip2: network.fields.caip2 },
 						}
@@ -176,7 +177,7 @@
 						EntityType.HyperliquidNetwork,
 						{
 							$network: network.fields.caip2 == null ?
-								{ slug: network.fields.slug }
+								{ slug: params.networkSlug }
 							:
 								{ caip2: network.fields.caip2 },
 						}
@@ -192,7 +193,7 @@
 						EntityType.BittensorNetwork,
 						{
 							$network: network.fields.caip2 == null ?
-								{ slug: network.fields.slug }
+								{ slug: params.networkSlug }
 							:
 								{ caip2: network.fields.caip2 },
 						}

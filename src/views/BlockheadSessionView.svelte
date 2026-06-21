@@ -109,7 +109,9 @@
 						placeholderText="Loading session…"
 						>
 							{#snippet children(session)}
-								{blockheadSessionStatusByStatus[session.fields.status]?.label ?? String(session.fields.status)}
+								{#if session.fields.status !== undefined}
+									{blockheadSessionStatusByStatus[session.fields.status]?.label ?? String(session.fields.status)}
+								{/if}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>

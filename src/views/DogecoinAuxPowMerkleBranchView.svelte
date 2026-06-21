@@ -60,7 +60,7 @@
 		>
 			{#snippet children(dogecoinAuxPowMerkleBranch)}
 				<dl>
-					{#if dogecoinAuxPowMerkleBranch.fields.branchHashes.values.length}
+					{#if dogecoinAuxPowMerkleBranch.fields.branchHashes?.values.length}
 						<div>
 							<dt>Branch Hashes</dt>
 							<dd>

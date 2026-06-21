@@ -2,7 +2,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntityProxyCurrent } from '$/client/$proxy.svelte.ts'
+	import type { EntityResourceData } from '$/client/$subscribe.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -10,7 +10,7 @@
 	import { Source } from '$/sources/Source.ts'
 
 
-	type Conversation = EntityProxyCurrent<typeof schema, EntityType.BlockheadAgentConversation>
+	type Conversation = EntityResourceData<typeof schema, EntityType.BlockheadAgentConversation>
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'

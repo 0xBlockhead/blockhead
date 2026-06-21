@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { PageProps } from './$types'
 	import { NetworkNamespace } from '$/constants/Network.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -10,7 +11,7 @@
 	// State
 	let {
 		params,
-	} = $props()
+	}: PageProps = $props()
 
 	const network = $derived(select(EntityType.Network,
 		{ slug: params.networkSlug },
@@ -31,7 +32,7 @@
 <Page>
 	<ResourceBoundary resource={network}>
 		{#snippet children(network)}
-			{@const selector = { slug: network.fields.slug }}
+			{@const selector = { slug: params.networkSlug }}
 			{#if network.fields.namespace === NetworkNamespace.Bitcoin || network.fields.namespace === NetworkNamespace.BitcoinCash || network.fields.namespace === NetworkNamespace.Litecoin || network.fields.namespace === NetworkNamespace.Dogecoin || network.fields.namespace === NetworkNamespace.Zcash}
 				<UtxoBlockView selection={select(EntityType.UtxoBlock, { $network: selector, height: BigInt(params.height) })} />
 			{:else if network.fields.namespace === NetworkNamespace.Cosmos}

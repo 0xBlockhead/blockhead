@@ -209,11 +209,11 @@
 					{/if}
 					{#if (
 							open
-							&& pool.fields.dexscreenerLabels.values.length > 0
+							&& (pool.fields.dexscreenerLabels?.values.length ?? 0) > 0
 						)}
 						<div>
 							<dt>Labels</dt>
-								<dd>{pool.fields.dexscreenerLabels.values.join(', ')}</dd>
+								<dd>{pool.fields.dexscreenerLabels?.values.join(', ')}</dd>
 						</div>
 					{/if}
 					{#if (

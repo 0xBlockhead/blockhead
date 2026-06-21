@@ -119,7 +119,7 @@
 							[]
 						:
 							Object.keys(ens.fields.textRecords)),
-							...ens.fields.resolverTextKeys.values,
+							...(ens.fields.resolverTextKeys?.values ?? []),
 					])]
 				).filter((key) => (
 					excludeRecordKeys == null

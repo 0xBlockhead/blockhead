@@ -11,6 +11,10 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
 		selection,
@@ -87,7 +91,7 @@
 
 				{#snippet Item({ item: smartAccount })}
 					<Erc4337SmartAccountView
-						selection={smartAccount}
+						selection={select(EntityType.Erc4337SmartAccount, smartAccount[EntityMetaKey.Selector])}
 						layout={EntityLayout.Summary}
 
 					/>

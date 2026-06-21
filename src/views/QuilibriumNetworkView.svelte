@@ -94,10 +94,12 @@
 		<ResourceBoundary resource={network}>
 			{#snippet children(network)}
 				<dl class="network-summary-head" data-column-item="center">
-					<div>
-						<dt>Environment</dt>
-						<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
-					</div>
+					{#if network.fields.environment !== undefined}
+						<div>
+							<dt>Environment</dt>
+							<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
+						</div>
+					{/if}
 
 					<ResourceBoundary resource={quilibriumNetwork}>
 						{#snippet children(quilibriumNetwork)}
@@ -151,7 +153,7 @@
 							</p>
 						{/if}
 
-						{#each quilibriumNetwork.fields.protocolFacts.values as fact (fact.label)}
+						{#each quilibriumNetwork.fields.protocolFacts?.values ?? [] as fact (fact.label)}
 							<p><strong>{fact.label}:</strong> {fact.value}</p>
 						{/each}
 					{/snippet}
@@ -161,7 +163,7 @@
 			{#snippet SectionQuilibriumServices()}
 				<ResourceBoundary resource={quilibriumNetwork}>
 					{#snippet children(quilibriumNetwork)}
-						{#each quilibriumNetwork.fields.serviceLayers.values as serviceLayer (serviceLayer.label)}
+						{#each quilibriumNetwork.fields.serviceLayers?.values ?? [] as serviceLayer (serviceLayer.label)}
 							<p><strong>{serviceLayer.label}:</strong> {serviceLayer.description}</p>
 						{:else}
 							<p data-text="muted">No service layers listed for this network yet.</p>
@@ -173,7 +175,7 @@
 			{#snippet SectionQuilibriumInterfaces()}
 				<ResourceBoundary resource={quilibriumNetwork}>
 					{#snippet children(quilibriumNetwork)}
-						{#each quilibriumNetwork.fields.nodeInterfaces.values as nodeInterface (nodeInterface.label)}
+						{#each quilibriumNetwork.fields.nodeInterfaces?.values ?? [] as nodeInterface (nodeInterface.label)}
 							<p><strong>{nodeInterface.label}:</strong> {nodeInterface.transportType} on port {nodeInterface.port}</p>
 						{:else}
 							<p data-text="muted">No node interfaces listed for this network yet.</p>
@@ -185,8 +187,9 @@
 			{#snippet SectionQuilibriumConsensus()}
 					<ResourceBoundary resource={network}>
 						{#snippet children(network)}
-							{#if network.fields.$$consensusMechanisms.values.length > 0}
-								<p><strong>Consensus mechanisms:</strong> {network.fields.$$consensusMechanisms.values.length}</p>
+							{@const consensusMechanismCount = network.fields.$$consensusMechanisms?.values.length ?? 0}
+							{#if consensusMechanismCount > 0}
+								<p><strong>Consensus mechanisms:</strong> {consensusMechanismCount}</p>
 							{:else}
 								<p data-text="muted">No consensus mechanisms mapped for this network yet.</p>
 							{/if}

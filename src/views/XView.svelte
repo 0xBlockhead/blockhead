@@ -89,11 +89,11 @@
 				{#snippet children(network)}
 						<div>
 							<dt>Profiles</dt>
-							<dd>{String(network.fields.$$xUsers.values.length )}</dd>
+							<dd>{String(network.fields.$$xUsers?.values.length ?? 0)}</dd>
 						</div>
 						<div>
 							<dt>Posts</dt>
-							<dd>{String(network.fields.$$xPosts.values.length )}</dd>
+							<dd>{String(network.fields.$$xPosts?.values.length ?? 0)}</dd>
 						</div>
 					{#if contentOpen}
 						<div>

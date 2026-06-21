@@ -2,7 +2,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { Entity, EntitySelector } from '$/schema/$schema.ts'
+	import { EntityMetaKey, type EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -38,7 +38,7 @@
 		selection(
 			({ sources: [
 					Source.Local_Internal,
-				], fields: { indexInSequence: true, action: true, createdAt: true, updatedAt: true } }),
+				], fields: { $session: true, indexInSequence: true, action: true, createdAt: true, updatedAt: true } }),
 		),
 	)
 
@@ -49,17 +49,17 @@
 	)
 
 	const updateActionType = (
-		sessionAction: {
-			$session: Entity<typeof schema, EntityType.BlockheadSessionAction>['$session']
-			indexInSequence: Entity<typeof schema, EntityType.BlockheadSessionAction>['indexInSequence']
-			createdAt: Entity<typeof schema, EntityType.BlockheadSessionAction>['createdAt']
-		},
+		sessionSelector: EntitySelector<typeof schema, EntityType.BlockheadSession>,
+		indexInSequence: number,
+		createdAt: number,
 		actionType: ActionType,
 	) => {
 		updateLocalBlockheadSessionActionType(
 			appClient,
 			selection.entitySelector,
-			sessionAction,
+			sessionSelector,
+			indexInSequence,
+			createdAt,
 			actionType,
 		)
 	}
@@ -88,9 +88,11 @@
 			placeholderText="Loading action…"
 		>
 			{#snippet children(sessionAction)}
-				{actionTypeDefinitionByActionType[sessionAction.fields.action.type].icon}
-				{' '}
-				{actionTypeDefinitionByActionType[sessionAction.fields.action.type].label}
+					{#if sessionAction.fields.action !== undefined}
+						{actionTypeDefinitionByActionType[sessionAction.fields.action.type].icon}
+						{' ' /* gap between icon and label */}
+						{actionTypeDefinitionByActionType[sessionAction.fields.action.type].label}
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -119,25 +121,28 @@
 						placeholderText="Loading action…"
 					>
 						{#snippet children(sessionAction)}
-							<select
-								value={sessionAction.fields.action.type}
-								onchange={(event) => {
-									updateActionType(
-										{
-											$session: sessionAction.fields.$session,
-											indexInSequence: sessionAction.fields.indexInSequence,
-											createdAt: sessionAction.fields.createdAt,
-										},
-										actionTypeFromValue(event.currentTarget.value),
-									)
-								}}
-							>
-								{#each actionTypeDefinitions as definition}
-									<option value={definition.type}>
-										{definition.label}
-									</option>
-								{/each}
-							</select>
+							{#if sessionAction.fields.action !== undefined && sessionAction.fields.$session !== undefined && sessionAction.fields.indexInSequence !== undefined && sessionAction.fields.createdAt !== undefined}
+								{@const sessionSelector = sessionAction.fields.$session[EntityMetaKey.Selector]}
+								{@const indexInSequence = sessionAction.fields.indexInSequence}
+								{@const createdAt = sessionAction.fields.createdAt}
+								<select
+									value={sessionAction.fields.action.type}
+									onchange={(event) => {
+										updateActionType(
+											sessionSelector,
+											indexInSequence,
+											createdAt,
+											actionTypeFromValue(event.currentTarget.value),
+										)
+									}}
+									>
+										{#each actionTypeDefinitions as definition (definition.type)}
+											<option value={definition.type}>
+											{definition.label}
+										</option>
+									{/each}
+								</select>
+							{/if}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

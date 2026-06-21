@@ -284,26 +284,28 @@
 					<ResourceBoundary
 						resource={actor}
 						placeholderText="Loading profile…"
-					>
-						{#snippet children(actor)}
-							<AtprotoPostsView
-								CollapsibleProps={{ canToggle: false }}
-								href={resolve(
-								'/(social)/(atproto)/atproto/actor/[did]/(actor)/posts',
-									{ did: encodeURIComponent(actor.fields.did) },
-							)}
-								selection={select(
-			EntityType.AtprotoActor,
-			{
-										did: actor.fields.did,
-									}
-		).$$posts}
-								id={`${idKey}:posts`}
-								fieldOpen={_open}
-								title="Posts"
-							/>
-						{/snippet}
-					</ResourceBoundary>
+						>
+							{#snippet children(actor)}
+								{#if actor.fields.did !== undefined}
+									<AtprotoPostsView
+										CollapsibleProps={{ canToggle: false }}
+										href={resolve(
+										'/(social)/(atproto)/atproto/actor/[did]/(actor)/posts',
+											{ did: encodeURIComponent(actor.fields.did) },
+									)}
+										selection={select(
+					EntityType.AtprotoActor,
+					{
+												did: actor.fields.did,
+											}
+				).$$posts}
+										id={`${idKey}:posts`}
+										fieldOpen={_open}
+										title="Posts"
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
 				{/snippet}
 
 		</CollapsibleTabs>

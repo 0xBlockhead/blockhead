@@ -112,11 +112,11 @@
 						entityType={listEntityType}
 						id={`${id}-items`}
 						href={href}
-							getKey={(endpoint) => endpoint.url}
-							open={true}
-							items={endpointFieldNames.flatMap((fieldName) => (
-								parent.fields[fieldName].values
-							))}
+								getKey={(endpoint) => endpoint.url}
+								open={true}
+								items={endpointFieldNames.flatMap((fieldName) => (
+									parent.fields[fieldName]?.values ?? []
+								))}
 						{title}
 						UnorderedListProps={{ orientation: ListOrientation.Column }}
 					>

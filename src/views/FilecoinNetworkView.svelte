@@ -126,7 +126,7 @@
 				<dl class="network-summary-head" data-column-item="center">
 					<ResourceBoundary resource={filecoinNetwork}>
 						{#snippet children(filecoinNetwork)}
-							{@const latestTimestamp = filecoinNetwork.fields.$$timestamps.values[0]}
+							{@const latestTimestamp = filecoinNetwork.fields.$$timestamps?.values[0]}
 							{#if latestTimestamp !== undefined}
 								<div>
 									<dt>Head tipset</dt>
@@ -161,15 +161,17 @@
 						{/snippet}
 					</ResourceBoundary>
 
-					<div>
-						<dt>Environment</dt>
-						<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
-					</div>
+					{#if network.fields.environment !== undefined}
+						<div>
+							<dt>Environment</dt>
+							<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
+						</div>
+					{/if}
 
-					{#if (network.fields.$$nativeAssets.values.length ) > 0}
+					{#if (network.fields.$$nativeAssets?.values.length ?? 0) > 0}
 						<div>
 							<dt>Native assets</dt>
-							<dd>{network.fields.$$nativeAssets.values.length }</dd>
+							<dd>{network.fields.$$nativeAssets?.values.length ?? 0}</dd>
 						</div>
 					{/if}
 				</dl>
@@ -256,7 +258,7 @@
 			{#snippet SectionFilecoinMiners({ id, label }: { id: string, label: string })}
 				<ResourceBoundary resource={filecoinNetwork}>
 					{#snippet children(filecoinNetwork)}
-						{@const latestTimestamp = filecoinNetwork.fields.$$timestamps.values.at(0)}
+						{@const latestTimestamp = filecoinNetwork.fields.$$timestamps?.values.at(0)}
 						{#if latestTimestamp != null}
 							<FilecoinMinersView
 								CollapsibleProps={{ canToggle: false }}

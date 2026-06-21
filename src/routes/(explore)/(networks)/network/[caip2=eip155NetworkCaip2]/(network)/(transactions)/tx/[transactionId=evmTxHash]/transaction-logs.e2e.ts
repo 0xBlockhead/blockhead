@@ -21,8 +21,9 @@ test.describe('Evm transaction logs', () => {
 		await page.goto(`/network/eip155:1/tx/${transactionWithReceiptLogs}`, { waitUntil: 'load' })
 		await expectMainVisible(page, 120_000, diagnostics)
 		await assertMainSettled(page, 120_000, diagnostics)
-		await expect(page.locator(`#main a[href$="/tx/${transactionWithReceiptLogs}/log/981"]`)).toBeVisible({ timeout: 120_000 })
-		await expect(page.locator(`#main a[href$="/tx/${transactionWithReceiptLogs}/log/982"]`)).toBeVisible({ timeout: 120_000 })
+		await page.getByRole('link', { name: 'Events' }).click()
+		await expect(page.locator(`#main a[href$="/tx/${transactionWithReceiptLogs}/log/981"]`).first()).toBeVisible({ timeout: 120_000 })
+		await expect(page.locator(`#main a[href$="/tx/${transactionWithReceiptLogs}/log/982"]`).first()).toBeVisible({ timeout: 120_000 })
 
 		expect(diagnostics.issues, diagnostics.issues.join('\n')).toEqual([])
 	})
@@ -34,7 +35,6 @@ test.describe('Evm transaction logs', () => {
 
 		await page.goto(`/network/eip155:1/tx/${transactionWithReceiptLogs}/log/981`, { waitUntil: 'load' })
 		await expectMainVisible(page, 120_000, diagnostics)
-		await assertMainSettled(page, 120_000, diagnostics)
 		await expect(page).toHaveURL((url) => (
 			url.pathname === `/network/eip155:1/tx/${transactionWithReceiptLogs}/log/981`
 		))

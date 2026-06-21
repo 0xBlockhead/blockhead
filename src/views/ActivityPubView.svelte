@@ -111,14 +111,14 @@
 					{#if open}
 						<div>
 							<dt>Actors</dt>
-							<dd>{String(activityPubNetwork.fields.$$activityPubActors.values.length )}</dd>
+							<dd>{String(activityPubNetwork.fields.$$activityPubActors?.values.length ?? 0)}</dd>
 						</div>
 					{/if}
 
 					{#if open}
 						<div>
 							<dt>Statuses</dt>
-							<dd>{String(activityPubNetwork.fields.$$activityPubNotes.values.length )}</dd>
+							<dd>{String(activityPubNetwork.fields.$$activityPubNotes?.values.length ?? 0)}</dd>
 						</div>
 					{/if}
 

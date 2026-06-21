@@ -130,10 +130,12 @@
 				placeholderText="Loading token standard…"
 			>
 				{#snippet children(standard)}
-					<div>
-						<dt>Standard</dt>
-						<dd>{evmTokenStandardByStandard[standard].label}</dd>
-					</div>
+					{#if standard !== undefined}
+						<div>
+							<dt>Standard</dt>
+							<dd>{evmTokenStandardByStandard[standard].label}</dd>
+						</div>
+					{/if}
 				{/snippet}
 			</ResourceBoundary>
 

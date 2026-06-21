@@ -38,10 +38,13 @@
 	const selector = $derived(
 		selection.value[EntityMetaKey.Selector]
 	)
+	const userRouteId = $derived(
+		'id' in selector ? selector.id : selector.username
+	)
 
 	const href = $derived(
 		hrefProp ?? resolve('/(social)/(x)/x/user/[userId]', {
-			userId: 'id' in selector ? selector.id : selector.username,
+			userId: userRouteId,
 		})
 	)
 
@@ -198,19 +201,19 @@
 							metrics={[
 								{
 									label: 'Followers',
-									resource: user.fields.$$timestamps.values.at(0)?.followerCount,
+									value: user.fields.$$timestamps?.values.at(0)?.followerCount,
 								},
 								{
 									label: 'Following',
-									resource: user.fields.$$timestamps.values.at(0)?.followingCount,
+									value: user.fields.$$timestamps?.values.at(0)?.followingCount,
 								},
 								{
 									label: 'Posts',
-									resource: user.fields.$$timestamps.values.at(0)?.tweetCount,
+									value: user.fields.$$timestamps?.values.at(0)?.tweetCount,
 								},
 								{
 									label: 'Listed',
-									resource: user.fields.$$timestamps.values.at(0)?.listedCount,
+									value: user.fields.$$timestamps?.values.at(0)?.listedCount,
 								},
 							]}
 						/>
@@ -364,49 +367,29 @@
 				</ResourceBoundary>
 			{/snippet}
 
-			{#snippet SectionPosts()}
-				<ResourceBoundary resource={user}>
-					{#snippet children(user)}
-						{#if (user.fields.$$posts.values.length)}
-							<XPostsView
-								CollapsibleProps={{ canToggle: false }}
-								href={resolve(
-									'/(social)/(x)/x/user/[userId]',
-									{ userId: user.fields.id },
-								)}
-								selection={select(
-			EntityType.XUser,
-			{
-										id: user.fields.id,
-									}
-		).$$posts}
-								id={`${userSelectorKey}:posts`}
-								title="Posts"
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
+				{#snippet SectionPosts()}
+					<XPostsView
+						CollapsibleProps={{ canToggle: false }}
+						href={resolve(
+							'/(social)/(x)/x/user/[userId]',
+							{ userId: userRouteId },
+						)}
+						selection={selection.$$posts}
+						id={`${userSelectorKey}:posts`}
+						title="Posts"
+					/>
+				{/snippet}
 
-			{#snippet SectionMetricSnapshots()}
-				<ResourceBoundary resource={user}>
-					{#snippet children(user)}
-						<XUser_TimestampsView
-							selection={select(
-			EntityType.XUser,
-			{
-									id: user.fields.id,
-								}
-		).$$timestamps}
-							href={resolve('/(social)/(x)/x/user/[userId]', {
-								userId: user.fields.id,
-							})}
-							id={`${userSelectorKey}:metric-snapshots`}
-							title="Metric snapshots"
-						/>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
+				{#snippet SectionMetricSnapshots()}
+					<XUser_TimestampsView
+						selection={selection.$$timestamps}
+						href={resolve('/(social)/(x)/x/user/[userId]', {
+							userId: userRouteId,
+						})}
+						id={`${userSelectorKey}:metric-snapshots`}
+						title="Metric snapshots"
+					/>
+				{/snippet}
 		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

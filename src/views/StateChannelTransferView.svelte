@@ -5,7 +5,6 @@
 	import { stateChannelTransferStatusByStatus } from '$/constants/StateChannel.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -106,16 +105,16 @@
 				placeholderText="Loading channel transfer…"
 			>
 				{#snippet children(transfer)}
-					{#if showParentChannel && transfer.fields.$channel?.value[EntityMetaKey.Selector].id !== undefined}
+					{#if showParentChannel && transfer.fields.$channel?.[EntityMetaKey.Selector].id !== undefined}
 						<div>
 							<dt>Channel</dt>
 							<dd>
 								<a
 									href={resolve('/(assets)/(channels)/channel/[channelId]', {
-										channelId: transfer.fields.$channel.value[EntityMetaKey.Selector].id,
+										channelId: transfer.fields.$channel[EntityMetaKey.Selector].id,
 									})}
 								>
-									{transfer.fields.$channel.value[EntityMetaKey.Selector].id}
+									{transfer.fields.$channel[EntityMetaKey.Selector].id}
 								</a>
 							</dd>
 						</div>
@@ -159,10 +158,10 @@
 						<div>
 							<dt>From</dt>
 							<dd>
-								{#if transfer.fields.$channel?.entity.fields.$network !== undefined}
+								{#if transfer.fields.$channel?.$network !== undefined}
 									<EvmNetworkAccountView
 										selection={select(EntityType.EvmNetworkAccount, {
-											$network: transfer.fields.$channel.entity.fields.$network[EntityMetaKey.Selector],
+											$network: transfer.fields.$channel.$network[EntityMetaKey.Selector],
 											$actor: transfer.fields.$from[EntityMetaKey.Selector],
 										})}
 										layout={EntityLayout.Title}
@@ -184,10 +183,10 @@
 						<div>
 							<dt>To</dt>
 							<dd>
-								{#if transfer.fields.$channel?.entity.fields.$network !== undefined}
+								{#if transfer.fields.$channel?.$network !== undefined}
 									<EvmNetworkAccountView
 										selection={select(EntityType.EvmNetworkAccount, {
-											$network: transfer.fields.$channel.entity.fields.$network[EntityMetaKey.Selector],
+											$network: transfer.fields.$channel.$network[EntityMetaKey.Selector],
 											$actor: transfer.fields.$to[EntityMetaKey.Selector],
 										})}
 										layout={EntityLayout.Title}

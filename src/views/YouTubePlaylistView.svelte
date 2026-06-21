@@ -147,7 +147,7 @@
 							metrics={[
 								{
 									label: 'Items',
-									resource: playlist.fields.$$timestamps.values.at(0)?.itemCount,
+									value: playlist.fields.$$timestamps?.values.at(0)?.itemCount,
 								},
 							]}
 						/>

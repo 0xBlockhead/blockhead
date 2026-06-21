@@ -118,11 +118,11 @@
 					{#if contentOpen}
 						<div>
 							<dt>Profiles</dt>
-							<dd>{String(lensNetwork.fields.$$lensAccounts.values.length )}</dd>
+							<dd>{String(lensNetwork.fields.$$lensAccounts?.values.length ?? 0)}</dd>
 						</div>
 						<div>
 							<dt>Publications</dt>
-							<dd>{String(lensNetwork.fields.$$lensPosts.values.length )}</dd>
+							<dd>{String(lensNetwork.fields.$$lensPosts?.values.length ?? 0)}</dd>
 						</div>
 
 						{#if lensNetwork.fields.topology}

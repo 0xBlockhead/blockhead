@@ -890,7 +890,7 @@ export default {
 						offset: limit,
 					})
 					if (wires == null)
-						throw new Error('Etherscan_Rest: transaction token transfers returned no result')
+						return []
 					return (
 						evmTokenTransferEntitySelectorsFromEtherscanWires({
 							$network: $network,

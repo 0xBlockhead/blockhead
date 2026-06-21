@@ -33,13 +33,11 @@ const writeLocalPresence = (
 	})
 }
 
-const writeLocalPrimitiveFields = <
-	const _Fields extends Record<string, LocalPrimitiveFieldValue | undefined>
->(
+const writeLocalPrimitiveFields = (
 	context: LocalMutationContext,
 	entityType: EntityType,
 	entitySelector: object,
-	fields: _Fields
+	fields: Record<string, LocalPrimitiveFieldValue | undefined>
 ) => {
 	Object.entries(fields).forEach(([fieldName, value]) => {
 		if (value !== undefined)
@@ -181,12 +179,9 @@ export const deleteLocalBlockheadSessionAction = (
 export const updateLocalBlockheadSessionActionType = (
 	context: LocalMutationContext,
 	entitySelector: EntitySelector<typeof schema, EntityType.BlockheadSessionAction>,
-	sessionAction: Required<Pick<
-		Entity<typeof schema, EntityType.BlockheadSessionAction>,
-		| '$session'
-		| 'indexInSequence'
-		| 'createdAt'
-	>>,
+	sessionSelector: EntitySelector<typeof schema, EntityType.BlockheadSession>,
+	indexInSequence: number,
+	createdAt: number,
 	actionType: ActionType
 ) => {
 	writeLocalPresence(context, EntityType.BlockheadSessionAction, entitySelector)
@@ -195,15 +190,15 @@ export const updateLocalBlockheadSessionActionType = (
 		EntityType.BlockheadSessionAction,
 		entitySelector,
 		'$session',
-		sessionAction.$session[EntityMetaKey.Selector]
+		sessionSelector
 	)
 	writeLocalPrimitiveFields(context, EntityType.BlockheadSessionAction, entitySelector, {
-		indexInSequence: sessionAction.indexInSequence,
+		indexInSequence,
 		action: {
 			type: actionType,
 			params: actionTypeDefinitionByActionType[actionType].params.assert({}),
 		},
-		createdAt: sessionAction.createdAt,
+		createdAt,
 		updatedAt: Date.now(),
 	})
 }

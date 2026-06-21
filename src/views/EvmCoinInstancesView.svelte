@@ -101,7 +101,7 @@
 					placeholderText="Loading deployments…"
 					items={coinInstances.entities.filter((coinInstance) => (
 						representationFilter == null
-						|| coinInstance.current?.fields.representation === representationFilter
+						|| coinInstance.representation === representationFilter
 					))}
 					UnorderedListProps={{ orientation: ListOrientation.Column }}
 				>

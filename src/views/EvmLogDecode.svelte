@@ -109,7 +109,7 @@
 						placeholderText="Loading emitter ABI…"
 					>
 						{#snippet children(abi)}
-							{@const catalogDecodedLog = signatures
+							{@const catalogDecodedLog = (signatures ?? [])
 								.map((signature) => ({
 									signature,
 									decoded: decodeLogWithSignature(signature, topics, logData),

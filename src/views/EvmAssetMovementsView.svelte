@@ -57,7 +57,7 @@
 		placeholderText="Loading signed envelope value…"
 	>
 		{#snippet children(value)}
-			{#if value > 0n}
+			{#if value !== undefined && value > 0n}
 				<div data-row="wrap gap-2 align-baseline">
 					<span data-text="annotation">Signed envelope</span>
 					<ResourceBoundary

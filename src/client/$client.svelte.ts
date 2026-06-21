@@ -721,20 +721,24 @@ const persistedCollectionSync = <
 							&& !loaded.outcomes.some((outcome) => (
 								outcome.status === PersistedCollectionSourceStatus.Completed
 							))
-						) {
-							const subset = parseResolverSubset(loadSubsetOptions)
-							const error = `${collectionId} failed every requested source for ${key}`
-							console.error(error, failedOutcomes)
-							collectionLoadFailures.add({
-								collectionId,
-								selectorKeys: subset.selectorKeys,
-								parentSelectorKeys: subset.parentSelectorKeys,
-								sources: requestedSources,
-								error,
-							})
-							markReady()
-							return
-						}
+							) {
+								const subset = parseResolverSubset(loadSubsetOptions)
+								const error = `${collectionId} failed every requested source for ${key}`
+								if (failedOutcomes.every((outcome) => outcome.error === 'The user aborted a request.'))
+									console.warn(error, failedOutcomes)
+								else {
+									console.error(error, failedOutcomes)
+									collectionLoadFailures.add({
+										collectionId,
+										selectorKeys: subset.selectorKeys,
+										parentSelectorKeys: subset.parentSelectorKeys,
+										sources: requestedSources,
+										error,
+									})
+								}
+								markReady()
+								return
+							}
 
 							markReady()
 						} catch (error) {
@@ -959,13 +963,13 @@ const fieldCanCompleteEmpty = <
 		definition
 	)
 	return (
-		conditionState === FieldConditionState.Inactive
+		definition.cardinality === EntityFieldCardinality.Zero
+		|| definition.cardinality === EntityFieldCardinality.ZeroOrOne
+		|| conditionState === FieldConditionState.Inactive
 		|| (
 			conditionState !== FieldConditionState.Unknown
 			&& (
-				definition.cardinality === EntityFieldCardinality.Zero
-				|| definition.cardinality === EntityFieldCardinality.ZeroOrOne
-				|| definition.cardinality === EntityFieldCardinality.Many
+				definition.cardinality === EntityFieldCardinality.Many
 				|| definition.cardinality === EntityFieldCardinality.ZeroOrMany
 			)
 		)
@@ -989,7 +993,10 @@ const resolverFieldValueItems = (
 		return value
 	}
 
-	if (Array.isArray(value))
+	if (
+		definition.type !== EntityFieldType.Primitive
+		&& Array.isArray(value)
+	)
 		throw new Error(`${entityType}.${fieldName}.${source} returned array value for single-cardinality field`)
 
 	return [value]

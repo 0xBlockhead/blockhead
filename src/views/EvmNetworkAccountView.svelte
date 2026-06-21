@@ -409,7 +409,7 @@
 						placeholderText="Loading positions…"
 					>
 						{#snippet children(evmNetworkAccount)}
-							{#if evmNetworkAccount.contractPositions.values.length}
+							{#if evmNetworkAccount.contractPositions?.values.length}
 								<ul data-evmNetworkAccounts="unstyled">
 									{#each evmNetworkAccount.contractPositions.values as contractPosition (`${contractPosition.protocol.key}:${contractPosition.name}`)}
 										<li data-column="gap-1">

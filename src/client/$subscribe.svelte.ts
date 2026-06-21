@@ -313,13 +313,13 @@ const fieldCanCompleteEmpty = <
 ) => {
 	const conditionState = fieldConditionState(entitySelector, rows, definition)
 	return (
-		conditionState === FieldConditionState.Inactive
+		definition.cardinality === EntityFieldCardinality.Zero
+		|| definition.cardinality === EntityFieldCardinality.ZeroOrOne
+		|| conditionState === FieldConditionState.Inactive
 		|| (
 			conditionState !== FieldConditionState.Unknown
 			&& (
-				definition.cardinality === EntityFieldCardinality.Zero
-				|| definition.cardinality === EntityFieldCardinality.ZeroOrOne
-				|| definition.cardinality === EntityFieldCardinality.Many
+				definition.cardinality === EntityFieldCardinality.Many
 				|| definition.cardinality === EntityFieldCardinality.ZeroOrMany
 			)
 		)
@@ -384,7 +384,10 @@ const fieldRowsComplete = <
 	|| selectorFieldValue(entitySelector, definition.name) !== undefined
 	|| sourceDisabled
 	|| (
-		rowsUpdated
+		(
+			rowsUpdated
+			|| definition.when !== undefined
+		)
 		&& fieldCanCompleteEmpty(entitySelector, conditionRows, definition)
 	)
 )

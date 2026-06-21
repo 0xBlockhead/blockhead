@@ -157,7 +157,7 @@
 						metrics={[
 							{
 								label: 'Score',
-								resource: comment.fields.$$timestamps.values.at(0)?.score,
+								value: comment.fields.$$timestamps?.values.at(0)?.score,
 							},
 						]}
 					/>

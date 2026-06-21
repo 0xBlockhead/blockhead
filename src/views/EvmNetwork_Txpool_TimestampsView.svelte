@@ -89,10 +89,10 @@
 					{@const row = item}
 					{@const rowId = row.entitySelector}
 					<EvmNetwork_Txpool_TimestampView
-						selection={select(EntityType.EvmNetwork_Txpool_Timestamp, rowId)}
-						href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-							caip2: `${rowId.$network.caip2.namespace}:${rowId.$network.caip2.reference}`,
-						})}
+							selection={select(EntityType.EvmNetwork_Txpool_Timestamp, rowId)}
+							href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
+								caip2: `eip155:${rowId.$network.caip2.reference}`,
+							})}
 						layout={EntityLayout.Summary}
 
 					/>

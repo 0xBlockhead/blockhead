@@ -441,11 +441,11 @@
 
 			<CollapsibleTabs
 				id={`${ensNameSelectorKey}:carousel-registration`}
-				sectionIdPrefix={ensNameSelectorKey}
-				sections={[
-					...((ens.fields.$$subdomains.values ).length ? [{ id: 'registration-subdomains', label: 'Subdomains' }] : []),
-					...(ens.fields.$parent !== undefined ? [{ id: 'registration-parent', label: 'Parent' }] : []),
-					{ id: 'registration-metadata', label: 'Metadata' },
+					sectionIdPrefix={ensNameSelectorKey}
+					sections={[
+							...(ens.fields.$$subdomains !== undefined && ens.fields.$$subdomains.values.length > 0 ? [{ id: 'registration-subdomains', label: 'Subdomains' }] : []),
+						...(ens.fields.$parent !== undefined ? [{ id: 'registration-parent', label: 'Parent' }] : []),
+						{ id: 'registration-metadata', label: 'Metadata' },
 					...(ens.fields.$registrantActor !== undefined || ens.fields.$wrappedOwnerActor !== undefined ? [{ id: 'registration-accounts', label: 'Accounts' }] : []),
 				]}
 				data-card
@@ -458,20 +458,20 @@
 					</header>
 				{/snippet}
 
-				{#snippet SectionRegistrationSubdomains({ id, label })}
-					{#if (ens.fields.$$subdomains.values ).length}
-						<EntitiesList
-							collapsible={false}
-							entityType={EntityType.EnsName}
+					{#snippet SectionRegistrationSubdomains({ id, label })}
+							{#if ens.fields.$$subdomains !== undefined && ens.fields.$$subdomains.values.length > 0}
+							<EntitiesList
+								collapsible={false}
+								entityType={EntityType.EnsName}
 							getKey={(subdomain) => subdomain.entitySelector.name}
 							getSortValue={(subdomain) => subdomain.entitySelector.name}
-							href={resolve('/(explore)/(ens)/ens/name/[ensName]', {
-								ensName: selection.entitySelector.name,
-							})}
-							id={`${id}-list`}
-								items={ens.fields.$$subdomains.values}
-								title="Subdomains"
-							>
+								href={resolve('/(explore)/(ens)/ens/name/[ensName]', {
+									ensName: selection.entitySelector.name,
+								})}
+								id={`${id}-list`}
+										items={ens.fields.$$subdomains.values}
+									title="Subdomains"
+								>
 							{#snippet Item({ item })}
 								<a
 									data-link
@@ -707,10 +707,10 @@
 				sectionIdPrefix={ensNameSelectorKey}
 				sections={[
 					{ id: 'records-text', label: 'Text records' },
-					...(ens.fields.contentHash != null && ens.fields.contentHash !== '' ? [{ id: 'records-content-hash', label: 'Content hash' }] : []),
-					...(ens.fields.resolverAbi?.length ? [{ id: 'records-abi', label: 'Resolver ABI' }] : []),
-					...(ens.fields.coinAddresses !== undefined && Object.keys(ens.fields.coinAddresses).length > 0 ? [{ id: 'records-coins', label: 'Coin addresses' }] : []),
-					...(ens.fields.resolverTextKeys.values.length || ens.fields.resolverCoinTypes.values.length ? [{ id: 'records-indexer', label: 'Indexer' }] : []),
+						...(ens.fields.contentHash != null && ens.fields.contentHash !== '' ? [{ id: 'records-content-hash', label: 'Content hash' }] : []),
+						...(ens.fields.resolverAbi?.length ? [{ id: 'records-abi', label: 'Resolver ABI' }] : []),
+						...(ens.fields.coinAddresses !== undefined && Object.keys(ens.fields.coinAddresses).length > 0 ? [{ id: 'records-coins', label: 'Coin addresses' }] : []),
+						...(ens.fields.resolverTextKeys?.values.length || ens.fields.resolverCoinTypes?.values.length ? [{ id: 'records-indexer', label: 'Indexer' }] : []),
 				]}
 				data-card
 				class="ens-view-collapsible-records"
@@ -843,9 +843,9 @@
 				{/if}
 			{/snippet}
 
-				{#snippet SectionRecordsIndexer({ id, label })}
-						{#if ens.fields.resolverTextKeys.values.length || ens.fields.resolverCoinTypes.values.length}
-						<EntitiesList
+					{#snippet SectionRecordsIndexer({ id, label })}
+							{#if ens.fields.resolverTextKeys?.values.length || ens.fields.resolverCoinTypes?.values.length}
+							<EntitiesList
 							collapsible={false}
 							entityType={EntityType.EnsName}
 							href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/records', {
@@ -854,18 +854,18 @@
 							id={`${id}-list`}
 							title="Subgraph resolver index"
 						>
-							{#snippet body({ open: _bodyOpen })}
-								<div data-column-item="center">
-										{#if ens.fields.resolverTextKeys.values.length}
-										<div>
-											<dt>Text keys</dt>
-											<dd data-text="muted">{ens.fields.resolverTextKeys.values.join(', ')}</dd>
-										</div>
-									{/if}
-										{#if ens.fields.resolverCoinTypes.values.length}
-										<div>
-											<dt>Coin types</dt>
-											<dd data-text="muted">
+								{#snippet body({ open: _bodyOpen })}
+									<div data-column-item="center">
+											{#if ens.fields.resolverTextKeys?.values.length}
+											<div>
+												<dt>Text keys</dt>
+												<dd data-text="muted">{ens.fields.resolverTextKeys.values.join(', ')}</dd>
+											</div>
+										{/if}
+											{#if ens.fields.resolverCoinTypes?.values.length}
+											<div>
+												<dt>Coin types</dt>
+												<dd data-text="muted">
 												{ens.fields.resolverCoinTypes.values.map((coinType: string) => (
 													coinType in ensCoinTypeLabelByKey ?
 														ensCoinTypeLabelByKey[coinType].label

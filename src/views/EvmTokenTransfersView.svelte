@@ -103,7 +103,7 @@
 				{/snippet}
 
 				{#snippet Item({ item })}
-					{@const line = item.value}
+					{@const line = item}
 					{@const transferId = line.entitySelector}
 					<EvmTokenTransferView
 						selection={select(EntityType.EvmTokenTransfer, transferId)}

@@ -56,8 +56,46 @@ export default {
 						}
 						return layerNumber
 					})(),
+				}
+			}
+			}
+		})({
+				fields: {
+			name: (snapshot) => snapshot.name,
+			namespace: () => NetworkNamespace.Evm,
+			environment: (snapshot) => snapshot.environment,
+			layerNumber: (snapshot) => snapshot.layerNumber,
+		},
+			}),
+
+		defineResolver(Source.Superchain_Github, {
+			entityType: EntityType.EvmNetwork,
+			resolve: {
+				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
+				const { superchainMainnetIdentifier } = await import('$/sources/Superchain/Github/constants.ts')
+				const { fetchNetworks } = await import('$/sources/Superchain/Github/queries.ts')
+				const networks = await fetchNetworks()
+				const network = networks.find((candidate) => candidate.chainId === Number(caip2.reference))
+				return {
+					$parent: (
+						network?.parentChainId == null ?
+							undefined
+						:
+							{
+								[EntityMetaKey.Selector]: {
+									caip2: {
+										namespace: 'eip155',
+										reference: String(network.parentChainId),
+									},
+								},
+							}
+					),
 					$mainnet: (() => {
-						if (network.namespace === superchainMainnetIdentifier) return undefined
+						if (
+							network == null
+							|| network.namespace === superchainMainnetIdentifier
+						)
+							return undefined
 
 						const mainnet = networks.find((candidate) => (
 							candidate.namespace === superchainMainnetIdentifier
@@ -82,11 +120,7 @@ export default {
 			}
 		})({
 				fields: {
-			name: (snapshot) => snapshot.name,
-			namespace: () => NetworkNamespace.Evm,
-			environment: (snapshot) => snapshot.environment,
 			$parent: (snapshot) => snapshot.$parent,
-			layerNumber: (snapshot) => snapshot.layerNumber,
 			$mainnet: (snapshot) => snapshot.$mainnet,
 		},
 			}),

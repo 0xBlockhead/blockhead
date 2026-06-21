@@ -94,10 +94,10 @@
 						</div>
 					{/if}
 
-						{#if (block.fields.$$chunks.values.length ) > 0}
+						{#if (block.fields.$$chunks?.values.length ?? 0) > 0}
 							<div>
 								<dt>Chunks</dt>
-								<dd><NumberValue value={block.fields.$$chunks.values.length } /></dd>
+								<dd><NumberValue value={block.fields.$$chunks?.values.length ?? 0} /></dd>
 							</div>
 						{/if}
 

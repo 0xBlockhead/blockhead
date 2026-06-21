@@ -94,10 +94,10 @@
 						</div>
 					{/if}
 
-						{#if (block.fields.$$transactions.values.length ) > 0}
+						{#if (block.fields.$$transactions?.values.length ?? 0) > 0}
 							<div>
 								<dt>Transactions</dt>
-								<dd><NumberValue value={block.fields.$$transactions.values.length } /></dd>
+								<dd><NumberValue value={block.fields.$$transactions?.values.length ?? 0} /></dd>
 							</div>
 						{/if}
 

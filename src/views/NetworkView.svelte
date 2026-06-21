@@ -80,12 +80,7 @@
 						caip2: `${networkCaip2.namespace}:${networkCaip2.reference}`,
 					})
 		)}
-		{@const networkSelector = (
-			networkCaip2 == null ?
-				{ slug: networkSlug }
-			:
-				{ caip2: networkCaip2 }
-		)}
+		{@const networkSelector = selection.entitySelector}
 		{@const networkNamespace = row.namespace ?? (
 			networkCaip2 == null ?
 				undefined

@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { PageProps } from './$types'
 	import { NetworkNamespace } from '$/constants/Network.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -11,7 +12,7 @@
 	// State
 	let {
 		params,
-	} = $props()
+	}: PageProps = $props()
 
 	const network = $derived(select(EntityType.Network,
 		{
@@ -36,7 +37,7 @@
 	<ResourceBoundary resource={network}>
 		{#snippet children(network)}
 			{@const selector = network.fields.caip2 == null ?
-				{ slug: network.fields.slug }
+				{ slug: params.networkSlug }
 			:
 				{ caip2: network.fields.caip2 }}
 			{@const href = resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/transactions', {
