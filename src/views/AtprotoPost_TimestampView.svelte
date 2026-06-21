@@ -85,19 +85,19 @@
 						metrics={[
 							{
 								label: 'Replies',
-								value: atprotoPostTimestamp.fields.replyCount,
+								value: atprotoPostTimestamp.replyCount,
 							},
 							{
 								label: 'Reposts',
-								value: atprotoPostTimestamp.fields.repostCount,
+								value: atprotoPostTimestamp.repostCount,
 							},
 							{
 								label: 'Likes',
-								value: atprotoPostTimestamp.fields.likeCount,
+								value: atprotoPostTimestamp.likeCount,
 							},
 							{
 								label: 'Quotes',
-								value: atprotoPostTimestamp.fields.quoteCount,
+								value: atprotoPostTimestamp.quoteCount,
 							},
 						]}
 					/>

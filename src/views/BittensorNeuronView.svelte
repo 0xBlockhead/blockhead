@@ -70,7 +70,7 @@
 
 					<div>
 						<dt>UID</dt>
-						<dd><NumberValue value={neuron.fields.uid} /></dd>
+						<dd><NumberValue value={neuron.uid} /></dd>
 					</div>
 				</dl>
 			{/snippet}

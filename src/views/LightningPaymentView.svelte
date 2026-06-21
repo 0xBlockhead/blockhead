@@ -71,40 +71,40 @@
 		>
 			{#snippet children(lightningPayment)}
 				<dl>
-					{#if lightningPayment.fields.status != null}
+					{#if lightningPayment.status != null}
 						<div>
 							<dt>Status</dt>
-							<dd>{lightningPayment.fields.status === LightningPaymentStatus.InFlight ? 'In Flight' : lightningPayment.fields.status}</dd>
+							<dd>{lightningPayment.status === LightningPaymentStatus.InFlight ? 'In Flight' : lightningPayment.status}</dd>
 						</div>
 					{/if}
 
-					{#if lightningPayment.fields.valueMsat != null}
+					{#if lightningPayment.valueMsat != null}
 						<div>
 							<dt>Amount</dt>
-							<dd>{lightningPayment.fields.valueMsat.toString()} msat</dd>
+							<dd>{lightningPayment.valueMsat.toString()} msat</dd>
 						</div>
 					{/if}
 
-					{#if lightningPayment.fields.feeMsat != null}
+					{#if lightningPayment.feeMsat != null}
 						<div>
 							<dt>Fee</dt>
-							<dd>{lightningPayment.fields.feeMsat.toString()} msat</dd>
+							<dd>{lightningPayment.feeMsat.toString()} msat</dd>
 						</div>
 					{/if}
 
-					{#if lightningPayment.fields.failureReason != null}
+					{#if lightningPayment.failureReason != null}
 						<div>
 							<dt>Failure</dt>
-							<dd>{lightningPayment.fields.failureReason}</dd>
+							<dd>{lightningPayment.failureReason}</dd>
 						</div>
 					{/if}
 
-					{#if lightningPayment.fields.paymentRequest != null}
+					{#if lightningPayment.paymentRequest != null}
 						<div>
 							<dt>Payment request</dt>
 							<dd>
 								<TruncatedValue
-									value={lightningPayment.fields.paymentRequest}
+									value={lightningPayment.paymentRequest}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>

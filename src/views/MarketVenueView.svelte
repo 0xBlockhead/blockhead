@@ -63,7 +63,7 @@
 			placeholderText="Loading market venue…"
 		>
 			{#snippet children(marketVenue)}
-				{marketVenue.fields.label ?? selection.entitySelector.marketVenueId}
+				{marketVenue.label ?? selection.entitySelector.marketVenueId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -85,7 +85,7 @@
 					<div>
 						<dt>Label</dt>
 						<dd>
-				{marketVenue.fields.label ?? selection.entitySelector.marketVenueId}
+				{marketVenue.label ?? selection.entitySelector.marketVenueId}
 						</dd>
 					</div>
 				</dl>

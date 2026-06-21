@@ -61,31 +61,31 @@
 		>
 			{#snippet children(solanaTransaction)}
 				<dl>
-					{#if solanaTransaction.fields.slot != null}
+					{#if solanaTransaction.slot != null}
 						<div>
 							<dt>Slot</dt>
-							<dd><NumberValue value={solanaTransaction.fields.slot} /></dd>
+							<dd><NumberValue value={solanaTransaction.slot} /></dd>
 						</div>
 					{/if}
 
-					{#if solanaTransaction.fields.feeLamports != null}
+					{#if solanaTransaction.feeLamports != null}
 						<div>
 							<dt>Fee Lamports</dt>
-							<dd><NumberValue value={solanaTransaction.fields.feeLamports} /> lamports</dd>
+							<dd><NumberValue value={solanaTransaction.feeLamports} /> lamports</dd>
 						</div>
 					{/if}
 
-					{#if solanaTransaction.fields.computeUnitsConsumed != null}
+					{#if solanaTransaction.computeUnitsConsumed != null}
 						<div>
 							<dt>Compute Units Consumed</dt>
-							<dd><NumberValue value={solanaTransaction.fields.computeUnitsConsumed} /></dd>
+							<dd><NumberValue value={solanaTransaction.computeUnitsConsumed} /></dd>
 						</div>
 					{/if}
 
-					{#if solanaTransaction.fields.status != null}
+					{#if solanaTransaction.status != null}
 						<div>
 							<dt>Status</dt>
-							<dd>{solanaTransaction.fields.status}</dd>
+							<dd>{solanaTransaction.status}</dd>
 						</div>
 					{/if}
 				</dl>

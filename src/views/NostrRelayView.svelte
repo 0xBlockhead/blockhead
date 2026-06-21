@@ -72,8 +72,8 @@
 			placeholderText="Loading relay…"
 		>
 			{#snippet children(relay)}
-				{#if relay.fields.name}
-					{relay.fields.name}
+				{#if relay.name}
+					{relay.name}
 				{:else}
 					{#if Value}
 					{@render Value()}
@@ -98,10 +98,10 @@
 			placeholderText="Loading relay…"
 		>
 			{#snippet children(relay)}
-				{#if open && relay.fields.description}
+				{#if open && relay.description}
 					<p>
 						<TruncatedValue
-							value={relay.fields.description}
+							value={relay.description}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
@@ -115,47 +115,47 @@
 				placeholderText="Loading relay…"
 			>
 				{#snippet children(relay)}
-					{#if open && relay.fields.software}
+					{#if open && relay.software}
 						<div>
 							<dt>Software</dt>
 							<dd>
-								{relay.fields.software}
+								{relay.software}
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && relay.fields.version}
+					{#if open && relay.version}
 						<div>
 							<dt>Version</dt>
 							<dd>
-								{relay.fields.version}
+								{relay.version}
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && relay.fields.supportedNipCount != null}
+					{#if open && relay.supportedNipCount != null}
 						<div>
 							<dt>Supported NIPs</dt>
 							<dd>
-								{String(relay.fields.supportedNipCount)}
+								{String(relay.supportedNipCount)}
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && relay.fields.isPaid != null}
+					{#if open && relay.isPaid != null}
 						<div>
 							<dt>Paid relay</dt>
 							<dd>
-								{relay.fields.isPaid ? 'Yes' : 'No'}
+								{relay.isPaid ? 'Yes' : 'No'}
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && relay.fields.limit != null}
+					{#if open && relay.limit != null}
 						<div>
 							<dt>Event limit</dt>
 							<dd>
-								{String(relay.fields.limit)}
+								{String(relay.limit)}
 							</dd>
 						</div>
 					{/if}

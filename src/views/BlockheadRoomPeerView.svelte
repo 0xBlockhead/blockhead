@@ -74,7 +74,7 @@
 			placeholderText="Loading peer…"
 		>
 			{#snippet children(peer)}
-				{titleProp ?? peer.fields.displayName ?? peer.fields.peerId ?? selection.entitySelector.id}
+				{titleProp ?? peer.displayName ?? peer.peerId ?? selection.entitySelector.id}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -95,7 +95,7 @@
 				<dd>
 					<ResourceBoundary resource={peer}>
 						{#snippet children(peer)}
-							{peer.fields.isConnected ? 'Yes' : 'No'}
+							{peer.isConnected ? 'Yes' : 'No'}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -112,11 +112,11 @@
 
 				<ResourceBoundary resource={peer}>
 					{#snippet children(peer)}
-						{#if peer.fields.peerId !== undefined && peer.fields.peerId !== ''}
+						{#if peer.peerId !== undefined && peer.peerId !== ''}
 							<div>
 								<dt>libp2p peer ID</dt>
 								<dd>
-									{peer.fields.peerId}
+									{peer.peerId}
 								</dd>
 							</div>
 						{/if}
@@ -127,12 +127,12 @@
 			{#if open}
 				<ResourceBoundary resource={peer}>
 					{#snippet children(peer)}
-						{#if peer.fields.$room != null}
+						{#if peer.$room != null}
 							<div>
 								<dt>Room session</dt>
 								<dd>
 									<BlockheadRoomView
-										selection={select(EntityType.BlockheadRoom, peer.fields.$room[EntityMetaKey.Selector])}
+										selection={select(EntityType.BlockheadRoom, peer.$room[EntityMetaKey.Selector])}
 										layout={EntityLayout.Title}
 
 										open={false}
@@ -141,38 +141,38 @@
 							</div>
 						{/if}
 
-						{#if peer.fields.joinedAt != null}
+						{#if peer.joinedAt != null}
 							<div>
 								<dt>Joined</dt>
 								<dd>
-									<Timestamp timestamp={peer.fields.joinedAt} />
+									<Timestamp timestamp={peer.joinedAt} />
 								</dd>
 							</div>
 						{/if}
 
-						{#if peer.fields.lastSeenAt != null}
+						{#if peer.lastSeenAt != null}
 							<div>
 								<dt>Last seen</dt>
 								<dd>
-									<Timestamp timestamp={peer.fields.lastSeenAt} />
+									<Timestamp timestamp={peer.lastSeenAt} />
 								</dd>
 							</div>
 						{/if}
 
-						{#if peer.fields.connectedAt != null}
+						{#if peer.connectedAt != null}
 							<div>
 								<dt>Connected</dt>
 								<dd>
-									<Timestamp timestamp={peer.fields.connectedAt} />
+									<Timestamp timestamp={peer.connectedAt} />
 								</dd>
 							</div>
 						{/if}
 
-						{#if peer.fields.disconnectedAt != null}
+						{#if peer.disconnectedAt != null}
 							<div>
 								<dt>Disconnected</dt>
 								<dd>
-									<Timestamp timestamp={peer.fields.disconnectedAt} />
+									<Timestamp timestamp={peer.disconnectedAt} />
 								</dd>
 							</div>
 						{/if}

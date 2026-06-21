@@ -132,7 +132,7 @@
 											{/each}
 										</ul>
 									{:else}
-										<p data-text="muted">No ABI signatures matched this function selection.entitySelector.fields.</p>
+										<p data-text="muted">No ABI signatures matched this function selection.entitySelector.</p>
 									{/if}
 								{/snippet}
 							</ResourceBoundary>

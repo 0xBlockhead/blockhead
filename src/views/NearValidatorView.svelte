@@ -63,21 +63,21 @@
 		>
 			{#snippet children(nearValidator)}
 				<dl>
-					{#if nearValidator.fields.publicKey != null}
+					{#if nearValidator.publicKey != null}
 						<div>
 							<dt>Public Key</dt>
 							<dd>
 								<TruncatedValue
-									value={nearValidator.fields.publicKey}
+									value={nearValidator.publicKey}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if nearValidator.fields.stakeYoctoNear != null}
+					{#if nearValidator.stakeYoctoNear != null}
 						<div>
 							<dt>Stake Yocto Near</dt>
-							<dd><NumberValue value={nearValidator.fields.stakeYoctoNear} /> yoctoNEAR</dd>
+							<dd><NumberValue value={nearValidator.stakeYoctoNear} /> yoctoNEAR</dd>
 						</div>
 					{/if}
 				</dl>

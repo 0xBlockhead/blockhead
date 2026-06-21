@@ -78,7 +78,7 @@
 		>
 			{#snippet children(kind)}
 				<span>
-					{kind.fields.label ?? selection.entitySelector.category}
+					{kind.label ?? selection.entitySelector.category}
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -91,7 +91,7 @@
 		>
 			{#snippet children(kind)}
 				<span>
-					{kind.fields.labelPlural ?? kind.fields.label ?? selection.entitySelector.category}
+					{kind.labelPlural ?? kind.label ?? selection.entitySelector.category}
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -108,8 +108,8 @@
 							placeholderText="Loading proposal kind…"
 						>
 							{#snippet children(kind)}
-								{#if kind.fields.labelPlural !== undefined}
-									{kind.fields.labelPlural}
+								{#if kind.labelPlural !== undefined}
+									{kind.labelPlural}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -133,8 +133,8 @@
 					id={`${stringify(selection.entitySelector)}:proposals`}
 					open
 					title={
-						kind.fields.labelPlural
-						?? kind.fields.label
+						kind.labelPlural
+						?? kind.label
 						?? 'Proposals'
 					}
 				/>

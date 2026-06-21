@@ -69,23 +69,23 @@
 		>
 			{#snippet children(litecoinMwebBlock)}
 				<dl>
-					{#if litecoinMwebBlock.fields.hogExTransactionId != null}
+					{#if litecoinMwebBlock.hogExTransactionId != null}
 						<div>
 							<dt>Hog Ex Transaction ID</dt>
 							<dd>
 								<TruncatedValue
-									value={litecoinMwebBlock.fields.hogExTransactionId}
+									value={litecoinMwebBlock.hogExTransactionId}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if litecoinMwebBlock.fields.kernelRoot != null}
+					{#if litecoinMwebBlock.kernelRoot != null}
 						<div>
 							<dt>Kernel Root</dt>
 							<dd>
 								<TruncatedValue
-									value={litecoinMwebBlock.fields.kernelRoot}
+									value={litecoinMwebBlock.kernelRoot}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>

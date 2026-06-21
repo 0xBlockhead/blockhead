@@ -78,7 +78,7 @@
 			resource={lightningNetwork}
 		>
 			{#snippet children(row)}
-				{row.fields.name}
+				{row.name}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -95,14 +95,14 @@
 			placeholderText="Loading Lightning Network…"
 		>
 			{#snippet children(row)}
-				{@const timestamp = row.fields.$$timestamps.values.at(0)}
+				{@const timestamp = row.$$timestamps.values.at(0)}
 				<dl>
-					{#if row.fields.$settlementNetwork != null}
+					{#if row.$settlementNetwork != null}
 						<div>
 							<dt>Settlement network</dt>
 							<dd>
 								<NetworkView
-									selection={row.fields.$settlementNetwork}
+									selection={row.$settlementNetwork}
 									layout={EntityLayout.Value}
 									open={false}
 								/>

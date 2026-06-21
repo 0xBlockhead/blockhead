@@ -105,12 +105,12 @@
 					>
 						{#snippet children(epoch)}
 							{#if (
-								epoch.fields.startSlot !== undefined
-								&& epoch.fields.endSlot !== undefined
+								epoch.startSlot !== undefined
+								&& epoch.endSlot !== undefined
 							)}
-								<NumberValue value={epoch.fields.startSlot} />
+								<NumberValue value={epoch.startSlot} />
 								to
-								<NumberValue value={epoch.fields.endSlot} />
+								<NumberValue value={epoch.endSlot} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -126,8 +126,8 @@
 							placeholderText="Loading epoch…"
 						>
 							{#snippet children(epoch)}
-								{#if epoch.fields.slotCount !== undefined}
-									<NumberValue value={epoch.fields.slotCount} />
+								{#if epoch.slotCount !== undefined}
+									<NumberValue value={epoch.slotCount} />
 								{:else}
 									<span data-text="muted">Slot span unavailable from beacon API.</span>
 								{/if}
@@ -141,53 +141,53 @@
 						placeholderText="Loading epoch…"
 					>
 						{#snippet children(epoch)}
-				{#if epoch.fields.finalized !== undefined}
+				{#if epoch.finalized !== undefined}
 					<div>
 						<dt>Finalized</dt>
-						<dd>{epoch.fields.finalized ? 'Yes' : 'No'}</dd>
+						<dd>{epoch.finalized ? 'Yes' : 'No'}</dd>
 					</div>
 				{/if}
 
-				{#if epoch.fields.globalParticipationRate !== undefined}
+				{#if epoch.globalParticipationRate !== undefined}
 					<div>
 						<dt>Participation</dt>
-						<dd>{(epoch.fields.globalParticipationRate * 100).toFixed(2)}%</dd>
+						<dd>{(epoch.globalParticipationRate * 100).toFixed(2)}%</dd>
 					</div>
 				{/if}
 
-				{#if epoch.fields.validatorsCount !== undefined}
+				{#if epoch.validatorsCount !== undefined}
 					<div>
 						<dt>Validators</dt>
-						<dd><NumberValue value={epoch.fields.validatorsCount} /></dd>
+						<dd><NumberValue value={epoch.validatorsCount} /></dd>
 					</div>
 				{/if}
 
-				{#if epoch.fields.attestationsCount !== undefined}
+				{#if epoch.attestationsCount !== undefined}
 					<div>
 						<dt>Attestations</dt>
-						<dd><NumberValue value={epoch.fields.attestationsCount} /></dd>
+						<dd><NumberValue value={epoch.attestationsCount} /></dd>
 					</div>
 				{/if}
 
-				{#if epoch.fields.withdrawalsCount !== undefined}
+				{#if epoch.withdrawalsCount !== undefined}
 					<div>
 						<dt>Withdrawals</dt>
-						<dd><NumberValue value={epoch.fields.withdrawalsCount} /></dd>
+						<dd><NumberValue value={epoch.withdrawalsCount} /></dd>
 					</div>
 				{/if}
 
 				{#if (
-					epoch.fields.attesterSlashingsCount !== undefined
-					|| epoch.fields.proposerSlashingsCount !== undefined
+					epoch.attesterSlashingsCount !== undefined
+					|| epoch.proposerSlashingsCount !== undefined
 				)}
 					<div>
 						<dt>Slashings</dt>
 						<dd>
-							{#if epoch.fields.attesterSlashingsCount !== undefined}
-								<NumberValue value={epoch.fields.attesterSlashingsCount} /> attester
+							{#if epoch.attesterSlashingsCount !== undefined}
+								<NumberValue value={epoch.attesterSlashingsCount} /> attester
 							{/if}
-							{#if epoch.fields.proposerSlashingsCount !== undefined}
-								<NumberValue value={epoch.fields.proposerSlashingsCount} /> proposer
+							{#if epoch.proposerSlashingsCount !== undefined}
+								<NumberValue value={epoch.proposerSlashingsCount} /> proposer
 							{/if}
 						</dd>
 					</div>

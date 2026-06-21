@@ -74,7 +74,7 @@
 			{/snippet}
 
 			{#snippet children(network)}
-				<span>{network.fields.name}</span>
+				<span>{network.name}</span>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -86,7 +86,7 @@
 			{/snippet}
 
 			{#snippet children(network)}
-				{network.fields.name}
+				{network.name}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -99,17 +99,17 @@
 		<ResourceBoundary resource={network}>
 			{#snippet children(network)}
 				<dl class="network-summary-head" data-column-item="center">
-					{#if network.fields.environment !== undefined}
+					{#if network.environment !== undefined}
 						<div>
 							<dt>Environment</dt>
-							<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
+							<dd>{networkEnvironmentByEnvironment[network.environment].label}</dd>
 						</div>
 					{/if}
 
-						{#if (network.fields.$$nativeAssets?.values.length ?? 0) > 0}
+						{#if (network.$$nativeAssets?.values.length ?? 0) > 0}
 							<div>
 								<dt>Native asset</dt>
-								<dd>{network.fields.$$nativeAssets?.values.length ?? 0}</dd>
+								<dd>{network.$$nativeAssets?.values.length ?? 0}</dd>
 							</div>
 						{/if}
 					</dl>
@@ -170,9 +170,9 @@
 			{#snippet Section0gConsensus()}
 				<ResourceBoundary resource={zeroGNetwork}>
 					{#snippet children(zeroGNetwork)}
-						{#if zeroGNetwork.fields.$consensusNetwork != null}
+						{#if zeroGNetwork.$consensusNetwork != null}
 							<ZeroGConsensusNetworkView
-								selection={select(EntityType.ZeroGConsensusNetwork, zeroGNetwork.fields.$consensusNetwork[EntityMetaKey.Selector])}
+								selection={select(EntityType.ZeroGConsensusNetwork, zeroGNetwork.$consensusNetwork[EntityMetaKey.Selector])}
 								layout={EntityLayout.SummaryDetails}
 							/>
 						{:else}

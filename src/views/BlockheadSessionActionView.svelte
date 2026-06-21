@@ -88,10 +88,10 @@
 			placeholderText="Loading action…"
 		>
 			{#snippet children(sessionAction)}
-					{#if sessionAction.fields.action !== undefined}
-						{actionTypeDefinitionByActionType[sessionAction.fields.action.type].icon}
+					{#if sessionAction.action !== undefined}
+						{actionTypeDefinitionByActionType[sessionAction.action.type].icon}
 						{' ' /* gap between icon and label */}
-						{actionTypeDefinitionByActionType[sessionAction.fields.action.type].label}
+						{actionTypeDefinitionByActionType[sessionAction.action.type].label}
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -107,7 +107,7 @@
 						placeholderText="Loading action…"
 					>
 						{#snippet children(sessionAction)}
-							{String(sessionAction.fields.indexInSequence)}
+							{String(sessionAction.indexInSequence)}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -121,12 +121,12 @@
 						placeholderText="Loading action…"
 					>
 						{#snippet children(sessionAction)}
-							{#if sessionAction.fields.action !== undefined && sessionAction.fields.$session !== undefined && sessionAction.fields.indexInSequence !== undefined && sessionAction.fields.createdAt !== undefined}
-								{@const sessionSelector = sessionAction.fields.$session[EntityMetaKey.Selector]}
-								{@const indexInSequence = sessionAction.fields.indexInSequence}
-								{@const createdAt = sessionAction.fields.createdAt}
+							{#if sessionAction.action !== undefined && sessionAction.$session !== undefined && sessionAction.indexInSequence !== undefined && sessionAction.createdAt !== undefined}
+								{@const sessionSelector = sessionAction.$session[EntityMetaKey.Selector]}
+								{@const indexInSequence = sessionAction.indexInSequence}
+								{@const createdAt = sessionAction.createdAt}
 								<select
-									value={sessionAction.fields.action.type}
+									value={sessionAction.action.type}
 									onchange={(event) => {
 										updateActionType(
 											sessionSelector,

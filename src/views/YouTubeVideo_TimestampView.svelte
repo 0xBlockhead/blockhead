@@ -87,15 +87,15 @@
 						metrics={[
 							{
 								label: 'Views',
-								value: youTubeVideoTimestamp.fields.viewCount,
+								value: youTubeVideoTimestamp.viewCount,
 							},
 							{
 								label: 'Likes',
-								value: youTubeVideoTimestamp.fields.likeCount,
+								value: youTubeVideoTimestamp.likeCount,
 							},
 							{
 								label: 'Comments',
-								value: youTubeVideoTimestamp.fields.commentCount,
+								value: youTubeVideoTimestamp.commentCount,
 							},
 						]}
 					/>

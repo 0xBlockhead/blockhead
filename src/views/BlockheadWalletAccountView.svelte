@@ -65,7 +65,7 @@
 			placeholderText={selection.entitySelector.caip10.accountAddress}
 		>
 			{#snippet children(walletAccount)}
-				{walletAccount.fields.label ?? walletAccount.fields.address}
+				{walletAccount.label ?? walletAccount.address}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -96,23 +96,23 @@
 					<div>
 						<dt>Address</dt>
 						<dd>
-							<TruncatedValue value={walletAccount.fields.address} />
+							<TruncatedValue value={walletAccount.address} />
 						</dd>
 					</div>
 
-					{#if walletAccount.fields.label != null}
+					{#if walletAccount.label != null}
 						<div>
 							<dt>Label</dt>
-							<dd>{walletAccount.fields.label}</dd>
+							<dd>{walletAccount.label}</dd>
 						</div>
 					{/if}
 
-					{#if walletAccount.fields.$network != null}
+					{#if walletAccount.$network != null}
 						<div>
 							<dt>Network</dt>
 							<dd>
 								<NetworkView
-									selection={select(EntityType.Network, walletAccount.fields.$network[EntityMetaKey.Selector])}
+									selection={select(EntityType.Network, walletAccount.$network[EntityMetaKey.Selector])}
 
 									layout={EntityLayout.Value}
 								/>
@@ -123,7 +123,7 @@
 					{#if open}
 						<div>
 							<dt>Capabilities</dt>
-							<dd>{walletAccount.fields.capabilities?.join(', ')}</dd>
+							<dd>{walletAccount.capabilities?.join(', ')}</dd>
 						</div>
 					{/if}
 				</dl>

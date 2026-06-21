@@ -49,10 +49,10 @@
 			placeholderText="Loading Monero network snapshot..."
 		>
 			{#snippet children(snapshot)}
-				{#if snapshot.fields.height !== undefined}
-					<NumberValue value={snapshot.fields.height} />
-				{:else if snapshot.fields.txPoolSize !== undefined}
-					<NumberValue value={snapshot.fields.txPoolSize} />
+				{#if snapshot.height !== undefined}
+					<NumberValue value={snapshot.height} />
+				{:else if snapshot.txPoolSize !== undefined}
+					<NumberValue value={snapshot.txPoolSize} />
 					in pool
 				{:else}
 					<Timestamp timestamp={selection.entitySelector.timestampMs} />
@@ -68,121 +68,121 @@
 		>
 			{#snippet children(snapshot)}
 				<dl data-column-item="center">
-					{#if snapshot.fields.height !== undefined}
+					{#if snapshot.height !== undefined}
 						<div>
 							<dt>Height</dt>
-							<dd><NumberValue value={snapshot.fields.height} /></dd>
+							<dd><NumberValue value={snapshot.height} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.fields.synchronized !== undefined}
+					{#if snapshot.synchronized !== undefined}
 						<div>
 							<dt>Sync</dt>
-							<dd>{snapshot.fields.synchronized ? 'Synchronized' : 'Syncing'}</dd>
+							<dd>{snapshot.synchronized ? 'Synchronized' : 'Syncing'}</dd>
 						</div>
 					{/if}
 
-					{#if snapshot.fields.txPoolSize !== undefined}
+					{#if snapshot.txPoolSize !== undefined}
 						<div>
 							<dt>Tx pool</dt>
-							<dd><NumberValue value={snapshot.fields.txPoolSize} /></dd>
+							<dd><NumberValue value={snapshot.txPoolSize} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.fields.difficulty !== undefined}
+					{#if snapshot.difficulty !== undefined}
 						<div>
 							<dt>Difficulty</dt>
-							<dd><NumberValue value={snapshot.fields.wideDifficulty ?? snapshot.fields.difficulty} /></dd>
+							<dd><NumberValue value={snapshot.wideDifficulty ?? snapshot.difficulty} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.topBlockHash != null}
+					{#if open && snapshot.topBlockHash != null}
 						<div>
 							<dt>Top block</dt>
 							<dd>
 								<TruncatedValue
-									value={snapshot.fields.topBlockHash}
+									value={snapshot.topBlockHash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.targetHeight !== undefined && snapshot.fields.targetHeight !== 0n}
+					{#if open && snapshot.targetHeight !== undefined && snapshot.targetHeight !== 0n}
 						<div>
 							<dt>Target height</dt>
-							<dd><NumberValue value={snapshot.fields.targetHeight} /></dd>
+							<dd><NumberValue value={snapshot.targetHeight} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.txCount !== undefined}
+					{#if open && snapshot.txCount !== undefined}
 						<div>
 							<dt>Transactions</dt>
-							<dd><NumberValue value={snapshot.fields.txCount} /></dd>
+							<dd><NumberValue value={snapshot.txCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.incomingConnections !== undefined}
+					{#if open && snapshot.incomingConnections !== undefined}
 						<div>
 							<dt>Connections</dt>
 							<dd>
-								<NumberValue value={snapshot.fields.incomingConnections} />
+								<NumberValue value={snapshot.incomingConnections} />
 								in /
-								<NumberValue value={snapshot.fields.outgoingConnections ?? 0} />
+								<NumberValue value={snapshot.outgoingConnections ?? 0} />
 								out
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.whitePeerlistSize !== undefined}
+					{#if open && snapshot.whitePeerlistSize !== undefined}
 						<div>
 							<dt>Peerlist</dt>
 							<dd>
-								<NumberValue value={snapshot.fields.whitePeerlistSize} />
+								<NumberValue value={snapshot.whitePeerlistSize} />
 								white /
-								<NumberValue value={snapshot.fields.greyPeerlistSize ?? 0} />
+								<NumberValue value={snapshot.greyPeerlistSize ?? 0} />
 								grey
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.blockWeightLimit !== undefined}
+					{#if open && snapshot.blockWeightLimit !== undefined}
 						<div>
 							<dt>Block weight</dt>
 							<dd>
-								<NumberValue value={snapshot.fields.blockWeightMedian ?? 0} />
+								<NumberValue value={snapshot.blockWeightMedian ?? 0} />
 								median /
-								<NumberValue value={snapshot.fields.blockWeightLimit} />
+								<NumberValue value={snapshot.blockWeightLimit} />
 								limit
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.databaseSize !== undefined}
+					{#if open && snapshot.databaseSize !== undefined}
 						<div>
 							<dt>Database</dt>
-							<dd><NumberValue value={snapshot.fields.databaseSize} /> bytes</dd>
+							<dd><NumberValue value={snapshot.databaseSize} /> bytes</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.targetSeconds !== undefined}
+					{#if open && snapshot.targetSeconds !== undefined}
 						<div>
 							<dt>Target</dt>
-							<dd><NumberValue value={snapshot.fields.targetSeconds} /> s</dd>
+							<dd><NumberValue value={snapshot.targetSeconds} /> s</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.nettype != null}
+					{#if open && snapshot.nettype != null}
 						<div>
 							<dt>Network type</dt>
-							<dd>{snapshot.fields.nettype}</dd>
+							<dd>{snapshot.nettype}</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.status != null}
+					{#if open && snapshot.status != null}
 						<div>
 							<dt>Status</dt>
-							<dd>{snapshot.fields.status}</dd>
+							<dd>{snapshot.status}</dd>
 						</div>
 					{/if}
 				</dl>

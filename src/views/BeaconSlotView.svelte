@@ -108,8 +108,8 @@
 						placeholderText="Loading slot…"
 						>
 							{#snippet children(slot)}
-								{#if slot.fields.proposerIndex !== undefined}
-									<NumberValue value={slot.fields.proposerIndex} />
+								{#if slot.proposerIndex !== undefined}
+									<NumberValue value={slot.proposerIndex} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -124,11 +124,11 @@
 							placeholderText="Loading slot…"
 						>
 							{#snippet children(slot)}
-								{#if slot.fields.epoch !== undefined}
+								{#if slot.epoch !== undefined}
 									<BeaconEpochView
 										selection={select(EntityType.BeaconEpoch, {
 											$network: selection.entitySelector.$network,
-											epoch: slot.fields.epoch,
+											epoch: slot.epoch,
 										})}
 										layout={EntityLayout.Value}
 
@@ -148,9 +148,9 @@
 							placeholderText="Loading slot…"
 							>
 								{#snippet children(slot)}
-									{#if slot.fields.root !== undefined}
+									{#if slot.root !== undefined}
 										<TruncatedValue
-											value={slot.fields.root}
+											value={slot.root}
 											format={TruncatedValueFormat.Abbr}
 									/>
 								{/if}
@@ -167,8 +167,8 @@
 							placeholderText="Loading slot…"
 						>
 							{#snippet children(slot)}
-								{#if slot.fields.canonical !== undefined}
-									{slot.fields.canonical ? 'Yes' : 'No'}
+								{#if slot.canonical !== undefined}
+									{slot.canonical ? 'Yes' : 'No'}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -183,9 +183,9 @@
 							placeholderText="Loading slot…"
 							>
 								{#snippet children(slot)}
-									{#if slot.fields.parentRoot !== undefined}
+									{#if slot.parentRoot !== undefined}
 										<TruncatedValue
-											value={slot.fields.parentRoot}
+											value={slot.parentRoot}
 											format={TruncatedValueFormat.Abbr}
 									/>
 								{/if}
@@ -202,9 +202,9 @@
 							placeholderText="Loading slot…"
 							>
 								{#snippet children(slot)}
-									{#if slot.fields.stateRoot !== undefined}
+									{#if slot.stateRoot !== undefined}
 										<TruncatedValue
-											value={slot.fields.stateRoot}
+											value={slot.stateRoot}
 											format={TruncatedValueFormat.Abbr}
 									/>
 								{/if}
@@ -221,9 +221,9 @@
 							placeholderText="Loading slot…"
 							>
 								{#snippet children(slot)}
-									{#if slot.fields.bodyRoot !== undefined}
+									{#if slot.bodyRoot !== undefined}
 										<TruncatedValue
-											value={slot.fields.bodyRoot}
+											value={slot.bodyRoot}
 											format={TruncatedValueFormat.Abbr}
 									/>
 								{/if}
@@ -240,9 +240,9 @@
 							placeholderText="Loading slot…"
 							>
 								{#snippet children(slot)}
-									{#if slot.fields.signature !== undefined}
+									{#if slot.signature !== undefined}
 										<TruncatedValue
-											value={slot.fields.signature}
+											value={slot.signature}
 											format={TruncatedValueFormat.Abbr}
 									/>
 								{/if}

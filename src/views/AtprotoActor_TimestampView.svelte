@@ -86,15 +86,15 @@
 						metrics={[
 							{
 								label: 'Followers',
-								value: atprotoActorTimestamp.fields.followersCount,
+								value: atprotoActorTimestamp.followersCount,
 							},
 							{
 								label: 'Following',
-								value: atprotoActorTimestamp.fields.followsCount,
+								value: atprotoActorTimestamp.followsCount,
 							},
 							{
 								label: 'Posts',
-								value: atprotoActorTimestamp.fields.postsCount,
+								value: atprotoActorTimestamp.postsCount,
 							},
 						]}
 					/>

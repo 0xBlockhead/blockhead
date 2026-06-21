@@ -63,21 +63,21 @@
 		>
 			{#snippet children(filecoinMiner)}
 				<dl>
-					{#if filecoinMiner.fields.peerId != null}
+					{#if filecoinMiner.peerId != null}
 						<div>
 							<dt>Peer ID</dt>
 							<dd>
 								<TruncatedValue
-									value={filecoinMiner.fields.peerId}
+									value={filecoinMiner.peerId}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if filecoinMiner.fields.qualityAdjustedPower != null}
+					{#if filecoinMiner.qualityAdjustedPower != null}
 						<div>
 							<dt>Quality Adjusted Power</dt>
-							<dd><NumberValue value={filecoinMiner.fields.qualityAdjustedPower} /></dd>
+							<dd><NumberValue value={filecoinMiner.qualityAdjustedPower} /></dd>
 						</div>
 					{/if}
 				</dl>

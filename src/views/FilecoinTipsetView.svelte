@@ -85,20 +85,20 @@
 						<dd>{selection.entitySelector.tipsetKey}</dd>
 					</div>
 
-						{#if (tipset.fields.$$blocks?.values.length ?? 0) > 0}
+						{#if (tipset.$$blocks?.values.length ?? 0) > 0}
 							<div>
 								<dt>Blocks</dt>
-								<dd><NumberValue value={tipset.fields.$$blocks?.values.length ?? 0} /></dd>
+								<dd><NumberValue value={tipset.$$blocks?.values.length ?? 0} /></dd>
 							</div>
 						{/if}
 
-					{#if open && tipset.fields.$parent != null}
+					{#if open && tipset.$parent != null}
 						<div>
 							<dt>Parent</dt>
 							<dd>
 								<EntityView
 									entityType={EntityType.FilecoinTipset}
-								entitySelector={tipset.fields.$parent[EntityMetaKey.Selector]}
+								entitySelector={tipset.$parent[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
 
 								/>
@@ -106,17 +106,17 @@
 						</div>
 					{/if}
 
-					{#if open && tipset.fields.parentWeight != null}
+					{#if open && tipset.parentWeight != null}
 						<div>
 							<dt>Parent weight</dt>
-							<dd><NumberValue value={tipset.fields.parentWeight} /></dd>
+							<dd><NumberValue value={tipset.parentWeight} /></dd>
 						</div>
 					{/if}
 
-					{#if tipset.fields.timestampMs != null}
+					{#if tipset.timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
-							<dd><Timestamp timestamp={tipset.fields.timestampMs} /></dd>
+							<dd><Timestamp timestamp={tipset.timestampMs} /></dd>
 						</div>
 					{/if}
 				</dl>

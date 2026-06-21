@@ -59,34 +59,34 @@
 			placeholderText={`Loading Bitcoin Cash Metadata Registry Entry...`}
 		>
 			{#snippet children(bitcoinCashBcmrMetadata)}
-				{#if bitcoinCashBcmrMetadata.fields.description != null}
+				{#if bitcoinCashBcmrMetadata.description != null}
 					<p>
 						<TruncatedValue
-							value={bitcoinCashBcmrMetadata.fields.description}
+							value={bitcoinCashBcmrMetadata.description}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
 				{/if}
 
 				<dl>
-					{#if bitcoinCashBcmrMetadata.fields.name != null}
+					{#if bitcoinCashBcmrMetadata.name != null}
 						<div>
 							<dt>Name</dt>
-							<dd>{bitcoinCashBcmrMetadata.fields.name}</dd>
+							<dd>{bitcoinCashBcmrMetadata.name}</dd>
 						</div>
 					{/if}
 
-					{#if bitcoinCashBcmrMetadata.fields.symbol != null}
+					{#if bitcoinCashBcmrMetadata.symbol != null}
 						<div>
 							<dt>Symbol</dt>
-							<dd>{bitcoinCashBcmrMetadata.fields.symbol}</dd>
+							<dd>{bitcoinCashBcmrMetadata.symbol}</dd>
 						</div>
 					{/if}
 
-					{#if bitcoinCashBcmrMetadata.fields.decimals != null}
+					{#if bitcoinCashBcmrMetadata.decimals != null}
 						<div>
 							<dt>Decimals</dt>
-							<dd><NumberValue value={bitcoinCashBcmrMetadata.fields.decimals} /></dd>
+							<dd><NumberValue value={bitcoinCashBcmrMetadata.decimals} /></dd>
 						</div>
 					{/if}
 				</dl>

@@ -62,12 +62,12 @@
 		>
 			{#snippet children(nearReceipt)}
 				<dl>
-					{#if nearReceipt.fields.$predecessor != null}
+					{#if nearReceipt.$predecessor != null}
 						<div>
 							<dt>Predecessor</dt>
 							<dd>
 								<NearAccountView
-									selection={select(EntityType.NearAccount, nearReceipt.fields.$predecessor[EntityMetaKey.Selector])}
+									selection={select(EntityType.NearAccount, nearReceipt.$predecessor[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 
 									showTypeAnnotation={false}
@@ -76,12 +76,12 @@
 						</div>
 					{/if}
 
-					{#if nearReceipt.fields.$receiver != null}
+					{#if nearReceipt.$receiver != null}
 						<div>
 							<dt>Receiver</dt>
 							<dd>
 								<NearAccountView
-									selection={select(EntityType.NearAccount, nearReceipt.fields.$receiver[EntityMetaKey.Selector])}
+									selection={select(EntityType.NearAccount, nearReceipt.$receiver[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 
 									showTypeAnnotation={false}

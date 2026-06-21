@@ -72,21 +72,21 @@
 		>
 			{#snippet children(hyperliquidBlock)}
 				<dl>
-					{#if hyperliquidBlock.fields.hash != null}
+					{#if hyperliquidBlock.hash != null}
 						<div>
 							<dt>Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={hyperliquidBlock.fields.hash}
+									value={hyperliquidBlock.hash}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if hyperliquidBlock.fields.timestampMs != null}
+					{#if hyperliquidBlock.timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
-							<dd><Timestamp timestamp={hyperliquidBlock.fields.timestampMs} /></dd>
+							<dd><Timestamp timestamp={hyperliquidBlock.timestampMs} /></dd>
 						</div>
 					{/if}
 				</dl>

@@ -96,12 +96,12 @@
 		>
 			{#snippet children(farcasterUser)}
 				{#if (
-					farcasterUser.fields.$icon
-					&& farcasterUser.fields.$icon[EntityMetaKey.Selector].url
+					farcasterUser.$icon
+					&& farcasterUser.$icon[EntityMetaKey.Selector].url
 				)}
 					<IconComponent
 						shape={IconShape.Circle}
-						src={farcasterUser.fields.$icon[EntityMetaKey.Selector].url}
+						src={farcasterUser.$icon[EntityMetaKey.Selector].url}
 						alt=""
 					/>
 				{/if}
@@ -121,8 +121,8 @@
 			placeholderText="Loading Farcaster profile (FID)…"
 		>
 			{#snippet children(farcasterUser)}
-				{farcasterUser.fields.displayName
-					?? farcasterUser.fields.username
+				{farcasterUser.displayName
+					?? farcasterUser.username
 					?? `FID ${String(selection.entitySelector.fid)}`}
 			{/snippet}
 		</ResourceBoundary>
@@ -135,15 +135,15 @@
 		>
 			{#snippet children(farcasterUser)}
 				{#if (
-					farcasterUser.fields.username !== undefined
-					&& farcasterUser.fields.username !== (
-						farcasterUser.fields.displayName
-						?? farcasterUser.fields.username
+					farcasterUser.username !== undefined
+					&& farcasterUser.username !== (
+						farcasterUser.displayName
+						?? farcasterUser.username
 						?? `FID ${String(selection.entitySelector.fid)}`
 					)
 				)}
 					<span data-text="muted">
-						@{farcasterUser.fields.username}
+						@{farcasterUser.username}
 					</span>
 				{/if}
 			{/snippet}
@@ -165,10 +165,10 @@
 			placeholderText="Loading Farcaster profile (FID)…"
 		>
 			{#snippet children(farcasterUser)}
-				{#if farcasterUser.fields.bio != null && farcasterUser.fields.bio !== ''}
+				{#if farcasterUser.bio != null && farcasterUser.bio !== ''}
 					<p>
 						<TruncatedValue
-							value={farcasterUser.fields.bio}
+							value={farcasterUser.bio}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
@@ -185,9 +185,9 @@
 						placeholderText="Loading Farcaster profile (FID)…"
 					>
 						{#snippet children(farcasterUser)}
-							{#if farcasterUser.fields.url}
-								<a href={farcasterUser.fields.url}>
-									{farcasterUser.fields.url}
+							{#if farcasterUser.url}
+								<a href={farcasterUser.url}>
+									{farcasterUser.url}
 								</a>
 							{/if}
 						{/snippet}
@@ -204,9 +204,9 @@
 							placeholderText="Loading Farcaster profile (FID)…"
 						>
 							{#snippet children(farcasterUser)}
-									{#if farcasterUser.fields.$$verifiedAddresses?.values.length}
+									{#if farcasterUser.$$verifiedAddresses?.values.length}
 										<ul data-column="gap-2">
-											{#each farcasterUser.fields.$$verifiedAddresses.values as verification (stringify(verification[EntityMetaKey.Selector]))}
+											{#each farcasterUser.$$verifiedAddresses.values as verification (stringify(verification[EntityMetaKey.Selector]))}
 												<li>
 													<span data-text="mono muted">
 														{verification[EntityMetaKey.Selector].protocol}:{verification[EntityMetaKey.Selector].address}
@@ -230,8 +230,8 @@
 							placeholderText="Loading Farcaster profile (FID)…"
 						>
 							{#snippet children(farcasterUser)}
-								{#if farcasterUser.fields.username}
-									@{farcasterUser.fields.username}
+								{#if farcasterUser.username}
+									@{farcasterUser.username}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>

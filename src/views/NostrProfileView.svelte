@@ -105,12 +105,12 @@
 		>
 			{#snippet children(profile)}
 				{#if (
-					profile.fields.$icon
-					&& profile.fields.$icon[EntityMetaKey.Selector].url
+					profile.$icon
+					&& profile.$icon[EntityMetaKey.Selector].url
 				)}
 					<IconComponent
 						shape={IconShape.Circle}
-						src={profile.fields.$icon[EntityMetaKey.Selector].url}
+						src={profile.$icon[EntityMetaKey.Selector].url}
 						alt=""
 					/>
 				{/if}
@@ -131,8 +131,8 @@
 			placeholderText="Loading profile…"
 		>
 			{#snippet children(profile)}
-				{#if profile.fields.displayName}
-					{profile.fields.displayName}
+				{#if profile.displayName}
+					{profile.displayName}
 				{:else}
 					{#if Value}
 					{@render Value()}
@@ -157,10 +157,10 @@
 			placeholderText="Loading profile…"
 		>
 			{#snippet children(profile)}
-				{#if profile.fields.about}
+				{#if profile.about}
 					<p>
 						<TruncatedValue
-							value={profile.fields.about}
+							value={profile.about}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
@@ -174,11 +174,11 @@
 		>
 			{#snippet children(profile)}
 				<dl data-column-item="center">
-					{#if profile.fields.nip05}
+					{#if profile.nip05}
 						<div>
 							<dt>NIP-05</dt>
 							<dd>
-								{profile.fields.nip05}
+								{profile.nip05}
 							</dd>
 						</div>
 					{/if}
@@ -188,62 +188,62 @@
 								<dt>Pubkey</dt>
 							<dd>
 								<TruncatedValue
-									value={profile.fields.pubkey}
+									value={profile.pubkey}
 									format={TruncatedValueFormat.Visual}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && profile.fields.$banner?.[EntityMetaKey.Selector].url}
+					{#if open && profile.$banner?.[EntityMetaKey.Selector].url}
 						<div>
 							<dt>Banner</dt>
 							<dd>
 								<img
-									src={profile.fields.$banner[EntityMetaKey.Selector].url}
+									src={profile.$banner[EntityMetaKey.Selector].url}
 									alt=""
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && profile.fields.website}
+					{#if open && profile.website}
 						<div>
 							<dt>Website</dt>
 							<dd>
 								<a
-									href={profile.fields.website}
+									href={profile.website}
 									rel="noreferrer"
 									target="_blank"
-								>{profile.fields.website}</a>
+								>{profile.website}</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && profile.fields.lud16}
+					{#if open && profile.lud16}
 						<div>
 							<dt>Lightning address</dt>
 							<dd>
-								{profile.fields.lud16}
+								{profile.lud16}
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && profile.fields.lud06}
+					{#if open && profile.lud06}
 						<div>
 							<dt>Lightning URI</dt>
 							<dd>
-								{profile.fields.lud06}
+								{profile.lud06}
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && profile.fields.metadataUpdatedAt != null}
+					{#if open && profile.metadataUpdatedAt != null}
 						<div>
 							<dt>Metadata updated</dt>
 							<dd>
 								<Timestamp
-									timestamp={profile.fields.metadataUpdatedAt}
+									timestamp={profile.metadataUpdatedAt}
 								/>
 							</dd>
 						</div>

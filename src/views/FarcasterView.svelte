@@ -79,7 +79,7 @@
 			placeholderText="Farcaster"
 		>
 			{#snippet children(network)}
-				{network.fields.protocolName ?? 'Farcaster'}
+				{network.protocolName ?? 'Farcaster'}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -100,42 +100,42 @@
 				placeholderText="Loading Farcaster hub directory…"
 			>
 				{#snippet children(network)}
-					{#if open && network.fields.protocolName}
+					{#if open && network.protocolName}
 						<div>
 							<dt>Protocol</dt>
-							<dd>{network.fields.protocolName}</dd>
+							<dd>{network.protocolName}</dd>
 						</div>
 					{/if}
 
-					{#if open && network.fields.homeUrl}
+					{#if open && network.homeUrl}
 						<div>
 							<dt>Home</dt>
 							<dd>
-								<a href={network.fields.homeUrl}>{network.fields.homeUrl}</a>
+								<a href={network.homeUrl}>{network.homeUrl}</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && network.fields.docsUrl}
+					{#if open && network.docsUrl}
 						<div>
 							<dt>Docs</dt>
 							<dd>
-								<a href={network.fields.docsUrl}>{network.fields.docsUrl}</a>
+								<a href={network.docsUrl}>{network.docsUrl}</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && network.fields.registryLabel}
+					{#if open && network.registryLabel}
 						<div>
 							<dt>Registry</dt>
-							<dd>{network.fields.registryLabel}</dd>
+							<dd>{network.registryLabel}</dd>
 						</div>
 					{/if}
 
-					{#if open && network.fields.topology}
+					{#if open && network.topology}
 						<div>
 							<dt>Topology</dt>
-							<dd>{network.fields.topology}</dd>
+							<dd>{network.topology}</dd>
 						</div>
 					{/if}
 				{/snippet}

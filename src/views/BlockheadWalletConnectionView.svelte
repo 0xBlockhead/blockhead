@@ -102,31 +102,31 @@
 		>
 			{#snippet children(walletConnection)}
 				<dl data-column-item="center">
-					{#if walletConnection.fields.status !== undefined}
+					{#if walletConnection.status !== undefined}
 						<div>
 							<dt>Status</dt>
-							<dd>{blockheadWalletConnectionStatusByStatus[walletConnection.fields.status].label}</dd>
+							<dd>{blockheadWalletConnectionStatusByStatus[walletConnection.status].label}</dd>
 						</div>
 					{/if}
 
-					{#if walletConnection.fields.protocol !== undefined}
+					{#if walletConnection.protocol !== undefined}
 						<div>
 							<dt>Protocol</dt>
-							<dd>{walletProtocolByProtocol[walletConnection.fields.protocol].label}</dd>
+							<dd>{walletProtocolByProtocol[walletConnection.protocol].label}</dd>
 						</div>
 					{/if}
 
 					<div>
 						<dt>Transport</dt>
-						<dd>{walletConnection.fields.transportKind}</dd>
+						<dd>{walletConnection.transportKind}</dd>
 					</div>
 
-					{#if walletConnection.fields.$activeAccount}
+					{#if walletConnection.$activeAccount}
 						<div>
 							<dt>Active account</dt>
 							<dd>
 								<BlockheadWalletAccountView
-									selection={select(EntityType.BlockheadWalletAccount, walletConnection.fields.$activeAccount.__selector)}
+									selection={select(EntityType.BlockheadWalletAccount, walletConnection.$activeAccount.__selector)}
 
 								/>
 							</dd>
@@ -136,7 +136,7 @@
 					{#if open}
 						<div>
 							<dt>Selected</dt>
-							<dd>{walletConnection.fields.selected ? 'Yes' : 'No'}</dd>
+							<dd>{walletConnection.selected ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 
@@ -144,38 +144,38 @@
 						<div>
 							<dt>Connected at</dt>
 							<dd>
-								<Timestamp timestamp={walletConnection.fields.connectedAt} />
+								<Timestamp timestamp={walletConnection.connectedAt} />
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && walletConnection.fields.disconnectedAt != null}
+					{#if open && walletConnection.disconnectedAt != null}
 						<div>
 							<dt>Disconnected at</dt>
 							<dd>
-								<Timestamp timestamp={walletConnection.fields.disconnectedAt} />
+								<Timestamp timestamp={walletConnection.disconnectedAt} />
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && walletConnection.fields.sessionId != null}
+					{#if open && walletConnection.sessionId != null}
 						<div>
 							<dt>Session ID</dt>
 							<dd>
 								<TruncatedValue
-									value={walletConnection.fields.sessionId}
+									value={walletConnection.sessionId}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && walletConnection.fields.sessionTopic != null}
+					{#if open && walletConnection.sessionTopic != null}
 						<div>
 							<dt>Session topic</dt>
 							<dd>
 								<TruncatedValue
-									value={walletConnection.fields.sessionTopic}
+									value={walletConnection.sessionTopic}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
@@ -224,9 +224,9 @@
 					{/snippet}
 
 					{#snippet SectionWalletAccounts()}
-						{#if walletConnection.fields.$$connectedAccounts?.entities.length}
+						{#if walletConnection.$$connectedAccounts?.entities.length}
 							<ul data-column="gap-1">
-								{#each walletConnection.fields.$$connectedAccounts.entities as account (stringify(account.entitySelector))}
+								{#each walletConnection.$$connectedAccounts.entities as account (stringify(account.entitySelector))}
 									<li>
 										<BlockheadWalletAccountView selection={select(EntityType.BlockheadWalletAccount, account.entitySelector)} />
 									</li>
@@ -240,9 +240,9 @@
 					{/snippet}
 
 					{#snippet SectionWalletScopes()}
-						{#if walletConnection.fields.scopes !== undefined && walletConnection.fields.scopes.length > 0}
+						{#if walletConnection.scopes !== undefined && walletConnection.scopes.length > 0}
 							<ul data-column="gap-1">
-								{#each walletConnection.fields.scopes as scope (`${scope.namespace}:${scope.reference}`)}
+								{#each walletConnection.scopes as scope (`${scope.namespace}:${scope.reference}`)}
 									<li>
 										<code>{scope.namespace}:{scope.reference}</code>
 									</li>

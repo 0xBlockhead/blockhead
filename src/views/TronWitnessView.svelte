@@ -63,45 +63,45 @@
 		>
 			{#snippet children(witness)}
 				<dl>
-					{#if witness.fields.active !== undefined}
+					{#if witness.active !== undefined}
 						<div>
 							<dt>Active</dt>
-							<dd>{witness.fields.active ? 'Yes' : 'No'}</dd>
+							<dd>{witness.active ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 
-					{#if witness.fields.voteCount !== undefined}
+					{#if witness.voteCount !== undefined}
 						<div>
 							<dt>Votes</dt>
-							<dd><NumberValue value={witness.fields.voteCount} /></dd>
+							<dd><NumberValue value={witness.voteCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && witness.fields.latestBlockHeight !== undefined}
+					{#if open && witness.latestBlockHeight !== undefined}
 						<div>
 							<dt>Latest block</dt>
-							<dd><NumberValue value={witness.fields.latestBlockHeight} /></dd>
+							<dd><NumberValue value={witness.latestBlockHeight} /></dd>
 						</div>
 					{/if}
 
-					{#if open && witness.fields.totalProduced !== undefined}
+					{#if open && witness.totalProduced !== undefined}
 						<div>
 							<dt>Produced</dt>
-							<dd><NumberValue value={witness.fields.totalProduced} /></dd>
+							<dd><NumberValue value={witness.totalProduced} /></dd>
 						</div>
 					{/if}
 
-					{#if open && witness.fields.totalMissed !== undefined}
+					{#if open && witness.totalMissed !== undefined}
 						<div>
 							<dt>Missed</dt>
-							<dd><NumberValue value={witness.fields.totalMissed} /></dd>
+							<dd><NumberValue value={witness.totalMissed} /></dd>
 						</div>
 					{/if}
 
-					{#if open && witness.fields.url != null}
+					{#if open && witness.url != null}
 						<div>
 							<dt>URL</dt>
-							<dd>{witness.fields.url}</dd>
+							<dd>{witness.url}</dd>
 						</div>
 					{/if}
 				</dl>

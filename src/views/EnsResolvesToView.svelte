@@ -40,7 +40,7 @@
 		)}
 >
 	{#snippet children(ens)}
-		{@const resolvedActorId = ens.fields.$subgraphResolvedActor?.[EntityMetaKey.Selector]}
+		{@const resolvedActorId = ens.$subgraphResolvedActor?.[EntityMetaKey.Selector]}
 		{#if resolvedActorId}
 			<section>
 				<EvmNetworkView

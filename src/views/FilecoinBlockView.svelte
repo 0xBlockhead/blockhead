@@ -71,21 +71,21 @@
 		>
 			{#snippet children(filecoinBlock)}
 				<dl>
-					{#if filecoinBlock.fields.ticketVrFProof != null}
+					{#if filecoinBlock.ticketVrFProof != null}
 						<div>
 							<dt>Ticket Vr F Proof</dt>
 							<dd>
 								<TruncatedValue
-									value={filecoinBlock.fields.ticketVrFProof}
+									value={filecoinBlock.ticketVrFProof}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if filecoinBlock.fields.winCount != null}
+					{#if filecoinBlock.winCount != null}
 						<div>
 							<dt>Win Count</dt>
-							<dd><NumberValue value={filecoinBlock.fields.winCount} /></dd>
+							<dd><NumberValue value={filecoinBlock.winCount} /></dd>
 						</div>
 					{/if}
 				</dl>

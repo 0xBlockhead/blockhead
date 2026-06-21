@@ -115,11 +115,11 @@
 					[...recordKeysProp]
 				:
 					[...new Set([
-						...(ens.fields.textRecords === undefined ?
+						...(ens.textRecords === undefined ?
 							[]
 						:
-							Object.keys(ens.fields.textRecords)),
-							...(ens.fields.resolverTextKeys?.values ?? []),
+							Object.keys(ens.textRecords)),
+							...(ens.resolverTextKeys?.values ?? []),
 					])]
 				).filter((key) => (
 					excludeRecordKeys == null
@@ -148,7 +148,7 @@
 						:
 							item
 					)}
-					{@const recordValue = ens.fields.textRecords?.[item]}
+					{@const recordValue = ens.textRecords?.[item]}
 					<a
 						data-link
 						href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/(records)/record/[recordId]', {

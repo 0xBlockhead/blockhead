@@ -71,24 +71,24 @@
 		>
 			{#snippet children(nearAction)}
 				<dl>
-					{#if nearAction.fields.actionKind != null}
+					{#if nearAction.actionKind != null}
 						<div>
 							<dt>Action Kind</dt>
-							<dd>{nearAction.fields.actionKind}</dd>
+							<dd>{nearAction.actionKind}</dd>
 						</div>
 					{/if}
 
-					{#if nearAction.fields.methodName != null}
+					{#if nearAction.methodName != null}
 						<div>
 							<dt>Method Name</dt>
-							<dd>{nearAction.fields.methodName}</dd>
+							<dd>{nearAction.methodName}</dd>
 						</div>
 					{/if}
 
-					{#if nearAction.fields.depositYoctoNear != null}
+					{#if nearAction.depositYoctoNear != null}
 						<div>
 							<dt>Deposit Yocto Near</dt>
-							<dd><NumberValue value={nearAction.fields.depositYoctoNear} /> yoctoNEAR</dd>
+							<dd><NumberValue value={nearAction.depositYoctoNear} /> yoctoNEAR</dd>
 						</div>
 					{/if}
 				</dl>

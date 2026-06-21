@@ -82,7 +82,7 @@
 			placeholderText="Loading channel…"
 		>
 			{#snippet children(channel)}
-				{channel.fields.title ?? selection.entitySelector.channelId}
+				{channel.title ?? selection.entitySelector.channelId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}

@@ -90,54 +90,54 @@
 				placeholderText="Loading YouTube hub directory…"
 			>
 				{#snippet children(network)}
-					{#if network.fields.registryLabel}
+					{#if network.registryLabel}
 						<div>
 							<dt>Registry</dt>
-							<dd>{network.fields.registryLabel}</dd>
+							<dd>{network.registryLabel}</dd>
 						</div>
-					{:else if network.fields.protocolName}
+					{:else if network.protocolName}
 						<div>
 							<dt>Protocol</dt>
-							<dd>{network.fields.protocolName}</dd>
+							<dd>{network.protocolName}</dd>
 						</div>
 					{/if}
 
 					{#if open}
 						<div>
 							<dt>Channels</dt>
-							<dd>{String(network.fields.$$youtubeChannels?.values.length ?? 0)}</dd>
+							<dd>{String(network.$$youtubeChannels?.values.length ?? 0)}</dd>
 						</div>
 					{/if}
 
 					{#if open}
 						<div>
 							<dt>Playlists</dt>
-							<dd>{String(network.fields.$$youtubePlaylists?.values.length ?? 0)}</dd>
+							<dd>{String(network.$$youtubePlaylists?.values.length ?? 0)}</dd>
 						</div>
 					{/if}
 
-					{#if open && network.fields.homeUrl}
+					{#if open && network.homeUrl}
 						<div>
 							<dt>Home</dt>
 							<dd>
-								<a href={network.fields.homeUrl}>{network.fields.homeUrl}</a>
+								<a href={network.homeUrl}>{network.homeUrl}</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && network.fields.docsUrl}
+					{#if open && network.docsUrl}
 						<div>
 							<dt>Docs</dt>
 							<dd>
-								<a href={network.fields.docsUrl}>{network.fields.docsUrl}</a>
+								<a href={network.docsUrl}>{network.docsUrl}</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && network.fields.topology}
+					{#if open && network.topology}
 						<div>
 							<dt>Topology</dt>
-							<dd>{network.fields.topology}</dd>
+							<dd>{network.topology}</dd>
 						</div>
 					{/if}
 				{/snippet}

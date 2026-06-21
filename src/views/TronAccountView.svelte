@@ -64,45 +64,45 @@
 		>
 			{#snippet children(account)}
 				<dl data-column-item="center">
-					{#if account.fields.name != null}
+					{#if account.name != null}
 						<div>
 							<dt>Name</dt>
-							<dd>{account.fields.name}</dd>
+							<dd>{account.name}</dd>
 						</div>
 					{/if}
 
-					{#if account.fields.balanceSun != null}
+					{#if account.balanceSun != null}
 						<div>
 							<dt>Balance</dt>
-							<dd><NumberValue value={account.fields.balanceSun} /></dd>
+							<dd><NumberValue value={account.balanceSun} /></dd>
 						</div>
 					{/if}
 
-					{#if account.fields.totalTransactionCount != null}
+					{#if account.totalTransactionCount != null}
 						<div>
 							<dt>Transactions</dt>
-							<dd><NumberValue value={account.fields.totalTransactionCount} /></dd>
+							<dd><NumberValue value={account.totalTransactionCount} /></dd>
 						</div>
 					{/if}
 
-					{#if account.fields.isContract != null}
+					{#if account.isContract != null}
 						<div>
 							<dt>Contract</dt>
-							<dd>{account.fields.isContract ? 'Yes' : 'No'}</dd>
+							<dd>{account.isContract ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 
-					{#if open && account.fields.createdTimestampMs != null}
+					{#if open && account.createdTimestampMs != null}
 						<div>
 							<dt>Created</dt>
-							<dd><Timestamp timestamp={account.fields.createdTimestampMs} /></dd>
+							<dd><Timestamp timestamp={account.createdTimestampMs} /></dd>
 						</div>
 					{/if}
 
-					{#if open && account.fields.latestOperationTimestampMs != null}
+					{#if open && account.latestOperationTimestampMs != null}
 						<div>
 							<dt>Latest operation</dt>
-							<dd><Timestamp timestamp={account.fields.latestOperationTimestampMs} /></dd>
+							<dd><Timestamp timestamp={account.latestOperationTimestampMs} /></dd>
 						</div>
 					{/if}
 				</dl>

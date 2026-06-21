@@ -75,8 +75,8 @@
 				resource={poolTimestamp}
 			>
 				{#snippet children(poolTimestamp)}
-					{#if poolTimestamp.fields.priceUsd !== undefined}
-						{poolTimestamp.fields.priceUsd}
+					{#if poolTimestamp.priceUsd !== undefined}
+						{poolTimestamp.priceUsd}
 					{:else}
 						<Timestamp
 							timestamp={selection.entitySelector.timestampMs}
@@ -113,7 +113,7 @@
 						<dt>Pool</dt>
 						<dd>
 							<LiquidityPoolView
-								selection={select(EntityType.LiquidityPool, poolTimestamp.fields.$parentLiquidityPool?.[EntityMetaKey.Selector] ?? selection.entitySelector.$liquidityPool)}
+								selection={select(EntityType.LiquidityPool, poolTimestamp.$parentLiquidityPool?.[EntityMetaKey.Selector] ?? selection.entitySelector.$liquidityPool)}
 								layout={EntityLayout.Title}
 
 								open={false}
@@ -121,100 +121,100 @@
 						</dd>
 					</div>
 
-					{#if poolTimestamp.fields.priceUsd !== undefined}
+					{#if poolTimestamp.priceUsd !== undefined}
 						<div>
 							<dt>Price USD</dt>
-							<dd>{poolTimestamp.fields.priceUsd}</dd>
+							<dd>{poolTimestamp.priceUsd}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& poolTimestamp.fields.priceNative !== undefined
+						&& poolTimestamp.priceNative !== undefined
 					)}
 						<div>
 							<dt>Price native</dt>
-							<dd>{poolTimestamp.fields.priceNative}</dd>
+							<dd>{poolTimestamp.priceNative}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& poolTimestamp.fields.liquidityUsd !== undefined
+						&& poolTimestamp.liquidityUsd !== undefined
 					)}
 						<div>
 							<dt>Liquidity USD</dt>
-							<dd>{String(poolTimestamp.fields.liquidityUsd)}</dd>
+							<dd>{String(poolTimestamp.liquidityUsd)}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& poolTimestamp.fields.volumeUsd24h !== undefined
+						&& poolTimestamp.volumeUsd24h !== undefined
 					)}
 						<div>
 							<dt>Volume USD 24h</dt>
-							<dd>{String(poolTimestamp.fields.volumeUsd24h)}</dd>
+							<dd>{String(poolTimestamp.volumeUsd24h)}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& poolTimestamp.fields.priceChangePercent24h !== undefined
+						&& poolTimestamp.priceChangePercent24h !== undefined
 					)}
 						<div>
 							<dt>Price change 24h</dt>
-							<dd>{String(poolTimestamp.fields.priceChangePercent24h)}%</dd>
+							<dd>{String(poolTimestamp.priceChangePercent24h)}%</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& poolTimestamp.fields.transactionBuys24h !== undefined
+						&& poolTimestamp.transactionBuys24h !== undefined
 					)}
 						<div>
 							<dt>Buys 24h</dt>
-							<dd>{String(poolTimestamp.fields.transactionBuys24h)}</dd>
+							<dd>{String(poolTimestamp.transactionBuys24h)}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& poolTimestamp.fields.transactionSells24h !== undefined
+						&& poolTimestamp.transactionSells24h !== undefined
 					)}
 						<div>
 							<dt>Sells 24h</dt>
-							<dd>{String(poolTimestamp.fields.transactionSells24h)}</dd>
+							<dd>{String(poolTimestamp.transactionSells24h)}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& poolTimestamp.fields.marketCapUsd !== undefined
+						&& poolTimestamp.marketCapUsd !== undefined
 					)}
 						<div>
 							<dt>Market cap USD</dt>
-							<dd>{String(poolTimestamp.fields.marketCapUsd)}</dd>
+							<dd>{String(poolTimestamp.marketCapUsd)}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& poolTimestamp.fields.fdvUsd !== undefined
+						&& poolTimestamp.fdvUsd !== undefined
 					)}
 						<div>
 							<dt>FDV USD</dt>
-							<dd>{String(poolTimestamp.fields.fdvUsd)}</dd>
+							<dd>{String(poolTimestamp.fdvUsd)}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& poolTimestamp.fields.transport !== undefined
+						&& poolTimestamp.transport !== undefined
 					)}
 						<div>
 							<dt>Transport</dt>
-							<dd>{poolTimestamp.fields.transport}</dd>
+							<dd>{poolTimestamp.transport}</dd>
 						</div>
 					{/if}
 				</dl>

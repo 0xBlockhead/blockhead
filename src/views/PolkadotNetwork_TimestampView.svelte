@@ -49,10 +49,10 @@
 			placeholderText="Loading Polkadot network snapshot…"
 		>
 			{#snippet children(snapshot)}
-				{#if snapshot.fields.finalizedBlockNumber !== undefined}
-					<NumberValue value={snapshot.fields.finalizedBlockNumber} />
-				{:else if snapshot.fields.peerCount !== undefined}
-					<NumberValue value={snapshot.fields.peerCount} />
+				{#if snapshot.finalizedBlockNumber !== undefined}
+					<NumberValue value={snapshot.finalizedBlockNumber} />
+				{:else if snapshot.peerCount !== undefined}
+					<NumberValue value={snapshot.peerCount} />
 					peers
 				{:else}
 					<Timestamp timestamp={selection.entitySelector.timestampMs} />
@@ -68,71 +68,71 @@
 		>
 			{#snippet children(snapshot)}
 				<dl data-column-item="center">
-					{#if snapshot.fields.finalizedBlockNumber !== undefined}
+					{#if snapshot.finalizedBlockNumber !== undefined}
 						<div>
 							<dt>Finalized block</dt>
-							<dd><NumberValue value={snapshot.fields.finalizedBlockNumber} /></dd>
+							<dd><NumberValue value={snapshot.finalizedBlockNumber} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.fields.runtimeSpecVersion !== undefined}
+					{#if snapshot.runtimeSpecVersion !== undefined}
 						<div>
 							<dt>Runtime</dt>
-							<dd>{snapshot.fields.runtimeSpecName} #{snapshot.fields.runtimeSpecVersion}</dd>
+							<dd>{snapshot.runtimeSpecName} #{snapshot.runtimeSpecVersion}</dd>
 						</div>
 					{/if}
 
-					{#if snapshot.fields.peerCount !== undefined}
+					{#if snapshot.peerCount !== undefined}
 						<div>
 							<dt>Peers</dt>
-							<dd><NumberValue value={snapshot.fields.peerCount} /></dd>
+							<dd><NumberValue value={snapshot.peerCount} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.fields.isSyncing !== undefined}
+					{#if snapshot.isSyncing !== undefined}
 						<div>
 							<dt>Syncing</dt>
-							<dd>{snapshot.fields.isSyncing ? 'Yes' : 'No'}</dd>
+							<dd>{snapshot.isSyncing ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.finalizedBlockHash != null}
+					{#if open && snapshot.finalizedBlockHash != null}
 						<div>
 							<dt>Finalized hash</dt>
 							<dd>
 								<TruncatedValue
-									value={snapshot.fields.finalizedBlockHash}
+									value={snapshot.finalizedBlockHash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.finalizedExtrinsicCount !== undefined}
+					{#if open && snapshot.finalizedExtrinsicCount !== undefined}
 						<div>
 							<dt>Extrinsics</dt>
-							<dd><NumberValue value={snapshot.fields.finalizedExtrinsicCount} /></dd>
+							<dd><NumberValue value={snapshot.finalizedExtrinsicCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.transactionVersion !== undefined}
+					{#if open && snapshot.transactionVersion !== undefined}
 						<div>
 							<dt>Transaction version</dt>
-							<dd><NumberValue value={snapshot.fields.transactionVersion} /></dd>
+							<dd><NumberValue value={snapshot.transactionVersion} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.stateVersion !== undefined}
+					{#if open && snapshot.stateVersion !== undefined}
 						<div>
 							<dt>State version</dt>
-							<dd><NumberValue value={snapshot.fields.stateVersion} /></dd>
+							<dd><NumberValue value={snapshot.stateVersion} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.shouldHavePeers !== undefined}
+					{#if open && snapshot.shouldHavePeers !== undefined}
 						<div>
 							<dt>Peer expectation</dt>
-							<dd>{snapshot.fields.shouldHavePeers ? 'Required' : 'Optional'}</dd>
+							<dd>{snapshot.shouldHavePeers ? 'Required' : 'Optional'}</dd>
 						</div>
 					{/if}
 				</dl>

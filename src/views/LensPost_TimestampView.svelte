@@ -86,27 +86,27 @@
 						metrics={[
 							{
 								label: 'Comments',
-								value: lensPostTimestamp.fields.commentCount,
+								value: lensPostTimestamp.commentCount,
 							},
 							{
 								label: 'Reposts',
-								value: lensPostTimestamp.fields.repostCount,
+								value: lensPostTimestamp.repostCount,
 							},
 							{
 								label: 'Quotes',
-								value: lensPostTimestamp.fields.quoteCount,
+								value: lensPostTimestamp.quoteCount,
 							},
 							{
 								label: 'Bookmarks',
-								value: lensPostTimestamp.fields.bookmarkCount,
+								value: lensPostTimestamp.bookmarkCount,
 							},
 							{
 								label: 'Collects',
-								value: lensPostTimestamp.fields.collectCount,
+								value: lensPostTimestamp.collectCount,
 							},
 							{
 								label: 'Reactions',
-								value: lensPostTimestamp.fields.reactionCount,
+								value: lensPostTimestamp.reactionCount,
 							},
 						]}
 					/>

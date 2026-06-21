@@ -82,38 +82,38 @@
 		>
 			{#snippet children(block)}
 				<dl data-column-item="center">
-					{#if ('hash' in selection.entitySelector && selection.entitySelector.hash != null) || block.fields.hash != null}
+					{#if ('hash' in selection.entitySelector && selection.entitySelector.hash != null) || block.hash != null}
 						<div>
 							<dt>Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={'hash' in selection.entitySelector ? selection.entitySelector.hash : block.fields.hash}
+									value={'hash' in selection.entitySelector ? selection.entitySelector.hash : block.hash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-						{#if (block.fields.$$chunks?.values.length ?? 0) > 0}
+						{#if (block.$$chunks?.values.length ?? 0) > 0}
 							<div>
 								<dt>Chunks</dt>
-								<dd><NumberValue value={block.fields.$$chunks?.values.length ?? 0} /></dd>
+								<dd><NumberValue value={block.$$chunks?.values.length ?? 0} /></dd>
 							</div>
 						{/if}
 
-					{#if block.fields.timestampMs != null}
+					{#if block.timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
-							<dd><Timestamp timestamp={block.fields.timestampMs} /></dd>
+							<dd><Timestamp timestamp={block.timestampMs} /></dd>
 						</div>
 					{/if}
 
-					{#if open && block.fields.epochId != null}
+					{#if open && block.epochId != null}
 						<div>
 							<dt>Epoch ID</dt>
 							<dd>
 								<TruncatedValue
-									value={block.fields.epochId}
+									value={block.epochId}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>

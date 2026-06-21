@@ -61,42 +61,42 @@
 		>
 			{#snippet children(cosmosValidator)}
 				<dl>
-					{#if cosmosValidator.fields.consensusPubkey != null}
+					{#if cosmosValidator.consensusPubkey != null}
 						<div>
 							<dt>Consensus Pubkey</dt>
 							<dd>
 								<TruncatedValue
-									value={cosmosValidator.fields.consensusPubkey}
+									value={cosmosValidator.consensusPubkey}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if cosmosValidator.fields.moniker != null}
+					{#if cosmosValidator.moniker != null}
 						<div>
 							<dt>Moniker</dt>
-							<dd>{cosmosValidator.fields.moniker}</dd>
+							<dd>{cosmosValidator.moniker}</dd>
 						</div>
 					{/if}
 
-					{#if cosmosValidator.fields.jailed != null}
+					{#if cosmosValidator.jailed != null}
 						<div>
 							<dt>Jailed</dt>
-							<dd>{cosmosValidator.fields.jailed ? 'Yes' : 'No'}</dd>
+							<dd>{cosmosValidator.jailed ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 
-					{#if cosmosValidator.fields.status != null}
+					{#if cosmosValidator.status != null}
 						<div>
 							<dt>Status</dt>
-							<dd>{cosmosValidator.fields.status}</dd>
+							<dd>{cosmosValidator.status}</dd>
 						</div>
 					{/if}
 
-					{#if cosmosValidator.fields.tokens != null}
+					{#if cosmosValidator.tokens != null}
 						<div>
 							<dt>Tokens</dt>
-							<dd><NumberValue value={cosmosValidator.fields.tokens} /></dd>
+							<dd><NumberValue value={cosmosValidator.tokens} /></dd>
 						</div>
 					{/if}
 				</dl>

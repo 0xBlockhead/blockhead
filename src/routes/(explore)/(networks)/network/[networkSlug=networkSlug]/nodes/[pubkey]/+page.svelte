@@ -31,14 +31,14 @@
 <Page>
 	<ResourceBoundary resource={network}>
 			{#snippet children(network)}
-				{#if network.fields.namespace === NetworkNamespace.Lightning}
+				{#if network.namespace === NetworkNamespace.Lightning}
 					<LightningNodeView
 						selection={select(EntityType.LightningNode, {
 							$network: { slug: params.networkSlug },
 							publicKey: params.pubkey,
 						})}
 					/>
-				{:else if network.fields.namespace === NetworkNamespace.ZeroG}
+				{:else if network.namespace === NetworkNamespace.ZeroG}
 					<ZeroGStorageNodeView
 						selection={select(EntityType.ZeroGStorageNode, {
 							$network: { slug: params.networkSlug },

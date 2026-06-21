@@ -49,10 +49,10 @@
 			placeholderText="Loading Cosmos network snapshot…"
 		>
 			{#snippet children(snapshot)}
-				{#if snapshot.fields.latestBlockHeight !== undefined}
-					<NumberValue value={snapshot.fields.latestBlockHeight} />
-				{:else if snapshot.fields.validatorCount !== undefined}
-					<NumberValue value={snapshot.fields.validatorCount} />
+				{#if snapshot.latestBlockHeight !== undefined}
+					<NumberValue value={snapshot.latestBlockHeight} />
+				{:else if snapshot.validatorCount !== undefined}
+					<NumberValue value={snapshot.validatorCount} />
 					validators
 				{:else}
 					<Timestamp timestamp={selection.entitySelector.timestampMs} />
@@ -68,99 +68,99 @@
 		>
 			{#snippet children(snapshot)}
 				<dl data-column-item="center">
-					{#if snapshot.fields.latestBlockHeight !== undefined}
+					{#if snapshot.latestBlockHeight !== undefined}
 						<div>
 							<dt>Latest block</dt>
-							<dd><NumberValue value={snapshot.fields.latestBlockHeight} /></dd>
+							<dd><NumberValue value={snapshot.latestBlockHeight} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.fields.applicationVersion != null}
+					{#if snapshot.applicationVersion != null}
 						<div>
 							<dt>Application</dt>
-							<dd>{snapshot.fields.applicationName ?? 'gaiad'} {snapshot.fields.applicationVersion}</dd>
+							<dd>{snapshot.applicationName ?? 'gaiad'} {snapshot.applicationVersion}</dd>
 						</div>
 					{/if}
 
-					{#if snapshot.fields.validatorCount !== undefined}
+					{#if snapshot.validatorCount !== undefined}
 						<div>
 							<dt>Validators</dt>
-							<dd><NumberValue value={snapshot.fields.validatorCount} /></dd>
+							<dd><NumberValue value={snapshot.validatorCount} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.fields.isSyncing !== undefined}
+					{#if snapshot.isSyncing !== undefined}
 						<div>
 							<dt>Syncing</dt>
-							<dd>{snapshot.fields.isSyncing ? 'Yes' : 'No'}</dd>
+							<dd>{snapshot.isSyncing ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 
-					{#if snapshot.fields.bondedTokens !== undefined}
+					{#if snapshot.bondedTokens !== undefined}
 						<div>
 							<dt>Bonded stake</dt>
-							<dd><NumberValue value={snapshot.fields.bondedTokens} /> uatom</dd>
+							<dd><NumberValue value={snapshot.bondedTokens} /> uatom</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.latestBlockHash != null}
+					{#if open && snapshot.latestBlockHash != null}
 						<div>
 							<dt>Latest hash</dt>
 							<dd>
 								<TruncatedValue
-									value={snapshot.fields.latestBlockHash}
+									value={snapshot.latestBlockHash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.latestBlockTimeMs !== undefined}
+					{#if open && snapshot.latestBlockTimeMs !== undefined}
 						<div>
 							<dt>Block time</dt>
-							<dd><Timestamp timestamp={snapshot.fields.latestBlockTimeMs} /></dd>
+							<dd><Timestamp timestamp={snapshot.latestBlockTimeMs} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.latestBlockTransactionCount !== undefined}
+					{#if open && snapshot.latestBlockTransactionCount !== undefined}
 						<div>
 							<dt>Transactions</dt>
-							<dd><NumberValue value={snapshot.fields.latestBlockTransactionCount} /></dd>
+							<dd><NumberValue value={snapshot.latestBlockTransactionCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.nodeNetwork != null}
+					{#if open && snapshot.nodeNetwork != null}
 						<div>
 							<dt>Node network</dt>
-							<dd>{snapshot.fields.nodeNetwork}</dd>
+							<dd>{snapshot.nodeNetwork}</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.cosmosSdkVersion != null}
+					{#if open && snapshot.cosmosSdkVersion != null}
 						<div>
 							<dt>Cosmos SDK</dt>
-							<dd>{snapshot.fields.cosmosSdkVersion}</dd>
+							<dd>{snapshot.cosmosSdkVersion}</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.bondedValidatorCount !== undefined}
+					{#if open && snapshot.bondedValidatorCount !== undefined}
 						<div>
 							<dt>Bonded sample</dt>
-							<dd><NumberValue value={snapshot.fields.bondedValidatorCount} /></dd>
+							<dd><NumberValue value={snapshot.bondedValidatorCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.notBondedTokens !== undefined}
+					{#if open && snapshot.notBondedTokens !== undefined}
 						<div>
 							<dt>Unbonded stake</dt>
-							<dd><NumberValue value={snapshot.fields.notBondedTokens} /> uatom</dd>
+							<dd><NumberValue value={snapshot.notBondedTokens} /> uatom</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.governanceProposalCount !== undefined}
+					{#if open && snapshot.governanceProposalCount !== undefined}
 						<div>
 							<dt>Governance proposals</dt>
-							<dd><NumberValue value={snapshot.fields.governanceProposalCount} /></dd>
+							<dd><NumberValue value={snapshot.governanceProposalCount} /></dd>
 						</div>
 					{/if}
 				</dl>

@@ -137,16 +137,16 @@
 		>
 			{#snippet children(note)}
 				{@const hasContentWarning = (
-					(note.fields.spoilerText?.trim().length ?? 0) > 0
-					|| note.fields.sensitive === true
+					(note.spoilerText?.trim().length ?? 0) > 0
+					|| note.sensitive === true
 				)}
 				{@const mastodonPlainBody = (
 					hasContentWarning && !contentWarningRevealed ?
-						(note.fields.spoilerText?.trim() || 'Sensitive content')
-					: note.fields.content == null ?
+						(note.spoilerText?.trim() || 'Sensitive content')
+					: note.content == null ?
 						''
 					:
-						htmlToPlainText(note.fields.content)
+						htmlToPlainText(note.content)
 				)}
 				{#if mastodonPlainBody !== ''}
 					<TruncatedValue
@@ -172,10 +172,10 @@
 			resource={note}
 		>
 			{#snippet children(note)}
-				{#if note.fields.createdAt}
+				{#if note.createdAt}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={note.fields.createdAt}
+							timestamp={note.createdAt}
 						/>
 					</span>
 				{/if}
@@ -204,14 +204,14 @@
 			>
 				{#snippet children(note)}
 					{@const hasContentWarning = (
-						(note.fields.spoilerText?.trim().length ?? 0) > 0
-						|| note.fields.sensitive === true
+						(note.spoilerText?.trim().length ?? 0) > 0
+						|| note.sensitive === true
 					)}
 					{#if !hasContentWarning || contentWarningRevealed}
-						{#if note.fields.content != null}
+						{#if note.content != null}
 							<p>
 								<TruncatedValue
-									value={htmlToPlainText(note.fields.content)}
+									value={htmlToPlainText(note.content)}
 									format={TruncatedValueFormat.Visual}
 								/>
 							</p>
@@ -229,12 +229,12 @@
 						placeholderText="Loading note…"
 					>
 						{#snippet children(note)}
-							{#if note.fields.$author}
+							{#if note.$author}
 								<div>
-									<dt>{note.fields.$reblogOf ? 'Boosted by' : 'Author'}</dt>
+									<dt>{note.$reblogOf ? 'Boosted by' : 'Author'}</dt>
 									<dd>
 											<ActivityPubActorView
-												selection={select(EntityType.ActivityPubActor, note.fields.$author[EntityMetaKey.Selector])}
+												selection={select(EntityType.ActivityPubActor, note.$author[EntityMetaKey.Selector])}
 												layout={EntityLayout.Title}
 												open={false}
 											/>
@@ -252,12 +252,12 @@
 					placeholderText="Loading note…"
 				>
 					{#snippet children(note)}
-						{#if note.fields.$inReplyTo}
+						{#if note.$inReplyTo}
 							<div>
 								<dt>In reply to</dt>
 								<dd>
 										<ActivityPubNoteView
-											selection={select(EntityType.ActivityPubNote, note.fields.$inReplyTo[EntityMetaKey.Selector])}
+											selection={select(EntityType.ActivityPubNote, note.$inReplyTo[EntityMetaKey.Selector])}
 											layout={EntityLayout.Title}
 											open={false}
 										/>
@@ -274,14 +274,14 @@
 					placeholderText="Loading note…"
 				>
 					{#snippet children(note)}
-						{#if note.fields.$reblogOf && (
+						{#if note.$reblogOf && (
 							!('localStatusId' in selection.entitySelector)
 							|| (
 								'localStatusId' in selection.entitySelector
-								&& 'localStatusId' in note.fields.$reblogOf[EntityMetaKey.Selector]
+								&& 'localStatusId' in note.$reblogOf[EntityMetaKey.Selector]
 								&& (
-									note.fields.$reblogOf[EntityMetaKey.Selector].instanceOrigin !== selection.entitySelector.instanceOrigin
-									|| note.fields.$reblogOf[EntityMetaKey.Selector].localStatusId !== selection.entitySelector.localStatusId
+									note.$reblogOf[EntityMetaKey.Selector].instanceOrigin !== selection.entitySelector.instanceOrigin
+									|| note.$reblogOf[EntityMetaKey.Selector].localStatusId !== selection.entitySelector.localStatusId
 								)
 							)
 						)}
@@ -289,7 +289,7 @@
 								<dt>Reblog of</dt>
 								<dd>
 										<ActivityPubNoteView
-											selection={select(EntityType.ActivityPubNote, note.fields.$reblogOf[EntityMetaKey.Selector])}
+											selection={select(EntityType.ActivityPubNote, note.$reblogOf[EntityMetaKey.Selector])}
 											layout={EntityLayout.Title}
 											open={false}
 										/>
@@ -307,8 +307,8 @@
 				>
 					{#snippet children(note)}
 						{@const hasContentWarning = (
-							(note.fields.spoilerText?.trim().length ?? 0) > 0
-							|| note.fields.sensitive === true
+							(note.spoilerText?.trim().length ?? 0) > 0
+							|| note.sensitive === true
 						)}
 						{#if hasContentWarning && !contentWarningRevealed}
 							<div>
@@ -318,7 +318,7 @@
 										class="activitypub-content-warning"
 										data-column="gap-2"
 									>
-										<p>{note.fields.spoilerText?.trim() || 'Sensitive content'}</p>
+										<p>{note.spoilerText?.trim() || 'Sensitive content'}</p>
 										<button
 											type="button"
 											onclick={() => {
@@ -330,12 +330,12 @@
 									</div>
 								</dd>
 							</div>
-									{#if note.fields.$$media !== undefined && note.fields.$$media.values.length > 0}
+									{#if note.$$media !== undefined && note.$$media.values.length > 0}
 										<div>
 										<dt>Media</dt>
 										<dd>
 											<div data-column="gap-3">
-											{#each note.fields.$$media.values as media (media[EntityMetaKey.Selector].url)}
+											{#each note.$$media.values as media (media[EntityMetaKey.Selector].url)}
 												<Media
 													alt=""
 													media={{ url: media[EntityMetaKey.Selector].url }}
@@ -356,11 +356,11 @@
 					placeholderText="Loading note…"
 				>
 					{#snippet children(note)}
-						{#if note.fields.visibility}
+						{#if note.visibility}
 							<div>
 								<dt>Visibility</dt>
 								<dd>
-									{mastodonVisibilityByVisibility[note.fields.visibility]?.label ?? note.fields.visibility}
+									{mastodonVisibilityByVisibility[note.visibility]?.label ?? note.visibility}
 								</dd>
 							</div>
 						{/if}
@@ -374,42 +374,42 @@
 					placeholderText="Loading note…"
 				>
 					{#snippet children(note)}
-						{#if note.fields.sensitive != null}
+						{#if note.sensitive != null}
 							<div>
 								<dt>Sensitive</dt>
 								<dd>
-									{note.fields.sensitive ? 'Yes' : 'No'}
+									{note.sensitive ? 'Yes' : 'No'}
 								</dd>
 							</div>
 						{/if}
 
-						{#if note.fields.language}
+						{#if note.language}
 							<div>
 								<dt>Language</dt>
-								<dd>{note.fields.language}</dd>
+								<dd>{note.language}</dd>
 							</div>
 						{/if}
 
-						{#if note.fields.editedAt != null}
+						{#if note.editedAt != null}
 							<div>
 								<dt>Edited</dt>
 								<dd>
 									<Timestamp
-										timestamp={note.fields.editedAt}
+										timestamp={note.editedAt}
 									/>
 								</dd>
 							</div>
 						{/if}
 
-						{#if note.fields.activityStreamsUri}
+						{#if note.activityStreamsUri}
 							<div>
 								<dt>Activity Streams URI</dt>
 								<dd>
 									<a
-										href={note.fields.activityStreamsUri}
+										href={note.activityStreamsUri}
 										rel="noreferrer"
 										target="_blank"
-									>{note.fields.activityStreamsUri}</a>
+									>{note.activityStreamsUri}</a>
 								</dd>
 							</div>
 						{/if}
@@ -427,15 +427,15 @@
 							metrics={[
 									{
 										label: 'Favourites',
-										value: note.fields.$$timestamps?.values.at(0)?.favouriteCount,
+										value: note.$$timestamps?.values.at(0)?.favouriteCount,
 									},
 									{
 										label: 'Reblogs',
-										value: note.fields.$$timestamps?.values.at(0)?.reblogCount,
+										value: note.$$timestamps?.values.at(0)?.reblogCount,
 									},
 									{
 										label: 'Replies',
-										value: note.fields.$$timestamps?.values.at(0)?.replyCount,
+										value: note.$$timestamps?.values.at(0)?.replyCount,
 									},
 							]}
 						/>
@@ -449,15 +449,15 @@
 					placeholderText="Loading note…"
 				>
 					{#snippet children(note)}
-						{#if note.fields.statusUrl}
+						{#if note.statusUrl}
 							<div>
 								<dt>Status URL</dt>
 								<dd>
 									<a
-										href={note.fields.statusUrl}
+										href={note.statusUrl}
 										rel="noreferrer"
 										target="_blank"
-									>{note.fields.statusUrl}</a>
+									>{note.statusUrl}</a>
 								</dd>
 							</div>
 						{/if}
@@ -499,8 +499,8 @@
 				>
 					{#snippet children(note)}
 						{@const mastodonThreadMetadataUnset = (
-							htmlToPlainText(note.fields.content ?? '').trim() === ''
-							&& note.fields.createdAt == null
+							htmlToPlainText(note.content ?? '').trim() === ''
+							&& note.createdAt == null
 						)}
 						{#if mastodonThreadMetadataUnset}
 							<div data-row="wrap align-center gap-2">

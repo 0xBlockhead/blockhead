@@ -68,10 +68,10 @@
 		>
 			{#snippet children(litecoinMwebTransaction)}
 				<dl>
-					{#if litecoinMwebTransaction.fields.kernelOffset != null}
+					{#if litecoinMwebTransaction.kernelOffset != null}
 						<div>
 							<dt>Kernel Offset</dt>
-							<dd>{litecoinMwebTransaction.fields.kernelOffset}</dd>
+							<dd>{litecoinMwebTransaction.kernelOffset}</dd>
 						</div>
 					{/if}
 				</dl>

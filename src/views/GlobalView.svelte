@@ -101,23 +101,23 @@
 				>
 					{#snippet children(global)}
 						<dl data-column-item="center">
-							{#if global.fields.duneCreditsUsed !== undefined}
+							{#if global.duneCreditsUsed !== undefined}
 								<div>
 									<dt>Query credits used</dt>
-									<dd>{String(global.fields.duneCreditsUsed)}</dd>
+									<dd>{String(global.duneCreditsUsed)}</dd>
 								</div>
 							{/if}
 
-							{#if global.fields.duneCreditsIncluded !== undefined}
+							{#if global.duneCreditsIncluded !== undefined}
 								<div>
 									<dt>Query credits included</dt>
-									<dd>{String(global.fields.duneCreditsIncluded)}</dd>
+									<dd>{String(global.duneCreditsIncluded)}</dd>
 								</div>
 							{/if}
 
 							{#if (
-								global.fields.duneCreditsUsed === undefined
-								&& global.fields.duneCreditsIncluded === undefined
+								global.duneCreditsUsed === undefined
+								&& global.duneCreditsIncluded === undefined
 							)}
 								<div>
 									<dt>Status</dt>
@@ -242,17 +242,17 @@
 					>
 						{#snippet children(global)}
 							<div>
-								{#if global.fields.duneCreditsUsed !== undefined}
-									<p><strong>Query credits used:</strong> {String(global.fields.duneCreditsUsed)}</p>
+								{#if global.duneCreditsUsed !== undefined}
+									<p><strong>Query credits used:</strong> {String(global.duneCreditsUsed)}</p>
 								{/if}
 
-								{#if global.fields.duneCreditsIncluded !== undefined}
-									<p><strong>Query credits included:</strong> {String(global.fields.duneCreditsIncluded)}</p>
+								{#if global.duneCreditsIncluded !== undefined}
+									<p><strong>Query credits included:</strong> {String(global.duneCreditsIncluded)}</p>
 								{/if}
 
 								{#if (
-									global.fields.duneCreditsUsed === undefined
-									&& global.fields.duneCreditsIncluded === undefined
+									global.duneCreditsUsed === undefined
+									&& global.duneCreditsIncluded === undefined
 								)}
 									<p data-text="muted">
 										No usage totals yet.

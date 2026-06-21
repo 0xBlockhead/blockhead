@@ -100,8 +100,8 @@
 			>
 				{#snippet children(step)}
 					{
-						step.fields.tool != null && step.fields.tool !== '' ?
-							(bridgeToolByKey[step.fields.tool]?.label ?? step.fields.tool)
+						step.tool != null && step.tool !== '' ?
+							(bridgeToolByKey[step.tool]?.label ?? step.tool)
 						:
 							`Step ${selection.entitySelector.index + 1}`
 					}
@@ -128,8 +128,8 @@
 						placeholderText="Loading step…"
 					>
 						{#snippet children(step)}
-							{#if step.fields.stepType !== undefined}
-								{bridgeRouteStepTypeByWire[step.fields.stepType]?.label ?? step.fields.stepType}
+							{#if step.stepType !== undefined}
+								{bridgeRouteStepTypeByWire[step.stepType]?.label ?? step.stepType}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -144,12 +144,12 @@
 						placeholderText="Loading step…"
 					>
 						{#snippet children(step)}
-							{#if step.fields.tool !== undefined}
+							{#if step.tool !== undefined}
 								{
-									step.fields.tool !== '' ?
-										(bridgeToolByKey[step.fields.tool]?.label ?? step.fields.tool)
+									step.tool !== '' ?
+										(bridgeToolByKey[step.tool]?.label ?? step.tool)
 									:
-										step.fields.tool
+										step.tool
 								}
 							{/if}
 						{/snippet}
@@ -166,8 +166,8 @@
 							placeholderText="Loading step…"
 						>
 							{#snippet children(step)}
-								{#if step.fields.railId !== undefined}
-									{bridgeRailById[step.fields.railId]?.label ?? step.fields.railId}
+								{#if step.railId !== undefined}
+									{bridgeRailById[step.railId]?.label ?? step.railId}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -184,8 +184,8 @@
 							placeholderText="Loading step…"
 						>
 							{#snippet children(step)}
-								{#if step.fields.settlementModel !== undefined}
-									{bridgeSettlementModelBySettlementModel[step.fields.settlementModel].label}
+								{#if step.settlementModel !== undefined}
+									{bridgeSettlementModelBySettlementModel[step.settlementModel].label}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -202,8 +202,8 @@
 							placeholderText="Loading step…"
 						>
 							{#snippet children(step)}
-								{#if step.fields.verificationModel !== undefined}
-									{bridgeVerificationModelByVerificationModel[step.fields.verificationModel].label}
+								{#if step.verificationModel !== undefined}
+									{bridgeVerificationModelByVerificationModel[step.verificationModel].label}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -220,8 +220,8 @@
 							placeholderText="Loading step…"
 						>
 							{#snippet children(step)}
-								{#if step.fields.assetOutcome !== undefined}
-									{bridgeAssetOutcomeByAssetOutcome[step.fields.assetOutcome].label}
+								{#if step.assetOutcome !== undefined}
+									{bridgeAssetOutcomeByAssetOutcome[step.assetOutcome].label}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -237,9 +237,9 @@
 						placeholderText="Loading step…"
 					>
 						{#snippet children(step)}
-							{#if step.fields.$fromNetwork}
+							{#if step.$fromNetwork}
 								<EvmNetworkView
-									selection={select(EntityType.EvmNetwork, step.fields.$fromNetwork[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmNetwork, step.$fromNetwork[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 								/>
@@ -257,9 +257,9 @@
 						placeholderText="Loading step…"
 					>
 						{#snippet children(step)}
-							{#if step.fields.$toNetwork}
+							{#if step.$toNetwork}
 								<EvmNetworkView
-									selection={select(EntityType.EvmNetwork, step.fields.$toNetwork[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmNetwork, step.$toNetwork[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 								/>
@@ -278,9 +278,9 @@
 							placeholderText="Loading step…"
 						>
 							{#snippet children(step)}
-								{#if step.fields.$fromToken}
+								{#if step.$fromToken}
 									<EvmCoinInstanceView
-										selection={select(EntityType.EvmCoinInstance, step.fields.$fromToken[EntityMetaKey.Selector])}
+										selection={select(EntityType.EvmCoinInstance, step.$fromToken[EntityMetaKey.Selector])}
 										layout={EntityLayout.Title}
 
 										showTypeAnnotation={false}
@@ -301,9 +301,9 @@
 							placeholderText="Loading step…"
 						>
 							{#snippet children(step)}
-								{#if step.fields.$toToken}
+								{#if step.$toToken}
 									<EvmCoinInstanceView
-										selection={select(EntityType.EvmCoinInstance, step.fields.$toToken[EntityMetaKey.Selector])}
+										selection={select(EntityType.EvmCoinInstance, step.$toToken[EntityMetaKey.Selector])}
 										layout={EntityLayout.Title}
 
 										showTypeAnnotation={false}

@@ -62,19 +62,19 @@
 		>
 			{#snippet children(solanaProgram)}
 				<dl>
-					{#if solanaProgram.fields.name != null}
+					{#if solanaProgram.name != null}
 						<div>
 							<dt>Name</dt>
-							<dd>{solanaProgram.fields.name}</dd>
+							<dd>{solanaProgram.name}</dd>
 						</div>
 					{/if}
 
-					{#if solanaProgram.fields.$programAccount}
+					{#if solanaProgram.$programAccount}
 						<div>
 							<dt>Program account</dt>
 							<dd>
 								<SolanaAccountView
-									selection={select(EntityType.SolanaAccount, solanaProgram.fields.$programAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.SolanaAccount, solanaProgram.$programAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 									open={false}
@@ -83,12 +83,12 @@
 						</div>
 					{/if}
 
-					{#if solanaProgram.fields.$upgradeAuthority}
+					{#if solanaProgram.$upgradeAuthority}
 						<div>
 							<dt>Upgrade authority</dt>
 							<dd>
 								<SolanaAccountView
-									selection={select(EntityType.SolanaAccount, solanaProgram.fields.$upgradeAuthority[EntityMetaKey.Selector])}
+									selection={select(EntityType.SolanaAccount, solanaProgram.$upgradeAuthority[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 									open={false}

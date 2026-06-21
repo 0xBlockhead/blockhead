@@ -72,12 +72,12 @@
 		>
 			{#snippet children(quilibriumFrame)}
 				<dl>
-					{#if quilibriumFrame.fields.frameHash != null}
+					{#if quilibriumFrame.frameHash != null}
 						<div>
 							<dt>Frame Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={quilibriumFrame.fields.frameHash}
+									value={quilibriumFrame.frameHash}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>

@@ -90,12 +90,12 @@
 		>
 			{#snippet children(farcasterUser)}
 				{#if (
-					farcasterUser.fields.$icon
-					&& farcasterUser.fields.$icon[EntityMetaKey.Selector].url
+					farcasterUser.$icon
+					&& farcasterUser.$icon[EntityMetaKey.Selector].url
 				)}
 					<IconComponent
 						shape={IconShape.Circle}
-						src={farcasterUser.fields.$icon[EntityMetaKey.Selector].url}
+						src={farcasterUser.$icon[EntityMetaKey.Selector].url}
 						alt=""
 					/>
 				{/if}
@@ -116,8 +116,8 @@
 		>
 			{#snippet children(farcasterUser)}
 				{@const headline = (
-					farcasterUser.fields.displayName
-					?? farcasterUser.fields.username
+					farcasterUser.displayName
+					?? farcasterUser.username
 					?? `FID ${String(selection.entitySelector.fid)}`
 				)}
 				{headline}
@@ -131,13 +131,13 @@
 		>
 			{#snippet children(farcasterUser)}
 				{@const headline = (
-					farcasterUser.fields.displayName
-					?? farcasterUser.fields.username
+					farcasterUser.displayName
+					?? farcasterUser.username
 					?? `FID ${String(selection.entitySelector.fid)}`
 				)}
-				{#if farcasterUser.fields.username !== undefined && farcasterUser.fields.username !== headline}
+				{#if farcasterUser.username !== undefined && farcasterUser.username !== headline}
 					<span data-text="muted">
-						@{farcasterUser.fields.username}
+						@{farcasterUser.username}
 					</span>
 				{/if}
 			{/snippet}
@@ -165,9 +165,9 @@
 				{#snippet Pending()}{/snippet}
 				{#snippet children(farcasterUser)}
 					<p>
-						{#if farcasterUser.fields.bio != null && farcasterUser.fields.bio !== ''}
+						{#if farcasterUser.bio != null && farcasterUser.bio !== ''}
 							<TruncatedValue
-								value={farcasterUser.fields.bio}
+								value={farcasterUser.bio}
 								format={TruncatedValueFormat.Visual}
 							/>
 						{:else}

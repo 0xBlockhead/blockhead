@@ -111,12 +111,12 @@
 				<dd>
 					{#if true}
 						{#snippet SwarmContentTypeRow(swarm: SwarmResource)}
-							{#if swarm.fields.contentType !== undefined}
+							{#if swarm.contentType !== undefined}
 								<TruncatedValue
-									value={swarm.fields.contentType}
+									value={swarm.contentType}
 									format={TruncatedValueFormat.Visual}
 								/>
-								{#if swarm.fields.isContentTypeInferred}
+								{#if swarm.isContentTypeInferred}
 									{' '}<span data-text="muted">(inferred)</span>
 								{/if}
 							{:else if !open}
@@ -139,7 +139,7 @@
 						{#if true}
 							{#snippet SwarmCanonicalUriRow(swarm: SwarmResource)}
 								<TruncatedValue
-									value={swarm.fields.canonicalUri}
+									value={swarm.canonicalUri}
 									format={TruncatedValueFormat.Visual}
 								/>
 							{/snippet}
@@ -158,7 +158,7 @@
 						{#if true}
 							{#snippet SwarmGatewayOriginRow(swarm: SwarmResource)}
 								<TruncatedValue
-									value={swarm.fields.gatewayOrigin}
+									value={swarm.gatewayOrigin}
 									format={TruncatedValueFormat.Visual}
 								/>
 							{/snippet}
@@ -177,12 +177,12 @@
 						{#if true}
 							{#snippet SwarmGatewayUrlRow(swarm: SwarmResource)}
 								<a
-									href={swarm.fields.gatewayUrl}
+									href={swarm.gatewayUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue
-										value={swarm.fields.gatewayUrl}
+										value={swarm.gatewayUrl}
 										format={TruncatedValueFormat.Visual}
 									/>
 								</a>
@@ -201,9 +201,9 @@
 					<dd>
 						{#if true}
 							{#snippet SwarmContentLengthRow(swarm: SwarmResource)}
-								{#if swarm.fields.contentLength !== undefined}
+								{#if swarm.contentLength !== undefined}
 									<NumberValue
-										value={swarm.fields.contentLength}
+										value={swarm.contentLength}
 										options={{ maximumFractionDigits: 0 }}
 									/>
 									{' '}
@@ -224,9 +224,9 @@
 					<dd>
 						{#if true}
 							{#snippet SwarmFileNameRow(swarm: SwarmResource)}
-								{#if swarm.fields.fileName !== undefined}
+								{#if swarm.fileName !== undefined}
 									<TruncatedValue
-										value={swarm.fields.fileName}
+										value={swarm.fileName}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{/if}
@@ -245,8 +245,8 @@
 					<dd>
 						{#if true}
 							{#snippet SwarmExtensionRow(swarm: SwarmResource)}
-								{#if swarm.fields.extension !== undefined}
-									.{swarm.fields.extension}
+								{#if swarm.extension !== undefined}
+									.{swarm.extension}
 								{/if}
 							{/snippet}
 
@@ -263,7 +263,7 @@
 					<dd>
 						{#if true}
 							{#snippet SwarmDisplayTypeRow(swarm: SwarmResource)}
-								{swarm.fields.displayType}
+								{swarm.displayType}
 							{/snippet}
 
 							<ResourceBoundary
@@ -316,15 +316,15 @@
 
 			{#snippet SectionSwarmPreview()}
 				{#snippet SwarmPreviewBody(swarm: SwarmResource)}
-					{#if swarm.fields.displayType !== undefined}
+					{#if swarm.displayType !== undefined}
 						<FileDetails
-							contentSize={swarm.fields.contentLength}
-							contentType={swarm.fields.contentType}
-							displayType={swarm.fields.displayType}
-							extension={swarm.fields.extension}
-							fileName={swarm.fields.fileName}
-							src={swarm.fields.gatewayUrl}
-							text={swarm.fields.text}
+							contentSize={swarm.contentLength}
+							contentType={swarm.contentType}
+							displayType={swarm.displayType}
+							extension={swarm.extension}
+							fileName={swarm.fileName}
+							src={swarm.gatewayUrl}
+							text={swarm.text}
 						/>
 					{/if}
 				{/snippet}

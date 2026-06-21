@@ -60,32 +60,32 @@
 		>
 			{#snippet children(dogecoinAuxPowParentBlockHeader)}
 				<dl>
-					{#if dogecoinAuxPowParentBlockHeader.fields.hash != null}
+					{#if dogecoinAuxPowParentBlockHeader.hash != null}
 						<div>
 							<dt>Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={dogecoinAuxPowParentBlockHeader.fields.hash}
+									value={dogecoinAuxPowParentBlockHeader.hash}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if dogecoinAuxPowParentBlockHeader.fields.merkleRoot != null}
+					{#if dogecoinAuxPowParentBlockHeader.merkleRoot != null}
 						<div>
 							<dt>Merkle Root</dt>
 							<dd>
 								<TruncatedValue
-									value={dogecoinAuxPowParentBlockHeader.fields.merkleRoot}
+									value={dogecoinAuxPowParentBlockHeader.merkleRoot}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if dogecoinAuxPowParentBlockHeader.fields.nonce != null}
+					{#if dogecoinAuxPowParentBlockHeader.nonce != null}
 						<div>
 							<dt>Nonce</dt>
-							<dd><NumberValue value={dogecoinAuxPowParentBlockHeader.fields.nonce} /></dd>
+							<dd><NumberValue value={dogecoinAuxPowParentBlockHeader.nonce} /></dd>
 						</div>
 					{/if}
 				</dl>

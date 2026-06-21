@@ -61,10 +61,10 @@
 		>
 			{#snippet children(nearTransaction)}
 				<dl>
-					{#if nearTransaction.fields.nonce != null}
+					{#if nearTransaction.nonce != null}
 						<div>
 							<dt>Nonce</dt>
-							<dd><NumberValue value={nearTransaction.fields.nonce} /></dd>
+							<dd><NumberValue value={nearTransaction.nonce} /></dd>
 						</div>
 					{/if}
 				</dl>

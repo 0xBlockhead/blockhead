@@ -109,12 +109,12 @@
 			>
 				{#snippet children(post)}
 					<dl data-column-item="center">
-						{#if contentOpen && post.fields.$author}
+						{#if contentOpen && post.$author}
 							<div>
 								<dt>Author</dt>
 							<dd>
 								<AtprotoActorView
-									selection={select(EntityType.AtprotoActor, post.fields.$author[EntityMetaKey.Selector])}
+									selection={select(EntityType.AtprotoActor, post.$author[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 									open={false}

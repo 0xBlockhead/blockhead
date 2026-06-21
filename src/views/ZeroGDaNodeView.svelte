@@ -58,12 +58,12 @@
 		>
 			{#snippet children(zeroGDaNode)}
 				<dl>
-					{#if zeroGDaNode.fields.$operator != null}
+					{#if zeroGDaNode.$operator != null}
 						<div>
 							<dt>Operator</dt>
 							<dd>
 								<EvmAccountView
-									selection={select(EntityType.EvmAccount, zeroGDaNode.fields.$operator[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmAccount, zeroGDaNode.$operator[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 								/>
@@ -71,19 +71,19 @@
 						</div>
 					{/if}
 
-					{#if zeroGDaNode.fields.endpoint != null}
+					{#if zeroGDaNode.endpoint != null}
 						<div>
 							<dt>Endpoint</dt>
-							<dd>{zeroGDaNode.fields.endpoint}</dd>
+							<dd>{zeroGDaNode.endpoint}</dd>
 						</div>
 					{/if}
 
-					{#if zeroGDaNode.fields.$quorum != null}
+					{#if zeroGDaNode.$quorum != null}
 						<div>
 							<dt>Quorum</dt>
 							<dd>
 								<ZeroGDaQuorumView
-									selection={select(EntityType.ZeroGDaQuorum, zeroGDaNode.fields.$quorum[EntityMetaKey.Selector])}
+									selection={select(EntityType.ZeroGDaQuorum, zeroGDaNode.$quorum[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 								/>

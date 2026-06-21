@@ -99,10 +99,10 @@
 		>
 			{#snippet children(feed)}
 				{(
-					feed.fields.label != null
-					&& feed.fields.label !== ''
+					feed.label != null
+					&& feed.label !== ''
 				) ?
-					feed.fields.label
+					feed.label
 				: selection.entitySelector.variant === 'byUser' && 'fid' in selection.entitySelector ?
 					`FID ${String(selection.entitySelector.fid)}`
 				: selection.entitySelector.variant === 'byChannel' && 'channelId' in selection.entitySelector ?
@@ -133,8 +133,8 @@
 						placeholderText="Loading Farcaster feed (variant, FID or channel id, cast stream)…"
 					>
 						{#snippet children(feed)}
-							{#if feed.fields.label != null && feed.fields.label !== ''}
-								{feed.fields.label}
+							{#if feed.label != null && feed.label !== ''}
+								{feed.label}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

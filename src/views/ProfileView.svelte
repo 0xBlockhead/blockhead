@@ -73,10 +73,10 @@
 			placeholderText="Loading profile…"
 		>
 			{#snippet children(farcasterUser)}
-				{#if farcasterUser.fields.$icon?.[EntityMetaKey.Selector].url !== undefined}
+				{#if farcasterUser.$icon?.[EntityMetaKey.Selector].url !== undefined}
 					<IconComponent
 						shape={IconShape.Circle}
-						src={farcasterUser.fields.$icon[EntityMetaKey.Selector].url}
+						src={farcasterUser.$icon[EntityMetaKey.Selector].url}
 						alt=""
 					/>
 				{/if}
@@ -96,8 +96,8 @@
 			placeholderText="Loading profile…"
 		>
 			{#snippet children(farcasterUser)}
-				{farcasterUser.fields.displayName
-					?? farcasterUser.fields.username
+				{farcasterUser.displayName
+					?? farcasterUser.username
 					?? String(selection.entitySelector.fid)}
 			{/snippet}
 		</ResourceBoundary>
@@ -110,15 +110,15 @@
 		>
 			{#snippet children(farcasterUser)}
 				{#if (
-					farcasterUser.fields.username !== undefined
-					&& farcasterUser.fields.username !== (
-						farcasterUser.fields.displayName
-						?? farcasterUser.fields.username
+					farcasterUser.username !== undefined
+					&& farcasterUser.username !== (
+						farcasterUser.displayName
+						?? farcasterUser.username
 						?? String(selection.entitySelector.fid)
 					)
 				)}
 					<span data-text="muted">
-						@{farcasterUser.fields.username}
+						@{farcasterUser.username}
 					</span>
 				{/if}
 			{/snippet}
@@ -131,10 +131,10 @@
 			placeholderText="Loading profile…"
 		>
 			{#snippet children(farcasterUser)}
-				{#if farcasterUser.fields.bio != null && farcasterUser.fields.bio !== ''}
+				{#if farcasterUser.bio != null && farcasterUser.bio !== ''}
 					<p>
 						<TruncatedValue
-							value={farcasterUser.fields.bio}
+							value={farcasterUser.bio}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
@@ -149,16 +149,16 @@
 				placeholderText="Loading profile…"
 			>
 				{#snippet children(farcasterUser)}
-					{#if farcasterUser.fields.url != null}
+					{#if farcasterUser.url != null}
 						<div>
 							<dt>URL</dt>
 							<dd>
 								<a
-									href={farcasterUser.fields.url}
+									href={farcasterUser.url}
 									rel="noreferrer noopener"
 									target="_blank"
 									data-text="muted"
-								>{farcasterUser.fields.url}</a>
+								>{farcasterUser.url}</a>
 							</dd>
 						</div>
 					{/if}
@@ -170,13 +170,13 @@
 				placeholderText="Loading profile…"
 			>
 				{#snippet children(farcasterUser)}
-					{#if farcasterUser.fields.$primaryEvmAccount != null}
+					{#if farcasterUser.$primaryEvmAccount != null}
 						<div>
 							<dt>Primary EVM account</dt>
 							<dd>
 										<EvmAccountView
-											selection={select(EntityType.EvmAccount, farcasterUser.fields.$primaryEvmAccount[EntityMetaKey.Selector])}
-											href={resolve(`/account/${farcasterUser.fields.$primaryEvmAccount[EntityMetaKey.Selector].address}`)}
+											selection={select(EntityType.EvmAccount, farcasterUser.$primaryEvmAccount[EntityMetaKey.Selector])}
+											href={resolve(`/account/${farcasterUser.$primaryEvmAccount[EntityMetaKey.Selector].address}`)}
 											layout={EntityLayout.Title}
 
 									/>
@@ -194,9 +194,9 @@
 						placeholderText="Loading profile…"
 					>
 						{#snippet children(farcasterUser)}
-							{#if farcasterUser.fields.$$verifiedAddresses?.values.length}
+							{#if farcasterUser.$$verifiedAddresses?.values.length}
 									<ul data-column="gap-2">
-										{#each farcasterUser.fields.$$verifiedAddresses.values as verification (String(verification[EntityMetaKey.Selector].protocol) + ':' + verification[EntityMetaKey.Selector].address)}
+										{#each farcasterUser.$$verifiedAddresses.values as verification (String(verification[EntityMetaKey.Selector].protocol) + ':' + verification[EntityMetaKey.Selector].address)}
 											<li>
 												{#if verification.$evmAccount}
 														<EvmAccountView
@@ -230,11 +230,11 @@
 				placeholderText="Loading profile…"
 			>
 				{#snippet children(farcasterUser)}
-					{#if open && farcasterUser.fields.displayName != null}
+					{#if open && farcasterUser.displayName != null}
 						<div>
 							<dt>Display name</dt>
 							<dd>
-								{farcasterUser.fields.displayName}
+								{farcasterUser.displayName}
 							</dd>
 						</div>
 					{/if}
@@ -246,11 +246,11 @@
 				placeholderText="Loading profile…"
 			>
 				{#snippet children(farcasterUser)}
-					{#if open && farcasterUser.fields.username != null}
+					{#if open && farcasterUser.username != null}
 						<div>
 							<dt>Username</dt>
 							<dd>
-								{farcasterUser.fields.username}
+								{farcasterUser.username}
 							</dd>
 						</div>
 					{/if}

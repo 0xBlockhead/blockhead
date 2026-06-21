@@ -60,24 +60,24 @@
 		>
 			{#snippet children(transfer)}
 				<dl data-column-item="center">
-					{#if transfer.fields.standard != null}
+					{#if transfer.standard != null}
 						<div>
 							<dt>Standard</dt>
-							<dd>{transfer.fields.standard}</dd>
+							<dd>{transfer.standard}</dd>
 						</div>
 					{/if}
 
-					{#if transfer.fields.amount != null}
+					{#if transfer.amount != null}
 						<div>
 							<dt>Amount</dt>
-							<dd><NumberValue value={transfer.fields.amount} /></dd>
+							<dd><NumberValue value={transfer.amount} /></dd>
 						</div>
 					{/if}
 
-					{#if transfer.fields.timestampMs != null}
+					{#if transfer.timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
-							<dd><Timestamp timestamp={transfer.fields.timestampMs} /></dd>
+							<dd><Timestamp timestamp={transfer.timestampMs} /></dd>
 						</div>
 					{/if}
 				</dl>

@@ -53,12 +53,12 @@
 		>
 			{#snippet children(cosmosModule)}
 				<dl>
-					{#if cosmosModule.fields.$authority != null}
+					{#if cosmosModule.$authority != null}
 						<div>
 							<dt>Authority</dt>
 							<dd>
 								<CosmosAccountView
-									selection={select(EntityType.CosmosAccount, cosmosModule.fields.$authority[EntityMetaKey.Selector])}
+									selection={select(EntityType.CosmosAccount, cosmosModule.$authority[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 								/>

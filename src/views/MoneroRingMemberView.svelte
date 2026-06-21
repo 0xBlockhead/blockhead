@@ -71,10 +71,10 @@
 		>
 			{#snippet children(moneroRingMember)}
 				<dl>
-					{#if moneroRingMember.fields.globalOutputIndex != null}
+					{#if moneroRingMember.globalOutputIndex != null}
 						<div>
 							<dt>Global Output Index</dt>
-							<dd><NumberValue value={moneroRingMember.fields.globalOutputIndex} /></dd>
+							<dd><NumberValue value={moneroRingMember.globalOutputIndex} /></dd>
 						</div>
 					{/if}
 				</dl>

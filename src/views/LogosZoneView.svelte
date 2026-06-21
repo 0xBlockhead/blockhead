@@ -65,10 +65,10 @@
 		>
 			{#snippet children(zone)}
 				<dl>
-					{#if zone.fields.zoneKind != null}
+					{#if zone.zoneKind != null}
 						<div>
 							<dt>Kind</dt>
-							<dd>{zone.fields.zoneKind}</dd>
+							<dd>{zone.zoneKind}</dd>
 						</div>
 					{/if}
 				</dl>

@@ -73,14 +73,14 @@
 			placeholderText="Loading conversation…"
 		>
 			{#snippet children(conversation)}
-				{#if conversation.fields.topic != null && conversation.fields.topic !== ''}
+				{#if conversation.topic != null && conversation.topic !== ''}
 					<TruncatedValue
-						value={conversation.fields.topic}
+						value={conversation.topic}
 						format={TruncatedValueFormat.Visual}
 					/>
-				{:else if conversation.fields.peerInboxId != null && conversation.fields.peerInboxId !== ''}
+				{:else if conversation.peerInboxId != null && conversation.peerInboxId !== ''}
 					<TruncatedValue
-						value={conversation.fields.peerInboxId}
+						value={conversation.peerInboxId}
 						format={TruncatedValueFormat.Visual}
 					/>
 				{:else}
@@ -112,8 +112,8 @@
 						placeholderText="Loading conversation…"
 					>
 						{#snippet children(conversation)}
-							{#if conversation.fields.consentState !== undefined}
-								{xmtpConversationConsentStateByConsentState[conversation.fields.consentState].label}
+							{#if conversation.consentState !== undefined}
+								{xmtpConversationConsentStateByConsentState[conversation.consentState].label}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -129,9 +129,9 @@
 							placeholderText="Loading conversation…"
 						>
 							{#snippet children(conversation)}
-								{#if conversation.fields.peerInboxId != null && conversation.fields.peerInboxId !== ''}
+								{#if conversation.peerInboxId != null && conversation.peerInboxId !== ''}
 									<TruncatedValue
-										value={conversation.fields.peerInboxId}
+										value={conversation.peerInboxId}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{/if}
@@ -148,9 +148,9 @@
 							placeholderText="Loading conversation…"
 						>
 							{#snippet children(conversation)}
-								{#if conversation.fields.topic != null && conversation.fields.topic !== ''}
+								{#if conversation.topic != null && conversation.topic !== ''}
 									<TruncatedValue
-										value={conversation.fields.topic}
+										value={conversation.topic}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{/if}
@@ -167,9 +167,9 @@
 							placeholderText="Loading conversation…"
 						>
 							{#snippet children(conversation)}
-								{#if conversation.fields.createdAtMs !== undefined}
+								{#if conversation.createdAtMs !== undefined}
 									<Timestamp
-										timestamp={conversation.fields.createdAtMs}
+										timestamp={conversation.createdAtMs}
 									/>
 								{/if}
 							{/snippet}

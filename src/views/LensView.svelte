@@ -78,7 +78,7 @@
 			placeholderText="Loading Lens…"
 		>
 			{#snippet children(lensNetwork)}
-				{lensNetwork.fields.protocolName ?? 'Lens'}
+				{lensNetwork.protocolName ?? 'Lens'}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -103,50 +103,50 @@
 				placeholderText="Loading Lens…"
 			>
 				{#snippet children(lensNetwork)}
-					{#if lensNetwork.fields.registryLabel}
+					{#if lensNetwork.registryLabel}
 						<div>
 							<dt>Registry</dt>
-							<dd>{lensNetwork.fields.registryLabel}</dd>
+							<dd>{lensNetwork.registryLabel}</dd>
 						</div>
-					{:else if lensNetwork.fields.protocolName}
+					{:else if lensNetwork.protocolName}
 						<div>
 							<dt>Protocol</dt>
-							<dd>{lensNetwork.fields.protocolName}</dd>
+							<dd>{lensNetwork.protocolName}</dd>
 						</div>
 					{/if}
 
 					{#if contentOpen}
 						<div>
 							<dt>Profiles</dt>
-							<dd>{String(lensNetwork.fields.$$lensAccounts?.values.length ?? 0)}</dd>
+							<dd>{String(lensNetwork.$$lensAccounts?.values.length ?? 0)}</dd>
 						</div>
 						<div>
 							<dt>Publications</dt>
-							<dd>{String(lensNetwork.fields.$$lensPosts?.values.length ?? 0)}</dd>
+							<dd>{String(lensNetwork.$$lensPosts?.values.length ?? 0)}</dd>
 						</div>
 
-						{#if lensNetwork.fields.topology}
+						{#if lensNetwork.topology}
 							<div>
 								<dt>Topology</dt>
-								<dd>{lensNetwork.fields.topology}</dd>
+								<dd>{lensNetwork.topology}</dd>
 							</div>
 						{/if}
 
-						{#if lensNetwork.fields.homeUrl}
+						{#if lensNetwork.homeUrl}
 							<div>
 								<dt>Home</dt>
 								<dd>
-									<a href={lensNetwork.fields.homeUrl}>{lensNetwork.fields.homeUrl}</a>
+									<a href={lensNetwork.homeUrl}>{lensNetwork.homeUrl}</a>
 								</dd>
 							</div>
 						{/if}
 
-						{#if lensNetwork.fields.docsUrl !== undefined}
+						{#if lensNetwork.docsUrl !== undefined}
 							<div>
 								<dt>Docs</dt>
 								<dd>
-									<a href={lensNetwork.fields.docsUrl}>
-										{lensNetwork.fields.docsUrl}
+									<a href={lensNetwork.docsUrl}>
+										{lensNetwork.docsUrl}
 									</a>
 								</dd>
 							</div>

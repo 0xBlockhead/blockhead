@@ -61,11 +61,11 @@
 			placeholderText="Loading 0G DA quorum…"
 		>
 			{#snippet children(daQuorum)}
-				{#if daQuorum.fields.selectionMethod != null}
+				{#if daQuorum.selectionMethod != null}
 					<dl>
 						<div>
 							<dt>Selection</dt>
-							<dd>{daQuorum.fields.selectionMethod}</dd>
+							<dd>{daQuorum.selectionMethod}</dd>
 						</div>
 					</dl>
 				{/if}

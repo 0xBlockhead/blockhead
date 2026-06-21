@@ -72,50 +72,50 @@
 		>
 			{#snippet children(block)}
 				<dl data-column-item="center">
-					{#if block.fields.hash != null}
+					{#if block.hash != null}
 						<div>
 							<dt>Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={block.fields.hash}
+									value={block.hash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && block.fields.parentHash != null}
+					{#if open && block.parentHash != null}
 						<div>
 							<dt>Parent hash</dt>
 							<dd>
 								<TruncatedValue
-									value={block.fields.parentHash}
+									value={block.parentHash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if block.fields.transactionCount != null}
+					{#if block.transactionCount != null}
 						<div>
 							<dt>Transactions</dt>
-							<dd><NumberValue value={block.fields.transactionCount} /></dd>
+							<dd><NumberValue value={block.transactionCount} /></dd>
 						</div>
 					{/if}
 
-					{#if block.fields.timestampMs != null}
+					{#if block.timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
-							<dd><Timestamp timestamp={block.fields.timestampMs} /></dd>
+							<dd><Timestamp timestamp={block.timestampMs} /></dd>
 						</div>
 					{/if}
 
-					{#if open && block.fields.$witness != null}
+					{#if open && block.$witness != null}
 						<div>
 							<dt>Witness</dt>
 							<dd>
 								<TronWitnessView
-									selection={select(EntityType.TronWitness, block.fields.$witness[EntityMetaKey.Selector])}
+									selection={select(EntityType.TronWitness, block.$witness[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 								/>
@@ -123,10 +123,10 @@
 						</div>
 					{/if}
 
-					{#if open && block.fields.version != null}
+					{#if open && block.version != null}
 						<div>
 							<dt>Version</dt>
-							<dd><NumberValue value={block.fields.version} /></dd>
+							<dd><NumberValue value={block.version} /></dd>
 						</div>
 					{/if}
 				</dl>

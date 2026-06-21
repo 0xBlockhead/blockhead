@@ -63,24 +63,24 @@
 		>
 			{#snippet children(moneroTransaction)}
 				<dl>
-					{#if moneroTransaction.fields.version != null}
+					{#if moneroTransaction.version != null}
 						<div>
 							<dt>Version</dt>
-							<dd><NumberValue value={moneroTransaction.fields.version} /></dd>
+							<dd><NumberValue value={moneroTransaction.version} /></dd>
 						</div>
 					{/if}
 
-					{#if moneroTransaction.fields.unlockTime != null}
+					{#if moneroTransaction.unlockTime != null}
 						<div>
 							<dt>Unlock Time</dt>
-							<dd><NumberValue value={moneroTransaction.fields.unlockTime} /></dd>
+							<dd><NumberValue value={moneroTransaction.unlockTime} /></dd>
 						</div>
 					{/if}
 
-					{#if moneroTransaction.fields.feeAtomicUnits != null}
+					{#if moneroTransaction.feeAtomicUnits != null}
 						<div>
 							<dt>Fee Atomic Units</dt>
-							<dd><NumberValue value={moneroTransaction.fields.feeAtomicUnits} /> atomic units</dd>
+							<dd><NumberValue value={moneroTransaction.feeAtomicUnits} /> atomic units</dd>
 						</div>
 					{/if}
 				</dl>

@@ -73,40 +73,40 @@
 		>
 			{#snippet children(row)}
 				<dl>
-					{#if row.fields.direction != null}
+					{#if row.direction != null}
 						<div>
 							<dt>Direction</dt>
-							<dd>{row.fields.direction}</dd>
+							<dd>{row.direction}</dd>
 						</div>
 					{/if}
 
-					{#if row.fields.amountMsat != null}
+					{#if row.amountMsat != null}
 						<div>
 							<dt>Amount</dt>
-							<dd>{row.fields.amountMsat.toString()} msat</dd>
+							<dd>{row.amountMsat.toString()} msat</dd>
 						</div>
 					{/if}
 
-					{#if row.fields.expiryHeight != null}
+					{#if row.expiryHeight != null}
 						<div>
 							<dt>Expiry height</dt>
-							<dd>{row.fields.expiryHeight.toString()}</dd>
+							<dd>{row.expiryHeight.toString()}</dd>
 						</div>
 					{/if}
 
-					{#if row.fields.state != null}
+					{#if row.state != null}
 						<div>
 							<dt>State</dt>
-							<dd>{row.fields.state}</dd>
+							<dd>{row.state}</dd>
 						</div>
 					{/if}
 
-					{#if row.fields.hashLock != null}
+					{#if row.hashLock != null}
 						<div>
 							<dt>Hash lock</dt>
 							<dd>
 								<TruncatedValue
-									value={row.fields.hashLock}
+									value={row.hashLock}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>

@@ -63,17 +63,17 @@
 		>
 			{#snippet children(solanaTokenMint)}
 				<dl>
-					{#if solanaTokenMint.fields.supply != null}
+					{#if solanaTokenMint.supply != null}
 						<div>
 							<dt>Supply</dt>
-							<dd><NumberValue value={solanaTokenMint.fields.supply} /></dd>
+							<dd><NumberValue value={solanaTokenMint.supply} /></dd>
 						</div>
 					{/if}
 
-					{#if solanaTokenMint.fields.decimals != null}
+					{#if solanaTokenMint.decimals != null}
 						<div>
 							<dt>Decimals</dt>
-							<dd><NumberValue value={solanaTokenMint.fields.decimals} /></dd>
+							<dd><NumberValue value={solanaTokenMint.decimals} /></dd>
 						</div>
 					{/if}
 				</dl>

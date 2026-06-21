@@ -37,7 +37,7 @@
 <Page>
 	<ResourceBoundary resource={network}>
 		{#snippet children(network)}
-			{#if network.fields.namespace === NetworkNamespace.Lightning}
+			{#if network.namespace === NetworkNamespace.Lightning}
 				<LightningInvoicesView
 					selection={select(
 						EntityType.LightningNetwork,

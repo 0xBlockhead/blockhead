@@ -61,31 +61,31 @@
 		>
 			{#snippet children(filecoinMessage)}
 				<dl>
-					{#if filecoinMessage.fields.method != null}
+					{#if filecoinMessage.method != null}
 						<div>
 							<dt>Method</dt>
-							<dd><NumberValue value={filecoinMessage.fields.method} /></dd>
+							<dd><NumberValue value={filecoinMessage.method} /></dd>
 						</div>
 					{/if}
 
-					{#if filecoinMessage.fields.nonce != null}
+					{#if filecoinMessage.nonce != null}
 						<div>
 							<dt>Nonce</dt>
-							<dd><NumberValue value={filecoinMessage.fields.nonce} /></dd>
+							<dd><NumberValue value={filecoinMessage.nonce} /></dd>
 						</div>
 					{/if}
 
-					{#if filecoinMessage.fields.valueAttoFil != null}
+					{#if filecoinMessage.valueAttoFil != null}
 						<div>
 							<dt>Value</dt>
-							<dd><NumberValue value={filecoinMessage.fields.valueAttoFil} /> attoFIL</dd>
+							<dd><NumberValue value={filecoinMessage.valueAttoFil} /> attoFIL</dd>
 						</div>
 					{/if}
 
-					{#if filecoinMessage.fields.gasLimit != null}
+					{#if filecoinMessage.gasLimit != null}
 						<div>
 							<dt>Gas Limit</dt>
-							<dd><NumberValue value={filecoinMessage.fields.gasLimit} /></dd>
+							<dd><NumberValue value={filecoinMessage.gasLimit} /></dd>
 						</div>
 					{/if}
 				</dl>

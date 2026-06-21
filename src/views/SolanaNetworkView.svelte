@@ -89,7 +89,7 @@
 			{/snippet}
 
 			{#snippet children(network)}
-				{network.fields.name}
+				{network.name}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -107,7 +107,7 @@
 				<dd id="network-summary-head-block">
 					<ResourceBoundary resource={network} placeholderText="Loading head slot…">
 						{#snippet children(network)}
-							{@const block = network.fields.$$blocks?.values.at(0)}
+							{@const block = network.$$blocks?.values.at(0)}
 							{#if block != null}
 								<SolanaBlockView
 									selection={select(EntityType.SolanaBlock, block[EntityMetaKey.Selector])}
@@ -123,20 +123,20 @@
 
 			<ResourceBoundary resource={network}>
 				{#snippet children(network)}
-					{#if network.fields.environment !== undefined}
+					{#if network.environment !== undefined}
 						<div>
 							<dt>Environment</dt>
-							<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
+							<dd>{networkEnvironmentByEnvironment[network.environment].label}</dd>
 						</div>
 					{/if}
 
 					{#if open}
 						<div>
 							<dt>RPC endpoints</dt>
-							<dd>{network.fields.rpcEndpoints?.values.length ?? 0}</dd>
+							<dd>{network.rpcEndpoints?.values.length ?? 0}</dd>
 						</div>
 
-						{@const accountCount = network.fields.$$accounts?.values.length ?? 0}
+						{@const accountCount = network.$$accounts?.values.length ?? 0}
 						{#if accountCount}
 							<div>
 								<dt>Recent accounts</dt>
@@ -158,7 +158,7 @@
 				})}
 			>
 				{#snippet children(baseNetwork)}
-					{@const nativeAssetCount = baseNetwork.fields.$$nativeAssets?.values.length ?? 0}
+					{@const nativeAssetCount = baseNetwork.$$nativeAssets?.values.length ?? 0}
 					{#if nativeAssetCount > 0}
 						<div>
 							<dt>Native asset</dt>

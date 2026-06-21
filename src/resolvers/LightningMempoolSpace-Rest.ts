@@ -131,12 +131,12 @@ const nodeReferenceFromMempoolSpaceRankedNode = (
 const channelFieldsFromMempoolSpaceChannel = (
 	channel: MempoolSpaceLightningChannel
 ) => ({
-	[EntityMetaKey.Selector]: {
-		$network: {
-			slug: 'lightning',
-		},
-		channelId: channel.id,
-	},
+							[EntityMetaKey.Selector]: {
+								$network: {
+									slug: 'lightning',
+								},
+							channelId: String(channel.id),
+						},
 	shortChannelId: channel.short_id ?? undefined,
 	status: statusFromMempoolSpace(channel.status),
 	capacitySats: bigintFromWire(channel.capacity),
@@ -385,9 +385,9 @@ export default {
 							publicKey: publicKey,
 						})
 					).slice(0, resolverContextRowLimit(context)).map((channel) => ({
-						[EntityMetaKey.Selector]: {
-							$network,
-							channelId: channel.id,
+							[EntityMetaKey.Selector]: {
+								$network,
+							channelId: String(channel.id),
 						},
 						shortChannelId: channel.short_id ?? undefined,
 						status: statusFromMempoolSpace(channel.status),

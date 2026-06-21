@@ -86,12 +86,12 @@
 						{#if open}
 							<ResourceBoundary resource={ipfs}>
 								{#snippet children(ipfs)}
-									{#if ipfs.fields.contentType !== undefined}
+									{#if ipfs.contentType !== undefined}
 										<TruncatedValue
-											value={ipfs.fields.contentType}
+											value={ipfs.contentType}
 											format={TruncatedValueFormat.Visual}
 										/>
-										{#if ipfs.fields.isContentTypeInferred}
+										{#if ipfs.isContentTypeInferred}
 											{' '}<span data-text="muted">(inferred)</span>
 										{/if}
 									{/if}
@@ -110,7 +110,7 @@
 						<ResourceBoundary resource={ipfs}>
 							{#snippet children(ipfs)}
 								<TruncatedValue
-									value={ipfs.fields.canonicalUri}
+									value={ipfs.canonicalUri}
 									format={TruncatedValueFormat.Visual}
 								/>
 							{/snippet}
@@ -126,7 +126,7 @@
 						<ResourceBoundary resource={ipfs}>
 							{#snippet children(ipfs)}
 								<TruncatedValue
-									value={ipfs.fields.gatewayOrigin}
+									value={ipfs.gatewayOrigin}
 									format={TruncatedValueFormat.Visual}
 								/>
 							{/snippet}
@@ -142,12 +142,12 @@
 						<ResourceBoundary resource={ipfs}>
 							{#snippet children(ipfs)}
 								<a
-									href={ipfs.fields.gatewayUrl}
+									href={ipfs.gatewayUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue
-										value={ipfs.fields.gatewayUrl}
+										value={ipfs.gatewayUrl}
 										format={TruncatedValueFormat.Visual}
 									/>
 								</a>
@@ -163,9 +163,9 @@
 					<dd>
 						<ResourceBoundary resource={ipfs}>
 							{#snippet children(ipfs)}
-								{#if ipfs.fields.contentLength !== undefined}
+								{#if ipfs.contentLength !== undefined}
 									<NumberValue
-										value={ipfs.fields.contentLength}
+										value={ipfs.contentLength}
 										options={{ maximumFractionDigits: 0 }}
 									/>
 									{' '}
@@ -183,9 +183,9 @@
 					<dd>
 						<ResourceBoundary resource={ipfs}>
 							{#snippet children(ipfs)}
-								{#if ipfs.fields.fileName !== undefined}
+								{#if ipfs.fileName !== undefined}
 									<TruncatedValue
-										value={ipfs.fields.fileName}
+										value={ipfs.fileName}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{/if}
@@ -201,8 +201,8 @@
 					<dd>
 						<ResourceBoundary resource={ipfs}>
 							{#snippet children(ipfs)}
-								{#if ipfs.fields.extension !== undefined}
-									.{ipfs.fields.extension}
+								{#if ipfs.extension !== undefined}
+									.{ipfs.extension}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -216,7 +216,7 @@
 					<dd>
 						<ResourceBoundary resource={ipfs}>
 							{#snippet children(ipfs)}
-								{ipfs.fields.displayType}
+								{ipfs.displayType}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -229,8 +229,8 @@
 					<dd>
 						<ResourceBoundary resource={ipfs}>
 							{#snippet children(ipfs)}
-								{#if ipfs.fields.cidVersion !== undefined}
-									{String(ipfs.fields.cidVersion)}
+								{#if ipfs.cidVersion !== undefined}
+									{String(ipfs.cidVersion)}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -244,9 +244,9 @@
 					<dd>
 						<ResourceBoundary resource={ipfs}>
 							{#snippet children(ipfs)}
-								{#if ipfs.fields.cidMultibase !== undefined}
+								{#if ipfs.cidMultibase !== undefined}
 									<TruncatedValue
-										value={ipfs.fields.cidMultibase}
+										value={ipfs.cidMultibase}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{/if}
@@ -262,8 +262,8 @@
 					<dd>
 						<ResourceBoundary resource={ipfs}>
 							{#snippet children(ipfs)}
-								{#if ipfs.fields.cidMulticodecCode !== undefined}
-									{String(ipfs.fields.cidMulticodecCode)}
+								{#if ipfs.cidMulticodecCode !== undefined}
+									{String(ipfs.cidMulticodecCode)}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -277,8 +277,8 @@
 					<dd>
 						<ResourceBoundary resource={ipfs}>
 							{#snippet children(ipfs)}
-								{#if ipfs.fields.cidMultihashCode !== undefined}
-									{String(ipfs.fields.cidMultihashCode)}
+								{#if ipfs.cidMultihashCode !== undefined}
+									{String(ipfs.cidMultihashCode)}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -292,9 +292,9 @@
 					<dd>
 						<ResourceBoundary resource={ipfs}>
 							{#snippet children(ipfs)}
-								{#if ipfs.fields.cidMultihashDigestHex !== undefined}
+								{#if ipfs.cidMultihashDigestHex !== undefined}
 									<TruncatedValue
-										value={ipfs.fields.cidMultihashDigestHex}
+										value={ipfs.cidMultihashDigestHex}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{/if}
@@ -310,8 +310,8 @@
 					<dd>
 						<ResourceBoundary resource={ipfs}>
 							{#snippet children(ipfs)}
-								{#if ipfs.fields.isCidSubdomainSafe !== undefined}
-									{ipfs.fields.isCidSubdomainSafe ? 'Yes' : 'No'}
+								{#if ipfs.isCidSubdomainSafe !== undefined}
+									{ipfs.isCidSubdomainSafe ? 'Yes' : 'No'}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -374,15 +374,15 @@
 					resource={ipfs}
 				>
 					{#snippet children(ipfs)}
-						{#if ipfs.fields.displayType !== undefined}
+						{#if ipfs.displayType !== undefined}
 							<FileDetails
-								contentSize={ipfs.fields.contentLength}
-								contentType={ipfs.fields.contentType}
-								displayType={ipfs.fields.displayType}
-								extension={ipfs.fields.extension}
-								fileName={ipfs.fields.fileName}
-								src={ipfs.fields.gatewayUrl}
-								text={ipfs.fields.text}
+								contentSize={ipfs.contentLength}
+								contentType={ipfs.contentType}
+								displayType={ipfs.displayType}
+								extension={ipfs.extension}
+								fileName={ipfs.fileName}
+								src={ipfs.gatewayUrl}
+								text={ipfs.text}
 							/>
 						{/if}
 					{/snippet}

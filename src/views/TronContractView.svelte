@@ -62,31 +62,31 @@
 		>
 			{#snippet children(contract)}
 				<dl data-column-item="center">
-					{#if contract.fields.name != null}
+					{#if contract.name != null}
 						<div>
 							<dt>Name</dt>
-							<dd>{contract.fields.name}</dd>
+							<dd>{contract.name}</dd>
 						</div>
 					{/if}
 
-					{#if contract.fields.verifyStatus != null}
+					{#if contract.verifyStatus != null}
 						<div>
 							<dt>Verification</dt>
-							<dd>{contract.fields.verifyStatus}</dd>
+							<dd>{contract.verifyStatus}</dd>
 						</div>
 					{/if}
 
-					{#if contract.fields.isProxy != null}
+					{#if contract.isProxy != null}
 						<div>
 							<dt>Proxy</dt>
-							<dd>{contract.fields.isProxy ? 'Yes' : 'No'}</dd>
+							<dd>{contract.isProxy ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 
-					{#if open && contract.fields.compiler != null}
+					{#if open && contract.compiler != null}
 						<div>
 							<dt>Compiler</dt>
-							<dd>{contract.fields.compiler}</dd>
+							<dd>{contract.compiler}</dd>
 						</div>
 					{/if}
 				</dl>

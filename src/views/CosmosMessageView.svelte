@@ -68,10 +68,10 @@
 		>
 			{#snippet children(cosmosMessage)}
 				<dl>
-					{#if cosmosMessage.fields.typeUrl != null}
+					{#if cosmosMessage.typeUrl != null}
 						<div>
 							<dt>Type URL</dt>
-							<dd>{cosmosMessage.fields.typeUrl}</dd>
+							<dd>{cosmosMessage.typeUrl}</dd>
 						</div>
 					{/if}
 				</dl>

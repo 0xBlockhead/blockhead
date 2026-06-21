@@ -82,7 +82,7 @@
 			placeholderText="Loading item…"
 		>
 			{#snippet children(item)}
-				{item.fields.title ?? selection.entitySelector.guid}
+				{item.title ?? selection.entitySelector.guid}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -92,10 +92,10 @@
 			resource={item}
 		>
 			{#snippet children(item)}
-				{#if item.fields.publishedAt != null}
+				{#if item.publishedAt != null}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={item.fields.publishedAt}
+							timestamp={item.publishedAt}
 						/>
 					</span>
 				{/if}
@@ -131,12 +131,12 @@
 						</dd>
 					</div>
 
-					{#if item.fields.$feed}
+					{#if item.$feed}
 						<div>
 							<dt>Feed</dt>
 							<dd>
 								<RssFeedView
-									selection={select(EntityType.RssFeed, item.fields.$feed[EntityMetaKey.Selector])}
+									selection={select(EntityType.RssFeed, item.$feed[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 
 									open={false}
@@ -145,35 +145,35 @@
 						</div>
 					{/if}
 
-					{#if item.fields.author}
+					{#if item.author}
 						<div>
 							<dt>Author</dt>
-							<dd>{item.fields.author}</dd>
+							<dd>{item.author}</dd>
 						</div>
 					{/if}
 
-					{#if item.fields.link}
+					{#if item.link}
 						<div>
 							<dt>Link</dt>
 							<dd>
 								<a
-									href={item.fields.link}
+									href={item.link}
 									rel="noreferrer"
 									target="_blank"
-								>{item.fields.link}</a>
+								>{item.link}</a>
 							</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& item.fields.publishedAt != null
+						&& item.publishedAt != null
 					)}
 						<div>
 							<dt>Published</dt>
 							<dd>
 								<Timestamp
-									timestamp={item.fields.publishedAt}
+									timestamp={item.publishedAt}
 								/>
 							</dd>
 						</div>
@@ -181,13 +181,13 @@
 
 					{#if (
 						open
-						&& item.fields.updatedAt != null
+						&& item.updatedAt != null
 					)}
 						<div>
 							<dt>Updated</dt>
 							<dd>
 								<Timestamp
-									timestamp={item.fields.updatedAt}
+									timestamp={item.updatedAt}
 								/>
 							</dd>
 						</div>
@@ -195,42 +195,42 @@
 
 					{#if (
 						open
-						&& item.fields.categories
+						&& item.categories
 					)}
 						<div>
 							<dt>Categories</dt>
-							<dd>{item.fields.categories.join(', ')}</dd>
+							<dd>{item.categories.join(', ')}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& item.fields.enclosureUrl
+						&& item.enclosureUrl
 					)}
 						<div>
 							<dt>Enclosure</dt>
 							<dd>
 								<a
-									href={item.fields.enclosureUrl}
+									href={item.enclosureUrl}
 									rel="noreferrer"
 									target="_blank"
-								>{item.fields.enclosureUrl}</a>
+								>{item.enclosureUrl}</a>
 							</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& item.fields.commentsUrl
+						&& item.commentsUrl
 					)}
 						<div>
 							<dt>Comments</dt>
 							<dd>
 								<a
-									href={item.fields.commentsUrl}
+									href={item.commentsUrl}
 									rel="noreferrer"
 									target="_blank"
-								>{item.fields.commentsUrl}</a>
+								>{item.commentsUrl}</a>
 							</dd>
 						</div>
 					{/if}
@@ -269,9 +269,9 @@
 					placeholderText="Loading item…"
 				>
 					{#snippet children(item)}
-						{#if item.fields.description}
+						{#if item.description}
 							<div class="rss-html">
-								{@html syndicationHtmlToSafeHtml(item.fields.description)}
+								{@html syndicationHtmlToSafeHtml(item.description)}
 							</div>
 						{:else}
 							<p data-text="muted">No description.</p>
@@ -286,9 +286,9 @@
 					placeholderText="Loading item…"
 				>
 					{#snippet children(item)}
-						{#if item.fields.content}
+						{#if item.content}
 							<div class="rss-html">
-								{@html syndicationHtmlToSafeHtml(item.fields.content)}
+								{@html syndicationHtmlToSafeHtml(item.content)}
 							</div>
 						{:else}
 							<p data-text="muted">No full content.</p>

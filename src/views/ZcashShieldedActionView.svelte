@@ -70,51 +70,51 @@
 		>
 			{#snippet children(zcashShieldedAction)}
 				<dl data-column-item="center">
-					{#if zcashShieldedAction.fields.actionKind != null}
+					{#if zcashShieldedAction.actionKind != null}
 						<div>
 							<dt>Kind</dt>
-							<dd>{zcashShieldedAction.fields.actionKind}</dd>
+							<dd>{zcashShieldedAction.actionKind}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
 						&& (
-							zcashShieldedAction.fields.actionKind === ZcashShieldedActionKind.Spend
-							|| zcashShieldedAction.fields.actionKind === ZcashShieldedActionKind.Action
+							zcashShieldedAction.actionKind === ZcashShieldedActionKind.Spend
+							|| zcashShieldedAction.actionKind === ZcashShieldedActionKind.Action
 						)
-						&& zcashShieldedAction.fields.nullifier != null
+						&& zcashShieldedAction.nullifier != null
 					)}
 						<div>
 							<dt>Nullifier</dt>
-							<dd>{zcashShieldedAction.fields.nullifier}</dd>
+							<dd>{zcashShieldedAction.nullifier}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
 						&& (
-							zcashShieldedAction.fields.actionKind === ZcashShieldedActionKind.Output
-							|| zcashShieldedAction.fields.actionKind === ZcashShieldedActionKind.Action
+							zcashShieldedAction.actionKind === ZcashShieldedActionKind.Output
+							|| zcashShieldedAction.actionKind === ZcashShieldedActionKind.Action
 						)
-						&& zcashShieldedAction.fields.noteCommitment != null
+						&& zcashShieldedAction.noteCommitment != null
 					)}
 						<div>
 							<dt>Note Commitment</dt>
 							<dd>
 								<TruncatedValue
-									value={zcashShieldedAction.fields.noteCommitment}
+									value={zcashShieldedAction.noteCommitment}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if open && zcashShieldedAction.fields.valueCommitment != null}
+					{#if open && zcashShieldedAction.valueCommitment != null}
 						<div>
 							<dt>Value Commitment</dt>
 							<dd>
 								<TruncatedValue
-									value={zcashShieldedAction.fields.valueCommitment}
+									value={zcashShieldedAction.valueCommitment}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>

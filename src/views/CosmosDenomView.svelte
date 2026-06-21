@@ -58,24 +58,24 @@
 		>
 			{#snippet children(cosmosDenom)}
 				<dl>
-					{#if cosmosDenom.fields.display != null}
+					{#if cosmosDenom.display != null}
 						<div>
 							<dt>Display</dt>
-							<dd>{cosmosDenom.fields.display}</dd>
+							<dd>{cosmosDenom.display}</dd>
 						</div>
 					{/if}
 
-					{#if cosmosDenom.fields.base != null}
+					{#if cosmosDenom.base != null}
 						<div>
 							<dt>Base</dt>
-							<dd>{cosmosDenom.fields.base}</dd>
+							<dd>{cosmosDenom.base}</dd>
 						</div>
 					{/if}
 
-					{#if cosmosDenom.fields.symbol != null}
+					{#if cosmosDenom.symbol != null}
 						<div>
 							<dt>Symbol</dt>
-							<dd>{cosmosDenom.fields.symbol}</dd>
+							<dd>{cosmosDenom.symbol}</dd>
 						</div>
 					{/if}
 				</dl>

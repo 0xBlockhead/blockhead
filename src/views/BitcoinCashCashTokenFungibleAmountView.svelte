@@ -57,10 +57,10 @@
 		>
 			{#snippet children(bitcoinCashCashTokenFungibleAmount)}
 				<dl>
-					{#if bitcoinCashCashTokenFungibleAmount.fields.amount != null}
+					{#if bitcoinCashCashTokenFungibleAmount.amount != null}
 						<div>
 							<dt>Amount</dt>
-							<dd><NumberValue value={bitcoinCashCashTokenFungibleAmount.fields.amount} /></dd>
+							<dd><NumberValue value={bitcoinCashCashTokenFungibleAmount.amount} /></dd>
 						</div>
 					{/if}
 				</dl>

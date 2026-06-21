@@ -69,28 +69,28 @@
 		>
 			{#snippet children(polkadotExtrinsic)}
 				<dl>
-					{#if polkadotExtrinsic.fields.hash != null}
+					{#if polkadotExtrinsic.hash != null}
 						<div>
 							<dt>Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={polkadotExtrinsic.fields.hash}
+									value={polkadotExtrinsic.hash}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if polkadotExtrinsic.fields.callName != null}
+					{#if polkadotExtrinsic.callName != null}
 						<div>
 							<dt>Call Name</dt>
-							<dd>{polkadotExtrinsic.fields.callName}</dd>
+							<dd>{polkadotExtrinsic.callName}</dd>
 						</div>
 					{/if}
 
-					{#if polkadotExtrinsic.fields.success != null}
+					{#if polkadotExtrinsic.success != null}
 						<div>
 							<dt>Success</dt>
-							<dd>{polkadotExtrinsic.fields.success ? 'Yes' : 'No'}</dd>
+							<dd>{polkadotExtrinsic.success ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 				</dl>

@@ -76,7 +76,7 @@
 		{#if true}
 			{#snippet TurnPromptHeading(turn: ResourceFields)}
 				<TruncatedValue
-					value={turn.fields.userPrompt}
+					value={turn.userPrompt}
 					format={TruncatedValueFormat.Visual}
 				/>
 			{/snippet}
@@ -96,7 +96,7 @@
 			{#snippet children(turn: ResourceFields)}
 				<span data-text="muted">
 					<Timestamp
-						timestamp={turn.fields.createdAt}
+						timestamp={turn.createdAt}
 					/>
 				</span>
 			{/snippet}
@@ -115,14 +115,14 @@
 			placeholderText="Loading turn…"
 		>
 			{#snippet children(turn: ResourceFields)}
-				{#if turn.fields.userPrompt !== ''}
-					<p>{turn.fields.userPrompt}</p>
+				{#if turn.userPrompt !== ''}
+					<p>{turn.userPrompt}</p>
 				{:else}
 					<p data-text="muted">Empty prompt.</p>
 				{/if}
 
-				{#if open && turn.fields.assistantText != null && turn.fields.assistantText !== ''}
-					<p>{turn.fields.assistantText}</p>
+				{#if open && turn.assistantText != null && turn.assistantText !== ''}
+					<p>{turn.assistantText}</p>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -133,8 +133,8 @@
 					<dd>
 						{#if true}
 							{#snippet TurnStatusRow(turn: ResourceFields)}
-								{#if turn.fields.status !== undefined}
-									{blockheadAgentConversationTurnStatusByStatus[turn.fields.status].label}
+								{#if turn.status !== undefined}
+									{blockheadAgentConversationTurnStatusByStatus[turn.status].label}
 								{/if}
 							{/snippet}
 
@@ -154,7 +154,7 @@
 							{#if true}
 								{#snippet TurnCreatedRow(turn: ResourceFields)}
 								<Timestamp
-									timestamp={turn.fields.createdAt}
+									timestamp={turn.createdAt}
 								/>
 							{/snippet}
 
@@ -174,9 +174,9 @@
 					<dd>
 						{#if true}
 							{#snippet TurnProviderRow(turn: ResourceFields)}
-								{#if turn.fields.providerId != null && turn.fields.providerId !== ''}
+								{#if turn.providerId != null && turn.providerId !== ''}
 									<TruncatedValue
-										value={turn.fields.providerId}
+										value={turn.providerId}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{:else}
@@ -202,8 +202,8 @@
 					<dd>
 						{#if true}
 							{#snippet TurnPromptVersionRow(turn: ResourceFields)}
-								{#if turn.fields.promptVersion !== ''}
-									{turn.fields.promptVersion}
+								{#if turn.promptVersion !== ''}
+									{turn.promptVersion}
 								{:else}
 									<span data-text="muted">
 										Not recorded.
@@ -227,9 +227,9 @@
 					<dd>
 						{#if true}
 							{#snippet TurnParentRow(turn: ResourceFields)}
-								{#if turn.fields.parentId != null && turn.fields.parentId !== ''}
+								{#if turn.parentId != null && turn.parentId !== ''}
 									<BlockheadAgentConversationTurnView
-										selection={select(EntityType.BlockheadAgentConversationTurn, { id: turn.fields.parentId })}
+										selection={select(EntityType.BlockheadAgentConversationTurn, { id: turn.parentId })}
 										layout={EntityLayout.Title}
 
 									

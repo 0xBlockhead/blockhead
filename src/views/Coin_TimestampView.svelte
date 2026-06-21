@@ -84,14 +84,14 @@
 			placeholderText="Loading snapshot…"
 		>
 			{#snippet children(coinTimestamp)}
-				{#if coinTimestamp.fields.marketCapUsd !== undefined || coinTimestamp.fields.marketCap !== undefined}
+				{#if coinTimestamp.marketCapUsd !== undefined || coinTimestamp.marketCap !== undefined}
 					<CurrencyAmount
 						currency="USD"
-						value={coinTimestamp.fields.marketCapUsd ?? coinTimestamp.fields.marketCap ?? 0}
+						value={coinTimestamp.marketCapUsd ?? coinTimestamp.marketCap ?? 0}
 					/>
-				{:else if coinTimestamp.fields.change24hPercent != null && Number.isFinite(coinTimestamp.fields.change24hPercent)}
+				{:else if coinTimestamp.change24hPercent != null && Number.isFinite(coinTimestamp.change24hPercent)}
 					<NumberValue
-						value={coinTimestamp.fields.change24hPercent}
+						value={coinTimestamp.change24hPercent}
 						options={{ maximumFractionDigits: 2, signDisplay: 'exceptZero' }}
 					/>%
 				{:else}
@@ -109,14 +109,14 @@
 			placeholderText="Loading snapshot…"
 		>
 			{#snippet children(coinTimestamp)}
-				{#if coinTimestamp.fields.marketCapUsd !== undefined || coinTimestamp.fields.marketCap !== undefined}
+				{#if coinTimestamp.marketCapUsd !== undefined || coinTimestamp.marketCap !== undefined}
 					<CurrencyAmount
 						currency="USD"
-						value={coinTimestamp.fields.marketCapUsd ?? coinTimestamp.fields.marketCap ?? 0}
+						value={coinTimestamp.marketCapUsd ?? coinTimestamp.marketCap ?? 0}
 					/>
-				{:else if coinTimestamp.fields.change24hPercent != null && Number.isFinite(coinTimestamp.fields.change24hPercent)}
+				{:else if coinTimestamp.change24hPercent != null && Number.isFinite(coinTimestamp.change24hPercent)}
 					<NumberValue
-						value={coinTimestamp.fields.change24hPercent}
+						value={coinTimestamp.change24hPercent}
 						options={{ maximumFractionDigits: 2, signDisplay: 'exceptZero' }}
 					/>%
 				{:else}
@@ -144,31 +144,31 @@
 		>
 			{#snippet children(coinTimestamp)}
 				<dl data-column-item="center">
-					{#if coinTimestamp.fields.marketCapRank != null && Number.isFinite(coinTimestamp.fields.marketCapRank)}
+					{#if coinTimestamp.marketCapRank != null && Number.isFinite(coinTimestamp.marketCapRank)}
 						<div>
 							<dt>Market cap rank</dt>
 							<dd>
-								{String(coinTimestamp.fields.marketCapRank)}
+								{String(coinTimestamp.marketCapRank)}
 							</dd>
 						</div>
 					{/if}
-					{#if coinTimestamp.fields.marketCapUsd !== undefined || coinTimestamp.fields.marketCap !== undefined}
+					{#if coinTimestamp.marketCapUsd !== undefined || coinTimestamp.marketCap !== undefined}
 						<div>
 							<dt>Market cap</dt>
 							<dd>
 								<CurrencyAmount
 									currency="USD"
-									value={coinTimestamp.fields.marketCapUsd ?? coinTimestamp.fields.marketCap ?? 0}
+									value={coinTimestamp.marketCapUsd ?? coinTimestamp.marketCap ?? 0}
 								/>
 							</dd>
 						</div>
 					{/if}
-					{#if coinTimestamp.fields.change24hPercent != null && Number.isFinite(coinTimestamp.fields.change24hPercent)}
+					{#if coinTimestamp.change24hPercent != null && Number.isFinite(coinTimestamp.change24hPercent)}
 						<div>
 							<dt>24h change</dt>
 							<dd>
 								<NumberValue
-									value={coinTimestamp.fields.change24hPercent}
+									value={coinTimestamp.change24hPercent}
 									options={{ maximumFractionDigits: 2, signDisplay: 'exceptZero' }}
 								/>%
 							</dd>
@@ -195,29 +195,29 @@
 					</div>
 					{#if (
 						open
-						&& coinTimestamp.fields.totalSupply !== undefined
+						&& coinTimestamp.totalSupply !== undefined
 					)}
 						<div>
 							<dt>Recorded total supply</dt>
-							<dd>{String(coinTimestamp.fields.totalSupply)}</dd>
+							<dd>{String(coinTimestamp.totalSupply)}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& coinTimestamp.fields.transport !== undefined
+						&& coinTimestamp.transport !== undefined
 					)}
 						<div>
 							<dt>Transport</dt>
-							<dd><code>{coinTimestamp.fields.transport}</code></dd>
+							<dd><code>{coinTimestamp.transport}</code></dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& coinTimestamp.fields.providerAssetId !== undefined
+						&& coinTimestamp.providerAssetId !== undefined
 					)}
 						<div>
 							<dt>Provider asset id</dt>
-							<dd><code>{coinTimestamp.fields.providerAssetId}</code></dd>
+							<dd><code>{coinTimestamp.providerAssetId}</code></dd>
 						</div>
 					{/if}
 				</dl>

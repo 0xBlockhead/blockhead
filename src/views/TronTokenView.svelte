@@ -53,7 +53,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={token}>
 			{#snippet children(token)}
-				{token.fields.symbol ?? token.fields.name ?? selection.entitySelector.tokenId}
+				{token.symbol ?? token.name ?? selection.entitySelector.tokenId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -65,45 +65,45 @@
 		>
 			{#snippet children(token)}
 				<dl data-column-item="center">
-					{#if token.fields.standard != null}
+					{#if token.standard != null}
 						<div>
 							<dt>Standard</dt>
-							<dd>{token.fields.standard}</dd>
+							<dd>{token.standard}</dd>
 						</div>
 					{/if}
 
-					{#if token.fields.name != null}
+					{#if token.name != null}
 						<div>
 							<dt>Name</dt>
-							<dd>{token.fields.name}</dd>
+							<dd>{token.name}</dd>
 						</div>
 					{/if}
 
-					{#if token.fields.symbol != null}
+					{#if token.symbol != null}
 						<div>
 							<dt>Symbol</dt>
-							<dd>{token.fields.symbol}</dd>
+							<dd>{token.symbol}</dd>
 						</div>
 					{/if}
 
-					{#if token.fields.decimals != null}
+					{#if token.decimals != null}
 						<div>
 							<dt>Decimals</dt>
-							<dd><NumberValue value={token.fields.decimals} /></dd>
+							<dd><NumberValue value={token.decimals} /></dd>
 						</div>
 					{/if}
 
-					{#if token.fields.totalSupply != null}
+					{#if token.totalSupply != null}
 						<div>
 							<dt>Total supply</dt>
-							<dd><NumberValue value={token.fields.totalSupply} /></dd>
+							<dd><NumberValue value={token.totalSupply} /></dd>
 						</div>
 					{/if}
 
-					{#if open && token.fields.createdTimestampMs != null}
+					{#if open && token.createdTimestampMs != null}
 						<div>
 							<dt>Created</dt>
-							<dd><Timestamp timestamp={token.fields.createdTimestampMs} /></dd>
+							<dd><Timestamp timestamp={token.createdTimestampMs} /></dd>
 						</div>
 					{/if}
 				</dl>

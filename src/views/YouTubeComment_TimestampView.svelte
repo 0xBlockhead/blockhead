@@ -91,11 +91,11 @@
 						metrics={[
 							{
 								label: 'Likes',
-								value: youTubeCommentTimestamp.fields.likeCount,
+								value: youTubeCommentTimestamp.likeCount,
 							},
 							{
 								label: 'Replies',
-								value: youTubeCommentTimestamp.fields.replyCount,
+								value: youTubeCommentTimestamp.replyCount,
 							},
 						]}
 					/>

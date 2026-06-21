@@ -75,7 +75,7 @@
 			placeholderText="Loading URL entity…"
 		>
 			{#snippet children(url)}
-				{url.fields.catalogName ?? selection.entitySelector.url}
+				{url.catalogName ?? selection.entitySelector.url}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -95,10 +95,10 @@
 		{#if contentOpen}
 			<ResourceBoundary resource={metadataUrl}>
 				{#snippet children(url)}
-					{#if url.fields.openGraphDescription != null}
+					{#if url.openGraphDescription != null}
 						<p>
 							<TruncatedValue
-								value={url.fields.openGraphDescription}
+								value={url.openGraphDescription}
 								format={TruncatedValueFormat.Visual}
 							/>
 						</p>
@@ -113,8 +113,8 @@
 				<dd>
 					<ResourceBoundary resource={metadataUrl}>
 						{#snippet children(url)}
-							{#if url.fields.publisher != null}
-								{url.fields.publisher}
+							{#if url.publisher != null}
+								{url.publisher}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -127,8 +127,8 @@
 					<dd>
 						<ResourceBoundary resource={catalogUrl}>
 							{#snippet children(url)}
-								{#if url.fields.catalogStandard != null}
-									{url.fields.catalogStandard}
+								{#if url.catalogStandard != null}
+									{url.catalogStandard}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -143,12 +143,12 @@
 						<ResourceBoundary resource={metadataUrl}>
 							{#snippet children(url)}
 								{#if (
-									url.fields.$openGraphImage != null
-									&& url.fields.$openGraphImage[EntityMetaKey.Selector].url
+									url.$openGraphImage != null
+									&& url.$openGraphImage[EntityMetaKey.Selector].url
 								)}
 									<Media
-										alt={url.fields.openGraphTitle ?? ''}
-										media={{ url: url.fields.$openGraphImage[EntityMetaKey.Selector].url }}
+										alt={url.openGraphTitle ?? ''}
+										media={{ url: url.$openGraphImage[EntityMetaKey.Selector].url }}
 									/>
 								{/if}
 							{/snippet}

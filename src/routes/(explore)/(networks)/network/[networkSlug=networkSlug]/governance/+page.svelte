@@ -34,7 +34,7 @@
 <Page>
 	<ResourceBoundary resource={network}>
 		{#snippet children(network)}
-			{#if network.fields.namespace === NetworkNamespace.Cosmos}
+			{#if network.namespace === NetworkNamespace.Cosmos}
 				<CosmosGovernanceProposalsView
 					selection={select(
 						EntityType.CosmosNetwork,

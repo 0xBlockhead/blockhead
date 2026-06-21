@@ -119,13 +119,13 @@
 					placeholderText="Loading X post…"
 				>
 					{#snippet children(post)}
-						{#if post.fields.postUrl}
+						{#if post.postUrl}
 							<div>
 								<dt>Post URL</dt>
 								<dd>
 									<TruncatedValue
 										format={TruncatedValueFormat.Visual}
-										value={post.fields.postUrl}
+										value={post.postUrl}
 									/>
 								</dd>
 							</div>

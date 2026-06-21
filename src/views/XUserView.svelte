@@ -106,11 +106,11 @@
 				placeholderText="Loading X profile…"
 			>
 				{#snippet children(user)}
-					{#if user.fields.$icon !== undefined}
+					{#if user.$icon !== undefined}
 						<IconComponent
-							alt={user.fields.name ?? user.fields.username ?? ''}
+							alt={user.name ?? user.username ?? ''}
 							shape={IconShape.Circle}
-							src={user.fields.$icon[EntityMetaKey.Selector].url}
+							src={user.$icon[EntityMetaKey.Selector].url}
 						/>
 					{/if}
 				{/snippet}
@@ -132,7 +132,7 @@
 				placeholderText="Loading X profile…"
 				>
 					{#snippet children(user)}
-						{user.fields.name ?? user.fields.username ?? ('id' in selector ? selector.id : selector.username)}
+						{user.name ?? user.username ?? ('id' in selector ? selector.id : selector.username)}
 					{/snippet}
 				</ResourceBoundary>
 			{:else}
@@ -148,13 +148,13 @@
 			>
 				{#snippet children(user)}
 					{#if (
-							user.fields.username !== undefined
-							&& user.fields.username !== (
-								user.fields.name ?? ('id' in selector ? selector.id : selector.username)
+							user.username !== undefined
+							&& user.username !== (
+								user.name ?? ('id' in selector ? selector.id : selector.username)
 							)
 						)}
 						<span data-text="muted">
-							@{user.fields.username}
+							@{user.username}
 						</span>
 					{/if}
 				{/snippet}
@@ -178,10 +178,10 @@
 				placeholderText="Loading X profile…"
 			>
 				{#snippet children(user)}
-					{#if user.fields.description}
+					{#if user.description}
 						<p>
 							<TruncatedValue
-								value={user.fields.description}
+								value={user.description}
 								format={TruncatedValueFormat.Visual}
 							/>
 						</p>
@@ -201,19 +201,19 @@
 							metrics={[
 								{
 									label: 'Followers',
-									value: user.fields.$$timestamps?.values.at(0)?.followerCount,
+									value: user.$$timestamps?.values.at(0)?.followerCount,
 								},
 								{
 									label: 'Following',
-									value: user.fields.$$timestamps?.values.at(0)?.followingCount,
+									value: user.$$timestamps?.values.at(0)?.followingCount,
 								},
 								{
 									label: 'Posts',
-									value: user.fields.$$timestamps?.values.at(0)?.tweetCount,
+									value: user.$$timestamps?.values.at(0)?.tweetCount,
 								},
 								{
 									label: 'Listed',
-									value: user.fields.$$timestamps?.values.at(0)?.listedCount,
+									value: user.$$timestamps?.values.at(0)?.listedCount,
 								},
 							]}
 						/>
@@ -230,8 +230,8 @@
 							placeholderText="Loading X profile…"
 						>
 							{#snippet children(user)}
-								{#if user.fields.verified != null}
-									{user.fields.verified ? 'Yes' : 'No'}
+								{#if user.verified != null}
+									{user.verified ? 'Yes' : 'No'}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -248,15 +248,15 @@
 							placeholderText="Loading X profile…"
 						>
 							{#snippet children(user)}
-								{#if user.fields.websiteUrl}
+								{#if user.websiteUrl}
 									<a
-										href={user.fields.websiteUrl}
+										href={user.websiteUrl}
 										rel="noreferrer noopener"
 										target="_blank"
 									>
 										<TruncatedValue
 											format={TruncatedValueFormat.Visual}
-											value={user.fields.websiteUrl}
+											value={user.websiteUrl}
 										/>
 									</a>
 								{/if}
@@ -275,8 +275,8 @@
 							placeholderText="Loading X profile…"
 						>
 							{#snippet children(user)}
-								{#if user.fields.location}
-									{user.fields.location}
+								{#if user.location}
+									{user.location}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -293,9 +293,9 @@
 							placeholderText="Loading X profile…"
 						>
 							{#snippet children(user)}
-								{#if user.fields.createdAt != null}
+								{#if user.createdAt != null}
 									<Timestamp
-										timestamp={user.fields.createdAt}
+										timestamp={user.createdAt}
 									/>
 								{/if}
 							{/snippet}
@@ -338,25 +338,25 @@
 				>
 					{#snippet children(user)}
 						<div>
-							{#if user.fields.description}
-								<p><strong>Description:</strong> {user.fields.description}</p>
+							{#if user.description}
+								<p><strong>Description:</strong> {user.description}</p>
 							{/if}
 
-							{#if user.fields.$profileBanner?.[EntityMetaKey.Selector].url != null}
+							{#if user.$profileBanner?.[EntityMetaKey.Selector].url != null}
 								<figure>
 									<Media
 										alt=""
-										media={{ url: user.fields.$profileBanner[EntityMetaKey.Selector].url }}
+										media={{ url: user.$profileBanner[EntityMetaKey.Selector].url }}
 									/>
 								</figure>
 							{/if}
 
 							{#if (
-								user.fields.name === undefined
-								&& user.fields.username === undefined
-								&& user.fields.description === undefined
-								&& user.fields.$icon === undefined
-								&& user.fields.$profileBanner === undefined
+								user.name === undefined
+								&& user.username === undefined
+								&& user.description === undefined
+								&& user.$icon === undefined
+								&& user.$profileBanner === undefined
 							)}
 								<p data-text="muted">
 									User details are not available yet.

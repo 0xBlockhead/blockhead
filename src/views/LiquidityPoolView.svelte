@@ -90,12 +90,12 @@
 		>
 			{#snippet children(pool)}
 				<dl data-column-item="center">
-					{#if pool.fields.$baseToken}
+					{#if pool.$baseToken}
 						<div>
 							<dt>Base token</dt>
 							<dd>
 								<EvmContractView
-									selection={select(EntityType.EvmContract, pool.fields.$baseToken[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmContract, pool.$baseToken[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 
 									showTypeAnnotation={false}
@@ -103,12 +103,12 @@
 							</dd>
 						</div>
 					{/if}
-					{#if pool.fields.$quoteToken}
+					{#if pool.$quoteToken}
 						<div>
 							<dt>Quote token</dt>
 							<dd>
 								<EvmContractView
-									selection={select(EntityType.EvmContract, pool.fields.$quoteToken[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmContract, pool.$quoteToken[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 
 									showTypeAnnotation={false}
@@ -116,45 +116,45 @@
 							</dd>
 						</div>
 					{/if}
-					{#if pool.fields.baseTokenSymbol !== undefined}
+					{#if pool.baseTokenSymbol !== undefined}
 						<div>
 							<dt>Base token symbol</dt>
-							<dd>{pool.fields.baseTokenSymbol}</dd>
+							<dd>{pool.baseTokenSymbol}</dd>
 						</div>
 					{/if}
-					{#if pool.fields.quoteTokenSymbol !== undefined}
+					{#if pool.quoteTokenSymbol !== undefined}
 						<div>
 							<dt>Quote token symbol</dt>
-							<dd>{pool.fields.quoteTokenSymbol}</dd>
+							<dd>{pool.quoteTokenSymbol}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& pool.fields.fee !== undefined
+						&& pool.fee !== undefined
 					)}
 						<div>
 							<dt>Fee</dt>
-							<dd>{String(pool.fields.fee)}</dd>
+							<dd>{String(pool.fee)}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& pool.fields.tickSpacing !== undefined
+						&& pool.tickSpacing !== undefined
 					)}
 						<div>
 							<dt>Tick spacing</dt>
-							<dd>{String(pool.fields.tickSpacing)}</dd>
+							<dd>{String(pool.tickSpacing)}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& pool.fields.$hooks
+						&& pool.$hooks
 					)}
 						<div>
 							<dt>Hooks</dt>
 							<dd>
 								<EvmContractView
-									selection={select(EntityType.EvmContract, pool.fields.$hooks[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmContract, pool.$hooks[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 
 									showTypeAnnotation={false}
@@ -164,13 +164,13 @@
 					{/if}
 					{#if (
 						open
-						&& pool.fields.v4PoolId !== undefined
+						&& pool.v4PoolId !== undefined
 					)}
 						<div>
 							<dt>v4 pool id</dt>
 							<dd>
 								<TruncatedValue
-									value={String(pool.fields.v4PoolId)}
+									value={String(pool.v4PoolId)}
 									format={TruncatedValueFormat.Visual}
 								/>
 							</dd>
@@ -178,65 +178,65 @@
 					{/if}
 					{#if (
 						open
-						&& pool.fields.baseTokenDecimals !== undefined
+						&& pool.baseTokenDecimals !== undefined
 					)}
 						<div>
 							<dt>Base token decimals</dt>
-							<dd>{String(pool.fields.baseTokenDecimals)}</dd>
+							<dd>{String(pool.baseTokenDecimals)}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& pool.fields.quoteTokenDecimals !== undefined
+						&& pool.quoteTokenDecimals !== undefined
 					)}
 						<div>
 							<dt>Quote token decimals</dt>
-							<dd>{String(pool.fields.quoteTokenDecimals)}</dd>
+							<dd>{String(pool.quoteTokenDecimals)}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& pool.fields.pairCreatedAtMs != null
+						&& pool.pairCreatedAtMs != null
 					)}
 						<div>
 							<dt>Pair created</dt>
 							<dd>
 								<Timestamp
-									timestamp={pool.fields.pairCreatedAtMs}
+									timestamp={pool.pairCreatedAtMs}
 								/>
 							</dd>
 						</div>
 					{/if}
 					{#if (
 							open
-							&& (pool.fields.dexscreenerLabels?.values.length ?? 0) > 0
+							&& (pool.dexscreenerLabels?.values.length ?? 0) > 0
 						)}
 						<div>
 							<dt>Labels</dt>
-								<dd>{pool.fields.dexscreenerLabels?.values.join(', ')}</dd>
+								<dd>{pool.dexscreenerLabels?.values.join(', ')}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& pool.fields.dexId !== undefined
+						&& pool.dexId !== undefined
 					)}
 						<div>
 							<dt>DEX</dt>
-							<dd>{pool.fields.dexId}</dd>
+							<dd>{pool.dexId}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& pool.fields.dexscreenerPairUrl !== undefined
+						&& pool.dexscreenerPairUrl !== undefined
 					)}
 						<div>
 							<dt>Dexscreener</dt>
 							<dd>
 								<a
-									href={pool.fields.dexscreenerPairUrl}
+									href={pool.dexscreenerPairUrl}
 									rel="noreferrer"
 									target="_blank"
-								>{pool.fields.dexscreenerPairUrl}</a>
+								>{pool.dexscreenerPairUrl}</a>
 							</dd>
 						</div>
 					{/if}

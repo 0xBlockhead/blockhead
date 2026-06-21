@@ -64,10 +64,10 @@
 			placeholderText="Loading Filecoin network snapshot..."
 		>
 			{#snippet children(snapshot)}
-				{#if snapshot.fields.headHeight !== undefined}
-					<NumberValue value={snapshot.fields.headHeight} />
-				{:else if snapshot.fields.networkVersion !== undefined}
-					<NumberValue value={snapshot.fields.networkVersion} />
+				{#if snapshot.headHeight !== undefined}
+					<NumberValue value={snapshot.headHeight} />
+				{:else if snapshot.networkVersion !== undefined}
+					<NumberValue value={snapshot.networkVersion} />
 				{:else}
 					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				{/if}
@@ -82,71 +82,71 @@
 		>
 			{#snippet children(snapshot)}
 				<dl data-column-item="center">
-					{#if snapshot.fields.headHeight !== undefined}
+					{#if snapshot.headHeight !== undefined}
 						<div>
 							<dt>Head height</dt>
-							<dd><NumberValue value={snapshot.fields.headHeight} /></dd>
+							<dd><NumberValue value={snapshot.headHeight} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.fields.headBlockCount !== undefined}
+					{#if snapshot.headBlockCount !== undefined}
 						<div>
 							<dt>Head blocks</dt>
-							<dd><NumberValue value={snapshot.fields.headBlockCount} /></dd>
+							<dd><NumberValue value={snapshot.headBlockCount} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.fields.networkVersion !== undefined}
+					{#if snapshot.networkVersion !== undefined}
 						<div>
 							<dt>Network version</dt>
-							<dd><NumberValue value={snapshot.fields.networkVersion} /></dd>
+							<dd><NumberValue value={snapshot.networkVersion} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.fields.totalQualityAdjustedPower !== undefined}
+					{#if snapshot.totalQualityAdjustedPower !== undefined}
 						<div>
 							<dt>Quality-adjusted power</dt>
-							<dd><NumberValue value={snapshot.fields.totalQualityAdjustedPower} /></dd>
+							<dd><NumberValue value={snapshot.totalQualityAdjustedPower} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.headTipsetKey != null}
+					{#if open && snapshot.headTipsetKey != null}
 						<div>
 							<dt>Head key</dt>
 							<dd>
 								<TruncatedValue
-									value={snapshot.fields.headTipsetKey}
+									value={snapshot.headTipsetKey}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.headTimestampMs !== undefined}
+					{#if open && snapshot.headTimestampMs !== undefined}
 						<div>
 							<dt>Head time</dt>
-							<dd><Timestamp timestamp={snapshot.fields.headTimestampMs} /></dd>
+							<dd><Timestamp timestamp={snapshot.headTimestampMs} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.lotusVersion != null}
+					{#if open && snapshot.lotusVersion != null}
 						<div>
 							<dt>Lotus</dt>
-							<dd>{snapshot.fields.lotusAgent} {snapshot.fields.lotusVersion}</dd>
+							<dd>{snapshot.lotusAgent} {snapshot.lotusVersion}</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.blockDelaySeconds !== undefined}
+					{#if open && snapshot.blockDelaySeconds !== undefined}
 						<div>
 							<dt>Block delay</dt>
-							<dd><NumberValue value={snapshot.fields.blockDelaySeconds} /> s</dd>
+							<dd><NumberValue value={snapshot.blockDelaySeconds} /> s</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.totalRawBytePower !== undefined}
+					{#if open && snapshot.totalRawBytePower !== undefined}
 						<div>
 							<dt>Raw byte power</dt>
-							<dd><NumberValue value={snapshot.fields.totalRawBytePower} /></dd>
+							<dd><NumberValue value={snapshot.totalRawBytePower} /></dd>
 						</div>
 					{/if}
 				</dl>

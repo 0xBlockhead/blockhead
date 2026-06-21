@@ -49,10 +49,10 @@
 			placeholderText="Loading TRON network snapshot..."
 		>
 			{#snippet children(snapshot)}
-				{#if snapshot.fields.latestBlockHeight !== undefined}
-					<NumberValue value={snapshot.fields.latestBlockHeight} />
-				{:else if snapshot.fields.activeWitnessCount !== undefined}
-					<NumberValue value={snapshot.fields.activeWitnessCount} />
+				{#if snapshot.latestBlockHeight !== undefined}
+					<NumberValue value={snapshot.latestBlockHeight} />
+				{:else if snapshot.activeWitnessCount !== undefined}
+					<NumberValue value={snapshot.activeWitnessCount} />
 					witnesses
 				{:else}
 					<Timestamp timestamp={selection.entitySelector.timestampMs} />
@@ -68,92 +68,92 @@
 		>
 			{#snippet children(snapshot)}
 				<dl data-column-item="center">
-					{#if snapshot.fields.latestBlockHeight !== undefined}
+					{#if snapshot.latestBlockHeight !== undefined}
 						<div>
 							<dt>Latest block</dt>
-							<dd><NumberValue value={snapshot.fields.latestBlockHeight} /></dd>
+							<dd><NumberValue value={snapshot.latestBlockHeight} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.fields.activeWitnessCount !== undefined}
+					{#if snapshot.activeWitnessCount !== undefined}
 						<div>
 							<dt>Active witnesses</dt>
-							<dd><NumberValue value={snapshot.fields.activeWitnessCount} /></dd>
+							<dd><NumberValue value={snapshot.activeWitnessCount} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.fields.currentPeerCount !== undefined}
+					{#if snapshot.currentPeerCount !== undefined}
 						<div>
 							<dt>Peers</dt>
-							<dd><NumberValue value={snapshot.fields.currentPeerCount} /></dd>
+							<dd><NumberValue value={snapshot.currentPeerCount} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.fields.latestBlockTransactionCount !== undefined}
+					{#if snapshot.latestBlockTransactionCount !== undefined}
 						<div>
 							<dt>Transactions</dt>
-							<dd><NumberValue value={snapshot.fields.latestBlockTransactionCount} /></dd>
+							<dd><NumberValue value={snapshot.latestBlockTransactionCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.latestBlockHash != null}
+					{#if open && snapshot.latestBlockHash != null}
 						<div>
 							<dt>Latest hash</dt>
 							<dd>
 								<TruncatedValue
-									value={snapshot.fields.latestBlockHash}
+									value={snapshot.latestBlockHash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.latestBlockTimeMs !== undefined}
+					{#if open && snapshot.latestBlockTimeMs !== undefined}
 						<div>
 							<dt>Block time</dt>
-							<dd><Timestamp timestamp={snapshot.fields.latestBlockTimeMs} /></dd>
+							<dd><Timestamp timestamp={snapshot.latestBlockTimeMs} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.witnessCount !== undefined}
+					{#if open && snapshot.witnessCount !== undefined}
 						<div>
 							<dt>Witnesses</dt>
-							<dd><NumberValue value={snapshot.fields.witnessCount} /></dd>
+							<dd><NumberValue value={snapshot.witnessCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.nodeBlockHeight !== undefined}
+					{#if open && snapshot.nodeBlockHeight !== undefined}
 						<div>
 							<dt>Node block</dt>
-							<dd><NumberValue value={snapshot.fields.nodeBlockHeight} /></dd>
+							<dd><NumberValue value={snapshot.nodeBlockHeight} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.solidityBlockHeight !== undefined}
+					{#if open && snapshot.solidityBlockHeight !== undefined}
 						<div>
 							<dt>Solidity block</dt>
-							<dd><NumberValue value={snapshot.fields.solidityBlockHeight} /></dd>
+							<dd><NumberValue value={snapshot.solidityBlockHeight} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.maintenanceIntervalMs !== undefined}
+					{#if open && snapshot.maintenanceIntervalMs !== undefined}
 						<div>
 							<dt>Maintenance interval</dt>
-							<dd><NumberValue value={snapshot.fields.maintenanceIntervalMs} /> ms</dd>
+							<dd><NumberValue value={snapshot.maintenanceIntervalMs} /> ms</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.transactionFeeSun !== undefined}
+					{#if open && snapshot.transactionFeeSun !== undefined}
 						<div>
 							<dt>Transaction fee</dt>
-							<dd><NumberValue value={snapshot.fields.transactionFeeSun} /> sun</dd>
+							<dd><NumberValue value={snapshot.transactionFeeSun} /> sun</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.createAccountFeeSun !== undefined}
+					{#if open && snapshot.createAccountFeeSun !== undefined}
 						<div>
 							<dt>Create account fee</dt>
-							<dd><NumberValue value={snapshot.fields.createAccountFeeSun} /> sun</dd>
+							<dd><NumberValue value={snapshot.createAccountFeeSun} /> sun</dd>
 						</div>
 					{/if}
 				</dl>

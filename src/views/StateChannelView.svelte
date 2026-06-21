@@ -77,41 +77,41 @@
 			placeholderText="Loading state channel…"
 		>
 			{#snippet children(stateChannel)}
-				{#if stateChannel.fields.$participant0?.[EntityMetaKey.Selector].address !== undefined || stateChannel.fields.$participant1?.[EntityMetaKey.Selector].address !== undefined}
+				{#if stateChannel.$participant0?.[EntityMetaKey.Selector].address !== undefined || stateChannel.$participant1?.[EntityMetaKey.Selector].address !== undefined}
 					<span data-row="inline align-center gap-2 wrap">
-						{#if stateChannel.fields.$participant0?.[EntityMetaKey.Selector].address !== undefined}
-							{#if stateChannel.fields.$network?.[EntityMetaKey.Selector] !== undefined}
+						{#if stateChannel.$participant0?.[EntityMetaKey.Selector].address !== undefined}
+							{#if stateChannel.$network?.[EntityMetaKey.Selector] !== undefined}
 								<EvmNetworkAccountView
 									selection={select(EntityType.EvmNetworkAccount, {
-										$network: stateChannel.fields.$network[EntityMetaKey.Selector],
-										$actor: stateChannel.fields.$participant0[EntityMetaKey.Selector],
+										$network: stateChannel.$network[EntityMetaKey.Selector],
+										$actor: stateChannel.$participant0[EntityMetaKey.Selector],
 									})}
 									layout={EntityLayout.Value}
 
 								/>
 							{:else}
 								<EvmAccountView
-									selection={select(EntityType.EvmAccount, stateChannel.fields.$participant0[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmAccount, stateChannel.$participant0[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							{/if}
 						{/if}
-						{#if stateChannel.fields.$participant0?.[EntityMetaKey.Selector].address !== undefined && stateChannel.fields.$participant1?.[EntityMetaKey.Selector].address !== undefined}
+						{#if stateChannel.$participant0?.[EntityMetaKey.Selector].address !== undefined && stateChannel.$participant1?.[EntityMetaKey.Selector].address !== undefined}
 							<span aria-hidden="true">↔</span>
 						{/if}
-						{#if stateChannel.fields.$participant1?.[EntityMetaKey.Selector].address !== undefined}
-							{#if stateChannel.fields.$network?.[EntityMetaKey.Selector] !== undefined}
+						{#if stateChannel.$participant1?.[EntityMetaKey.Selector].address !== undefined}
+							{#if stateChannel.$network?.[EntityMetaKey.Selector] !== undefined}
 								<EvmNetworkAccountView
 									selection={select(EntityType.EvmNetworkAccount, {
-										$network: stateChannel.fields.$network[EntityMetaKey.Selector],
-										$actor: stateChannel.fields.$participant1[EntityMetaKey.Selector],
+										$network: stateChannel.$network[EntityMetaKey.Selector],
+										$actor: stateChannel.$participant1[EntityMetaKey.Selector],
 									})}
 									layout={EntityLayout.Value}
 
 								/>
 							{:else}
 								<EvmAccountView
-									selection={select(EntityType.EvmAccount, stateChannel.fields.$participant1[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmAccount, stateChannel.$participant1[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							{/if}
@@ -145,8 +145,8 @@
 						placeholderText="Loading state channel…"
 					>
 						{#snippet children(stateChannel)}
-							{#if stateChannel.fields.status !== undefined}
-								{stateChannelStatusByStatus[stateChannel.fields.status].label}
+							{#if stateChannel.status !== undefined}
+								{stateChannelStatusByStatus[stateChannel.status].label}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -162,14 +162,14 @@
 							placeholderText="Loading state channel…"
 						>
 							{#snippet children(stateChannel)}
-								{#if stateChannel.fields.updatedAt !== undefined}
+								{#if stateChannel.updatedAt !== undefined}
 									<Timestamp
-										timestamp={stateChannel.fields.updatedAt}
+										timestamp={stateChannel.updatedAt}
 									/>
 								{:else}
-									{#if stateChannel.fields.createdAt !== undefined}
+									{#if stateChannel.createdAt !== undefined}
 										<Timestamp
-											timestamp={stateChannel.fields.createdAt}
+											timestamp={stateChannel.createdAt}
 										/>
 									{/if}
 								{/if}
@@ -188,8 +188,8 @@
 							placeholderText="Loading state channel…"
 						>
 							{#snippet children(stateChannel)}
-								{#if stateChannel.fields.totalDeposited !== undefined}
-									<NumberValue value={stateChannel.fields.totalDeposited} />
+								{#if stateChannel.totalDeposited !== undefined}
+									<NumberValue value={stateChannel.totalDeposited} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -204,8 +204,8 @@
 							placeholderText="Loading state channel…"
 						>
 							{#snippet children(stateChannel)}
-								{#if stateChannel.fields.balance0 !== undefined}
-									<NumberValue value={stateChannel.fields.balance0} />
+								{#if stateChannel.balance0 !== undefined}
+									<NumberValue value={stateChannel.balance0} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -220,8 +220,8 @@
 							placeholderText="Loading state channel…"
 						>
 							{#snippet children(stateChannel)}
-								{#if stateChannel.fields.balance1 !== undefined}
-									<NumberValue value={stateChannel.fields.balance1} />
+								{#if stateChannel.balance1 !== undefined}
+									<NumberValue value={stateChannel.balance1} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -236,8 +236,8 @@
 							placeholderText="Loading state channel…"
 						>
 							{#snippet children(stateChannel)}
-								{#if stateChannel.fields.turnNum !== undefined}
-									{String(stateChannel.fields.turnNum)}
+								{#if stateChannel.turnNum !== undefined}
+									{String(stateChannel.turnNum)}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -252,9 +252,9 @@
 							placeholderText="Loading state channel…"
 						>
 							{#snippet children(stateChannel)}
-								{#if stateChannel.fields.$network !== undefined}
+								{#if stateChannel.$network !== undefined}
 									<EvmNetworkView
-										selection={select(EntityType.EvmNetwork, stateChannel.fields.$network[EntityMetaKey.Selector])}
+										selection={select(EntityType.EvmNetwork, stateChannel.$network[EntityMetaKey.Selector])}
 										layout={EntityLayout.Title}
 
 									/>
@@ -272,9 +272,9 @@
 							placeholderText="Loading state channel…"
 						>
 							{#snippet children(stateChannel)}
-								{#if stateChannel.fields.$asset?.[EntityMetaKey.Selector] !== undefined}
+								{#if stateChannel.$asset?.[EntityMetaKey.Selector] !== undefined}
 									<EvmCoinInstanceView
-										selection={select(EntityType.EvmCoinInstance, stateChannel.fields.$asset[EntityMetaKey.Selector])}
+										selection={select(EntityType.EvmCoinInstance, stateChannel.$asset[EntityMetaKey.Selector])}
 										layout={EntityLayout.Title}
 
 									/>
@@ -292,9 +292,9 @@
 							placeholderText="Loading state channel…"
 						>
 							{#snippet children(stateChannel)}
-								{#if stateChannel.fields.$room?.[EntityMetaKey.Selector].id !== undefined}
+								{#if stateChannel.$room?.[EntityMetaKey.Selector].id !== undefined}
 									<BlockheadRoomView
-										selection={select(EntityType.BlockheadRoom, stateChannel.fields.$room[EntityMetaKey.Selector])}
+										selection={select(EntityType.BlockheadRoom, stateChannel.$room[EntityMetaKey.Selector])}
 										layout={EntityLayout.Value}
 
 										showTypeAnnotation={false}
@@ -313,9 +313,9 @@
 							placeholderText="Loading state channel…"
 						>
 							{#snippet children(stateChannel)}
-								{#if stateChannel.fields.createdAt !== undefined}
+								{#if stateChannel.createdAt !== undefined}
 									<Timestamp
-										timestamp={stateChannel.fields.createdAt}
+										timestamp={stateChannel.createdAt}
 									/>
 								{/if}
 							{/snippet}
@@ -331,9 +331,9 @@
 							placeholderText="Loading state channel…"
 						>
 							{#snippet children(stateChannel)}
-								{#if stateChannel.fields.updatedAt !== undefined}
+								{#if stateChannel.updatedAt !== undefined}
 									<Timestamp
-										timestamp={stateChannel.fields.updatedAt}
+										timestamp={stateChannel.updatedAt}
 									/>
 								{/if}
 							{/snippet}

@@ -86,11 +86,11 @@
 						metrics={[
 							{
 								label: 'Followers',
-								value: farcasterChannelTimestamp.fields.followerCount,
+								value: farcasterChannelTimestamp.followerCount,
 							},
 							{
 								label: 'Members',
-								value: farcasterChannelTimestamp.fields.memberCount,
+								value: farcasterChannelTimestamp.memberCount,
 							},
 						]}
 					/>

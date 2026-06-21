@@ -95,7 +95,7 @@
 					>
 						{#snippet children(bridgeRoute)}
 							<EvmNetworkView
-								selection={select(EntityType.EvmNetwork, bridgeRoute.fields.$fromNetwork?.[EntityMetaKey.Selector]
+								selection={select(EntityType.EvmNetwork, bridgeRoute.$fromNetwork?.[EntityMetaKey.Selector]
 									?? {
 										caip2: {
 											namespace: 'eip155',
@@ -118,7 +118,7 @@
 					>
 						{#snippet children(bridgeRoute)}
 							<EvmNetworkView
-								selection={select(EntityType.EvmNetwork, bridgeRoute.fields.$toNetwork?.[EntityMetaKey.Selector]
+								selection={select(EntityType.EvmNetwork, bridgeRoute.$toNetwork?.[EntityMetaKey.Selector]
 									?? {
 										caip2: {
 											namespace: 'eip155',
@@ -202,8 +202,8 @@
 							placeholderText="Loading route…"
 						>
 							{#snippet children(bridgeRoute)}
-								{#if bridgeRoute.fields.fromAmount !== undefined}
-									{String(bridgeRoute.fields.fromAmount)}
+								{#if bridgeRoute.fromAmount !== undefined}
+									{String(bridgeRoute.fromAmount)}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -220,8 +220,8 @@
 							placeholderText="Loading route…"
 						>
 							{#snippet children(bridgeRoute)}
-								{#if bridgeRoute.fields.toAmount !== undefined}
-									{String(bridgeRoute.fields.toAmount)}
+								{#if bridgeRoute.toAmount !== undefined}
+									{String(bridgeRoute.toAmount)}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -238,8 +238,8 @@
 							placeholderText="Loading route…"
 						>
 							{#snippet children(bridgeRoute)}
-								{#if bridgeRoute.fields.toAmountMin !== undefined}
-									{String(bridgeRoute.fields.toAmountMin)}
+								{#if bridgeRoute.toAmountMin !== undefined}
+									{String(bridgeRoute.toAmountMin)}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -256,9 +256,9 @@
 							placeholderText="Loading route…"
 						>
 							{#snippet children(bridgeRoute)}
-								{#if bridgeRoute.fields.estimatedCostUsd !== undefined}
+								{#if bridgeRoute.estimatedCostUsd !== undefined}
 									<CurrencyAmount
-										value={bridgeRoute.fields.estimatedCostUsd}
+										value={bridgeRoute.estimatedCostUsd}
 										scale={1}
 									/>
 								{/if}
@@ -277,8 +277,8 @@
 							placeholderText="Loading route…"
 						>
 							{#snippet children(bridgeRoute)}
-								{#if bridgeRoute.fields.estimatedDurationSeconds !== undefined}
-									{String(bridgeRoute.fields.estimatedDurationSeconds)} s
+								{#if bridgeRoute.estimatedDurationSeconds !== undefined}
+									{String(bridgeRoute.estimatedDurationSeconds)} s
 								{/if}
 							{/snippet}
 						</ResourceBoundary>

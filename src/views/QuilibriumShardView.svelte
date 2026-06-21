@@ -70,10 +70,10 @@
 		>
 			{#snippet children(quilibriumShard)}
 				<dl>
-					{#if quilibriumShard.fields.shardKind != null}
+					{#if quilibriumShard.shardKind != null}
 						<div>
 							<dt>Shard Kind</dt>
-							<dd>{quilibriumShard.fields.shardKind}</dd>
+							<dd>{quilibriumShard.shardKind}</dd>
 						</div>
 					{/if}
 				</dl>

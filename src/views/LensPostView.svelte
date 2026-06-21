@@ -108,8 +108,8 @@
 					startLength={42}
 					endLength={14}
 					value={
-						lensPost.fields.text
-							? lensPost.fields.text
+						lensPost.text
+							? lensPost.text
 						:
 							selection.entitySelector.id
 					}
@@ -123,10 +123,10 @@
 			resource={lensPost}
 		>
 			{#snippet children(lensPost)}
-				{#if lensPost.fields.timestamp != null}
+				{#if lensPost.timestamp != null}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={lensPost.fields.timestamp}
+							timestamp={lensPost.timestamp}
 						/>
 					</span>
 				{/if}
@@ -150,33 +150,33 @@
 			resource={lensPost}
 		>
 			{#snippet children(lensPost)}
-				{#if lensPost.fields.text != null && lensPost.fields.text !== ''}
+				{#if lensPost.text != null && lensPost.text !== ''}
 					<p>
 						<TruncatedValue
-							value={lensPost.fields.text}
+							value={lensPost.text}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
 				{/if}
 
 				<dl data-column-item="center">
-					{#if lensPost.fields.timestamp != null}
+					{#if lensPost.timestamp != null}
 						<div>
 							<dt>Published</dt>
 							<dd>
 								<Timestamp
-									timestamp={lensPost.fields.timestamp}
+									timestamp={lensPost.timestamp}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if contentOpen && lensPost.fields.$author}
+					{#if contentOpen && lensPost.$author}
 						<div>
 							<dt>Author</dt>
 							<dd>
 								<LensAccountView
-									selection={select(EntityType.LensAccount, lensPost.fields.$author[EntityMetaKey.Selector])}
+									selection={select(EntityType.LensAccount, lensPost.$author[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 									open={false}
@@ -185,12 +185,12 @@
 						</div>
 					{/if}
 
-					{#if contentOpen && lensPost.fields.$repostOf}
+					{#if contentOpen && lensPost.$repostOf}
 						<div>
 							<dt>Repost of</dt>
 							<dd>
 							<LensPostView
-								selection={select(EntityType.LensPost, lensPost.fields.$repostOf[EntityMetaKey.Selector])}
+								selection={select(EntityType.LensPost, lensPost.$repostOf[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								open={true}
 									showTypeAnnotation={false}
@@ -199,12 +199,12 @@
 						</div>
 					{/if}
 
-					{#if contentOpen && lensPost.fields.$quoteOf}
+					{#if contentOpen && lensPost.$quoteOf}
 						<div>
 							<dt>Quote of</dt>
 							<dd>
 							<LensPostView
-								selection={select(EntityType.LensPost, lensPost.fields.$quoteOf[EntityMetaKey.Selector])}
+								selection={select(EntityType.LensPost, lensPost.$quoteOf[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 
 									showTypeAnnotation={false}
@@ -216,12 +216,12 @@
 						</div>
 					{/if}
 
-					{#if contentOpen && lensPost.fields.$commentOn}
+					{#if contentOpen && lensPost.$commentOn}
 						<div>
 							<dt>Comment on</dt>
 							<dd>
 							<LensPostView
-								selection={select(EntityType.LensPost, lensPost.fields.$commentOn[EntityMetaKey.Selector])}
+								selection={select(EntityType.LensPost, lensPost.$commentOn[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 								
@@ -233,14 +233,14 @@
 						</div>
 					{/if}
 
-					{#if contentOpen && lensPost.fields.isEdited === true}
+					{#if contentOpen && lensPost.isEdited === true}
 						<div>
 							<dt>Edited</dt>
 							<dd>Yes</dd>
 						</div>
 					{/if}
 
-					{#if contentOpen && lensPost.fields.isDeleted === true}
+					{#if contentOpen && lensPost.isDeleted === true}
 						<div>
 							<dt>Deleted</dt>
 							<dd>Yes</dd>
@@ -252,27 +252,27 @@
 							metrics={[
 								{
 									label: 'Comments',
-									value: lensPost.fields.$$timestamps?.values.at(0)?.commentCount,
+									value: lensPost.$$timestamps?.values.at(0)?.commentCount,
 								},
 								{
 									label: 'Reposts',
-									value: lensPost.fields.$$timestamps?.values.at(0)?.repostCount,
+									value: lensPost.$$timestamps?.values.at(0)?.repostCount,
 								},
 								{
 									label: 'Quotes',
-									value: lensPost.fields.$$timestamps?.values.at(0)?.quoteCount,
+									value: lensPost.$$timestamps?.values.at(0)?.quoteCount,
 								},
 								{
 									label: 'Bookmarks',
-									value: lensPost.fields.$$timestamps?.values.at(0)?.bookmarkCount,
+									value: lensPost.$$timestamps?.values.at(0)?.bookmarkCount,
 								},
 								{
 									label: 'Collects',
-									value: lensPost.fields.$$timestamps?.values.at(0)?.collectCount,
+									value: lensPost.$$timestamps?.values.at(0)?.collectCount,
 								},
 								{
 									label: 'Reactions',
-									value: lensPost.fields.$$timestamps?.values.at(0)?.reactionCount,
+									value: lensPost.$$timestamps?.values.at(0)?.reactionCount,
 								},
 							]}
 						/>
@@ -323,8 +323,8 @@
 					placeholderText="Loading Lens publication…"
 				>
 					{#snippet children(lensPost)}
-						{#if lensPost.fields.text}
-							<p>{lensPost.fields.text}</p>
+						{#if lensPost.text}
+							<p>{lensPost.text}</p>
 						{:else}
 							<p data-text="muted">
 								No text yet.

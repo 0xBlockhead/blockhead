@@ -13,6 +13,7 @@ import {
 import {
 	EntityMetaKey,
 	EntityFieldType,
+	type EntityResolvedFieldValues,
 	type EntityFieldName,
 	type EntitySelector,
 	type EntityType,
@@ -63,11 +64,19 @@ export type EntityProxyEntitiesResource<
 	}
 )
 
+export type EntityProxyData<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+> = (
+	& EntityResourceData<_Schema, _EntityType>
+	& EntityResolvedFieldValues<_Schema, _EntityType>
+)
+
 export type EntityProxyResource<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
 > = (
-	& SvelteKitResource<EntityResourceData<_Schema, _EntityType>>
+	& SvelteKitResource<EntityProxyData<_Schema, _EntityType>>
 	& ((
 		selection?: SubscribeSelection<_Schema, _EntityType>
 	) => EntityProxyResource<_Schema, _EntityType>)
@@ -142,19 +151,59 @@ const resourceProperty = <_Data>(
 	return undefined
 }
 
-const entityReferenceSelector = (value: object) => {
-	if (!(EntityMetaKey.Selector in value))
-		return undefined
+const projectEntityData = (
+	data: EntityResourceData<Schema, EntityType<Schema>>
+): EntityProxyData<Schema, EntityType<Schema>> => ({
+	...data,
+	...data.fields,
+})
 
-	const selector = value[EntityMetaKey.Selector]
-	if (
-		selector == null
-		|| typeof selector !== 'object'
-	)
-		return undefined
+const projectResource = <_Input, _Output>(
+	resource: SvelteKitResource<_Input>,
+	project: (data: _Input) => _Output
+): SvelteKitResource<_Output> => ({
+	get current() {
+		const current = resource.current
+		return current === undefined ? undefined : project(current)
+	},
+	get loading() {
+		return resource.loading
+	},
+	get ready() {
+		return resource.ready
+	},
+	get error() {
+		return resource.error
+	},
+	get [Symbol.toStringTag]() {
+		return resource[Symbol.toStringTag]
+	},
+	then(onfulfilled, onrejected) {
+		return resource.then(
+			onfulfilled == null ?
+				undefined
+			:
+				(data) => onfulfilled(project(data)),
+			onrejected
+		)
+	},
+	catch(onrejected) {
+		return resource.then(project).catch(onrejected)
+	},
+	finally(onfinally) {
+		return resource.then(project).finally(onfinally)
+	},
+})
 
-	return selector
-}
+const projectReferenceData = (value: ({ [EntityMetaKey.Fields]?: object } & object) | undefined) => (
+	value == null ?
+		undefined
+	:
+		{
+			...value,
+			...(EntityMetaKey.Fields in value ? value[EntityMetaKey.Fields] : {}),
+		}
+)
 
 export function createEntityFieldProxy<
 	const _Schema extends Schema,
@@ -191,26 +240,6 @@ export function createEntityFieldProxy(
 		.find((definition) => definition.name === fieldName)
 	if (fieldDefinition == null)
 		throw new Error(`${entityType}.${fieldName} does not exist`)
-	const projectValue = (value: object | undefined) => {
-		if (
-			!(
-				fieldDefinition.type === EntityFieldType.EntityReference
-				|| fieldDefinition.type === EntityFieldType.EntitiesReference
-			)
-			|| value === undefined
-		)
-			return value
-
-		const selector = entityReferenceSelector(value)
-		return selector === undefined ?
-			value
-		:
-			createEntityProxy(
-				context,
-				fieldDefinition.entityType,
-				selector
-			)
-	}
 	const project = (
 		data: EntityFieldResourceData<Schema, EntityType<Schema>, EntityFieldName<Schema, EntityType<Schema>>>
 	): EntityFieldResourceData<Schema, EntityType<Schema>, EntityFieldName<Schema, EntityType<Schema>>> => (
@@ -225,14 +254,14 @@ export function createEntityFieldProxy(
 		&& Array.isArray(data.values) ?
 			{
 				...data,
-				values: data.values.map(projectValue),
-				entities: data.values.map(projectValue),
+				values: data.values.map(projectReferenceData),
+				entities: data.values.map(projectReferenceData),
 			}
 			: (
 				data !== undefined
 				&& data !== null
 				&& typeof data === 'object' ?
-					projectValue(data)
+					projectReferenceData(data)
 				:
 					data === null ? undefined : data
 			)
@@ -299,14 +328,17 @@ export function createEntityProxy(
 	entitySelector: object,
 	selection: SubscribeSelection<Schema, EntityType<Schema>> = {}
 ): object {
-	let resource: SvelteKitResource<EntityResourceData<Schema, EntityType<Schema>>> | undefined
-	const getResource = (): SvelteKitResource<EntityResourceData<Schema, EntityType<Schema>>> => {
+	let resource: SvelteKitResource<EntityProxyData<Schema, EntityType<Schema>>> | undefined
+	const getResource = (): SvelteKitResource<EntityProxyData<Schema, EntityType<Schema>>> => {
 		if (resource === undefined)
-			resource = subscribeEntity(
-				context,
-				entityType,
-				entitySelector,
-				selection
+			resource = projectResource(
+				subscribeEntity(
+					context,
+					entityType,
+					entitySelector,
+					selection
+				),
+				projectEntityData
 			)
 
 		return resource

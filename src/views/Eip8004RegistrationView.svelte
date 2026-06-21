@@ -69,10 +69,10 @@
 	{#snippet Icon()}
 		<ResourceBoundary resource={registration}>
 			{#snippet children(registration)}
-				{#if registration.fields.image}
+				{#if registration.image}
 					<IconComponent
-						src={registration.fields.image}
-						alt={registration.fields.name ?? selection.entitySelector.tokenId}
+						src={registration.image}
+						alt={registration.name ?? selection.entitySelector.tokenId}
 					/>
 				{/if}
 			{/snippet}
@@ -91,7 +91,7 @@
 			placeholderText="Loading ERC-8004 registration…"
 		>
 			{#snippet children(registration)}
-				{registration.fields.name ?? selection.entitySelector.tokenId}
+				{registration.name ?? selection.entitySelector.tokenId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -108,10 +108,10 @@
 			placeholderText="Loading ERC-8004 registration…"
 		>
 			{#snippet children(registration)}
-				{#if open && registration.fields.description}
+				{#if open && registration.description}
 					<p>
 						<TruncatedValue
-							value={registration.fields.description}
+							value={registration.description}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
@@ -141,25 +141,25 @@
 						</dd>
 					</div>
 
-					{#if open && registration.fields.agentUri}
+					{#if open && registration.agentUri}
 						<div>
 							<dt>Agent URI</dt>
 							<dd>
 								<a
-									href={registration.fields.agentUri}
+									href={registration.agentUri}
 									rel="noreferrer"
 									target="_blank"
-								>{registration.fields.agentUri}</a>
+								>{registration.agentUri}</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && registration.fields.$agentWallet}
+					{#if open && registration.$agentWallet}
 						<div>
 							<dt>Agent wallet</dt>
 							<dd>
 								<EvmAccountView
-									selection={select(EntityType.EvmAccount, registration.fields.$agentWallet[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmAccount, registration.$agentWallet[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 
 								/>
@@ -167,53 +167,53 @@
 						</div>
 					{/if}
 
-					{#if open && registration.fields.contactEndpoint}
+					{#if open && registration.contactEndpoint}
 						<div>
 							<dt>Contact endpoint</dt>
 							<dd>
 								<a
-									href={registration.fields.contactEndpoint}
+									href={registration.contactEndpoint}
 									rel="noreferrer"
 									target="_blank"
-								>{registration.fields.contactEndpoint}</a>
+								>{registration.contactEndpoint}</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && registration.fields.registrationTypeIri}
+					{#if open && registration.registrationTypeIri}
 						<div>
 							<dt>Registration type</dt>
-							<dd>{registration.fields.registrationTypeIri}</dd>
+							<dd>{registration.registrationTypeIri}</dd>
 						</div>
 					{/if}
 
-					{#if open && registration.fields.x402Support != null}
+					{#if open && registration.x402Support != null}
 						<div>
 							<dt>x402 support</dt>
-							<dd>{registration.fields.x402Support ? 'Yes' : 'No'}</dd>
+							<dd>{registration.x402Support ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 
-					{#if open && registration.fields.active != null}
+					{#if open && registration.active != null}
 						<div>
 							<dt>Active</dt>
-							<dd>{registration.fields.active ? 'Yes' : 'No'}</dd>
+							<dd>{registration.active ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 
-					{#if open && registration.fields.supportedTrust != null && registration.fields.supportedTrust.length > 0}
+					{#if open && registration.supportedTrust != null && registration.supportedTrust.length > 0}
 						<div>
 							<dt>Supported trust</dt>
-							<dd>{registration.fields.supportedTrust.join(', ')}</dd>
+							<dd>{registration.supportedTrust.join(', ')}</dd>
 						</div>
 					{/if}
 
-					{#if open && registration.fields.fetchedAt != null}
+					{#if open && registration.fetchedAt != null}
 						<div>
 							<dt>Fetched</dt>
 							<dd>
 								<Timestamp
-									timestamp={registration.fields.fetchedAt}
+									timestamp={registration.fetchedAt}
 								/>
 							</dd>
 						</div>

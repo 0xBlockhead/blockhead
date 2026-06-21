@@ -82,43 +82,43 @@
 		>
 			{#snippet children(block)}
 				<dl data-column-item="center">
-					{#if ('hash' in selection.entitySelector && selection.entitySelector.hash != null) || block.fields.hash != null}
+					{#if ('hash' in selection.entitySelector && selection.entitySelector.hash != null) || block.hash != null}
 						<div>
 							<dt>Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={'hash' in selection.entitySelector ? selection.entitySelector.hash : block.fields.hash}
+									value={'hash' in selection.entitySelector ? selection.entitySelector.hash : block.hash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-						{#if (block.fields.$$transactions?.values.length ?? 0) > 0}
+						{#if (block.$$transactions?.values.length ?? 0) > 0}
 							<div>
 								<dt>Transactions</dt>
-								<dd><NumberValue value={block.fields.$$transactions?.values.length ?? 0} /></dd>
+								<dd><NumberValue value={block.$$transactions?.values.length ?? 0} /></dd>
 							</div>
 						{/if}
 
-					{#if block.fields.timestampMs != null}
+					{#if block.timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
-							<dd><Timestamp timestamp={block.fields.timestampMs} /></dd>
+							<dd><Timestamp timestamp={block.timestampMs} /></dd>
 						</div>
 					{/if}
 
-					{#if open && block.fields.weightBytes != null}
+					{#if open && block.weightBytes != null}
 						<div>
 							<dt>Weight</dt>
-							<dd><NumberValue value={block.fields.weightBytes} /> bytes</dd>
+							<dd><NumberValue value={block.weightBytes} /> bytes</dd>
 						</div>
 					{/if}
 
-					{#if open && block.fields.difficulty != null}
+					{#if open && block.difficulty != null}
 						<div>
 							<dt>Difficulty</dt>
-							<dd><NumberValue value={block.fields.difficulty} /></dd>
+							<dd><NumberValue value={block.difficulty} /></dd>
 						</div>
 					{/if}
 				</dl>

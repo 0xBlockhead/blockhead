@@ -103,7 +103,7 @@
 				)}
 		>
 			{#snippet children(ens)}
-				{@const recordValue = ens.fields.textRecords?.[recordId]}
+				{@const recordValue = ens.textRecords?.[recordId]}
 				{@const textRecordLinkEntry = ensTextRecordLinks.find((candidate) => (
 					candidate.keys.some((candidateKey) => candidateKey === recordId)
 				))}

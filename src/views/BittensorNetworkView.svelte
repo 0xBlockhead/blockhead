@@ -105,7 +105,7 @@
 			{/snippet}
 
 			{#snippet children(network)}
-				{network.fields.name}
+				{network.name}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -118,8 +118,8 @@
 		<dl class="network-summary-head" data-column-item="center">
 			<ResourceBoundary resource={bittensorNetwork}>
 				{#snippet children(bittensorNetwork)}
-						{@const subnetCount = bittensorNetwork.fields.$$subnets?.values.length ?? 0}
-						{@const block = bittensorNetwork.fields.$$blocks?.values[0]}
+						{@const subnetCount = bittensorNetwork.$$subnets?.values.length ?? 0}
+						{@const block = bittensorNetwork.$$blocks?.values[0]}
 					{#if block !== undefined}
 						<div>
 							<dt>Finalized block</dt>
@@ -143,22 +143,22 @@
 
 			<ResourceBoundary resource={network}>
 				{#snippet children(network)}
-						{@const nativeAssetCount = network.fields.$$nativeAssets?.values.length ?? 0}
+						{@const nativeAssetCount = network.$$nativeAssets?.values.length ?? 0}
 						<div>
 							<dt>Environment</dt>
 							<dd>
-								{#if network.fields.environment !== undefined}
-									{networkEnvironmentByEnvironment[network.fields.environment].label}
+								{#if network.environment !== undefined}
+									{networkEnvironmentByEnvironment[network.environment].label}
 								{/if}
 							</dd>
 						</div>
 
-					{#if open && network.fields.$networkStack != null}
+					{#if open && network.$networkStack != null}
 						<div>
 							<dt>Stack</dt>
 							<dd>
 								<NetworkStackView
-									selection={select(EntityType.NetworkStack, network.fields.$networkStack[EntityMetaKey.Selector])}
+									selection={select(EntityType.NetworkStack, network.$networkStack[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -210,7 +210,7 @@
 			{#snippet SectionBittensorSubtensor()}
 				<ResourceBoundary resource={bittensorNetwork}>
 					{#snippet children(bittensorNetwork)}
-							{@const block = bittensorNetwork.fields.$$blocks?.values.at(0)}
+							{@const block = bittensorNetwork.$$blocks?.values.at(0)}
 						<div>
 							{#if block != null}
 								<BittensorBlockView
@@ -277,7 +277,7 @@
 			{#snippet SectionBittensorConsensus()}
 				<ResourceBoundary resource={network}>
 					{#snippet children(network)}
-							{@const consensusMechanismCount = network.fields.$$consensusMechanisms?.values.length ?? 0}
+							{@const consensusMechanismCount = network.$$consensusMechanisms?.values.length ?? 0}
 						<div>
 							{#if consensusMechanismCount > 0}
 								<p><strong>Consensus:</strong> {consensusMechanismCount}</p>
@@ -327,7 +327,7 @@
 			{#snippet SectionBittensorAssetsSubnets()}
 				<ResourceBoundary resource={bittensorNetwork}>
 					{#snippet children(bittensorNetwork)}
-							<p><strong>Subnet assets:</strong> {bittensorNetwork.fields.$$subnets?.values.length ?? 0} alpha-token markets are represented by subnet identities and DynamicInfo wire snapshots.</p>
+							<p><strong>Subnet assets:</strong> {bittensorNetwork.$$subnets?.values.length ?? 0} alpha-token markets are represented by subnet identities and DynamicInfo wire snapshots.</p>
 					{/snippet}
 				</ResourceBoundary>
 			{/snippet}

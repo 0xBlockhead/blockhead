@@ -94,9 +94,9 @@
 						<div>
 							<dt>Network</dt>
 							<dd>
-								{#if liquidityPosition.fields.$pool !== undefined}
+								{#if liquidityPosition.$pool !== undefined}
 									<EvmNetworkView
-										selection={select(EntityType.EvmNetwork, liquidityPosition.fields.$pool[EntityMetaKey.Selector].$network)}
+										selection={select(EntityType.EvmNetwork, liquidityPosition.$pool[EntityMetaKey.Selector].$network)}
 										layout={EntityLayout.Value}
 
 									/>
@@ -108,9 +108,9 @@
 						<div>
 							<dt>Pool</dt>
 							<dd>
-								{#if liquidityPosition.fields.$pool !== undefined}
+								{#if liquidityPosition.$pool !== undefined}
 									<LiquidityPoolView
-										selection={select(EntityType.LiquidityPool, liquidityPosition.fields.$pool[EntityMetaKey.Selector])}
+										selection={select(EntityType.LiquidityPool, liquidityPosition.$pool[EntityMetaKey.Selector])}
 										layout={EntityLayout.Value}
 										open={true}
 										showTypeAnnotation={false}
@@ -120,14 +120,14 @@
 								{/if}
 							</dd>
 						</div>
-						{#if open && liquidityPosition.fields.$pool !== undefined && liquidityPosition.fields.$owner !== undefined}
+						{#if open && liquidityPosition.$pool !== undefined && liquidityPosition.$owner !== undefined}
 							<div>
 								<dt>Owner</dt>
 								<dd>
 									<EvmNetworkAccountView
 										selection={select(EntityType.EvmNetworkAccount, {
-											$network: liquidityPosition.fields.$pool[EntityMetaKey.Selector].$network,
-											$actor: liquidityPosition.fields.$owner[EntityMetaKey.Selector],
+											$network: liquidityPosition.$pool[EntityMetaKey.Selector].$network,
+											$actor: liquidityPosition.$owner[EntityMetaKey.Selector],
 										})}
 										layout={EntityLayout.Value}
 
@@ -136,61 +136,61 @@
 							</div>
 						{/if}
 
-						{#if open && liquidityPosition.fields.tickLower !== undefined}
+						{#if open && liquidityPosition.tickLower !== undefined}
 							<div>
 								<dt>Tick lower</dt>
-								<dd>{String(liquidityPosition.fields.tickLower)}</dd>
+								<dd>{String(liquidityPosition.tickLower)}</dd>
 							</div>
 						{/if}
 
-						{#if open && liquidityPosition.fields.tickUpper !== undefined}
+						{#if open && liquidityPosition.tickUpper !== undefined}
 							<div>
 								<dt>Tick upper</dt>
-								<dd>{String(liquidityPosition.fields.tickUpper)}</dd>
+								<dd>{String(liquidityPosition.tickUpper)}</dd>
 							</div>
 						{/if}
 
-						{#if open && liquidityPosition.fields.liquidity !== undefined}
+						{#if open && liquidityPosition.liquidity !== undefined}
 							<div>
 								<dt>Liquidity</dt>
-								<dd>{String(liquidityPosition.fields.liquidity)}</dd>
+								<dd>{String(liquidityPosition.liquidity)}</dd>
 							</div>
 						{/if}
 
-						{#if open && liquidityPosition.fields.token0Owed !== undefined}
+						{#if open && liquidityPosition.token0Owed !== undefined}
 							<div>
 								<dt>Token0 owed</dt>
-								<dd>{String(liquidityPosition.fields.token0Owed)}</dd>
+								<dd>{String(liquidityPosition.token0Owed)}</dd>
 							</div>
 						{/if}
 
-						{#if open && liquidityPosition.fields.token1Owed !== undefined}
+						{#if open && liquidityPosition.token1Owed !== undefined}
 							<div>
 								<dt>Token1 owed</dt>
-								<dd>{String(liquidityPosition.fields.token1Owed)}</dd>
+								<dd>{String(liquidityPosition.token1Owed)}</dd>
 							</div>
 						{/if}
 
-						{#if open && liquidityPosition.fields.tokenId !== undefined}
+						{#if open && liquidityPosition.tokenId !== undefined}
 							<div>
 								<dt>Token id</dt>
-								<dd>{String(liquidityPosition.fields.tokenId)}</dd>
+								<dd>{String(liquidityPosition.tokenId)}</dd>
 							</div>
 						{/if}
 
-						{#if open && liquidityPosition.fields.origin}
+						{#if open && liquidityPosition.origin}
 							<div>
 								<dt>Origin</dt>
-								<dd>{liquidityPosition.fields.origin}</dd>
+								<dd>{liquidityPosition.origin}</dd>
 							</div>
 						{/if}
 
-					{#if liquidityPosition.fields.createdAtTimestamp !== undefined}
+					{#if liquidityPosition.createdAtTimestamp !== undefined}
 						<div>
 							<dt>Created at</dt>
 							<dd>
 								<Timestamp
-									timestamp={liquidityPosition.fields.createdAtTimestamp}
+									timestamp={liquidityPosition.createdAtTimestamp}
 								/>
 							</dd>
 						</div>

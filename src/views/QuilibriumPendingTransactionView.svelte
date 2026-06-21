@@ -60,10 +60,10 @@
 		>
 			{#snippet children(quilibriumPendingTransaction)}
 				<dl>
-					{#if quilibriumPendingTransaction.fields.transactionType != null}
+					{#if quilibriumPendingTransaction.transactionType != null}
 						<div>
 							<dt>Transaction Type</dt>
-							<dd>{quilibriumPendingTransaction.fields.transactionType}</dd>
+							<dd>{quilibriumPendingTransaction.transactionType}</dd>
 						</div>
 					{/if}
 				</dl>

@@ -98,37 +98,37 @@
 		<dl data-column-item="center">
 			{#if (
 				contentOpen
-				&& networkExecutionUpgrade.fields.protocol !== undefined
+				&& networkExecutionUpgrade.protocol !== undefined
 			)}
 				<div>
 					<dt>Execution fork</dt>
 					<dd>
-								{executionProtocolByProtocol[networkExecutionUpgrade.fields.protocol].label}
+								{executionProtocolByProtocol[networkExecutionUpgrade.protocol].label}
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen && networkExecutionUpgrade.fields.activationBlock !== undefined}
+			{#if contentOpen && networkExecutionUpgrade.activationBlock !== undefined}
 				<div>
 					<dt>Activation block</dt>
 					<dd>
-									<NumberValue value={networkExecutionUpgrade.fields.activationBlock} />
+									<NumberValue value={networkExecutionUpgrade.activationBlock} />
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen && networkExecutionUpgrade.fields.activationEpoch !== undefined}
+			{#if contentOpen && networkExecutionUpgrade.activationEpoch !== undefined}
 				<div>
 					<dt>Activation epoch</dt>
 					<dd>
-								<NumberValue value={networkExecutionUpgrade.fields.activationEpoch} />
+								<NumberValue value={networkExecutionUpgrade.activationEpoch} />
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen && networkExecutionUpgrade.fields.activationTimestampMs !== undefined}
+			{#if contentOpen && networkExecutionUpgrade.activationTimestampMs !== undefined}
 				<div>
 					<dt>Activation time</dt>
 					<dd>
 								<Timestamp
-									timestamp={networkExecutionUpgrade.fields.activationTimestampMs}
+									timestamp={networkExecutionUpgrade.activationTimestampMs}
 								/>
 					</dd>
 				</div>

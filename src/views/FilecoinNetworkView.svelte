@@ -99,7 +99,7 @@
 			{/snippet}
 
 			{#snippet children(network)}
-				<span>{network.fields.slug}</span>
+				<span>{network.slug}</span>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -111,7 +111,7 @@
 			{/snippet}
 
 			{#snippet children(network)}
-				{network.fields.name}
+				{network.name}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -126,7 +126,7 @@
 				<dl class="network-summary-head" data-column-item="center">
 					<ResourceBoundary resource={filecoinNetwork}>
 						{#snippet children(filecoinNetwork)}
-							{@const latestTimestamp = filecoinNetwork.fields.$$timestamps?.values[0]}
+							{@const latestTimestamp = filecoinNetwork.$$timestamps?.values[0]}
 							{#if latestTimestamp !== undefined}
 								<div>
 									<dt>Head tipset</dt>
@@ -147,9 +147,9 @@
 											placeholderText="Loading Filecoin timestamp…"
 										>
 											{#snippet children(latestTimestamp)}
-												{#if latestTimestamp.fields.$headTipset != null}
+												{#if latestTimestamp.$headTipset != null}
 													<FilecoinTipsetView
-														selection={select(EntityType.FilecoinTipset, latestTimestamp.fields.$headTipset[EntityMetaKey.Selector])}
+														selection={select(EntityType.FilecoinTipset, latestTimestamp.$headTipset[EntityMetaKey.Selector])}
 														layout={EntityLayout.Value}
 													/>
 												{/if}
@@ -161,17 +161,17 @@
 						{/snippet}
 					</ResourceBoundary>
 
-					{#if network.fields.environment !== undefined}
+					{#if network.environment !== undefined}
 						<div>
 							<dt>Environment</dt>
-							<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
+							<dd>{networkEnvironmentByEnvironment[network.environment].label}</dd>
 						</div>
 					{/if}
 
-					{#if (network.fields.$$nativeAssets?.values.length ?? 0) > 0}
+					{#if (network.$$nativeAssets?.values.length ?? 0) > 0}
 						<div>
 							<dt>Native assets</dt>
-							<dd>{network.fields.$$nativeAssets?.values.length ?? 0}</dd>
+							<dd>{network.$$nativeAssets?.values.length ?? 0}</dd>
 						</div>
 					{/if}
 				</dl>
@@ -258,7 +258,7 @@
 			{#snippet SectionFilecoinMiners({ id, label }: { id: string, label: string })}
 				<ResourceBoundary resource={filecoinNetwork}>
 					{#snippet children(filecoinNetwork)}
-						{@const latestTimestamp = filecoinNetwork.fields.$$timestamps?.values.at(0)}
+						{@const latestTimestamp = filecoinNetwork.$$timestamps?.values.at(0)}
 						{#if latestTimestamp != null}
 							<FilecoinMinersView
 								CollapsibleProps={{ canToggle: false }}

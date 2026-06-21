@@ -33,13 +33,13 @@
 	<ResourceBoundary resource={network}>
 		{#snippet children(network)}
 			{@const selector = { slug: params.networkSlug }}
-			{#if network.fields.namespace === NetworkNamespace.Bitcoin || network.fields.namespace === NetworkNamespace.BitcoinCash || network.fields.namespace === NetworkNamespace.Litecoin || network.fields.namespace === NetworkNamespace.Dogecoin || network.fields.namespace === NetworkNamespace.Zcash}
+			{#if network.namespace === NetworkNamespace.Bitcoin || network.namespace === NetworkNamespace.BitcoinCash || network.namespace === NetworkNamespace.Litecoin || network.namespace === NetworkNamespace.Dogecoin || network.namespace === NetworkNamespace.Zcash}
 				<UtxoBlockView selection={select(EntityType.UtxoBlock, { $network: selector, height: BigInt(params.height) })} />
-			{:else if network.fields.namespace === NetworkNamespace.Cosmos}
+			{:else if network.namespace === NetworkNamespace.Cosmos}
 				<CosmosBlockView selection={select(EntityType.CosmosBlock, { $network: selector, height: BigInt(params.height) })} />
-			{:else if network.fields.namespace === NetworkNamespace.Solana}
+			{:else if network.namespace === NetworkNamespace.Solana}
 				<SolanaBlockView selection={select(EntityType.SolanaBlock, { $network: selector, slot: BigInt(params.height) })} />
-			{:else if network.fields.namespace === NetworkNamespace.Polkadot}
+			{:else if network.namespace === NetworkNamespace.Polkadot}
 				<PolkadotBlockView selection={select(EntityType.PolkadotBlock, { $network: selector, blockNumber: BigInt(params.height) })} />
 			{:else}
 				<p data-text="muted">Block detail not available for this network type yet.</p>

@@ -115,7 +115,7 @@
 								getKey={(endpoint) => endpoint.url}
 								open={true}
 								items={endpointFieldNames.flatMap((fieldName) => (
-									parent.fields[fieldName]?.values ?? []
+									parent[fieldName]?.values ?? []
 								))}
 						{title}
 						UnorderedListProps={{ orientation: ListOrientation.Column }}

@@ -60,12 +60,12 @@
 		>
 			{#snippet children(dogecoinAuxPowMerkleBranch)}
 				<dl>
-					{#if dogecoinAuxPowMerkleBranch.fields.branchHashes?.values.length}
+					{#if dogecoinAuxPowMerkleBranch.branchHashes?.values.length}
 						<div>
 							<dt>Branch Hashes</dt>
 							<dd>
 								<ul>
-									{#each dogecoinAuxPowMerkleBranch.fields.branchHashes.values as branchHashes (branchHashes)}
+									{#each dogecoinAuxPowMerkleBranch.branchHashes.values as branchHashes (branchHashes)}
 										<li>
 											<TruncatedValue
 												value={branchHashes}
@@ -77,10 +77,10 @@
 						</div>
 					{/if}
 
-					{#if dogecoinAuxPowMerkleBranch.fields.index != null}
+					{#if dogecoinAuxPowMerkleBranch.index != null}
 						<div>
 							<dt>Index</dt>
-							<dd><NumberValue value={dogecoinAuxPowMerkleBranch.fields.index} /></dd>
+							<dd><NumberValue value={dogecoinAuxPowMerkleBranch.index} /></dd>
 						</div>
 					{/if}
 				</dl>

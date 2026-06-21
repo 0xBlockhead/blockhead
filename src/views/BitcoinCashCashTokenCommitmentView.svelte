@@ -57,12 +57,12 @@
 		>
 			{#snippet children(bitcoinCashCashTokenCommitment)}
 				<dl>
-					{#if bitcoinCashCashTokenCommitment.fields.commitmentHex != null}
+					{#if bitcoinCashCashTokenCommitment.commitmentHex != null}
 						<div>
 							<dt>Commitment Hex</dt>
 							<dd>
 								<TruncatedValue
-									value={bitcoinCashCashTokenCommitment.fields.commitmentHex}
+									value={bitcoinCashCashTokenCommitment.commitmentHex}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>

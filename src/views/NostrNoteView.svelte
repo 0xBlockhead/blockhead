@@ -87,12 +87,12 @@
 			placeholderText="Loading note…"
 		>
 			{#snippet children(note)}
-				{#if note.fields.content}
+				{#if note.content}
 					<TruncatedValue
 						endLength={8}
 						format={TruncatedValueFormat.Visual}
 						startLength={88}
-						value={note.fields.content}
+						value={note.content}
 					/>
 				{:else}
 					{#if Value}
@@ -108,10 +108,10 @@
 			resource={note}
 		>
 			{#snippet children(note)}
-				{#if note.fields.createdAt}
+				{#if note.createdAt}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={note.fields.createdAt}
+							timestamp={note.createdAt}
 						/>
 					</span>
 				{/if}
@@ -136,12 +136,12 @@
 					placeholderText="Loading note…"
 				>
 					{#snippet children(note)}
-						{#if note.fields.eventId}
+						{#if note.eventId}
 							<div>
 								<dt>Event id</dt>
 								<dd>
 									<TruncatedValue
-										value={note.fields.eventId}
+										value={note.eventId}
 										format={TruncatedValueFormat.Visual}
 									/>
 								</dd>
@@ -157,12 +157,12 @@
 							placeholderText="Loading note…"
 						>
 							{#snippet children(note)}
-						{#if note.fields.$author}
+						{#if note.$author}
 				<div>
 					<dt>Author</dt>
 					<dd>
 								<NostrProfileView
-									selection={select(EntityType.NostrProfile, note.fields.$author[EntityMetaKey.Selector])}
+									selection={select(EntityType.NostrProfile, note.$author[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 
 									open={false}
@@ -180,28 +180,28 @@
 							placeholderText="Loading note…"
 						>
 							{#snippet children(note)}
-						{#if note.fields.$replyToNote || note.fields.replyToEventId}
+						{#if note.$replyToNote || note.replyToEventId}
 				<div>
 					<dt>Reply to</dt>
 					<dd>
-									{#if note.fields.$replyToNote}
+									{#if note.$replyToNote}
 											<NostrNoteView
-												selection={select(EntityType.NostrNote, note.fields.$replyToNote[EntityMetaKey.Selector])}
+												selection={select(EntityType.NostrNote, note.$replyToNote[EntityMetaKey.Selector])}
 											layout={EntityLayout.Value}
 											open={false}
 											/>
-								{:else if note.fields.replyToEventId}
+								{:else if note.replyToEventId}
 									<a
 										data-link
 										href={resolve('/(social)/(nostr)/nostr/note/[eventId]', {
-											eventId: note.fields.replyToEventId,
+											eventId: note.replyToEventId,
 										})}
 									>
 										<TruncatedValue
 											endLength={12}
 											format={TruncatedValueFormat.Visual}
 											startLength={20}
-											value={note.fields.replyToEventId}
+											value={note.replyToEventId}
 										/>
 									</a>
 								{/if}
@@ -219,8 +219,8 @@
 				>
 					{#snippet children(note)}
 						{#if (
-							note.fields.rootEventId
-							&& note.fields.rootEventId !== note.fields.replyToEventId
+							note.rootEventId
+							&& note.rootEventId !== note.replyToEventId
 						)}
 							<div>
 								<dt>Thread root</dt>
@@ -228,14 +228,14 @@
 									<a
 										data-link
 										href={resolve('/(social)/(nostr)/nostr/note/[eventId]', {
-											eventId: note.fields.rootEventId,
+											eventId: note.rootEventId,
 										})}
 									>
 										<TruncatedValue
 											endLength={12}
 											format={TruncatedValueFormat.Visual}
 											startLength={20}
-											value={note.fields.rootEventId}
+											value={note.rootEventId}
 										/>
 									</a>
 								</dd>
@@ -278,8 +278,8 @@
 					placeholderText="Loading note…"
 				>
 					{#snippet children(note)}
-						{#if note.fields.content}
-							<p>{note.fields.content}</p>
+						{#if note.content}
+							<p>{note.content}</p>
 						{:else}
 							<div data-row="wrap align-center gap-2">
 								<p data-text="muted">

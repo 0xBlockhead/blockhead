@@ -62,21 +62,21 @@
 		>
 			{#snippet children(quilibriumProver)}
 				<dl>
-					{#if quilibriumProver.fields.publicKey != null}
+					{#if quilibriumProver.publicKey != null}
 						<div>
 							<dt>Public Key</dt>
 							<dd>
 								<TruncatedValue
-									value={quilibriumProver.fields.publicKey}
+									value={quilibriumProver.publicKey}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if quilibriumProver.fields.version != null}
+					{#if quilibriumProver.version != null}
 						<div>
 							<dt>Version</dt>
-							<dd>{quilibriumProver.fields.version}</dd>
+							<dd>{quilibriumProver.version}</dd>
 						</div>
 					{/if}
 				</dl>

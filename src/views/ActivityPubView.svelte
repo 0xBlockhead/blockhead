@@ -96,84 +96,84 @@
 				placeholderText="Loading ActivityPub federation slice…"
 			>
 				{#snippet children(activityPubNetwork)}
-					{#if activityPubNetwork.fields.registryLabel}
+					{#if activityPubNetwork.registryLabel}
 						<div>
 							<dt>Registry</dt>
-							<dd>{activityPubNetwork.fields.registryLabel}</dd>
+							<dd>{activityPubNetwork.registryLabel}</dd>
 						</div>
-					{:else if activityPubNetwork.fields.protocolName}
+					{:else if activityPubNetwork.protocolName}
 						<div>
 							<dt>Protocol</dt>
-							<dd>{activityPubNetwork.fields.protocolName}</dd>
+							<dd>{activityPubNetwork.protocolName}</dd>
 						</div>
 					{/if}
 
 					{#if open}
 						<div>
 							<dt>Actors</dt>
-							<dd>{String(activityPubNetwork.fields.$$activityPubActors?.values.length ?? 0)}</dd>
+							<dd>{String(activityPubNetwork.$$activityPubActors?.values.length ?? 0)}</dd>
 						</div>
 					{/if}
 
 					{#if open}
 						<div>
 							<dt>Statuses</dt>
-							<dd>{String(activityPubNetwork.fields.$$activityPubNotes?.values.length ?? 0)}</dd>
+							<dd>{String(activityPubNetwork.$$activityPubNotes?.values.length ?? 0)}</dd>
 						</div>
 					{/if}
 
-					{#if open && activityPubNetwork.fields.topology}
+					{#if open && activityPubNetwork.topology}
 						<div>
 							<dt>Topology</dt>
-							<dd>{activityPubNetwork.fields.topology}</dd>
+							<dd>{activityPubNetwork.topology}</dd>
 						</div>
 					{/if}
 
-					{#if open && activityPubNetwork.fields.homeUrl}
+					{#if open && activityPubNetwork.homeUrl}
 						<div>
 							<dt>Home</dt>
 							<dd>
-								<a href={activityPubNetwork.fields.homeUrl}>{activityPubNetwork.fields.homeUrl}</a>
+								<a href={activityPubNetwork.homeUrl}>{activityPubNetwork.homeUrl}</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && activityPubNetwork.fields.docsUrl}
+					{#if open && activityPubNetwork.docsUrl}
 						<div>
 							<dt>Docs</dt>
 							<dd>
-								<a href={activityPubNetwork.fields.docsUrl}>
-									{activityPubNetwork.fields.docsUrl}
+								<a href={activityPubNetwork.docsUrl}>
+									{activityPubNetwork.docsUrl}
 								</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && activityPubNetwork.fields.instanceTitle}
+					{#if open && activityPubNetwork.instanceTitle}
 						<div>
 							<dt>Mastodon instance title</dt>
-							<dd>{activityPubNetwork.fields.instanceTitle}</dd>
+							<dd>{activityPubNetwork.instanceTitle}</dd>
 						</div>
 					{/if}
 
-					{#if open && activityPubNetwork.fields.instanceVersion}
+					{#if open && activityPubNetwork.instanceVersion}
 						<div>
 							<dt>Mastodon instance version</dt>
-							<dd data-text="mono muted">{activityPubNetwork.fields.instanceVersion}</dd>
+							<dd data-text="mono muted">{activityPubNetwork.instanceVersion}</dd>
 						</div>
 					{/if}
 
-					{#if open && activityPubNetwork.fields.fediInstanceTitle}
+					{#if open && activityPubNetwork.fediInstanceTitle}
 						<div>
 							<dt>Fedi instance title</dt>
-							<dd>{activityPubNetwork.fields.fediInstanceTitle}</dd>
+							<dd>{activityPubNetwork.fediInstanceTitle}</dd>
 						</div>
 					{/if}
 
-					{#if open && activityPubNetwork.fields.fediInstanceVersion}
+					{#if open && activityPubNetwork.fediInstanceVersion}
 						<div>
 							<dt>Fedi instance version</dt>
-							<dd data-text="mono muted">{activityPubNetwork.fields.fediInstanceVersion}</dd>
+							<dd data-text="mono muted">{activityPubNetwork.fediInstanceVersion}</dd>
 						</div>
 					{/if}
 

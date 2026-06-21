@@ -65,12 +65,12 @@
 		>
 			{#snippet children(solanaAccount)}
 				<dl>
-					{#if solanaAccount.fields.$ownerProgram}
+					{#if solanaAccount.$ownerProgram}
 						<div>
 							<dt>Owner program</dt>
 							<dd>
 								<SolanaProgramView
-									selection={select(EntityType.SolanaProgram, solanaAccount.fields.$ownerProgram[EntityMetaKey.Selector])}
+									selection={select(EntityType.SolanaProgram, solanaAccount.$ownerProgram[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 									open={false}
@@ -79,33 +79,33 @@
 						</div>
 					{/if}
 
-					{#if solanaAccount.fields.lamports != null}
+					{#if solanaAccount.lamports != null}
 						<div>
 							<dt>Lamports</dt>
-							<dd><NumberValue value={solanaAccount.fields.lamports} /></dd>
+							<dd><NumberValue value={solanaAccount.lamports} /></dd>
 						</div>
 					{/if}
 
-					{#if solanaAccount.fields.rentEpoch != null}
+					{#if solanaAccount.rentEpoch != null}
 						<div>
 							<dt>Rent Epoch</dt>
-							<dd><NumberValue value={solanaAccount.fields.rentEpoch} /></dd>
+							<dd><NumberValue value={solanaAccount.rentEpoch} /></dd>
 						</div>
 					{/if}
 
-					{#if solanaAccount.fields.executable != null}
+					{#if solanaAccount.executable != null}
 						<div>
 							<dt>Executable</dt>
-							<dd>{solanaAccount.fields.executable ? 'Yes' : 'No'}</dd>
+							<dd>{solanaAccount.executable ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 
-					{#if solanaAccount.fields.dataEncoding != null}
+					{#if solanaAccount.dataEncoding != null}
 						<div>
 							<dt>Data Encoding</dt>
 							<dd>
 								<TruncatedValue
-									value={solanaAccount.fields.dataEncoding}
+									value={solanaAccount.dataEncoding}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>

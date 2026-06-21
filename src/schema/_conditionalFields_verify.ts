@@ -4,7 +4,9 @@ import {
 	conditionalOn,
 	EntityFieldCardinality,
 	EntityFieldType,
+	type EntityDefinition,
 	type EntityFieldDefinition,
+	type EntityResolvedFieldValues,
 } from './$schema.ts'
 import { EntityType } from './EntityType.ts'
 
@@ -74,7 +76,51 @@ const fieldsWithConditional = [
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		when: _condition,
 	},
+	{
+		name: 'requiredConditional',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+		when: _condition,
+	},
 ] as const satisfies readonly EntityFieldDefinition[]
+
+const verifySchema = [
+	{
+		entityType: 'Verify',
+		label: 'Verify',
+		labelPlural: 'Verifies',
+		selectors: [
+			{
+				name: 'kind',
+				fields: [
+					'kind',
+				],
+			},
+		],
+		fields: fieldsWithConditional,
+	},
+] as const satisfies readonly EntityDefinition[]
+
+const _activeResolvedFields: EntityResolvedFieldValues<typeof verifySchema, 'Verify'> = {
+	kind: VerifyType.A,
+	manyKinds: [],
+	indexedKinds: [],
+	requiredConditional: 'value',
+}
+
+const _inactiveResolvedFields: EntityResolvedFieldValues<typeof verifySchema, 'Verify'> = {
+	kind: VerifyType.B,
+	manyKinds: [],
+	indexedKinds: [],
+}
+
+// @ts-expect-error non-zero conditional fields are required when the discriminator branch is active
+const _missingRequiredConditionalResolvedFields: EntityResolvedFieldValues<typeof verifySchema, 'Verify'> = {
+	kind: VerifyType.A,
+	manyKinds: [],
+	indexedKinds: [],
+}
 
 // @ts-expect-error discriminator must be a real field
 conditionalOn(baseFields, 'missing', [VerifyType.A])

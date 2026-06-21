@@ -88,59 +88,59 @@
 		>
 			{#snippet children(block)}
 				<dl data-column-item="center">
-					{#if ('hash' in selection.entitySelector && selection.entitySelector.hash != null) || block.fields.hash != null}
+					{#if ('hash' in selection.entitySelector && selection.entitySelector.hash != null) || block.hash != null}
 						<div>
 							<dt>Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={'hash' in selection.entitySelector ? selection.entitySelector.hash : block.fields.hash}
+									value={'hash' in selection.entitySelector ? selection.entitySelector.hash : block.hash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-						{#if (block.fields.$$extrinsics?.values.length ?? 0) > 0}
+						{#if (block.$$extrinsics?.values.length ?? 0) > 0}
 							<div>
 								<dt>Extrinsics</dt>
-								<dd><NumberValue value={block.fields.$$extrinsics?.values.length ?? 0} /></dd>
+								<dd><NumberValue value={block.$$extrinsics?.values.length ?? 0} /></dd>
 							</div>
 						{/if}
 
-						{#if (block.fields.$$events?.values.length ?? 0) > 0}
+						{#if (block.$$events?.values.length ?? 0) > 0}
 							<div>
 								<dt>Events</dt>
-								<dd><NumberValue value={block.fields.$$events?.values.length ?? 0} /></dd>
+								<dd><NumberValue value={block.$$events?.values.length ?? 0} /></dd>
 							</div>
 						{/if}
 
-					{#if open && block.fields.$parent != null}
+					{#if open && block.$parent != null}
 						<div>
 							<dt>Parent</dt>
 							<dd>
-								Block #{block.fields.$parent[EntityMetaKey.Selector].blockNumber.toString()}
+								Block #{block.$parent[EntityMetaKey.Selector].blockNumber.toString()}
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && block.fields.stateRoot != null}
+					{#if open && block.stateRoot != null}
 						<div>
 							<dt>State root</dt>
 							<dd>
 								<TruncatedValue
-									value={block.fields.stateRoot}
+									value={block.stateRoot}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && block.fields.extrinsicsRoot != null}
+					{#if open && block.extrinsicsRoot != null}
 						<div>
 							<dt>Extrinsics root</dt>
 							<dd>
 								<TruncatedValue
-									value={block.fields.extrinsicsRoot}
+									value={block.extrinsicsRoot}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>

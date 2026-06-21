@@ -215,7 +215,7 @@
 				placeholderText="Loading reverse ENS…"
 			>
 				{#snippet children(reverseAccount)}
-					{#if reverseAccount.fields.$primaryName != null}
+					{#if reverseAccount.$primaryName != null}
 						<dl data-column-item="center">
 							<div>
 								<dt>Primary name</dt>
@@ -223,9 +223,9 @@
 									<a
 										data-link
 										href={resolve('/(explore)/(ens)/ens/name/[ensName]', {
-											ensName: reverseAccount.fields.$primaryName[EntityMetaKey.Selector].name,
+											ensName: reverseAccount.$primaryName[EntityMetaKey.Selector].name,
 										})}
-									>{reverseAccount.fields.$primaryName[EntityMetaKey.Selector].name}</a>
+									>{reverseAccount.$primaryName[EntityMetaKey.Selector].name}</a>
 								</dd>
 							</div>
 						</dl>

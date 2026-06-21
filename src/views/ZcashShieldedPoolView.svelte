@@ -58,17 +58,17 @@
 		>
 			{#snippet children(zcashShieldedPool)}
 				<dl data-column-item="center">
-					{#if zcashShieldedPool.fields.activationNetworkUpgrade != null}
+					{#if zcashShieldedPool.activationNetworkUpgrade != null}
 						<div>
 							<dt>Activation upgrade</dt>
-							<dd>{zcashShieldedPool.fields.activationNetworkUpgrade}</dd>
+							<dd>{zcashShieldedPool.activationNetworkUpgrade}</dd>
 						</div>
 					{/if}
 
-					{#if zcashShieldedPool.fields.noteProtocol != null}
+					{#if zcashShieldedPool.noteProtocol != null}
 						<div>
 							<dt>Note protocol</dt>
-							<dd>{zcashShieldedPool.fields.noteProtocol}</dd>
+							<dd>{zcashShieldedPool.noteProtocol}</dd>
 						</div>
 					{/if}
 				</dl>

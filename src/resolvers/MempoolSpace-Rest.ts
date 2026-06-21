@@ -23,7 +23,10 @@ import { UtxoOutputSelector } from '$/schema/UtxoOutput.ts'
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const assertBitcoinMainnet = (network: NetworkId) => {
-	if (stringify(network) !== stringify({ caip2: bitcoinNetworkBySlug.bitcoin.caip2 }))
+	if (
+		stringify(network) !== stringify({ caip2: bitcoinNetworkBySlug.bitcoin.caip2 })
+		&& stringify(network) !== stringify({ slug: 'bitcoin' })
+	)
 		throw new Error('MempoolSpace_Rest: unsupported Bitcoin network')
 }
 

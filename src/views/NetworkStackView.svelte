@@ -44,7 +44,7 @@
 			], fields: { label: true } })}
 		>
 			{#snippet children(stack)}
-				{stack.fields.label}
+				{stack.label}
 			{/snippet}
 		</ResourceBoundary>
 

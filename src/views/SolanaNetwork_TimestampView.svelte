@@ -48,10 +48,10 @@
 			placeholderText="Loading Solana network snapshot…"
 		>
 			{#snippet children(snapshot)}
-				{#if snapshot.fields.absoluteSlot !== undefined}
-					<NumberValue value={snapshot.fields.absoluteSlot} />
-				{:else if snapshot.fields.epoch !== undefined}
-					<NumberValue value={snapshot.fields.epoch} />
+				{#if snapshot.absoluteSlot !== undefined}
+					<NumberValue value={snapshot.absoluteSlot} />
+				{:else if snapshot.epoch !== undefined}
+					<NumberValue value={snapshot.epoch} />
 					epoch
 				{:else}
 					<Timestamp timestamp={selection.entitySelector.timestampMs} />
@@ -67,80 +67,80 @@
 		>
 			{#snippet children(snapshot)}
 				<dl data-column-item="center">
-					{#if snapshot.fields.absoluteSlot !== undefined}
+					{#if snapshot.absoluteSlot !== undefined}
 						<div>
 							<dt>Finalized slot</dt>
-							<dd><NumberValue value={snapshot.fields.absoluteSlot} /></dd>
+							<dd><NumberValue value={snapshot.absoluteSlot} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.fields.epoch !== undefined}
+					{#if snapshot.epoch !== undefined}
 						<div>
 							<dt>Epoch</dt>
-							<dd><NumberValue value={snapshot.fields.epoch} /></dd>
+							<dd><NumberValue value={snapshot.epoch} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.fields.slotIndex !== undefined && snapshot.fields.slotsInEpoch !== undefined}
+					{#if snapshot.slotIndex !== undefined && snapshot.slotsInEpoch !== undefined}
 						<div>
 							<dt>Epoch progress</dt>
-							<dd><NumberValue value={snapshot.fields.slotIndex} /> / <NumberValue value={snapshot.fields.slotsInEpoch} /></dd>
+							<dd><NumberValue value={snapshot.slotIndex} /> / <NumberValue value={snapshot.slotsInEpoch} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.fields.currentValidatorCount !== undefined}
+					{#if snapshot.currentValidatorCount !== undefined}
 						<div>
 							<dt>Current validators</dt>
-							<dd><NumberValue value={snapshot.fields.currentValidatorCount} /></dd>
+							<dd><NumberValue value={snapshot.currentValidatorCount} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.fields.delinquentValidatorCount !== undefined}
+					{#if snapshot.delinquentValidatorCount !== undefined}
 						<div>
 							<dt>Delinquent validators</dt>
-							<dd><NumberValue value={snapshot.fields.delinquentValidatorCount} /></dd>
+							<dd><NumberValue value={snapshot.delinquentValidatorCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.blockHeight !== undefined}
+					{#if open && snapshot.blockHeight !== undefined}
 						<div>
 							<dt>Block height</dt>
-							<dd><NumberValue value={snapshot.fields.blockHeight} /></dd>
+							<dd><NumberValue value={snapshot.blockHeight} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.transactionCount !== undefined}
+					{#if open && snapshot.transactionCount !== undefined}
 						<div>
 							<dt>Transactions</dt>
-							<dd><NumberValue value={snapshot.fields.transactionCount} /></dd>
+							<dd><NumberValue value={snapshot.transactionCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.totalActivatedStakeLamports !== undefined}
+					{#if open && snapshot.totalActivatedStakeLamports !== undefined}
 						<div>
 							<dt>Activated stake</dt>
-							<dd><NumberValue value={snapshot.fields.totalActivatedStakeLamports} /> lamports</dd>
+							<dd><NumberValue value={snapshot.totalActivatedStakeLamports} /> lamports</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.solanaCoreVersion != null}
+					{#if open && snapshot.solanaCoreVersion != null}
 						<div>
 							<dt>Core version</dt>
-							<dd>{snapshot.fields.solanaCoreVersion}</dd>
+							<dd>{snapshot.solanaCoreVersion}</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.featureSet !== undefined}
+					{#if open && snapshot.featureSet !== undefined}
 						<div>
 							<dt>Feature set</dt>
-							<dd><NumberValue value={snapshot.fields.featureSet} /></dd>
+							<dd><NumberValue value={snapshot.featureSet} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.health != null}
+					{#if open && snapshot.health != null}
 						<div>
 							<dt>Health</dt>
-							<dd>{snapshot.fields.health}</dd>
+							<dd>{snapshot.health}</dd>
 						</div>
 					{/if}
 				</dl>

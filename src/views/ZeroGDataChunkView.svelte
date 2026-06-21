@@ -72,21 +72,21 @@
 		>
 			{#snippet children(zeroGDataChunk)}
 				<dl>
-					{#if zeroGDataChunk.fields.chunkRoot != null}
+					{#if zeroGDataChunk.chunkRoot != null}
 						<div>
 							<dt>Chunk Root</dt>
 							<dd>
 								<TruncatedValue
-									value={zeroGDataChunk.fields.chunkRoot}
+									value={zeroGDataChunk.chunkRoot}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if zeroGDataChunk.fields.sizeBytes != null}
+					{#if zeroGDataChunk.sizeBytes != null}
 						<div>
 							<dt>Size Bytes</dt>
-							<dd><NumberValue value={zeroGDataChunk.fields.sizeBytes} /> bytes</dd>
+							<dd><NumberValue value={zeroGDataChunk.sizeBytes} /> bytes</dd>
 						</div>
 					{/if}
 				</dl>

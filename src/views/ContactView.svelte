@@ -99,21 +99,21 @@
 						</div>
 
 						{#if (
-							sharedAddress.fields.peerId !== undefined
-							&& sharedAddress.fields.peerId !== ''
+							sharedAddress.peerId !== undefined
+							&& sharedAddress.peerId !== ''
 						)}
 							<div>
 								<dt>Peer ID</dt>
-								<dd>{sharedAddress.fields.peerId}</dd>
+								<dd>{sharedAddress.peerId}</dd>
 							</div>
 						{/if}
 
-						{#if sharedAddress.fields.sharedAt !== undefined}
+						{#if sharedAddress.sharedAt !== undefined}
 							<div>
 								<dt>Shared at</dt>
 								<dd>
 									<Timestamp
-										timestamp={sharedAddress.fields.sharedAt}
+										timestamp={sharedAddress.sharedAt}
 									/>
 								</dd>
 							</div>
@@ -121,16 +121,16 @@
 
 						{#if (
 							open
-							&& sharedAddress.fields.$account !== undefined
-							&& sharedAddress.fields.$network !== undefined
+							&& sharedAddress.$account !== undefined
+							&& sharedAddress.$network !== undefined
 						)}
 							<div>
 								<dt>Account</dt>
 								<dd>
 									<EvmNetworkAccountView
 										selection={select(EntityType.EvmNetworkAccount, {
-											$network: sharedAddress.fields.$network[EntityMetaKey.Selector],
-											$actor: sharedAddress.fields.$account[EntityMetaKey.Selector],
+											$network: sharedAddress.$network[EntityMetaKey.Selector],
+											$actor: sharedAddress.$account[EntityMetaKey.Selector],
 										})}
 										layout={EntityLayout.Title}
 
@@ -140,29 +140,29 @@
 						{/if}
 						{#if (
 							open
-							&& sharedAddress.fields.$room !== undefined
+							&& sharedAddress.$room !== undefined
 							)}
 								<div>
 									<dt>Room</dt>
-									<dd>{sharedAddress.fields.$room[EntityMetaKey.Selector].id}</dd>
+									<dd>{sharedAddress.$room[EntityMetaKey.Selector].id}</dd>
 								</div>
 							{/if}
 						{#if (
 							open
-							&& sharedAddress.fields.$network !== undefined
+							&& sharedAddress.$network !== undefined
 							)}
 								<div>
 									<dt>Execution chain ID</dt>
-									<dd>{String(evmChainIdFromCaip2(`${sharedAddress.fields.$network[EntityMetaKey.Selector].caip2.namespace}:${sharedAddress.fields.$network[EntityMetaKey.Selector].caip2.reference}`))}</dd>
+									<dd>{String(evmChainIdFromCaip2(`${sharedAddress.$network[EntityMetaKey.Selector].caip2.namespace}:${sharedAddress.$network[EntityMetaKey.Selector].caip2.reference}`))}</dd>
 								</div>
 							{/if}
 						{#if (
 							open
-							&& (sharedAddress.fields.targetPeerIds ?? []).length
+							&& (sharedAddress.targetPeerIds ?? []).length
 						)}
 							<div>
 								<dt>Target peer IDs</dt>
-								<dd>{(sharedAddress.fields.targetPeerIds ?? []).join(', ')}</dd>
+								<dd>{(sharedAddress.targetPeerIds ?? []).join(', ')}</dd>
 							</div>
 						{/if}
 					</dl>
@@ -197,12 +197,12 @@
 				>
 					{#snippet children(sharedAddress)}
 						{#if (
-							(sharedAddress.fields.peerId === undefined || sharedAddress.fields.peerId === '')
-							&& !(sharedAddress.fields.$account !== undefined && sharedAddress.fields.$network !== undefined)
-							&& sharedAddress.fields.$room === undefined
-							&& sharedAddress.fields.$network === undefined
-							&& !(sharedAddress.fields.targetPeerIds ?? []).length
-							&& sharedAddress.fields.sharedAt === undefined
+							(sharedAddress.peerId === undefined || sharedAddress.peerId === '')
+							&& !(sharedAddress.$account !== undefined && sharedAddress.$network !== undefined)
+							&& sharedAddress.$room === undefined
+							&& sharedAddress.$network === undefined
+							&& !(sharedAddress.targetPeerIds ?? []).length
+							&& sharedAddress.sharedAt === undefined
 						)}
 							<div data-row="wrap align-center gap-2">
 								<p data-text="muted">

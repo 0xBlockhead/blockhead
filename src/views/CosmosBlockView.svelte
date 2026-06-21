@@ -95,34 +95,34 @@
 		>
 			{#snippet children(block)}
 				<dl data-column-item="center">
-					{#if block.fields.hash != null}
+					{#if block.hash != null}
 						<div>
 							<dt>Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={block.fields.hash}
+									value={block.hash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && block.fields.proposerConsensusAddress != null}
+					{#if open && block.proposerConsensusAddress != null}
 						<div>
 							<dt>Proposer consensus address</dt>
 							<dd>
 								<TruncatedValue
-									value={block.fields.proposerConsensusAddress}
+									value={block.proposerConsensusAddress}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if block.fields.timestampMs != null}
+					{#if block.timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
-							<dd><Timestamp timestamp={block.fields.timestampMs} /></dd>
+							<dd><Timestamp timestamp={block.timestampMs} /></dd>
 						</div>
 					{/if}
 				</dl>

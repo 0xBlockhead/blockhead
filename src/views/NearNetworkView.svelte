@@ -84,7 +84,7 @@
 			{/snippet}
 
 			{#snippet children(network)}
-				{network.fields.name}
+				{network.name}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -96,7 +96,7 @@
 	{#snippet Content({ open })}
 		<ResourceBoundary resource={network}>
 			{#snippet children(network)}
-				{@const block = network.fields.$$blocks?.values.at(0)}
+				{@const block = network.$$blocks?.values.at(0)}
 				<dl class="network-summary-head" data-column-item="center">
 					{#if block != null}
 						<div>
@@ -110,17 +110,17 @@
 						</div>
 					{/if}
 
-					{#if network.fields.environment !== undefined}
+					{#if network.environment !== undefined}
 						<div>
 							<dt>Environment</dt>
-							<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
+							<dd>{networkEnvironmentByEnvironment[network.environment].label}</dd>
 						</div>
 					{/if}
 
 					{#if open}
 						<div>
 							<dt>RPC endpoints</dt>
-							<dd>{network.fields.rpcEndpoints?.values.length ?? 0}</dd>
+							<dd>{network.rpcEndpoints?.values.length ?? 0}</dd>
 						</div>
 					{/if}
 
@@ -135,7 +135,7 @@
 						})}
 					>
 						{#snippet children(baseNetwork)}
-							{@const nativeAssetCount = baseNetwork.fields.$$nativeAssets?.values.length ?? 0}
+							{@const nativeAssetCount = baseNetwork.$$nativeAssets?.values.length ?? 0}
 							{#if nativeAssetCount > 0}
 								<div>
 									<dt>Native asset</dt>

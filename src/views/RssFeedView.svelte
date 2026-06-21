@@ -77,10 +77,10 @@
 	{#snippet Icon()}
 		<ResourceBoundary resource={feed}>
 			{#snippet children(feed)}
-				{#if feed.fields.imageUrl}
+				{#if feed.imageUrl}
 					<IconComponent
-						src={feed.fields.imageUrl}
-						alt={feed.fields.title ?? selection.entitySelector.feedUrl}
+						src={feed.imageUrl}
+						alt={feed.title ?? selection.entitySelector.feedUrl}
 					/>
 				{/if}
 			{/snippet}
@@ -100,7 +100,7 @@
 			placeholderText="Loading feed…"
 		>
 			{#snippet children(feed)}
-				{feed.fields.title ?? selection.entitySelector.feedUrl}
+				{feed.title ?? selection.entitySelector.feedUrl}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -110,10 +110,10 @@
 			resource={feed}
 		>
 			{#snippet children(feed)}
-				{#if feed.fields.lastBuildDate != null}
+				{#if feed.lastBuildDate != null}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={feed.fields.lastBuildDate}
+							timestamp={feed.lastBuildDate}
 						/>
 					</span>
 				{/if}
@@ -142,61 +142,61 @@
 				placeholderText="Loading feed…"
 			>
 				{#snippet children(feed)}
-					{#if feed.fields.description}
+					{#if feed.description}
 						<p>
 							<TruncatedValue
-								value={feed.fields.description}
+								value={feed.description}
 								format={TruncatedValueFormat.Visual}
 							/>
 						</p>
 					{/if}
 
-					{#if feed.fields.link}
+					{#if feed.link}
 						<div>
 							<dt>Link</dt>
 							<dd>
 								<a
-									href={feed.fields.link}
+									href={feed.link}
 									rel="noreferrer"
 									target="_blank"
-								>{feed.fields.link}</a>
+								>{feed.link}</a>
 							</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& feed.fields.siteUrl
+						&& feed.siteUrl
 					)}
 						<div>
 							<dt>Site</dt>
 							<dd>
 								<a
-									href={feed.fields.siteUrl}
+									href={feed.siteUrl}
 									rel="noreferrer"
 									target="_blank"
-								>{feed.fields.siteUrl}</a>
+								>{feed.siteUrl}</a>
 							</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& feed.fields.language
+						&& feed.language
 					)}
 						<div>
 							<dt>Language</dt>
-							<dd>{feed.fields.language}</dd>
+							<dd>{feed.language}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& feed.fields.lastBuildDate != null
+						&& feed.lastBuildDate != null
 					)}
 						<div>
 							<dt>Last build</dt>
 							<dd>
 								<Timestamp
-									timestamp={feed.fields.lastBuildDate}
+									timestamp={feed.lastBuildDate}
 								/>
 							</dd>
 						</div>

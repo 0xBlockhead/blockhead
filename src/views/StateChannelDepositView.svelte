@@ -78,10 +78,10 @@
 				placeholderText="…"
 			>
 				{#snippet children(deposit)}
-					{#if deposit.fields.$account?.[EntityMetaKey.Selector].address !== undefined}
+					{#if deposit.$account?.[EntityMetaKey.Selector].address !== undefined}
 						<EvmAccountView
-							selection={select(EntityType.EvmAccount, deposit.fields.$account[EntityMetaKey.Selector])}
-							href={`/account/${deposit.fields.$account[EntityMetaKey.Selector].address}`}
+							selection={select(EntityType.EvmAccount, deposit.$account[EntityMetaKey.Selector])}
+							href={`/account/${deposit.$account[EntityMetaKey.Selector].address}`}
 							layout={EntityLayout.Value}
 
 						/>
@@ -108,23 +108,23 @@
 				placeholderText="Loading channel deposit…"
 			>
 				{#snippet children(deposit)}
-					{#if deposit.fields.$account?.[EntityMetaKey.Selector].address !== undefined}
+					{#if deposit.$account?.[EntityMetaKey.Selector].address !== undefined}
 						<div>
 							<dt>Account</dt>
 							<dd>
-								{#if deposit.fields.$network !== undefined}
+								{#if deposit.$network !== undefined}
 									<EvmNetworkAccountView
 										selection={select(EntityType.EvmNetworkAccount, {
-											$network: deposit.fields.$network[EntityMetaKey.Selector],
-											$actor: deposit.fields.$account[EntityMetaKey.Selector],
+											$network: deposit.$network[EntityMetaKey.Selector],
+											$actor: deposit.$account[EntityMetaKey.Selector],
 										})}
 										layout={EntityLayout.Title}
 
 									/>
 								{:else}
 									<EvmAccountView
-										selection={select(EntityType.EvmAccount, deposit.fields.$account[EntityMetaKey.Selector])}
-										href={`/account/${deposit.fields.$account[EntityMetaKey.Selector].address}`}
+										selection={select(EntityType.EvmAccount, deposit.$account[EntityMetaKey.Selector])}
+										href={`/account/${deposit.$account[EntityMetaKey.Selector].address}`}
 										layout={EntityLayout.Title}
 
 									/>
@@ -133,30 +133,30 @@
 						</div>
 					{/if}
 
-					{#if deposit.fields.availableBalance !== undefined}
+					{#if deposit.availableBalance !== undefined}
 						<div>
 							<dt>Available</dt>
 							<dd>
-								<NumberValue value={deposit.fields.availableBalance} />
+								<NumberValue value={deposit.availableBalance} />
 							</dd>
 						</div>
 					{/if}
 
-					{#if deposit.fields.lockedBalance !== undefined}
+					{#if deposit.lockedBalance !== undefined}
 						<div>
 							<dt>Locked</dt>
 							<dd>
-								<NumberValue value={deposit.fields.lockedBalance} />
+								<NumberValue value={deposit.lockedBalance} />
 							</dd>
 						</div>
 					{/if}
 
-					{#if deposit.fields.lastUpdated !== undefined}
+					{#if deposit.lastUpdated !== undefined}
 						<div>
 							<dt>Last updated</dt>
 							<dd>
 								<Timestamp
-									timestamp={deposit.fields.lastUpdated}
+									timestamp={deposit.lastUpdated}
 								/>
 							</dd>
 						</div>

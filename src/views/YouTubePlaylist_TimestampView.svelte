@@ -87,7 +87,7 @@
 						metrics={[
 							{
 								label: 'Items',
-								value: youTubePlaylistTimestamp.fields.itemCount,
+								value: youTubePlaylistTimestamp.itemCount,
 							},
 						]}
 					/>

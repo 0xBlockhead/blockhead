@@ -116,8 +116,8 @@
 			{#snippet children(comment)}
 				<TruncatedValue
 					value={
-						comment.fields.text ?
-							comment.fields.text.replaceAll('\n', ' ')
+						comment.text ?
+							comment.text.replaceAll('\n', ' ')
 						:
 							selection.entitySelector.commentId
 					}
@@ -148,10 +148,10 @@
 			placeholderText="Loading YouTube comment…"
 		>
 			{#snippet children(comment)}
-				{#if comment.fields.text}
+				{#if comment.text}
 					<p>
 						<TruncatedValue
-							value={comment.fields.text}
+							value={comment.text}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
@@ -166,11 +166,11 @@
 					placeholderText="Loading YouTube comment…"
 				>
 					{#snippet children(comment)}
-						{#if comment.fields.authorDisplayName}
+						{#if comment.authorDisplayName}
 							<div>
 								<dt>Author</dt>
 								<dd>
-									{comment.fields.authorDisplayName}
+									{comment.authorDisplayName}
 								</dd>
 							</div>
 						{/if}
@@ -185,11 +185,11 @@
 							metrics={[
 								{
 									label: 'Likes',
-									value: comment.fields.$$timestamps?.values.at(0)?.likeCount,
+									value: comment.$$timestamps?.values.at(0)?.likeCount,
 								},
 								{
 									label: 'Replies',
-									value: comment.fields.$$timestamps?.values.at(0)?.replyCount,
+									value: comment.$$timestamps?.values.at(0)?.replyCount,
 								},
 							]}
 						/>
@@ -200,14 +200,14 @@
 					placeholderText="Loading YouTube comment…"
 				>
 					{#snippet children(comment)}
-						{#if comment.fields.publishedAtMs != null || comment.fields.publishedAt != null}
+						{#if comment.publishedAtMs != null || comment.publishedAt != null}
 							<div>
 								<dt>Published</dt>
 								<dd>
-									{#if comment.fields.publishedAtMs != null}
-										<Timestamp timestamp={comment.fields.publishedAtMs} />
-									{:else if comment.fields.publishedAt != null}
-										{comment.fields.publishedAt}
+									{#if comment.publishedAtMs != null}
+										<Timestamp timestamp={comment.publishedAtMs} />
+									{:else if comment.publishedAt != null}
+										{comment.publishedAt}
 									{/if}
 								</dd>
 							</div>
@@ -219,20 +219,20 @@
 					placeholderText="Loading YouTube comment…"
 				>
 					{#snippet children(comment)}
-						{#if comment.fields.$author || comment.fields.authorChannelId}
+						{#if comment.$author || comment.authorChannelId}
 							<div>
 								<dt>Channel</dt>
 								<dd>
-									{#if comment.fields.$author}
+									{#if comment.$author}
 										<YouTubeChannelView
-											selection={select(EntityType.YouTubeChannel, comment.fields.$author[EntityMetaKey.Selector])}
+											selection={select(EntityType.YouTubeChannel, comment.$author[EntityMetaKey.Selector])}
 											layout={EntityLayout.Value}
 
 											open={false}
 											/>
-									{:else if comment.fields.authorChannelId}
+									{:else if comment.authorChannelId}
 										<YouTubeChannelView
-											selection={select(EntityType.YouTubeChannel, { channelId: comment.fields.authorChannelId })}
+											selection={select(EntityType.YouTubeChannel, { channelId: comment.authorChannelId })}
 											layout={EntityLayout.Value}
 
 											open={false}
@@ -249,12 +249,12 @@
 					placeholderText="Loading YouTube comment…"
 				>
 					{#snippet children(comment)}
-						{#if comment.fields.$video !== undefined}
+						{#if comment.$video !== undefined}
 							<div>
 								<dt>Video</dt>
 								<dd>
 									<YouTubeVideoView
-										selection={select(EntityType.YouTubeVideo, comment.fields.$video[EntityMetaKey.Selector])}
+										selection={select(EntityType.YouTubeVideo, comment.$video[EntityMetaKey.Selector])}
 										layout={EntityLayout.Value}
 
 										open={false}
@@ -270,12 +270,12 @@
 					placeholderText="Loading YouTube comment…"
 				>
 					{#snippet children(comment)}
-						{#if comment.fields.$parentComment !== undefined}
+						{#if comment.$parentComment !== undefined}
 							<div>
 								<dt>Parent comment</dt>
 								<dd>
 									<YouTubeCommentView
-										selection={select(EntityType.YouTubeComment, comment.fields.$parentComment[EntityMetaKey.Selector])}
+										selection={select(EntityType.YouTubeComment, comment.$parentComment[EntityMetaKey.Selector])}
 										layout={EntityLayout.Value}
 
 									
@@ -322,8 +322,8 @@
 				placeholderText="Loading replies…"
 			>
 				{#snippet children(repliesParent)}
-					{#if repliesParent.fields.$parentComment === undefined}
-						{@const replyCount = repliesParent.fields.$$replies?.values.length ?? 0}
+					{#if repliesParent.$parentComment === undefined}
+						{@const replyCount = repliesParent.$$replies?.values.length ?? 0}
 							<EntitiesList
 								entityType={EntityType.YouTubeComment}
 								href={resolve('/(social)/(youtube)/youtube/comment/[videoId]/[commentId]', {

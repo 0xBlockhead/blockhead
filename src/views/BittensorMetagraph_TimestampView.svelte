@@ -48,11 +48,11 @@
 			placeholderText="Loading Bittensor metagraph…"
 		>
 			{#snippet children(metagraph)}
-				{#if metagraph.fields.neuronCount !== undefined}
-					<NumberValue value={metagraph.fields.neuronCount} />
+				{#if metagraph.neuronCount !== undefined}
+					<NumberValue value={metagraph.neuronCount} />
 					neurons
-				{:else if metagraph.fields.metagraphByteLength !== undefined}
-					<NumberValue value={metagraph.fields.metagraphByteLength} />
+				{:else if metagraph.metagraphByteLength !== undefined}
+					<NumberValue value={metagraph.metagraphByteLength} />
 					bytes
 				{:else}
 					Subnet {selection.entitySelector.$subnet.netuid}
@@ -73,17 +73,17 @@
 						<dd><Timestamp timestamp={selection.entitySelector.timestampMs} /></dd>
 					</div>
 
-					{#if metagraph.fields.metagraphByteLength !== undefined}
+					{#if metagraph.metagraphByteLength !== undefined}
 						<div>
 							<dt>Metagraph bytes</dt>
-							<dd><NumberValue value={metagraph.fields.metagraphByteLength} /></dd>
+							<dd><NumberValue value={metagraph.metagraphByteLength} /></dd>
 						</div>
 					{/if}
 
-					{#if open && metagraph.fields.neuronCount !== undefined}
+					{#if open && metagraph.neuronCount !== undefined}
 						<div>
 							<dt>Neurons</dt>
-							<dd><NumberValue value={metagraph.fields.neuronCount} /></dd>
+							<dd><NumberValue value={metagraph.neuronCount} /></dd>
 						</div>
 					{/if}
 				</dl>

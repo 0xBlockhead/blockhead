@@ -168,10 +168,10 @@
 				resource={coin}
 			>
 				{#snippet children(coin)}
-					{#if coin.fields.$logo?.[EntityMetaKey.Selector].url !== undefined}
+					{#if coin.$logo?.[EntityMetaKey.Selector].url !== undefined}
 						<IconComponent
-							src={coin.fields.$logo[EntityMetaKey.Selector].url}
-							alt={coin.fields.symbol ?? coin.fields.name ?? selection.entitySelector.coinId}
+							src={coin.$logo[EntityMetaKey.Selector].url}
+							alt={coin.symbol ?? coin.name ?? selection.entitySelector.coinId}
 						/>
 					{/if}
 				{/snippet}
@@ -192,7 +192,7 @@
 				placeholderText="Loading…"
 			>
 				{#snippet children(coin)}
-					{formatCoinHeadingLabel(coin.fields, selection.entitySelector.coinId)}
+					{formatCoinHeadingLabel(coin, selection.entitySelector.coinId)}
 				{/snippet}
 			</ResourceBoundary>
 		{:else}
@@ -222,10 +222,10 @@
 						<ResourceBoundary resource={coin}>
 							{#snippet children(coin)}
 									{#if (
-										coin.fields.$$timestamps?.values.at(0)?.marketCapRank != null
-										&& Number.isFinite(coin.fields.$$timestamps?.values.at(0)?.marketCapRank)
+										coin.$$timestamps?.values.at(0)?.marketCapRank != null
+										&& Number.isFinite(coin.$$timestamps?.values.at(0)?.marketCapRank)
 									)}
-										{String(coin.fields.$$timestamps?.values.at(0)?.marketCapRank)}
+										{String(coin.$$timestamps?.values.at(0)?.marketCapRank)}
 									{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -237,7 +237,7 @@
 					<dd>
 							<ResourceBoundary resource={coin}>
 								{#snippet children(coin)}
-									{@const marketCapUsd = coin.fields.$$timestamps?.values.at(0)?.marketCapUsd}
+									{@const marketCapUsd = coin.$$timestamps?.values.at(0)?.marketCapUsd}
 										{#if marketCapUsd !== undefined}
 											<CurrencyAmount
 												currency="USD"
@@ -253,12 +253,12 @@
 				{#if open}
 					<ResourceBoundary resource={coin}>
 						{#snippet children(coin)}
-								{#if coin.fields.$$timestamps?.values.length}
+								{#if coin.$$timestamps?.values.length}
 									<div>
 										<dt>Latest snapshot</dt>
 										<dd>
 										<Coin_TimestampView
-											selection={select(EntityType.Coin_Timestamp, coin.fields.$$timestamps.values
+											selection={select(EntityType.Coin_Timestamp, coin.$$timestamps.values
 											.toSorted((leftRow, rightRow) => (
 												rightRow[EntityMetaKey.Selector].timestampMs
 													- leftRow[EntityMetaKey.Selector].timestampMs
@@ -281,8 +281,8 @@
 					<dd>
 						<ResourceBoundary resource={coin}>
 							{#snippet children(coin)}
-								{#if coin.fields.decimals !== undefined}
-									{String(coin.fields.decimals)}
+								{#if coin.decimals !== undefined}
+									{String(coin.decimals)}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -304,7 +304,7 @@
 						sections={collapsibleTabsSections([
 							{ id: 'coin-instances', label: 'Instances' },
 							{ id: 'coin-wrapped', label: 'Wrapped' },
-							...(coin.fields.$$bridgeCapabilities?.values.length ? [{ id: 'coin-bridge-capabilities', label: 'Bridge capabilities' }] : []),
+							...(coin.$$bridgeCapabilities?.values.length ? [{ id: 'coin-bridge-capabilities', label: 'Bridge capabilities' }] : []),
 						])}
 						class="coin-view-collapsible-topology"
 						data-card
@@ -344,7 +344,7 @@
 						{/snippet}
 
 						{#snippet SectionCoinBridgeCapabilities({ id, label })}
-							{#if coin.fields.$$bridgeCapabilities?.values.length}
+							{#if coin.$$bridgeCapabilities?.values.length}
 								<CoinBridgeCapabilitiesView
 									CollapsibleProps={{ canToggle: false }}
 									href={resolve('/bridge')}

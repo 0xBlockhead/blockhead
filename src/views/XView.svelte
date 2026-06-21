@@ -89,43 +89,43 @@
 				{#snippet children(network)}
 						<div>
 							<dt>Profiles</dt>
-							<dd>{String(network.fields.$$xUsers?.values.length ?? 0)}</dd>
+							<dd>{String(network.$$xUsers?.values.length ?? 0)}</dd>
 						</div>
 						<div>
 							<dt>Posts</dt>
-							<dd>{String(network.fields.$$xPosts?.values.length ?? 0)}</dd>
+							<dd>{String(network.$$xPosts?.values.length ?? 0)}</dd>
 						</div>
 					{#if contentOpen}
 						<div>
 							<dt>Protocol</dt>
-							<dd>{network.fields.protocolName}</dd>
+							<dd>{network.protocolName}</dd>
 						</div>
 
 						<div>
 							<dt>Registry</dt>
-							<dd>{network.fields.registryLabel}</dd>
+							<dd>{network.registryLabel}</dd>
 						</div>
 
 						<div>
 							<dt>Topology</dt>
-							<dd>{network.fields.topology}</dd>
+							<dd>{network.topology}</dd>
 						</div>
 
 						<div>
 							<dt>Home</dt>
 							<dd>
-								<a href={network.fields.homeUrl}>
-									{network.fields.homeUrl}
+								<a href={network.homeUrl}>
+									{network.homeUrl}
 								</a>
 							</dd>
 						</div>
 
-						{#if network.fields.docsUrl != null && network.fields.docsUrl !== ''}
+						{#if network.docsUrl != null && network.docsUrl !== ''}
 							<div>
 								<dt>Docs</dt>
 								<dd>
-									<a href={network.fields.docsUrl}>
-										{network.fields.docsUrl}
+									<a href={network.docsUrl}>
+										{network.docsUrl}
 									</a>
 								</dd>
 							</div>

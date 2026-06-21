@@ -5,7 +5,7 @@ import { ConsensusMechanismId } from '$/constants/ConsensusMechanism.ts'
 import { currencyCatalogSnapshotTimestampMs, Iso4217 } from '$/constants/Currency.ts'
 import { ExecutionEnvironmentId } from '$/constants/ExecutionEnvironment.ts'
 import { catalogCoinSpotUsdMarketByCoinId } from '$/constants/MarketCatalog.ts'
-import { MarketAssetKind, MarketTimeIntervalUnit, type MarketIdLabelInput } from '$/constants/Market.ts'
+import { MarketAssetKind, MarketKind, MarketTimeIntervalUnit, type MarketIdLabelInput } from '$/constants/Market.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import { NetworkStackId } from '$/constants/NetworkStack.ts'
 import { ProposalCategory, SpecificationRealm } from '$/constants/SpecificationProposal.ts'
@@ -729,6 +729,14 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 			value: 1,
 		},
 		timestampMs: 1_700_000_000_000,
+	},
+	[EntityType.Market_Derivative_Timestamp]: {
+		$market: {
+			...ethUsdCatalogMarket,
+			marketKind: MarketKind.Perpetual,
+		},
+		timestampMs: 1_700_000_000_000,
+		feedKey: 'e2e-probe-derivative-market',
 	},
 	[EntityType.MarketVenue]: { marketVenueId: MarketVenueId.Binance },
 	[EntityType.Currency]: { iso4217: Iso4217.USD },

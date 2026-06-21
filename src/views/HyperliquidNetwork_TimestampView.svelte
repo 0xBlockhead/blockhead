@@ -48,11 +48,11 @@
 			placeholderText="Loading Hyperliquid network snapshot..."
 		>
 			{#snippet children(snapshot)}
-				{#if snapshot.fields.perpMarketCount !== undefined}
-					<NumberValue value={snapshot.fields.perpMarketCount} />
+				{#if snapshot.perpMarketCount !== undefined}
+					<NumberValue value={snapshot.perpMarketCount} />
 					perps
-				{:else if snapshot.fields.validatorCount !== undefined}
-					<NumberValue value={snapshot.fields.validatorCount} />
+				{:else if snapshot.validatorCount !== undefined}
+					<NumberValue value={snapshot.validatorCount} />
 					validators
 				{:else}
 					<Timestamp timestamp={selection.entitySelector.timestampMs} />
@@ -72,52 +72,52 @@
 		>
 			{#snippet children(snapshot)}
 				<dl data-column-item="center">
-					{#if snapshot.fields.perpMarketCount !== undefined}
+					{#if snapshot.perpMarketCount !== undefined}
 						<div>
 							<dt>Perp markets</dt>
-							<dd><NumberValue value={snapshot.fields.perpMarketCount} /></dd>
+							<dd><NumberValue value={snapshot.perpMarketCount} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.fields.spotPairCount !== undefined}
+					{#if snapshot.spotPairCount !== undefined}
 						<div>
 							<dt>Spot pairs</dt>
-							<dd><NumberValue value={snapshot.fields.spotPairCount} /></dd>
+							<dd><NumberValue value={snapshot.spotPairCount} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.fields.validatorCount !== undefined}
+					{#if snapshot.validatorCount !== undefined}
 						<div>
 							<dt>Validators</dt>
-							<dd><NumberValue value={snapshot.fields.validatorCount} /></dd>
+							<dd><NumberValue value={snapshot.validatorCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.activeValidatorCount !== undefined}
+					{#if open && snapshot.activeValidatorCount !== undefined}
 						<div>
 							<dt>Active validators</dt>
-							<dd><NumberValue value={snapshot.fields.activeValidatorCount} /></dd>
+							<dd><NumberValue value={snapshot.activeValidatorCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.jailedValidatorCount !== undefined}
+					{#if open && snapshot.jailedValidatorCount !== undefined}
 						<div>
 							<dt>Jailed validators</dt>
-							<dd><NumberValue value={snapshot.fields.jailedValidatorCount} /></dd>
+							<dd><NumberValue value={snapshot.jailedValidatorCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.spotAssetCount !== undefined}
+					{#if open && snapshot.spotAssetCount !== undefined}
 						<div>
 							<dt>Spot assets</dt>
-							<dd><NumberValue value={snapshot.fields.spotAssetCount} /></dd>
+							<dd><NumberValue value={snapshot.spotAssetCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.totalStake !== undefined}
+					{#if open && snapshot.totalStake !== undefined}
 						<div>
 							<dt>Total stake</dt>
-							<dd><NumberValue value={snapshot.fields.totalStake} /></dd>
+							<dd><NumberValue value={snapshot.totalStake} /></dd>
 						</div>
 					{/if}
 				</dl>

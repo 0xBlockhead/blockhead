@@ -91,10 +91,10 @@
 	{#snippet Icon()}
 		<ResourceBoundary resource={article}>
 			{#snippet children(article)}
-				{#if article.fields.imageUrl}
+				{#if article.imageUrl}
 					<IconComponent
-						src={article.fields.imageUrl}
-						alt={article.fields.title ?? selection.entitySelector.identifier}
+						src={article.imageUrl}
+						alt={article.title ?? selection.entitySelector.identifier}
 					/>
 				{/if}
 			{/snippet}
@@ -114,7 +114,7 @@
 			placeholderText="Loading article…"
 		>
 			{#snippet children(article)}
-				{article.fields.title ?? selection.entitySelector.identifier}
+				{article.title ?? selection.entitySelector.identifier}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -124,10 +124,10 @@
 			resource={article}
 		>
 			{#snippet children(article)}
-				{#if article.fields.publishedAt}
+				{#if article.publishedAt}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={article.fields.publishedAt}
+							timestamp={article.publishedAt}
 						/>
 					</span>
 				{/if}
@@ -150,22 +150,22 @@
 			placeholderText="Loading article…"
 		>
 			{#snippet children(article)}
-				{#if article.fields.summary}
+				{#if article.summary}
 					<p>
 						<TruncatedValue
-							value={article.fields.summary}
+							value={article.summary}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
 				{/if}
 
 				<dl data-column-item="center">
-					{#if open && article.fields.$author}
+					{#if open && article.$author}
 						<div>
 							<dt>Author</dt>
 							<dd>
 								<NostrProfileView
-									selection={select(EntityType.NostrProfile, article.fields.$author[EntityMetaKey.Selector])}
+									selection={select(EntityType.NostrProfile, article.$author[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 
 									open={false}
@@ -174,34 +174,34 @@
 						</div>
 					{/if}
 
-					{#if open && article.fields.pubkey}
+					{#if open && article.pubkey}
 						<div>
 							<dt>Author pubkey</dt>
 							<dd>
 								<TruncatedValue
-									value={article.fields.pubkey}
+									value={article.pubkey}
 									format={TruncatedValueFormat.Visual}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && article.fields.identifier}
+					{#if open && article.identifier}
 						<div>
 							<dt>Identifier</dt>
 							<dd>
 								<TruncatedValue
-									value={article.fields.identifier}
+									value={article.identifier}
 									format={TruncatedValueFormat.Visual}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && article.fields.kind}
+					{#if open && article.kind}
 						<div>
 							<dt>Kind</dt>
-							<dd>{article.fields.kind}</dd>
+							<dd>{article.kind}</dd>
 						</div>
 					{/if}
 				</dl>
@@ -239,8 +239,8 @@
 						placeholderText="Loading article…"
 					>
 						{#snippet children(article)}
-							{#if article.fields.content}
-								<Markdown content={article.fields.content} />
+							{#if article.content}
+								<Markdown content={article.content} />
 							{:else}
 								<p data-text="muted">
 									No article body yet.

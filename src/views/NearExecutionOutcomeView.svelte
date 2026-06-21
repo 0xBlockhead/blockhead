@@ -61,17 +61,17 @@
 		>
 			{#snippet children(nearExecutionOutcome)}
 				<dl>
-					{#if nearExecutionOutcome.fields.status != null}
+					{#if nearExecutionOutcome.status != null}
 						<div>
 							<dt>Status</dt>
-							<dd>{nearExecutionOutcome.fields.status}</dd>
+							<dd>{nearExecutionOutcome.status}</dd>
 						</div>
 					{/if}
 
-					{#if nearExecutionOutcome.fields.gasBurnt != null}
+					{#if nearExecutionOutcome.gasBurnt != null}
 						<div>
 							<dt>Gas Burnt</dt>
-							<dd><NumberValue value={nearExecutionOutcome.fields.gasBurnt} /></dd>
+							<dd><NumberValue value={nearExecutionOutcome.gasBurnt} /></dd>
 						</div>
 					{/if}
 				</dl>

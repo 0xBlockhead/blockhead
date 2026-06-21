@@ -88,12 +88,12 @@
 		>
 			{#snippet children(solanaInstruction)}
 				<dl>
-					{#if solanaInstruction.fields.$program != null}
+					{#if solanaInstruction.$program != null}
 						<div>
 							<dt>Program</dt>
 							<dd>
 								<SolanaProgramView
-									selection={select(EntityType.SolanaProgram, solanaInstruction.fields.$program[EntityMetaKey.Selector])}
+									selection={select(EntityType.SolanaProgram, solanaInstruction.$program[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 								/>
@@ -101,38 +101,38 @@
 						</div>
 					{/if}
 
-					{#if solanaInstruction.fields.parsedType != null}
+					{#if solanaInstruction.parsedType != null}
 						<div>
 							<dt>Parsed Type</dt>
-							<dd>{solanaInstruction.fields.parsedType}</dd>
+							<dd>{solanaInstruction.parsedType}</dd>
 						</div>
 					{/if}
 
-					{#if solanaInstruction.fields.data != null}
+					{#if solanaInstruction.data != null}
 						<div>
 							<dt>Data</dt>
 							<dd>
 								<TruncatedValue
-									value={solanaInstruction.fields.data}
+									value={solanaInstruction.data}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if solanaInstruction.fields.stackHeight != null}
+					{#if solanaInstruction.stackHeight != null}
 						<div>
 							<dt>Stack Height</dt>
-							<dd>{solanaInstruction.fields.stackHeight}</dd>
+							<dd>{solanaInstruction.stackHeight}</dd>
 						</div>
 					{/if}
 
-					{#if solanaInstruction.fields.$$accounts != null && solanaInstruction.fields.$$accounts.values.length}
+					{#if solanaInstruction.$$accounts != null && solanaInstruction.$$accounts.values.length}
 						<div>
 							<dt>Accounts</dt>
 							<dd>
 								<ul>
-									{#each solanaInstruction.fields.$$accounts.values as account (account[EntityMetaKey.Selector].pubkey)}
+									{#each solanaInstruction.$$accounts.values as account (account[EntityMetaKey.Selector].pubkey)}
 										<li>
 											<SolanaAccountView
 												selection={select(EntityType.SolanaAccount, account[EntityMetaKey.Selector])}

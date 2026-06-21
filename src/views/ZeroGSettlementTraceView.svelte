@@ -71,32 +71,32 @@
 		>
 			{#snippet children(zeroGSettlementTrace)}
 				<dl>
-					{#if zeroGSettlementTrace.fields.settlementTransactionHash != null}
+					{#if zeroGSettlementTrace.settlementTransactionHash != null}
 						<div>
 							<dt>Settlement Transaction Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={zeroGSettlementTrace.fields.settlementTransactionHash}
+									value={zeroGSettlementTrace.settlementTransactionHash}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if zeroGSettlementTrace.fields.acknowledgementSignature != null}
+					{#if zeroGSettlementTrace.acknowledgementSignature != null}
 						<div>
 							<dt>Acknowledgement Signature</dt>
 							<dd>
 								<TruncatedValue
-									value={zeroGSettlementTrace.fields.acknowledgementSignature}
+									value={zeroGSettlementTrace.acknowledgementSignature}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if zeroGSettlementTrace.fields.rewardAmount != null}
+					{#if zeroGSettlementTrace.rewardAmount != null}
 						<div>
 							<dt>Reward Amount</dt>
-							<dd><NumberValue value={zeroGSettlementTrace.fields.rewardAmount} /></dd>
+							<dd><NumberValue value={zeroGSettlementTrace.rewardAmount} /></dd>
 						</div>
 					{/if}
 				</dl>

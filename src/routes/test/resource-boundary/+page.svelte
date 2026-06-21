@@ -450,13 +450,13 @@
 
 	{#if showRealSelectedScalarResource}
 		<p data-testid="real-resource-direct-scalars">
-			{realSelectedScalar?.fields.name ?? ''}:{realSelectedScalar?.fields.status ?? ''}
+			{realSelectedScalar?.name ?? ''}:{realSelectedScalar?.status ?? ''}
 		</p>
 
 		<svelte:boundary>
 			{@const value = await realSelectedScalarResource}
 
-			<p data-testid="real-resource-awaited-scalars">{value.fields.name}:{value.fields.status}</p>
+			<p data-testid="real-resource-awaited-scalars">{value.name}:{value.status}</p>
 
 			{#snippet pending()}
 				<p data-testid="real-resource-awaited-scalars">pending</p>
@@ -468,7 +468,7 @@
 			placeholderText="Loading real selection scalar value"
 		>
 			{#snippet children(value)}
-				<p data-testid="real-resource-boundary-scalars">{value.fields.name}:{value.fields.status}</p>
+				<p data-testid="real-resource-boundary-scalars">{value.name}:{value.status}</p>
 			{/snippet}
 		</ResourceBoundary>
 	{/if}
@@ -478,12 +478,12 @@
 		placeholderText="Loading real selection boundary-only resource"
 	>
 		{#snippet children(value)}
-			<p data-testid="real-resource-boundary-only-scalars">{value.fields.name}:{value.fields.status}</p>
+			<p data-testid="real-resource-boundary-only-scalars">{value.name}:{value.status}</p>
 		{/snippet}
 	</ResourceBoundary>
 
 	<p data-testid="real-resource-direct-only-current">
-		{realSelectedDirectOnly?.fields.name ?? ''}:{realSelectedDirectOnly?.fields.status ?? ''}
+		{realSelectedDirectOnly?.name ?? ''}:{realSelectedDirectOnly?.status ?? ''}
 	</p>
 
 	<p data-testid="real-resource-direct-only-loading">
@@ -517,7 +517,7 @@
 			placeholderText="Loading real selection value"
 		>
 			{#snippet children(value)}
-				<p data-testid="real-resource-boundary-rows">{value.fields.$$proposalKinds.values.length}</p>
+				<p data-testid="real-resource-boundary-rows">{value.$$proposalKinds.values.length}</p>
 			{/snippet}
 		</ResourceBoundary>
 	{/if}
@@ -544,7 +544,7 @@
 		>
 			{#snippet children(value)}
 				<p data-testid="real-resource-boundary-count">
-					{value.fields.$$proposalKinds.values.length}:{value.fields.$$proposalKinds.totalCount ?? ''}
+					{value.$$proposalKinds.values.length}:{value.$$proposalKinds.totalCount ?? ''}
 				</p>
 			{/snippet}
 		</ResourceBoundary>

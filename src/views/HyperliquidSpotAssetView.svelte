@@ -61,17 +61,17 @@
 		>
 			{#snippet children(hyperliquidSpotAsset)}
 				<dl>
-					{#if hyperliquidSpotAsset.fields.name != null}
+					{#if hyperliquidSpotAsset.name != null}
 						<div>
 							<dt>Name</dt>
-							<dd>{hyperliquidSpotAsset.fields.name}</dd>
+							<dd>{hyperliquidSpotAsset.name}</dd>
 						</div>
 					{/if}
 
-					{#if hyperliquidSpotAsset.fields.szDecimals != null}
+					{#if hyperliquidSpotAsset.szDecimals != null}
 						<div>
 							<dt>Sz Decimals</dt>
-							<dd><NumberValue value={hyperliquidSpotAsset.fields.szDecimals} /></dd>
+							<dd><NumberValue value={hyperliquidSpotAsset.szDecimals} /></dd>
 						</div>
 					{/if}
 				</dl>

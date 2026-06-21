@@ -172,7 +172,7 @@
 		>
 			{#snippet children(proposalKind)}
 				<span>
-					{`${proposalKind.fields.label ?? selection.entitySelector.category}-${selection.entitySelector.number}`}
+					{`${proposalKind.label ?? selection.entitySelector.category}-${selection.entitySelector.number}`}
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -193,9 +193,9 @@
 					>
 						{#snippet children(proposalKind)}
 							{proposalHeadingTitle(
-								proposal.fields,
+								proposal,
 								selection.entitySelector,
-								proposalKind.fields.label ?? selection.entitySelector.category,
+								proposalKind.label ?? selection.entitySelector.category,
 							)}
 						{/snippet}
 					</ResourceBoundary>
@@ -224,8 +224,8 @@
 							placeholderText="Loading proposal…"
 						>
 							{#snippet children(proposal)}
-								{#if proposal.fields.documentCategory}
-									{proposal.fields.documentCategory}
+								{#if proposal.documentCategory}
+									{proposal.documentCategory}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -239,7 +239,7 @@
 							placeholderText="Loading proposal…"
 						>
 							{#snippet children(proposal)}
-								{proposal.fields.documentStatus}
+								{proposal.documentStatus}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -253,14 +253,14 @@
 								placeholderText="Loading specification realm…"
 							>
 								{#snippet children(specificationRealm)}
-									{#if specificationRealm.fields.slug != null}
+									{#if specificationRealm.slug != null}
 										<a href={resolve('/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]', {
-											specificationRealmSlug: specificationRealm.fields.slug,
+											specificationRealmSlug: specificationRealm.slug,
 										})}>
-											{specificationRealm.fields.label ?? selection.entitySelector.realm}
+											{specificationRealm.label ?? selection.entitySelector.realm}
 										</a>
 									{:else}
-										{specificationRealm.fields.label ?? selection.entitySelector.realm}
+										{specificationRealm.label ?? selection.entitySelector.realm}
 									{/if}
 								{/snippet}
 							</ResourceBoundary>
@@ -282,17 +282,17 @@
 										placeholderText="Loading proposal kind…"
 									>
 										{#snippet children(proposalKind)}
-											{#if specificationRealm.fields.slug != null && proposalKind.fields.slug != null}
+											{#if specificationRealm.slug != null && proposalKind.slug != null}
 												<a
 													href={resolve('/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]', {
-														specificationRealmSlug: specificationRealm.fields.slug,
-														proposalKindSlug: proposalKind.fields.slug,
+														specificationRealmSlug: specificationRealm.slug,
+														proposalKindSlug: proposalKind.slug,
 													})}
 												>
-													{proposalKind.fields.labelPlural ?? proposalKind.fields.label ?? selection.entitySelector.category}
+													{proposalKind.labelPlural ?? proposalKind.label ?? selection.entitySelector.category}
 												</a>
 											{:else}
-												{proposalKind.fields.labelPlural ?? proposalKind.fields.label ?? selection.entitySelector.category}
+												{proposalKind.labelPlural ?? proposalKind.label ?? selection.entitySelector.category}
 											{/if}
 										{/snippet}
 									</ResourceBoundary>
@@ -336,10 +336,10 @@
 			>
 				{#snippet children(proposal)}
 					<h3>Document body</h3>
-					{#if !proposal.fields.documentBody}
+					{#if !proposal.documentBody}
 						<p data-text="muted">No proposal body available.</p>
 					{:else}
-						<Markdown content={proposal.fields.documentBody} />
+						<Markdown content={proposal.documentBody} />
 					{/if}
 				{/snippet}
 			</ResourceBoundary>

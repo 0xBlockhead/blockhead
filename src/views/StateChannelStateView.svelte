@@ -78,8 +78,8 @@
 				placeholderText="…"
 			>
 				{#snippet children(state)}
-					{#if state.fields.version !== undefined}
-						<span>v{String(state.fields.version)}</span>
+					{#if state.version !== undefined}
+						<span>v{String(state.version)}</span>
 					{:else}
 						{#if Value}
 						{@render Value()}
@@ -103,76 +103,76 @@
 				placeholderText="Loading channel state…"
 			>
 				{#snippet children(state)}
-					{#if showParentChannel && state.fields.$channel?.[EntityMetaKey.Selector].id !== undefined}
+					{#if showParentChannel && state.$channel?.[EntityMetaKey.Selector].id !== undefined}
 						<div>
 							<dt>Channel</dt>
 							<dd>
 								<a
 									href={resolve('/(assets)/(channels)/channel/[channelId]', {
-										channelId: state.fields.$channel[EntityMetaKey.Selector].id,
+										channelId: state.$channel[EntityMetaKey.Selector].id,
 									})}
 								>
-									{state.fields.$channel[EntityMetaKey.Selector].id}
+									{state.$channel[EntityMetaKey.Selector].id}
 								</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if state.fields.version !== undefined}
+					{#if state.version !== undefined}
 						<div>
 							<dt>Version</dt>
-							<dd>{String(state.fields.version)}</dd>
+							<dd>{String(state.version)}</dd>
 						</div>
 					{/if}
 
-					{#if state.fields.intent !== undefined}
+					{#if state.intent !== undefined}
 						<div>
 							<dt>Intent</dt>
-							<dd>{String(state.fields.intent)}</dd>
+							<dd>{String(state.intent)}</dd>
 						</div>
 					{/if}
 
-					{#if state.fields.isFinal !== undefined}
+					{#if state.isFinal !== undefined}
 						<div>
 							<dt>Final</dt>
-							<dd>{state.fields.isFinal ? 'Yes' : 'No'}</dd>
+							<dd>{state.isFinal ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 
-					{#if state.fields.timestamp !== undefined}
+					{#if state.timestamp !== undefined}
 						<div>
 							<dt>Recorded at</dt>
 							<dd>
 								<Timestamp
-									timestamp={state.fields.timestamp}
+									timestamp={state.timestamp}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if state.fields.stateData !== undefined}
+					{#if state.stateData !== undefined}
 						<div>
 							<dt>State data</dt>
 							<dd>
 								<TruncatedValue
-									value={state.fields.stateData}
+									value={state.stateData}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && state.fields.allocations !== undefined}
+					{#if open && state.allocations !== undefined}
 						<div>
 							<dt>Allocations</dt>
-							<dd>{String(state.fields.allocations.length)}</dd>
+							<dd>{String(state.allocations.length)}</dd>
 						</div>
 					{/if}
 
-					{#if open && state.fields.signatures !== undefined}
+					{#if open && state.signatures !== undefined}
 						<div>
 							<dt>Signatures</dt>
-							<dd>{String(state.fields.signatures.length)}</dd>
+							<dd>{String(state.signatures.length)}</dd>
 						</div>
 					{/if}
 				{/snippet}

@@ -87,15 +87,15 @@
 						metrics={[
 							{
 								label: 'Subscribers',
-								value: youTubeChannelTimestamp.fields.subscriberCount,
+								value: youTubeChannelTimestamp.subscriberCount,
 							},
 							{
 								label: 'Videos',
-								value: youTubeChannelTimestamp.fields.videoCount,
+								value: youTubeChannelTimestamp.videoCount,
 							},
 							{
 								label: 'Views',
-								value: youTubeChannelTimestamp.fields.viewCount,
+								value: youTubeChannelTimestamp.viewCount,
 							},
 						]}
 					/>

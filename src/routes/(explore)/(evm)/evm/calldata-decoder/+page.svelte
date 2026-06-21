@@ -149,14 +149,14 @@
 
 	const functionSignatures = $derived(
 		selector ?
-			(selectorEntity.current?.fields.signatures ?? EMPTY_SIGNATURES)
+			(selectorEntity.current?.signatures ?? EMPTY_SIGNATURES)
 		:
 			EMPTY_SIGNATURES,
 	)
 
 	const eventSignatures = $derived(
 		topic ?
-			(topicEntity.current?.fields.signatures ?? EMPTY_SIGNATURES)
+			(topicEntity.current?.signatures ?? EMPTY_SIGNATURES)
 		:
 			EMPTY_SIGNATURES,
 	)
@@ -306,7 +306,7 @@
 														<a href={resolve('/(explore)/(evm)/evm/(selectors)/selector/[hex]', {
 															hex: normalizedSelector,
 														})}>
-															{signatureForDecode ?? row.fields.signatures?.[0] ?? normalizedSelector}
+															{signatureForDecode ?? row.signatures?.[0] ?? normalizedSelector}
 														</a>
 													</Heading>
 											{/snippet}
@@ -409,7 +409,7 @@
 														<a href={resolve('/(explore)/(evm)/evm/(topics)/topic/[hex]', {
 															hex: normalizedTopic,
 														})}>
-															{eventSignatureForDecode ?? row.fields.signatures?.[0] ?? normalizedTopic}
+															{eventSignatureForDecode ?? row.signatures?.[0] ?? normalizedTopic}
 														</a>
 													</Heading>
 											{/snippet}

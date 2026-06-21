@@ -57,19 +57,19 @@
 		>
 			{#snippet children(hyperliquidAccount)}
 				<dl>
-					{#if hyperliquidAccount.fields.accountRole != null}
+					{#if hyperliquidAccount.accountRole != null}
 						<div>
 							<dt>Role</dt>
-							<dd>{hyperliquidAccount.fields.accountRole}</dd>
+							<dd>{hyperliquidAccount.accountRole}</dd>
 						</div>
 					{/if}
 
-					{#if hyperliquidAccount.fields.$masterAccount != null}
+					{#if hyperliquidAccount.$masterAccount != null}
 						<div>
 							<dt>Master account</dt>
 							<dd>
 								<Self
-									selection={select(EntityType.HyperliquidAccount, hyperliquidAccount.fields.$masterAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.HyperliquidAccount, hyperliquidAccount.$masterAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 								/>
@@ -77,12 +77,12 @@
 						</div>
 					{/if}
 
-					{#if hyperliquidAccount.fields.$agentAccount != null}
+					{#if hyperliquidAccount.$agentAccount != null}
 						<div>
 							<dt>Agent account</dt>
 							<dd>
 								<Self
-									selection={select(EntityType.HyperliquidAccount, hyperliquidAccount.fields.$agentAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.HyperliquidAccount, hyperliquidAccount.$agentAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 								/>

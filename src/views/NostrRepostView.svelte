@@ -79,16 +79,16 @@
 			placeholderText="Loading repost…"
 		>
 			{#snippet children(repost)}
-				{#if repost.fields.$repostedArticle}
+				{#if repost.$repostedArticle}
 					<NostrArticleView
-						selection={select(EntityType.NostrArticle, repost.fields.$repostedArticle[EntityMetaKey.Selector])}
+						selection={select(EntityType.NostrArticle, repost.$repostedArticle[EntityMetaKey.Selector])}
 						layout={EntityLayout.Title}
 
 						open={false}
 						/>
-				{:else if repost.fields.repostedEventId}
+				{:else if repost.repostedEventId}
 					<TruncatedValue
-						value={repost.fields.repostedEventId}
+						value={repost.repostedEventId}
 						format={TruncatedValueFormat.Visual}
 					/>
 				{:else}
@@ -120,9 +120,9 @@
 							placeholderText="Loading repost…"
 						>
 							{#snippet children(repost)}
-								{#if repost.fields.eventId}
+								{#if repost.eventId}
 									<TruncatedValue
-										value={repost.fields.eventId}
+										value={repost.eventId}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{/if}
@@ -140,9 +140,9 @@
 						placeholderText="Loading repost…"
 					>
 						{#snippet children(repost)}
-							{#if repost.fields.createdAt != null}
+							{#if repost.createdAt != null}
 								<Timestamp
-									timestamp={repost.fields.createdAt}
+									timestamp={repost.createdAt}
 								/>
 							{/if}
 						{/snippet}
@@ -159,9 +159,9 @@
 							placeholderText="Loading repost…"
 						>
 							{#snippet children(repost)}
-								{#if repost.fields.$author}
+								{#if repost.$author}
 									<NostrProfileView
-										selection={select(EntityType.NostrProfile, repost.fields.$author[EntityMetaKey.Selector])}
+										selection={select(EntityType.NostrProfile, repost.$author[EntityMetaKey.Selector])}
 										layout={EntityLayout.Value}
 
 										open={false}
@@ -180,9 +180,9 @@
 							placeholderText="Loading repost…"
 						>
 							{#snippet children(repost)}
-								{#if repost.fields.$repostedNote}
+								{#if repost.$repostedNote}
 									<NostrNoteView
-										selection={select(EntityType.NostrNote, repost.fields.$repostedNote[EntityMetaKey.Selector])}
+										selection={select(EntityType.NostrNote, repost.$repostedNote[EntityMetaKey.Selector])}
 										layout={EntityLayout.Value}
 
 										open={false}
@@ -201,9 +201,9 @@
 							placeholderText="Loading repost…"
 						>
 							{#snippet children(repost)}
-								{#if repost.fields.$repostedArticle}
+								{#if repost.$repostedArticle}
 									<NostrArticleView
-										selection={select(EntityType.NostrArticle, repost.fields.$repostedArticle[EntityMetaKey.Selector])}
+										selection={select(EntityType.NostrArticle, repost.$repostedArticle[EntityMetaKey.Selector])}
 										layout={EntityLayout.Value}
 
 										open={false}

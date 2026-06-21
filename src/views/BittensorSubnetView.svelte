@@ -65,7 +65,7 @@
 			{/snippet}
 
 			{#snippet children(subnet)}
-				{subnet.fields.name ?? `Subnet ${subnet.fields.netuid}`}
+				{subnet.name ?? `Subnet ${subnet.netuid}`}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -79,27 +79,27 @@
 				<dl>
 					<div>
 						<dt>Netuid</dt>
-						<dd><NumberValue value={subnet.fields.netuid} /></dd>
+						<dd><NumberValue value={subnet.netuid} /></dd>
 					</div>
 
-					{#if subnet.fields.subnetInfoByteLength !== undefined}
+					{#if subnet.subnetInfoByteLength !== undefined}
 						<div>
 							<dt>Subnet info bytes</dt>
-							<dd><NumberValue value={subnet.fields.subnetInfoByteLength} /></dd>
+							<dd><NumberValue value={subnet.subnetInfoByteLength} /></dd>
 						</div>
 					{/if}
 
-					{#if subnet.fields.dynamicInfoByteLength !== undefined}
+					{#if subnet.dynamicInfoByteLength !== undefined}
 						<div>
 							<dt>Dynamic info bytes</dt>
-							<dd><NumberValue value={subnet.fields.dynamicInfoByteLength} /></dd>
+							<dd><NumberValue value={subnet.dynamicInfoByteLength} /></dd>
 						</div>
 					{/if}
 
-					{#if subnet.fields.hyperparamsByteLength !== undefined}
+					{#if subnet.hyperparamsByteLength !== undefined}
 						<div>
 							<dt>Hyperparams bytes</dt>
-							<dd><NumberValue value={subnet.fields.hyperparamsByteLength} /></dd>
+							<dd><NumberValue value={subnet.hyperparamsByteLength} /></dd>
 						</div>
 					{/if}
 				</dl>

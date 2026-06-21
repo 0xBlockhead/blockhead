@@ -63,10 +63,10 @@
 		>
 			{#snippet children(cosmosContract)}
 				<dl>
-					{#if cosmosContract.fields.codeId != null}
+					{#if cosmosContract.codeId != null}
 						<div>
 							<dt>Code ID</dt>
-							<dd><NumberValue value={cosmosContract.fields.codeId} /></dd>
+							<dd><NumberValue value={cosmosContract.codeId} /></dd>
 						</div>
 					{/if}
 				</dl>

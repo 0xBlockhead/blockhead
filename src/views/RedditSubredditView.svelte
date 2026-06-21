@@ -83,11 +83,11 @@
 			placeholderText="Loading subreddit…"
 		>
 			{#snippet children(subreddit)}
-				{#if subreddit.fields.$icon !== undefined}
+				{#if subreddit.$icon !== undefined}
 					<IconComponent
-						alt={subreddit.fields.title ?? selection.entitySelector.name}
+						alt={subreddit.title ?? selection.entitySelector.name}
 						shape={IconShape.Circle}
-						src={subreddit.fields.$icon[EntityMetaKey.Selector].url}
+						src={subreddit.$icon[EntityMetaKey.Selector].url}
 					/>
 				{/if}
 			{/snippet}
@@ -106,7 +106,7 @@
 			placeholderText="Loading subreddit…"
 		>
 			{#snippet children(subreddit)}
-				{subreddit.fields.title ?? `r/${selection.entitySelector.name}`}
+				{subreddit.title ?? `r/${selection.entitySelector.name}`}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -126,31 +126,31 @@
 			placeholderText="Loading subreddit…"
 		>
 			{#snippet children(subreddit)}
-				{#if subreddit.fields.publicDescription}
+				{#if subreddit.publicDescription}
 					<p>
 						<TruncatedValue
-							value={subreddit.fields.publicDescription}
+							value={subreddit.publicDescription}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
 				{/if}
 
 				<dl data-column-item="center">
-					{#if subreddit.fields.createdAt != null}
+					{#if subreddit.createdAt != null}
 						<div>
 							<dt>Created</dt>
 							<dd>
 								<Timestamp
-									timestamp={subreddit.fields.createdAt}
+									timestamp={subreddit.createdAt}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if subreddit.fields.over18 != null}
+					{#if subreddit.over18 != null}
 						<div>
 							<dt>NSFW</dt>
-							<dd>{subreddit.fields.over18 ? 'Yes' : 'No'}</dd>
+							<dd>{subreddit.over18 ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 				</dl>

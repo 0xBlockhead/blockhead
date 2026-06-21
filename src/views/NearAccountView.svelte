@@ -63,17 +63,17 @@
 		>
 			{#snippet children(nearAccount)}
 				<dl>
-					{#if nearAccount.fields.amountYoctoNear != null}
+					{#if nearAccount.amountYoctoNear != null}
 						<div>
 							<dt>Balance</dt>
-							<dd><NumberValue value={nearAccount.fields.amountYoctoNear} /> yoctoNEAR</dd>
+							<dd><NumberValue value={nearAccount.amountYoctoNear} /> yoctoNEAR</dd>
 						</div>
 					{/if}
 
-					{#if nearAccount.fields.storageUsageBytes != null}
+					{#if nearAccount.storageUsageBytes != null}
 						<div>
 							<dt>Storage Usage Bytes</dt>
-							<dd><NumberValue value={nearAccount.fields.storageUsageBytes} /> bytes</dd>
+							<dd><NumberValue value={nearAccount.storageUsageBytes} /> bytes</dd>
 						</div>
 					{/if}
 				</dl>

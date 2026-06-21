@@ -65,28 +65,28 @@
 			{#snippet children(ipfs)}
 				{#if (
 					open
-					&& ipfs.fields.text !== undefined
+					&& ipfs.text !== undefined
 				)}
 					<p>
 						<TruncatedValue
-							value={ipfs.fields.text}
+							value={ipfs.text}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
 				{/if}
 
 				<dl>
-					{#if ipfs.fields.gatewayUrl !== undefined}
+					{#if ipfs.gatewayUrl !== undefined}
 						<div>
 							<dt>Gateway URL</dt>
 							<dd>
 								<a
-									href={ipfs.fields.gatewayUrl}
+									href={ipfs.gatewayUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue
-										value={ipfs.fields.gatewayUrl}
+										value={ipfs.gatewayUrl}
 										format={TruncatedValueFormat.Visual}
 									/>
 								</a>
@@ -94,22 +94,22 @@
 						</div>
 					{/if}
 
-					{#if ipfs.fields.displayType !== undefined}
+					{#if ipfs.displayType !== undefined}
 						<div>
 							<dt>Display type</dt>
-							<dd>{ipfs.fields.displayType}</dd>
+							<dd>{ipfs.displayType}</dd>
 						</div>
 					{/if}
 
-					{#if ipfs.fields.contentType !== undefined}
+					{#if ipfs.contentType !== undefined}
 						<div>
 							<dt>Content type</dt>
 							<dd>
 								<TruncatedValue
-									value={ipfs.fields.contentType}
+									value={ipfs.contentType}
 									format={TruncatedValueFormat.Visual}
 								/>
-								{#if ipfs.fields.isContentTypeInferred}
+								{#if ipfs.isContentTypeInferred}
 									{' '}
 									<span data-text="muted">(inferred)</span>
 								{/if}
@@ -117,31 +117,31 @@
 						</div>
 					{/if}
 
-					{#if ipfs.fields.fileName !== undefined}
+					{#if ipfs.fileName !== undefined}
 						<div>
 							<dt>File name</dt>
 							<dd>
 								<TruncatedValue
-									value={ipfs.fields.fileName}
+									value={ipfs.fileName}
 									format={TruncatedValueFormat.Visual}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if ipfs.fields.extension !== undefined}
+					{#if ipfs.extension !== undefined}
 						<div>
 							<dt>Extension</dt>
-							<dd>.{ipfs.fields.extension}</dd>
+							<dd>.{ipfs.extension}</dd>
 						</div>
 					{/if}
 
-					{#if ipfs.fields.contentLength !== undefined}
+					{#if ipfs.contentLength !== undefined}
 						<div>
 							<dt>Content length</dt>
 							<dd>
 								<NumberValue
-									value={ipfs.fields.contentLength}
+									value={ipfs.contentLength}
 									options={{ maximumFractionDigits: 0 }}
 								/>
 								{' '}
@@ -152,22 +152,22 @@
 
 					{#if (
 						open
-						&& ipfs.fields.cidVersion !== undefined
+						&& ipfs.cidVersion !== undefined
 					)}
 						<div>
 							<dt>CID version</dt>
-							<dd>{String(ipfs.fields.cidVersion)}</dd>
+							<dd>{String(ipfs.cidVersion)}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& ipfs.fields.cidMultibase !== undefined
+						&& ipfs.cidMultibase !== undefined
 					)}
 						<div>
 							<dt>Multibase</dt>
 							<dd>
 								<TruncatedValue
-									value={ipfs.fields.cidMultibase}
+									value={ipfs.cidMultibase}
 									format={TruncatedValueFormat.Visual}
 								/>
 							</dd>
@@ -175,31 +175,31 @@
 					{/if}
 					{#if (
 						open
-						&& ipfs.fields.cidMulticodecCode !== undefined
+						&& ipfs.cidMulticodecCode !== undefined
 					)}
 						<div>
 							<dt>Multicodec code</dt>
-							<dd>{String(ipfs.fields.cidMulticodecCode)}</dd>
+							<dd>{String(ipfs.cidMulticodecCode)}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& ipfs.fields.cidMultihashCode !== undefined
+						&& ipfs.cidMultihashCode !== undefined
 					)}
 						<div>
 							<dt>Multihash code</dt>
-							<dd>{String(ipfs.fields.cidMultihashCode)}</dd>
+							<dd>{String(ipfs.cidMultihashCode)}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& ipfs.fields.cidMultihashDigestHex !== undefined
+						&& ipfs.cidMultihashDigestHex !== undefined
 					)}
 						<div>
 							<dt>Multihash digest</dt>
 							<dd>
 								<TruncatedValue
-									value={ipfs.fields.cidMultihashDigestHex}
+									value={ipfs.cidMultihashDigestHex}
 									format={TruncatedValueFormat.Visual}
 								/>
 							</dd>
@@ -207,23 +207,23 @@
 					{/if}
 					{#if (
 						open
-						&& ipfs.fields.isCidSubdomainSafe !== undefined
+						&& ipfs.isCidSubdomainSafe !== undefined
 					)}
 						<div>
 							<dt>Subdomain-safe</dt>
-							<dd>{ipfs.fields.isCidSubdomainSafe ? 'Yes' : 'No'}</dd>
+							<dd>{ipfs.isCidSubdomainSafe ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& ipfs.fields.$media?.[EntityMetaKey.Selector].url !== undefined
+						&& ipfs.$media?.[EntityMetaKey.Selector].url !== undefined
 					)}
 						<div>
 							<dt>Media</dt>
 							<dd>
 								<Media
-									media={{ url: ipfs.fields.$media[EntityMetaKey.Selector].url }}
-									alt={ipfs.fields.fileName ?? ''}
+									media={{ url: ipfs.$media[EntityMetaKey.Selector].url }}
+									alt={ipfs.fileName ?? ''}
 								/>
 							</dd>
 						</div>
@@ -317,88 +317,88 @@
 					>
 						{#snippet children(ipfs)}
 							<div>
-								{#if ipfs.fields.canonicalUri !== undefined}
+								{#if ipfs.canonicalUri !== undefined}
 									<div>
 										<dt>Canonical URI</dt>
 										<dd>
 											<TruncatedValue
-												value={ipfs.fields.canonicalUri}
+												value={ipfs.canonicalUri}
 												format={TruncatedValueFormat.Visual}
 											/>
 										</dd>
 									</div>
 								{/if}
 
-								{#if ipfs.fields.gatewayOrigin !== undefined}
+								{#if ipfs.gatewayOrigin !== undefined}
 									<div>
 										<dt>Gateway origin</dt>
 										<dd>
 											<TruncatedValue
-												value={ipfs.fields.gatewayOrigin}
+												value={ipfs.gatewayOrigin}
 												format={TruncatedValueFormat.Visual}
 											/>
 										</dd>
 									</div>
 								{/if}
 
-								{#if ipfs.fields.cidVersion !== undefined}
+								{#if ipfs.cidVersion !== undefined}
 									<div>
 										<dt>CID version</dt>
-										<dd>{String(ipfs.fields.cidVersion)}</dd>
+										<dd>{String(ipfs.cidVersion)}</dd>
 									</div>
 								{/if}
 
-								{#if ipfs.fields.cidMultibase !== undefined}
+								{#if ipfs.cidMultibase !== undefined}
 									<div>
 										<dt>Multibase</dt>
 										<dd>
 											<TruncatedValue
-												value={ipfs.fields.cidMultibase}
+												value={ipfs.cidMultibase}
 												format={TruncatedValueFormat.Visual}
 											/>
 										</dd>
 									</div>
 								{/if}
 
-								{#if ipfs.fields.cidMulticodecCode !== undefined}
+								{#if ipfs.cidMulticodecCode !== undefined}
 									<div>
 										<dt>Multicodec code</dt>
-										<dd>{String(ipfs.fields.cidMulticodecCode)}</dd>
+										<dd>{String(ipfs.cidMulticodecCode)}</dd>
 									</div>
 								{/if}
 
-								{#if ipfs.fields.cidMultihashCode !== undefined}
+								{#if ipfs.cidMultihashCode !== undefined}
 									<div>
 										<dt>Multihash code</dt>
-										<dd>{String(ipfs.fields.cidMultihashCode)}</dd>
+										<dd>{String(ipfs.cidMultihashCode)}</dd>
 									</div>
 								{/if}
 
-								{#if ipfs.fields.cidMultihashDigestHex !== undefined}
+								{#if ipfs.cidMultihashDigestHex !== undefined}
 									<div>
 										<dt>Multihash digest</dt>
 										<dd>
 											<TruncatedValue
-												value={ipfs.fields.cidMultihashDigestHex}
+												value={ipfs.cidMultihashDigestHex}
 												format={TruncatedValueFormat.Visual}
 											/>
 										</dd>
 									</div>
 								{/if}
 
-								{#if ipfs.fields.isCidSubdomainSafe !== undefined}
+								{#if ipfs.isCidSubdomainSafe !== undefined}
 									<div>
 										<dt>Subdomain-safe</dt>
-										<dd>{ipfs.fields.isCidSubdomainSafe ? 'Yes' : 'No'}</dd>
+										<dd>{ipfs.isCidSubdomainSafe ? 'Yes' : 'No'}</dd>
 									</div>
 								{/if}
 
-								{#if ipfs.fields.contentLength !== undefined}
+								{#if ipfs.contentLength !== undefined}
 									<div>
 										<dt>Content length</dt>
 										<dd>
 											<NumberValue
-												value={ipfs.fields.contentLength}
+												value={ipfs.contentLength}
 												options={{ maximumFractionDigits: 0 }}
 											/>
 											{' '}
@@ -407,34 +407,34 @@
 									</div>
 								{/if}
 
-								{#if ipfs.fields.fileName !== undefined}
+								{#if ipfs.fileName !== undefined}
 									<div>
 										<dt>File name</dt>
 										<dd>
 											<TruncatedValue
-												value={ipfs.fields.fileName}
+												value={ipfs.fileName}
 												format={TruncatedValueFormat.Visual}
 											/>
 										</dd>
 									</div>
 								{/if}
 
-								{#if ipfs.fields.extension !== undefined}
+								{#if ipfs.extension !== undefined}
 									<div>
 										<dt>Extension</dt>
-										<dd>.{ipfs.fields.extension}</dd>
+										<dd>.{ipfs.extension}</dd>
 									</div>
 								{/if}
 
-								{#if ipfs.fields.contentType !== undefined}
+								{#if ipfs.contentType !== undefined}
 									<div>
 										<dt>Content type</dt>
 										<dd>
 											<TruncatedValue
-												value={ipfs.fields.contentType}
+												value={ipfs.contentType}
 												format={TruncatedValueFormat.Visual}
 											/>
-											{#if ipfs.fields.isContentTypeInferred}
+											{#if ipfs.isContentTypeInferred}
 												{' '}
 												<span data-text="muted">(inferred)</span>
 											{/if}
@@ -442,10 +442,10 @@
 									</div>
 								{/if}
 
-								{#if ipfs.fields.displayType !== undefined}
+								{#if ipfs.displayType !== undefined}
 									<div>
 										<dt>Display type</dt>
-										<dd>{ipfs.fields.displayType}</dd>
+										<dd>{ipfs.displayType}</dd>
 									</div>
 								{/if}
 							</div>
@@ -468,8 +468,8 @@
 						placeholderText="Loading content…"
 					>
 						{#snippet children(ipfs)}
-							{#if ipfs.fields.text !== undefined}
-								<pre>{ipfs.fields.text}</pre>
+							{#if ipfs.text !== undefined}
+								<pre>{ipfs.text}</pre>
 							{:else}
 								<p data-text="muted">No text content available.</p>
 							{/if}

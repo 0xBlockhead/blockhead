@@ -59,10 +59,10 @@
 		>
 			{#snippet children(polkadotPallet)}
 				<dl>
-					{#if polkadotPallet.fields.index != null}
+					{#if polkadotPallet.index != null}
 						<div>
 							<dt>Index</dt>
-							<dd><NumberValue value={polkadotPallet.fields.index} /></dd>
+							<dd><NumberValue value={polkadotPallet.index} /></dd>
 						</div>
 					{/if}
 				</dl>

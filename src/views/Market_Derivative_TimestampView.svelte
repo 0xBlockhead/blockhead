@@ -67,8 +67,8 @@
 			resource={derivativeTimestamp}
 		>
 			{#snippet children(derivativeTimestamp)}
-				{#if derivativeTimestamp.fields.fundingRate !== undefined}
-					{String(derivativeTimestamp.fields.fundingRate)}%
+				{#if derivativeTimestamp.fundingRate !== undefined}
+					{String(derivativeTimestamp.fundingRate)}%
 				{:else}
 					<Timestamp
 						timestamp={selection.entitySelector.timestampMs}
@@ -84,8 +84,8 @@
 			resource={derivativeTimestamp}
 		>
 			{#snippet children(derivativeTimestamp)}
-				{#if derivativeTimestamp.fields.fundingRate !== undefined}
-					{String(derivativeTimestamp.fields.fundingRate)}%
+				{#if derivativeTimestamp.fundingRate !== undefined}
+					{String(derivativeTimestamp.fundingRate)}%
 				{:else}
 					<Timestamp
 						timestamp={selection.entitySelector.timestampMs}
@@ -117,21 +117,21 @@
 						</dd>
 					</div>
 
-					{#if derivativeTimestamp.fields.fundingRate !== undefined}
+					{#if derivativeTimestamp.fundingRate !== undefined}
 						<div>
 							<dt>Funding rate</dt>
-							<dd>{String(derivativeTimestamp.fields.fundingRate)}%</dd>
+							<dd>{String(derivativeTimestamp.fundingRate)}%</dd>
 						</div>
 					{/if}
 
-					{#if derivativeTimestamp.fields.openInterestUsd !== undefined}
+					{#if derivativeTimestamp.openInterestUsd !== undefined}
 						<div>
 							<dt>Open interest</dt>
 							<dd>
 								<CurrencyAmount
 									currency="USD"
 									scale={1}
-									value={derivativeTimestamp.fields.openInterestUsd}
+									value={derivativeTimestamp.openInterestUsd}
 								/>
 							</dd>
 						</div>
@@ -139,23 +139,23 @@
 
 					{#if (
 						open
-						&& derivativeTimestamp.fields.indexBasisPercent !== undefined
+						&& derivativeTimestamp.indexBasisPercent !== undefined
 					)}
 						<div>
 							<dt>Index basis</dt>
-							<dd>{String(derivativeTimestamp.fields.indexBasisPercent)}%</dd>
+							<dd>{String(derivativeTimestamp.indexBasisPercent)}%</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& derivativeTimestamp.fields.expiredAtMs !== undefined
+						&& derivativeTimestamp.expiredAtMs !== undefined
 					)}
 						<div>
 							<dt>Expires</dt>
 							<dd>
 								<Timestamp
-									timestamp={derivativeTimestamp.fields.expiredAtMs}
+									timestamp={derivativeTimestamp.expiredAtMs}
 								/>
 							</dd>
 						</div>
@@ -163,13 +163,13 @@
 
 					{#if (
 						open
-						&& derivativeTimestamp.fields.lastTradedAtMs !== undefined
+						&& derivativeTimestamp.lastTradedAtMs !== undefined
 					)}
 						<div>
 							<dt>Last traded</dt>
 							<dd>
 								<Timestamp
-									timestamp={derivativeTimestamp.fields.lastTradedAtMs}
+									timestamp={derivativeTimestamp.lastTradedAtMs}
 								/>
 							</dd>
 						</div>
@@ -177,21 +177,21 @@
 
 					{#if (
 						open
-						&& derivativeTimestamp.fields.transport !== undefined
+						&& derivativeTimestamp.transport !== undefined
 					)}
 						<div>
 							<dt>Transport</dt>
-							<dd>{derivativeTimestamp.fields.transport}</dd>
+							<dd>{derivativeTimestamp.transport}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& derivativeTimestamp.fields.providerAssetId != null
+						&& derivativeTimestamp.providerAssetId != null
 					)}
 						<div>
 							<dt>Provider asset id</dt>
-							<dd>{derivativeTimestamp.fields.providerAssetId}</dd>
+							<dd>{derivativeTimestamp.providerAssetId}</dd>
 						</div>
 					{/if}
 				</dl>

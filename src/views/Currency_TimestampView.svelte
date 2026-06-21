@@ -68,10 +68,10 @@
 			placeholderText="Loading snapshot…"
 		>
 			{#snippet children(currencyTimestamp)}
-				{#if currencyTimestamp.fields.marketCap !== undefined}
+				{#if currencyTimestamp.marketCap !== undefined}
 					<CurrencyAmount
 						currency="USD"
-						value={currencyTimestamp.fields.marketCap}
+						value={currencyTimestamp.marketCap}
 					/>
 				{:else}
 					<span>
@@ -88,10 +88,10 @@
 			placeholderText="Loading snapshot…"
 		>
 			{#snippet children(currencyTimestamp)}
-				{#if currencyTimestamp.fields.marketCap !== undefined}
+				{#if currencyTimestamp.marketCap !== undefined}
 					<CurrencyAmount
 						currency="USD"
-						value={currencyTimestamp.fields.marketCap}
+						value={currencyTimestamp.marketCap}
 					/>
 				{:else}
 					<span>
@@ -115,7 +115,7 @@
 		>
 			{#snippet children(currencyTimestamp)}
 				<dl data-column-item="center">
-					{#if currencyTimestamp.fields.marketCap !== undefined}
+					{#if currencyTimestamp.marketCap !== undefined}
 						<div>
 							<dt>
 								FX turnover weight (USD)
@@ -134,7 +134,7 @@
 							<dd>
 								<CurrencyAmount
 									currency="USD"
-									value={currencyTimestamp.fields.marketCap}
+									value={currencyTimestamp.marketCap}
 								/>
 							</dd>
 						</div>
@@ -154,7 +154,7 @@
 								placeholderText="Loading currency…"
 							>
 								{#snippet children(currency)}
-									{currency.fields.name ?? selection.entitySelector.$currency.iso4217}
+									{currency.name ?? selection.entitySelector.$currency.iso4217}
 								{/snippet}
 							</ResourceBoundary>
 						</dd>

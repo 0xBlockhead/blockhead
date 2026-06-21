@@ -94,7 +94,7 @@
 			placeholderText="Loading Reddit submission…"
 		>
 			{#snippet children(link)}
-				{link.fields.title ?? selection.entitySelector.fullname}
+				{link.title ?? selection.entitySelector.fullname}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -104,10 +104,10 @@
 			resource={link}
 		>
 			{#snippet children(link)}
-				{#if link.fields.createdAt != null}
+				{#if link.createdAt != null}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={link.fields.createdAt}
+							timestamp={link.createdAt}
 						/>
 					</span>
 				{/if}
@@ -131,11 +131,11 @@
 		>
 			{#snippet children(link)}
 				<p>
-					{#if !link.fields.selftext}
+					{#if !link.selftext}
 						<span data-text="muted">No submission text.</span>
 					{:else}
 						<TruncatedValue
-							value={link.fields.selftext}
+							value={link.selftext}
 							format={TruncatedValueFormat.Visual}
 						/>
 					{/if}
@@ -146,28 +146,28 @@
 						metrics={[
 							{
 								label: 'Score',
-								value: link.fields.$$timestamps?.values.at(0)?.score,
+								value: link.$$timestamps?.values.at(0)?.score,
 							},
 							{
 								label: 'Comments',
-								value: link.fields.$$timestamps?.values.at(0)?.commentCount,
+								value: link.$$timestamps?.values.at(0)?.commentCount,
 							},
 						]}
 					/>
 
-					{#if link.fields.author}
+					{#if link.author}
 						<div>
 							<dt>Author</dt>
-							<dd>u/{link.fields.author}</dd>
+							<dd>u/{link.author}</dd>
 						</div>
 					{/if}
 
-					{#if link.fields.$subreddit}
+					{#if link.$subreddit}
 						<div>
 							<dt>Posted in</dt>
 							<dd>
 								<RedditSubredditView
-									selection={select(EntityType.RedditSubreddit, link.fields.$subreddit[EntityMetaKey.Selector])}
+									selection={select(EntityType.RedditSubreddit, link.$subreddit[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 									open={false}
@@ -176,28 +176,28 @@
 						</div>
 					{/if}
 
-					{#if link.fields.url}
+					{#if link.url}
 						<div>
 							<dt>URL</dt>
 							<dd>
 								<a
-									href={link.fields.url}
+									href={link.url}
 									rel="noreferrer"
 									target="_blank"
-								>{link.fields.url}</a>
+								>{link.url}</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if link.fields.permalink}
+					{#if link.permalink}
 						<div>
 							<dt>Permalink</dt>
 							<dd>
 								<a
-									href={`https://reddit.com${link.fields.permalink}`}
+									href={`https://reddit.com${link.permalink}`}
 									rel="noreferrer"
 									target="_blank"
-								>reddit.com{link.fields.permalink}</a>
+								>reddit.com{link.permalink}</a>
 							</dd>
 						</div>
 					{/if}

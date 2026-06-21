@@ -61,31 +61,31 @@
 		>
 			{#snippet children(cosmosTransaction)}
 				<dl>
-					{#if cosmosTransaction.fields.code != null}
+					{#if cosmosTransaction.code != null}
 						<div>
 							<dt>Code</dt>
-							<dd><NumberValue value={cosmosTransaction.fields.code} /></dd>
+							<dd><NumberValue value={cosmosTransaction.code} /></dd>
 						</div>
 					{/if}
 
-					{#if cosmosTransaction.fields.gasWanted != null}
+					{#if cosmosTransaction.gasWanted != null}
 						<div>
 							<dt>Gas Wanted</dt>
-							<dd><NumberValue value={cosmosTransaction.fields.gasWanted} /></dd>
+							<dd><NumberValue value={cosmosTransaction.gasWanted} /></dd>
 						</div>
 					{/if}
 
-					{#if cosmosTransaction.fields.gasUsed != null}
+					{#if cosmosTransaction.gasUsed != null}
 						<div>
 							<dt>Gas Used</dt>
-							<dd><NumberValue value={cosmosTransaction.fields.gasUsed} /></dd>
+							<dd><NumberValue value={cosmosTransaction.gasUsed} /></dd>
 						</div>
 					{/if}
 
-					{#if cosmosTransaction.fields.memo != null}
+					{#if cosmosTransaction.memo != null}
 						<div>
 							<dt>Memo</dt>
-							<dd>{cosmosTransaction.fields.memo}</dd>
+							<dd>{cosmosTransaction.memo}</dd>
 						</div>
 					{/if}
 				</dl>

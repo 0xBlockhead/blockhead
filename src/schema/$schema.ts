@@ -684,6 +684,39 @@ export type EntityConditionalFieldName<
 :
 	never
 
+type EntityConditionalDiscriminatorFieldName<
+	_DiscriminatorName extends string,
+> = (
+	_DiscriminatorName extends `${infer _FieldName}[${number}]` ?
+		_FieldName
+	:
+		_DiscriminatorName
+)
+
+type EntityConditionalDiscriminatorFieldValue<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_DiscriminatorName extends EntityConditionalDiscriminatorName<_Schema, _EntityType>,
+> = (
+	EntityConditionalDiscriminatorFieldName<_DiscriminatorName> extends infer _FieldName extends EntityFieldName<_Schema, _EntityType> ?
+		EntityFieldSingleResolvedValue<_Schema, _EntityType, _FieldName>
+	:
+		never
+)
+
+type EntityConditionalDiscriminatorItemValue<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_DiscriminatorName extends EntityConditionalDiscriminatorName<_Schema, _EntityType>,
+> = (
+	EntityConditionalDiscriminatorFieldName<_DiscriminatorName> extends infer _FieldName extends EntityFieldName<_Schema, _EntityType> ?
+		EntityFieldSingleResolvedValue<_Schema, _EntityType, _FieldName> extends readonly (infer _Item)[]
+			? _Item
+			: never
+	:
+		never
+)
+
 export type EntityFieldDefinitionByName<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
@@ -806,14 +839,25 @@ export type EntityFieldValueFromDefinition<
 		never
 )
 
-export type EntityFieldValues<
+type EntityZeroCapableFieldCardinality = (
+	| EntityFieldCardinality.Zero
+	| EntityFieldCardinality.ZeroOrOne
+	| EntityFieldCardinality.ZeroOrMany
+)
+
+type EntityNonZeroCapableFieldCardinality = (
+	| EntityFieldCardinality.One
+	| EntityFieldCardinality.Many
+)
+
+type EntityFieldValuesFromDefinitions<
 	_Schema extends Schema,
-	_EntityType extends EntityType<_Schema>,
+	_FieldDefinitions extends EntityFieldDefinition,
 > = (
 	& {
 		[
-			_FieldDefinition in EntityFieldDefinitions<EntityDefinitionForEntityType<_Schema, _EntityType>> as (
-				_FieldDefinition extends { cardinality: EntityFieldCardinality.One | EntityFieldCardinality.Many } ?
+			_FieldDefinition in _FieldDefinitions as (
+				_FieldDefinition extends { cardinality: EntityNonZeroCapableFieldCardinality } ?
 					_FieldDefinition['name']
 				:
 					never
@@ -822,8 +866,8 @@ export type EntityFieldValues<
 	}
 	& {
 		[
-			_FieldDefinition in EntityFieldDefinitions<EntityDefinitionForEntityType<_Schema, _EntityType>> as (
-				_FieldDefinition extends { cardinality: EntityFieldCardinality.Zero | EntityFieldCardinality.ZeroOrOne | EntityFieldCardinality.ZeroOrMany } ?
+			_FieldDefinition in _FieldDefinitions as (
+				_FieldDefinition extends { cardinality: EntityZeroCapableFieldCardinality } ?
 					_FieldDefinition['name']
 				:
 					never
@@ -831,6 +875,155 @@ export type EntityFieldValues<
 		]?: EntityFieldValueFromDefinition<_Schema, _FieldDefinition>
 	}
 )
+
+type EntityConditionalFieldDefinitionsForValue<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_DiscriminatorName extends EntityConditionalDiscriminatorName<_Schema, _EntityType>,
+	_DiscriminatorValue extends EntityConditionalDiscriminatorValue<_Schema, _EntityType, _DiscriminatorName>,
+> = EntityConditionalFieldDefinitionForDiscriminator<
+	_Schema,
+	_EntityType,
+	_DiscriminatorName
+> extends infer _FieldDefinition ?
+	_FieldDefinition extends {
+		when: infer _Condition extends EntityFieldCondition
+	} ?
+		_DiscriminatorValue extends _Condition['values'][number] ?
+			_FieldDefinition
+		:
+			never
+	:
+		never
+:
+	never
+
+type EntityConditionalActiveDiscriminatorValue<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_DiscriminatorName extends EntityConditionalDiscriminatorName<_Schema, _EntityType>,
+	_DiscriminatorValue extends EntityConditionalDiscriminatorValue<_Schema, _EntityType, _DiscriminatorName>,
+> = (
+	_DiscriminatorName extends `${string}[${number}]` ?
+		{
+			readonly [
+				_FieldName in EntityConditionalDiscriminatorFieldName<_DiscriminatorName>
+			]: [
+				_DiscriminatorValue,
+				...EntityConditionalDiscriminatorItemValue<_Schema, _EntityType, _DiscriminatorName>[],
+			]
+		}
+	:
+		{
+			readonly [
+				_FieldName in EntityConditionalDiscriminatorFieldName<_DiscriminatorName>
+			]: _DiscriminatorValue
+		}
+)
+
+type EntityConditionalInactiveDiscriminatorValue<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_DiscriminatorName extends EntityConditionalDiscriminatorName<_Schema, _EntityType>,
+> = (
+	_DiscriminatorName extends `${string}[${number}]` ?
+		{
+			readonly [
+				_FieldName in EntityConditionalDiscriminatorFieldName<_DiscriminatorName>
+			]: [
+				Exclude<
+					EntityConditionalDiscriminatorItemValue<_Schema, _EntityType, _DiscriminatorName>,
+					EntityConditionalDiscriminatorValue<_Schema, _EntityType, _DiscriminatorName>
+				>,
+				...EntityConditionalDiscriminatorItemValue<_Schema, _EntityType, _DiscriminatorName>[],
+			]
+		}
+	:
+		{
+			readonly [
+				_FieldName in EntityConditionalDiscriminatorFieldName<_DiscriminatorName>
+			]: Exclude<
+				EntityConditionalDiscriminatorFieldValue<_Schema, _EntityType, _DiscriminatorName>,
+				EntityConditionalDiscriminatorValue<_Schema, _EntityType, _DiscriminatorName>
+			>
+		}
+)
+
+type EntityConditionalFieldValuesForDiscriminator<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_DiscriminatorName extends EntityConditionalDiscriminatorName<_Schema, _EntityType>,
+> = (
+	| (
+		EntityConditionalDiscriminatorValue<_Schema, _EntityType, _DiscriminatorName> extends infer _DiscriminatorValue extends EntityConditionalDiscriminatorValue<_Schema, _EntityType, _DiscriminatorName> ?
+			& EntityConditionalActiveDiscriminatorValue<_Schema, _EntityType, _DiscriminatorName, _DiscriminatorValue>
+			& EntityFieldValuesFromDefinitions<
+				_Schema,
+				EntityConditionalFieldDefinitionsForValue<
+					_Schema,
+					_EntityType,
+					_DiscriminatorName,
+					_DiscriminatorValue
+				>
+			>
+		:
+			never
+	)
+	| (
+		& EntityConditionalInactiveDiscriminatorValue<_Schema, _EntityType, _DiscriminatorName>
+		& Partial<EntityFieldValuesFromDefinitions<
+			_Schema,
+			EntityConditionalFieldDefinitionForDiscriminator<
+				_Schema,
+				_EntityType,
+				_DiscriminatorName
+			>
+		>>
+	)
+)
+
+type UnionToIntersection<_Union> = (
+	_Union extends _Union ?
+		(_value: _Union) => void
+	:
+		never
+) extends (_value: infer _Intersection) => void ?
+	_Intersection
+:
+	never
+
+type EntityConditionalFieldValues<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+> = (
+	[
+		EntityConditionalDiscriminatorName<_Schema, _EntityType>,
+	] extends [never] ?
+		object
+	:
+		UnionToIntersection<
+			EntityConditionalDiscriminatorName<_Schema, _EntityType> extends infer _DiscriminatorName extends EntityConditionalDiscriminatorName<_Schema, _EntityType> ?
+				EntityConditionalFieldValuesForDiscriminator<_Schema, _EntityType, _DiscriminatorName>
+			:
+				never
+		>
+)
+
+export type EntityResolvedFieldValues<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+> = (
+	& EntityFieldValuesFromDefinitions<_Schema, EntityBaseFieldDefinition<_Schema, _EntityType>>
+	& EntityConditionalFieldValues<_Schema, _EntityType>
+)
+
+export type EntityFieldValues<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+> = EntityFieldValuesFromDefinitions<
+	_Schema,
+	EntityFieldDefinitions<EntityDefinitionForEntityType<_Schema, _EntityType>>
+>
 
 export type Entity<
 	_Schema extends Schema,

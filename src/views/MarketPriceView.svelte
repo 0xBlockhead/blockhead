@@ -141,7 +141,7 @@
 
 			{#snippet children(marketPrice)}
 				{@const headQuoteId = (
-					marketPrice.fields.$$quotes?.values
+					marketPrice.$$quotes?.values
 						.toSorted((leftQuote, rightQuote) => (
 							rightQuote[EntityMetaKey.Selector].timestampMs
 								- leftQuote[EntityMetaKey.Selector].timestampMs
@@ -180,7 +180,7 @@
 					>
 							{#snippet children(marketPrice)}
 								{@const headQuoteId = (
-								marketPrice.fields.$$quotes?.values
+								marketPrice.$$quotes?.values
 									.toSorted((leftQuote, rightQuote) => (
 										rightQuote[EntityMetaKey.Selector].timestampMs
 											- leftQuote[EntityMetaKey.Selector].timestampMs
@@ -228,7 +228,7 @@
 					>
 						{#snippet children(marketPrice)}
 							<MarketView
-								selection={select(EntityType.Market, marketPrice.fields.$parentMarket?.[EntityMetaKey.Selector] ?? selection.entitySelector.$market)}
+								selection={select(EntityType.Market, marketPrice.$parentMarket?.[EntityMetaKey.Selector] ?? selection.entitySelector.$market)}
 								layout={EntityLayout.Title}
 
 								showTypeAnnotation={false}

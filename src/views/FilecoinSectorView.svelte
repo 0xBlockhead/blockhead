@@ -70,28 +70,28 @@
 		>
 			{#snippet children(filecoinSector)}
 				<dl>
-					{#if filecoinSector.fields.sealedCid != null}
+					{#if filecoinSector.sealedCid != null}
 						<div>
 							<dt>Sealed CID</dt>
 							<dd>
 								<TruncatedValue
-									value={filecoinSector.fields.sealedCid}
+									value={filecoinSector.sealedCid}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if filecoinSector.fields.activationEpoch != null}
+					{#if filecoinSector.activationEpoch != null}
 						<div>
 							<dt>Activation Epoch</dt>
-							<dd><NumberValue value={filecoinSector.fields.activationEpoch} /></dd>
+							<dd><NumberValue value={filecoinSector.activationEpoch} /></dd>
 						</div>
 					{/if}
 
-					{#if filecoinSector.fields.expirationEpoch != null}
+					{#if filecoinSector.expirationEpoch != null}
 						<div>
 							<dt>Expiration Epoch</dt>
-							<dd><NumberValue value={filecoinSector.fields.expirationEpoch} /></dd>
+							<dd><NumberValue value={filecoinSector.expirationEpoch} /></dd>
 						</div>
 					{/if}
 				</dl>

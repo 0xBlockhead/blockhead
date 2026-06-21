@@ -63,17 +63,17 @@
 		>
 			{#snippet children(polkadotAccount)}
 				<dl>
-					{#if polkadotAccount.fields.freeBalancePlancks != null}
+					{#if polkadotAccount.freeBalancePlancks != null}
 						<div>
 							<dt>Balance</dt>
-							<dd><NumberValue value={polkadotAccount.fields.freeBalancePlancks} /> plancks</dd>
+							<dd><NumberValue value={polkadotAccount.freeBalancePlancks} /> plancks</dd>
 						</div>
 					{/if}
 
-					{#if polkadotAccount.fields.nonce != null}
+					{#if polkadotAccount.nonce != null}
 						<div>
 							<dt>Nonce</dt>
-							<dd><NumberValue value={polkadotAccount.fields.nonce} /></dd>
+							<dd><NumberValue value={polkadotAccount.nonce} /></dd>
 						</div>
 					{/if}
 				</dl>

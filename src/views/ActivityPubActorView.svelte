@@ -114,11 +114,11 @@
 			resource={actor}
 		>
 			{#snippet children(actor)}
-				{#if actor.fields.$icon}
+				{#if actor.$icon}
 					<IconComponent
-						alt={actor.fields.displayName ?? actor.fields.acct ?? actor.fields.username ?? ('localAccountId' in selection.entitySelector ? selection.entitySelector.localAccountId : 'acct' in selection.entitySelector ? selection.entitySelector.acct : selection.entitySelector.activityStreamsUri)}
+						alt={actor.displayName ?? actor.acct ?? actor.username ?? ('localAccountId' in selection.entitySelector ? selection.entitySelector.localAccountId : 'acct' in selection.entitySelector ? selection.entitySelector.acct : selection.entitySelector.activityStreamsUri)}
 						shape={IconShape.Circle}
-						src={actor.fields.$icon[EntityMetaKey.Selector].url}
+						src={actor.$icon[EntityMetaKey.Selector].url}
 					/>
 				{/if}
 			{/snippet}
@@ -138,9 +138,9 @@
 			placeholderText="Loading actor…"
 		>
 			{#snippet children(actor)}
-				{actor.fields.displayName
-					?? actor.fields.acct
-					?? actor.fields.username
+				{actor.displayName
+					?? actor.acct
+					?? actor.username
 					?? ('localAccountId' in selection.entitySelector ? selection.entitySelector.localAccountId : 'acct' in selection.entitySelector ? selection.entitySelector.acct : selection.entitySelector.activityStreamsUri)}
 			{/snippet}
 		</ResourceBoundary>
@@ -152,13 +152,13 @@
 		>
 			{#snippet children(actor)}
 				{@const activityPubSummaryHeadingLine =
-					actor.fields.displayName
-					?? actor.fields.acct
-					?? actor.fields.username
+					actor.displayName
+					?? actor.acct
+					?? actor.username
 					?? ('localAccountId' in selection.entitySelector ? selection.entitySelector.localAccountId : 'acct' in selection.entitySelector ? selection.entitySelector.acct : selection.entitySelector.activityStreamsUri)}
-				{#if actor.fields.username && actor.fields.username !== activityPubSummaryHeadingLine}
+				{#if actor.username && actor.username !== activityPubSummaryHeadingLine}
 					<span data-text="muted">
-						@{actor.fields.username}
+						@{actor.username}
 					</span>
 				{/if}
 			{/snippet}
@@ -184,10 +184,10 @@
 			placeholderText="Loading actor…"
 		>
 			{#snippet children(actor)}
-				{#if actor.fields.note}
+				{#if actor.note}
 					<p>
 						<TruncatedValue
-							value={htmlToPlainText(actor.fields.note)}
+							value={htmlToPlainText(actor.note)}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
@@ -203,22 +203,22 @@
 					>
 						{#snippet children(actor)}
 							{@const activityPubSummaryHeadingLine =
-								actor.fields.displayName
-								?? actor.fields.acct
-								?? actor.fields.username
+								actor.displayName
+								?? actor.acct
+								?? actor.username
 								?? ('localAccountId' in selection.entitySelector ? selection.entitySelector.localAccountId : 'acct' in selection.entitySelector ? selection.entitySelector.acct : selection.entitySelector.activityStreamsUri)}
 
-						{#if actor.fields.acct && actor.fields.acct !== activityPubSummaryHeadingLine}
+						{#if actor.acct && actor.acct !== activityPubSummaryHeadingLine}
 							<div>
 								<dt>acct</dt>
-								<dd>{actor.fields.acct}</dd>
+								<dd>{actor.acct}</dd>
 							</div>
 						{/if}
 
-						{#if actor.fields.displayName && actor.fields.displayName !== activityPubSummaryHeadingLine}
+						{#if actor.displayName && actor.displayName !== activityPubSummaryHeadingLine}
 							<div>
 								<dt>Display name</dt>
-								<dd>{actor.fields.displayName}</dd>
+								<dd>{actor.displayName}</dd>
 							</div>
 						{/if}
 					{/snippet}
@@ -235,80 +235,80 @@
 							metrics={[
 								{
 									label: 'Followers',
-									value: actor.fields.$$timestamps?.values.at(0)?.followersCount,
+									value: actor.$$timestamps?.values.at(0)?.followersCount,
 								},
 								{
 									label: 'Following',
-									value: actor.fields.$$timestamps?.values.at(0)?.followingCount,
+									value: actor.$$timestamps?.values.at(0)?.followingCount,
 								},
 								{
 									label: 'Statuses',
-									value: actor.fields.$$timestamps?.values.at(0)?.statusesCount,
+									value: actor.$$timestamps?.values.at(0)?.statusesCount,
 								},
 							]}
 						/>
 
-						{#if actor.fields.createdAt != null}
+						{#if actor.createdAt != null}
 							<div>
 								<dt>Joined</dt>
 								<dd>
 									<Timestamp
-										timestamp={actor.fields.createdAt}
+										timestamp={actor.createdAt}
 									/>
 								</dd>
 							</div>
 						{/if}
 
-						{#if actor.fields.profileUrl}
+						{#if actor.profileUrl}
 							<div>
 								<dt>Profile</dt>
 								<dd>
 									<a
-										href={actor.fields.profileUrl}
+										href={actor.profileUrl}
 										rel="noreferrer"
 										target="_blank"
-									>{actor.fields.profileUrl}</a>
+									>{actor.profileUrl}</a>
 								</dd>
 							</div>
 						{/if}
 
-						{#if actor.fields.activityStreamsUri}
+						{#if actor.activityStreamsUri}
 							<div>
 								<dt>Activity Streams URI</dt>
 								<dd>
 									<a
-										href={actor.fields.activityStreamsUri}
+										href={actor.activityStreamsUri}
 										rel="noreferrer"
 										target="_blank"
-									>{actor.fields.activityStreamsUri}</a>
+									>{actor.activityStreamsUri}</a>
 								</dd>
 							</div>
 						{/if}
 
-						{#if actor.fields.website}
+						{#if actor.website}
 							<div>
 								<dt>Website</dt>
 								<dd>
 									<a
-										href={actor.fields.website}
+										href={actor.website}
 										rel="noreferrer"
 										target="_blank"
-									>{actor.fields.website}</a>
+									>{actor.website}</a>
 								</dd>
 							</div>
 						{/if}
 
-						{#if actor.fields.bot != null}
+						{#if actor.bot != null}
 							<div>
 								<dt>Bot</dt>
-								<dd>{actor.fields.bot ? 'Yes' : 'No'}</dd>
+								<dd>{actor.bot ? 'Yes' : 'No'}</dd>
 							</div>
 						{/if}
 
-						{#if actor.fields.locked != null}
+						{#if actor.locked != null}
 							<div>
 								<dt>Locked</dt>
-								<dd>{actor.fields.locked ? 'Yes' : 'No'}</dd>
+								<dd>{actor.locked ? 'Yes' : 'No'}</dd>
 							</div>
 						{/if}
 					{/snippet}
@@ -348,10 +348,10 @@
 				>
 					{#snippet children(actor)}
 						{@const mastodonProfileUnset = (
-							actor.fields.acct == null
-							&& actor.fields.displayName == null
-							&& actor.fields.username == null
-							&& actor.fields.note == null
+							actor.acct == null
+							&& actor.displayName == null
+							&& actor.username == null
+							&& actor.note == null
 						)}
 						{#if mastodonProfileUnset}
 							<div data-row="wrap align-center gap-2">
@@ -381,7 +381,7 @@
 						placeholderText="Loading actor…"
 					>
 						{#snippet children(actor)}
-							{@const localAccountId = 'localAccountId' in selection.entitySelector ? selection.entitySelector.localAccountId : actor.fields.localAccountId}
+							{@const localAccountId = 'localAccountId' in selection.entitySelector ? selection.entitySelector.localAccountId : actor.localAccountId}
 							{#if 'instanceOrigin' in selection.entitySelector && localAccountId != null}
 								<ActivityPubNotesView
 									CollapsibleProps={{ canToggle: false }}
@@ -410,7 +410,7 @@
 						placeholderText="Loading actor…"
 					>
 						{#snippet children(actor)}
-							{@const localAccountId = 'localAccountId' in selection.entitySelector ? selection.entitySelector.localAccountId : actor.fields.localAccountId}
+							{@const localAccountId = 'localAccountId' in selection.entitySelector ? selection.entitySelector.localAccountId : actor.localAccountId}
 							{#if 'instanceOrigin' in selection.entitySelector && localAccountId != null}
 								<ActivityPubActor_TimestampsView
 									selection={select(

@@ -86,7 +86,7 @@
 						metrics={[
 							{
 								label: 'Score',
-								value: redditCommentTimestamp.fields.score,
+								value: redditCommentTimestamp.score,
 							},
 						]}
 					/>

@@ -85,47 +85,47 @@
 				placeholderText="Loading ENS protocol…"
 			>
 				{#snippet children(protocol)}
-					{#if protocol.fields.registryLabel}
+					{#if protocol.registryLabel}
 						<div>
 							<dt>Registry</dt>
-							<dd>{protocol.fields.registryLabel}</dd>
+							<dd>{protocol.registryLabel}</dd>
 						</div>
-					{:else if protocol.fields.protocolName}
+					{:else if protocol.protocolName}
 						<div>
 							<dt>Protocol</dt>
-							<dd>{protocol.fields.protocolName}</dd>
+							<dd>{protocol.protocolName}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& protocol.fields.homeUrl
+						&& protocol.homeUrl
 					)}
 						<div>
 							<dt>Home</dt>
 							<dd>
-								<a href={protocol.fields.homeUrl}>{protocol.fields.homeUrl}</a>
+								<a href={protocol.homeUrl}>{protocol.homeUrl}</a>
 							</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& protocol.fields.docsUrl
+						&& protocol.docsUrl
 					)}
 						<div>
 							<dt>Docs</dt>
 							<dd>
-								<a href={protocol.fields.docsUrl}>{protocol.fields.docsUrl}</a>
+								<a href={protocol.docsUrl}>{protocol.docsUrl}</a>
 							</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& protocol.fields.topology
+						&& protocol.topology
 					)}
 						<div>
 							<dt>Topology</dt>
-							<dd>{protocol.fields.topology}</dd>
+							<dd>{protocol.topology}</dd>
 						</div>
 					{/if}
 				{/snippet}

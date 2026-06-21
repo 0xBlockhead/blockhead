@@ -36,14 +36,14 @@
 <Page>
 	<ResourceBoundary resource={network}>
 		{#snippet children(network)}
-			{@const selector = network.fields.caip2 == null ?
+			{@const selector = network.caip2 == null ?
 				{ slug: params.networkSlug }
 			:
-				{ caip2: network.fields.caip2 }}
+				{ caip2: network.caip2 }}
 			{@const href = resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/transactions', {
 				networkSlug: params.networkSlug,
 			})}
-			{#if network.fields.namespace === NetworkNamespace.Bitcoin || network.fields.namespace === NetworkNamespace.BitcoinCash || network.fields.namespace === NetworkNamespace.Litecoin || network.fields.namespace === NetworkNamespace.Dogecoin || network.fields.namespace === NetworkNamespace.Zcash}
+			{#if network.namespace === NetworkNamespace.Bitcoin || network.namespace === NetworkNamespace.BitcoinCash || network.namespace === NetworkNamespace.Litecoin || network.namespace === NetworkNamespace.Dogecoin || network.namespace === NetworkNamespace.Zcash}
 				<UtxoTransactionsView
 					selection={select(
 						EntityType.UtxoNetwork,
@@ -54,14 +54,14 @@
 					{href}
 					id="transactions"
 				/>
-			{:else if network.fields.namespace === NetworkNamespace.Solana && network.fields.caip2 != null}
+			{:else if network.namespace === NetworkNamespace.Solana && network.caip2 != null}
 				<SolanaTransactionsView
 					selection={select(
 						EntityType.SolanaNetwork,
 						{
 							caip2: {
 								namespace: 'solana',
-								reference: network.fields.caip2.reference,
+								reference: network.caip2.reference,
 							},
 						}
 					).$$transactions({
@@ -70,7 +70,7 @@
 					{href}
 					id="transactions"
 				/>
-			{:else if network.fields.namespace === NetworkNamespace.Hyperliquid}
+			{:else if network.namespace === NetworkNamespace.Hyperliquid}
 				<HyperliquidTransactionsView
 					selection={select(
 						EntityType.HyperliquidNetwork,

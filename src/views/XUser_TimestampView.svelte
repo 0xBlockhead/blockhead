@@ -78,19 +78,19 @@
 						metrics={[
 							{
 								label: 'Followers',
-								value: xUserTimestamp.fields.followerCount,
+								value: xUserTimestamp.followerCount,
 							},
 							{
 								label: 'Following',
-								value: xUserTimestamp.fields.followingCount,
+								value: xUserTimestamp.followingCount,
 							},
 							{
 								label: 'Posts',
-								value: xUserTimestamp.fields.tweetCount,
+								value: xUserTimestamp.tweetCount,
 							},
 							{
 								label: 'Listed',
-								value: xUserTimestamp.fields.listedCount,
+								value: xUserTimestamp.listedCount,
 							},
 						]}
 					/>

@@ -77,10 +77,10 @@
 	{#snippet Icon()}
 		<ResourceBoundary resource={video}>
 			{#snippet children(video)}
-				{#if video.fields.thumbnailUrl}
+				{#if video.thumbnailUrl}
 					<IconComponent
-						src={video.fields.thumbnailUrl}
-						alt={video.fields.title ?? selection.entitySelector.videoId}
+						src={video.thumbnailUrl}
+						alt={video.title ?? selection.entitySelector.videoId}
 					/>
 				{/if}
 			{/snippet}
@@ -99,7 +99,7 @@
 			placeholderText="Loading video…"
 		>
 			{#snippet children(video)}
-				{video.fields.title ?? selection.entitySelector.videoId}
+				{video.title ?? selection.entitySelector.videoId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -124,10 +124,10 @@
 							placeholderText="Loading video…"
 						>
 							{#snippet children(video)}
-								{#if video.fields.publishedAtMs != null}
-									<Timestamp timestamp={video.fields.publishedAtMs} />
-								{:else if video.fields.publishedAt != null}
-									{video.fields.publishedAt}
+								{#if video.publishedAtMs != null}
+									<Timestamp timestamp={video.publishedAtMs} />
+								{:else if video.publishedAt != null}
+									{video.publishedAt}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -144,9 +144,9 @@
 							placeholderText="Loading video…"
 						>
 							{#snippet children(video)}
-								{#if video.fields.$author}
+								{#if video.$author}
 									<YouTubeChannelView
-										selection={select(EntityType.YouTubeChannel, video.fields.$author[EntityMetaKey.Selector])}
+										selection={select(EntityType.YouTubeChannel, video.$author[EntityMetaKey.Selector])}
 										layout={EntityLayout.Title}
 
 										open={false}

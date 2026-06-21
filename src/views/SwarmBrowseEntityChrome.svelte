@@ -73,12 +73,12 @@
 	{#snippet Content()}
 		{#if true}
 			{#snippet SwarmChromeContentTypeRow(swarm: SwarmResource)}
-				{#if swarm.fields.contentType !== undefined}
+				{#if swarm.contentType !== undefined}
 					<TruncatedValue
-						value={swarm.fields.contentType}
+						value={swarm.contentType}
 						format={TruncatedValueFormat.Visual}
 					/>
-					{#if swarm.fields.isContentTypeInferred}
+					{#if swarm.isContentTypeInferred}
 						{' '}
 						<span data-text="muted">(inferred)</span>
 					{/if}
@@ -168,41 +168,41 @@
 
 					{#snippet SwarmChromeMetadataBody(swarm: SwarmResource)}
 						<div>
-							{#if swarm.fields.canonicalUri !== undefined}
+							{#if swarm.canonicalUri !== undefined}
 								<div>
 									<dt>Canonical URI</dt>
 									<dd>
 										<TruncatedValue
-											value={swarm.fields.canonicalUri}
+											value={swarm.canonicalUri}
 											format={TruncatedValueFormat.Visual}
 										/>
 									</dd>
 								</div>
 							{/if}
 
-							{#if swarm.fields.gatewayOrigin !== undefined}
+							{#if swarm.gatewayOrigin !== undefined}
 								<div>
 									<dt>Gateway origin</dt>
 									<dd>
 										<TruncatedValue
-											value={swarm.fields.gatewayOrigin}
+											value={swarm.gatewayOrigin}
 											format={TruncatedValueFormat.Visual}
 										/>
 									</dd>
 								</div>
 							{/if}
 
-							{#if swarm.fields.gatewayUrl !== undefined}
+							{#if swarm.gatewayUrl !== undefined}
 								<div>
 									<dt>Gateway URL</dt>
 									<dd>
 										<a
-											href={swarm.fields.gatewayUrl}
+											href={swarm.gatewayUrl}
 											target="_blank"
 											rel="noreferrer noopener"
 										>
 											<TruncatedValue
-												value={swarm.fields.gatewayUrl}
+												value={swarm.gatewayUrl}
 												format={TruncatedValueFormat.Visual}
 											/>
 										</a>
@@ -210,12 +210,12 @@
 								</div>
 							{/if}
 
-							{#if swarm.fields.contentLength !== undefined}
+							{#if swarm.contentLength !== undefined}
 								<div>
 									<dt>Content length</dt>
 									<dd>
 										<NumberValue
-											value={swarm.fields.contentLength}
+											value={swarm.contentLength}
 											options={{ maximumFractionDigits: 0 }}
 										/>
 										{' '}
@@ -224,34 +224,34 @@
 								</div>
 							{/if}
 
-							{#if swarm.fields.fileName !== undefined}
+							{#if swarm.fileName !== undefined}
 								<div>
 									<dt>File name</dt>
 									<dd>
 										<TruncatedValue
-											value={swarm.fields.fileName}
+											value={swarm.fileName}
 											format={TruncatedValueFormat.Visual}
 										/>
 									</dd>
 								</div>
 							{/if}
 
-							{#if swarm.fields.extension !== undefined}
+							{#if swarm.extension !== undefined}
 								<div>
 									<dt>Extension</dt>
-									<dd>.{swarm.fields.extension}</dd>
+									<dd>.{swarm.extension}</dd>
 								</div>
 							{/if}
 
-							{#if swarm.fields.contentType !== undefined}
+							{#if swarm.contentType !== undefined}
 								<div>
 									<dt>Content type</dt>
 									<dd>
 										<TruncatedValue
-											value={swarm.fields.contentType}
+											value={swarm.contentType}
 											format={TruncatedValueFormat.Visual}
 										/>
-										{#if swarm.fields.isContentTypeInferred}
+										{#if swarm.isContentTypeInferred}
 											{' '}
 											<span data-text="muted">(inferred)</span>
 										{/if}
@@ -259,10 +259,10 @@
 								</div>
 							{/if}
 
-							{#if swarm.fields.displayType !== undefined}
+							{#if swarm.displayType !== undefined}
 								<div>
 									<dt>Display type</dt>
-									<dd>{swarm.fields.displayType}</dd>
+									<dd>{swarm.displayType}</dd>
 								</div>
 							{/if}
 						</div>
@@ -286,12 +286,12 @@
 					</header>
 
 					{#snippet SwarmChromeTextBody(swarm: SwarmResource)}
-						{#if swarm.fields.text !== undefined}
-							<pre>{swarm.fields.text}</pre>
-						{:else if swarm.fields.$media?.[EntityMetaKey.Selector].url !== undefined}
+						{#if swarm.text !== undefined}
+							<pre>{swarm.text}</pre>
+						{:else if swarm.$media?.[EntityMetaKey.Selector].url !== undefined}
 							<Media
-								media={{ url: swarm.fields.$media[EntityMetaKey.Selector].url }}
-								alt={swarm.fields.fileName ?? ''}
+								media={{ url: swarm.$media[EntityMetaKey.Selector].url }}
+								alt={swarm.fileName ?? ''}
 							/>
 						{:else}
 							<p data-text="muted">No text or media preview available.</p>

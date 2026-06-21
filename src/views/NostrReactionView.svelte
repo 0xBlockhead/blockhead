@@ -79,7 +79,7 @@
 			placeholderText="Loading reaction…"
 		>
 			{#snippet children(reaction)}
-				{reaction.fields.content ?? '+'}
+				{reaction.content ?? '+'}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -99,9 +99,9 @@
 			placeholderText="Loading reaction…"
 		>
 			{#snippet children(reaction)}
-				{#if reaction.fields.content}
+				{#if reaction.content}
 					<p>
-						{reaction.fields.content}
+						{reaction.content}
 					</p>
 				{/if}
 			{/snippet}
@@ -117,9 +117,9 @@
 							placeholderText="Loading reaction…"
 						>
 							{#snippet children(reaction)}
-								{#if reaction.fields.eventId}
+								{#if reaction.eventId}
 									<TruncatedValue
-										value={reaction.fields.eventId}
+										value={reaction.eventId}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{/if}
@@ -137,9 +137,9 @@
 						placeholderText="Loading reaction…"
 					>
 						{#snippet children(reaction)}
-							{#if reaction.fields.createdAt != null}
+							{#if reaction.createdAt != null}
 								<Timestamp
-									timestamp={reaction.fields.createdAt}
+									timestamp={reaction.createdAt}
 								/>
 							{/if}
 						{/snippet}
@@ -156,9 +156,9 @@
 							placeholderText="Loading reaction…"
 						>
 							{#snippet children(reaction)}
-								{#if reaction.fields.$author}
+								{#if reaction.$author}
 									<NostrProfileView
-										selection={select(EntityType.NostrProfile, reaction.fields.$author[EntityMetaKey.Selector])}
+										selection={select(EntityType.NostrProfile, reaction.$author[EntityMetaKey.Selector])}
 										layout={EntityLayout.Value}
 
 										open={false}
@@ -177,9 +177,9 @@
 							placeholderText="Loading reaction…"
 						>
 							{#snippet children(reaction)}
-								{#if reaction.fields.$targetNote}
+								{#if reaction.$targetNote}
 									<NostrNoteView
-										selection={select(EntityType.NostrNote, reaction.fields.$targetNote[EntityMetaKey.Selector])}
+										selection={select(EntityType.NostrNote, reaction.$targetNote[EntityMetaKey.Selector])}
 										layout={EntityLayout.Value}
 
 										open={false}
@@ -198,9 +198,9 @@
 							placeholderText="Loading reaction…"
 						>
 							{#snippet children(reaction)}
-								{#if reaction.fields.$targetArticle}
+								{#if reaction.$targetArticle}
 									<NostrArticleView
-										selection={select(EntityType.NostrArticle, reaction.fields.$targetArticle[EntityMetaKey.Selector])}
+										selection={select(EntityType.NostrArticle, reaction.$targetArticle[EntityMetaKey.Selector])}
 										layout={EntityLayout.Value}
 
 										open={false}

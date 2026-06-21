@@ -87,11 +87,11 @@
 						metrics={[
 							{
 								label: 'Score',
-								value: redditLinkTimestamp.fields.score,
+								value: redditLinkTimestamp.score,
 							},
 							{
 								label: 'Comments',
-								value: redditLinkTimestamp.fields.commentCount,
+								value: redditLinkTimestamp.commentCount,
 							},
 						]}
 					/>

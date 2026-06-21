@@ -93,7 +93,7 @@
 						placeholderText="Loading capability…"
 					>
 						{#snippet children(capability)}
-							{capability.fields.railId == null ? '–' : bridgeRailById[capability.fields.railId]?.label ?? capability.fields.railId}
+							{capability.railId == null ? '–' : bridgeRailById[capability.railId]?.label ?? capability.railId}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -106,7 +106,7 @@
 						placeholderText="Loading capability…"
 					>
 						{#snippet children(capability)}
-							{capability.fields.settlementModel == null ? '–' : bridgeSettlementModelBySettlementModel[capability.fields.settlementModel].label}
+							{capability.settlementModel == null ? '–' : bridgeSettlementModelBySettlementModel[capability.settlementModel].label}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -119,7 +119,7 @@
 						placeholderText="Loading capability…"
 					>
 						{#snippet children(capability)}
-							{capability.fields.verificationModel == null ? '–' : bridgeVerificationModelByVerificationModel[capability.fields.verificationModel].label}
+							{capability.verificationModel == null ? '–' : bridgeVerificationModelByVerificationModel[capability.verificationModel].label}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -132,7 +132,7 @@
 						placeholderText="Loading capability…"
 					>
 						{#snippet children(capability)}
-							{capability.fields.assetOutcome == null ? '–' : bridgeAssetOutcomeByAssetOutcome[capability.fields.assetOutcome].label}
+							{capability.assetOutcome == null ? '–' : bridgeAssetOutcomeByAssetOutcome[capability.assetOutcome].label}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

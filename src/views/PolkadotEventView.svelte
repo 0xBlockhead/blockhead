@@ -70,10 +70,10 @@
 		>
 			{#snippet children(polkadotEvent)}
 				<dl>
-					{#if polkadotEvent.fields.eventName != null}
+					{#if polkadotEvent.eventName != null}
 						<div>
 							<dt>Event Name</dt>
-							<dd>{polkadotEvent.fields.eventName}</dd>
+							<dd>{polkadotEvent.eventName}</dd>
 						</div>
 					{/if}
 				</dl>

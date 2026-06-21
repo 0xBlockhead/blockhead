@@ -66,12 +66,12 @@
 		>
 			{#snippet children(storageNode)}
 				<dl>
-					{#if storageNode.fields.$operator != null}
+					{#if storageNode.$operator != null}
 						<div>
 							<dt>Operator</dt>
 							<dd>
 								<EvmAccountView
-									selection={select(EntityType.EvmAccount, storageNode.fields.$operator[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmAccount, storageNode.$operator[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 									open={false}
@@ -80,17 +80,17 @@
 						</div>
 					{/if}
 
-					{#if storageNode.fields.balance != null}
+					{#if storageNode.balance != null}
 						<div>
 							<dt>Balance</dt>
-							<dd>{storageNode.fields.balance}</dd>
+							<dd>{storageNode.balance}</dd>
 						</div>
 					{/if}
 
-					{#if storageNode.fields.totalReward != null}
+					{#if storageNode.totalReward != null}
 						<div>
 							<dt>Total reward</dt>
-							<dd>{storageNode.fields.totalReward}</dd>
+							<dd>{storageNode.totalReward}</dd>
 						</div>
 					{/if}
 

@@ -71,17 +71,17 @@
 		>
 			{#snippet children(nearChunk)}
 				<dl>
-					{#if nearChunk.fields.shardId != null}
+					{#if nearChunk.shardId != null}
 						<div>
 							<dt>Shard ID</dt>
-							<dd><NumberValue value={nearChunk.fields.shardId} /></dd>
+							<dd><NumberValue value={nearChunk.shardId} /></dd>
 						</div>
 					{/if}
 
-					{#if nearChunk.fields.gasUsed != null}
+					{#if nearChunk.gasUsed != null}
 						<div>
 							<dt>Gas Used</dt>
-							<dd><NumberValue value={nearChunk.fields.gasUsed} /></dd>
+							<dd><NumberValue value={nearChunk.gasUsed} /></dd>
 						</div>
 					{/if}
 				</dl>

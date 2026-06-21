@@ -100,15 +100,15 @@
 						metrics={[
 							{
 								label: 'Followers',
-								value: activityPubActorTimestamp.fields.followersCount,
+								value: activityPubActorTimestamp.followersCount,
 							},
 							{
 								label: 'Following',
-								value: activityPubActorTimestamp.fields.followingCount,
+								value: activityPubActorTimestamp.followingCount,
 							},
 							{
 								label: 'Statuses',
-								value: activityPubActorTimestamp.fields.statusesCount,
+								value: activityPubActorTimestamp.statusesCount,
 							},
 						]}
 					/>

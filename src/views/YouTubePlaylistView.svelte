@@ -103,7 +103,7 @@
 			placeholderText="Loading playlist…"
 		>
 			{#snippet children(playlist)}
-				{playlist.fields.title ?? selection.entitySelector.playlistId}
+				{playlist.title ?? selection.entitySelector.playlistId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -124,10 +124,10 @@
 				placeholderText="Loading playlist…"
 			>
 				{#snippet children(playlist)}
-					{#if playlist.fields.description}
+					{#if playlist.description}
 						<p>
 							<TruncatedValue
-								value={playlist.fields.description}
+								value={playlist.description}
 								format={TruncatedValueFormat.Visual}
 							/>
 						</p>
@@ -147,29 +147,29 @@
 							metrics={[
 								{
 									label: 'Items',
-									value: playlist.fields.$$timestamps?.values.at(0)?.itemCount,
+									value: playlist.$$timestamps?.values.at(0)?.itemCount,
 								},
 							]}
 						/>
 
-						{#if playlist.fields.publishedAtMs != null}
+						{#if playlist.publishedAtMs != null}
 							<div>
 								<dt>Published</dt>
-								<dd><Timestamp timestamp={playlist.fields.publishedAtMs} /></dd>
+								<dd><Timestamp timestamp={playlist.publishedAtMs} /></dd>
 							</div>
-						{:else if playlist.fields.publishedAt != null}
+						{:else if playlist.publishedAt != null}
 							<div>
 								<dt>Published</dt>
-								<dd>{playlist.fields.publishedAt}</dd>
+								<dd>{playlist.publishedAt}</dd>
 							</div>
 						{/if}
 
-						{#if playlist.fields.$channel}
+						{#if playlist.$channel}
 							<div>
 								<dt>Channel</dt>
 								<dd>
 									<YouTubeChannelView
-										selection={select(EntityType.YouTubeChannel, playlist.fields.$channel[EntityMetaKey.Selector])}
+										selection={select(EntityType.YouTubeChannel, playlist.$channel[EntityMetaKey.Selector])}
 										layout={EntityLayout.Value}
 
 										open={false}

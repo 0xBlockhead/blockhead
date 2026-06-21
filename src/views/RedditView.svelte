@@ -82,44 +82,44 @@
 				placeholderText="Loading Reddit…"
 			>
 				{#snippet children(redditNetwork)}
-					{#if redditNetwork.fields.registryLabel}
+					{#if redditNetwork.registryLabel}
 						<div>
 							<dt>Registry</dt>
-							<dd>{redditNetwork.fields.registryLabel}</dd>
+							<dd>{redditNetwork.registryLabel}</dd>
 						</div>
-					{:else if redditNetwork.fields.protocolName}
+					{:else if redditNetwork.protocolName}
 						<div>
 							<dt>Protocol</dt>
-							<dd>{redditNetwork.fields.protocolName}</dd>
+							<dd>{redditNetwork.protocolName}</dd>
 						</div>
 					{/if}
 
-					{#if open && redditNetwork.fields.homeUrl}
+					{#if open && redditNetwork.homeUrl}
 						<div>
 							<dt>Home</dt>
 							<dd>
-								<a href={redditNetwork.fields.homeUrl}>
-										{redditNetwork.fields.homeUrl}
+								<a href={redditNetwork.homeUrl}>
+										{redditNetwork.homeUrl}
 									</a>
 							</dd>
 						</div>
 					{/if}
 
-						{#if open && redditNetwork.fields.docsUrl}
+						{#if open && redditNetwork.docsUrl}
 							<div>
 								<dt>Docs</dt>
 								<dd>
-									<a href={redditNetwork.fields.docsUrl}>
-										{redditNetwork.fields.docsUrl}
+									<a href={redditNetwork.docsUrl}>
+										{redditNetwork.docsUrl}
 									</a>
 								</dd>
 							</div>
 						{/if}
 
-						{#if open && redditNetwork.fields.topology}
+						{#if open && redditNetwork.topology}
 							<div>
 								<dt>Topology</dt>
-								<dd>{redditNetwork.fields.topology}</dd>
+								<dd>{redditNetwork.topology}</dd>
 							</div>
 						{/if}
 				{/snippet}

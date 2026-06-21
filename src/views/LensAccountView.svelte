@@ -100,10 +100,10 @@
 			placeholderText="Loading Lens profile…"
 		>
 			{#snippet children(lensAccount)}
-				{#if lensAccount.fields.$icon?.[EntityMetaKey.Selector].url}
+				{#if lensAccount.$icon?.[EntityMetaKey.Selector].url}
 					<IconComponent
 						shape={IconShape.Circle}
-						src={lensAccount.fields.$icon[EntityMetaKey.Selector].url}
+						src={lensAccount.$icon[EntityMetaKey.Selector].url}
 						alt=""
 					/>
 				{:else}
@@ -129,7 +129,7 @@
 			placeholderText="Loading Lens profile…"
 		>
 			{#snippet children(lensAccount)}
-				{lensAccount.fields.displayName
+				{lensAccount.displayName
 					?? ('address' in selection.entitySelector ? selection.entitySelector.address : 'localName' in selection.entitySelector ? selection.entitySelector.localName : selection.entitySelector.legacyProfileId)}
 			{/snippet}
 		</ResourceBoundary>
@@ -140,7 +140,7 @@
 			resource={lensAccount}
 		>
 			{#snippet children(lensAccount)}
-				{#if 'localName' in selection.entitySelector && selection.entitySelector.localName !== lensAccount.fields.displayName}
+				{#if 'localName' in selection.entitySelector && selection.entitySelector.localName !== lensAccount.displayName}
 					<span data-text="muted">
 						@{selection.entitySelector.localName}
 					</span>
@@ -161,10 +161,10 @@
 			placeholderText="Loading Lens profile…"
 		>
 			{#snippet children(lensAccount)}
-				{#if lensAccount.fields.bio != null && lensAccount.fields.bio !== ''}
+				{#if lensAccount.bio != null && lensAccount.bio !== ''}
 					<p>
 						<TruncatedValue
-							value={lensAccount.fields.bio}
+							value={lensAccount.bio}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
@@ -183,11 +183,11 @@
 							metrics={[
 								{
 									label: 'Followers',
-									value: lensAccount.fields.$$timestamps?.values.at(0)?.followerCount,
+									value: lensAccount.$$timestamps?.values.at(0)?.followerCount,
 								},
 								{
 									label: 'Following',
-									value: lensAccount.fields.$$timestamps?.values.at(0)?.followingCount,
+									value: lensAccount.$$timestamps?.values.at(0)?.followingCount,
 								},
 							]}
 						/>
@@ -200,12 +200,12 @@
 					placeholderText="Loading Lens profile…"
 				>
 					{#snippet children(lensAccount)}
-						{#if lensAccount.fields.createdAt != null}
+						{#if lensAccount.createdAt != null}
 							<div>
 								<dt>Account created</dt>
 								<dd>
 									<Timestamp
-										timestamp={lensAccount.fields.createdAt}
+										timestamp={lensAccount.createdAt}
 									/>
 								</dd>
 							</div>

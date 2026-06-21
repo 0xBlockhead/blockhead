@@ -77,7 +77,7 @@
 			placeholderText="Loading session…"
 		>
 			{#snippet children(session)}
-				{session.fields.name ?? selection.entitySelector.id}
+				{session.name ?? selection.entitySelector.id}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -109,8 +109,8 @@
 						placeholderText="Loading session…"
 						>
 							{#snippet children(session)}
-								{#if session.fields.status !== undefined}
-									{blockheadSessionStatusByStatus[session.fields.status]?.label ?? String(session.fields.status)}
+								{#if session.status !== undefined}
+									{blockheadSessionStatusByStatus[session.status]?.label ?? String(session.status)}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -126,14 +126,14 @@
 							placeholderText="Loading session…"
 						>
 							{#snippet children(session)}
-								{#if session.fields.updatedAt !== undefined}
+								{#if session.updatedAt !== undefined}
 									<Timestamp
-										timestamp={session.fields.updatedAt}
+										timestamp={session.updatedAt}
 									/>
 								{:else}
-									{#if session.fields.createdAt !== undefined}
+									{#if session.createdAt !== undefined}
 										<Timestamp
-											timestamp={session.fields.createdAt}
+											timestamp={session.createdAt}
 										/>
 									{/if}
 								{/if}
@@ -152,9 +152,9 @@
 							placeholderText="Loading session…"
 						>
 							{#snippet children(session)}
-								{#if session.fields.createdAt !== undefined}
+								{#if session.createdAt !== undefined}
 									<Timestamp
-										timestamp={session.fields.createdAt}
+										timestamp={session.createdAt}
 									/>
 								{/if}
 							{/snippet}
@@ -170,9 +170,9 @@
 							placeholderText="Loading session…"
 						>
 							{#snippet children(session)}
-								{#if session.fields.updatedAt !== undefined}
+								{#if session.updatedAt !== undefined}
 									<Timestamp
-										timestamp={session.fields.updatedAt}
+										timestamp={session.updatedAt}
 									/>
 								{/if}
 							{/snippet}
@@ -188,9 +188,9 @@
 							placeholderText="Loading session…"
 						>
 							{#snippet children(session)}
-								{#if session.fields.lockedAt !== undefined}
+								{#if session.lockedAt !== undefined}
 									<Timestamp
-										timestamp={session.fields.lockedAt}
+										timestamp={session.lockedAt}
 									/>
 								{/if}
 							{/snippet}
@@ -206,8 +206,8 @@
 							placeholderText="Loading session…"
 						>
 							{#snippet children(session)}
-								{#if session.fields.simulationCount !== undefined}
-									{String(session.fields.simulationCount)}
+								{#if session.simulationCount !== undefined}
+									{String(session.simulationCount)}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>

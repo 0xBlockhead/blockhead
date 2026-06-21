@@ -54,19 +54,19 @@
 		>
 			{#snippet children(hyperliquidValidator)}
 				<dl>
-					{#if hyperliquidValidator.fields.name != null}
+					{#if hyperliquidValidator.name != null}
 						<div>
 							<dt>Name</dt>
-							<dd>{hyperliquidValidator.fields.name}</dd>
+							<dd>{hyperliquidValidator.name}</dd>
 						</div>
 					{/if}
 
-					{#if hyperliquidValidator.fields.$signer != null}
+					{#if hyperliquidValidator.$signer != null}
 						<div>
 							<dt>Signer</dt>
 							<dd>
 								<HyperliquidAccountView
-									selection={select(EntityType.HyperliquidAccount, hyperliquidValidator.fields.$signer[EntityMetaKey.Selector])}
+									selection={select(EntityType.HyperliquidAccount, hyperliquidValidator.$signer[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 								/>
@@ -74,38 +74,38 @@
 						</div>
 					{/if}
 
-					{#if hyperliquidValidator.fields.commission != null}
+					{#if hyperliquidValidator.commission != null}
 						<div>
 							<dt>Commission</dt>
-							<dd>{hyperliquidValidator.fields.commission}</dd>
+							<dd>{hyperliquidValidator.commission}</dd>
 						</div>
 					{/if}
 
-					{#if hyperliquidValidator.fields.recentBlockCount != null}
+					{#if hyperliquidValidator.recentBlockCount != null}
 						<div>
 							<dt>Recent blocks</dt>
-							<dd><NumberValue value={hyperliquidValidator.fields.recentBlockCount} /></dd>
+							<dd><NumberValue value={hyperliquidValidator.recentBlockCount} /></dd>
 						</div>
 					{/if}
 
-					{#if hyperliquidValidator.fields.isActive != null}
+					{#if hyperliquidValidator.isActive != null}
 						<div>
 							<dt>Active</dt>
-							<dd>{hyperliquidValidator.fields.isActive ? 'Yes' : 'No'}</dd>
+							<dd>{hyperliquidValidator.isActive ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 
-					{#if hyperliquidValidator.fields.stake != null}
+					{#if hyperliquidValidator.stake != null}
 						<div>
 							<dt>Stake</dt>
-							<dd><NumberValue value={hyperliquidValidator.fields.stake} /></dd>
+							<dd><NumberValue value={hyperliquidValidator.stake} /></dd>
 						</div>
 					{/if}
 
-					{#if hyperliquidValidator.fields.isJailed != null}
+					{#if hyperliquidValidator.isJailed != null}
 						<div>
 							<dt>Jailed</dt>
-							<dd>{hyperliquidValidator.fields.isJailed ? 'Yes' : 'No'}</dd>
+							<dd>{hyperliquidValidator.isJailed ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 				</dl>

@@ -71,23 +71,23 @@
 		>
 			{#snippet children(litecoinMwebOutput)}
 				<dl>
-					{#if litecoinMwebOutput.fields.commitment != null}
+					{#if litecoinMwebOutput.commitment != null}
 						<div>
 							<dt>Commitment</dt>
 							<dd>
 								<TruncatedValue
-									value={litecoinMwebOutput.fields.commitment}
+									value={litecoinMwebOutput.commitment}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if litecoinMwebOutput.fields.senderPubkey != null}
+					{#if litecoinMwebOutput.senderPubkey != null}
 						<div>
 							<dt>Sender Pubkey</dt>
 							<dd>
 								<TruncatedValue
-									value={litecoinMwebOutput.fields.senderPubkey}
+									value={litecoinMwebOutput.senderPubkey}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>

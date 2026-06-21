@@ -59,7 +59,7 @@
 			resource={node}
 		>
 			{#snippet children(lightningNode)}
-				{lightningNode.fields.alias ?? selection.entitySelector.publicKey}
+				{lightningNode.alias ?? selection.entitySelector.publicKey}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -81,35 +81,35 @@
 						</dd>
 					</div>
 
-					{#if lightningNode.fields.channelCount != null}
+					{#if lightningNode.channelCount != null}
 						<div>
 							<dt>Channels</dt>
-							<dd><NumberValue value={lightningNode.fields.channelCount} /></dd>
+							<dd><NumberValue value={lightningNode.channelCount} /></dd>
 						</div>
 					{/if}
 
-					{#if lightningNode.fields.capacitySats != null}
+					{#if lightningNode.capacitySats != null}
 						<div>
 							<dt>Capacity</dt>
-							<dd>{lightningNode.fields.capacitySats.toString()} sats</dd>
+							<dd>{lightningNode.capacitySats.toString()} sats</dd>
 						</div>
 					{/if}
 
-					{#if lightningNode.fields.countryCode != null}
+					{#if lightningNode.countryCode != null}
 						<div>
 							<dt>Country</dt>
-							<dd>{lightningNode.fields.countryCode}</dd>
+							<dd>{lightningNode.countryCode}</dd>
 						</div>
 					{/if}
 
-					{#if lightningNode.fields.city != null}
+					{#if lightningNode.city != null}
 						<div>
 							<dt>City</dt>
-							<dd>{lightningNode.fields.city}</dd>
+							<dd>{lightningNode.city}</dd>
 						</div>
 					{/if}
 
-					{#each open ? (lightningNode.fields.networkAddresses?.values ?? []) : [] as address (address)}
+					{#each open ? (lightningNode.networkAddresses?.values ?? []) : [] as address (address)}
 						<div>
 							<dt>Address</dt>
 							<dd><code>{address}</code></dd>

@@ -88,7 +88,7 @@
 			{/snippet}
 
 			{#snippet children(network)}
-				<span>{network.fields.name}</span>
+				<span>{network.name}</span>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -100,7 +100,7 @@
 			{/snippet}
 
 			{#snippet children(network)}
-				{network.fields.name}
+				{network.name}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -131,7 +131,7 @@
 					},
 				)} placeholderText="Loading head block…">
 				{#snippet children(hyperliquidNetwork)}
-					{@const block = hyperliquidNetwork.fields.$$blocks?.values.at(0)}
+					{@const block = hyperliquidNetwork.$$blocks?.values.at(0)}
 					{#if block != null}
 						<div>
 							<dt>Head block</dt>
@@ -152,19 +152,19 @@
 						<div>
 							<dt>Environment</dt>
 							<dd>
-								{#if network.fields.environment !== undefined}
-									{networkEnvironmentByEnvironment[network.fields.environment].label}
+								{#if network.environment !== undefined}
+									{networkEnvironmentByEnvironment[network.environment].label}
 								{/if}
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && network.fields.$networkStack != null}
+					{#if open && network.$networkStack != null}
 						<div>
 							<dt>Stack</dt>
 							<dd>
 								<NetworkStackView
-									selection={select(EntityType.NetworkStack, network.fields.$networkStack[EntityMetaKey.Selector])}
+									selection={select(EntityType.NetworkStack, network.$networkStack[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

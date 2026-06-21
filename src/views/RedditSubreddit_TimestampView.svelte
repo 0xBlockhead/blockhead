@@ -87,11 +87,11 @@
 						metrics={[
 							{
 								label: 'Subscribers',
-								value: redditSubredditTimestamp.fields.subscriberCount,
+								value: redditSubredditTimestamp.subscriberCount,
 							},
 							{
 								label: 'Active users',
-								value: redditSubredditTimestamp.fields.activeUserCount,
+								value: redditSubredditTimestamp.activeUserCount,
 							},
 						]}
 					/>

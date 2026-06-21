@@ -63,35 +63,35 @@
 		>
 			{#snippet children(solanaValidator)}
 				<dl>
-					{#if solanaValidator.fields.nodePubkey != null}
+					{#if solanaValidator.nodePubkey != null}
 						<div>
 							<dt>Node Pubkey</dt>
 							<dd>
 								<TruncatedValue
-									value={solanaValidator.fields.nodePubkey}
+									value={solanaValidator.nodePubkey}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if solanaValidator.fields.activatedStakeLamports != null}
+					{#if solanaValidator.activatedStakeLamports != null}
 						<div>
 							<dt>Activated Stake Lamports</dt>
-							<dd><NumberValue value={solanaValidator.fields.activatedStakeLamports} /> lamports</dd>
+							<dd><NumberValue value={solanaValidator.activatedStakeLamports} /> lamports</dd>
 						</div>
 					{/if}
 
-					{#if solanaValidator.fields.commission != null}
+					{#if solanaValidator.commission != null}
 						<div>
 							<dt>Commission</dt>
-							<dd><NumberValue value={solanaValidator.fields.commission} /></dd>
+							<dd><NumberValue value={solanaValidator.commission} /></dd>
 						</div>
 					{/if}
 
-					{#if solanaValidator.fields.delinquent != null}
+					{#if solanaValidator.delinquent != null}
 						<div>
 							<dt>Delinquent</dt>
-							<dd>{solanaValidator.fields.delinquent ? 'Yes' : 'No'}</dd>
+							<dd>{solanaValidator.delinquent ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 				</dl>

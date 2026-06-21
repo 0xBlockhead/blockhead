@@ -92,47 +92,47 @@
 				placeholderText="Loading RSS hub directory…"
 			>
 				{#snippet children(rssNetwork)}
-					{#if rssNetwork.fields.registryLabel}
+					{#if rssNetwork.registryLabel}
 						<div>
 							<dt>Registry</dt>
-							<dd>{rssNetwork.fields.registryLabel}</dd>
+							<dd>{rssNetwork.registryLabel}</dd>
 						</div>
-					{:else if rssNetwork.fields.protocolName}
+					{:else if rssNetwork.protocolName}
 						<div>
 							<dt>Protocol</dt>
-							<dd>{rssNetwork.fields.protocolName}</dd>
+							<dd>{rssNetwork.protocolName}</dd>
 						</div>
 					{/if}
 
 					{#if open}
 						<div>
 							<dt>Feeds</dt>
-							<dd>{String(rssNetwork.fields.$$rssFeeds?.values.length ?? 0)}</dd>
+							<dd>{String(rssNetwork.$$rssFeeds?.values.length ?? 0)}</dd>
 						</div>
 					{/if}
 
-					{#if open && rssNetwork.fields.homeUrl}
+					{#if open && rssNetwork.homeUrl}
 						<div>
 							<dt>Home</dt>
 							<dd>
-								<a href={rssNetwork.fields.homeUrl}>{rssNetwork.fields.homeUrl}</a>
+								<a href={rssNetwork.homeUrl}>{rssNetwork.homeUrl}</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && rssNetwork.fields.docsUrl}
+					{#if open && rssNetwork.docsUrl}
 						<div>
 							<dt>Docs</dt>
 							<dd>
-								<a href={rssNetwork.fields.docsUrl}>{rssNetwork.fields.docsUrl}</a>
+								<a href={rssNetwork.docsUrl}>{rssNetwork.docsUrl}</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && rssNetwork.fields.topology}
+					{#if open && rssNetwork.topology}
 						<div>
 							<dt>Topology</dt>
-							<dd>{rssNetwork.fields.topology}</dd>
+							<dd>{rssNetwork.topology}</dd>
 						</div>
 					{/if}
 				{/snippet}

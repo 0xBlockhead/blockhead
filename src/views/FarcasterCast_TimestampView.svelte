@@ -83,15 +83,15 @@
 						metrics={[
 							{
 								label: 'Likes',
-								value: farcasterCastTimestamp.fields.likeCount,
+								value: farcasterCastTimestamp.likeCount,
 							},
 							{
 								label: 'Recasts',
-								value: farcasterCastTimestamp.fields.recastCount,
+								value: farcasterCastTimestamp.recastCount,
 							},
 							{
 								label: 'Replies',
-								value: farcasterCastTimestamp.fields.replyCount,
+								value: farcasterCastTimestamp.replyCount,
 							},
 						]}
 					/>

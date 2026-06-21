@@ -64,54 +64,54 @@
 		>
 			{#snippet children(transaction)}
 				<dl data-column-item="center">
-					{#if transaction.fields.result != null}
+					{#if transaction.result != null}
 						<div>
 							<dt>Result</dt>
-							<dd>{transaction.fields.result}</dd>
+							<dd>{transaction.result}</dd>
 						</div>
 					{/if}
 
-					{#if transaction.fields.contractType != null}
+					{#if transaction.contractType != null}
 						<div>
 							<dt>Contract type</dt>
-							<dd>{transaction.fields.contractType}</dd>
+							<dd>{transaction.contractType}</dd>
 						</div>
 					{/if}
 
-					{#if transaction.fields.blockHeight != null}
+					{#if transaction.blockHeight != null}
 						<div>
 							<dt>Block</dt>
-							<dd>{transaction.fields.blockHeight.toString()}</dd>
+							<dd>{transaction.blockHeight.toString()}</dd>
 						</div>
 					{/if}
 
-					{#if transaction.fields.amountSun != null}
+					{#if transaction.amountSun != null}
 						<div>
 							<dt>Amount</dt>
-							<dd><NumberValue value={transaction.fields.amountSun} /></dd>
+							<dd><NumberValue value={transaction.amountSun} /></dd>
 						</div>
 					{/if}
 
-					{#if transaction.fields.feeSun != null}
+					{#if transaction.feeSun != null}
 						<div>
 							<dt>Fee</dt>
-							<dd><NumberValue value={transaction.fields.feeSun} /></dd>
+							<dd><NumberValue value={transaction.feeSun} /></dd>
 						</div>
 					{/if}
 
-					{#if transaction.fields.timestampMs != null}
+					{#if transaction.timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
-							<dd><Timestamp timestamp={transaction.fields.timestampMs} /></dd>
+							<dd><Timestamp timestamp={transaction.timestampMs} /></dd>
 						</div>
 					{/if}
 
-					{#if open && transaction.fields.rawDataHex != null}
+					{#if open && transaction.rawDataHex != null}
 						<div>
 							<dt>Raw data</dt>
 							<dd>
 								<TruncatedValue
-									value={transaction.fields.rawDataHex}
+									value={transaction.rawDataHex}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>

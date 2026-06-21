@@ -83,17 +83,17 @@
 		<dl data-column-item="center">
 			<ResourceBoundary resource={global}>
 				{#snippet children(global)}
-					{#if global.fields.duneCreditsUsed !== undefined}
+					{#if global.duneCreditsUsed !== undefined}
 						<div>
 							<dt>Dune credits used</dt>
-							<dd>{String(global.fields.duneCreditsUsed)}</dd>
+							<dd>{String(global.duneCreditsUsed)}</dd>
 						</div>
 					{/if}
 
-					{#if global.fields.duneCreditsIncluded !== undefined}
+					{#if global.duneCreditsIncluded !== undefined}
 						<div>
 							<dt>Dune credits included</dt>
-							<dd>{String(global.fields.duneCreditsIncluded)}</dd>
+							<dd>{String(global.duneCreditsIncluded)}</dd>
 						</div>
 					{/if}
 				{/snippet}
@@ -110,13 +110,13 @@
 					<ResourceBoundary resource={global}>
 						{#snippet children(global)}
 							<div>
-								{#if global.fields.duneCreditsIncluded !== undefined}
-									<p><strong>Dune credits included:</strong> {String(global.fields.duneCreditsIncluded)}</p>
+								{#if global.duneCreditsIncluded !== undefined}
+									<p><strong>Dune credits included:</strong> {String(global.duneCreditsIncluded)}</p>
 								{/if}
 
 								{#if (
-									global.fields.duneCreditsUsed === undefined
-									&& global.fields.duneCreditsIncluded === undefined
+									global.duneCreditsUsed === undefined
+									&& global.duneCreditsIncluded === undefined
 								)}
 									<p data-text="muted">
 										No usage totals global yet.

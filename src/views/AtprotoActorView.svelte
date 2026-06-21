@@ -87,10 +87,10 @@
 			resource={actor}
 		>
 			{#snippet children(actor)}
-				{@const atprotoBrandIconSrc = actor.fields.$icon?.[EntityMetaKey.Selector].url}
+				{@const atprotoBrandIconSrc = actor.$icon?.[EntityMetaKey.Selector].url}
 				{#if atprotoBrandIconSrc}
 					<IconComponent
-						alt={actor.fields.displayName ?? actor.fields.handle ?? ''}
+						alt={actor.displayName ?? actor.handle ?? ''}
 						shape={IconShape.Circle}
 						src={atprotoBrandIconSrc}
 					/>
@@ -111,8 +111,8 @@
 			placeholderText="Loading profile…"
 		>
 			{#snippet children(actor)}
-					{actor.fields.displayName
-						?? actor.fields.handle
+					{actor.displayName
+						?? actor.handle
 						?? ('did' in selection.entitySelector ? selection.entitySelector.did : selection.entitySelector.handle)}
 				{/snippet}
 		</ResourceBoundary>
@@ -124,13 +124,13 @@
 		>
 			{#snippet children(actor)}
 					{@const atprotoSummaryHeadingLine = (
-						actor.fields.displayName
-						?? actor.fields.handle
+						actor.displayName
+						?? actor.handle
 						?? ('did' in selection.entitySelector ? selection.entitySelector.did : selection.entitySelector.handle)
 					)}
-				{#if actor.fields.handle && actor.fields.handle !== atprotoSummaryHeadingLine}
+				{#if actor.handle && actor.handle !== atprotoSummaryHeadingLine}
 					<span data-text="muted">
-						@{actor.fields.handle}
+						@{actor.handle}
 					</span>
 				{/if}
 			{/snippet}
@@ -149,10 +149,10 @@
 			placeholderText="Loading profile…"
 		>
 			{#snippet children(actor)}
-				{#if actor.fields.description}
+				{#if actor.description}
 					<p>
 						<TruncatedValue
-							value={actor.fields.description}
+							value={actor.description}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
@@ -170,8 +170,8 @@
 							placeholderText="Loading profile…"
 						>
 							{#snippet children(actor)}
-								{#if actor.fields.handle}
-									{actor.fields.handle}
+								{#if actor.handle}
+									{actor.handle}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -185,13 +185,13 @@
 					placeholderText="Loading profile…"
 				>
 					{#snippet children(actor)}
-						{#if actor.fields.$banner != null}
+						{#if actor.$banner != null}
 							<div>
 								<dt>Banner</dt>
 								<dd>
-									<a href={actor.fields.$banner[EntityMetaKey.Selector].url}>
+									<a href={actor.$banner[EntityMetaKey.Selector].url}>
 										<TruncatedValue
-											value={actor.fields.$banner[EntityMetaKey.Selector].url}
+											value={actor.$banner[EntityMetaKey.Selector].url}
 											format={TruncatedValueFormat.Visual}
 										/>
 									</a>
@@ -208,12 +208,12 @@
 					placeholderText="Loading profile…"
 				>
 					{#snippet children(actor)}
-						{#if actor.fields.indexedAt != null}
+						{#if actor.indexedAt != null}
 							<div>
 								<dt>Indexed</dt>
 								<dd>
 									<Timestamp
-										timestamp={actor.fields.indexedAt}
+										timestamp={actor.indexedAt}
 									/>
 								</dd>
 							</div>
@@ -254,9 +254,9 @@
 				>
 					{#snippet children(actor)}
 						{@const atprotoProfileUnset = (
-							actor.fields.handle == null
-							&& actor.fields.displayName == null
-							&& actor.fields.description == null
+							actor.handle == null
+							&& actor.displayName == null
+							&& actor.description == null
 						)}
 						{#if atprotoProfileUnset}
 							<div data-row="wrap align-center gap-2">
@@ -286,17 +286,17 @@
 						placeholderText="Loading profile…"
 						>
 							{#snippet children(actor)}
-								{#if actor.fields.did !== undefined}
+								{#if actor.did !== undefined}
 									<AtprotoPostsView
 										CollapsibleProps={{ canToggle: false }}
 										href={resolve(
 										'/(social)/(atproto)/atproto/actor/[did]/(actor)/posts',
-											{ did: encodeURIComponent(actor.fields.did) },
+											{ did: encodeURIComponent(actor.did) },
 									)}
 										selection={select(
 					EntityType.AtprotoActor,
 					{
-												did: actor.fields.did,
+												did: actor.did,
 											}
 				).$$posts}
 										id={`${idKey}:posts`}

@@ -61,17 +61,17 @@
 		>
 			{#snippet children(polkadotValidator)}
 				<dl>
-					{#if polkadotValidator.fields.commissionPerBillion != null}
+					{#if polkadotValidator.commissionPerBillion != null}
 						<div>
 							<dt>Commission Per Billion</dt>
-							<dd><NumberValue value={polkadotValidator.fields.commissionPerBillion} /></dd>
+							<dd><NumberValue value={polkadotValidator.commissionPerBillion} /></dd>
 						</div>
 					{/if}
 
-					{#if polkadotValidator.fields.totalStakePlancks != null}
+					{#if polkadotValidator.totalStakePlancks != null}
 						<div>
 							<dt>Total Stake Plancks</dt>
-							<dd><NumberValue value={polkadotValidator.fields.totalStakePlancks} /> plancks</dd>
+							<dd><NumberValue value={polkadotValidator.totalStakePlancks} /> plancks</dd>
 						</div>
 					{/if}
 				</dl>

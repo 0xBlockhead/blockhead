@@ -93,55 +93,55 @@
 		>
 			{#snippet children(block)}
 				<dl data-column-item="center">
-					{#if block.fields.blockHash != null}
+					{#if block.blockHash != null}
 						<div>
 							<dt>Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={block.fields.blockHash}
+									value={block.blockHash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if block.fields.blockHeight != null}
+					{#if block.blockHeight != null}
 						<div>
 							<dt>Block height</dt>
-							<dd>{block.fields.blockHeight.toString()}</dd>
+							<dd>{block.blockHeight.toString()}</dd>
 						</div>
 					{/if}
 
-					{#if open && block.fields.parentSlot != null}
+					{#if open && block.parentSlot != null}
 						<div>
 							<dt>Parent slot</dt>
-							<dd>{block.fields.parentSlot.toString()}</dd>
+							<dd>{block.parentSlot.toString()}</dd>
 						</div>
 					{/if}
 
-					{#if open && block.fields.previousBlockHash != null}
+					{#if open && block.previousBlockHash != null}
 						<div>
 							<dt>Previous block hash</dt>
 							<dd>
 								<TruncatedValue
-									value={block.fields.previousBlockHash}
+									value={block.previousBlockHash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if block.fields.transactionCount != null}
+					{#if block.transactionCount != null}
 						<div>
 							<dt>Transactions</dt>
-							<dd><NumberValue value={block.fields.transactionCount} /></dd>
+							<dd><NumberValue value={block.transactionCount} /></dd>
 						</div>
 					{/if}
 
-					{#if block.fields.timestampMs != null}
+					{#if block.timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
-							<dd><Timestamp timestamp={block.fields.timestampMs} /></dd>
+							<dd><Timestamp timestamp={block.timestampMs} /></dd>
 						</div>
 					{/if}
 				</dl>

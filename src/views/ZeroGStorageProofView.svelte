@@ -73,21 +73,21 @@
 		>
 			{#snippet children(zeroGStorageProof)}
 				<dl>
-					{#if zeroGStorageProof.fields.proofKind != null}
+					{#if zeroGStorageProof.proofKind != null}
 						<div>
 							<dt>Proof Kind</dt>
 							<dd>
 								<TruncatedValue
-									value={zeroGStorageProof.fields.proofKind}
+									value={zeroGStorageProof.proofKind}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if zeroGStorageProof.fields.verifiedAtBlock != null}
+					{#if zeroGStorageProof.verifiedAtBlock != null}
 						<div>
 							<dt>Verified At Block</dt>
-							<dd><NumberValue value={zeroGStorageProof.fields.verifiedAtBlock} /></dd>
+							<dd><NumberValue value={zeroGStorageProof.verifiedAtBlock} /></dd>
 						</div>
 					{/if}
 				</dl>

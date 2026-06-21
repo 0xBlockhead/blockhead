@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		{#if true}
 			{#snippet ConversationHeading(conversation: Conversation)}
-				{conversation.fields.name ?? selection.entitySelector.id}
+				{conversation.name ?? selection.entitySelector.id}
 			{/snippet}
 
 			<ResourceBoundary
@@ -97,9 +97,9 @@
 		{#if open}
 			{#if true}
 				{#snippet ConversationSystemPromptProse(conversation: Conversation)}
-					{#if conversation.fields.systemPrompt !== ''}
+					{#if conversation.systemPrompt !== ''}
 						<p>
-							{conversation.fields.systemPrompt}
+							{conversation.systemPrompt}
 						</p>
 					{:else}
 						<p data-text="muted">
@@ -122,7 +122,7 @@
 				<dd>
 					{#if true}
 						{#snippet ConversationPinnedRow(conversation: Conversation)}
-							{conversation.fields.pinned ? 'Yes' : 'No'}
+							{conversation.pinned ? 'Yes' : 'No'}
 						{/snippet}
 
 						<ResourceBoundary
@@ -139,14 +139,14 @@
 				<dd>
 					{#if true}
 						{#snippet ConversationLastActivityRow(conversation: Conversation)}
-							{#if conversation.fields.updatedAt !== undefined}
+							{#if conversation.updatedAt !== undefined}
 								<Timestamp
-									timestamp={conversation.fields.updatedAt}
+									timestamp={conversation.updatedAt}
 								/>
 							{:else}
-								{#if conversation.fields.createdAt !== undefined}
+								{#if conversation.createdAt !== undefined}
 									<Timestamp
-										timestamp={conversation.fields.createdAt}
+										timestamp={conversation.createdAt}
 									/>
 								{/if}
 							{/if}
@@ -167,9 +167,9 @@
 					<dd>
 						{#if true}
 							{#snippet ConversationCreatedRow(conversation: Conversation)}
-								{#if conversation.fields.createdAt !== undefined}
+								{#if conversation.createdAt !== undefined}
 									<Timestamp
-										timestamp={conversation.fields.createdAt}
+										timestamp={conversation.createdAt}
 									/>
 								{/if}
 							{/snippet}
@@ -190,9 +190,9 @@
 					<dd>
 						{#if true}
 							{#snippet ConversationUpdatedRow(conversation: Conversation)}
-								{#if conversation.fields.updatedAt !== undefined}
+								{#if conversation.updatedAt !== undefined}
 									<Timestamp
-										timestamp={conversation.fields.updatedAt}
+										timestamp={conversation.updatedAt}
 									/>
 								{/if}
 							{/snippet}
@@ -213,9 +213,9 @@
 					<dd>
 						{#if true}
 							{#snippet ConversationConnectionRow(conversation: Conversation)}
-								{#if conversation.fields.defaultConnectionId != null && conversation.fields.defaultConnectionId !== ''}
+								{#if conversation.defaultConnectionId != null && conversation.defaultConnectionId !== ''}
 									<TruncatedValue
-										value={conversation.fields.defaultConnectionId}
+										value={conversation.defaultConnectionId}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{:else}
@@ -241,9 +241,9 @@
 					<dd>
 						{#if true}
 							{#snippet ConversationModelRow(conversation: Conversation)}
-								{#if conversation.fields.defaultModelId != null && conversation.fields.defaultModelId !== ''}
+								{#if conversation.defaultModelId != null && conversation.defaultModelId !== ''}
 									<TruncatedValue
-										value={conversation.fields.defaultModelId}
+										value={conversation.defaultModelId}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{:else}

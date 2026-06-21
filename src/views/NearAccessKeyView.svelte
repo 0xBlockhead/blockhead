@@ -63,17 +63,17 @@
 		>
 			{#snippet children(nearAccessKey)}
 				<dl>
-					{#if nearAccessKey.fields.nonce != null}
+					{#if nearAccessKey.nonce != null}
 						<div>
 							<dt>Nonce</dt>
-							<dd><NumberValue value={nearAccessKey.fields.nonce} /></dd>
+							<dd><NumberValue value={nearAccessKey.nonce} /></dd>
 						</div>
 					{/if}
 
-					{#if nearAccessKey.fields.permission != null}
+					{#if nearAccessKey.permission != null}
 						<div>
 							<dt>Permission</dt>
-							<dd>{nearAccessKey.fields.permission}</dd>
+							<dd>{nearAccessKey.permission}</dd>
 						</div>
 					{/if}
 				</dl>

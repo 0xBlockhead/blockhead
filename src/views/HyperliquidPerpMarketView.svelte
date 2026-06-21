@@ -68,17 +68,17 @@
 		>
 			{#snippet children(market)}
 				<dl>
-					{#if market.fields.maxLeverage != null}
+					{#if market.maxLeverage != null}
 						<div>
 							<dt>Max leverage</dt>
-							<dd><NumberValue value={market.fields.maxLeverage} />x</dd>
+							<dd><NumberValue value={market.maxLeverage} />x</dd>
 						</div>
 					{/if}
 
-					{#if market.fields.onlyIsolated != null}
+					{#if market.onlyIsolated != null}
 						<div>
 							<dt>Only isolated</dt>
-							<dd>{market.fields.onlyIsolated ? 'Yes' : 'No'}</dd>
+							<dd>{market.onlyIsolated ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 				</dl>

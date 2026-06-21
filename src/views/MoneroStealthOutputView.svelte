@@ -69,23 +69,23 @@
 		>
 			{#snippet children(moneroStealthOutput)}
 				<dl>
-					{#if moneroStealthOutput.fields.publicKey != null}
+					{#if moneroStealthOutput.publicKey != null}
 						<div>
 							<dt>Public Key</dt>
 							<dd>
 								<TruncatedValue
-									value={moneroStealthOutput.fields.publicKey}
+									value={moneroStealthOutput.publicKey}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if moneroStealthOutput.fields.commitment != null}
+					{#if moneroStealthOutput.commitment != null}
 						<div>
 							<dt>Commitment</dt>
 							<dd>
 								<TruncatedValue
-									value={moneroStealthOutput.fields.commitment}
+									value={moneroStealthOutput.commitment}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>

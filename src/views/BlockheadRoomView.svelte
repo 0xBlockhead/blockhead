@@ -71,7 +71,7 @@
 			placeholderText="Loading room…"
 		>
 			{#snippet children(room)}
-				{room.fields.name ?? selection.entitySelector.id}
+				{room.name ?? selection.entitySelector.id}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -104,9 +104,9 @@
 							placeholderText="Loading room…"
 						>
 							{#snippet children(room)}
-								{#if room.fields.createdAt !== undefined}
+								{#if room.createdAt !== undefined}
 									<Timestamp
-										timestamp={room.fields.createdAt}
+										timestamp={room.createdAt}
 									/>
 								{/if}
 							{/snippet}
@@ -123,10 +123,10 @@
 						>
 							{#snippet children(room)}
 								{#if (
-									room.fields.createdBy !== undefined
-									&& room.fields.createdBy !== ''
+									room.createdBy !== undefined
+									&& room.createdBy !== ''
 								)}
-									{room.fields.createdBy}
+									{room.createdBy}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>

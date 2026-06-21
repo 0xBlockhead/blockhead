@@ -86,7 +86,7 @@
 			placeholderText="Loading currency…"
 		>
 			{#snippet children(currency)}
-				{currency.fields.name ?? selection.entitySelector.iso4217}
+				{currency.name ?? selection.entitySelector.iso4217}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -107,7 +107,7 @@
 						placeholderText="Loading currency…"
 					>
 						{#snippet children(currency)}
-							{@const marketCap = currency.fields.$$timestamps?.values[0]?.marketCap}
+							{@const marketCap = currency.$$timestamps?.values[0]?.marketCap}
 							{#if marketCap !== undefined}
 								<CurrencyAmount
 									currency="USD"
@@ -126,8 +126,8 @@
 						placeholderText="Loading currency…"
 					>
 						{#snippet children(currency)}
-							{#if currency.fields.symbol != null && currency.fields.symbol !== ''}
-								{currency.fields.symbol}
+							{#if currency.symbol != null && currency.symbol !== ''}
+								{currency.symbol}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -142,8 +142,8 @@
 							placeholderText="Loading currency…"
 						>
 							{#snippet children(currency)}
-								{#if currency.fields.minorUnitExponent !== undefined}
-									{String(currency.fields.minorUnitExponent)}
+								{#if currency.minorUnitExponent !== undefined}
+									{String(currency.minorUnitExponent)}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>

@@ -65,10 +65,10 @@
 			placeholderText="Loading Farcaster account connection (FID)…"
 		>
 			{#snippet children(connection)}
-				{#if connection.fields.$icon?.[EntityMetaKey.Selector].url}
+				{#if connection.$icon?.[EntityMetaKey.Selector].url}
 					<IconComponent
 						shape={IconShape.Circle}
-						src={connection.fields.$icon[EntityMetaKey.Selector].url}
+						src={connection.$icon[EntityMetaKey.Selector].url}
 						alt=""
 					/>
 				{/if}
@@ -88,7 +88,7 @@
 			placeholderText="Loading Farcaster account connection (FID)…"
 		>
 			{#snippet children(connection)}
-				{connection.fields.displayName ?? connection.fields.username ?? String(selection.entitySelector.fid)}
+				{connection.displayName ?? connection.username ?? String(selection.entitySelector.fid)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -100,13 +100,13 @@
 		>
 			{#snippet children(connection)}
 				{#if (
-					connection.fields.username !== undefined
-					&& connection.fields.username !== (
-						connection.fields.displayName ?? connection.fields.username ?? String(selection.entitySelector.fid)
+					connection.username !== undefined
+					&& connection.username !== (
+						connection.displayName ?? connection.username ?? String(selection.entitySelector.fid)
 					)
 				)}
 					<span data-text="muted">
-						@{connection.fields.username}
+						@{connection.username}
 					</span>
 				{/if}
 			{/snippet}
@@ -128,10 +128,10 @@
 			placeholderText="Loading Farcaster account connection (FID)…"
 		>
 			{#snippet children(connection)}
-				{#if connection.fields.bio}
+				{#if connection.bio}
 					<p>
 						<TruncatedValue
-							value={connection.fields.bio}
+							value={connection.bio}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
@@ -140,54 +140,54 @@
 				<dl data-column-item="center">
 					{#if (
 						open
-						&& connection.fields.username
+						&& connection.username
 					)}
 						<div>
 							<dt>Username</dt>
-							<dd>@{connection.fields.username}</dd>
+							<dd>@{connection.username}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& connection.fields.authMethod
+						&& connection.authMethod
 						)}
 						<div>
 							<dt>Auth method</dt>
 							<dd>
-								{blockheadFarcasterConnectionAuthMethodByAuthMethod[connection.fields.authMethod].label}
+								{blockheadFarcasterConnectionAuthMethodByAuthMethod[connection.authMethod].label}
 							</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& connection.fields.custody
+						&& connection.custody
 						)}
 						<div>
 							<dt>Custody</dt>
-							<dd>{connection.fields.custody}</dd>
+							<dd>{connection.custody}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& connection.fields.verifications
-						&& connection.fields.verifications.length
+						&& connection.verifications
+						&& connection.verifications.length
 						)}
 						<div>
 							<dt>Verifications</dt>
-							<dd>{connection.fields.verifications.join(', ')}</dd>
+							<dd>{connection.verifications.join(', ')}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& connection.fields.signedAt !== undefined
+						&& connection.signedAt !== undefined
 					)}
 						<div>
 							<dt>Signed at</dt>
-							<dd><Timestamp timestamp={connection.fields.signedAt} /></dd>
+							<dd><Timestamp timestamp={connection.signedAt} /></dd>
 						</div>
 					{/if}
 				</dl>

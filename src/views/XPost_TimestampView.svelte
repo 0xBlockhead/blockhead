@@ -81,19 +81,19 @@
 						metrics={[
 							{
 								label: 'Likes',
-								value: xPostTimestamp.fields.likeCount,
+								value: xPostTimestamp.likeCount,
 							},
 							{
 								label: 'Reposts',
-								value: xPostTimestamp.fields.retweetCount,
+								value: xPostTimestamp.retweetCount,
 							},
 							{
 								label: 'Replies',
-								value: xPostTimestamp.fields.replyCount,
+								value: xPostTimestamp.replyCount,
 							},
 							{
 								label: 'Quotes',
-								value: xPostTimestamp.fields.quoteCount,
+								value: xPostTimestamp.quoteCount,
 							},
 						]}
 					/>

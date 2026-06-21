@@ -63,28 +63,28 @@
 		>
 			{#snippet children(filecoinActor)}
 				<dl>
-					{#if filecoinActor.fields.actorCodeCid != null}
+					{#if filecoinActor.actorCodeCid != null}
 						<div>
 							<dt>Actor Code CID</dt>
 							<dd>
 								<TruncatedValue
-									value={filecoinActor.fields.actorCodeCid}
+									value={filecoinActor.actorCodeCid}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if filecoinActor.fields.nonce != null}
+					{#if filecoinActor.nonce != null}
 						<div>
 							<dt>Nonce</dt>
-							<dd><NumberValue value={filecoinActor.fields.nonce} /></dd>
+							<dd><NumberValue value={filecoinActor.nonce} /></dd>
 						</div>
 					{/if}
 
-					{#if filecoinActor.fields.balanceAttoFil != null}
+					{#if filecoinActor.balanceAttoFil != null}
 						<div>
 							<dt>Balance</dt>
-							<dd><NumberValue value={filecoinActor.fields.balanceAttoFil} /> attoFIL</dd>
+							<dd><NumberValue value={filecoinActor.balanceAttoFil} /> attoFIL</dd>
 						</div>
 					{/if}
 				</dl>

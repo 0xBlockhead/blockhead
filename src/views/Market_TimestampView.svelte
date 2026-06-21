@@ -78,14 +78,14 @@
 			resource={marketTimestamp}
 		>
 			{#snippet children(marketTimestamp)}
-				{#if marketTimestamp.fields.price !== undefined}
+				{#if marketTimestamp.price !== undefined}
 					<CurrencyAmount
 						currency={selection.entitySelector.$market.$quote.kind === MarketAssetKind.Currency ?
 							selection.entitySelector.$market.$quote.$currency.iso4217
 						:
 							Iso4217.USD}
 						showDecimalPlaces={6}
-						value={marketTimestamp.fields.price}
+						value={marketTimestamp.price}
 					/>
 				{:else}
 					<Timestamp
@@ -102,14 +102,14 @@
 			resource={marketTimestamp}
 		>
 			{#snippet children(marketTimestamp)}
-				{#if marketTimestamp.fields.price !== undefined}
+				{#if marketTimestamp.price !== undefined}
 					<CurrencyAmount
 						currency={selection.entitySelector.$market.$quote.kind === MarketAssetKind.Currency ?
 							selection.entitySelector.$market.$quote.$currency.iso4217
 						:
 							Iso4217.USD}
 							showDecimalPlaces={6}
-							value={marketTimestamp.fields.price}
+							value={marketTimestamp.price}
 					/>
 				{:else}
 					<Timestamp
@@ -142,14 +142,14 @@
 		>
 			{#snippet children(marketTimestamp)}
 				<dl data-column-item="center">
-					{#if marketTimestamp.fields.price !== undefined}
+					{#if marketTimestamp.price !== undefined}
 						<div>
 							<dt>Price</dt>
 							<dd>
 								<CurrencyAmount
 									currency={quoteCurrency}
 									showDecimalPlaces={6}
-									value={marketTimestamp.fields.price}
+									value={marketTimestamp.price}
 								/>
 							</dd>
 						</div>
@@ -178,14 +178,14 @@
 
 					{#if (
 						open
-						&& marketTimestamp.fields.marketCap !== undefined
+						&& marketTimestamp.marketCap !== undefined
 					)}
 						<div>
 							<dt>Market cap</dt>
 							<dd>
 								<CurrencyAmount
 									currency={quoteCurrency}
-									value={marketTimestamp.fields.marketCap}
+									value={marketTimestamp.marketCap}
 								/>
 							</dd>
 						</div>
@@ -193,14 +193,14 @@
 
 					{#if (
 						open
-						&& marketTimestamp.fields.volume24h !== undefined
+						&& marketTimestamp.volume24h !== undefined
 					)}
 						<div>
 							<dt>24h volume</dt>
 							<dd>
 								<CurrencyAmount
 									currency={quoteCurrency}
-									value={marketTimestamp.fields.volume24h}
+									value={marketTimestamp.volume24h}
 								/>
 							</dd>
 						</div>
@@ -208,36 +208,36 @@
 
 					{#if (
 						open
-						&& marketTimestamp.fields.caip19 !== undefined
+						&& marketTimestamp.caip19 !== undefined
 					)}
 						<div>
 							<dt>CAIP-19</dt>
 							<dd>
-								<code>{marketTimestamp.fields.caip19}</code>
+								<code>{marketTimestamp.caip19}</code>
 							</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& marketTimestamp.fields.transport !== undefined
+						&& marketTimestamp.transport !== undefined
 					)}
 						<div>
 							<dt>Transport</dt>
 							<dd>
-								{marketTimestamp.fields.transport}
+								{marketTimestamp.transport}
 							</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& marketTimestamp.fields.providerAssetId != null
+						&& marketTimestamp.providerAssetId != null
 					)}
 						<div>
 							<dt>Provider asset id</dt>
 							<dd>
-								{marketTimestamp.fields.providerAssetId}
+								{marketTimestamp.providerAssetId}
 							</dd>
 						</div>
 					{/if}

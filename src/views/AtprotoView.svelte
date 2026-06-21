@@ -101,7 +101,7 @@
 			placeholderText="Loading AT Protocol directory…"
 		>
 			{#snippet children(atprotoNetwork)}
-				{atprotoNetwork.fields.protocolName ?? 'AT Protocol'}
+				{atprotoNetwork.protocolName ?? 'AT Protocol'}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -126,46 +126,46 @@
 				placeholderText="Loading AT Protocol directory…"
 			>
 				{#snippet children(atprotoNetwork)}
-					{#if atprotoNetwork.fields.registryLabel}
+					{#if atprotoNetwork.registryLabel}
 						<div>
 							<dt>Registry</dt>
-							<dd>{atprotoNetwork.fields.registryLabel}</dd>
+							<dd>{atprotoNetwork.registryLabel}</dd>
 						</div>
-					{:else if atprotoNetwork.fields.protocolName}
+					{:else if atprotoNetwork.protocolName}
 						<div>
 							<dt>Protocol</dt>
-							<dd>{atprotoNetwork.fields.protocolName}</dd>
+							<dd>{atprotoNetwork.protocolName}</dd>
 						</div>
 					{/if}
 
 					{#if _contentOpen}
 						<div>
 							<dt>Accounts</dt>
-							<dd>{String(atprotoNetwork.fields.$$atprotoActors?.values.length ?? 0)}</dd>
+							<dd>{String(atprotoNetwork.$$atprotoActors?.values.length ?? 0)}</dd>
 						</div>
 
-						{#if atprotoNetwork.fields.topology}
+						{#if atprotoNetwork.topology}
 							<div>
 								<dt>Topology</dt>
-								<dd>{atprotoNetwork.fields.topology}</dd>
+								<dd>{atprotoNetwork.topology}</dd>
 							</div>
 						{/if}
 
-						{#if atprotoNetwork.fields.homeUrl}
+						{#if atprotoNetwork.homeUrl}
 							<div>
 								<dt>Home</dt>
 								<dd>
-									<a href={atprotoNetwork.fields.homeUrl}>{atprotoNetwork.fields.homeUrl}</a>
+									<a href={atprotoNetwork.homeUrl}>{atprotoNetwork.homeUrl}</a>
 								</dd>
 							</div>
 						{/if}
 
-						{#if atprotoNetwork.fields.docsUrl != null && atprotoNetwork.fields.docsUrl !== ''}
+						{#if atprotoNetwork.docsUrl != null && atprotoNetwork.docsUrl !== ''}
 							<div>
 								<dt>Documentation</dt>
 								<dd>
-									<a href={atprotoNetwork.fields.docsUrl}>
-										{atprotoNetwork.fields.docsUrl}
+									<a href={atprotoNetwork.docsUrl}>
+										{atprotoNetwork.docsUrl}
 									</a>
 								</dd>
 							</div>

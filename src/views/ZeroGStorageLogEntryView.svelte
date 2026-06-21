@@ -73,19 +73,19 @@
 		>
 			{#snippet children(zeroGStorageLogEntry)}
 				<dl>
-					{#if zeroGStorageLogEntry.fields.sequenceNumber != null}
+					{#if zeroGStorageLogEntry.sequenceNumber != null}
 						<div>
 							<dt>Sequence Number</dt>
-							<dd><NumberValue value={zeroGStorageLogEntry.fields.sequenceNumber} /></dd>
+							<dd><NumberValue value={zeroGStorageLogEntry.sequenceNumber} /></dd>
 						</div>
 					{/if}
 
-					{#if zeroGStorageLogEntry.fields.commitment != null}
+					{#if zeroGStorageLogEntry.commitment != null}
 						<div>
 							<dt>Commitment</dt>
 							<dd>
 								<TruncatedValue
-									value={zeroGStorageLogEntry.fields.commitment}
+									value={zeroGStorageLogEntry.commitment}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>

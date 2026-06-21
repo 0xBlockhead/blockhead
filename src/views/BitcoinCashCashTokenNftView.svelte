@@ -58,10 +58,10 @@
 		>
 			{#snippet children(bitcoinCashCashTokenNft)}
 				<dl>
-					{#if bitcoinCashCashTokenNft.fields.capability != null}
+					{#if bitcoinCashCashTokenNft.capability != null}
 						<div>
 							<dt>Capability</dt>
-							<dd>{bitcoinCashCashTokenNft.fields.capability}</dd>
+							<dd>{bitcoinCashCashTokenNft.capability}</dd>
 						</div>
 					{/if}
 				</dl>

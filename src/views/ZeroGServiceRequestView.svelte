@@ -58,12 +58,12 @@
 		>
 			{#snippet children(zeroGServiceRequest)}
 				<dl>
-					{#if zeroGServiceRequest.fields.$requester != null}
+					{#if zeroGServiceRequest.$requester != null}
 						<div>
 							<dt>Requester</dt>
 							<dd>
 								<EvmAccountView
-									selection={select(EntityType.EvmAccount, zeroGServiceRequest.fields.$requester[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmAccount, zeroGServiceRequest.$requester[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 								/>
@@ -71,36 +71,36 @@
 						</div>
 					{/if}
 
-					{#if zeroGServiceRequest.fields.requestHash != null}
+					{#if zeroGServiceRequest.requestHash != null}
 						<div>
 							<dt>Request Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={zeroGServiceRequest.fields.requestHash}
+									value={zeroGServiceRequest.requestHash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if zeroGServiceRequest.fields.responseHash != null}
+					{#if zeroGServiceRequest.responseHash != null}
 						<div>
 							<dt>Response Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={zeroGServiceRequest.fields.responseHash}
+									value={zeroGServiceRequest.responseHash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if zeroGServiceRequest.fields.$settlementTrace != null}
+					{#if zeroGServiceRequest.$settlementTrace != null}
 						<div>
 							<dt>Settlement</dt>
 							<dd>
 								<ZeroGSettlementTraceView
-									selection={select(EntityType.ZeroGSettlementTrace, zeroGServiceRequest.fields.$settlementTrace[EntityMetaKey.Selector])}
+									selection={select(EntityType.ZeroGSettlementTrace, zeroGServiceRequest.$settlementTrace[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 								/>

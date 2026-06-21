@@ -60,10 +60,10 @@
 		>
 			{#snippet children(quilibriumAccount)}
 				<dl>
-					{#if quilibriumAccount.fields.accountKind != null}
+					{#if quilibriumAccount.accountKind != null}
 						<div>
 							<dt>Account Kind</dt>
-							<dd>{quilibriumAccount.fields.accountKind}</dd>
+							<dd>{quilibriumAccount.accountKind}</dd>
 						</div>
 					{/if}
 				</dl>

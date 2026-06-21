@@ -96,15 +96,15 @@
 						metrics={[
 							{
 								label: 'Favourites',
-								value: activityPubNoteTimestamp.fields.favouriteCount,
+								value: activityPubNoteTimestamp.favouriteCount,
 							},
 							{
 								label: 'Reblogs',
-								value: activityPubNoteTimestamp.fields.reblogCount,
+								value: activityPubNoteTimestamp.reblogCount,
 							},
 							{
 								label: 'Replies',
-								value: activityPubNoteTimestamp.fields.replyCount,
+								value: activityPubNoteTimestamp.replyCount,
 							},
 						]}
 					/>

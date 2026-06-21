@@ -31,14 +31,14 @@
 <Page>
 	<ResourceBoundary resource={network}>
 		{#snippet children(network)}
-			{#if network.fields.namespace === NetworkNamespace.Bitcoin || network.fields.namespace === NetworkNamespace.BitcoinCash || network.fields.namespace === NetworkNamespace.Litecoin || network.fields.namespace === NetworkNamespace.Dogecoin || network.fields.namespace === NetworkNamespace.Zcash}
+			{#if network.namespace === NetworkNamespace.Bitcoin || network.namespace === NetworkNamespace.BitcoinCash || network.namespace === NetworkNamespace.Litecoin || network.namespace === NetworkNamespace.Dogecoin || network.namespace === NetworkNamespace.Zcash}
 					<UtxoTransactionView
 						selection={select(EntityType.UtxoTransaction, {
 							$network: { slug: params.networkSlug },
 							txId: params.txId,
 						})}
 					/>
-			{:else if network.fields.namespace === NetworkNamespace.ZeroG}
+			{:else if network.namespace === NetworkNamespace.ZeroG}
 				<EvmTransactionView
 					selection={select(EntityType.EvmTransaction, {
 						$network: {

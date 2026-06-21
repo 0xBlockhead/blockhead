@@ -66,7 +66,7 @@
 		>
 			{#snippet children(realm)}
 				<span>
-					{realm.fields.slug ?? String(selection.entitySelector.realm)}
+					{realm.slug ?? String(selection.entitySelector.realm)}
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -78,7 +78,7 @@
 			placeholderText="Loading specification realm…"
 		>
 			{#snippet children(realm)}
-				{realm.fields.label ?? String(selection.entitySelector.realm)}
+				{realm.label ?? String(selection.entitySelector.realm)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}

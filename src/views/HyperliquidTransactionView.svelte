@@ -62,17 +62,17 @@
 		>
 			{#snippet children(hyperliquidTransaction)}
 				<dl>
-					{#if hyperliquidTransaction.fields.actionType != null}
+					{#if hyperliquidTransaction.actionType != null}
 						<div>
 							<dt>Action Type</dt>
-							<dd>{hyperliquidTransaction.fields.actionType}</dd>
+							<dd>{hyperliquidTransaction.actionType}</dd>
 						</div>
 					{/if}
 
-					{#if hyperliquidTransaction.fields.status != null}
+					{#if hyperliquidTransaction.status != null}
 						<div>
 							<dt>Status</dt>
-							<dd>{hyperliquidTransaction.fields.status}</dd>
+							<dd>{hyperliquidTransaction.status}</dd>
 						</div>
 					{/if}
 				</dl>

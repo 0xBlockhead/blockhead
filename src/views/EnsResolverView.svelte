@@ -39,7 +39,7 @@
 		)}
 >
 	{#snippet children(ens)}
-		{@const contractId = ens.fields.$resolverContract?.[EntityMetaKey.Selector]}
+		{@const contractId = ens.$resolverContract?.[EntityMetaKey.Selector]}
 		{#if contractId}
 			<section>
 				<EvmNetworkView

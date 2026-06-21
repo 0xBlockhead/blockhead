@@ -69,10 +69,10 @@
 		>
 			{#snippet children(litecoinMwebPegOut)}
 				<dl>
-					{#if litecoinMwebPegOut.fields.amountLitoshis != null}
+					{#if litecoinMwebPegOut.amountLitoshis != null}
 						<div>
 							<dt>Amount Litoshis</dt>
-							<dd><NumberValue value={litecoinMwebPegOut.fields.amountLitoshis} /> litoshis</dd>
+							<dd><NumberValue value={litecoinMwebPegOut.amountLitoshis} /> litoshis</dd>
 						</div>
 					{/if}
 				</dl>

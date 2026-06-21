@@ -97,8 +97,8 @@
 			{#snippet children(comment)}
 				<TruncatedValue
 					value={
-						comment.fields.body ?
-							comment.fields.body.replaceAll('\n', ' ')
+						comment.body ?
+							comment.body.replaceAll('\n', ' ')
 						:
 							selection.entitySelector.fullname
 					}
@@ -115,10 +115,10 @@
 			resource={comment}
 		>
 			{#snippet children(comment)}
-				{#if comment.fields.createdAt != null}
+				{#if comment.createdAt != null}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={comment.fields.createdAt}
+							timestamp={comment.createdAt}
 						/>
 					</span>
 				{/if}
@@ -142,11 +142,11 @@
 		>
 			{#snippet children(comment)}
 				<p>
-					{#if !comment.fields.body}
+					{#if !comment.body}
 						<span data-text="muted">No comment text.</span>
 					{:else}
 						<TruncatedValue
-							value={comment.fields.body}
+							value={comment.body}
 							format={TruncatedValueFormat.Visual}
 						/>
 					{/if}
@@ -157,17 +157,17 @@
 						metrics={[
 							{
 								label: 'Score',
-								value: comment.fields.$$timestamps?.values.at(0)?.score,
+								value: comment.$$timestamps?.values.at(0)?.score,
 							},
 						]}
 					/>
 
-					{#if comment.fields.depth != null}
+					{#if comment.depth != null}
 						<div>
 							<dt>Depth</dt>
 							<dd>
 								<NumberValue
-									value={comment.fields.depth}
+									value={comment.depth}
 								/>
 							</dd>
 						</div>
@@ -176,20 +176,20 @@
 					<div>
 						<dt>Author</dt>
 						<dd>
-							{#if comment.fields.author}
-								u/{comment.fields.author}
+							{#if comment.author}
+								u/{comment.author}
 							{:else}
 								<span data-text="muted">[deleted]</span>
 							{/if}
 						</dd>
 					</div>
 
-					{#if comment.fields.$parentComment}
+					{#if comment.$parentComment}
 						<div>
 							<dt>Reply to</dt>
 							<dd>
 								<RedditCommentView
-									selection={select(EntityType.RedditComment, comment.fields.$parentComment[EntityMetaKey.Selector])}
+									selection={select(EntityType.RedditComment, comment.$parentComment[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -197,12 +197,12 @@
 						</div>
 					{/if}
 
-					{#if comment.fields.$link}
+					{#if comment.$link}
 						<div>
 							<dt>Submission</dt>
 							<dd>
 								<RedditLinkView
-									selection={select(EntityType.RedditLink, comment.fields.$link[EntityMetaKey.Selector])}
+									selection={select(EntityType.RedditLink, comment.$link[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 									open={false}
 								/>

@@ -68,12 +68,12 @@
 		>
 			{#snippet children(zeroGKvEntry)}
 				<dl>
-					{#if zeroGKvEntry.fields.$owner != null}
+					{#if zeroGKvEntry.$owner != null}
 						<div>
 							<dt>Owner</dt>
 							<dd>
 								<EvmAccountView
-									selection={select(EntityType.EvmAccount, zeroGKvEntry.fields.$owner[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmAccount, zeroGKvEntry.$owner[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 								/>
@@ -81,24 +81,24 @@
 						</div>
 					{/if}
 
-					{#if zeroGKvEntry.fields.valueHash != null}
+					{#if zeroGKvEntry.valueHash != null}
 						<div>
 							<dt>Value Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={zeroGKvEntry.fields.valueHash}
+									value={zeroGKvEntry.valueHash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if zeroGKvEntry.fields.$logEntry != null}
+					{#if zeroGKvEntry.$logEntry != null}
 						<div>
 							<dt>Log entry</dt>
 							<dd>
 								<ZeroGStorageLogEntryView
-									selection={select(EntityType.ZeroGStorageLogEntry, zeroGKvEntry.fields.$logEntry[EntityMetaKey.Selector])}
+									selection={select(EntityType.ZeroGStorageLogEntry, zeroGKvEntry.$logEntry[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 								/>

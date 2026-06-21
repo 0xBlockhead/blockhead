@@ -80,26 +80,26 @@
 		>
 			{#snippet children(dataBlob)}
 				<dl>
-					{#if dataBlob.fields.sizeBytes != null}
+					{#if dataBlob.sizeBytes != null}
 						<div>
 							<dt>Size</dt>
-							<dd>{dataBlob.fields.sizeBytes.toString()} bytes</dd>
+							<dd>{dataBlob.sizeBytes.toString()} bytes</dd>
 						</div>
 					{/if}
 
-					{#if dataBlob.fields.erasureCodingScheme != null}
+					{#if dataBlob.erasureCodingScheme != null}
 						<div>
 							<dt>Encoding</dt>
-							<dd>{dataBlob.fields.erasureCodingScheme}</dd>
+							<dd>{dataBlob.erasureCodingScheme}</dd>
 						</div>
 					{/if}
 
-					{#if dataBlob.fields.aggregatedSignature != null}
+					{#if dataBlob.aggregatedSignature != null}
 						<div>
 							<dt>DA signature</dt>
 							<dd>
 								<TruncatedValue
-									value={dataBlob.fields.aggregatedSignature}
+									value={dataBlob.aggregatedSignature}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>

@@ -60,10 +60,10 @@
 		>
 			{#snippet children(zeroGConsensusNetwork)}
 				<dl>
-					{#if zeroGConsensusNetwork.fields.sharedStakingStatusSource != null}
+					{#if zeroGConsensusNetwork.sharedStakingStatusSource != null}
 						<div>
 							<dt>Shared staking status source</dt>
-							<dd>{zeroGConsensusNetwork.fields.sharedStakingStatusSource}</dd>
+							<dd>{zeroGConsensusNetwork.sharedStakingStatusSource}</dd>
 						</div>
 					{/if}
 				</dl>

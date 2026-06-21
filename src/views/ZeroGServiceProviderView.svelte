@@ -62,19 +62,19 @@
 		>
 			{#snippet children(serviceProvider)}
 				<dl>
-					{#if serviceProvider.fields.serviceKind != null}
+					{#if serviceProvider.serviceKind != null}
 						<div>
 							<dt>Service</dt>
-							<dd>{serviceProvider.fields.serviceKind}</dd>
+							<dd>{serviceProvider.serviceKind}</dd>
 						</div>
 					{/if}
 
-					{#if serviceProvider.fields.$operator != null}
+					{#if serviceProvider.$operator != null}
 						<div>
 							<dt>Operator</dt>
 							<dd>
 								<EvmAccountView
-									selection={select(EntityType.EvmAccount, serviceProvider.fields.$operator[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmAccount, serviceProvider.$operator[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
 								/>
@@ -82,19 +82,19 @@
 						</div>
 					{/if}
 
-					{#if serviceProvider.fields.verificationMethod != null}
+					{#if serviceProvider.verificationMethod != null}
 						<div>
 							<dt>Verification</dt>
-							<dd>{serviceProvider.fields.verificationMethod}</dd>
+							<dd>{serviceProvider.verificationMethod}</dd>
 						</div>
 					{/if}
 
-					{#if serviceProvider.fields.$$requests != null && serviceProvider.fields.$$requests.values.length}
+					{#if serviceProvider.$$requests != null && serviceProvider.$$requests.values.length}
 						<div>
 							<dt>Requests</dt>
 							<dd>
 								<ul>
-									{#each serviceProvider.fields.$$requests.values as request (request[EntityMetaKey.Selector].requestId)}
+									{#each serviceProvider.$$requests.values as request (request[EntityMetaKey.Selector].requestId)}
 										<li>
 											<ZeroGServiceRequestView
 												selection={select(EntityType.ZeroGServiceRequest, request[EntityMetaKey.Selector])}

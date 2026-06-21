@@ -83,11 +83,11 @@
 						metrics={[
 							{
 								label: 'Followers',
-								value: lensAccountTimestamp.fields.followerCount,
+								value: lensAccountTimestamp.followerCount,
 							},
 							{
 								label: 'Following',
-								value: lensAccountTimestamp.fields.followingCount,
+								value: lensAccountTimestamp.followingCount,
 							},
 						]}
 					/>

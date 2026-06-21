@@ -63,21 +63,21 @@
 		>
 			{#snippet children(nearContract)}
 				<dl>
-					{#if nearContract.fields.codeHash != null}
+					{#if nearContract.codeHash != null}
 						<div>
 							<dt>Code Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={nearContract.fields.codeHash}
+									value={nearContract.codeHash}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if nearContract.fields.codeSizeBytes != null}
+					{#if nearContract.codeSizeBytes != null}
 						<div>
 							<dt>Code Size Bytes</dt>
-							<dd><NumberValue value={nearContract.fields.codeSizeBytes} /> bytes</dd>
+							<dd><NumberValue value={nearContract.codeSizeBytes} /> bytes</dd>
 						</div>
 					{/if}
 				</dl>

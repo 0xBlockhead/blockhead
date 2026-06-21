@@ -82,7 +82,7 @@
 			{/snippet}
 
 			{#snippet children(network)}
-				<span>{network.fields.slug}</span>
+				<span>{network.slug}</span>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -94,7 +94,7 @@
 			{/snippet}
 
 			{#snippet children(network)}
-				{network.fields.name}
+				{network.name}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -124,7 +124,7 @@
 							},
 						)}>
 						{#snippet children(polkadotNetwork)}
-							{@const block = polkadotNetwork.fields.$$blocks?.values.at(0)}
+							{@const block = polkadotNetwork.$$blocks?.values.at(0)}
 							{#if block != null}
 								<div>
 									<dt>Head block</dt>
@@ -139,17 +139,17 @@
 						{/snippet}
 					</ResourceBoundary>
 
-					{#if network.fields.environment !== undefined}
+					{#if network.environment !== undefined}
 						<div>
 							<dt>Environment</dt>
-							<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
+							<dd>{networkEnvironmentByEnvironment[network.environment].label}</dd>
 						</div>
 					{/if}
 
-					{#if (network.fields.$$nativeAssets?.values.length ?? 0) > 0}
+					{#if (network.$$nativeAssets?.values.length ?? 0) > 0}
 						<div>
 							<dt>Native asset</dt>
-							<dd>{network.fields.$$nativeAssets?.values.length ?? 0}</dd>
+							<dd>{network.$$nativeAssets?.values.length ?? 0}</dd>
 						</div>
 					{/if}
 				</dl>

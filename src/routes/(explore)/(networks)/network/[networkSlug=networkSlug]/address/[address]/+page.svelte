@@ -32,11 +32,11 @@
 	<ResourceBoundary resource={network}>
 		{#snippet children(network)}
 			{@const selector = { slug: params.networkSlug }}
-			{#if network.fields.namespace === NetworkNamespace.Bitcoin || network.fields.namespace === NetworkNamespace.BitcoinCash || network.fields.namespace === NetworkNamespace.Litecoin || network.fields.namespace === NetworkNamespace.Dogecoin || network.fields.namespace === NetworkNamespace.Zcash}
+			{#if network.namespace === NetworkNamespace.Bitcoin || network.namespace === NetworkNamespace.BitcoinCash || network.namespace === NetworkNamespace.Litecoin || network.namespace === NetworkNamespace.Dogecoin || network.namespace === NetworkNamespace.Zcash}
 				<UtxoAddressView
 					selection={select(EntityType.UtxoAddress, { $network: selector, address: params.address })}
 				/>
-			{:else if network.fields.namespace === NetworkNamespace.ZeroG}
+			{:else if network.namespace === NetworkNamespace.ZeroG}
 				{@const account = select(EntityType.EvmNetworkAccount, {
 					$network: {
 						caip2: {

@@ -70,17 +70,17 @@
 		>
 			{#snippet children(cosmosGovernanceProposal)}
 				<dl>
-					{#if cosmosGovernanceProposal.fields.title != null}
+					{#if cosmosGovernanceProposal.title != null}
 						<div>
 							<dt>Title</dt>
-							<dd>{cosmosGovernanceProposal.fields.title}</dd>
+							<dd>{cosmosGovernanceProposal.title}</dd>
 						</div>
 					{/if}
 
-					{#if cosmosGovernanceProposal.fields.status != null}
+					{#if cosmosGovernanceProposal.status != null}
 						<div>
 							<dt>Status</dt>
-							<dd>{cosmosGovernanceProposal.fields.status}</dd>
+							<dd>{cosmosGovernanceProposal.status}</dd>
 						</div>
 					{/if}
 				</dl>

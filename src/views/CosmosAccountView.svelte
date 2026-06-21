@@ -61,24 +61,24 @@
 		>
 			{#snippet children(cosmosAccount)}
 				<dl>
-					{#if cosmosAccount.fields.balanceUatom != null}
+					{#if cosmosAccount.balanceUatom != null}
 						<div>
 							<dt>Balance</dt>
-							<dd><NumberValue value={cosmosAccount.fields.balanceUatom} /> uatom</dd>
+							<dd><NumberValue value={cosmosAccount.balanceUatom} /> uatom</dd>
 						</div>
 					{/if}
 
-					{#if cosmosAccount.fields.accountNumber != null}
+					{#if cosmosAccount.accountNumber != null}
 						<div>
 							<dt>Account Number</dt>
-							<dd><NumberValue value={cosmosAccount.fields.accountNumber} /></dd>
+							<dd><NumberValue value={cosmosAccount.accountNumber} /></dd>
 						</div>
 					{/if}
 
-					{#if cosmosAccount.fields.sequence != null}
+					{#if cosmosAccount.sequence != null}
 						<div>
 							<dt>Sequence</dt>
-							<dd><NumberValue value={cosmosAccount.fields.sequence} /></dd>
+							<dd><NumberValue value={cosmosAccount.sequence} /></dd>
 						</div>
 					{/if}
 				</dl>

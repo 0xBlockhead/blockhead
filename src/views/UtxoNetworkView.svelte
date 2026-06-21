@@ -205,10 +205,10 @@
 		<dl data-column-item="center">
 			<ResourceBoundary resource={network}>
 				{#snippet children(network)}
-					{#if network.fields.environment !== undefined}
+					{#if network.environment !== undefined}
 						<div>
 							<dt>Environment</dt>
-							<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
+							<dd>{networkEnvironmentByEnvironment[network.environment].label}</dd>
 						</div>
 					{/if}
 				{/snippet}

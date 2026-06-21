@@ -49,10 +49,10 @@
 			placeholderText="Loading Bittensor network snapshot…"
 		>
 			{#snippet children(snapshot)}
-				{#if snapshot.fields.finalizedBlockNumber !== undefined}
-					<NumberValue value={snapshot.fields.finalizedBlockNumber} />
-				{:else if snapshot.fields.subnetCount !== undefined}
-					<NumberValue value={snapshot.fields.subnetCount} />
+				{#if snapshot.finalizedBlockNumber !== undefined}
+					<NumberValue value={snapshot.finalizedBlockNumber} />
+				{:else if snapshot.subnetCount !== undefined}
+					<NumberValue value={snapshot.subnetCount} />
 					subnets
 				{:else}
 					<Timestamp timestamp={selection.entitySelector.timestampMs} />
@@ -68,71 +68,71 @@
 		>
 			{#snippet children(snapshot)}
 				<dl data-column-item="center">
-					{#if snapshot.fields.finalizedBlockNumber !== undefined}
+					{#if snapshot.finalizedBlockNumber !== undefined}
 						<div>
 							<dt>Finalized block</dt>
-							<dd><NumberValue value={snapshot.fields.finalizedBlockNumber} /></dd>
+							<dd><NumberValue value={snapshot.finalizedBlockNumber} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.fields.subnetCount !== undefined}
+					{#if snapshot.subnetCount !== undefined}
 						<div>
 							<dt>Subnets</dt>
-							<dd><NumberValue value={snapshot.fields.subnetCount} /></dd>
+							<dd><NumberValue value={snapshot.subnetCount} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.fields.runtimeSpecVersion !== undefined}
+					{#if snapshot.runtimeSpecVersion !== undefined}
 						<div>
 							<dt>Runtime</dt>
-							<dd>{snapshot.fields.runtimeSpecName} #{snapshot.fields.runtimeSpecVersion}</dd>
+							<dd>{snapshot.runtimeSpecName} #{snapshot.runtimeSpecVersion}</dd>
 						</div>
 					{/if}
 
-					{#if snapshot.fields.peerCount !== undefined}
+					{#if snapshot.peerCount !== undefined}
 						<div>
 							<dt>Peers</dt>
-							<dd><NumberValue value={snapshot.fields.peerCount} /></dd>
+							<dd><NumberValue value={snapshot.peerCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.finalizedBlockHash != null}
+					{#if open && snapshot.finalizedBlockHash != null}
 						<div>
 							<dt>Finalized hash</dt>
 							<dd>
 								<TruncatedValue
-									value={snapshot.fields.finalizedBlockHash}
+									value={snapshot.finalizedBlockHash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.isSyncing !== undefined}
+					{#if open && snapshot.isSyncing !== undefined}
 						<div>
 							<dt>Syncing</dt>
-							<dd>{snapshot.fields.isSyncing ? 'Yes' : 'No'}</dd>
+							<dd>{snapshot.isSyncing ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.subnetsInfoByteLength !== undefined}
+					{#if open && snapshot.subnetsInfoByteLength !== undefined}
 						<div>
 							<dt>Subnet info bytes</dt>
-							<dd><NumberValue value={snapshot.fields.subnetsInfoByteLength} /></dd>
+							<dd><NumberValue value={snapshot.subnetsInfoByteLength} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.dynamicInfoByteLength !== undefined}
+					{#if open && snapshot.dynamicInfoByteLength !== undefined}
 						<div>
 							<dt>Dynamic info bytes</dt>
-							<dd><NumberValue value={snapshot.fields.dynamicInfoByteLength} /></dd>
+							<dd><NumberValue value={snapshot.dynamicInfoByteLength} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.metagraphsByteLength !== undefined}
+					{#if open && snapshot.metagraphsByteLength !== undefined}
 						<div>
 							<dt>Metagraph bytes</dt>
-							<dd><NumberValue value={snapshot.fields.metagraphsByteLength} /></dd>
+							<dd><NumberValue value={snapshot.metagraphsByteLength} /></dd>
 						</div>
 					{/if}
 				</dl>

@@ -99,59 +99,59 @@
 		<dl data-column-item="center">
 			{#if (
 				contentOpen
-				&& networkConsensusUpgrade.fields.protocol !== undefined
+				&& networkConsensusUpgrade.protocol !== undefined
 			)}
 				<div>
 					<dt>Consensus fork</dt>
 					<dd>
-								{consensusProtocolByProtocol[networkConsensusUpgrade.fields.protocol].label}
+								{consensusProtocolByProtocol[networkConsensusUpgrade.protocol].label}
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen && networkConsensusUpgrade.fields.activationBlock !== undefined}
+			{#if contentOpen && networkConsensusUpgrade.activationBlock !== undefined}
 				<div>
 					<dt>Activation block</dt>
 					<dd>
-									<NumberValue value={networkConsensusUpgrade.fields.activationBlock} />
+									<NumberValue value={networkConsensusUpgrade.activationBlock} />
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen && networkConsensusUpgrade.fields.activationEpoch !== undefined}
+			{#if contentOpen && networkConsensusUpgrade.activationEpoch !== undefined}
 				<div>
 					<dt>Activation epoch</dt>
 					<dd>
-								<NumberValue value={networkConsensusUpgrade.fields.activationEpoch} />
+								<NumberValue value={networkConsensusUpgrade.activationEpoch} />
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen && networkConsensusUpgrade.fields.activationTimestampMs !== undefined}
+			{#if contentOpen && networkConsensusUpgrade.activationTimestampMs !== undefined}
 				<div>
 					<dt>Activation time</dt>
 					<dd>
 								<Timestamp
-									timestamp={networkConsensusUpgrade.fields.activationTimestampMs}
+									timestamp={networkConsensusUpgrade.activationTimestampMs}
 								/>
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen && networkConsensusUpgrade.fields.previousForkVersion !== undefined}
+			{#if contentOpen && networkConsensusUpgrade.previousForkVersion !== undefined}
 				<div>
 					<dt>Previous fork version</dt>
 					<dd>
 								<TruncatedValue
 									format={TruncatedValueFormat.Abbr}
-									value={networkConsensusUpgrade.fields.previousForkVersion}
+									value={networkConsensusUpgrade.previousForkVersion}
 								/>
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen && networkConsensusUpgrade.fields.currentForkVersion !== undefined}
+			{#if contentOpen && networkConsensusUpgrade.currentForkVersion !== undefined}
 				<div>
 					<dt>Current fork version</dt>
 					<dd>
 								<TruncatedValue
 									format={TruncatedValueFormat.Abbr}
-									value={networkConsensusUpgrade.fields.currentForkVersion}
+									value={networkConsensusUpgrade.currentForkVersion}
 								/>
 					</dd>
 				</div>

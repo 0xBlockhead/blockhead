@@ -135,7 +135,7 @@
 				placeholderText="Loading Farcaster cast (author FID + cast hash)…"
 			>
 				{#snippet children(cast)}
-					{@const castText = cast.fields.text?.replaceAll('\n', ' ') ?? ''}
+					{@const castText = cast.text?.replaceAll('\n', ' ') ?? ''}
 					<TruncatedValue
 						value={
 							castText === '' ?
@@ -173,9 +173,9 @@
 				placeholderText="Loading Farcaster cast (author FID + cast hash)…"
 			>
 				{#snippet children(cast)}
-					{#if variant === 'feed' && !supportsSnapchainCast && cast.fields.username !== undefined}
+					{#if variant === 'feed' && !supportsSnapchainCast && cast.username !== undefined}
 						<span data-text="muted">
-							@{cast.fields.username}
+							@{cast.username}
 						</span>
 					{/if}
 				{/snippet}
@@ -198,7 +198,7 @@
 			placeholderText="Loading Farcaster cast (author FID + cast hash)…"
 		>
 			{#snippet children(cast)}
-				{@const flatText = cast.fields.text?.replaceAll('\n', ' ') ?? ''}
+				{@const flatText = cast.text?.replaceAll('\n', ' ') ?? ''}
 				{#if (
 					flatText !== ''
 					&& variant === 'feed'
@@ -213,7 +213,7 @@
 					</p>
 				{:else if flatText !== ''}
 					<p>
-						{cast.fields.text ?? ''}
+						{cast.text ?? ''}
 					</p>
 				{/if}
 			{/snippet}
@@ -229,7 +229,7 @@
 					>
 						{#snippet children(cast)}
 							<Timestamp
-								timestamp={cast.fields.timestamp}
+								timestamp={cast.timestamp}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -244,10 +244,10 @@
 					>
 						{#snippet children(cast)}
 							{@const channelId = (
-								cast.fields.$channel === undefined ?
+								cast.$channel === undefined ?
 									undefined
 								:
-									cast.fields.$channel[EntityMetaKey.Selector].id
+									cast.$channel[EntityMetaKey.Selector].id
 							)}
 							{@const channelPageHref = (
 								channelId === undefined ?
@@ -280,10 +280,10 @@
 						>
 							{#snippet children(cast)}
 								{@const parentCastIdOpen = (
-									cast.fields.$parentCast === undefined ?
+									cast.$parentCast === undefined ?
 										undefined
 									:
-										cast.fields.$parentCast[EntityMetaKey.Selector]
+										cast.$parentCast[EntityMetaKey.Selector]
 								)}
 								{@const parentCastHrefOpen = (
 										parentCastIdOpen === undefined || !('fid' in parentCastIdOpen) || !('hash' in parentCastIdOpen) ?
@@ -312,8 +312,8 @@
 							placeholderText="Loading Farcaster cast (author FID + cast hash)…"
 						>
 							{#snippet children(cast)}
-								{#if cast.fields.parentUrl !== undefined}
-									<a href={cast.fields.parentUrl}>{cast.fields.parentUrl}</a>
+								{#if cast.parentUrl !== undefined}
+									<a href={cast.parentUrl}>{cast.parentUrl}</a>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -331,11 +331,11 @@
 						>
 							{#snippet children(cast)}
 								{#if (
-									cast.fields.mentions !== undefined
-									&& cast.fields.mentions.length
+									cast.mentions !== undefined
+									&& cast.mentions.length
 								)}
 										<ul data-cast="wrap gap-2">
-											{#each cast.fields.mentions as mention (String(mention))}
+											{#each cast.mentions as mention (String(mention))}
 												<li>
 													<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId=farcasterFid]', {
 														userId: String(mention),
@@ -364,10 +364,10 @@
 								{@const threadNormOpen = (
 									(() => {
 										const th = (
-											cast.fields.threadHash === undefined ?
+											cast.threadHash === undefined ?
 												''
 											:
-												cast.fields.threadHash.trim()
+												cast.threadHash.trim()
 										)
 										if (th === '') {
 											return undefined
@@ -382,7 +382,7 @@
 									})()
 								)}
 								{@const warpcastThreadHrefOpen = (
-									threadNormOpen !== undefined && threadNormOpen !== cast.fields.hash ?
+									threadNormOpen !== undefined && threadNormOpen !== cast.hash ?
 										`https://warpcast.com/~/conversations/${threadNormOpen}`
 									:
 										undefined
@@ -437,14 +437,14 @@
 						<div data-column-item="center">
 							<div>
 								<dt>FID</dt>
-								<dd>{String(cast.fields.fid)}</dd>
+								<dd>{String(cast.fid)}</dd>
 							</div>
 
 							<div>
 								<dt>Hash</dt>
 								<dd>
 									<TruncatedValue
-										value={cast.fields.hash}
+										value={cast.hash}
 										format={TruncatedValueFormat.Visual}
 									/>
 								</dd>
@@ -462,17 +462,17 @@
 							{#snippet children(cast)}
 							{@const authorId = (
 								supportsSnapchainCast ?
-									cast.fields.$author?.[EntityMetaKey.Selector]
+									cast.$author?.[EntityMetaKey.Selector]
 								:
 									undefined
 							)}
-							{@const authorUsername = supportsSnapchainCast ? undefined : cast.fields.username}
+							{@const authorUsername = supportsSnapchainCast ? undefined : cast.username}
 							{@const authorDisplayName = undefined}
 							{@const channelId = (
-								!supportsSnapchainCast || cast.fields.$channel === undefined ?
+								!supportsSnapchainCast || cast.$channel === undefined ?
 									undefined
 								:
-									cast.fields.$channel[EntityMetaKey.Selector].id
+									cast.$channel[EntityMetaKey.Selector].id
 								)}
 								{@const channelPageHref = (
 									channelId === undefined ?
@@ -489,7 +489,7 @@
 												<strong>
 													{authorDisplayName ?? authorUsername ?? (
 														authorId === undefined ?
-															`FID ${String(cast.fields.fid)}`
+															`FID ${String(cast.fid)}`
 														:
 															`FID ${String(authorId.fid)}`
 													)}
@@ -510,7 +510,7 @@
 										</div>
 										<p data-text="muted">
 											<Timestamp
-												timestamp={cast.fields.timestamp}
+												timestamp={cast.timestamp}
 											/>
 										</p>
 										{#if channelPageHref !== undefined}
@@ -525,7 +525,7 @@
 									</header>
 
 									<p>
-										{cast.fields.text ?? ''}
+										{cast.text ?? ''}
 									</p>
 								</section>
 							{/snippet}
@@ -547,7 +547,7 @@
 								<Tooltip contentProps={{ side: 'top' }}>
 									{#snippet Content()}
 										<p>
-											Mentioned profiles, channels, and cast embeds appear when the provider returns them for this cast.fields.
+											Mentioned profiles, channels, and cast embeds appear when the provider returns them for this cast.
 										</p>
 									{/snippet}
 									<abbr

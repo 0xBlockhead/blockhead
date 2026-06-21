@@ -50,7 +50,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={asset}>
 			{#snippet children(asset)}
-				{asset.fields.symbol}
+				{asset.symbol}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -58,7 +58,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={asset}>
 			{#snippet children(asset)}
-				{asset.fields.name}
+				{asset.name}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -72,18 +72,18 @@
 				<dl>
 					<div>
 						<dt>Symbol</dt>
-						<dd>{asset.fields.symbol}</dd>
+						<dd>{asset.symbol}</dd>
 					</div>
 
 					<div>
 						<dt>Name</dt>
-						<dd>{asset.fields.name}</dd>
+						<dd>{asset.name}</dd>
 					</div>
 
-					{#if asset.fields.decimals != null}
+					{#if asset.decimals != null}
 						<div>
 							<dt>Decimals</dt>
-							<dd>{asset.fields.decimals}</dd>
+							<dd>{asset.decimals}</dd>
 						</div>
 					{/if}
 

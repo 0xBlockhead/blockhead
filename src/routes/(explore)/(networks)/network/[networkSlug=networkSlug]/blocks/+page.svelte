@@ -47,15 +47,15 @@
 			{@const href = resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/blocks', {
 				networkSlug: params.networkSlug,
 			})}
-			{#if network.fields.namespace === NetworkNamespace.Bitcoin || network.fields.namespace === NetworkNamespace.BitcoinCash || network.fields.namespace === NetworkNamespace.Litecoin || network.fields.namespace === NetworkNamespace.Dogecoin || network.fields.namespace === NetworkNamespace.Zcash}
+			{#if network.namespace === NetworkNamespace.Bitcoin || network.namespace === NetworkNamespace.BitcoinCash || network.namespace === NetworkNamespace.Litecoin || network.namespace === NetworkNamespace.Dogecoin || network.namespace === NetworkNamespace.Zcash}
 				<UtxoBlocksView
 					selection={select(
 						EntityType.UtxoNetwork,
 						{
-							$network: network.fields.caip2 == null ?
+							$network: network.caip2 == null ?
 								{ slug: params.networkSlug }
 							:
-								{ caip2: network.fields.caip2 },
+								{ caip2: network.caip2 },
 						}
 					).$$blocks({
 						limit: 16,
@@ -63,14 +63,14 @@
 					{href}
 					id="blocks"
 				/>
-			{:else if network.fields.namespace === NetworkNamespace.Solana && network.fields.caip2 != null}
+			{:else if network.namespace === NetworkNamespace.Solana && network.caip2 != null}
 				<SolanaBlocksView
 					selection={select(
 						EntityType.SolanaNetwork,
 						{
 							caip2: {
 								namespace: 'solana',
-								reference: network.fields.caip2.reference,
+								reference: network.caip2.reference,
 							},
 						}
 					).$$blocks({
@@ -79,15 +79,15 @@
 					{href}
 					id="blocks"
 				/>
-			{:else if network.fields.namespace === NetworkNamespace.Cosmos}
+			{:else if network.namespace === NetworkNamespace.Cosmos}
 				<CosmosBlocksView
 					selection={select(
 						EntityType.CosmosNetwork,
 						{
-							$network: network.fields.caip2 == null ?
+							$network: network.caip2 == null ?
 								{ slug: params.networkSlug }
 							:
-								{ caip2: network.fields.caip2 },
+								{ caip2: network.caip2 },
 						}
 					).$$blocks({
 						limit: 16,
@@ -95,15 +95,15 @@
 					{href}
 					id="blocks"
 				/>
-			{:else if network.fields.namespace === NetworkNamespace.Filecoin}
+			{:else if network.namespace === NetworkNamespace.Filecoin}
 				<FilecoinTipsetsView
 					selection={select(
 						EntityType.FilecoinNetwork,
 						{
-							$network: network.fields.caip2 == null ?
+							$network: network.caip2 == null ?
 								{ slug: params.networkSlug }
 							:
-								{ caip2: network.fields.caip2 },
+								{ caip2: network.caip2 },
 						}
 					).$$tipsets({
 						limit: 16,
@@ -112,15 +112,15 @@
 					id="blocks"
 					title="Tipsets"
 				/>
-			{:else if network.fields.namespace === NetworkNamespace.Polkadot}
+			{:else if network.namespace === NetworkNamespace.Polkadot}
 				<PolkadotBlocksView
 					selection={select(
 						EntityType.PolkadotNetwork,
 						{
-							$network: network.fields.caip2 == null ?
+							$network: network.caip2 == null ?
 								{ slug: params.networkSlug }
 							:
-								{ caip2: network.fields.caip2 },
+								{ caip2: network.caip2 },
 						}
 					).$$blocks({
 						limit: 16,
@@ -128,7 +128,7 @@
 					{href}
 					id="blocks"
 				/>
-			{:else if network.fields.namespace === NetworkNamespace.Near}
+			{:else if network.namespace === NetworkNamespace.Near}
 				<NearBlocksView
 					selection={select(
 						EntityType.NearNetwork,
@@ -139,15 +139,15 @@
 					{href}
 					id="blocks"
 				/>
-			{:else if network.fields.namespace === NetworkNamespace.Tron}
+			{:else if network.namespace === NetworkNamespace.Tron}
 				<TronBlocksView
 					selection={select(
 						EntityType.TronNetwork,
 						{
-							$network: network.fields.caip2 == null ?
+							$network: network.caip2 == null ?
 								{ slug: params.networkSlug }
 							:
-								{ caip2: network.fields.caip2 },
+								{ caip2: network.caip2 },
 						}
 					).$$blocks({
 						limit: 16,
@@ -155,15 +155,15 @@
 					{href}
 					id="blocks"
 				/>
-			{:else if network.fields.namespace === NetworkNamespace.Monero}
+			{:else if network.namespace === NetworkNamespace.Monero}
 				<MoneroBlocksView
 					selection={select(
 						EntityType.MoneroNetwork,
 						{
-							$network: network.fields.caip2 == null ?
+							$network: network.caip2 == null ?
 								{ slug: params.networkSlug }
 							:
-								{ caip2: network.fields.caip2 },
+								{ caip2: network.caip2 },
 						}
 					).$$blocks({
 						limit: 16,
@@ -171,15 +171,15 @@
 					{href}
 					id="blocks"
 				/>
-			{:else if network.fields.namespace === NetworkNamespace.Hyperliquid}
+			{:else if network.namespace === NetworkNamespace.Hyperliquid}
 				<HyperliquidBlocksView
 					selection={select(
 						EntityType.HyperliquidNetwork,
 						{
-							$network: network.fields.caip2 == null ?
+							$network: network.caip2 == null ?
 								{ slug: params.networkSlug }
 							:
-								{ caip2: network.fields.caip2 },
+								{ caip2: network.caip2 },
 						}
 					).$$blocks({
 						limit: 16,
@@ -187,15 +187,15 @@
 					{href}
 					id="blocks"
 				/>
-			{:else if network.fields.namespace === NetworkNamespace.Bittensor}
+			{:else if network.namespace === NetworkNamespace.Bittensor}
 				<BittensorBlocksView
 					selection={select(
 						EntityType.BittensorNetwork,
 						{
-							$network: network.fields.caip2 == null ?
+							$network: network.caip2 == null ?
 								{ slug: params.networkSlug }
 							:
-								{ caip2: network.fields.caip2 },
+								{ caip2: network.caip2 },
 						}
 					).$$blocks({
 						limit: 16,
@@ -203,7 +203,7 @@
 					{href}
 					id="blocks"
 				/>
-			{:else if network.fields.namespace === NetworkNamespace.ZeroG}
+			{:else if network.namespace === NetworkNamespace.ZeroG}
 				<ZeroGBlocksView
 					selection={select(
 						EntityType.ZeroGNetwork,

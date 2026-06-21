@@ -72,17 +72,17 @@
 		>
 			{#snippet children(polkadotReferendum)}
 				<dl>
-					{#if polkadotReferendum.fields.track != null}
+					{#if polkadotReferendum.track != null}
 						<div>
 							<dt>Track</dt>
-							<dd>{polkadotReferendum.fields.track}</dd>
+							<dd>{polkadotReferendum.track}</dd>
 						</div>
 					{/if}
 
-					{#if polkadotReferendum.fields.status != null}
+					{#if polkadotReferendum.status != null}
 						<div>
 							<dt>Status</dt>
-							<dd>{polkadotReferendum.fields.status}</dd>
+							<dd>{polkadotReferendum.status}</dd>
 						</div>
 					{/if}
 				</dl>
