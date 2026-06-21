@@ -38,14 +38,35 @@ export type EntityProxyFieldResource<
 	}
 )
 
+export type EntityProxyEntitiesData<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+> = {
+	values: readonly {
+		readonly [EntityMetaKey.Selector]: EntitySelector<_Schema, _EntityType>
+		readonly entitySelector: EntitySelector<_Schema, _EntityType>
+	}[]
+	entities: readonly {
+		readonly [EntityMetaKey.Selector]: EntitySelector<_Schema, _EntityType>
+		readonly entitySelector: EntitySelector<_Schema, _EntityType>
+	}[]
+	totalCount?: number
+}
+
 export type EntityProxyEntitiesResource<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
-> = EntityProxyFieldResource<
-	_Schema,
-	_EntityType,
-	EntityFieldName<_Schema, _EntityType>
->
+> = (
+	& SvelteKitResource<EntityProxyEntitiesData<_Schema, _EntityType>>
+	& ((
+		selection?: SubscribeSelection<_Schema, EntityType<_Schema>>
+	) => EntityProxyEntitiesResource<_Schema, _EntityType>)
+	& {
+		entityType: EntityType<_Schema>
+		entitySelector: EntitySelector<_Schema, EntityType<_Schema>>
+		fieldName: EntityFieldName<_Schema, EntityType<_Schema>>
+	}
+)
 
 export type EntityProxyResource<
 	_Schema extends Schema,
@@ -166,22 +187,22 @@ export function createEntityFieldProxy(
 				entityType,
 				entitySelector,
 				fieldName,
-		selection
-	)
+				selection
+			)
 
-	return resource
-}
+		return resource
+	}
 	const fieldDefinition = entityFieldDefinitions(context.entityDefinitionByType[entityType])
 		.find((definition) => definition.name === fieldName)
 	if (fieldDefinition == null)
 		throw new Error(`${entityType}.${fieldName} does not exist`)
-	const projectValue = (value: object | null | undefined) => {
+	const projectValue = (value: object | undefined) => {
 		if (
 			!(
 				fieldDefinition.type === EntityFieldType.EntityReference
 				|| fieldDefinition.type === EntityFieldType.EntitiesReference
 			)
-			|| value == null
+			|| value === undefined
 		)
 			return value
 
@@ -202,7 +223,9 @@ export function createEntityFieldProxy(
 			fieldDefinition.type === EntityFieldType.EntityReference
 			|| fieldDefinition.type === EntityFieldType.EntitiesReference
 		)
-		&& data != null
+		&& data !== undefined
+		&& data !== null
+		&& typeof data === 'object'
 		&& 'values' in data
 		&& Array.isArray(data.values) ?
 			{
@@ -210,15 +233,16 @@ export function createEntityFieldProxy(
 				values: data.values.map(projectValue),
 				entities: data.values.map(projectValue),
 			}
-		: (
-			data != null
-			&& typeof data === 'object' ?
-				projectValue(data)
-			:
-				data
+			: (
+				data !== undefined
+				&& data !== null
+				&& typeof data === 'object' ?
+					projectValue(data)
+				:
+					data === null ? undefined : data
+			)
 		)
-	)
-	const target = (
+	return new Proxy((
 		selectionOverride?: SubscribeSelection<Schema, EntityType<Schema>>
 	) => createEntityFieldProxy(
 		context,
@@ -229,9 +253,7 @@ export function createEntityFieldProxy(
 			selection,
 			selectionOverride
 		)
-	)
-
-	return new Proxy(target, {
+	), {
 		apply(_target, _thisArgument, argumentsList) {
 			return createEntityFieldProxy(
 				context,
@@ -252,12 +274,12 @@ export function createEntityFieldProxy(
 			if (property === 'fieldName')
 				return fieldName
 
-				return resourceProperty(
-					getResource,
-					project,
-					property
-				)
-			},
+			return resourceProperty(
+				getResource,
+				project,
+				property
+			)
+		},
 	})
 }
 
@@ -294,10 +316,9 @@ export function createEntityProxy(
 
 		return resource
 	}
-	const fieldNames = entityFieldDefinitions(context.entityDefinitionByType[entityType])
-		.map((fieldDefinition) => fieldDefinition.name)
 	const fieldProxyByName = new Map<string, EntityProxyFieldResource<Schema, EntityType<Schema>, EntityFieldName<Schema, EntityType<Schema>>>>()
-	const target = (
+
+	return new Proxy((
 		selectionOverride?: SubscribeSelection<Schema, EntityType<Schema>>
 	) => createEntityProxy(
 		context,
@@ -307,9 +328,7 @@ export function createEntityProxy(
 			selection,
 			selectionOverride
 		)
-	)
-
-	return new Proxy(target, {
+	), {
 		apply(_target, _thisArgument, argumentsList) {
 			return createEntityProxy(
 				context,
@@ -350,16 +369,17 @@ export function createEntityProxy(
 					)
 				)
 
-				const value = resourceProperty(
-					getResource,
-					(data) => data,
-					property
-				)
+			const value = resourceProperty(
+				getResource,
+				(data) => data,
+				property
+			)
 			if (value !== undefined)
 				return value
 			if (
 				typeof property === 'string'
-				&& fieldNames.includes(property)
+				&& entityFieldDefinitions(context.entityDefinitionByType[entityType])
+					.some((fieldDefinition) => fieldDefinition.name === property)
 			) {
 				if (!fieldProxyByName.has(property))
 					fieldProxyByName.set(

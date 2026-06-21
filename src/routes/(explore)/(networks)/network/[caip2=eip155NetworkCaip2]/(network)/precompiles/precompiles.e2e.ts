@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test'
 import {
 	expectMainVisible,
 	setupPageRuntimeDiagnostics,
-} from '../../../../../../../../../tests/_e2eBrowserHelpers.ts'
+} from '../../../../../../../../tests/_e2eBrowserHelpers.ts'
 
 test.describe('network precompiles list', () => {
 	test('mainnet lists precompile contract links', async ({ page }, testInfo) => {

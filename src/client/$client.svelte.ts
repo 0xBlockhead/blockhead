@@ -50,6 +50,7 @@ import {
 	type Schema,
 	entityFieldCardinalityIsMultiple,
 	entityFieldDefinitions,
+	entityFieldPrimitiveValueIsValid,
 	validateEntitySelector,
 } from '$/schema/$schema.ts'
 import {
@@ -78,6 +79,13 @@ export enum PersistedCollectionLoadStatus {
 export enum PersistedCollectionSourceStatus {
 	Completed = 'completed',
 	Failed = 'failed',
+}
+
+enum FieldConditionState {
+	Active = 'active',
+	Inactive = 'inactive',
+	Unconditional = 'unconditional',
+	Unknown = 'unknown',
 }
 
 export type ClientEvent = {
@@ -142,16 +150,6 @@ type PersistedCollectionSyncOptions<_Row extends PersistedCollectionRow> = {
 	setWriteRows(writeRows: (rows: readonly _Row[]) => void): void
 }
 
-type EntityResolvedFields<
-	_Schema extends Schema,
-	_EntityType extends EntityType<_Schema> = EntityType<_Schema>,
-> = Partial<Record<
-	string,
-	| EntityFieldResolvedValue<_Schema, _EntityType, EntityFieldName<_Schema, _EntityType>>
-	| object
-	| null
->>
-
 export type EntityCollectionItem<
 	_Schema extends Schema = Schema,
 	_EntityType extends EntityType<_Schema> = EntityType<_Schema>,
@@ -159,7 +157,6 @@ export type EntityCollectionItem<
 	[EntityMetaKey.Selector]: EntitySelector<_Schema, _EntityType>
 	[EntityMetaKey.SelectorKey]: string
 	[EntityMetaKey.Source]: string
-	[EntityMetaKey.Fields]: EntityResolvedFields<_Schema, _EntityType>
 }
 
 export type EntityFieldCollectionItem<
@@ -169,6 +166,7 @@ export type EntityFieldCollectionItem<
 > = {
 	fieldName: _FieldName
 	valueKey: string
+	valueIndex?: number
 	[EntityMetaKey.ParentSelector]: EntitySelector<_Schema, _EntityType>
 	[EntityMetaKey.ParentSelectorKey]: string
 	[EntityMetaKey.Source]: string
@@ -281,7 +279,30 @@ export type SubscribeError<_Schema extends Schema = Schema> = {
 	readonly message: string
 }
 
-type SubscribeFieldResult<
+export type SubscribeEntityReferenceResult<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+> = {
+	readonly [EntityMetaKey.Selector]: EntitySelector<_Schema, _EntityType>
+	readonly [EntityMetaKey.SelectorKey]: string
+	readonly entitySelector: EntitySelector<_Schema, _EntityType>
+} & Partial<EntityFieldValues<_Schema, _EntityType>>
+
+export type SubscribeFieldSingleResult<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_FieldName extends EntityFieldName<_Schema, _EntityType>,
+> = (
+	EntityFieldDefinitionByName<_Schema, _EntityType, _FieldName> extends {
+		readonly type: EntityFieldType.EntityReference | EntityFieldType.EntitiesReference
+		readonly entityType: infer _ReferenceEntityType extends EntityType<_Schema>
+	} ?
+		SubscribeEntityReferenceResult<_Schema, _ReferenceEntityType>
+	:
+		EntityFieldSingleResolvedValue<_Schema, _EntityType, _FieldName>
+)
+
+export type SubscribeFieldResult<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
 	_FieldName extends EntityFieldName<_Schema, _EntityType>,
@@ -290,13 +311,32 @@ type SubscribeFieldResult<
 		readonly cardinality: EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany
 	} ?
 		{
-			readonly values: readonly EntityFieldSingleResolvedValue<_Schema, _EntityType, _FieldName>[]
-			readonly entities: readonly EntityFieldSingleResolvedValue<_Schema, _EntityType, _FieldName>[]
+			readonly values: readonly SubscribeFieldSingleResult<_Schema, _EntityType, _FieldName>[]
+			readonly entities: readonly SubscribeFieldSingleResult<_Schema, _EntityType, _FieldName>[]
 			readonly totalCount?: number
 		}
 	:
-		EntityFieldResolvedValue<_Schema, _EntityType, _FieldName>
+		EntityFieldDefinitionByName<_Schema, _EntityType, _FieldName> extends {
+			readonly cardinality: EntityFieldCardinality.ZeroOrOne
+		} ?
+			SubscribeFieldSingleResult<_Schema, _EntityType, _FieldName> | undefined
+		:
+			EntityFieldDefinitionByName<_Schema, _EntityType, _FieldName> extends {
+				readonly cardinality: EntityFieldCardinality.Zero
+			} ?
+				undefined
+			:
+				SubscribeFieldSingleResult<_Schema, _EntityType, _FieldName>
 )
+
+type SubscribeAllResultFields<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+> = Partial<{
+	readonly [
+		_FieldName in EntityFieldName<_Schema, _EntityType>
+	]: SubscribeFieldResult<_Schema, _EntityType, _FieldName>
+}>
 
 type SubscribeResultFields<
 	_Schema extends Schema,
@@ -340,12 +380,12 @@ type SubscribeResultFields<
 					object
 				:
 					UnionToIntersection<_ConditionalBranches>
-			:
-				object
-		)
-	:
-		Partial<EntityFieldValues<_Schema, _EntityType>>
-)
+				:
+					object
+			)
+		:
+			SubscribeAllResultFields<_Schema, _EntityType>
+	)
 
 type UnionToIntersection<_Union> = (
 	_Union extends _Union ?
@@ -361,18 +401,21 @@ export type SubscribeResult<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
 	_Selection extends SubscribeSelection<_Schema, _EntityType> = SubscribeSelection<_Schema, _EntityType>,
-> = {
-	readonly entityType: _EntityType
-	readonly entitySelector: EntitySelector<_Schema, _EntityType>
-	readonly fields: SubscribeResultFields<_Schema, _EntityType, _Selection> & Partial<Omit<
-		EntityFieldValues<_Schema, _EntityType>,
-		_Selection extends { readonly fields: infer _Fields extends SubscribeSelectedFields<_Schema, _EntityType> } ?
-			keyof _Fields & EntityFieldName<_Schema, _EntityType>
-		:
-			never
-	>>
-	readonly errors: readonly SubscribeError<_Schema>[]
-}
+> = (
+	& SubscribeResultFields<_Schema, _EntityType, _Selection>
+	& {
+		readonly entityType: _EntityType
+		readonly entitySelector: EntitySelector<_Schema, _EntityType>
+		readonly fields: SubscribeResultFields<_Schema, _EntityType, _Selection> & Partial<Omit<
+			SubscribeAllResultFields<_Schema, _EntityType>,
+			_Selection extends { readonly fields: infer _Fields extends SubscribeSelectedFields<_Schema, _EntityType> } ?
+				keyof _Fields & EntityFieldName<_Schema, _EntityType>
+			:
+				never
+		>>
+		readonly errors: readonly SubscribeError<_Schema>[]
+	}
+)
 
 const persistedCollectionLoadedSubset = (
 	value: unknown
@@ -460,7 +503,7 @@ const productSubsetLoadedMissReason = (
 const persistedCollectionUtils = <
 	_Row extends PersistedCollectionRow
 >() => {
-	let writeRows = (_rows: readonly _Row[]) => {
+	let writeRows: (rows: readonly _Row[]) => void = (_rows) => {
 		throw new Error('Persisted collection sync was written before it started')
 	}
 	const utils: PersistedCollectionRowCollectionUtils<_Row> = {
@@ -650,39 +693,48 @@ const persistedCollectionSync = <
 							sourceRowCounts,
 							reason: missReason,
 						})
-							for (const outcome of loaded.outcomes) {
-								if (outcome.status === PersistedCollectionSourceStatus.Failed)
-									events.push({
-										type: ClientEventType.CollectionLoad,
-										collectionId,
-									key,
-									decision: CollectionLoadDecision.Remote,
-									status: PersistedCollectionLoadStatus.Failed,
-										error: `${outcome.source}: ${outcome.error ?? 'failed'}`,
-									})
-							}
-							if (
-								rows.length === 0
-								&& requestedSources.length > 0
-								&& loaded.outcomes.some((outcome) => (
-									outcome.status === PersistedCollectionSourceStatus.Failed
-								))
-								&& !loaded.outcomes.some((outcome) => (
-									outcome.status === PersistedCollectionSourceStatus.Completed
-								))
-							) {
-								const subset = parseResolverSubset(loadSubsetOptions)
-								const error = `${collectionId} failed every requested source for ${key}`
-								collectionLoadFailures.add({
-									collectionId,
-									selectorKeys: subset.selectorKeys,
-									parentSelectorKeys: subset.parentSelectorKeys,
-									sources: requestedSources,
-									error,
-								})
-								markReady()
-								return
-							}
+						const failedOutcomes = loaded.outcomes.filter((outcome) => (
+							outcome.status === PersistedCollectionSourceStatus.Failed
+						))
+						if (
+							failedOutcomes.length > 0
+							&& loaded.outcomes.some((outcome) => (
+								outcome.status === PersistedCollectionSourceStatus.Completed
+							))
+						)
+							console.warn(`${collectionId} partially failed ${key}`, failedOutcomes)
+
+						for (const outcome of failedOutcomes)
+							events.push({
+								type: ClientEventType.CollectionLoad,
+								collectionId,
+								key,
+								decision: CollectionLoadDecision.Remote,
+								status: PersistedCollectionLoadStatus.Failed,
+								error: `${outcome.source}: ${outcome.error ?? 'failed'}`,
+							})
+
+						if (
+							rows.length === 0
+							&& requestedSources.length > 0
+							&& failedOutcomes.length > 0
+							&& !loaded.outcomes.some((outcome) => (
+								outcome.status === PersistedCollectionSourceStatus.Completed
+							))
+						) {
+							const subset = parseResolverSubset(loadSubsetOptions)
+							const error = `${collectionId} failed every requested source for ${key}`
+							console.error(error, failedOutcomes)
+							collectionLoadFailures.add({
+								collectionId,
+								selectorKeys: subset.selectorKeys,
+								parentSelectorKeys: subset.parentSelectorKeys,
+								sources: requestedSources,
+								error,
+							})
+							markReady()
+							return
+						}
 
 							markReady()
 						} catch (error) {
@@ -824,30 +876,38 @@ const countFilterKeysFromSubset = (
 	})
 )
 
+const selectorFieldValue = (
+	entitySelector: object,
+	fieldName: string
+) => Object.getOwnPropertyDescriptor(entitySelector, fieldName)?.value
+
 const fieldConditionValue = <
 	const _Schema extends Schema
 >(
 	context: ClientContext<_Schema>,
 	entityType: string,
+	parentSelector: object,
 	parentSelectorKey: string,
 	condition: EntityFieldCondition
-): unknown => {
-	for (const row of context.entityCollections[entityType].toArray.toReversed()) {
-		const value = row[EntityMetaKey.SelectorKey] === parentSelectorKey ?
-			row[EntityMetaKey.Fields][condition.fieldName]
-		:
-			undefined
-		if (value === undefined)
-			continue
-
+) => {
+	const selectorValue = selectorFieldValue(parentSelector, condition.fieldName)
+	if (selectorValue !== undefined)
 		return (
 			condition.itemIndex === undefined ?
-				value
-			: Array.isArray(value) ?
-				value[condition.itemIndex]
+				selectorValue
 			:
-				undefined
+				Object(selectorValue)[condition.itemIndex]
 		)
+
+	for (const row of context.entityFieldCollections[entityType][condition.fieldName].toArray.toReversed()) {
+		if (row[EntityMetaKey.ParentSelectorKey] !== parentSelectorKey)
+			continue
+
+		if (condition.itemIndex === undefined)
+			return row[EntityMetaKey.Value]
+
+		if (row.valueIndex === condition.itemIndex)
+			return row[EntityMetaKey.Value]
 	}
 
 	return undefined
@@ -858,23 +918,27 @@ const fieldConditionState = <
 >(
 	context: ClientContext<_Schema>,
 	entityType: string,
+	parentSelector: object,
 	parentSelectorKey: string,
 	definition: EntityFieldDefinition
 ) => {
 	if (definition.when === undefined)
-		return true
+		return FieldConditionState.Unconditional
 
 	const value = fieldConditionValue(
 		context,
 		entityType,
+		parentSelector,
 		parentSelectorKey,
 		definition.when
 	)
 	return (
 		value === undefined ?
-			undefined
+			FieldConditionState.Unknown
+		: definition.when.values.some((conditionValue) => conditionValue === value) ?
+			FieldConditionState.Active
 		:
-			definition.when.values.some((conditionValue) => conditionValue === value)
+			FieldConditionState.Inactive
 	)
 }
 
@@ -883,22 +947,122 @@ const fieldCanCompleteEmpty = <
 >(
 	context: ClientContext<_Schema>,
 	entityType: string,
+	parentSelector: object,
 	parentSelectorKey: string,
 	definition: EntityFieldDefinition
 ) => {
 	const conditionState = fieldConditionState(
 		context,
 		entityType,
+		parentSelector,
 		parentSelectorKey,
 		definition
 	)
 	return (
-		conditionState === false
-		|| definition.cardinality === EntityFieldCardinality.Zero
-		|| definition.cardinality === EntityFieldCardinality.ZeroOrOne
-		|| definition.cardinality === EntityFieldCardinality.Many
-		|| definition.cardinality === EntityFieldCardinality.ZeroOrMany
+		conditionState === FieldConditionState.Inactive
+		|| (
+			conditionState !== FieldConditionState.Unknown
+			&& (
+				definition.cardinality === EntityFieldCardinality.Zero
+				|| definition.cardinality === EntityFieldCardinality.ZeroOrOne
+				|| definition.cardinality === EntityFieldCardinality.Many
+				|| definition.cardinality === EntityFieldCardinality.ZeroOrMany
+			)
+		)
 	)
+}
+
+const resolverFieldValueItems = (
+	entityType: string,
+	fieldName: string,
+	source: string,
+	definition: EntityFieldDefinition,
+	value: unknown
+) => {
+	if (value === undefined)
+		return []
+
+	if (entityFieldCardinalityIsMultiple(definition.cardinality)) {
+		if (!Array.isArray(value))
+			throw new Error(`${entityType}.${fieldName}.${source} returned non-array value for multiple-cardinality field`)
+
+		return value
+	}
+
+	if (Array.isArray(value))
+		throw new Error(`${entityType}.${fieldName}.${source} returned array value for single-cardinality field`)
+
+	return [value]
+}
+
+const resolverEntityReferenceValueKey = <
+	const _Schema extends Schema
+>(
+	context: ClientContext<_Schema>,
+	entityType: string,
+	fieldName: string,
+	source: string,
+	definition: Extract<EntityFieldDefinition, {
+		type: EntityFieldType.EntityReference | EntityFieldType.EntitiesReference
+	}>,
+	value: unknown
+) => {
+	if (
+		value == null
+		|| typeof value !== 'object'
+		|| !(EntityMetaKey.Selector in value)
+	)
+		throw new Error(`${entityType}.${fieldName}.${source} returned invalid entity reference`)
+
+	const entityReference = Object.fromEntries(Object.entries(value))
+	const selector = entityReference[EntityMetaKey.Selector]
+	if (
+		selector == null
+		|| typeof selector !== 'object'
+		|| Array.isArray(selector)
+	)
+		throw new Error(`${entityType}.${fieldName}.${source} returned invalid entity reference selector`)
+
+	validateEntitySelector(
+		context.schema,
+		context.entityDefinitionByType[definition.entityType],
+		selector
+	)
+	return `Entity:${stringify(
+		EntityMetaKey.SelectorKey in entityReference ?
+			entityReference[EntityMetaKey.SelectorKey]
+		:
+			entityReference[EntityMetaKey.Selector]
+	)}`
+}
+
+const resolverFieldValueKey = <
+	const _Schema extends Schema
+>(
+	context: ClientContext<_Schema>,
+	entityType: string,
+	fieldName: string,
+	source: string,
+	definition: EntityFieldDefinition,
+	value: unknown
+) => {
+	if (
+		definition.type === EntityFieldType.EntityReference
+		|| definition.type === EntityFieldType.EntitiesReference
+	)
+		return resolverEntityReferenceValueKey(
+			context,
+			entityType,
+			fieldName,
+			source,
+			definition,
+			value
+		)
+
+	if (!entityFieldPrimitiveValueIsValid(definition, value))
+		throw new Error(`${entityType}.${fieldName}.${source} returned invalid primitive value`)
+
+	return `Value:${stringify(value)}`
 }
 
 const loadEntityRows = async <
@@ -938,14 +1102,13 @@ const loadEntityRows = async <
 				}
 
 			try {
-				const snapshot = await resolverSnapshot(
+				if (await resolverSnapshot(
 					context,
 					resolver,
 					entityDefinition,
 					entitySelector,
 					subset
-				)
-				if (snapshot === undefined)
+				) === undefined)
 					return {
 						rows: [],
 						outcomes: [{
@@ -954,46 +1117,11 @@ const loadEntityRows = async <
 						}],
 					}
 
-				const fields: EntityResolvedFields<_Schema> = {}
-				for (const fieldDefinition of entityFieldDefinitions(entityDefinition)) {
-					const fieldResolver = resolver.fields[fieldDefinition.name]
-					if (fieldResolver === undefined)
-						continue
-
-					const value = (
-						typeof fieldResolver === 'function' ?
-							fieldResolver(
-								snapshot,
-								entitySelector,
-								resolverContext(
-									context,
-									String(resolver.source),
-									subset
-								)
-							)
-						: fieldResolver.select === undefined ?
-							undefined
-						:
-							fieldResolver.select(
-								snapshot,
-								entitySelector,
-								resolverContext(
-									context,
-									String(resolver.source),
-									subset
-								)
-							)
-					)
-					if (value !== undefined)
-						fields[fieldDefinition.name] = value
-				}
-
 				return {
 					rows: [{
 						[EntityMetaKey.Selector]: entitySelector,
 						[EntityMetaKey.SelectorKey]: selectorKey,
 						[EntityMetaKey.Source]: String(resolver.source),
-						[EntityMetaKey.Fields]: fields,
 					}],
 					outcomes: [{
 						source: String(resolver.source),
@@ -1084,6 +1212,7 @@ const loadFieldRows = async <
 					return fieldCanCompleteEmpty(
 						context,
 						entityType,
+						parentSelector,
 						parentSelectorKey,
 						definition
 					) ?
@@ -1128,6 +1257,7 @@ const loadFieldRows = async <
 					&& !fieldCanCompleteEmpty(
 						context,
 						entityType,
+						parentSelector,
 						parentSelectorKey,
 						definition
 					)
@@ -1141,60 +1271,46 @@ const loadFieldRows = async <
 						}],
 					}
 
-				return {
-					rows: (
-						entityFieldCardinalityIsMultiple(definition.cardinality) ?
-							(
-								value === undefined ?
-									[]
-								: Array.isArray(value) ?
-									value
-								:
-									[value]
-							)
-						:
-							value === undefined ?
-								[]
-							:
-								[value]
-					).map((item) => ({
-						fieldName,
-						[EntityMetaKey.ParentSelector]: parentSelector,
-						[EntityMetaKey.ParentSelectorKey]: parentSelectorKey,
-						[EntityMetaKey.Source]: String(resolverPart.source),
-						[EntityMetaKey.Value]: item,
-						valueKey: (
-							item != null
-							&& typeof item === 'object'
-							&& EntityMetaKey.Selector in item ?
-								(() => {
-									const entityReference = Object.fromEntries(Object.entries(item))
-									return `Entity:${stringify(
-										EntityMetaKey.SelectorKey in entityReference ?
-											entityReference[EntityMetaKey.SelectorKey]
-										:
-											stringify(entityReference[EntityMetaKey.Selector])
-									)}`
-								})()
-							:
-								`Value:${stringify(item)}`
-						),
-					})),
-					outcomes: [{
-						source: String(resolverPart.source),
-						status: PersistedCollectionSourceStatus.Completed,
-					}],
+					return {
+						rows: resolverFieldValueItems(
+							entityType,
+							fieldName,
+							String(resolverPart.source),
+							definition,
+							value
+						).map((item, valueIndex) => ({
+							fieldName,
+							...(entityFieldCardinalityIsMultiple(definition.cardinality) && {
+								valueIndex,
+							}),
+							[EntityMetaKey.ParentSelector]: parentSelector,
+							[EntityMetaKey.ParentSelectorKey]: parentSelectorKey,
+							[EntityMetaKey.Source]: String(resolverPart.source),
+							[EntityMetaKey.Value]: item,
+							valueKey: resolverFieldValueKey(
+								context,
+								entityType,
+								fieldName,
+								String(resolverPart.source),
+								definition,
+								item
+							),
+						})),
+						outcomes: [{
+							source: String(resolverPart.source),
+							status: PersistedCollectionSourceStatus.Completed,
+						}],
+					}
+				} catch (error) {
+					return {
+						rows: [],
+						outcomes: [{
+							source: String(resolverPart.source),
+							status: PersistedCollectionSourceStatus.Failed,
+							error: error instanceof Error ? error.message : String(error),
+						}],
+					}
 				}
-			} catch (error) {
-				return {
-					rows: [],
-					outcomes: [{
-						source: String(resolverPart.source),
-						status: PersistedCollectionSourceStatus.Failed,
-						error: error instanceof Error ? error.message : String(error),
-					}],
-				}
-			}
 		})
 	)))
 
@@ -1258,6 +1374,7 @@ const loadCountRows = async <
 					return fieldCanCompleteEmpty(
 						context,
 						entityType,
+						parentSelector,
 						parentSelectorKey,
 						definition
 					) ?

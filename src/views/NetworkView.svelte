@@ -30,13 +30,6 @@
 	} = $props()
 
 
-	
-
-	
-
-	
-
-
 	// Components
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import BittensorNetworkView from '$/views/BittensorNetworkView.svelte'

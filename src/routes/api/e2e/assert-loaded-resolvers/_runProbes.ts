@@ -374,16 +374,9 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 		}
 
 		const row = {
-			...(
-				fields != null && typeof fields === 'object' && !Array.isArray(fields) ?
-					fields
-				:
-					{}
-			),
 			[EntityMetaKey.Selector]: entitySelector,
 			[EntityMetaKey.SelectorKey]: stringify(entitySelector),
 			[EntityMetaKey.Source]: resolver.source,
-			[EntityMetaKey.Fields]: fields,
 		}
 
 		try {

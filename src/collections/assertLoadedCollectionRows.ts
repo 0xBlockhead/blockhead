@@ -2,7 +2,6 @@
 import { type as arktype } from 'arktype'
 
 import {
-	EntityFieldCardinality,
 	EntityFieldType,
 	entityFieldDefinitions,
 	EntityMetaKey,
@@ -23,7 +22,6 @@ const isEntityCollectionRowShape = (value: object): boolean => {
 		EntityMetaKey.Selector in o
 		&& EntityMetaKey.SelectorKey in o
 		&& EntityMetaKey.Source in o
-		&& EntityMetaKey.Fields in o
 	)
 }
 
@@ -67,11 +65,6 @@ const assertEntityCollectionRowShellGeneric = (
 		throw new Error(`${path}: invalid ${EntityMetaKey.Source}`)
 	}
 
-	const fields = record[EntityMetaKey.Fields]
-	if (fields == null || typeof fields !== 'object' || Array.isArray(fields)) {
-		throw new Error(`${path}: ${EntityMetaKey.Fields} must be an object`)
-	}
-
 	selectorValidator(record[EntityMetaKey.Selector], `${path}.${EntityMetaKey.Selector}`)
 }
 
@@ -99,7 +92,6 @@ const ENTITY_ROW_ROOT_SKIP = new Set<string>([
 	EntityMetaKey.Selector,
 	EntityMetaKey.SelectorKey,
 	EntityMetaKey.Source,
-	EntityMetaKey.Fields,
 ])
 
 
@@ -144,7 +136,6 @@ const walkLoadedValue = (
 					throw new Error(`${selectorPath}: not a valid entity selector for any registered entity type`)
 			}
 		)
-		walkLoadedValue(record[EntityMetaKey.Fields], `${path}.${EntityMetaKey.Fields}`, seen)
 		for (const key of Object.keys(record)) {
 			if (ENTITY_ROW_ROOT_SKIP.has(key)) continue
 			walkLoadedValue(record[key], `${path}.${key}`, seen)
@@ -190,58 +181,6 @@ const walkLoadedValue = (
 }
 
 
-const assertPrimitiveManyElements = (
-	context: string,
-	field: Extract<EntityFieldDefinition, { type: EntityFieldType.Primitive }>,
-	value: unknown
-) => {
-	if (!Array.isArray(value)) {
-		throw new Error(`${context}: ${field.name} must be an array`)
-	}
-
-	for (const element of value) {
-		if (element === undefined) continue
-		const out = field.primitiveType(element)
-		if (out instanceof arktype.errors) {
-			throw new Error(`${context}.${field.name}: ${out.summary}`)
-		}
-	}
-}
-
-
-const assertPrimitiveScalar = (
-	context: string,
-	field: Extract<EntityFieldDefinition, { type: EntityFieldType.Primitive }>,
-	value: unknown
-) => {
-	if (value === undefined) return
-	const out = field.primitiveType(value)
-	if (out instanceof arktype.errors) {
-		throw new Error(`${context}.${field.name}: ${out.summary}`)
-	}
-}
-
-
-const assertFieldsObjectPrimitives = (
-	context: string,
-	entityDefinition: EntityDefinition,
-	fieldsObject: Record<string, unknown>
-) => {
-	for (const field of entityFieldDefinitions(entityDefinition)) {
-		if (field.type !== EntityFieldType.Primitive) continue
-		const v = fieldsObject[field.name]
-		if (v === undefined) continue
-		(
-			field.cardinality === EntityFieldCardinality.Many
-			|| field.cardinality === EntityFieldCardinality.ZeroOrMany ?
-				assertPrimitiveManyElements(context, field, v)
-			:
-				assertPrimitiveScalar(context, field, v)
-		)
-	}
-}
-
-
 /**
  * Recursively validate resolver-shaped data: nested compact refs (`__selector` + `__selectorKey`),
  * embedded entity/field collection rows, arrays, and plain objects (any entry point).
@@ -267,7 +206,7 @@ export const assertResolverDefinitionResult = (
 	const path = `EntityCollection ${entityDefinition.entityType}`
 
 	if (!isEntityCollectionRowShape(row)) {
-		throw new Error(`${path}: expected a collection row (${EntityMetaKey.Selector}, ${EntityMetaKey.Fields}, …)`)
+		throw new Error(`${path}: expected a collection row (${EntityMetaKey.Selector}, ${EntityMetaKey.SelectorKey}, …)`)
 	}
 
 	assertEntityCollectionRowShellGeneric(
@@ -281,27 +220,8 @@ export const assertResolverDefinitionResult = (
 		}
 	)
 
-	const fieldsObject = record[EntityMetaKey.Fields] as Record<string, unknown>
-	assertFieldsObjectPrimitives(path, entityDefinition, fieldsObject)
-
-	for (const field of entityFieldDefinitions(entityDefinition)) {
-		if (field.type !== EntityFieldType.Primitive) continue
-		const spread = record[field.name]
-		if (spread === undefined) continue
-		const fromFields = fieldsObject[field.name]
-		if (spread === fromFields) continue
-		(
-			field.cardinality === EntityFieldCardinality.Many
-			|| field.cardinality === EntityFieldCardinality.ZeroOrMany ?
-				assertPrimitiveManyElements(`${path} (root)`, field, spread)
-			:
-				assertPrimitiveScalar(`${path} (root)`, field, spread)
-		)
-	}
-
 	const seen = new WeakSet<object>()
 	seen.add(row)
-	walkLoadedValue(record[EntityMetaKey.Fields], `${path}.${EntityMetaKey.Fields}`, seen)
 	for (const key of Object.keys(record)) {
 		if (ENTITY_ROW_ROOT_SKIP.has(key)) continue
 		walkLoadedValue(record[key], `${path}.${key}`, seen)

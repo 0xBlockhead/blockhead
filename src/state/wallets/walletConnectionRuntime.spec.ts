@@ -144,11 +144,17 @@ describe('wallet connection runtime normalization', () => {
 		const entityUpserts: MockRow[] = []
 		const fieldUpserts: MockRow[] = []
 		const countUpserts: MockRow[] = []
-		const entityDeletes: string[] = []
-		const fieldDeletes: string[] = []
-		const countDeletes: string[] = []
+			const entityDeletes: string[] = []
+			const fieldDeletes: string[] = []
+			const countDeletes: string[] = []
+			const fieldCollection = () => ({
+				delete: (key: string) => fieldDeletes.push(key),
+				utils: {
+					writeUpsert: (row: MockRow) => fieldUpserts.push(row),
+				},
+			})
 
-		const context = {
+			const context = {
 			entityCollections: {
 				[EntityType.BlockheadSession]: {
 					utils: {
@@ -182,54 +188,55 @@ describe('wallet connection runtime normalization', () => {
 						writeUpsert: (row: MockRow) => entityUpserts.push(row),
 					},
 				},
-			},
-			entityFieldCollections: {
-				[EntityType.BlockheadSession]: {
-					$$actions: {
-						delete: (key: string) => fieldDeletes.push(key),
-						utils: {
-							writeUpsert: (row: MockRow) => fieldUpserts.push(row),
-						},
+				},
+				entityFieldCollections: {
+					[EntityType.BlockheadSession]: {
+						$$actions: fieldCollection(),
+						name: fieldCollection(),
+						status: fieldCollection(),
+						createdAt: fieldCollection(),
+						updatedAt: fieldCollection(),
 					},
-					name: {
-						utils: {
-							writeUpsert: (row: MockRow) => fieldUpserts.push(row),
-						},
+					[EntityType.BlockheadSessionAction]: {
+						$session: fieldCollection(),
+						indexInSequence: fieldCollection(),
+						action: fieldCollection(),
+						createdAt: fieldCollection(),
+						updatedAt: fieldCollection(),
 					},
-					status: {
-						utils: {
-							writeUpsert: (row: MockRow) => fieldUpserts.push(row),
-						},
+					[EntityType._Global]: {
+						$$actors: fieldCollection(),
+						$$blockheadSessions: fieldCollection(),
+						$$blockheadWallets: fieldCollection(),
+						$$blockheadWalletAccounts: fieldCollection(),
+						$$blockheadWalletConnections: fieldCollection(),
+					},
+					[EntityType.BlockheadWallet]: {
+						name: fieldCollection(),
+						icon: fieldCollection(),
+						protocol: fieldCollection(),
+						discoveryKind: fieldCollection(),
+						transportKind: fieldCollection(),
+						rdns: fieldCollection(),
+						capabilities: fieldCollection(),
+					},
+					[EntityType.BlockheadWalletAccount]: {
+						$network: fieldCollection(),
+						address: fieldCollection(),
+						capabilities: fieldCollection(),
+					},
+					[EntityType.BlockheadWalletConnection]: {
+						status: fieldCollection(),
+						protocol: fieldCollection(),
+						transportKind: fieldCollection(),
+						scopes: fieldCollection(),
+						$$connectedAccounts: fieldCollection(),
+						$activeAccount: fieldCollection(),
+						selected: fieldCollection(),
+						connectedAt: fieldCollection(),
+						error: fieldCollection(),
 					},
 				},
-				[EntityType._Global]: {
-					$$actors: {
-						utils: {
-							writeUpsert: (row: MockRow) => fieldUpserts.push(row),
-						},
-					},
-					$$blockheadSessions: {
-						utils: {
-							writeUpsert: (row: MockRow) => fieldUpserts.push(row),
-						},
-					},
-					$$blockheadWallets: {
-						utils: {
-							writeUpsert: (row: MockRow) => fieldUpserts.push(row),
-						},
-					},
-					$$blockheadWalletAccounts: {
-						utils: {
-							writeUpsert: (row: MockRow) => fieldUpserts.push(row),
-						},
-					},
-					$$blockheadWalletConnections: {
-						utils: {
-							writeUpsert: (row: MockRow) => fieldUpserts.push(row),
-						},
-					},
-				},
-			},
 			entityFieldCountCollections: {
 				[EntityType.BlockheadWalletConnection]: {
 					$$connectedAccounts: {
@@ -319,16 +326,13 @@ describe('wallet connection runtime normalization', () => {
 			},
 		})
 
-		expect(entityUpserts).toEqual([
-			expect.objectContaining({
-				[EntityMetaKey.SelectorKey]: expect.stringMatching(/session-1/),
-				[EntityMetaKey.Source]: Source.Local_Internal,
-				action: expect.objectContaining({
-					type: ActionType.Swap,
+			expect(entityUpserts).toEqual([
+				expect.objectContaining({
+					[EntityMetaKey.SelectorKey]: expect.stringMatching(/session-1/),
+					[EntityMetaKey.Source]: Source.Local_Internal,
 				}),
-			}),
-			expect.objectContaining({
-				[EntityMetaKey.Selector]: {
+				expect.objectContaining({
+					[EntityMetaKey.Selector]: {
 					id: 'eip6963:com.example.wallet',
 				},
 				[EntityMetaKey.SelectorKey]: walletSelectorKey,
@@ -350,32 +354,27 @@ describe('wallet connection runtime normalization', () => {
 					$wallet: {
 						id: 'eip6963:com.example.wallet',
 					},
-				},
-				[EntityMetaKey.SelectorKey]: walletConnectionSelectorKey,
-				[EntityMetaKey.Source]: Source.Local_Internal,
-				$$connectedAccounts: [
-					{
-						[EntityMetaKey.Selector]: {
-							caip10: {
-								namespace: 'eip155',
-								reference: '1',
-								accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
-							},
-						},
 					},
-				],
-			}),
-		])
-		expect(fieldUpserts.map((row) => row[EntityMetaKey.Source])).toEqual([
-			Source.Local_Internal,
-			Source.Local_Internal,
-			Source.Local_Internal,
-			Source.Local_Internal,
-		])
-		expect(fieldUpserts).toEqual([
-			expect.objectContaining({
-				fieldName: '$$actions',
-				[EntityMetaKey.ParentSelectorKey]: sessionSelectorKey,
+					[EntityMetaKey.SelectorKey]: walletConnectionSelectorKey,
+					[EntityMetaKey.Source]: Source.Local_Internal,
+				}),
+			])
+			expect(fieldUpserts.every((row) => row[EntityMetaKey.Source] === Source.Local_Internal)).toBe(true)
+			expect(fieldUpserts).toEqual(expect.arrayContaining([
+				expect.objectContaining({
+					fieldName: '$session',
+					[EntityMetaKey.ParentSelectorKey]: expect.stringMatching(/session-1/),
+					valueKey: `Entity:${stringify(sessionSelectorKey)}`,
+				}),
+				expect.objectContaining({
+					fieldName: 'action',
+					[EntityMetaKey.Value]: expect.objectContaining({
+						type: ActionType.Swap,
+					}),
+				}),
+				expect.objectContaining({
+					fieldName: '$$actions',
+					[EntityMetaKey.ParentSelectorKey]: sessionSelectorKey,
 				valueKey: expect.stringMatching(/^Entity:/),
 			}),
 			expect.objectContaining({
@@ -411,10 +410,16 @@ describe('wallet connection runtime normalization', () => {
 						},
 					},
 					[EntityMetaKey.SelectorKey]: walletConnectionSelectorKey,
-				},
-				valueKey: `Entity:${stringify(walletConnectionSelectorKey)}`,
-			}),
-		])
+					},
+					valueKey: `Entity:${stringify(walletConnectionSelectorKey)}`,
+				}),
+				expect.objectContaining({
+					fieldName: '$$connectedAccounts',
+					valueIndex: 0,
+					[EntityMetaKey.ParentSelectorKey]: walletConnectionSelectorKey,
+					valueKey: `Entity:${stringify(walletAccountSelectorKey)}`,
+				}),
+			]))
 		expect(countUpserts).toEqual([
 			expect.objectContaining({
 				[EntityMetaKey.Source]: Source.Local_Internal,

@@ -12,7 +12,6 @@ test.describe('assertLoaded resolver probes', () => {
 			[EntityMetaKey.Selector]: { chainId: 1 },
 			[EntityMetaKey.SelectorKey]: '{"chainId":1}',
 			[EntityMetaKey.Source]: 'NotARealSource',
-			[EntityMetaKey.Fields]: {},
 		})).toThrow()
 	})
 

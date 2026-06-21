@@ -159,15 +159,15 @@ export const createE2EClientInstrumentation = <
 						pendingPersistenceByCollection.get(collectionId)?.delete(persistencePromise)
 					}
 				},
-				loadSubset: async (
-					collectionId: string,
-					options: LoadSubsetOptions,
-					context?: Parameters<PersistenceAdapter['loadSubset']>[2]
-				) => {
-					const rows = await collectionPersistence.adapter.loadSubset(collectionId, options, context)
-					pushPersistenceTrace({
-						type: 'loadSubset',
-						collectionId,
+					loadSubset: async (
+						collectionId: string,
+						options: LoadSubsetOptions,
+						context?: Parameters<NonNullable<PersistenceAdapter['loadSubset']>>[2]
+					) => {
+						const rows = await collectionPersistence.adapter.loadSubset(collectionId, options, context)
+						pushPersistenceTrace({
+							type: 'loadSubset',
+							collectionId,
 						subsetRowCount: rows.length,
 					})
 					return rows
@@ -182,21 +182,23 @@ export const createE2EClientInstrumentation = <
 					return collectionMetadata
 				},
 			}
-		),
+			),
 	})
+	const resolvePersistenceForCollection = basePersistence.resolvePersistenceForCollection
+	const resolvePersistenceForMode = basePersistence.resolvePersistenceForMode
 	return {
 		persistence: (
 			e2eProbeEnabled ?
 				{
 					...traceAdapter(basePersistence),
-					resolvePersistenceForCollection: basePersistence.resolvePersistenceForCollection == null ?
+					resolvePersistenceForCollection: resolvePersistenceForCollection == null ?
 						undefined
 					:
-						(options) => traceAdapter(basePersistence.resolvePersistenceForCollection(options)),
-					resolvePersistenceForMode: basePersistence.resolvePersistenceForMode == null ?
+						(options: Parameters<NonNullable<typeof resolvePersistenceForCollection>>[0]) => traceAdapter(resolvePersistenceForCollection(options)),
+					resolvePersistenceForMode: resolvePersistenceForMode == null ?
 						undefined
 					:
-						(mode) => traceAdapter(basePersistence.resolvePersistenceForMode(mode)),
+						(mode: Parameters<NonNullable<typeof resolvePersistenceForMode>>[0]) => traceAdapter(resolvePersistenceForMode(mode)),
 				}
 			:
 				basePersistence

@@ -95,6 +95,28 @@ describe('client resolver stack architecture', () => {
 		}
 	})
 
+	it('validates resolver field value shape before writing persisted field rows', () => {
+		const clientSource = source('$client.svelte.ts')
+		expect(clientSource).toMatch(/returned non-array value for multiple-cardinality field/)
+		expect(clientSource).toMatch(/returned array value for single-cardinality field/)
+		expect(clientSource).toMatch(/entityFieldPrimitiveValueIsValid/)
+		expect(clientSource).toMatch(/validateEntitySelector\(/)
+		expect(clientSource).not.toMatch(/Array\.isArray\(value\) \?[\s\S]*:\s*\[value\]/)
+	})
+
+	it('keeps conditional fields pending until discriminator state is known', () => {
+		for (const fileName of [
+			'$client.svelte.ts',
+			'$subscribe.svelte.ts',
+		]) {
+			const clientSource = source(fileName)
+			expect(clientSource).toMatch(/enum FieldConditionState/)
+			expect(clientSource).toMatch(/FieldConditionState\.Unknown/)
+			expect(clientSource).toMatch(/conditionState !== FieldConditionState\.Unknown/)
+			expect(clientSource).not.toMatch(/conditionState === false/)
+		}
+	})
+
 	it('keeps view-facing reads behind the proxy and subscribe files', () => {
 		expect(source('$proxy.svelte.ts')).not.toMatch(/entityCollections|entityFieldCollections|queryCollectionOptions/)
 		expect(source('$subscribe.svelte.ts')).not.toMatch(/queryCollectionOptions|persistedCollectionOptions/)

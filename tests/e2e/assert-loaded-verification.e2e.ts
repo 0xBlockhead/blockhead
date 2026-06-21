@@ -23,6 +23,18 @@ import { entityDefinitionByType } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 
 
+const resolverHasCountSelector = (
+	fields: object,
+	fieldName: string
+) => {
+	const fieldSelector = Object.getOwnPropertyDescriptor(fields, fieldName)?.value
+	return (
+		fieldSelector != null
+		&& typeof fieldSelector === 'object'
+		&& 'resolveCount' in fieldSelector
+	)
+}
+
 /**
  * Confirms the assert-loaded machinery (not domain correctness of resolver payloads):
  * synthetic bad shapes throw; the probe endpoint runs one case per resolver and returns consistent metadata.
@@ -33,7 +45,6 @@ test.describe('assertLoaded verification', () => {
 			[EntityMetaKey.Selector]: { chainId: 1 },
 			[EntityMetaKey.SelectorKey]: '{"chainId":1}',
 			[EntityMetaKey.Source]: 'NotARealSource',
-			[EntityMetaKey.Fields]: {},
 		})).toThrow()
 	})
 
@@ -54,7 +65,6 @@ test.describe('assertLoaded verification', () => {
 			[EntityMetaKey.Selector]: { scope: 'e2e' },
 			[EntityMetaKey.SelectorKey]: stringify({ scope: 'e2e' }),
 			[EntityMetaKey.Source]: Source.Constants_Internal,
-			[EntityMetaKey.Fields]: {},
 		}
 
 		expect(() => assertResolverDefinitionResult(definition, good)).not.toThrow()
@@ -83,23 +93,19 @@ test.describe('assertLoaded verification', () => {
 	test('YouTube list fields expose provider totals through count selectors', () => {
 		expect(YoutubeRest.resolvers.some((resolver) => (
 			resolver.entityType === EntityType.YouTubeChannel
-			&& typeof resolver.fields.$$videos === 'object'
-			&& 'resolveCount' in resolver.fields.$$videos
+			&& resolverHasCountSelector(resolver.fields, '$$videos')
 		))).toBe(true)
 		expect(YoutubeRest.resolvers.some((resolver) => (
 			resolver.entityType === EntityType.YouTubePlaylist
-			&& typeof resolver.fields.$$videos === 'object'
-			&& 'resolveCount' in resolver.fields.$$videos
+			&& resolverHasCountSelector(resolver.fields, '$$videos')
 		))).toBe(true)
 		expect(YoutubeRest.resolvers.some((resolver) => (
 			resolver.entityType === EntityType.YouTubeVideo
-			&& typeof resolver.fields.$$comments === 'object'
-			&& 'resolveCount' in resolver.fields.$$comments
+			&& resolverHasCountSelector(resolver.fields, '$$comments')
 		))).toBe(true)
 		expect(YoutubeRest.resolvers.some((resolver) => (
 			resolver.entityType === EntityType.YouTubeComment
-			&& typeof resolver.fields.$$replies === 'object'
-			&& 'resolveCount' in resolver.fields.$$replies
+			&& resolverHasCountSelector(resolver.fields, '$$replies')
 		))).toBe(true)
 	})
 
@@ -110,8 +116,7 @@ test.describe('assertLoaded verification', () => {
 		]) {
 			expect(sourceResolvers.resolvers.some((resolver) => (
 				resolver.entityType === EntityType.RedditLink
-				&& typeof resolver.fields.$$comments === 'object'
-				&& 'resolveCount' in resolver.fields.$$comments
+				&& resolverHasCountSelector(resolver.fields, '$$comments')
 			))).toBe(true)
 		}
 	})
