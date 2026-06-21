@@ -36,9 +36,6 @@
 
 	import { select } from '$/routes/+layout.svelte'
 
-
-	
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -72,13 +69,7 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			<ResourceBoundary resource={select(
-					EntityType._Global,
-					selection.entitySelector,
-					{
-						sources: [Source.Local_Internal],
-					}
-				).$$blockheadPanelTrees({
+			<ResourceBoundary resource={selection({
 					sources: [Source.Local_Internal],
 				})} placeholderText="Loading panel layouts…">
 				{#snippet children(panelTrees)}

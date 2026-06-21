@@ -278,10 +278,10 @@
 										selection={select(EntityType.YouTubeComment, comment.$parentComment[EntityMetaKey.Selector])}
 										layout={EntityLayout.Value}
 
-									
+
 										open={false}
 
-									
+
 										/>
 								</dd>
 							</div>

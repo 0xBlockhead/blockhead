@@ -578,7 +578,7 @@
 							<dt>Mainnet</dt>
 							<dd>
 								<NetworkView
-									selection={mainnet}
+									selection={select(EntityType.Network, mainnet.entitySelector)}
 									layout={EntityLayout.Title}
 
 									open={false}
@@ -1379,7 +1379,7 @@
 									{#snippet body({})}
 										{#if mainnet?.entitySelector !== undefined}
 											<NetworkView
-												selection={mainnet}
+												selection={select(EntityType.Network, mainnet.entitySelector)}
 												layout={EntityLayout.Title}
 
 												open={false}

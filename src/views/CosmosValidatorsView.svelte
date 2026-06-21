@@ -31,8 +31,6 @@
 		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
 
-	
-
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'

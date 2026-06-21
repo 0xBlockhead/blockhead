@@ -42,9 +42,6 @@
 	> = $props()
 
 
-	
-
-	
 	const userOperationsCount = $derived(
 		(selection({
 			sources: [

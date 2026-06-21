@@ -40,11 +40,8 @@
 			],
 		},
 	))
-	
-	
-	
-	
-	
+
+
 	const evmTopics = $derived(protocol.$$evmTopics({ limit: 4096 }))
 	const evmSelectors = $derived(protocol.$$evmSelectors)
 	const evmErrors = $derived(protocol.$$evmErrors)

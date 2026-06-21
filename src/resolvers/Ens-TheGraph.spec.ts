@@ -30,13 +30,12 @@ const ensNameResolver = ensTheGraphResolvers.resolvers.find((
 
 const ensNamesOwnedResolver = ensTheGraphResolvers.resolvers.find((
 	resolver
-): resolver is Extract<
-	typeof ensTheGraphResolvers.resolvers[number],
-	{ entityType: EntityType.EvmAccount }
-> => (
-	resolver.entityType === EntityType.EvmAccount
-	&& resolver.fields.$$ensNamesOwned != null
-))
+	): resolver is Extract<
+		typeof ensTheGraphResolvers.resolvers[number],
+		{ entityType: EntityType.EvmAccount }
+	> => (
+		resolver.entityType === EntityType.EvmAccount
+	))
 
 if (ensNameResolver == null)
 	throw new Error('Ens-TheGraph spec missing EnsName resolver')

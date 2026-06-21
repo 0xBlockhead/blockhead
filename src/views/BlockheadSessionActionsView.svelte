@@ -52,8 +52,6 @@
 	)
 
 
-	
-
 	// Actions
 	const writeSessionAction = (indexInSequence: number) => {
 		writeLocalBlockheadSessionAction(

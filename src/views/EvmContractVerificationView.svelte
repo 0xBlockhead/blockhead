@@ -48,12 +48,8 @@
 		sources: [Source.Sourcify_Rest],
 	}))
 	const match = $derived(verification.match)
-	
-	
-	
-	
-	
-	
+
+
 	const verificationSelectorKey = $derived(
 		stringify(selection.entitySelector),
 	)

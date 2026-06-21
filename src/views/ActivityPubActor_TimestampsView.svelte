@@ -28,8 +28,6 @@
 		sources?: readonly Source[]
 	} = $props()
 
-	
-
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'

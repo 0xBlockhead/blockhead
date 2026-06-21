@@ -54,8 +54,6 @@
 		sources: [Source.Blockscout_Rest],
 	}))
 	const callType = $derived(transfer.callType)
-	
-	
 
 
 	// Components

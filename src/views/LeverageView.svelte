@@ -31,9 +31,6 @@
 	> = $props()
 
 
-	
-
-
 	// Components
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmNetworkView from '$/views/EvmNetworkView.svelte'

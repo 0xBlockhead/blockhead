@@ -208,9 +208,9 @@
 									layout={EntityLayout.Value}
 
 									showTypeAnnotation={false}
-								
+
 									open={false}
-								
+
 									/>
 							</dd>
 						</div>
@@ -224,10 +224,10 @@
 								selection={select(EntityType.LensPost, lensPost.$commentOn[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 
-								
+
 									open={false}
 
-								
+
 									/>
 							</dd>
 						</div>

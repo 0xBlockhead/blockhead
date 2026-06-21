@@ -36,7 +36,6 @@
 
 	import { select } from '$/routes/+layout.svelte'
 
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -70,10 +69,7 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const rooms = select(EntityType._Global,
-				selection.entitySelector,
-				{ sources: [Source.Local_Internal] },
-			).$$blockheadRooms({
+			{@const rooms = selection({
 				sources: [Source.Local_Internal],
 			})}
 

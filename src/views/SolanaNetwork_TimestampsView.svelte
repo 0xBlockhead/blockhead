@@ -34,8 +34,6 @@
 		>
 	> = $props()
 
-	
-
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'

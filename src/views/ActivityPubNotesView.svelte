@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { DeclarativeOrderBy } from '$/client/$client.svelte.ts'
 	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
@@ -47,7 +48,16 @@
 	} = $props()
 
 
-	
+	// Functions
+	const activityPubNoteOrderBy = $derived(
+		[
+			[
+				({ fieldRow }) => fieldRow.localStatusId,
+				orderByCreatedAt,
+			],
+		] as const satisfies DeclarativeOrderBy<ActivityPubNoteOrderFieldRow>,
+	)
+
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
@@ -80,12 +90,7 @@
 			<ResourceBoundary
 				resource={selection({
 						sources,
-						orderBy: [
-							[
-								({ fieldRow }) => fieldRow.localStatusId,
-								orderByCreatedAt,
-							],
-						] as const,
+						orderBy: activityPubNoteOrderBy,
 						limit,
 					})}
 				placeholderText={placeholderText}

@@ -28,9 +28,6 @@
 	> = $props()
 
 
-	
-
-
 	// Components
 	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'

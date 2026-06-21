@@ -26,7 +26,6 @@
 	> = $props()
 
 
-
 	// Components
 	import EntityView from '$/components/EntityView.svelte'
 </script>

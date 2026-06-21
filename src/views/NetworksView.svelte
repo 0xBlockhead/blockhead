@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
@@ -37,9 +38,6 @@
 		>
 	> = $props()
 
-
-
-	
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
@@ -95,7 +93,7 @@
 
 						{#snippet Item({ item })}
 							<NetworkView
-								selection={item}
+								selection={select(EntityType.Network, item.entitySelector)}
 								layout={EntityLayout.Summary}
 
 							/>

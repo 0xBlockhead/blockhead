@@ -29,11 +29,6 @@
 
 
 	const utxoInput = $derived(selection())
-	
-	
-	
-	
-
 
 
 	// Components

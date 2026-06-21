@@ -46,7 +46,6 @@
 	> = $props()
 
 
-
 	// Functions
 	const balanceChainIds = [
 		ChainId.Ethereum,

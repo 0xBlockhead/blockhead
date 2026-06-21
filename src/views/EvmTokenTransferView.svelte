@@ -55,12 +55,6 @@
 		sources: [Source.Blockscout_Rest],
 	}))
 	const standard = $derived(transfer.standard)
-	
-	
-	
-	
-	
-	
 
 
 	// Components

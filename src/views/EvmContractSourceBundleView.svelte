@@ -43,7 +43,6 @@
 	> = $props()
 
 
-	
 	const files = $derived(selection( {
 		sources: [Source.Sourcify_Rest],
 	}).files)

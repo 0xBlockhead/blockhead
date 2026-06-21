@@ -13,8 +13,6 @@
 		selectorHex: `0x${string}`
 	} = $props()
 
-	
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'

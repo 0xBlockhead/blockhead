@@ -45,13 +45,6 @@
 		},
 	))
 	const baseFeePerGas = $derived(networkGasFeeBlock.baseFeePerGas)
-	
-	
-	
-	
-	
-	
-
 
 
 	// Components

@@ -22,8 +22,6 @@
 		open?: boolean
 	} = $props()
 
-	
-
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'

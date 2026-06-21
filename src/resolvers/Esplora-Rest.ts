@@ -22,16 +22,12 @@ type NetworkId = { caip2: {
 } } | { slug: string }
 
 const esploraRestBaseUrlForNetwork = (network: NetworkId) => {
-	const restBaseUrl = esploraRestBaseUrlByNetworkKey[
+	return esploraRestBaseUrlByNetworkKey[
 		'caip2' in network ?
 			`${network.caip2.namespace}:${network.caip2.reference}`
 		:
 			network.slug
 	]
-	if (restBaseUrl == null)
-		throw new Error('Esplora_Rest: unsupported network')
-
-	return restBaseUrl
 }
 
 const elementsAssetFieldsFromWire = (

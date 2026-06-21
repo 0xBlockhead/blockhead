@@ -51,8 +51,6 @@
 		sources: [Source.Voltaire_JsonRpc],
 	}))
 	const allowanceAmount = $derived(allowance.allowance)
-	
-	
 
 
 	// Components

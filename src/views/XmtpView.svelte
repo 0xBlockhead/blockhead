@@ -40,8 +40,6 @@
 		stringify(selection.entitySelector)
 	)
 
-	
-
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'

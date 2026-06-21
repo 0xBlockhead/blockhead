@@ -128,7 +128,6 @@
 	)
 
 
-
 	// (Derived)
 	const totalCount = $derived(
 		placeholderKeys.size > 0 ?
@@ -200,6 +199,8 @@
 											category: specificationProposalKind.entitySelector.category,
 										}
 									).$$proposals}
+									filterCategory={specificationProposalKind.entitySelector.category}
+									filterRealm={specificationProposalKind.entitySelector.realm}
 									id={kindPanelDomId(specificationProposalKind)}
 									open
 									title={String(specificationProposalKind.entitySelector.category)}
@@ -278,6 +279,8 @@
 												category: specificationProposalKind.entitySelector.category,
 											}
 										).$$proposals}
+										filterCategory={specificationProposalKind.entitySelector.category}
+										filterRealm={specificationProposalKind.entitySelector.realm}
 										id={kindPanelDomId(specificationProposalKind)}
 										open
 										title={String(specificationProposalKind.entitySelector.category)}
@@ -362,6 +365,8 @@
 													category: specificationProposalKind.entitySelector.category,
 												}
 											).$$proposals}
+											filterCategory={specificationProposalKind.entitySelector.category}
+											filterRealm={specificationProposalKind.entitySelector.realm}
 											id={kindPanelDomId(specificationProposalKind)}
 											open
 											title={String(specificationProposalKind.entitySelector.category)}

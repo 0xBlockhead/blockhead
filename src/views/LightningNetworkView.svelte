@@ -95,14 +95,14 @@
 			placeholderText="Loading Lightning Network…"
 		>
 			{#snippet children(row)}
-				{@const timestamp = row.$$timestamps.values.at(0)}
+				{@const timestamp = row.$$timestamps?.values.at(0)}
 				<dl>
 					{#if row.$settlementNetwork != null}
 						<div>
 							<dt>Settlement network</dt>
 							<dd>
 								<NetworkView
-									selection={row.$settlementNetwork}
+									selection={select(EntityType.Network, row.$settlementNetwork.entitySelector)}
 									layout={EntityLayout.Value}
 									open={false}
 								/>

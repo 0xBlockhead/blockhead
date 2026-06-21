@@ -52,7 +52,6 @@
 		)
 	)
 
-	
 
 	const contract = $derived(accountFactory.$contract)
 

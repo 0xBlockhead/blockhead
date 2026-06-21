@@ -36,9 +36,8 @@
 			sources: [Source.Beacon_Rest],
 		},
 	))
-	
-	const aggregationBits = $derived(attestation.aggregationBits)
 
+	const aggregationBits = $derived(attestation.aggregationBits)
 
 
 	// (Derived)

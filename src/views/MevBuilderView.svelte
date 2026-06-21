@@ -32,11 +32,6 @@
 	> = $props()
 
 
-	
-	
-
-
-
 	// (Derived)
 	const title = $derived(
 		titleProp

@@ -37,7 +37,7 @@ export const voltaireJsonRpcTransportsWithOriginsByChainId = Object.fromEntries(
 	Object.entries(voltaireJsonRpcTransportCandidatesByChainId)
 		.map(([chainId, entries]) => [
 			Number(chainId),
-			(entries ?? []).map((entry) => ({
+			entries.map((entry) => ({
 				...entry,
 				origins,
 			})),

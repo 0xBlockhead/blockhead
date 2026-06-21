@@ -27,7 +27,6 @@
 	> = $props()
 
 
-
 	// Components
 	import LiquidityPositionView from '$/views/LiquidityPositionView.svelte'
 </script>

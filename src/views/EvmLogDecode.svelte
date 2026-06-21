@@ -41,7 +41,7 @@
 	)
 	const logData = $derived(data ?? '')
 
-	
+
 	const signatures = $derived(select(EntityType.EvmTopic,
 		(
 			topic0Hex != null ?
@@ -56,7 +56,7 @@
 		}
 	).signatures)
 
-	
+
 	const abi = $derived(select(EntityType.EvmContract,
 		emitterContractId ?? {
 			$network: { caip2: { namespace: 'eip155' as const, reference: String(0) } },

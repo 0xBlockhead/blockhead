@@ -33,8 +33,6 @@
 	> = $props()
 
 
-	
-
 	const entityViewDetailCarouselScrollProps = {
 		'data-row': 'start align-start',
 		style: '--carousel-basis: 40ch',

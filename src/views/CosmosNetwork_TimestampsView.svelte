@@ -32,8 +32,6 @@ import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
 
-	
-
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'

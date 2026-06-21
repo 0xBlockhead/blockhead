@@ -1,22 +1,16 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import { select } from '$/routes/+layout.svelte'
+	import type { EntityProxyEntitiesData } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
-	type EthereumNetworkUpgradesResource = EntityProxyFieldResource<
-		typeof schema,
-		EntityType.EvmNetwork,
-		'$$upgrades'
-	> | EntityProxyFieldResource<
-		typeof schema,
-		EntityType._Global,
-		'$$networkUpgrades'
-	>
+	type EthereumNetworkUpgradesResource = SvelteKitResource<EntityProxyEntitiesData<typeof schema, EntityType.EthereumNetworkUpgrade>>
 
 	// State
 	let {
@@ -40,9 +34,6 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
-
-
-	
 
 
 	// Components
@@ -97,7 +88,7 @@
 
 				{#snippet Item({ item: upgrade })}
 					<NetworkUpgradeView
-						selection={upgrade}
+						selection={select(EntityType.EthereumNetworkUpgrade, upgrade.entitySelector)}
 						layout={EntityLayout.Summary}
 						open={false}
 

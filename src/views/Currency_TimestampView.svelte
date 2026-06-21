@@ -41,8 +41,6 @@
 				Source.Constants_Internal,
 			], fields: { marketCap: true } }))
 
-	
-
 
 	// Components
 	import EntityView from '$/components/EntityView.svelte'

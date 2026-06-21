@@ -43,7 +43,6 @@
 		>
 	> = $props()
 
-	
 
 	let sessionName = $state('')
 

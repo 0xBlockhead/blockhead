@@ -256,12 +256,25 @@ export type ClientContext<
 export type SubscribeSelection<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
+	_FieldRow extends object = never,
 > = Omit<LoadSubsetOptions, 'orderBy'> & {
 	readonly sources?: readonly string[]
 	readonly count?: boolean
 	readonly fields?: SubscribeSelectedFields<_Schema, _EntityType>
 	readonly selectorSources?: readonly string[]
+	readonly orderBy?: DeclarativeOrderBy<_FieldRow>
 }
+
+export type DeclarativeOrderBy<_FieldRow extends object = object> = readonly (readonly [
+	(context: { fieldRow: _FieldRow }) => string | number | bigint | undefined,
+	(
+		| 'asc'
+		| 'desc'
+		| {
+			direction: 'asc' | 'desc'
+		}
+	),
+])[]
 
 export type SubscribeSelectedFields<
 	_Schema extends Schema,
@@ -797,7 +810,7 @@ const resolverSnapshot = async <
 	context: ClientContext<_Schema, _Source>,
 	resolver: SourceResolverDefinition<_Schema, _Source, EntityType<_Schema>, ResolverContext>,
 	entityDefinition: EntityDefinition,
-	entitySelector: object,
+	entitySelector: EntitySelector<_Schema, EntityType<_Schema>>,
 	subset: ReturnType<typeof parseResolverSubset>
 ) => {
 	const selectorName = validateEntitySelector(

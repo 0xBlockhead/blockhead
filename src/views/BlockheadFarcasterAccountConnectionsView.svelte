@@ -36,9 +36,6 @@ import { stringify } from 'devalue'
 
 	import { select } from '$/routes/+layout.svelte'
 
-
-	
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -72,13 +69,7 @@ import { stringify } from 'devalue'
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			<ResourceBoundary resource={select(
-					EntityType._Global,
-					selection.entitySelector,
-					{
-						sources: [Source.Local_Internal],
-					}
-				).$$blockheadFarcasterAccountConnections({
+			<ResourceBoundary resource={selection({
 					sources: [Source.Local_Internal],
 				})} placeholderText="Loading linked accounts…">
 				{#snippet children(connections)}

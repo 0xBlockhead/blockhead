@@ -48,7 +48,6 @@
 	> = $props()
 
 
-
 	// Functions
 	const rank = (key: string) => (
 		Object
@@ -85,8 +84,6 @@
 		:
 			new SvelteSet(excludeRecordKeysProp)
 	)
-
-	
 
 
 	// Components

@@ -53,7 +53,6 @@
 	const tokenTransfers = $derived(log.$$tokenTransfers)
 
 
-
 	// Components
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'

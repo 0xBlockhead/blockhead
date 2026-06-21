@@ -39,12 +39,6 @@
 			totalSpentSats: true,
 		},
 	}))
-	
-	
-	
-	
-	
-
 
 
 	// Components

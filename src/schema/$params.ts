@@ -12,7 +12,7 @@ export const matchSchemaPrimitiveParam = <
 >(
 	entityType: _EntityType,
 	fieldName: string,
-	value: unknown
+	value: string | number | bigint | object
 ) => {
 	const fieldDefinition = schemaMeta.entityFieldDefinitionByEntityTypeAndName[entityType][fieldName]
 	return (

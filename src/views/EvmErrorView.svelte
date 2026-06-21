@@ -41,7 +41,7 @@
 
 	import { select } from '$/routes/+layout.svelte'
 
-	
+
 	const href = $derived(
 		hrefProp ?? resolve('/(explore)/(evm)/evm/(errors)/error/[hex]', {
 			hex: selection.entitySelector.hex,

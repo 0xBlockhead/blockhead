@@ -2,7 +2,8 @@
 	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyEntitiesData } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -10,19 +11,7 @@ import type { WithRest } from '$/typescript/WithRest.ts'
 import { stringify } from 'devalue'
 import { ListOrientation } from '$/components/ListOrientation.ts'
 
-type EvmTransactionsResource = EntityProxyFieldResource<
-	typeof schema,
-	EntityType.EvmBlock,
-	'$$transactions'
-> | EntityProxyFieldResource<
-	typeof schema,
-	EntityType.EvmNetwork,
-	'$$transactions'
-> | EntityProxyFieldResource<
-	typeof schema,
-	EntityType.EvmNetworkAccount,
-	'$$transactions'
->
+type EvmTransactionsResource = SvelteKitResource<EntityProxyEntitiesData<typeof schema, EntityType.EvmTransaction>>
 
 type EvmBlockNumberSelector = Extract<
 	EntitySelector<typeof schema, EntityType.EvmBlock>,

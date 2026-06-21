@@ -25,9 +25,6 @@
 	> = $props()
 
 
-	
-
-
 	// Components
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import Self from '$/views/HyperliquidAccountView.svelte'

@@ -45,13 +45,9 @@
 			],
 		},
 	))
-	
-	
-	
-	
-	const finalizedCheckpointEpoch = $derived(networkBeaconFinalityTimestamp.finalizedCheckpointEpoch)
-	
 
+
+	const finalizedCheckpointEpoch = $derived(networkBeaconFinalityTimestamp.finalizedCheckpointEpoch)
 
 
 	// Components

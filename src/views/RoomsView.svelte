@@ -36,10 +36,6 @@
 	> = $props()
 
 
-
-	
-
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'

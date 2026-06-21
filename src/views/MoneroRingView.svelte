@@ -29,7 +29,6 @@
 	> = $props()
 
 
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import EntityView from '$/components/EntityView.svelte'

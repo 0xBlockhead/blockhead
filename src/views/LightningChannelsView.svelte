@@ -16,7 +16,7 @@
 	// State
 	let { selection, title = 'Channels', open = $bindable(true), id, href = '', ...EntitiesListProps }: WithRest<{ selection: LightningChannelsResource, title?: string, open?: boolean, id: string, href?: string }, Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>> = $props()
 
-	
+
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'

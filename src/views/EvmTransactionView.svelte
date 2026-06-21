@@ -93,7 +93,7 @@
 	const maxPriorityFeePerGas = $derived(evmTransaction.maxPriorityFeePerGas)
 	const blobGasUsed = $derived(evmTransaction.blobGasUsed)
 	const maxFeePerBlobGas = $derived(evmTransaction.maxFeePerBlobGas)
-	
+
 	const traceUnavailable = $derived(evmTransaction.traceUnavailable({
 		sources: isZeroGTransaction ? [] : [Source.Blockscout_Rest],
 	}))

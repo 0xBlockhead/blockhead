@@ -3,18 +3,17 @@
 	import type { ComponentProps } from 'svelte'
 	import {
 		EntityProxyField,
+		type EntityProxyData,
 		type EntityProxyResource,
 	} from '$/client/$proxy.svelte.ts'
-	import type { EntityFieldValues, EntitySelector } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { blockheadAgentConversationTurnStatusByStatus } from '$/constants/Blockhead.ts'
 	import { Source } from '$/sources/Source.ts'
 
-	type ResourceFields = {
-		fields: Partial<EntityFieldValues<typeof schema, EntityType.BlockheadAgentConversationTurn>>
-	}
+	type TurnResourceData = EntityProxyData<typeof schema, EntityType.BlockheadAgentConversationTurn>
 
 
 	// Context
@@ -74,7 +73,7 @@
 
 	{#snippet Title()}
 		{#if true}
-			{#snippet TurnPromptHeading(turn: ResourceFields)}
+			{#snippet TurnPromptHeading(turn: TurnResourceData)}
 				<TruncatedValue
 					value={turn.userPrompt}
 					format={TruncatedValueFormat.Visual}
@@ -93,7 +92,7 @@
 		<ResourceBoundary
 			resource={turn}
 		>
-			{#snippet children(turn: ResourceFields)}
+			{#snippet children(turn: TurnResourceData)}
 				<span data-text="muted">
 					<Timestamp
 						timestamp={turn.createdAt}
@@ -114,7 +113,7 @@
 			resource={turn}
 			placeholderText="Loading turn…"
 		>
-			{#snippet children(turn: ResourceFields)}
+			{#snippet children(turn: TurnResourceData)}
 				{#if turn.userPrompt !== ''}
 					<p>{turn.userPrompt}</p>
 				{:else}
@@ -132,7 +131,7 @@
 					<dt>Status</dt>
 					<dd>
 						{#if true}
-							{#snippet TurnStatusRow(turn: ResourceFields)}
+							{#snippet TurnStatusRow(turn: TurnResourceData)}
 								{#if turn.status !== undefined}
 									{blockheadAgentConversationTurnStatusByStatus[turn.status].label}
 								{/if}
@@ -152,7 +151,7 @@
 						<dt>Created</dt>
 						<dd>
 							{#if true}
-								{#snippet TurnCreatedRow(turn: ResourceFields)}
+								{#snippet TurnCreatedRow(turn: TurnResourceData)}
 								<Timestamp
 									timestamp={turn.createdAt}
 								/>
@@ -173,7 +172,7 @@
 					<dt>Provider</dt>
 					<dd>
 						{#if true}
-							{#snippet TurnProviderRow(turn: ResourceFields)}
+							{#snippet TurnProviderRow(turn: TurnResourceData)}
 								{#if turn.providerId != null && turn.providerId !== ''}
 									<TruncatedValue
 										value={turn.providerId}
@@ -201,7 +200,7 @@
 					<dt>Prompt version</dt>
 					<dd>
 						{#if true}
-							{#snippet TurnPromptVersionRow(turn: ResourceFields)}
+							{#snippet TurnPromptVersionRow(turn: TurnResourceData)}
 								{#if turn.promptVersion !== ''}
 									{turn.promptVersion}
 								{:else}
@@ -226,16 +225,16 @@
 					<dt>Parent turn</dt>
 					<dd>
 						{#if true}
-							{#snippet TurnParentRow(turn: ResourceFields)}
+							{#snippet TurnParentRow(turn: TurnResourceData)}
 								{#if turn.parentId != null && turn.parentId !== ''}
 									<BlockheadAgentConversationTurnView
 										selection={select(EntityType.BlockheadAgentConversationTurn, { id: turn.parentId })}
 										layout={EntityLayout.Title}
 
-									
+
 										open={false}
 
-									
+
 										/>
 								{:else}
 									<span data-text="muted">

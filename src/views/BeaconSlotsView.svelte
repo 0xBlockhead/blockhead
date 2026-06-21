@@ -2,22 +2,15 @@
 	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyEntitiesData } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
-	type BeaconSlotsResource = EntityProxyFieldResource<
-		typeof schema,
-		EntityType.EvmNetwork,
-		'$$beaconSlots'
-	> | EntityProxyFieldResource<
-		typeof schema,
-		EntityType.BeaconEpoch,
-		'$$beaconSlots'
-	>
+	type BeaconSlotsResource = SvelteKitResource<EntityProxyEntitiesData<typeof schema, EntityType.BeaconSlot>>
 
 	// State
 	let {
@@ -40,8 +33,6 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
-
-	
 
 
 	// Components

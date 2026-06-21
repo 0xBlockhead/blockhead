@@ -581,15 +581,7 @@ export type EntityDefinitionByType<_Schema extends Schema> = {
 export type EntitySelector<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
-> = (
-	EntitySelectorFromDefinition<_Schema, EntityDefinitionByType<_Schema>[_EntityType]>
-	| (
-		[EntityType<_Schema>] extends [_EntityType] ?
-			object
-		:
-			never
-	)
-)
+> = EntitySelectorFromDefinition<_Schema, EntityDefinitionByType<_Schema>[_EntityType]>
 
 export type EntitySelectorName<
 	_Schema extends Schema,
@@ -992,6 +984,26 @@ type UnionToIntersection<_Union> = (
 :
 	never
 
+type EntityConditionalFieldValuesIntersection<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_DiscriminatorName extends EntityConditionalDiscriminatorName<_Schema, _EntityType>,
+> = (
+	_DiscriminatorName extends _DiscriminatorName ?
+		(
+			_value: EntityConditionalFieldValuesForDiscriminator<
+				_Schema,
+				_EntityType,
+				_DiscriminatorName
+			>
+		) => void
+	:
+		never
+) extends (_value: infer _Intersection) => void ?
+	_Intersection
+:
+	never
+
 type EntityConditionalFieldValues<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
@@ -1001,11 +1013,10 @@ type EntityConditionalFieldValues<
 	] extends [never] ?
 		object
 	:
-		UnionToIntersection<
-			EntityConditionalDiscriminatorName<_Schema, _EntityType> extends infer _DiscriminatorName extends EntityConditionalDiscriminatorName<_Schema, _EntityType> ?
-				EntityConditionalFieldValuesForDiscriminator<_Schema, _EntityType, _DiscriminatorName>
-			:
-				never
+		EntityConditionalFieldValuesIntersection<
+			_Schema,
+			_EntityType,
+			EntityConditionalDiscriminatorName<_Schema, _EntityType>
 		>
 )
 

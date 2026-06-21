@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { select } from '$/routes/+layout.svelte'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyEntitiesData } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 
 
 	// Types/constants
@@ -22,7 +23,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.CoinBridgeCapability>
+			selection: SvelteKitResource<EntityProxyEntitiesData<typeof schema, EntityType.CoinBridgeCapability>>
 			title?: string
 			open?: boolean
 			collapsible?: boolean

@@ -1,19 +1,15 @@
 export const caip2ParamValueFromString = (
 	param: string
 ) => {
-	const [
-		namespace,
-		reference,
-		extra,
-	] = param.split(':')
+	const parts = param.split(':')
 
 	return (
-		namespace
-		&& reference
-		&& extra === undefined ?
+		parts.length === 2
+		&& parts[0] !== ''
+		&& parts[1] !== '' ?
 			{
-				namespace,
-				reference,
+				namespace: parts[0],
+				reference: parts[1],
 			}
 		:
 			undefined

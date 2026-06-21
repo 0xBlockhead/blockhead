@@ -40,7 +40,6 @@
 	> = $props()
 
 
-
 	// Functions
 	const proposalHeadingTitle = (
 		m: {

@@ -13,7 +13,6 @@ import {
 import {
 	EntityMetaKey,
 	EntityFieldType,
-	type EntityResolvedFieldValues,
 	type EntityFieldName,
 	type EntitySelector,
 	type EntityType,
@@ -30,8 +29,8 @@ export type EntityProxyFieldResource<
 	_FieldName extends EntityFieldName<_Schema, _EntityType>,
 > = (
 	& SvelteKitResource<EntityFieldResourceData<_Schema, _EntityType, _FieldName>>
-	& ((
-		selection?: SubscribeSelection<_Schema, _EntityType>
+	& (<const _FieldRow extends object = object>(
+		selection?: SubscribeSelection<_Schema, _EntityType, _FieldRow>
 	) => EntityProxyFieldResource<_Schema, _EntityType, _FieldName>)
 	& {
 		entityType: _EntityType
@@ -54,8 +53,8 @@ export type EntityProxyEntitiesResource<
 	_EntityType extends EntityType<_Schema>,
 > = (
 	& SvelteKitResource<EntityProxyEntitiesData<_Schema, _EntityType>>
-	& ((
-		selection?: SubscribeSelection<_Schema, _EntityType>
+	& (<const _FieldRow extends object = object>(
+		selection?: SubscribeSelection<_Schema, _EntityType, _FieldRow>
 	) => EntityProxyEntitiesResource<_Schema, _EntityType>)
 	& {
 		entityType: EntityType<_Schema>
@@ -67,18 +66,15 @@ export type EntityProxyEntitiesResource<
 export type EntityProxyData<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
-> = (
-	& EntityResourceData<_Schema, _EntityType>
-	& EntityResolvedFieldValues<_Schema, _EntityType>
-)
+> = EntityResourceData<_Schema, _EntityType>
 
 export type EntityProxyResource<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
 > = (
 	& SvelteKitResource<EntityProxyData<_Schema, _EntityType>>
-	& ((
-		selection?: SubscribeSelection<_Schema, _EntityType>
+	& (<const _FieldRow extends object = object>(
+		selection?: SubscribeSelection<_Schema, _EntityType, _FieldRow>
 	) => EntityProxyResource<_Schema, _EntityType>)
 	& {
 		entityType: _EntityType
@@ -219,7 +215,7 @@ export function createEntityFieldProxy<
 export function createEntityFieldProxy(
 	context: ClientContext,
 	entityType: EntityType<Schema>,
-	entitySelector: object,
+	entitySelector: EntitySelector<Schema, EntityType<Schema>>,
 	fieldName: string,
 	selection: SubscribeSelection<Schema, EntityType<Schema>> = {}
 ): object {
@@ -319,13 +315,13 @@ export function createEntityProxy<
 export function createEntityProxy(
 	context: ClientContext,
 	entityType: EntityType<Schema>,
-	entitySelector: object,
+	entitySelector: EntitySelector<Schema, EntityType<Schema>>,
 	selection?: SubscribeSelection<Schema, EntityType<Schema>>
 ): object
 export function createEntityProxy(
 	context: ClientContext,
 	entityType: EntityType<Schema>,
-	entitySelector: object,
+	entitySelector: EntitySelector<Schema, EntityType<Schema>>,
 	selection: SubscribeSelection<Schema, EntityType<Schema>> = {}
 ): object {
 	let resource: SvelteKitResource<EntityProxyData<Schema, EntityType<Schema>>> | undefined

@@ -38,8 +38,6 @@
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { select } from '$/routes/+layout.svelte'
 
-	
-
 
 	// Components
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'

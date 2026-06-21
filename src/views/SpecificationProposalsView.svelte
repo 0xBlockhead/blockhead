@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -66,21 +67,11 @@
 
 	// (Derived)
 	const effectiveFilterRealm = $derived(
-		filterRealm ?? (
-			selection.entityType === EntityType.SpecificationProposalKind ?
-				selection.entitySelector.realm
-			:
-				undefined
-		),
+		filterRealm,
 	)
 
 	const effectiveFilterCategory = $derived(
-		filterCategory ?? (
-			selection.entityType === EntityType.SpecificationProposalKind ?
-				selection.entitySelector.category
-			:
-				undefined
-		),
+		filterCategory,
 	)
 
 	const selectedSpecificationProposalSources = $derived(
@@ -124,14 +115,13 @@
 	)
 
 
-	
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ProposalView from '$/views/SpecificationProposalView.svelte'
 </script>
+
 
 <ResourceBoundary resource={selection({
 		sources: selectedSpecificationProposalSources,
@@ -161,7 +151,7 @@
 
 			{#snippet Item({ item })}
 				<ProposalView
-					selection={item}
+					selection={select(EntityType.SpecificationProposal, item.entitySelector)}
 					layout={EntityLayout.Summary}
 				/>
 			{/snippet}

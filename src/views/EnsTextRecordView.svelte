@@ -34,9 +34,6 @@
 	} = $props()
 
 
-	
-
-
 	// (Derived)
 	const recordLabel = $derived(
 		ensTextRecordLabelByKey[recordId]?.label ?? recordId,

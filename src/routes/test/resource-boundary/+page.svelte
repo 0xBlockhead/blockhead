@@ -495,7 +495,7 @@
 	</p>
 
 	<p data-testid="real-resource-direct-only-error">
-		{realSelectedDirectOnlyResource.error?.map((error) => error.message).join(', ') ?? ''}
+		{realSelectedDirectOnlyResource.error == null ? '' : String(realSelectedDirectOnlyResource.error)}
 	</p>
 
 	{#if showRealSelectedResource}
@@ -517,7 +517,7 @@
 			placeholderText="Loading real selection value"
 		>
 			{#snippet children(value)}
-				<p data-testid="real-resource-boundary-rows">{value.$$proposalKinds.values.length}</p>
+				<p data-testid="real-resource-boundary-rows">{value.$$proposalKinds?.values.length ?? 0}</p>
 			{/snippet}
 		</ResourceBoundary>
 	{/if}
@@ -544,7 +544,7 @@
 		>
 			{#snippet children(value)}
 				<p data-testid="real-resource-boundary-count">
-					{value.$$proposalKinds.values.length}:{value.$$proposalKinds.totalCount ?? ''}
+					{value.$$proposalKinds?.values.length ?? 0}:{value.$$proposalKinds?.totalCount ?? ''}
 				</p>
 			{/snippet}
 		</ResourceBoundary>

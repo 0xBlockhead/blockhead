@@ -294,10 +294,10 @@
 									selection={select(EntityType.EvmCoinInstance, coinInstance.$canonicalInstance.entitySelector)}
 									layout={EntityLayout.Title}
 
-								
+
 									open={false}
 
-								
+
 									/>
 							</dd>
 						</div>
@@ -337,7 +337,7 @@
 						<CoinBridgeCapabilitiesView
 							CollapsibleProps={{ canToggle: false }}
 							href={resolve('/bridge')}
-							selection={coinInstance.$$outboundBridgeCapabilities}
+							selection={selection.$$outboundBridgeCapabilities}
 							{id}
 							open={false}
 							title="Outbound"
@@ -348,7 +348,7 @@
 						<CoinBridgeCapabilitiesView
 							CollapsibleProps={{ canToggle: false }}
 							href={resolve('/bridge')}
-							selection={coinInstance.$$inboundBridgeCapabilities}
+							selection={selection.$$inboundBridgeCapabilities}
 							{id}
 							open={false}
 							title="Inbound"

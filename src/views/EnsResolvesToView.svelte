@@ -22,9 +22,6 @@
 	} = $props()
 
 
-	
-
-
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'

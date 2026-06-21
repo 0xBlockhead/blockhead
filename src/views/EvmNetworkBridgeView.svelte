@@ -32,7 +32,6 @@
 	> = $props()
 
 
-	
 	const relationshipType = $derived(((selection({
 			sources: [
 				Source.Chainlist_Rest,

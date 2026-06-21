@@ -59,7 +59,7 @@
 			.toSorted((left, right) => left.entitySelector.timestampMs - right.entitySelector.timestampMs)}
 		{#if points.length}
 			<MarketTimeIntervalTimestampChartCanvas
-				points={points}
+				{points}
 				{priceDecimals}
 				{stepInlineSize}
 				{height}

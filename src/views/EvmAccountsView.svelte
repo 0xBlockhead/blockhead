@@ -41,7 +41,6 @@
 		>
 	> = $props()
 
-	
 
 	let watchAddressInput = $state('')
 	let watchAddressError = $state<string | undefined>(

@@ -27,13 +27,6 @@
 
 
 	const utxoOutput = $derived(selection())
-	
-	
-	
-	
-	
-	
-
 
 
 	// Components
