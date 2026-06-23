@@ -1,116 +1,66 @@
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
+	const listView = {
+		entityType: EntityType.Url,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
 		selection,
-		fieldSources,
-		title = 'URLs',
-		emptyText = 'No URLs in this urls yet.',
+		title,
 		open = $bindable(true),
-		enrich = true,
-		id,
-		limit,
+		id = 'Urls',
 		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			selection: EntityProxyEntitiesResource<typeof schema, EntityType.Url>
-			fieldSources: readonly Source[]
 			title?: string
-			emptyText?: string
 			open?: boolean
-			enrich?: boolean
-			id: string
-			limit?: number
+			id?: string
 			href?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'CollapsibleProps'
-		>
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import UrlView from '$/views/UrlView.svelte'
 </script>
 
 
 <EntitiesList
-	entityType={EntityType.Url}
+	entityType={listView.entityType}
 	{title}
 	bind:open
+	{id}
+	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-			<p>
-				Each row is a normal HTTPS (or similar) link, usually enriched from page metadata when available.
-			</p>
-			<p>
-				This is separate from Swarm <code>bzz</code> addresses, on-chain topics, pool contracts, or chat threads.
-			</p>
-		{/snippet}
-
-	{#snippet body()}
-		{#if open}
-			<ResourceBoundary
-				resource={selection({
-						sources: fieldSources,
-						limit: limit ?? undefined,
-					})}
-				placeholderText="Loading urls…"
-			>
-				{#snippet children(urls)}
-					<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.Url}
-				id={`${id}-items`}
-				href={href}
-				{title}
-				getKey={(envelope) => envelope.entitySelector.url}
-				getSortValue={(envelope) => envelope.entitySelector.url}
-				items={urls.entities}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-				open={true}
-			>
-				{#snippet Empty()}
-							<p data-text="muted">
-								{emptyText}
-							</p>
-						{/snippet}
-
-				{#snippet Item({ item: envelope })}
-							{#if enrich}
-								<UrlView
-									selection={select(EntityType.Url, envelope.entitySelector)}
-									layout={EntityLayout.Summary}
-
-								/>
-							{:else}
-								<span data-text="font-monospace">
-									{envelope.entitySelector.url}
-								</span>
-							{/if}
-						{/snippet}
-
-			</EntitiesList>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+	{#snippet Item({ item })}
+		<UrlView
+			selection={select(EntityType.Url, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

@@ -1,36 +1,19 @@
 import { type } from 'arktype'
-
-// EIP-4844-style execution blob sidecar: versioned commitment tied to a blob tx hash, not contract storage or IPFS blobs.
-import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
-
+import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 export enum EvmBlobSelector {
 	EvmNetworkTxHashBlobIndex = 'evmNetworkTxHashBlobIndex',
+	NetworkTxHashBlobIndex = '$network+txHash+blobIndex',
 }
-
-
-const EvmBlobVersionedHash = type(
-	'/^0x01[0-9a-fA-F]{62}$/' as type.cast<`0x01${string}`>
-)
-
-const EvmBlobStorageReference = type({
-	storage: 'string',
-	reference: 'string',
-})
-
 export default {
 	entityType: EntityType.EvmBlob,
-
 	label: 'EVM blob',
 	labelPlural: 'EVM blobs',
-
 	selectors: [
 		{
 			name: EvmBlobSelector.EvmNetworkTxHashBlobIndex,
@@ -41,76 +24,63 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'txHash',
+			label: 'Transaction hash',
+			description: 'The transaction hash in its network.',
 			type: EntityFieldType.Primitive,
 			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-			],
 		},
 		{
 			name: 'blobIndex',
+			label: 'blob index',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-			],
 		},
 		{
 			name: 'versionedHash',
+			label: 'versioned hash',
 			type: EntityFieldType.Primitive,
-			primitiveType: EvmBlobVersionedHash,
+			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-			],
 		},
 		{
 			name: '$transaction',
+			label: 'transaction',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmTransaction,
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-			],
 		},
 		{
 			name: '$block',
+			label: 'block',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmBlock,
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-			],
 		},
 		{
 			name: 'kzgCommitment',
+			label: 'kzg commitment',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blobscan_Rest,
-			],
 		},
 		{
 			name: 'blobDataStorageReferences',
+			label: 'blob data storage references',
 			type: EntityFieldType.Primitive,
-			primitiveType: EvmBlobStorageReference.array(),
+			primitiveType: type("unknown"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blobscan_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

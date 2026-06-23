@@ -16,7 +16,7 @@ import { AtprotoActorSelector } from '$/schema/AtprotoActor.ts'
 import { AtprotoPostSelector } from '$/schema/AtprotoPost.ts'
 import { AtprotoActor_TimestampSelector } from '$/schema/AtprotoActor_Timestamp.ts'
 import { AtprotoPost_TimestampSelector } from '$/schema/AtprotoPost_Timestamp.ts'
-import { AtprotoNetworkSelector } from '$/schema/AtprotoNetwork.ts'
+import { _GlobalAtprotoNetworkSelector } from '$/schema/_GlobalAtprotoNetwork.ts'
 import type { BskyAppViewPostView } from '$/sources/AtprotoBsky/Rest/types.ts'
 
 const atprotoPostFieldsFromPostView = (postView: BskyAppViewPostView) => {
@@ -190,9 +190,9 @@ export default {
 		}),
 
 		defineResolver(Source.Atproto_Xrpc, {
-			entityType: EntityType.AtprotoNetwork,
+			entityType: EntityType._GlobalAtprotoNetwork,
 			resolve: {
-				[AtprotoNetworkSelector.Scope]: async (_entitySelector, context) => {
+				[_GlobalAtprotoNetworkSelector.Scope]: async (_entitySelector, context) => {
 					const { searchActorsTypeahead } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
 					const limit = resolverContextRowLimit(context)
 					const refs: { [EntityMetaKey.Selector]: { did: string } }[] = [
@@ -216,14 +216,14 @@ export default {
 			},
 		})({
 			fields: {
-				$$atprotoActors: (actors) => actors,
+				$$sourceWindowActors: (actors) => actors,
 			},
 		}),
 
 		defineResolver(Source.Atproto_Xrpc, {
-			entityType: EntityType.AtprotoNetwork,
+			entityType: EntityType._GlobalAtprotoNetwork,
 			resolve: {
-				[AtprotoNetworkSelector.Scope]: async (_entitySelector, context) => {
+				[_GlobalAtprotoNetworkSelector.Scope]: async (_entitySelector, context) => {
 					const { searchPosts } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
 					const limit = resolverContextRowLimit(context)
 					return (
@@ -243,7 +243,7 @@ export default {
 			},
 		})({
 			fields: {
-				$$atprotoPosts: (posts) => posts,
+				$$sourceWindowPosts: (posts) => posts,
 			},
 		}),
 

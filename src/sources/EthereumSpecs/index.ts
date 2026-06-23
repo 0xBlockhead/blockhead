@@ -1,20 +1,19 @@
+import { Source } from '$/sources/Source.ts'
 import {
-	type SourceProviderDefinition,
 	SourceProvider,
+	type SourceProviderDefinition,
 } from '$/sources/SourceProvider.ts'
-import { rawOrigin } from '$/sources/Github/Rest/constants.ts'
-import EthereumSpecsGithubSource from '$/sources/EthereumSpecs/Github/index.ts'
+import { ethereumSpecsBindings } from '$/sources/EthereumSpecs/bindings.ts'
 
 export default {
 	provider: SourceProvider.EthereumSpecs,
 	label: 'Ethereum specs',
-	origins: [
+	sources: [
 		{
-			origin: rawOrigin,
-			corsEnabled: false,
+			provider: SourceProvider.EthereumSpecs,
+			source: Source.EthereumSpecs_Github,
+			label: 'Ethereum specs GitHub',
 		},
 	],
-	sources: [
-		EthereumSpecsGithubSource,
-	],
+	bindings: ethereumSpecsBindings,
 } satisfies SourceProviderDefinition

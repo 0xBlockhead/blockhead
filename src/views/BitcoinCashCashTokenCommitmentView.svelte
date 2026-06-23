@@ -2,15 +2,63 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'output',
+			},
+			{
+				label: 'commitment hex',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'output',
+					},
+					{
+						label: 'commitment hex',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Output',
+					items: [
+						{
+							label: 'parent UTXO output',
+						},
+					],
+				},
+				{
+					label: 'NFT',
+					items: [
+						{
+							label: 'CashToken NFT carried by the same output',
+						},
+					],
+				},
+				{
+					label: 'Raw commitment',
+					items: [
+						{
+							label: 'hex display',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +69,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,43 +77,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.BitcoinCashCashTokenCommitment}
 	entitySelector={selection.entitySelector}
-	title={'Bitcoin Cash CashToken Commitment'}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		Bitcoin Cash CashToken Commitment
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection( { fields: { commitmentHex: true } })}
-			placeholderText={`Loading Bitcoin Cash CashToken Commitment...`}
-		>
-			{#snippet children(bitcoinCashCashTokenCommitment)}
-				<dl>
-					{#if bitcoinCashCashTokenCommitment.commitmentHex != null}
-						<div>
-							<dt>Commitment Hex</dt>
-							<dd>
-								<TruncatedValue
-									value={bitcoinCashCashTokenCommitment.commitmentHex}
-									format={TruncatedValueFormat.Abbr}
-								/></dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

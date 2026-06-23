@@ -27,15 +27,15 @@ export default {
 
 					const { getRegistry } = await import('$/sources/BitcoinCashBcmr/Github/queries.ts')
 					const registry = await getRegistry({ url: registryUrl })
-					const identity = registry.identities?.[categoryId]
-					if (identity == null)
+					const registryIdentity = registry.identities?.[categoryId]
+					if (registryIdentity == null)
 						throw new Error(`BitcoinCashBcmr_Github: category not found ${categoryId}`)
 
 					const latestRevision = (
 						registry.latestRevision != null ?
-							identity[registry.latestRevision]
+							registryIdentity[registry.latestRevision]
 						:
-							Object.entries(identity).at(-1)?.[1]
+							Object.entries(registryIdentity).at(-1)?.[1]
 					)
 					if (latestRevision == null)
 						throw new Error(`BitcoinCashBcmr_Github: category has no revisions ${categoryId}`)

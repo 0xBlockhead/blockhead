@@ -13,7 +13,7 @@
 
 
 <ParentPageCollapsible
-	title={'Contacts'}
+	title="Contacts"
 	href={resolve('/~/multiplayer/contacts')}
 >
 	{@render children()}

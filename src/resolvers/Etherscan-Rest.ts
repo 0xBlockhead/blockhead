@@ -230,12 +230,12 @@ const evmTokenTransferEntityFromEtherscanWire = ({
 		...(fromAddress != null && {
 			$from: {
 				[EntityMetaKey.Selector]: { address: fromAddress },
-			} satisfies Entity<typeof schema, EntityType.EvmAccount>,
+			},
 		}),
 		...(toAddress != null && {
 			$to: {
 				[EntityMetaKey.Selector]: { address: toAddress },
-			} satisfies Entity<typeof schema, EntityType.EvmAccount>,
+			},
 		}),
 		...(tokenAddress != null && {
 			$tokenContract: {
@@ -243,7 +243,7 @@ const evmTokenTransferEntityFromEtherscanWire = ({
 					$network,
 					address: tokenAddress,
 				},
-			} satisfies Entity<typeof schema, EntityType.EvmContract>,
+			},
 			...(standard === EvmTokenStandard.Erc20 && {
 				$coinInstance: {
 					[EntityMetaKey.Selector]: {
@@ -254,7 +254,7 @@ const evmTokenTransferEntityFromEtherscanWire = ({
 							address: tokenAddress,
 						},
 					},
-				} satisfies Entity<typeof schema, EntityType.EvmCoinInstance>,
+				},
 			}),
 		}),
 	}
@@ -456,7 +456,7 @@ export default {
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmNetwork_GasEstimate_Timestamp,
 			resolve: {
-				[EvmNetwork_GasEstimate_TimestampSelector.EvmNetworkTimestampMs]: async ({ $network }, context) => {
+				[EvmNetwork_GasEstimate_TimestampSelector.NetworkTimestampMsSource]: async ({ $network }, context) => {
 					const { getGasOracle } = await import('$/sources/Etherscan/Rest/queries.ts')
 					const chainId = chainIdFromEvmNetworkId($network)
 					await throwIfEtherscanRestUnsupportedChainId(chainId)
@@ -536,8 +536,22 @@ export default {
 				tokenDecimals: (transfer) => transfer.tokenDecimals,
 				$from: (transfer) => transfer.$from,
 				$to: (transfer) => transfer.$to,
-				$tokenContract: (transfer) => transfer.$tokenContract,
-				$coinInstance: (transfer) => transfer.$coinInstance,
+				$tokenContract: (transfer) => (
+					transfer.$tokenContract == null ?
+						undefined
+					:
+						{
+							[EntityMetaKey.Selector]: transfer.$tokenContract[EntityMetaKey.Selector],
+						}
+				),
+				$coinInstance: (transfer) => (
+					transfer.$coinInstance == null ?
+						undefined
+					:
+						{
+							[EntityMetaKey.Selector]: transfer.$coinInstance[EntityMetaKey.Selector],
+						}
+				),
 			},
 		}),
 
@@ -774,6 +788,7 @@ export default {
 							[EntityMetaKey.Selector]: {
 								$network: entitySelector,
 								timestampMs: Date.now(),
+								source: Source.Etherscan_Rest,
 							},
 						},
 					]

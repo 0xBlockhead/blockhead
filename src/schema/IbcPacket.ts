@@ -1,0 +1,160 @@
+import { type } from 'arktype'
+import {
+	EntityFieldCardinality,
+	EntityFieldType,
+	type EntityDefinition,
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+export enum IbcPacketSelector {
+	ChannelSequenceDirection = '$channel+sequence+direction',
+}
+export default {
+	entityType: EntityType.IbcPacket,
+	label: 'ibc packet',
+	labelPlural: 'ibc packets',
+	selectors: [
+		{
+			name: IbcPacketSelector.ChannelSequenceDirection,
+			fields: [
+				'$channel',
+				'sequence',
+				'direction',
+			],
+		},
+	],
+	fields: [
+		{
+			name: '$channel',
+			label: 'channel',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.IbcChannel,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'sequence',
+			label: 'sequence',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("bigint"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'direction',
+			label: 'direction',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'sourcePort',
+			label: 'source port',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'sourceChannel',
+			label: 'source channel',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'destinationPort',
+			label: 'destination port',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'destinationChannel',
+			label: 'destination channel',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'timeoutHeight',
+			label: 'timeout height',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("unknown"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'timeoutTimestampNs',
+			label: 'timeout timestamp ns',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("bigint"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'dataHash',
+			label: 'data hash',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'commitmentHash',
+			label: 'commitment hash',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'acknowledgementHash',
+			label: 'acknowledgement hash',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'receiptExists',
+			label: 'receipt exists',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("boolean"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'status',
+			label: 'status',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'sendTxHash',
+			label: 'send transaction hash',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'receiveTxHash',
+			label: 'receive transaction hash',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'acknowledgeTxHash',
+			label: 'acknowledge transaction hash',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'timeoutTxHash',
+			label: 'timeout transaction hash',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$denomTrace',
+			label: 'denom trace',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.IbcDenomTrace,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+	],
+} as const satisfies EntityDefinition

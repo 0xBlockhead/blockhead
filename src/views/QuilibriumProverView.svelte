@@ -2,15 +2,75 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'prover peer id',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'prover peer id',
+					},
+				],
+				[
+					{
+						label: 'network',
+					},
+					{
+						label: 'prover peer id',
+					},
+					{
+						label: 'public key',
+					},
+					'version',
+					{
+						label: 'last seen time',
+					},
+					{
+						label: 'produced frame count',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Frames',
+					items: [
+						{
+							label: 'frames attributed to this prover',
+						},
+					],
+				},
+				{
+					label: 'Connected nodes',
+					items: [
+						{
+							label: 'BlockheadQuilibriumNodeState rows that observed the prover',
+						},
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'node peer/prover inventory payload',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +81,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,55 +89,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.QuilibriumProver}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.proverPeerId}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		<TruncatedValue
-			value={selection.entitySelector.proverPeerId}
-			format={TruncatedValueFormat.Abbr}
-		/>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection(
-					({ fields: { publicKey: true, version: true } }),
-				)}
-			placeholderText={`Loading Quilibrium Prover...`}
-		>
-			{#snippet children(quilibriumProver)}
-				<dl>
-					{#if quilibriumProver.publicKey != null}
-						<div>
-							<dt>Public Key</dt>
-							<dd>
-								<TruncatedValue
-									value={quilibriumProver.publicKey}
-									format={TruncatedValueFormat.Abbr}
-								/></dd>
-						</div>
-					{/if}
-
-					{#if quilibriumProver.version != null}
-						<div>
-							<dt>Version</dt>
-							<dd>{quilibriumProver.version}</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

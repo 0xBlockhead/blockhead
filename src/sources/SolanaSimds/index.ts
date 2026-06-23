@@ -1,11 +1,13 @@
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
-import { githubHttpAllowedOrigins } from '$/sources/Github/githubHttpOrigins.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import { solanaSimdsBindings } from '$/sources/SolanaSimds/bindings.ts'
 
 export default {
 	provider: SourceProvider.SolanaSimds,
 	label: 'Solana SIMDs',
-	origins: githubHttpAllowedOrigins,
 	sources: [
 		{
 			provider: SourceProvider.SolanaSimds,
@@ -13,4 +15,5 @@ export default {
 			label: 'Solana SIMDs GitHub',
 		},
 	],
-} as const satisfies SourceProviderDefinition
+	bindings: solanaSimdsBindings,
+} satisfies SourceProviderDefinition

@@ -2,16 +2,98 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			{
+				label: 'tx id',
+			},
+			{
+				label: 'block',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					{
+						label: 'tx id',
+					},
+					{
+						label: 'block',
+					},
+					'version',
+					{
+						label: 'fee',
+					},
+					{
+						label: 'size/vsize/weight',
+					},
+					{
+						label: 'lock time',
+					},
+					{
+						label: 'coinbase flag',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Inputs',
+					items: [
+						{
+							label: 'transaction inputs',
+						},
+					],
+				},
+				{
+					label: 'Outputs',
+					items: [
+						{
+							label: 'transaction outputs',
+						},
+					],
+				},
+				{
+					label: 'Block',
+					items: [
+						{
+							label: 'containing block when confirmed',
+						},
+					],
+				},
+				{
+					label: 'Shielded actions',
+					items: [
+						{
+							label: 'Zcash shielded actions when present',
+						},
+					],
+				},
+				{
+					label: 'Raw/source',
+					items: [
+						{
+							label: 'source payload fields useful for debugging resolver conflicts',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -22,161 +104,23 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
-	const transaction = $derived(selection({
-			sources: [
-				Source.Esplora_Rest,
-				Source.Blockchair_Rest,
-				Source.ThreeXpl_Rest,
-				Source.BitcoinCore_JsonRpc,
-				Source.LitecoinCore_JsonRpc,
-				Source.DogecoinCore_JsonRpc,
-				Source.Zcashd_JsonRpc,
-			],
-		},
-	))
-
-
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.UtxoTransaction}
 	entitySelector={selection.entitySelector}
-	href={
-		'slug' in selection.entitySelector.$network ?
-			`/network/${selection.entitySelector.$network.slug}/transactions/${selection.entitySelector.txId}`
-		:
-			`/network/${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}/transactions/${selection.entitySelector.txId}`
-	}
-	title={selection.entitySelector.txId}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		<TruncatedValue
-			value={selection.entitySelector.txId}
-			format={TruncatedValueFormat.Abbr}
-		/>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A UTXO transaction spends previous outputs and creates new outputs; token or shielded extensions remain chain-specific annotations.
-		</p>
-	{/snippet}
-
-	{#snippet Content()}
-		<dl>
-			<ResourceBoundary
-				resource={transaction.version}
-				placeholderText="Loading transaction version…"
-			>
-				{#snippet children(version)}
-					{#if version != null}
-						<div>
-							<dt>Version</dt>
-							<dd><NumberValue value={version} /></dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={transaction.feeSats}
-				placeholderText="Loading fee…"
-			>
-				{#snippet children(feeSats)}
-					{#if feeSats != null}
-						<div>
-							<dt>Fee</dt>
-							<dd>{feeSats.toString()} sats</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={transaction.sizeBytes}
-				placeholderText="Loading transaction size…"
-			>
-				{#snippet children(sizeBytes)}
-					{#if sizeBytes != null}
-						<div>
-							<dt>Size</dt>
-							<dd><NumberValue value={sizeBytes} /> bytes</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={transaction.virtualSizeBytes}
-				placeholderText="Loading virtual size…"
-			>
-				{#snippet children(virtualSizeBytes)}
-					{#if virtualSizeBytes != null}
-						<div>
-							<dt>Virtual size</dt>
-							<dd><NumberValue value={virtualSizeBytes} /> vB</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={transaction.weightUnits}
-				placeholderText="Loading weight…"
-			>
-				{#snippet children(weightUnits)}
-					{#if weightUnits != null}
-						<div>
-							<dt>Weight</dt>
-							<dd><NumberValue value={weightUnits} /> WU</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={transaction.lockTime}
-				placeholderText="Loading lock time…"
-			>
-				{#snippet children(lockTime)}
-					{#if lockTime != null}
-						<div>
-							<dt>Lock time</dt>
-							<dd><NumberValue value={lockTime} /></dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={transaction.isCoinbase}
-				placeholderText="Loading coinbase status…"
-			>
-				{#snippet children(isCoinbase)}
-					{#if isCoinbase != null}
-						<div>
-							<dt>Coinbase</dt>
-							<dd>{isCoinbase ? 'Yes' : 'No'}</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
-	{/snippet}
-</EntityView>
+	{view}
+/>

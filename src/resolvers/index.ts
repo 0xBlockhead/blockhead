@@ -1,5 +1,6 @@
 import AlliumRestResolvers from '$/resolvers/Allium-Rest.ts'
 import AmbossGraphqlResolvers from '$/resolvers/Amboss-Graphql.ts'
+import AtprotoBskySocialXrpcResolvers from '$/resolvers/Atproto-BskySocial-Xrpc.ts'
 import AtprotoXrpcResolvers from '$/resolvers/Atproto-Xrpc.ts'
 import BeaconRestResolvers from '$/resolvers/Beacon-Rest.ts'
 import BeaconchaInRestResolvers from '$/resolvers/BeaconchaIn-Rest.ts'
@@ -15,9 +16,9 @@ import BlockscoutRestResolvers from '$/resolvers/Blockscout-Rest.ts'
 import CaipsGithubResolvers from '$/resolvers/Caips-Github.ts'
 import CashuMintRestResolvers from '$/resolvers/CashuMint-Rest.ts'
 import ChainlistRestResolvers from '$/resolvers/Chainlist-Rest.ts'
+import CoinMarketCapRestResolvers from '$/resolvers/CoinMarketCap-Rest.ts'
 import CoingeckoOpenApiResolvers from '$/resolvers/Coingecko-OpenApi.ts'
 import CoingeckoRestResolvers from '$/resolvers/Coingecko-Rest.ts'
-import CoinMarketCapRestResolvers from '$/resolvers/CoinMarketCap-Rest.ts'
 import CoinpaprikaOpenApiResolvers from '$/resolvers/Coinpaprika-OpenApi.ts'
 import CometBftRestResolvers from '$/resolvers/CometBft-Rest.ts'
 import ConstantsResolvers from '$/resolvers/Constants.ts'
@@ -43,9 +44,9 @@ import FediRestResolvers from '$/resolvers/Fedi-Rest.ts'
 import FilecoinFipsGithubResolvers from '$/resolvers/FilecoinFips-Github.ts'
 import FilfoxRestResolvers from '$/resolvers/Filfox-Rest.ts'
 import HeliusRestResolvers from '$/resolvers/Helius-Rest.ts'
+import HyperliquidDocsRestResolvers from '$/resolvers/HyperliquidDocs-Rest.ts'
 import HyperliquidJsonRpcResolvers from '$/resolvers/Hyperliquid-JsonRpc.ts'
 import HyperliquidRestResolvers from '$/resolvers/Hyperliquid-Rest.ts'
-import HyperliquidDocsRestResolvers from '$/resolvers/HyperliquidDocs-Rest.ts'
 import IpfsRestResolvers from '$/resolvers/Ipfs-Rest.ts'
 import L2BeatRestResolvers from '$/resolvers/L2Beat-Rest.ts'
 import LensGraphqlResolvers from '$/resolvers/Lens-Graphql.ts'
@@ -55,7 +56,6 @@ import LightningMempoolSpaceRestResolvers from '$/resolvers/LightningMempoolSpac
 import LitecoinCoreJsonRpcResolvers from '$/resolvers/LitecoinCore-JsonRpc.ts'
 import LitecoinLipsGithubResolvers from '$/resolvers/LitecoinLips-Github.ts'
 import LocalResolvers from '$/resolvers/Local.ts'
-import LogosDocsRestResolvers from '$/resolvers/LogosDocs-Rest.ts'
 import LotusJsonRpcResolvers from '$/resolvers/Lotus-JsonRpc.ts'
 import MastodonRestResolvers from '$/resolvers/Mastodon-Rest.ts'
 import MempoolSpaceRestResolvers from '$/resolvers/MempoolSpace-Rest.ts'
@@ -74,7 +74,6 @@ import PolkadotJsonRpcResolvers from '$/resolvers/Polkadot-JsonRpc.ts'
 import PolkadotRfcsGithubResolvers from '$/resolvers/PolkadotRfcs-Github.ts'
 import PrimalRestResolvers from '$/resolvers/Primal-Rest.ts'
 import QuilibriumDocsRestResolvers from '$/resolvers/QuilibriumDocs-Rest.ts'
-import QuilibriumNodeRpcGrpcResolvers from '$/resolvers/QuilibriumNodeRpc-Grpc.ts'
 import RedditPublicJsonResolvers from '$/resolvers/Reddit-PublicJson.ts'
 import RedditRestResolvers from '$/resolvers/Reddit-Rest.ts'
 import RssRestResolvers from '$/resolvers/Rss-Rest.ts'
@@ -98,122 +97,119 @@ import VoltaireJsonRpcResolvers from '$/resolvers/Voltaire-JsonRpc.ts'
 import XFxEmbedRestResolvers from '$/resolvers/X-FxEmbed-Rest.ts'
 import XRestResolvers from '$/resolvers/X-Rest.ts'
 import YoutubeRestResolvers from '$/resolvers/Youtube-Rest.ts'
-import ZcashdJsonRpcResolvers from '$/resolvers/Zcashd-JsonRpc.ts'
 import ZcashZipsGithubResolvers from '$/resolvers/ZcashZips-Github.ts'
+import ZcashdJsonRpcResolvers from '$/resolvers/Zcashd-JsonRpc.ts'
 import ZebraJsonRpcResolvers from '$/resolvers/Zebra-JsonRpc.ts'
 import ZeroGChainJsonRpcResolvers from '$/resolvers/ZeroGChain-JsonRpc.ts'
 import ZeroGChainScanRestResolvers from '$/resolvers/ZeroGChainScan-Rest.ts'
 import ZeroGStorageNodeJsonRpcResolvers from '$/resolvers/ZeroGStorageNode-JsonRpc.ts'
 import ZeroGStorageScanRestResolvers from '$/resolvers/ZeroGStorageScan-Rest.ts'
 
-export const resolvers = (
-	[
-			AlliumRestResolvers,
-			AmbossGraphqlResolvers,
-			AtprotoXrpcResolvers,
-		BeaconRestResolvers,
-		BeaconchaInRestResolvers,
-		BitcoinBipsGithubResolvers,
-		BitcoinCashBcmrGithubResolvers,
-		BitcoinCashChipsGitlabResolvers,
-		BitcoinCashNodeJsonRpcResolvers,
-		BitcoinCoreJsonRpcResolvers,
-		BittensorJsonRpcResolvers,
-		BlobscanRestResolvers,
-		BlockchairRestResolvers,
-		BlockscoutRestResolvers,
-		CaipsGithubResolvers,
-		CashuMintRestResolvers,
-		ChainlistRestResolvers,
-		CoingeckoOpenApiResolvers,
-		CoingeckoRestResolvers,
-		CoinMarketCapRestResolvers,
-		CoinpaprikaOpenApiResolvers,
-		CometBftRestResolvers,
-		ConstantsResolvers,
-		CosmosAdrsGithubResolvers,
-		CosmosChainRegistryGithubResolvers,
-		CosmosSdkRestResolvers,
-		DefillamaOpenApiResolvers,
-		DefillamaRestResolvers,
-		DexscreenerOpenApiResolvers,
-		DogecoinCoreJsonRpcResolvers,
-		DogecoinDipsGithubResolvers,
-		DuneRestResolvers,
-		Eip8004ScanRestResolvers,
-		EnsTheGraphResolvers,
-		EnsipsGithubResolvers,
-		EsploraRestResolvers,
-		EthereumEipsGithubResolvers,
-		EthereumListsChainsResolvers,
-		EthereumSpecsGithubResolvers,
-		EtherscanRestResolvers,
-		FarcasterRestResolvers,
-		FediRestResolvers,
-		FilecoinFipsGithubResolvers,
-		FilfoxRestResolvers,
-		HeliusRestResolvers,
-		HyperliquidJsonRpcResolvers,
-		HyperliquidRestResolvers,
-		HyperliquidDocsRestResolvers,
-		IpfsRestResolvers,
-		L2BeatRestResolvers,
-		LensGraphqlResolvers,
-		LifiRestResolvers,
-		LightningLndRestResolvers,
-		LightningMempoolSpaceRestResolvers,
-		LitecoinCoreJsonRpcResolvers,
-		LitecoinLipsGithubResolvers,
-		LocalResolvers,
-		LogosDocsRestResolvers,
-		LotusJsonRpcResolvers,
-		MastodonRestResolvers,
-		MempoolSpaceRestResolvers,
-		MetadataVisionRestResolvers,
-		MevRelayRestResolvers,
-		MoneroDaemonRpcJsonRpcResolvers,
-		NearBlocksRestResolvers,
-		NearNepsGithubResolvers,
-		NearRpcJsonRpcResolvers,
-		NeynarRestResolvers,
-		NostrBandRestResolvers,
-		OpenchainRestResolvers,
-		PayjoinDirectoryRestResolvers,
-		PipedRestResolvers,
-		PolkadotJsonRpcResolvers,
-		PolkadotRfcsGithubResolvers,
-		PrimalRestResolvers,
-		QuilibriumDocsRestResolvers,
-		QuilibriumNodeRpcGrpcResolvers,
-		RedditPublicJsonResolvers,
-		RedditRestResolvers,
-		RssRestResolvers,
-		Rss2JsonRestResolvers,
-		SnapchainRestResolvers,
-		SolanaJsonRpcResolvers,
-		SolanaSimdsGithubResolvers,
-		SourcifyRestResolvers,
-		SubscanRestResolvers,
-		SubstrateSidecarRestResolvers,
-		SuperchainGithubResolvers,
-		SwarmRestResolvers,
-		ThreeXplRestResolvers,
-		TradingViewRestResolvers,
-		TronFullNodeRestResolvers,
-		TronGridRestResolvers,
-		TronScanRestResolvers,
-		TronSolidityNodeRestResolvers,
-		TrustWalletAssetsGithubResolvers,
-		VoltaireJsonRpcResolvers,
-		XFxEmbedRestResolvers,
-		XRestResolvers,
-		YoutubeRestResolvers,
-		ZcashdJsonRpcResolvers,
-		ZcashZipsGithubResolvers,
-		ZebraJsonRpcResolvers,
-		ZeroGChainJsonRpcResolvers,
-		ZeroGChainScanRestResolvers,
-		ZeroGStorageNodeJsonRpcResolvers,
-		ZeroGStorageScanRestResolvers,
-		]
-)
+export const resolvers = [
+	AlliumRestResolvers,
+	AmbossGraphqlResolvers,
+	AtprotoBskySocialXrpcResolvers,
+	AtprotoXrpcResolvers,
+	BeaconRestResolvers,
+	BeaconchaInRestResolvers,
+	BitcoinBipsGithubResolvers,
+	BitcoinCashBcmrGithubResolvers,
+	BitcoinCashChipsGitlabResolvers,
+	BitcoinCashNodeJsonRpcResolvers,
+	BitcoinCoreJsonRpcResolvers,
+	BittensorJsonRpcResolvers,
+	BlobscanRestResolvers,
+	BlockchairRestResolvers,
+	BlockscoutRestResolvers,
+	CaipsGithubResolvers,
+	CashuMintRestResolvers,
+	ChainlistRestResolvers,
+	CoinMarketCapRestResolvers,
+	CoingeckoOpenApiResolvers,
+	CoingeckoRestResolvers,
+	CoinpaprikaOpenApiResolvers,
+	CometBftRestResolvers,
+	ConstantsResolvers,
+	CosmosAdrsGithubResolvers,
+	CosmosChainRegistryGithubResolvers,
+	CosmosSdkRestResolvers,
+	DefillamaOpenApiResolvers,
+	DefillamaRestResolvers,
+	DexscreenerOpenApiResolvers,
+	DogecoinCoreJsonRpcResolvers,
+	DogecoinDipsGithubResolvers,
+	DuneRestResolvers,
+	Eip8004ScanRestResolvers,
+	EnsTheGraphResolvers,
+	EnsipsGithubResolvers,
+	EsploraRestResolvers,
+	EthereumEipsGithubResolvers,
+	EthereumListsChainsResolvers,
+	EthereumSpecsGithubResolvers,
+	EtherscanRestResolvers,
+	FarcasterRestResolvers,
+	FediRestResolvers,
+	FilecoinFipsGithubResolvers,
+	FilfoxRestResolvers,
+	HeliusRestResolvers,
+	HyperliquidDocsRestResolvers,
+	HyperliquidJsonRpcResolvers,
+	HyperliquidRestResolvers,
+	IpfsRestResolvers,
+	L2BeatRestResolvers,
+	LensGraphqlResolvers,
+	LifiRestResolvers,
+	LightningLndRestResolvers,
+	LightningMempoolSpaceRestResolvers,
+	LitecoinCoreJsonRpcResolvers,
+	LitecoinLipsGithubResolvers,
+	LocalResolvers,
+	LotusJsonRpcResolvers,
+	MastodonRestResolvers,
+	MempoolSpaceRestResolvers,
+	MetadataVisionRestResolvers,
+	MevRelayRestResolvers,
+	MoneroDaemonRpcJsonRpcResolvers,
+	NearBlocksRestResolvers,
+	NearNepsGithubResolvers,
+	NearRpcJsonRpcResolvers,
+	NeynarRestResolvers,
+	NostrBandRestResolvers,
+	OpenchainRestResolvers,
+	PayjoinDirectoryRestResolvers,
+	PipedRestResolvers,
+	PolkadotJsonRpcResolvers,
+	PolkadotRfcsGithubResolvers,
+	PrimalRestResolvers,
+	QuilibriumDocsRestResolvers,
+	RedditPublicJsonResolvers,
+	RedditRestResolvers,
+	RssRestResolvers,
+	Rss2JsonRestResolvers,
+	SnapchainRestResolvers,
+	SolanaJsonRpcResolvers,
+	SolanaSimdsGithubResolvers,
+	SourcifyRestResolvers,
+	SubscanRestResolvers,
+	SubstrateSidecarRestResolvers,
+	SuperchainGithubResolvers,
+	SwarmRestResolvers,
+	ThreeXplRestResolvers,
+	TradingViewRestResolvers,
+	TronFullNodeRestResolvers,
+	TronGridRestResolvers,
+	TronScanRestResolvers,
+	TronSolidityNodeRestResolvers,
+	TrustWalletAssetsGithubResolvers,
+	VoltaireJsonRpcResolvers,
+	XFxEmbedRestResolvers,
+	XRestResolvers,
+	YoutubeRestResolvers,
+	ZcashZipsGithubResolvers,
+	ZcashdJsonRpcResolvers,
+	ZebraJsonRpcResolvers,
+	ZeroGChainJsonRpcResolvers,
+	ZeroGChainScanRestResolvers,
+	ZeroGStorageNodeJsonRpcResolvers,
+	ZeroGStorageScanRestResolvers,
+]

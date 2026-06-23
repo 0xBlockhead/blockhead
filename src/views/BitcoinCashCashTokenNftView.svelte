@@ -2,15 +2,76 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'output',
+			},
+			{
+				label: 'category',
+			},
+			'capability',
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'output',
+					},
+					{
+						label: 'category',
+					},
+					'capability',
+					{
+						label: 'commitment status',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Output',
+					items: [
+						{
+							label: 'parent UTXO output',
+						},
+					],
+				},
+				{
+					label: 'Category',
+					items: [
+						{
+							label: 'parent CashToken category',
+						},
+					],
+				},
+				{
+					label: 'Commitment',
+					items: [
+						{
+							label: 'output-attached commitment',
+						},
+					],
+				},
+				{
+					label: 'Transaction',
+					items: [
+						{
+							label: 'parent UTXO transaction through the output',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +82,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,40 +90,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.BitcoinCashCashTokenNft}
 	entitySelector={selection.entitySelector}
-	title={'Bitcoin Cash CashToken NFT'}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		Bitcoin Cash CashToken NFT
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection(
-					({ fields: { capability: true } }),
-				)}
-			placeholderText={`Loading Bitcoin Cash CashToken NFT...`}
-		>
-			{#snippet children(bitcoinCashCashTokenNft)}
-				<dl>
-					{#if bitcoinCashCashTokenNft.capability != null}
-						<div>
-							<dt>Capability</dt>
-							<dd>{bitcoinCashCashTokenNft.capability}</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

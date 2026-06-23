@@ -1,23 +1,17 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum CosmosAccountSelector {
 	NetworkAddress = 'networkAddress',
 }
-
 export default {
 	entityType: EntityType.CosmosAccount,
-
-	label: 'Cosmos Account',
-	labelPlural: 'Cosmos Accounts',
-
+	label: 'Cosmos account',
+	labelPlural: 'Cosmos accounts',
 	selectors: [
 		{
 			name: CosmosAccountSelector.NetworkAddress,
@@ -27,37 +21,49 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'address',
+			label: 'Address',
+			description: 'The address or account identifier used by the source protocol.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'accountNumber',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			name: '$$timestamps',
+			label: 'timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.CosmosAccount_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: 'sequence',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			name: '$$balances',
+			label: 'balances',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.CosmosAccountBalance_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: 'balanceUatom',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			name: '$$delegations',
+			label: 'delegations',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.CosmosDelegation,
+			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: '$$transactions',
+			label: 'transactions',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.CosmosTransaction,
+			cardinality: EntityFieldCardinality.Many,
+		},
+	],
 } as const satisfies EntityDefinition

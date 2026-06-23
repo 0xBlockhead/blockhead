@@ -5,7 +5,7 @@ import type {
 	ZeroGStorageNodeFlowProof,
 	ZeroGStorageNodeStatus,
 } from '$/sources/ZeroG/StorageNode/JsonRpc/types.ts'
-import ZeroG from '$/sources/ZeroG/index.ts'
+import { zeroGOrigins } from '$/sources/ZeroG/index.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 type ZeroGStorageNodeJsonRpcResponse<_Result> = {
@@ -29,7 +29,7 @@ const storageNodeJsonRpc = async <_Result>({
 	params: JsonValue[]
 }) => {
 	const response = await corsFetch(rpcUrl, {
-		origins: ZeroG.origins,
+		origins: zeroGOrigins,
 		init: {
 			method: 'POST',
 			headers: jsonRpcHeaders,

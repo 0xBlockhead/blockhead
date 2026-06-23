@@ -2,15 +2,113 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			{
+				label: 'miner address',
+			},
+			{
+				label: 'owner actor',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					{
+						label: 'miner address',
+					},
+					{
+						label: 'owner actor',
+					},
+					{
+						label: 'worker actor',
+					},
+					{
+						label: 'peer id',
+					},
+				],
+				[
+					{
+						label: 'quality-adjusted power',
+					},
+					{
+						label: 'sector count',
+					},
+					{
+						label: 'deal count',
+					},
+					{
+						label: 'latest observation time',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'State observations',
+					items: [
+						{
+							label: 'timestamped miner state observations',
+						},
+					],
+				},
+				{
+					label: 'Sectors',
+					items: [
+						{
+							label: 'Filecoin sectors',
+						},
+					],
+				},
+				{
+					label: 'Deals',
+					items: [
+						{
+							label: 'Filecoin deals when provider indexes are available',
+						},
+					],
+				},
+				{
+					label: 'Owner',
+					items: [
+						{
+							label: 'owner Filecoin actor',
+						},
+					],
+				},
+				{
+					label: 'Worker',
+					items: [
+						{
+							label: 'worker Filecoin actor',
+						},
+					],
+				},
+				{
+					label: 'Produced blocks',
+					items: [
+						{
+							label: 'Filecoin blocks when source context provides block membership',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +119,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,56 +127,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.FilecoinMiner}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.minerAddress}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		<TruncatedValue
-			value={selection.entitySelector.minerAddress}
-			format={TruncatedValueFormat.Abbr}
-		/>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection(
-					({ fields: { peerId: true, qualityAdjustedPower: true } }),
-				)}
-			placeholderText={`Loading Filecoin Miner...`}
-		>
-			{#snippet children(filecoinMiner)}
-				<dl>
-					{#if filecoinMiner.peerId != null}
-						<div>
-							<dt>Peer ID</dt>
-							<dd>
-								<TruncatedValue
-									value={filecoinMiner.peerId}
-									format={TruncatedValueFormat.Abbr}
-								/></dd>
-						</div>
-					{/if}
-
-					{#if filecoinMiner.qualityAdjustedPower != null}
-						<div>
-							<dt>Quality Adjusted Power</dt>
-							<dd><NumberValue value={filecoinMiner.qualityAdjustedPower} /></dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

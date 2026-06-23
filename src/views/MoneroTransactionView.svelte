@@ -2,15 +2,90 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			{
+				label: 'transaction hash',
+			},
+			{
+				label: 'block',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					{
+						label: 'transaction hash',
+					},
+					{
+						label: 'block',
+					},
+					'version',
+					{
+						label: 'unlock time',
+					},
+					{
+						label: 'fee',
+					},
+					{
+						label: 'key-image count',
+					},
+					{
+						label: 'stealth-output count',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Key images',
+					items: [
+						{
+							label: 'public key-image input rows',
+						},
+					],
+				},
+				{
+					label: 'Stealth outputs',
+					items: [
+						{
+							label: 'public stealth-output rows',
+						},
+					],
+				},
+				{
+					label: 'Block',
+					items: [
+						{
+							label: 'containing Monero block',
+						},
+					],
+				},
+				{
+					label: 'Local wallet interpretation',
+					items: [
+						{
+							label: 'BlockheadMoneroTransferState when a connected wallet maps this transaction',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +96,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,59 +104,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.MoneroTransaction}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.txHash}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		<TruncatedValue
-			value={selection.entitySelector.txHash}
-			format={TruncatedValueFormat.Abbr}
-		/>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection(
-					({ fields: { version: true, unlockTime: true, feeAtomicUnits: true } }),
-				)}
-			placeholderText={`Loading Monero Transaction...`}
-		>
-			{#snippet children(moneroTransaction)}
-				<dl>
-					{#if moneroTransaction.version != null}
-						<div>
-							<dt>Version</dt>
-							<dd><NumberValue value={moneroTransaction.version} /></dd>
-						</div>
-					{/if}
-
-					{#if moneroTransaction.unlockTime != null}
-						<div>
-							<dt>Unlock Time</dt>
-							<dd><NumberValue value={moneroTransaction.unlockTime} /></dd>
-						</div>
-					{/if}
-
-					{#if moneroTransaction.feeAtomicUnits != null}
-						<div>
-							<dt>Fee Atomic Units</dt>
-							<dd><NumberValue value={moneroTransaction.feeAtomicUnits} /> atomic units</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

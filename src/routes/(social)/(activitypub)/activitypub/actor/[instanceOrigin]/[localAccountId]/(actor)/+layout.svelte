@@ -1,6 +1,8 @@
 <script lang="ts">
+	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { select } from '$/routes/+layout.svelte'
+
+
 	// Context
 	import { resolve } from '$app/paths'
 	import { page } from '$app/state'
@@ -18,10 +20,14 @@
 	)
 
 
+	// Functions
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ActivityPubActorView from '$/views/ActivityPubActorView.svelte'
 	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
+	import ActivityPubActorView from '$/views/ActivityPubActorView.svelte'
 </script>
 
 
@@ -34,10 +40,15 @@
 >
 	{#snippet Summary({ open: _open })}
 		<ActivityPubActorView
-			selection={select(EntityType.ActivityPubActor, {
-				instanceOrigin: decodeURIComponent(instanceOrigin),
-				localAccountId: decodeURIComponent(localAccountId),
-			})}
+			selection={
+				select(
+					EntityType.ActivityPubActor,
+					{
+						instanceOrigin: decodeURIComponent(instanceOrigin),
+						localAccountId: decodeURIComponent(localAccountId),
+					}
+				)
+			}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

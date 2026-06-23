@@ -1,23 +1,18 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { UrlString } from '$/schema/UrlString.ts'
-
 export enum EvmNetworkBridgeSelector {
 	FromToUrl = 'fromToUrl',
+	FromNetworkToNetworkUrl = '$fromNetwork+$toNetwork+url',
 }
-
 export default {
 	entityType: EntityType.EvmNetworkBridge,
-
-	label: 'Bridge',
-	labelPlural: 'Bridges',
-
+	label: 'EVM network bridge',
+	labelPlural: 'EVM network bridges',
 	selectors: [
 		{
 			name: EvmNetworkBridgeSelector.FromToUrl,
@@ -28,31 +23,35 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$fromNetwork',
+			label: 'from network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$toNetwork',
+			label: 'to network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'url',
+			label: 'URL',
+			description: 'The URL for the source-domain resource.',
 			type: EntityFieldType.Primitive,
-			primitiveType: UrlString,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'relationshipType',
+			label: 'relationship type',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

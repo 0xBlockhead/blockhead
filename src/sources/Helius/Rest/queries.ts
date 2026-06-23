@@ -1,7 +1,7 @@
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
-import Helius from '$/sources/Helius/index.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import { Source } from '$/sources/Source.ts'
+import { requiredPublicEnvString } from '$/sources/$sources.ts'
+import { heliusOrigins } from '$/sources/Helius/index.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import type { HeliusEnhancedTransaction } from '$/sources/Helius/Rest/types.ts'
 
 const origin = 'https://api-mainnet.helius-rpc.com'
@@ -12,10 +12,10 @@ export const getEnhancedTransactions = async ({
 	publicEnv,
 }: {
 	signatures: readonly string[]
-	publicEnv: SourcePublicEnvFor<Source.Helius_Rest>
+	publicEnv: SourcePublicEnv
 }) => {
-	const response = await corsFetch(`${origin}/v0/transactions/?api-key=${encodeURIComponent(publicEnv.PUBLIC_HELIUS_API_KEY)}`, {
-		origins: Helius.origins,
+	const response = await corsFetch(`${origin}/v0/transactions/?api-key=${encodeURIComponent(requiredPublicEnvString(publicEnv, 'PUBLIC_HELIUS_API_KEY'))}`, {
+		origins: heliusOrigins,
 		init: {
 			method: 'POST',
 			headers: {

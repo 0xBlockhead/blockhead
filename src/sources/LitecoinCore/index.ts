@@ -1,16 +1,19 @@
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
-import LitecoinCoreJsonRpc from '$/sources/LitecoinCore/JsonRpc/index.ts'
+import { Source } from '$/sources/Source.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import { litecoinCoreBindings } from '$/sources/LitecoinCore/bindings.ts'
 
 export default {
 	provider: SourceProvider.LitecoinCore,
 	label: 'Litecoin Core',
-	origins: [
+	sources: [
 		{
-			origin: 'http://127.0.0.1:9332',
-			corsEnabled: false,
+			provider: SourceProvider.LitecoinCore,
+			source: Source.LitecoinCore_JsonRpc,
+			label: 'Litecoin Core JSON-RPC',
 		},
 	],
-	sources: [
-		LitecoinCoreJsonRpc,
-	],
-} as const satisfies SourceProviderDefinition
+	bindings: litecoinCoreBindings,
+} satisfies SourceProviderDefinition

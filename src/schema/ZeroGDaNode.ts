@@ -1,23 +1,17 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum ZeroGDaNodeSelector {
 	NetworkNodeId = 'networkNodeId',
 }
-
 export default {
 	entityType: EntityType.ZeroGDaNode,
-
-	label: '0G DA node',
-	labelPlural: '0G DA nodes',
-
+	label: 'zero g da node',
+	labelPlural: 'zero g da nodes',
 	selectors: [
 		{
 			name: ZeroGDaNodeSelector.NetworkNodeId,
@@ -27,37 +21,41 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'nodeId',
+			label: 'node ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$quorum',
+			label: 'quorum',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.ZeroGDaQuorum,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$operator',
+			label: 'operator',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'endpoint',
+			label: 'endpoint',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

@@ -1,21 +1,23 @@
-import { getJson, getText } from '$/sources/Github/Rest/client.ts'
+import { getText } from '$/lib/http.ts'
+import { caipsBindings } from '$/sources/Caips/bindings.ts'
 import {
-	getRawUserContentUrl,
-	getRestRepoContentsUrl,
-} from '$/sources/Github/Rest/queries.ts'
-import Caips from '$/sources/Caips/index.ts'
+	caipOfficialHumanBaseUrl,
+	caipsGithubRepo,
+} from '$/sources/Caips/Github/constants.ts'
+import type { CaipsGithubContents } from '$/sources/Caips/Github/types.ts'
+import {
+	getGithubContents,
+	getGithubRawText,
+	githubContentsUrl,
+	githubRawUrl,
+} from '$/sources/_shared/hosts/Github/Http/client.ts'
 
-import { caipOfficialHumanBaseUrl, caipsGithubRepo } from './constants.ts'
-import type { CaipsGithubContents } from './types.ts'
+const origins = caipsBindings[0].endpoints.map((endpoint) => ({
+	origin: endpoint.origin,
+	corsEnabled: endpoint.corsEnabled,
+}))
 
-export const getContentsUrl = () => (
-	getRestRepoContentsUrl({
-		owner: caipsGithubRepo.owner,
-		repo: caipsGithubRepo.repo,
-		pathInRepo: caipsGithubRepo.path,
-		ref: caipsGithubRepo.ref,
-	})
-)
+export const getContentsUrl = () => githubContentsUrl(caipsGithubRepo)
 
 export const getRawMarkdownUrl = ({
 	fileName,
@@ -25,20 +27,16 @@ export const getRawMarkdownUrl = ({
 	downloadUrl: string | null | undefined
 }) => (
 	downloadUrl ??
-	getRawUserContentUrl({
-		owner: caipsGithubRepo.owner,
-		repo: caipsGithubRepo.repo,
-		ref: caipsGithubRepo.ref,
-		pathInRepo: `${caipsGithubRepo.path}/${fileName}`,
+	githubRawUrl({
+		...caipsGithubRepo,
+		path: `${caipsGithubRepo.path}/${fileName}`,
 	})
 )
 
 export const getMarkdownUrlForNumber = ({ number }: { number: number }) => (
-	getRawUserContentUrl({
-		owner: caipsGithubRepo.owner,
-		repo: caipsGithubRepo.repo,
-		ref: caipsGithubRepo.ref,
-		pathInRepo: `${caipsGithubRepo.path}/caip-${number}.md`,
+	githubRawUrl({
+		...caipsGithubRepo,
+		path: `${caipsGithubRepo.path}/caip-${number}.md`,
 	})
 )
 
@@ -46,10 +44,12 @@ export const getHumanDocUrl = ({ number }: { number: number }) => (
 	`${caipOfficialHumanBaseUrl}${number}`
 )
 
-export const getContents = (): Promise<CaipsGithubContents> => getJson<CaipsGithubContents>({
-	url: getContentsUrl(),
-	origins: Caips.origins,
-})
+export const getContents = (): Promise<CaipsGithubContents> => (
+	getGithubContents({
+		endpoints: caipsBindings[0].endpoints,
+		target: caipsGithubRepo,
+	}) as Promise<CaipsGithubContents>
+)
 
 export const getRawMarkdownText = ({
 	fileName,
@@ -57,14 +57,25 @@ export const getRawMarkdownText = ({
 }: {
 	fileName: string
 	downloadUrl: string | null | undefined
-}) => getText({
-	url: getRawMarkdownUrl({ fileName, downloadUrl }),
-	origins: Caips.origins,
-})
+}) => (
+	downloadUrl == null ?
+		getGithubRawText({
+			endpoints: caipsBindings[0].endpoints,
+			target: {
+				...caipsGithubRepo,
+				path: `${caipsGithubRepo.path}/${fileName}`,
+			},
+		})
+	:
+		getText(downloadUrl, { origins })
+)
 
 export const getMarkdownTextForNumber = ({ number }: { number: number }) => (
-	getText({
-		url: getMarkdownUrlForNumber({ number }),
-		origins: Caips.origins,
+	getGithubRawText({
+		endpoints: caipsBindings[0].endpoints,
+		target: {
+			...caipsGithubRepo,
+			path: `${caipsGithubRepo.path}/caip-${number}.md`,
+		},
 	})
 )

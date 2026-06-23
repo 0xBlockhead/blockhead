@@ -1,117 +1,66 @@
 <script lang="ts">
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { resolve } from '$app/paths'
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
+	const listView = {
+		entityType: EntityType.AtprotoActor,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
 		selection,
-		id,
-		limit = 12,
+		title,
 		open = $bindable(true),
-		collapsible = true,
-		title = 'ATProto handles',
+		id = 'AtprotoActors',
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			selection: EntityProxyEntitiesResource<typeof schema, EntityType.AtprotoActor>
-			id: string
-			limit?: number
-			open?: boolean
 			title?: string
-			collapsible?: boolean
+			open?: boolean
+			id?: string
+			href?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import AtprotoActorView from '$/views/AtprotoActorView.svelte'
 </script>
 
 
 <EntitiesList
-	entityType={EntityType.AtprotoActor}
-	{id}
-	bind:open
+	entityType={listView.entityType}
 	{title}
+	bind:open
+	{id}
+	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			AT Protocol accounts are DIDs; public handles, follow graphs, and posts are stored in content-addressed repos synced by PDS and relays.
-		</p>
-		<p>
-			A directory response lists only the handles a hub currently indexes—not every DID that exists network-wide.
-		</p>
-		<p>
-			Listing order is lexicographic by DID as returned by the hub directory.
-		</p>
-	{/snippet}
-
-	{#snippet body({ open: _bodyOpen })}
-		{#if open}
-			<ResourceBoundary resource={selection({
-					sources: [
-						Source.Constants_Internal,
-						Source.Atproto_Xrpc,
-					],
-					limit,
-				})} placeholderText="Loading DID directory…">
-				{#snippet children(actors)}
-					<EntitiesList
-						collapsible={false}
-						showSummary={false}
-						entityType={EntityType.AtprotoActor}
-						id={`${id}-items`}
-						{title}
-						open={true}
-						items={actors.entities}
-						getKey={(actor) => stringify(actor.entitySelector)}
-						getSortValue={(actor) => ('did' in actor.entitySelector ? actor.entitySelector.did : actor.entitySelector.handle)}
-					>
-						{#snippet Empty()}
-							<p data-text="muted">
-								No actors yet.
-							</p>
-						{/snippet}
-
-						{#snippet Item({ item })}
-							{#if 'did' in item.entitySelector}
-								<a
-									href={resolve('/(social)/(atproto)/atproto/actor/[did]', {
-										did: encodeURIComponent(item.entitySelector.did),
-									})}
-								>
-									<TruncatedValue
-										value={item.entitySelector.did}
-										format={TruncatedValueFormat.Visual}
-									/>
-								</a>
-							{:else}
-								<TruncatedValue
-									value={item.entitySelector.handle}
-									format={TruncatedValueFormat.Visual}
-								/>
-							{/if}
-						{/snippet}
-					</EntitiesList>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+	{#snippet Item({ item })}
+		<AtprotoActorView
+			selection={select(EntityType.AtprotoActor, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

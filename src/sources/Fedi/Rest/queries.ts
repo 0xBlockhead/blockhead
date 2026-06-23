@@ -1,6 +1,5 @@
 import { fediInstanceBySlug } from '$/constants/Fedi.ts'
-import { Source } from '$/sources/Source.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import { fediGet } from '$/sources/Fedi/Rest/client.ts'
 import type {
 	MastodonApiV1Account,
@@ -11,21 +10,21 @@ import type {
 } from '$/sources/Mastodon/Rest/types.ts'
 
 export const getAccountByLocalAccountId = async (
-	publicEnv: SourcePublicEnvFor<Source.Fedi_Rest>,
+	publicEnv: SourcePublicEnv,
 	localAccountId: string
 ) => (
 	fediGet<MastodonApiV1Account>(publicEnv, `/accounts/${encodeURIComponent(localAccountId)}`)
 )
 
 export const getAccountByAcct = async (
-	publicEnv: SourcePublicEnvFor<Source.Fedi_Rest>,
+	publicEnv: SourcePublicEnv,
 	acct: string
 ) => (
 	fediGet<MastodonApiV1Account>(publicEnv, '/accounts/lookup', { acct })
 )
 
 export const getAccountByActivityStreamsUri = async (
-	publicEnv: SourcePublicEnvFor<Source.Fedi_Rest>,
+	publicEnv: SourcePublicEnv,
 	activityStreamsUri: string
 ) => {
 	const account = (await fediGet<MastodonApiV2Search>(
@@ -44,14 +43,14 @@ export const getAccountByActivityStreamsUri = async (
 }
 
 export const getStatus = async (
-	publicEnv: SourcePublicEnvFor<Source.Fedi_Rest>,
+	publicEnv: SourcePublicEnv,
 	localStatusId: string
 ) => (
 	fediGet<MastodonApiV1Status>(publicEnv, `/statuses/${encodeURIComponent(localStatusId)}`)
 )
 
 export const getStatusByActivityStreamsUri = async (
-	publicEnv: SourcePublicEnvFor<Source.Fedi_Rest>,
+	publicEnv: SourcePublicEnv,
 	activityStreamsUri: string
 ) => {
 	const status = (await fediGet<MastodonApiV2Search>(
@@ -70,14 +69,14 @@ export const getStatusByActivityStreamsUri = async (
 }
 
 export const getStatusContext = async (
-	publicEnv: SourcePublicEnvFor<Source.Fedi_Rest>,
+	publicEnv: SourcePublicEnv,
 	localStatusId: string
 ) => (
 	fediGet<MastodonApiV1Context>(publicEnv, `/statuses/${encodeURIComponent(localStatusId)}/context`)
 )
 
 export const listAccountStatusesByLocalAccountId = async (
-	publicEnv: SourcePublicEnvFor<Source.Fedi_Rest>,
+	publicEnv: SourcePublicEnv,
 	localAccountId: string,
 	limit: number
 ) => (
@@ -89,13 +88,13 @@ export const listAccountStatusesByLocalAccountId = async (
 )
 
 export const getInstance = async (
-	publicEnv: SourcePublicEnvFor<Source.Fedi_Rest>
+	publicEnv: SourcePublicEnv
 ) => (
 	fediGet<MastodonApiV1Instance>(publicEnv, '/instance')
 )
 
 export const listPublicTimeline = async (
-	publicEnv: SourcePublicEnvFor<Source.Fedi_Rest>,
+	publicEnv: SourcePublicEnv,
 	limit: number
 ) => (
 	fediGet<MastodonApiV1Status[]>(

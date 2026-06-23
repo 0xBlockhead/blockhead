@@ -1,12 +1,26 @@
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
-import { blockchairOrigins } from '$/sources/Blockchair/Rest/constants.ts'
-import BlockchairRestSource from '$/sources/Blockchair/Rest/index.ts'
+import { Source } from '$/sources/Source.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import { blockchairBindings } from '$/sources/Blockchair/bindings.ts'
+
+export const blockchairOrigins = blockchairBindings.flatMap((binding) => (
+	binding.endpoints.map((endpoint) => ({
+		origin: endpoint.origin,
+		corsEnabled: endpoint.corsEnabled,
+	}))
+))
 
 export default {
 	provider: SourceProvider.Blockchair,
 	label: 'Blockchair',
-	origins: blockchairOrigins,
 	sources: [
-		BlockchairRestSource,
+		{
+			provider: SourceProvider.Blockchair,
+			source: Source.Blockchair_Rest,
+			label: 'Blockchair REST',
+		},
 	],
-} as const satisfies SourceProviderDefinition
+	bindings: blockchairBindings,
+} satisfies SourceProviderDefinition

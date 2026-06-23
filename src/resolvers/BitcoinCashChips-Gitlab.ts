@@ -10,8 +10,6 @@ import { Source } from '$/sources/Source.ts'
 import type { BitcoinCashChipsGitlabTree } from '$/sources/BitcoinCashChips/Gitlab/types.ts'
 import { _GlobalSelector } from '$/schema/_Global.ts'
 import { SpecificationProposalSelector } from '$/schema/SpecificationProposal.ts'
-import { SpecificationRealmSelector } from '$/schema/SpecificationRealm.ts'
-import { SpecificationProposalKindSelector } from '$/schema/SpecificationProposalKind.ts'
 
 const chipMetadataValue = (text: string, key: string) => (
 	new RegExp(`^>\\s*${key}:\\s*(.+?)\\s*$`, 'im').exec(text)?.[1]?.trim()
@@ -94,42 +92,6 @@ export default {
 			entityType: EntityType._Global,
 			resolve: {
 				[_GlobalSelector.Scope]: async () => {
-				const { getTree } = await import('$/sources/BitcoinCashChips/Gitlab/queries.ts')
-				return chipProposalIndexRows(await getTree())
-			}
-			}
-		})({
-				fields: {
-			$$proposals: (snapshot) => snapshot,
-		},
-			}),
-
-		defineResolver(Source.BitcoinCashChips_Gitlab, {
-			entityType: EntityType.SpecificationRealm,
-			resolve: {
-				[SpecificationRealmSelector.Realm]: async ({ realm }) => {
-				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (realm !== SpecificationRealm.BitcoinCash) {
-					throw new Error('BitcoinCashChips_Gitlab: $$proposals only supports Bitcoin Cash')
-				}
-				const { getTree } = await import('$/sources/BitcoinCashChips/Gitlab/queries.ts')
-				return chipProposalIndexRows(await getTree())
-			}
-			}
-		})({
-				fields: {
-			$$proposals: (snapshot) => snapshot,
-		},
-			}),
-
-		defineResolver(Source.BitcoinCashChips_Gitlab, {
-			entityType: EntityType.SpecificationProposalKind,
-			resolve: {
-				[SpecificationProposalKindSelector.RealmCategory]: async ({ category, realm }) => {
-				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (realm !== SpecificationRealm.BitcoinCash || category !== ProposalCategory.Chip) {
-					throw new Error('BitcoinCashChips_Gitlab: $$proposals only supports Bitcoin Cash CHIPs')
-				}
 				const { getTree } = await import('$/sources/BitcoinCashChips/Gitlab/queries.ts')
 				return chipProposalIndexRows(await getTree())
 			}

@@ -1,9 +1,8 @@
 import { getJson } from '$/lib/http.ts'
 import { optionalPublicEnvString } from '$/sources/$sources.ts'
-import { Source } from '$/sources/Source.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import { mastodonInstanceByKey } from '$/constants/Mastodon.ts'
-import Mastodon from '$/sources/Mastodon/index.ts'
+import { mastodonOrigins } from '$/sources/Mastodon/index.ts'
 
 const qs = (o: Record<string, string | undefined>) => {
 	const s = new URLSearchParams()
@@ -15,7 +14,7 @@ const qs = (o: Record<string, string | undefined>) => {
 	return t ? `?${t}` : ''
 }
 
-const authHeaders = (publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>): Record<string, string> => {
+const authHeaders = (publicEnv: SourcePublicEnv): Record<string, string> => {
 	const token = optionalPublicEnvString(publicEnv, 'PUBLIC_MASTODON_ACCESS_TOKEN')
 	return (
 		token != null ?
@@ -26,13 +25,13 @@ const authHeaders = (publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>): Recor
 }
 
 export const mastodonGet = async <T>(
-	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
+	publicEnv: SourcePublicEnv,
 	path: string,
 	search?: Record<string, string | undefined>,
 	apiVersion = 'v1'
 ) => (
 	getJson<T>(`${mastodonInstanceByKey.mastodon_social.origin}/api/${apiVersion}${path}${qs(search ?? {})}`, {
-		origins: Mastodon.origins,
+		origins: mastodonOrigins,
 		init: { headers: authHeaders(publicEnv) },
 	})
 )

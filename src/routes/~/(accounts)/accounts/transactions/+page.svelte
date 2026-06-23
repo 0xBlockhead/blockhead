@@ -10,12 +10,12 @@
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import BridgeTransactionsView from '$/views/BridgeTransactionsView.svelte'
+	import BlockheadBridgeTransactionsView from '$/views/BlockheadBridgeTransactionsView.svelte'
 </script>
 
 
 <Page>
-	<BridgeTransactionsView
+	<BlockheadBridgeTransactionsView
 		href={resolve('/bridge')}
 		selection={select(
 			EntityType._Global,

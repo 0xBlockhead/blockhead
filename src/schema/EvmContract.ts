@@ -1,32 +1,21 @@
 import { type } from 'arktype'
-
-import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { EvmAbi } from '$/schema/EvmAbi.ts'
-import { Source } from '$/sources/Source.ts'
-
+import { EvmAddress } from '$/schema/ZeroExHex.ts'
+import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 export enum EvmContractSelector {
 	EvmNetworkAddress = 'evmNetworkAddress',
+	NetworkAddress = '$network+address',
 }
-
-
-const storageSlotRead = type({
-	slot: ZeroExHex,
-	value: ZeroExHex,
-})
-
 export default {
 	entityType: EntityType.EvmContract,
-
-	label: 'EVM Contract',
-	labelPlural: 'EVM Contracts',
-
+	label: 'EVM contract',
+	labelPlural: 'EVM contracts',
+	description: 'A smart contract account and its contract-specific metadata on an EVM-compatible network.',
 	selectors: [
 		{
 			name: EvmContractSelector.EvmNetworkAddress,
@@ -36,114 +25,84 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'address',
+			label: 'Address',
+			description: 'The address or account identifier used by the source protocol.',
 			type: EntityFieldType.Primitive,
 			primitiveType: EvmAddress,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'precompileName',
+			label: 'precompile name',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: '$deployer',
+			label: 'deployer',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Sourcify_Rest,
-				Source.Blockscout_Rest,
-				Source.Etherscan_Rest,
-			],
 		},
 		{
 			name: '$creationTransaction',
+			label: 'creation transaction',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmTransaction,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-				Source.Sourcify_Rest,
-				Source.Etherscan_Rest,
-			],
 		},
 		{
 			name: '$implementation',
+			label: 'implementation',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmContract,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-				Source.Sourcify_Rest,
-				Source.Etherscan_Rest,
-			],
 		},
 		{
 			name: 'codeHash',
+			label: 'code hash',
 			type: EntityFieldType.Primitive,
 			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-				Source.Blockscout_Rest,
-				Source.Etherscan_Rest,
-			],
 		},
 		{
 			name: 'code',
+			label: 'code',
 			type: EntityFieldType.Primitive,
 			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-				Source.Blockscout_Rest,
-				Source.Etherscan_Rest,
-			],
 		},
 		{
 			name: 'abi',
+			label: 'ABI',
 			type: EntityFieldType.Primitive,
-			primitiveType: EvmAbi,
+			primitiveType: type("unknown"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Sourcify_Rest,
-				Source.Etherscan_Rest,
-				Source.Blockscout_Rest,
-			],
 		},
 		{
 			name: 'storageSlotReads',
+			label: 'storage slot reads',
 			type: EntityFieldType.Primitive,
-			primitiveType: storageSlotRead,
+			primitiveType: type({"slot": "string", "value": "string"}),
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-				Source.Blockscout_Rest,
-				Source.Etherscan_Rest,
-			],
 		},
 		{
 			name: '$verification',
+			label: 'verification',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmContractVerification,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Sourcify_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

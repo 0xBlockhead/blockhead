@@ -2,113 +2,119 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Context
-	import { select } from '$/routes/+layout.svelte'
-	import { resolve } from '$app/paths'
 
 
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'post',
+			},
+			{
+				label: 'observation time',
+			},
+			{
+				label: 'comment count',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'post',
+					},
+					{
+						label: 'observation time',
+					},
+					{
+						label: 'comment count',
+					},
+					{
+						label: 'repost count',
+					},
+					{
+						label: 'quote count',
+					},
+					{
+						label: 'bookmark count',
+					},
+					{
+						label: 'collect count',
+					},
+					{
+						label: 'reaction count',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Post',
+					items: [
+						{
+							label: 'LensPost',
+						},
+					],
+				},
+				{
+					label: 'Engagement',
+					items: [
+						{
+							label: 'comment/repost/quote/bookmark/collect/reaction counts',
+						},
+					],
+				},
+				{
+					label: 'History',
+					items: [
+						{
+							label: 'LensPost_Timestamp list',
+						},
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'Lens GraphQL post stats payload',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
-		href = resolve('/(social)/(lens)/lens/post/[postId]', {
-			postId: selection.entitySelector.$post.id,
-		}),
-		layout = EntityLayout.Summary,
-		open = $bindable(false),
+		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.LensPost_Timestamp>
-			href?: string
-			layout?: EntityLayout
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
+			| 'layout'
 			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import SocialMetricSnapshotRows from '$/views/SocialMetricSnapshotRows.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.LensPost_Timestamp}
 	entitySelector={selection.entitySelector}
-	href={href}
-	{layout}
 	bind:open
-	title="Lens post snapshot"
 	{...EntityViewProps}
->
-	{#snippet Value()}
-		<Timestamp timestamp={selection.entitySelector.timestampMs} />
-	{/snippet}
-
-	{#snippet Title()}
-		<Timestamp timestamp={selection.entitySelector.timestampMs} />
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Timestamped Lens post engagement counters resolved from Lens GraphQL post stats.
-		</p>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection(
-					({ sources: [
-							Source.Lens_Graphql,
-						], fields: { commentCount: true, repostCount: true, quoteCount: true, bookmarkCount: true, collectCount: true, reactionCount: true } }),
-				)}
-			placeholderText="Loading Lens post snapshot..."
-		>
-			{#snippet children(lensPostTimestamp)}
-				<dl data-column-item="center">
-					<SocialMetricSnapshotRows
-						metrics={[
-							{
-								label: 'Comments',
-								value: lensPostTimestamp.commentCount,
-							},
-							{
-								label: 'Reposts',
-								value: lensPostTimestamp.repostCount,
-							},
-							{
-								label: 'Quotes',
-								value: lensPostTimestamp.quoteCount,
-							},
-							{
-								label: 'Bookmarks',
-								value: lensPostTimestamp.bookmarkCount,
-							},
-							{
-								label: 'Collects',
-								value: lensPostTimestamp.collectCount,
-							},
-							{
-								label: 'Reactions',
-								value: lensPostTimestamp.reactionCount,
-							},
-						]}
-					/>
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

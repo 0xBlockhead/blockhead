@@ -1,76 +1,79 @@
 <script lang="ts">
 	// Types/constants
+	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'subnet',
+			},
+			'uid',
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'subnet',
+					},
+					'uid',
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Subnet',
+					items: [
+						{
+							label: 'parent subnet',
+						},
+					],
+				},
+				{
+					label: 'Metagraph snapshots',
+					items: [
+						{
+							label: 'metagraph observations for the subnet',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
-		layout = EntityLayout.SummaryDetails,
-		open = $bindable(layout === EntityLayout.SummaryDetails),
-	}: {
-		selection: EntityProxyResource<typeof schema, EntityType.BittensorNeuron>
-		layout?: EntityLayout
-		open?: boolean
-	} = $props()
+		open = $bindable(true),
+		...EntityViewProps
+	}: WithRest<
+		{
+			selection: EntityProxyResource<typeof schema, EntityType.BittensorNeuron>
+			open?: boolean
+		},
+		Pick<
+			ComponentProps<typeof EntityView2>,
+			| 'layout'
+			| 'showTypeAnnotation'
+		>
+	> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.BittensorNeuron}
 	entitySelector={selection.entitySelector}
-	title={`Neuron #${selection.entitySelector.uid}`}
-	idDragPlainText={String(selection.entitySelector.uid)}
 	bind:open
-	{layout}
->
-	{#snippet Value()}
-		<span data-badge="small">
-			#{String(selection.entitySelector.uid)}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>Neuron </span>
-			{#if Value}
-			{@render Value()}
-			{/if}
-		</span>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection( { sources: [
-					Source.Bittensor_JsonRpc,
-				], fields: { uid: true } })}
-			placeholderText="Loading Bittensor neuron…"
-		>
-			{#snippet children(neuron)}
-				<dl>
-					<div>
-						<dt>Subnet</dt>
-						<dd><NumberValue value={selection.entitySelector.$subnet.netuid} /></dd>
-					</div>
-
-					<div>
-						<dt>UID</dt>
-						<dd><NumberValue value={neuron.uid} /></dd>
-					</div>
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{...EntityViewProps}
+	{view}
+/>

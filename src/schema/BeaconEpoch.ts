@@ -2,23 +2,17 @@ import { type } from 'arktype'
 import {
 	EntityFieldCardinality,
 	EntityFieldType,
-	NonNegativeInteger,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum BeaconEpochSelector {
 	EvmNetworkEpoch = 'evmNetworkEpoch',
+	NetworkEpoch = '$network+epoch',
 }
-
 export default {
 	entityType: EntityType.BeaconEpoch,
-
-	label: 'Beacon epoch',
-	labelPlural: 'Beacon epochs',
-
+	label: 'beacon epoch',
+	labelPlural: 'beacon epoches',
 	selectors: [
 		{
 			name: BeaconEpochSelector.EvmNetworkEpoch,
@@ -28,119 +22,97 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'epoch',
+			label: 'epoch',
 			type: EntityFieldType.Primitive,
-			primitiveType: NonNegativeInteger,
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'startSlot',
+			label: 'start slot',
 			type: EntityFieldType.Primitive,
-			primitiveType: NonNegativeInteger,
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
 		},
 		{
 			name: 'endSlot',
+			label: 'end slot',
 			type: EntityFieldType.Primitive,
-			primitiveType: NonNegativeInteger,
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
 		},
 		{
 			name: 'slotCount',
+			label: 'slot count',
 			type: EntityFieldType.Primitive,
-			primitiveType: NonNegativeInteger,
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
 		},
-		// Intrinsic: slots are contained by exactly one epoch.
 		{
 			name: '$$beaconSlots',
+			label: 'beacon slots',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.BeaconSlot,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: 'finalized',
+			label: 'finalized',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
+			primitiveType: type("boolean"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.BeaconchaIn_Rest,
-			],
 		},
 		{
 			name: 'globalParticipationRate',
+			label: 'global participation rate',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.BeaconchaIn_Rest,
-			],
 		},
 		{
 			name: 'validatorsCount',
+			label: 'validators count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.BeaconchaIn_Rest,
-			],
 		},
 		{
 			name: 'attestationsCount',
+			label: 'attestations count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.BeaconchaIn_Rest,
-			],
 		},
 		{
 			name: 'attesterSlashingsCount',
+			label: 'attester slashings count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.BeaconchaIn_Rest,
-			],
 		},
 		{
 			name: 'proposerSlashingsCount',
+			label: 'proposer slashings count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.BeaconchaIn_Rest,
-			],
 		},
 		{
 			name: 'withdrawalsCount',
+			label: 'withdrawals count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.BeaconchaIn_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

@@ -2,15 +2,82 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'shard key',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'shard key',
+					},
+				],
+				[
+					{
+						label: 'network',
+					},
+					{
+						label: 'shard key',
+					},
+					{
+						label: 'shard kind',
+					},
+					{
+						label: 'application account',
+					},
+					{
+						label: 'frame count',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Frames',
+					items: [
+						{
+							label: 'frames in this shard',
+						},
+					],
+				},
+				{
+					label: 'Application account',
+					items: [
+						{
+							label: 'linked Quilibrium account',
+						},
+					],
+				},
+				{
+					label: 'Network',
+					items: [
+						{
+							label: 'parent network',
+						},
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'node RPC shard/frame payloads',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +88,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,52 +96,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.QuilibriumShard}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.shardKey}
-	idDragPlainText={selection.entitySelector.shardKey}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Value()}
-		<TruncatedValue
-			value={selection.entitySelector.shardKey}
-			format={TruncatedValueFormat.Abbr}
-		/>
-	{/snippet}
-
-	{#snippet Title()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>Shard </span>
-			{#if Value}
-			{@render Value()}
-					{/if}
-		</span>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection( { fields: { shardKind: true } })}
-			placeholderText={`Loading Quilibrium Shard...`}
-		>
-			{#snippet children(quilibriumShard)}
-				<dl>
-					{#if quilibriumShard.shardKind != null}
-						<div>
-							<dt>Shard Kind</dt>
-							<dd>{quilibriumShard.shardKind}</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

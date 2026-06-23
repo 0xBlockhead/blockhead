@@ -2,15 +2,80 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			{
+				label: 'quorum id',
+			},
+			{
+				label: 'consensus network',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					{
+						label: 'quorum id',
+					},
+					{
+						label: 'consensus network',
+					},
+					{
+						label: 'selection method',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'DA nodes',
+					items: [
+						{
+							label: 'node rows in this quorum',
+						},
+					],
+				},
+				{
+					label: 'Consensus',
+					items: [
+						{
+							label: 'linked consensus-network identity',
+						},
+					],
+				},
+				{
+					label: 'Network',
+					items: [
+						{
+							label: 'parent 0G network',
+						},
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: '0G DA/consensus payload exposing quorum id',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +86,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,44 +94,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.ZeroGDaQuorum}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.quorumId}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		{selection.entitySelector.quorumId}
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A 0G DA quorum is a selected group of DA nodes responsible for availability attestations for data blobs.
-		</p>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection( { fields: { selectionMethod: true } })}
-			placeholderText="Loading 0G DA quorum…"
-		>
-			{#snippet children(daQuorum)}
-				{#if daQuorum.selectionMethod != null}
-					<dl>
-						<div>
-							<dt>Selection</dt>
-							<dd>{daQuorum.selectionMethod}</dd>
-						</div>
-					</dl>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

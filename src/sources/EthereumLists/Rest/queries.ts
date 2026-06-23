@@ -3,7 +3,7 @@
  * on [chainid.network](https://chainid.network).
  */
 import { getJson } from '$/lib/http.ts'
-import EthereumLists from '$/sources/EthereumLists/index.ts'
+import { ethereumListsOrigins } from '$/sources/EthereumLists/index.ts'
 import {
 	chainsJsonPath,
 	githubApiOrigin,
@@ -23,14 +23,14 @@ type GithubTreeResponse = {
 
 export const fetchChainsJson = async (): Promise<EthereumListsChainJson[]> => {
 	const url = `${origin}${chainsJsonPath}`
-	return getJson<EthereumListsChainJson[]>(url, { origins: EthereumLists.origins })
+	return getJson<EthereumListsChainJson[]>(url, { origins: ethereumListsOrigins })
 }
 
 
 export const fetchIconSlugs = async (): Promise<Set<string>> => {
 	const result = await getJson<GithubTreeResponse>(
 		`${githubApiOrigin}/repos/ethereum-lists/chains/git/trees/master?recursive=1`,
-		{ origins: EthereumLists.origins }
+		{ origins: ethereumListsOrigins }
 	)
 	return new Set(
 		(result.tree ?? [])
@@ -52,6 +52,6 @@ export const fetchIconJsonBySlug = async (
 	if (!(await fetchIconSlugs()).has(trimmed)) return undefined
 	return getJson<EthereumListsIconJson>(
 		`${origin}/icons/${encodeURIComponent(trimmed)}.json`,
-		{ origins: EthereumLists.origins }
+		{ origins: ethereumListsOrigins }
 	)
 }

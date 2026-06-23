@@ -10,8 +10,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { _GlobalSelector } from '$/schema/_Global.ts'
 import { SpecificationProposalSelector } from '$/schema/SpecificationProposal.ts'
-import { SpecificationRealmSelector } from '$/schema/SpecificationRealm.ts'
-import { SpecificationProposalKindSelector } from '$/schema/SpecificationProposalKind.ts'
 
 const nearNepRows = async (entries: { type: string, name: string }[]) => {
 	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
@@ -67,38 +65,6 @@ export default {
 			entityType: EntityType._Global,
 			resolve: {
 				[_GlobalSelector.Scope]: async () => {
-				const { getContents } = await import('$/sources/NearNeps/Github/queries.ts')
-				return nearNepRows(await getContents())
-			}
-			}
-		})({
-				fields: {
-			$$proposals: (snapshot) => snapshot,
-		},
-			}),
-
-		defineResolver(Source.NearNeps_Github, {
-			entityType: EntityType.SpecificationRealm,
-			resolve: {
-				[SpecificationRealmSelector.Realm]: async ({ realm }) => {
-				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (realm !== SpecificationRealm.Near) throw new Error('NearNeps_Github: $$proposals only supports NEAR')
-				const { getContents } = await import('$/sources/NearNeps/Github/queries.ts')
-				return nearNepRows(await getContents())
-			}
-			}
-		})({
-				fields: {
-			$$proposals: (snapshot) => snapshot,
-		},
-			}),
-
-		defineResolver(Source.NearNeps_Github, {
-			entityType: EntityType.SpecificationProposalKind,
-			resolve: {
-				[SpecificationProposalKindSelector.RealmCategory]: async ({ category, realm }) => {
-				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (realm !== SpecificationRealm.Near || category !== ProposalCategory.Nep) throw new Error('NearNeps_Github: $$proposals only supports NEAR NEPs')
 				const { getContents } = await import('$/sources/NearNeps/Github/queries.ts')
 				return nearNepRows(await getContents())
 			}

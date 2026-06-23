@@ -2,15 +2,83 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			{
+				label: 'contract address',
+			},
+			{
+				label: 'code id',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					{
+						label: 'contract address',
+					},
+					{
+						label: 'code id',
+					},
+					{
+						label: 'creator',
+					},
+					{
+						label: 'admin',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Creator',
+					items: [
+						{
+							label: 'creator Cosmos account',
+						},
+					],
+				},
+				{
+					label: 'Admin',
+					items: [
+						{
+							label: 'admin Cosmos account',
+						},
+					],
+				},
+				{
+					label: 'Messages',
+					items: [
+						{
+							label: 'Cosmos messages when contract messages are resolved',
+						},
+					],
+				},
+				{
+					label: 'Network',
+					items: [
+						{
+							label: 'parent Cosmos network',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +89,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,45 +97,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.CosmosContract}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.address}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		<TruncatedValue
-			value={selection.entitySelector.address}
-			format={TruncatedValueFormat.Abbr}
-		/>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection(
-					({ fields: { codeId: true } }),
-				)}
-			placeholderText={`Loading CosmWasm Contract...`}
-		>
-			{#snippet children(cosmosContract)}
-				<dl>
-					{#if cosmosContract.codeId != null}
-						<div>
-							<dt>Code ID</dt>
-							<dd><NumberValue value={cosmosContract.codeId} /></dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

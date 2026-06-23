@@ -1,25 +1,38 @@
-import { type as arktype } from 'arktype'
-
+import { Source } from '$/sources/Source.ts'
 import {
-	type SourceProviderDefinition,
 	SourceProvider,
+	type SourceProviderDefinition,
 } from '$/sources/SourceProvider.ts'
-import { origin } from '$/sources/Dune/Rest/constants.ts'
-import DuneRestSource from '$/sources/Dune/Rest/index.ts'
+import {
+	duneBindings,
+	dunePublicEnv,
+} from '$/sources/Dune/bindings.ts'
+
+export const duneOrigins = [
+	...new Map(
+		duneBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.Dune,
 	label: 'Dune',
-	env: arktype({
-		PUBLIC_DUNE_API_KEY: 'string > 0',
-	}),
-	origins: [
+	env: dunePublicEnv,
+	sources: [
 		{
-			origin,
-			corsEnabled: false,
+			provider: SourceProvider.Dune,
+			source: Source.Dune_Rest,
+			label: 'Dune REST',
+			env: dunePublicEnv,
 		},
 	],
-	sources: [
-		DuneRestSource,
-	],
+	bindings: duneBindings,
 } satisfies SourceProviderDefinition

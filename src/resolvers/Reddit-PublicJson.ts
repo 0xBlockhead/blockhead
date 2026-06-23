@@ -27,7 +27,7 @@ import { RedditCommentSelector } from '$/schema/RedditComment.ts'
 import { RedditSubreddit_TimestampSelector } from '$/schema/RedditSubreddit_Timestamp.ts'
 import { RedditLink_TimestampSelector } from '$/schema/RedditLink_Timestamp.ts'
 import { RedditComment_TimestampSelector } from '$/schema/RedditComment_Timestamp.ts'
-import { RedditNetworkSelector } from '$/schema/RedditNetwork.ts'
+import { _GlobalRedditNetworkSelector } from '$/schema/_GlobalRedditNetwork.ts'
 
 
 const redditSubredditIconUrl = (
@@ -248,7 +248,7 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditSubreddit_Timestamp,
 			resolve: {
-				[RedditSubreddit_TimestampSelector.RedditSubredditTimestampMs]: async ({ $subreddit }) => {
+				[RedditSubreddit_TimestampSelector.SubredditTimestampMsSource]: async ({ $subreddit }) => {
 					const { getSubredditAbout } = await import('$/sources/RedditPublic/Rest/queries.ts')
 					const subredditAbout = (await getSubredditAbout($subreddit.name)).data
 					return {
@@ -269,7 +269,7 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditLink_Timestamp,
 			resolve: {
-				[RedditLink_TimestampSelector.RedditLinkTimestampMs]: async ({ $link }) => {
+				[RedditLink_TimestampSelector.LinkTimestampMsSource]: async ({ $link }) => {
 					const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
 					const redditThing = (await getInfo($link.fullname))
 						.data
@@ -293,7 +293,7 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditComment_Timestamp,
 			resolve: {
-				[RedditComment_TimestampSelector.RedditCommentTimestampMs]: async ({ $comment }) => {
+				[RedditComment_TimestampSelector.CommentTimestampMsSource]: async ({ $comment }) => {
 					if (redditNetworkSeedComments.some((comment) => comment.fullname === $comment.fullname))
 						return {
 							score: undefined,
@@ -316,9 +316,9 @@ export default {
 		}),
 
 		defineResolver(Source.Reddit_PublicJson, {
-			entityType: EntityType.RedditNetwork,
+			entityType: EntityType._GlobalRedditNetwork,
 			resolve: {
-				[RedditNetworkSelector.Scope]: async (_entitySelector, context) => {
+				[_GlobalRedditNetworkSelector.Scope]: async (_entitySelector, context) => {
 					const { listSubredditHot } = await import('$/sources/RedditPublic/Rest/queries.ts')
 					const limit = resolverContextRowLimit(context)
 					return (
@@ -336,14 +336,14 @@ export default {
 			},
 		})({
 			fields: {
-				$$redditSubreddits: (subreddits) => subreddits,
+				$$sourceWindowSubreddits: (subreddits) => subreddits,
 			},
 		}),
 
 		defineResolver(Source.Reddit_PublicJson, {
-			entityType: EntityType.RedditNetwork,
+			entityType: EntityType._GlobalRedditNetwork,
 			resolve: {
-				[RedditNetworkSelector.Scope]: async (_entitySelector, context) => {
+				[_GlobalRedditNetworkSelector.Scope]: async (_entitySelector, context) => {
 					const { listSubredditHot } = await import('$/sources/RedditPublic/Rest/queries.ts')
 					const limit = resolverContextRowLimit(context)
 					return (
@@ -363,7 +363,7 @@ export default {
 			},
 		})({
 			fields: {
-				$$redditLinks: (links) => links,
+				$$sourceWindowLinks: (links) => links,
 			},
 		}),
 
@@ -378,6 +378,7 @@ export default {
 							[EntityMetaKey.Selector]: {
 								$subreddit: { name },
 								timestampMs: Date.now(),
+								source: Source.Reddit_PublicJson,
 							},
 							...(data.subscribers != null && { subscriberCount: data.subscribers }),
 							...(data.active_user_count != null && { activeUserCount: data.active_user_count }),
@@ -432,6 +433,7 @@ export default {
 							[EntityMetaKey.Selector]: {
 								$link: { fullname },
 								timestampMs: Date.now(),
+								source: Source.Reddit_PublicJson,
 							},
 							...(redditThing.data.score != null && { score: redditThing.data.score }),
 							...(redditThing.data.num_comments != null && {
@@ -510,6 +512,7 @@ export default {
 							[EntityMetaKey.Selector]: {
 								$comment: { fullname },
 								timestampMs: Date.now(),
+								source: Source.Reddit_PublicJson,
 							},
 							...(redditThing.data.score != null && { score: redditThing.data.score }),
 						},

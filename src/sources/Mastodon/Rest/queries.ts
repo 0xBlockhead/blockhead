@@ -1,5 +1,4 @@
-import { Source } from '$/sources/Source.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import { mastodonGet } from '$/sources/Mastodon/Rest/client.ts'
 import { mastodonInstanceByKey } from '$/constants/Mastodon.ts'
 import type {
@@ -11,21 +10,21 @@ import type {
 } from '$/sources/Mastodon/Rest/types.ts'
 
 export const getAccountByLocalAccountId = async (
-	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
+	publicEnv: SourcePublicEnv,
 	localAccountId: string
 ) => (
 	mastodonGet<MastodonApiV1Account>(publicEnv, `/accounts/${encodeURIComponent(localAccountId)}`)
 )
 
 export const getAccountByAcct = async (
-	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
+	publicEnv: SourcePublicEnv,
 	acct: string
 ) => (
 	mastodonGet<MastodonApiV1Account>(publicEnv, '/accounts/lookup', { acct })
 )
 
 export const getAccountByActivityStreamsUri = async (
-	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
+	publicEnv: SourcePublicEnv,
 	activityStreamsUri: string
 ) => {
 	const account = (await mastodonGet<MastodonApiV2Search>(
@@ -44,14 +43,14 @@ export const getAccountByActivityStreamsUri = async (
 }
 
 export const getStatus = async (
-	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
+	publicEnv: SourcePublicEnv,
 	localStatusId: string
 ) => (
 	mastodonGet<MastodonApiV1Status>(publicEnv, `/statuses/${encodeURIComponent(localStatusId)}`)
 )
 
 export const getStatusByActivityStreamsUri = async (
-	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
+	publicEnv: SourcePublicEnv,
 	activityStreamsUri: string
 ) => {
 	const status = (await mastodonGet<MastodonApiV2Search>(
@@ -70,14 +69,14 @@ export const getStatusByActivityStreamsUri = async (
 }
 
 export const getStatusContext = async (
-	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
+	publicEnv: SourcePublicEnv,
 	localStatusId: string
 ) => (
 	mastodonGet<MastodonApiV1Context>(publicEnv, `/statuses/${encodeURIComponent(localStatusId)}/context`)
 )
 
 export const listAccountStatusesByLocalAccountId = async (
-	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
+	publicEnv: SourcePublicEnv,
 	localAccountId: string,
 	limit: number
 ) => (
@@ -89,13 +88,13 @@ export const listAccountStatusesByLocalAccountId = async (
 )
 
 export const getInstance = async (
-	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>
+	publicEnv: SourcePublicEnv
 ) => (
 	mastodonGet<MastodonApiV1Instance>(publicEnv, '/instance')
 )
 
 export const listPublicTimeline = async (
-	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
+	publicEnv: SourcePublicEnv,
 	limit: number
 ) => (
 	mastodonGet<MastodonApiV1Status[]>(

@@ -1,23 +1,17 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum QuilibriumFrameSelector {
 	NetworkFrameNumberShardKey = 'networkFrameNumberShardKey',
 }
-
 export default {
 	entityType: EntityType.QuilibriumFrame,
-
-	label: 'Quilibrium Frame',
-	labelPlural: 'Quilibrium Frames',
-
+	label: 'quilibrium frame',
+	labelPlural: 'quilibrium frames',
 	selectors: [
 		{
 			name: QuilibriumFrameSelector.NetworkFrameNumberShardKey,
@@ -28,43 +22,63 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'frameNumber',
+			label: 'frame number',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'shardKey',
+			label: 'shard key',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'frameHash',
+			label: 'frame hash',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'difficulty',
+			label: 'difficulty',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$shard',
+			label: 'shard',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.QuilibriumShard,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$prover',
+			label: 'prover',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.QuilibriumProver,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

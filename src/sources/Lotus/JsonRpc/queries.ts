@@ -1,6 +1,6 @@
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
 import { jsonRpcHeaders, jsonRpcVersion } from '$/sources/Evm/JsonRpc/constants.ts'
-import Lotus from '$/sources/Lotus/index.ts'
+import { lotusOrigins } from '$/sources/Lotus/index.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	LotusActor,
@@ -32,7 +32,7 @@ const lotusJsonRpc = async <_Result>({
 	params: JsonValue[]
 }) => {
 	const response = await corsFetch(rpcUrl, {
-		origins: Lotus.origins,
+		origins: lotusOrigins,
 		init: {
 			method: 'POST',
 			headers: jsonRpcHeaders,

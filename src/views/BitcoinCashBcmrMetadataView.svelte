@@ -2,15 +2,88 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			{
+				label: 'category id',
+			},
+			{
+				label: 'registry URL',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					{
+						label: 'category id',
+					},
+					{
+						label: 'registry URL',
+					},
+					{
+						label: 'token name',
+					},
+					'symbol',
+					'decimals',
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Category',
+					items: [
+						{
+							label: 'parent CashToken category',
+						},
+					],
+				},
+				{
+					label: 'Registry document',
+					items: [
+						{
+							label: 'selected registry URL',
+						},
+						{
+							label: 'latest revision fields',
+						},
+						{
+							label: 'raw JSON',
+						},
+					],
+				},
+				{
+					label: 'Revision modeling',
+					items: [
+						{
+							label: 'revision id/history target when schema support exists',
+						},
+					],
+				},
+				{
+					label: 'Outputs',
+					items: [
+						{
+							label: 'CashToken outputs that carry this category',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +94,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,65 +102,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.BitcoinCashBcmrMetadata}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.registryUrl}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		{selection.entitySelector.registryUrl.toString()}
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection(
-					({ fields: { name: true, description: true, symbol: true, decimals: true } }),
-				)}
-			placeholderText={`Loading Bitcoin Cash Metadata Registry Entry...`}
-		>
-			{#snippet children(bitcoinCashBcmrMetadata)}
-				{#if bitcoinCashBcmrMetadata.description != null}
-					<p>
-						<TruncatedValue
-							value={bitcoinCashBcmrMetadata.description}
-							format={TruncatedValueFormat.Visual}
-						/>
-					</p>
-				{/if}
-
-				<dl>
-					{#if bitcoinCashBcmrMetadata.name != null}
-						<div>
-							<dt>Name</dt>
-							<dd>{bitcoinCashBcmrMetadata.name}</dd>
-						</div>
-					{/if}
-
-					{#if bitcoinCashBcmrMetadata.symbol != null}
-						<div>
-							<dt>Symbol</dt>
-							<dd>{bitcoinCashBcmrMetadata.symbol}</dd>
-						</div>
-					{/if}
-
-					{#if bitcoinCashBcmrMetadata.decimals != null}
-						<div>
-							<dt>Decimals</dt>
-							<dd><NumberValue value={bitcoinCashBcmrMetadata.decimals} /></dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

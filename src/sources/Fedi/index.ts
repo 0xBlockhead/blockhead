@@ -1,20 +1,38 @@
-import { type as arktype } from 'arktype'
-
+import { Source } from '$/sources/Source.ts'
 import {
-	type SourceProviderDefinition,
 	SourceProvider,
+	type SourceProviderDefinition,
 } from '$/sources/SourceProvider.ts'
-import { fediOrigins } from '$/sources/Fedi/Rest/constants.ts'
-import FediRestSource from '$/sources/Fedi/Rest/index.ts'
+import {
+	fediBindings,
+	fediPublicEnv,
+} from '$/sources/Fedi/bindings.ts'
+
+export const fediOrigins = [
+	...new Map(
+		fediBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.Fedi,
 	label: 'Fedi',
-	env: arktype({
-		PUBLIC_FEDI_ACCESS_TOKEN: 'string > 0?',
-	}),
-	origins: fediOrigins,
+	env: fediPublicEnv,
 	sources: [
-		FediRestSource,
+		{
+			provider: SourceProvider.Fedi,
+			source: Source.Fedi_Rest,
+			label: 'Fedi REST',
+			env: fediPublicEnv,
+		},
 	],
+	bindings: fediBindings,
 } satisfies SourceProviderDefinition

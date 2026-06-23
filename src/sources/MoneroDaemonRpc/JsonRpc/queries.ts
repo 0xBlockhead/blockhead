@@ -1,6 +1,7 @@
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
+import { TransportType } from '$/constants/TransportType.ts'
 import { jsonRpcHeaders, jsonRpcVersion } from '$/sources/Evm/JsonRpc/constants.ts'
-import MoneroDaemonRpc from '$/sources/MoneroDaemonRpc/index.ts'
+import { moneroDaemonRpcBindings } from '$/sources/MoneroDaemonRpc/bindings.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	MoneroRpcDecodedTransaction,
@@ -8,6 +9,34 @@ import type {
 	MoneroRpcInfo,
 	MoneroRpcTransaction,
 } from '$/sources/MoneroDaemonRpc/JsonRpc/types.ts'
+
+export const moneroMainnetRpcEndpoints = moneroDaemonRpcBindings
+	.slice(0, 1)
+	.flatMap((binding) => binding.endpoints)
+	.map((endpoint) => ({
+		url: endpoint.locator,
+		transportType: TransportType.Http,
+		providerName: 'Monero daemon',
+	}))
+
+export const moneroDaemonRpcOrigins = [
+	...new Map(
+		moneroDaemonRpcBindings
+			.flatMap((binding) => binding.endpoints)
+			.flatMap((endpoint) => (
+				endpoint.origin == null ?
+					[]
+				:
+					[[
+						endpoint.origin,
+						{
+							origin: endpoint.origin,
+							corsEnabled: endpoint.corsEnabled === true,
+						},
+					]]
+			))
+	).values(),
+]
 
 type JsonRpcResponse<_Result> = {
 	jsonrpc: typeof jsonRpcVersion
@@ -39,7 +68,7 @@ const moneroJsonRpc = async <_Result>({
 	params: JsonValue
 }) => {
 	const response = await corsFetch(rpcUrl, {
-		origins: MoneroDaemonRpc.origins,
+		origins: moneroDaemonRpcOrigins,
 		init: {
 			method: 'POST',
 			headers: jsonRpcHeaders,
@@ -83,7 +112,7 @@ export const getTransactions = ({
 }) => {
 	const transactionsUrl = new URL('get_transactions', rpcUrl).toString()
 	return corsFetch(transactionsUrl, {
-		origins: MoneroDaemonRpc.origins,
+		origins: moneroDaemonRpcOrigins,
 		init: {
 			method: 'POST',
 			headers: jsonRpcHeaders,

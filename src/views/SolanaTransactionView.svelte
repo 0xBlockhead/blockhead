@@ -2,15 +2,90 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			'signature',
+			{
+				label: 'block',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					'signature',
+					{
+						label: 'block',
+					},
+					{
+						label: 'fee payer',
+					},
+					{
+						label: 'latest status/fee/compute snapshot',
+					},
+					{
+						label: 'instruction count',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Observations',
+					items: [
+						{
+							label: 'slot/source transaction observations',
+						},
+					],
+				},
+				{
+					label: 'Instructions',
+					items: [
+						{
+							label: 'instructions grouped by top-level/inner kind',
+						},
+					],
+				},
+				{
+					label: 'Block',
+					items: [
+						{
+							label: 'parent Solana block',
+						},
+					],
+				},
+				{
+					label: 'Fee payer',
+					items: [
+						{
+							label: 'fee-payer Solana account',
+						},
+					],
+				},
+				{
+					label: 'Raw message',
+					items: [
+						{
+							label: 'account keys/address lookup table data when modeled',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +96,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,64 +104,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.SolanaTransaction}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.signature}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		<TruncatedValue
-			value={selection.entitySelector.signature}
-			format={TruncatedValueFormat.Abbr}
-		/>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection( { fields: { slot: true, feeLamports: true, computeUnitsConsumed: true, status: true } })}
-			placeholderText={`Loading Solana Transaction...`}
-		>
-			{#snippet children(solanaTransaction)}
-				<dl>
-					{#if solanaTransaction.slot != null}
-						<div>
-							<dt>Slot</dt>
-							<dd><NumberValue value={solanaTransaction.slot} /></dd>
-						</div>
-					{/if}
-
-					{#if solanaTransaction.feeLamports != null}
-						<div>
-							<dt>Fee Lamports</dt>
-							<dd><NumberValue value={solanaTransaction.feeLamports} /> lamports</dd>
-						</div>
-					{/if}
-
-					{#if solanaTransaction.computeUnitsConsumed != null}
-						<div>
-							<dt>Compute Units Consumed</dt>
-							<dd><NumberValue value={solanaTransaction.computeUnitsConsumed} /></dd>
-						</div>
-					{/if}
-
-					{#if solanaTransaction.status != null}
-						<div>
-							<dt>Status</dt>
-							<dd>{solanaTransaction.status}</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

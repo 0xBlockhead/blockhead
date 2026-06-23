@@ -1,23 +1,18 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum MoneroKeyImageSelector {
 	MoneroTransactionInputIndexKeyImage = 'moneroTransactionInputIndexKeyImage',
+	TransactionInputIndexKeyImage = '$transaction+inputIndex+keyImage',
 }
-
 export default {
 	entityType: EntityType.MoneroKeyImage,
-
-	label: 'Monero Key Image',
-	labelPlural: 'Monero Key Images',
-
+	label: 'monero key image',
+	labelPlural: 'monero key images',
 	selectors: [
 		{
 			name: MoneroKeyImageSelector.MoneroTransactionInputIndexKeyImage,
@@ -28,31 +23,34 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$transaction',
+			label: 'transaction',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.MoneroTransaction,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'inputIndex',
+			label: 'input index',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'keyImage',
+			label: 'key image',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$ring',
+			label: 'ring',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.MoneroRing,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

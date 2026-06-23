@@ -1,16 +1,38 @@
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
-import CashuMintRest from '$/sources/Cashu/Mint/Rest/index.ts'
+import { Source } from '$/sources/Source.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import { cashuBindings } from '$/sources/Cashu/bindings.ts'
+
+export const cashuOrigins = [
+	...new Map(
+		cashuBindings
+			.flatMap((binding) => binding.endpoints)
+			.flatMap((endpoint) => (
+				endpoint.origin == null ?
+					[]
+				:
+					[[
+						endpoint.origin,
+						{
+							origin: endpoint.origin,
+							corsEnabled: endpoint.corsEnabled === true,
+						},
+					]]
+			))
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.Cashu,
 	label: 'Cashu',
-	origins: [
+	sources: [
 		{
-			origin: 'https://8333.space:3338',
-			corsEnabled: false,
+			provider: SourceProvider.Cashu,
+			source: Source.CashuMint_Rest,
+			label: 'Cashu mint REST',
 		},
 	],
-	sources: [
-		CashuMintRest,
-	],
-} as const satisfies SourceProviderDefinition
+	bindings: cashuBindings,
+} satisfies SourceProviderDefinition

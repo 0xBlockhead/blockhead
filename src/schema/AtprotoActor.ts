@@ -1,28 +1,18 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum AtprotoActorSelector {
 	Did = 'did',
 	Handle = 'handle',
 }
-
-const Did = type(
-	'/^did:(plc:[a-z2-7]+|web:[A-Za-z0-9._:%-]+)$/' as type.cast<string>
-)
-
 export default {
 	entityType: EntityType.AtprotoActor,
-
-	label: 'AT Protocol actor',
-	labelPlural: 'AT Protocol actors',
-
+	label: 'atproto actor',
+	labelPlural: 'atproto actors',
 	selectors: [
 		{
 			name: AtprotoActorSelector.Did,
@@ -37,73 +27,70 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: 'did',
+			label: 'DID',
 			type: EntityFieldType.Primitive,
-			primitiveType: Did,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'displayName',
+			label: 'display name',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'handle',
+			label: 'handle',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$icon',
+			label: 'icon',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Media,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Atproto_Xrpc,
-				Source.Atproto_BskySocial_Xrpc,
-			],
 		},
 		{
 			name: '$banner',
+			label: 'banner',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Media,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Atproto_Xrpc,
-				Source.Atproto_BskySocial_Xrpc,
-			],
 		},
 		{
 			name: '$$timestamps',
+			label: 'timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.AtprotoActor_Timestamp,
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Atproto_Xrpc,
-				Source.Atproto_BskySocial_Xrpc,
-			],
 		},
 		{
 			name: 'indexedAt',
+			label: 'indexed AT',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'description',
+			label: 'Description',
+			description: 'A human-readable description from the source domain.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$$posts',
+			label: 'posts',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.AtprotoPost,
 			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

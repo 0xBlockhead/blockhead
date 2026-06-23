@@ -1,6 +1,8 @@
 <script lang="ts">
+	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { select } from '$/routes/+layout.svelte'
+
+
 	// Context
 	import { resolve } from '$app/paths'
 	import { page } from '$app/state'
@@ -12,6 +14,10 @@
 	const playlistId = $derived(
 		page.params.playlistId ?? '',
 	)
+
+
+	// Functions
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// Components
@@ -29,7 +35,14 @@
 >
 	{#snippet Summary({ open: _open })}
 		<YouTubePlaylistView
-			selection={select(EntityType.YouTubePlaylist, { playlistId: decodeURIComponent(playlistId) })}
+			selection={
+				select(
+					EntityType.YouTubePlaylist,
+					{
+						playlistId: decodeURIComponent(playlistId),
+					}
+				)
+			}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

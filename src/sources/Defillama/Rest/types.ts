@@ -4,8 +4,7 @@
  */
 
 import type { DefillamaSearchWidth } from '$/sources/Defillama/OpenApi/types.ts'
-import type { Source } from '$/sources/Source.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 
 export type DefiLlamaPriceData = {
 	decimals: number
@@ -20,7 +19,7 @@ export type DefiLlamaCurrentPricesResponse = {
 }
 
 export type GetProDefillamaCurrentPricesArgs = {
-	publicEnv: SourcePublicEnvFor<Source.Defillama_Rest>
+	publicEnv: SourcePublicEnv
 	coins: string[]
 	searchWidth?: DefillamaSearchWidth
 }

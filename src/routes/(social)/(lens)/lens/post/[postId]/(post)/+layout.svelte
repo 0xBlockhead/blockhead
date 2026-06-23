@@ -1,6 +1,8 @@
 <script lang="ts">
+	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { select } from '$/routes/+layout.svelte'
+
+
 	// Context
 	import { resolve } from '$app/paths'
 	import { page } from '$app/state'
@@ -14,10 +16,14 @@
 	)
 
 
+	// Functions
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import LensPostView from '$/views/LensPostView.svelte'
 	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
+	import LensPostView from '$/views/LensPostView.svelte'
 </script>
 
 
@@ -29,7 +35,14 @@
 >
 	{#snippet Summary({ open: _open })}
 		<LensPostView
-			selection={select(EntityType.LensPost, { id: decodeURIComponent(postId) })}
+			selection={
+				select(
+					EntityType.LensPost,
+					{
+						id: decodeURIComponent(postId),
+					}
+				)
+			}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

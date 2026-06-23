@@ -1,24 +1,18 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import UtxoBlock from '$/schema/UtxoBlock.ts'
-
 export enum LitecoinMwebBlockSelector {
 	UtxoBlock = 'utxoBlock',
+	Block = '$block',
 }
-
 export default {
 	entityType: EntityType.LitecoinMwebBlock,
-
-	label: 'Litecoin MWEB Block',
-	labelPlural: 'Litecoin MWEB Blocks',
-
+	label: 'litecoin MWEB block',
+	labelPlural: 'litecoin MWEB blocks',
 	selectors: [
 		{
 			name: LitecoinMwebBlockSelector.UtxoBlock,
@@ -27,31 +21,34 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$block',
+			label: 'block',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.UtxoBlock,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'hogExTransactionId',
+			label: 'hog ex transaction ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'kernelRoot',
+			label: 'kernel root',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$$transactions',
+			label: 'transactions',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.LitecoinMwebTransaction,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
+			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

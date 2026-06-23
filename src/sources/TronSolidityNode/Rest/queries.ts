@@ -1,5 +1,5 @@
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
-import TronSolidityNode from '$/sources/TronSolidityNode/index.ts'
+import { tronSolidityNodeBindings } from '$/sources/TronSolidityNode/bindings.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	TronNodeAccount,
@@ -7,6 +7,27 @@ import type {
 	TronNodeTransaction,
 	TronNodeTransactionInfo,
 } from '$/sources/TronGrid/Rest/types.ts'
+
+export const tronSolidityNodeRestEndpoints = [
+	{
+		slug: 'solidity_node_local',
+		restBaseUrl: tronSolidityNodeBindings[0].endpoints[0].locator,
+	},
+] as const
+
+export const tronSolidityNodeOrigins = [
+	...new Map(
+		tronSolidityNodeBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 const base = (restBaseUrl: string) => restBaseUrl.replace(/\/$/, '')
 
@@ -20,7 +41,7 @@ const tronSolidityNodePost = async <_Result>({
 	body: JsonValue
 }) => {
 	const response = await corsFetch(`${base(restBaseUrl)}/${path}`, {
-		origins: TronSolidityNode.origins,
+		origins: tronSolidityNodeOrigins,
 		init: {
 			method: 'POST',
 			headers: {

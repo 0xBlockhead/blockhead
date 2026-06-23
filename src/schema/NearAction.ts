@@ -1,23 +1,18 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum NearActionSelector {
 	NearTransactionActionIndex = 'nearTransactionActionIndex',
+	TransactionActionIndex = '$transaction+actionIndex',
 }
-
 export default {
 	entityType: EntityType.NearAction,
-
-	label: 'NEAR Action',
-	labelPlural: 'NEAR Actions',
-
+	label: 'near action',
+	labelPlural: 'near actions',
 	selectors: [
 		{
 			name: NearActionSelector.NearTransactionActionIndex,
@@ -27,37 +22,41 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$transaction',
+			label: 'transaction',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.NearTransaction,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'actionIndex',
+			label: 'action index',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'actionKind',
+			label: 'action kind',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'methodName',
+			label: 'method name',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'depositYoctoNear',
+			label: 'deposit yocto near',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

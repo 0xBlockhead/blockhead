@@ -5,8 +5,8 @@ import type {
 	RpcReceipt,
 	RpcTransaction,
 } from '$/sources/Evm/JsonRpc/types.ts'
-import { zeroGMainnetRpcEndpoints } from '$/sources/ZeroG/Chain/JsonRpc/index.ts'
-import ZeroG from '$/sources/ZeroG/index.ts'
+import { zeroGMainnetRpcEndpoints } from '$/sources/ZeroG/Chain/JsonRpc/endpoints.ts'
+import { zeroGOrigins } from '$/sources/ZeroG/index.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 type ZeroGJsonRpcResponse<_Result> = {
@@ -35,7 +35,7 @@ const zeroGJsonRpc = async <_Result>({
 	params: JsonValue[]
 }) => {
 	const response = await corsFetch(zeroGMainnetRpcEndpoints[0].url, {
-		origins: ZeroG.origins,
+		origins: zeroGOrigins,
 		init: {
 			method: 'POST',
 			headers: {

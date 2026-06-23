@@ -1,75 +1,127 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntitySelector } from '$/schema/$schema.ts'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
 
 
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'source id',
+			},
+			'label',
+			'provider',
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'source id',
+					},
+					'label',
+					'provider',
+					{
+						label: 'source enum',
+					},
+					{
+						label: 'endpoint URL',
+					},
+					{
+						label: 'transport kind',
+					},
+					{
+						label: 'auth kind',
+					},
+					{
+						label: 'CORS/proxy mode',
+					},
+					{
+						label: 'environment scope',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Health',
+					items: [
+						{
+							label: 'BlockheadSource_Timestamp list',
+						},
+					],
+				},
+				{
+					label: 'Transport',
+					items: [
+						{
+							label: 'endpoint URL',
+						},
+						{
+							label: 'auth kind',
+						},
+						{
+							label: 'CORS/proxy policy',
+						},
+						{
+							label: 'local env scope',
+						},
+					],
+				},
+				{
+					label: 'Source catalog',
+					items: [
+						{
+							label: 'Source/SourceProvider enum ids',
+						},
+						{
+							label: 'resolver coverage notes',
+						},
+					],
+				},
+				{
+					label: 'Usage',
+					items: [
+						{
+							label: 'routes or resolver families that selected this local source config',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
-		sourceId,
-		href = resolve(
-			'/~/(manage)/manage/(sources)/source/[sourceId]',
-			{ sourceId },
-		),
-		title = 'Resolver source',
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			sourceId: string
-			href?: string
-			title?: string
+			selection: EntityProxyResource<typeof schema, EntityType.BlockheadSource>
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
-	// (Derived)
-	const selector = $derived(
-		{ id: sourceId } satisfies EntitySelector<typeof schema, EntityType.BlockheadSource>
-	)
-
-
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.BlockheadSource}
-	entitySelector={selector}
-	href={href}
-	{title}
+	entitySelector={selection.entitySelector}
 	bind:open
 	{...EntityViewProps}
->
-	{#snippet Value()}
-		<span>
-			{selector.id}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		{title}
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Configured HTTP or GraphQL transport for chain or market APIs: base URL plus stable id for repeat requests.
-		</p>
-		<p>
-			This is an application-layer data endpoint, not a browser wallet identity or an ephemeral debug session.
-		</p>
-	{/snippet}
-</EntityView>
+	{view}
+/>

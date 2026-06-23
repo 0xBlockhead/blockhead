@@ -1,24 +1,18 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { ZeroExHex } from '$/schema/ZeroExHex.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum EthereumBeaconFinality_TimestampSelector {
 	EvmNetworkTimestampMs = 'evmNetworkTimestampMs',
+	NetworkTimestampMs = '$network+timestampMs',
 }
-
 export default {
 	entityType: EntityType.EthereumBeaconFinality_Timestamp,
-
-	label: 'Beacon finality snapshot',
-	labelPlural: 'Beacon finality snapshots',
-
+	label: 'ethereum beacon finality timestamp',
+	labelPlural: 'ethereum beacon finality observations',
 	selectors: [
 		{
 			name: EthereumBeaconFinality_TimestampSelector.EvmNetworkTimestampMs,
@@ -28,73 +22,63 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'currentJustifiedCheckpointEpoch',
+			label: 'current justified checkpoint epoch',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
 		},
 		{
 			name: 'currentJustifiedCheckpointRoot',
+			label: 'current justified checkpoint root',
 			type: EntityFieldType.Primitive,
-			primitiveType: ZeroExHex,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
 		},
 		{
 			name: 'previousJustifiedCheckpointEpoch',
+			label: 'previous justified checkpoint epoch',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
 		},
 		{
 			name: 'previousJustifiedCheckpointRoot',
+			label: 'previous justified checkpoint root',
 			type: EntityFieldType.Primitive,
-			primitiveType: ZeroExHex,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
 		},
 		{
 			name: 'finalizedCheckpointEpoch',
+			label: 'finalized checkpoint epoch',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
 		},
 		{
 			name: 'finalizedCheckpointRoot',
+			label: 'finalized checkpoint root',
 			type: EntityFieldType.Primitive,
-			primitiveType: ZeroExHex,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

@@ -1,16 +1,24 @@
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
-import ZcashdJsonRpc from '$/sources/Zcashd/JsonRpc/index.ts'
+import { Source } from '$/sources/Source.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import { zcashdBindings } from '$/sources/Zcashd/bindings.ts'
 
 export default {
 	provider: SourceProvider.Zcashd,
 	label: 'zcashd',
-	origins: [
+	sources: [
 		{
-			origin: 'http://127.0.0.1:8232',
-			corsEnabled: false,
+			provider: SourceProvider.Zcashd,
+			source: Source.Zcashd_JsonRpc,
+			label: 'zcashd JSON-RPC',
+		},
+		{
+			provider: SourceProvider.Zcashd,
+			source: Source.ZcashdWallet_JsonRpc,
+			label: 'zcashd wallet JSON-RPC',
 		},
 	],
-	sources: [
-		ZcashdJsonRpc,
-	],
-} as const satisfies SourceProviderDefinition
+	bindings: zcashdBindings,
+} satisfies SourceProviderDefinition

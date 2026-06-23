@@ -1,23 +1,17 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum HyperliquidPerpMarketSelector {
 	NetworkCoin = 'networkCoin',
 }
-
 export default {
 	entityType: EntityType.HyperliquidPerpMarket,
-
-	label: 'Hyperliquid Perp Market',
-	labelPlural: 'Hyperliquid Perp Markets',
-
+	label: 'hyperliquid perp market',
+	labelPlural: 'hyperliquid perp markets',
 	selectors: [
 		{
 			name: HyperliquidPerpMarketSelector.NetworkCoin,
@@ -27,31 +21,27 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'coin',
+			label: 'coin',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'maxLeverage',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			name: '$$timestamps',
+			label: 'timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.HyperliquidPerpMarket_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
 		},
-		{
-			name: 'onlyIsolated',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

@@ -1,99 +1,24 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
-	conditionalOn,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum SolanaInstructionKind {
 	Instruction = 'instruction',
 	InnerInstruction = 'innerInstruction',
 }
-
 export enum SolanaInstructionSelector {
 	SolanaTransactionInstruction = 'solanaTransactionInstruction',
+	TransactionInstructionKindInstructionIndex = '$transaction+instructionKind+instructionIndex',
 	SolanaTransactionInnerInstruction = 'solanaTransactionInnerInstruction',
+	TransactionInstructionKindInstructionIndexInnerInstructionIndex = '$transaction+instructionKind+instructionIndex+innerInstructionIndex',
 }
-
-const solanaInstructionKindField = {
-	name: 'instructionKind',
-	type: EntityFieldType.Primitive,
-	primitiveType: type.enumerated(
-		SolanaInstructionKind.Instruction,
-		SolanaInstructionKind.InnerInstruction
-	),
-	cardinality: EntityFieldCardinality.One,
-} as const satisfies EntityFieldDefinition
-
-const solanaInstructionFields = [
-	{
-		name: '$transaction',
-		type: EntityFieldType.EntityReference,
-		entityType: EntityType.SolanaTransaction,
-		cardinality: EntityFieldCardinality.One,
-	},
-	solanaInstructionKindField,
-	{
-		name: 'instructionIndex',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('number.integer >= 0'),
-		cardinality: EntityFieldCardinality.One,
-	},
-	{
-		name: 'innerInstructionIndex',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('number.integer >= 0'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		when: conditionalOn(
-			[solanaInstructionKindField],
-			'instructionKind',
-			[
-				SolanaInstructionKind.InnerInstruction,
-			]
-		),
-	},
-	{
-		name: '$program',
-		type: EntityFieldType.EntityReference,
-		entityType: EntityType.SolanaProgram,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	{
-		name: 'parsedType',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	{
-		name: 'data',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	{
-		name: 'stackHeight',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('number.integer >= 0'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	{
-		name: '$$accounts',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.SolanaAccount,
-		cardinality: EntityFieldCardinality.ZeroOrMany,
-	},
-] as const satisfies readonly EntityFieldDefinition[]
-
 export default {
 	entityType: EntityType.SolanaInstruction,
-
-	label: 'Solana Instruction',
-	labelPlural: 'Solana Instructions',
-
+	label: 'solana instruction',
+	labelPlural: 'solana instructions',
 	selectors: [
 		{
 			name: SolanaInstructionSelector.SolanaTransactionInstruction,
@@ -113,6 +38,69 @@ export default {
 			],
 		},
 	],
-
-	fields: solanaInstructionFields,
+	fields: [
+		{
+			name: '$transaction',
+			label: 'transaction',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.SolanaTransaction,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'instructionKind',
+			label: 'instruction kind',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'instructionIndex',
+			label: 'instruction index',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'innerInstructionIndex',
+			label: 'inner instruction index',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$program',
+			label: 'program',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.SolanaProgram,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'parsedType',
+			label: 'parsed type',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'data',
+			label: 'data',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'stackHeight',
+			label: 'stack height',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$$accounts',
+			label: 'accounts',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.SolanaAccount,
+			cardinality: EntityFieldCardinality.Many,
+		},
+	],
 } as const satisfies EntityDefinition

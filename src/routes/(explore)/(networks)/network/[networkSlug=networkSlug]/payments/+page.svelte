@@ -27,7 +27,7 @@
 	// Components
 	import Page from '$/components/Page.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import LightningPaymentsView from '$/views/LightningPaymentsView.svelte'
+	import BlockheadLightningPaymentsView from '$/views/BlockheadLightningPaymentsView.svelte'
 </script>
 
 
@@ -35,7 +35,7 @@
 	<ResourceBoundary resource={network}>
 		{#snippet children(network)}
 			{#if network.namespace === NetworkNamespace.Lightning}
-				<LightningPaymentsView
+				<BlockheadLightningPaymentsView
 					selection={select(
 						EntityType.LightningNetwork,
 						{

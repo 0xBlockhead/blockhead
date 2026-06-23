@@ -32,9 +32,6 @@ export default {
 					type: project.type,
 					...(project.category != null && { category: project.category }),
 					hostChain: project.hostChain,
-					...(project.isArchived != null && { isArchived: project.isArchived }),
-					...(project.isUpcoming != null && { isUpcoming: project.isUpcoming }),
-					...(project.isUnderReview != null && { isUnderReview: project.isUnderReview }),
 					$settlementNetwork: {
 						[EntityMetaKey.Selector]: {
 							caip2: {
@@ -53,9 +50,6 @@ export default {
 			type: (snapshot) => snapshot.type,
 			category: (snapshot) => snapshot.category,
 			hostChain: (snapshot) => snapshot.hostChain,
-			isArchived: (snapshot) => snapshot.isArchived,
-			isUpcoming: (snapshot) => snapshot.isUpcoming,
-			isUnderReview: (snapshot) => snapshot.isUnderReview,
 			$settlementNetwork: (snapshot) => snapshot.$settlementNetwork,
 		},
 			}),
@@ -207,50 +201,6 @@ export default {
 		})({
 				fields: {
 			$$settledRollups: (snapshot) => snapshot,
-		},
-			}),
-
-		defineResolver(Source.L2Beat_Rest, {
-			entityType: EntityType.EvmNetwork,
-			resolve: {
-				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
-				const {
-					chainIdByL2BeatProjectId,
-					l2beatHostChainToParentChainId,
-					l2BeatProjectChainIds,
-				} = await import('$/sources/L2Beat/Rest/constants.ts')
-				const { fetchScalingSummary } = await import('$/sources/L2Beat/Rest/queries.ts')
-				const parentChainId = Number(caip2.reference)
-				const hostLabels = (
-					Object.entries(l2beatHostChainToParentChainId)
-						.flatMap(([label, chainId]) => (
-							chainId === parentChainId ?
-								[label]
-							:
-								[]
-						))
-				)
-				if (hostLabels.length === 0) return []
-				const summary = await fetchScalingSummary()
-				const chainIds = (
-					l2BeatProjectChainIds.flatMap(({ projectId }) => {
-						const chainId = chainIdByL2BeatProjectId[projectId]
-						if (chainId == null || chainId === parentChainId) return []
-						const project = summary.projects[projectId]
-						if (project == null || project.isArchived === true) return []
-						return hostLabels.includes(project.hostChain) ? [chainId] : []
-					})
-				)
-				return chainIds.map((chainId) => ({
-					[EntityMetaKey.Selector]: {
-						...{ caip2: { namespace: 'eip155' as const, reference: String(chainId) } },
-					},
-				}))
-			}
-			}
-		})({
-				fields: {
-			$$childLayers: (snapshot) => snapshot,
 		},
 			}),
 	],

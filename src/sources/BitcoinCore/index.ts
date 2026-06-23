@@ -1,16 +1,19 @@
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
-import BitcoinCoreJsonRpc from '$/sources/BitcoinCore/JsonRpc/index.ts'
+import { Source } from '$/sources/Source.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import { bitcoinCoreBindings } from '$/sources/BitcoinCore/bindings.ts'
 
 export default {
 	provider: SourceProvider.BitcoinCore,
 	label: 'Bitcoin Core',
-	origins: [
+	sources: [
 		{
-			origin: 'http://127.0.0.1:8332',
-			corsEnabled: false,
+			provider: SourceProvider.BitcoinCore,
+			source: Source.BitcoinCore_JsonRpc,
+			label: 'Bitcoin Core JSON-RPC',
 		},
 	],
-	sources: [
-		BitcoinCoreJsonRpc,
-	],
-} as const satisfies SourceProviderDefinition
+	bindings: bitcoinCoreBindings,
+} satisfies SourceProviderDefinition

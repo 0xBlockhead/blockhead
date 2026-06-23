@@ -1,27 +1,18 @@
 import { type } from 'arktype'
-
-// Concentrated-liquidity AMM pool row. Dexscreener-backed slices expose pair tokens, volume, and TVL only; on-chain curve fields are optional until an execution RPC or pool indexer maps them.
-import { ZeroExHex } from '$/schema/ZeroExHex.ts'
-import { UrlString } from '$/schema/UrlString.ts'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum LiquidityPoolSelector {
 	EvmNetworkId = 'evmNetworkId',
+	NetworkId = '$network+id',
 }
-
 export default {
 	entityType: EntityType.LiquidityPool,
-
-	label: 'Liquidity Pool',
-	labelPlural: 'Liquidity Pools',
-
+	label: 'liquidity pool',
+	labelPlural: 'liquidity pools',
 	selectors: [
 		{
 			name: LiquidityPoolSelector.EvmNetworkId,
@@ -31,142 +22,77 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'id',
+			label: 'ID',
+			description: 'The identifier assigned by the source domain.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$baseToken',
+			label: 'base token',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmContract,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Dexscreener_OpenApi,
-			],
 		},
 		{
 			name: '$quoteToken',
+			label: 'quote token',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmContract,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Dexscreener_OpenApi,
-			],
 		},
 		{
 			name: 'fee',
+			label: 'fee',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'tickSpacing',
+			label: 'tick spacing',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$hooks',
+			label: 'hooks',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmContract,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'v4PoolId',
+			label: 'v4 pool ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: ZeroExHex,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$$timestamps',
+			label: 'timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.LiquidityPool_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Dexscreener_OpenApi,
-			],
+			cardinality: EntityFieldCardinality.ZeroOrMany,
 		},
 		{
 			name: '$$blocks',
+			label: 'blocks',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.LiquidityPool_Block,
-			cardinality: EntityFieldCardinality.Many,
-		},
-		{
-			name: 'baseTokenSymbol',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Dexscreener_OpenApi,
-			],
-		},
-		{
-			name: 'quoteTokenSymbol',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Dexscreener_OpenApi,
-			],
-		},
-		{
-			name: 'baseTokenDecimals',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'quoteTokenDecimals',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'pairCreatedAtMs',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Dexscreener_OpenApi,
-			],
-		},
-		{
-			name: 'dexscreenerLabels',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Dexscreener_OpenApi,
-			],
 		},
-		{
-			name: 'dexId',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Dexscreener_OpenApi,
-			],
-		},
-		{
-			name: 'dexscreenerPairUrl',
-			type: EntityFieldType.Primitive,
-			primitiveType: UrlString,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Dexscreener_OpenApi,
-			],
-		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

@@ -1,37 +1,19 @@
 import { type } from 'arktype'
-
-import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
-	conditionalOn,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { EvmInternalCallType } from '$/constants/Evm.ts'
-import { Source } from '$/sources/Source.ts'
-
+import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 export enum EvmInternalTransferSelector {
 	EvmNetworkTxHashInternalIndex = 'evmNetworkTxHashInternalIndex',
+	NetworkTxHashInternalIndex = '$network+txHash+internalIndex',
 }
-
-
-const evmInternalTransferDiscriminatorFields = [
-	{
-		name: 'callType',
-		type: EntityFieldType.Primitive,
-		primitiveType: type.valueOf(EvmInternalCallType),
-		cardinality: EntityFieldCardinality.One,
-	},
-] as const satisfies readonly EntityFieldDefinition[]
-
 export default {
 	entityType: EntityType.EvmInternalTransfer,
-
-	label: 'Internal transfer',
-	labelPlural: 'Internal transfers',
-
+	label: 'EVM internal transfer',
+	labelPlural: 'EVM internal transfers',
 	selectors: [
 		{
 			name: EvmInternalTransferSelector.EvmNetworkTxHashInternalIndex,
@@ -42,64 +24,71 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'txHash',
+			label: 'Transaction hash',
+			description: 'The transaction hash in its network.',
 			type: EntityFieldType.Primitive,
 			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'internalIndex',
+			label: 'internal index',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$from',
+			label: 'from',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$to',
+			label: 'to',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'value',
+			label: 'Value',
+			description: 'The source-domain value.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.One,
 		},
-		...evmInternalTransferDiscriminatorFields,
+		{
+			name: 'callType',
+			label: 'call type',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'success',
+			label: 'success',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
+			primitiveType: type("boolean"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$createdContract',
+			label: 'created contract',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmContract,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			when: conditionalOn(
-				evmInternalTransferDiscriminatorFields,
-				'callType',
-				[
-					EvmInternalCallType.Create,
-					EvmInternalCallType.Create2,
-				]
-			),
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

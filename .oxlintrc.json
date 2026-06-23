@@ -26,6 +26,11 @@
 		"coverage/**",
 		"playwright-report/**",
 		"src/routes/demo/**",
+		"src/routes_/**",
+		"src/resolvers_/**",
+		"src/schema_/**",
+		"src/sources_/**",
+		"src/views_/**",
 		"**/*.d.ts",
 		"scripts/**/*.ts"
 	],

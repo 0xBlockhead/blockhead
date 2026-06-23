@@ -1,28 +1,17 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum CctpFeeSelector {
 	ApiHostFromDomainToDomain = 'apiHostFromDomainToDomain',
 }
-
-
-const cctpFeeRow = type({
-	finalityThreshold: 'number',
-	minimumFee: 'number',
-})
-
 export default {
 	entityType: EntityType.CctpFee,
-
-	label: 'CCTP Fee',
-	labelPlural: 'CCTP Fees',
-
+	label: 'cctp fee',
+	labelPlural: 'cctp fees',
 	selectors: [
 		{
 			name: CctpFeeSelector.ApiHostFromDomainToDomain,
@@ -33,31 +22,34 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: 'apiHost',
+			label: 'API host',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'fromDomain',
+			label: 'from domain',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'toDomain',
+			label: 'to domain',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'rows',
+			label: 'rows',
 			type: EntityFieldType.Primitive,
-			primitiveType: cctpFeeRow.array(),
+			primitiveType: type({"finalityThreshold": "number", "minimumFee": "number"}).array(),
 			cardinality: EntityFieldCardinality.One,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

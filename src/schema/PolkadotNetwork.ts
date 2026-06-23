@@ -1,34 +1,17 @@
 import { type } from 'arktype'
-
-import { TransportType } from '$/constants/TransportType.ts'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { UrlString } from '$/schema/UrlString.ts'
-import Network from '$/schema/Network.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum PolkadotNetworkSelector {
 	Network = 'network',
 }
-
-
-const polkadotRpcEndpointField = type({
-	url: UrlString,
-	transportType: type.valueOf(TransportType),
-	providerName: 'string',
-})
-
 export default {
 	entityType: EntityType.PolkadotNetwork,
-
-	label: 'Polkadot network',
-	labelPlural: 'Polkadot networks',
-
+	label: 'polkadot network',
+	labelPlural: 'polkadot networks',
 	selectors: [
 		{
 			name: PolkadotNetworkSelector.Network,
@@ -37,52 +20,55 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: 'rpcEndpoints',
+			label: 'RPC endpoints',
 			type: EntityFieldType.Primitive,
-			primitiveType: polkadotRpcEndpointField,
+			primitiveType: type({"url": "string", "transportType": "string", "providerName": "string"}),
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Polkadot_JsonRpc,
-			],
 		},
 		{
 			name: '$$timestamps',
+			label: 'timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.PolkadotNetwork_Timestamp,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Polkadot_JsonRpc,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$blocks',
+			label: 'blocks',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.PolkadotBlock,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Polkadot_JsonRpc,
-			],
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: '$$assets',
+			label: 'assets',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.PolkadotAsset,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: '$$assetBalanceTimestamps',
+			label: 'asset balance timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.PolkadotAssetBalance_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$validators',
+			label: 'validators',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.PolkadotValidator,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.SubstrateSidecar_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

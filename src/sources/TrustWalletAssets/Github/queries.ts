@@ -1,4 +1,9 @@
-import { owner, rawOrigin, ref, repo } from '$/sources/TrustWalletAssets/Github/constants.ts'
+import {
+	owner,
+	rawOrigin,
+	ref,
+	repo,
+} from '$/sources/TrustWalletAssets/Github/constants.ts'
 
 export const getChainLogoUrl = (chain: string): string => (
 	`${rawOrigin}/${owner}/${repo}/${ref}/blockchains/${encodeURIComponent(chain)}/info/logo.png`

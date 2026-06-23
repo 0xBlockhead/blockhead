@@ -22,7 +22,7 @@ import { RedditCommentSelector } from '$/schema/RedditComment.ts'
 import { RedditSubreddit_TimestampSelector } from '$/schema/RedditSubreddit_Timestamp.ts'
 import { RedditLink_TimestampSelector } from '$/schema/RedditLink_Timestamp.ts'
 import { RedditComment_TimestampSelector } from '$/schema/RedditComment_Timestamp.ts'
-import { RedditNetworkSelector } from '$/schema/RedditNetwork.ts'
+import { _GlobalRedditNetworkSelector } from '$/schema/_GlobalRedditNetwork.ts'
 
 
 const redditSubredditIconUrl = (
@@ -205,7 +205,7 @@ export default {
 		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditSubreddit_Timestamp,
 			resolve: {
-				[RedditSubreddit_TimestampSelector.RedditSubredditTimestampMs]: async ({ $subreddit }, context) => {
+				[RedditSubreddit_TimestampSelector.SubredditTimestampMsSource]: async ({ $subreddit }, context) => {
 					const { getSubredditAbout } = await import('$/sources/Reddit/Rest/queries.ts')
 					const subredditAbout = (await getSubredditAbout(context.publicEnv, $subreddit.name)).data
 					return {
@@ -226,7 +226,7 @@ export default {
 		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditLink_Timestamp,
 			resolve: {
-				[RedditLink_TimestampSelector.RedditLinkTimestampMs]: async ({ $link }, context) => {
+				[RedditLink_TimestampSelector.LinkTimestampMsSource]: async ({ $link }, context) => {
 					const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
 					const redditThing = (await getInfo(context.publicEnv, $link.fullname))
 						.data
@@ -250,7 +250,7 @@ export default {
 		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditComment_Timestamp,
 			resolve: {
-				[RedditComment_TimestampSelector.RedditCommentTimestampMs]: async ({ $comment }, context) => {
+				[RedditComment_TimestampSelector.CommentTimestampMsSource]: async ({ $comment }, context) => {
 					const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
 					const redditThing = (await getInfo(context.publicEnv, $comment.fullname))
 						.data
@@ -266,10 +266,10 @@ export default {
 				score: (timestamp) => timestamp.score,
 			},
 		}),
-		defineResolver(Source.Reddit_Rest, {
-			entityType: EntityType.RedditNetwork,
-			resolve: {
-				[RedditNetworkSelector.Scope]: async (_entitySelector, context) => {
+			defineResolver(Source.Reddit_Rest, {
+				entityType: EntityType._GlobalRedditNetwork,
+				resolve: {
+					[_GlobalRedditNetworkSelector.Scope]: async (_entitySelector, context) => {
 					const { listPopularLinks } = await import('$/sources/Reddit/Rest/queries.ts')
 					const publicEnv = context.publicEnv
 					const limit = resolverContextRowLimit(context)
@@ -286,16 +286,16 @@ export default {
 					)
 				}
 			},
-		})({
-			fields: {
-				$$redditSubreddits: (network) => network,
-			},
-		}),
+			})({
+				fields: {
+					$$sourceWindowSubreddits: (network) => network,
+				},
+			}),
 
-		defineResolver(Source.Reddit_Rest, {
-			entityType: EntityType.RedditNetwork,
-			resolve: {
-				[RedditNetworkSelector.Scope]: async (_entitySelector, context) => {
+			defineResolver(Source.Reddit_Rest, {
+				entityType: EntityType._GlobalRedditNetwork,
+				resolve: {
+					[_GlobalRedditNetworkSelector.Scope]: async (_entitySelector, context) => {
 					const { listPopularLinks } = await import('$/sources/Reddit/Rest/queries.ts')
 					const publicEnv = context.publicEnv
 					const limit = resolverContextRowLimit(context)
@@ -314,11 +314,11 @@ export default {
 					)
 				}
 			},
-		})({
-			fields: {
-				$$redditLinks: (network) => network,
-			},
-		}),
+			})({
+				fields: {
+					$$sourceWindowLinks: (network) => network,
+				},
+			}),
 
 		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditSubreddit,
@@ -331,6 +331,7 @@ export default {
 							[EntityMetaKey.Selector]: {
 								$subreddit: { name },
 								timestampMs: Date.now(),
+								source: Source.Reddit_Rest,
 							},
 							...(data.subscribers != null && { subscriberCount: data.subscribers }),
 							...(data.active_user_count != null && { activeUserCount: data.active_user_count }),
@@ -386,6 +387,7 @@ export default {
 							[EntityMetaKey.Selector]: {
 								$link: { fullname },
 								timestampMs: Date.now(),
+								source: Source.Reddit_Rest,
 							},
 							...(redditThing.data.score != null && { score: redditThing.data.score }),
 							...(redditThing.data.num_comments != null && {
@@ -462,6 +464,7 @@ export default {
 							[EntityMetaKey.Selector]: {
 								$comment: { fullname },
 								timestampMs: Date.now(),
+								source: Source.Reddit_Rest,
 							},
 							...(redditThing.data.score != null && { score: redditThing.data.score }),
 						},

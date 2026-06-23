@@ -2,17 +2,112 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
-
-
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'transaction',
+			},
+			{
+				label: 'output index',
+			},
+			{
+				label: 'value',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'transaction',
+					},
+					{
+						label: 'output index',
+					},
+					{
+						label: 'value',
+					},
+					{
+						label: 'address',
+					},
+					{
+						label: 'script pubkey type',
+					},
+					{
+						label: 'spent state',
+					},
+					{
+						label: 'chain-specific asset/token indicators',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Script',
+					items: [
+						{
+							label: 'script pubkey asm/hex/type',
+						},
+					],
+				},
+				{
+					label: 'Address',
+					items: [
+						{
+							label: 'address projection when resolved',
+						},
+					],
+				},
+				{
+					label: 'Elements',
+					items: [
+						{
+							label: 'Elements asset identity',
+						},
+						{
+							label: 'asset/value/nonce commitments',
+						},
+						{
+							label: 'surjection proof',
+						},
+						{
+							label: 'range proof',
+						},
+						{
+							label: 'confidential flag',
+						},
+					],
+				},
+				{
+					label: 'CashTokens',
+					items: [
+						{
+							label: 'fungible amount',
+						},
+						{
+							label: 'NFT facets',
+						},
+					],
+				},
+				{
+					label: 'Transaction',
+					items: [
+						{
+							label: 'parent transaction',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -22,114 +117,24 @@
 			selection: EntityProxyResource<typeof schema, EntityType.UtxoOutput>
 			open?: boolean
 		},
-		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
+		Pick<
+			ComponentProps<typeof EntityView2>,
+			| 'layout'
+			| 'showTypeAnnotation'
+		>
 	> = $props()
 
 
-	const utxoOutput = $derived(selection())
-
-
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
-	import UtxoAddressView from '$/views/UtxoAddressView.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.UtxoOutput}
 	entitySelector={selection.entitySelector}
-	title={`Output #${selection.entitySelector.outputIndex.toString()}`}
-	idDragPlainText={selection.entitySelector.outputIndex.toString()}
 	bind:open
 	{...EntityViewProps}
->
-	{#snippet Value()}
-		<span data-badge="small">
-			#{selection.entitySelector.outputIndex.toString()}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>Output </span>
-			{#if Value}
-				{@render Value()}
-			{/if}
-		</span>
-	{/snippet}
-
-	{#snippet Content()}
-		<dl>
-			<ResourceBoundary resource={utxoOutput.valueSats} placeholderText="Loading output value...">
-				{#snippet children(valueSats)}
-					{#if valueSats != null}
-						<div>
-							<dt>Value Sats</dt>
-							<dd><NumberValue value={valueSats} /> sats</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary resource={utxoOutput.scriptPubKeyAsm} placeholderText="Loading script pub key asm...">
-				{#snippet children(scriptPubKeyAsm)}
-					{#if scriptPubKeyAsm != null}
-						<div>
-							<dt>Script Pub Key Asm</dt>
-							<dd><TruncatedValue value={scriptPubKeyAsm} format={TruncatedValueFormat.Abbr} /></dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary resource={utxoOutput.scriptPubKeyHex} placeholderText="Loading script pub key hex...">
-				{#snippet children(scriptPubKeyHex)}
-					{#if scriptPubKeyHex != null}
-						<div>
-							<dt>Script Pub Key Hex</dt>
-							<dd><TruncatedValue value={scriptPubKeyHex} format={TruncatedValueFormat.Abbr} /></dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary resource={utxoOutput.scriptPubKeyType} placeholderText="Loading script pub key type...">
-				{#snippet children(scriptPubKeyType)}
-					{#if scriptPubKeyType != null}
-						<div>
-							<dt>Script Pub Key Type</dt>
-							<dd><TruncatedValue value={scriptPubKeyType} format={TruncatedValueFormat.Abbr} /></dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary resource={utxoOutput.$address} placeholderText="Loading output address...">
-				{#snippet children(address)}
-					{#if address}
-						<div>
-							<dt>Address</dt>
-							<dd>
-								<UtxoAddressView selection={select(EntityType.UtxoAddress, address.entitySelector)} layout={EntityLayout.Title} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary resource={utxoOutput.isSpent} placeholderText="Loading spent status...">
-				{#snippet children(isSpent)}
-					{#if isSpent != null}
-						<div>
-							<dt>Is Spent</dt>
-							<dd>{isSpent ? 'Yes' : 'No'}</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
-	{/snippet}
-</EntityView>
+	{view}
+/>

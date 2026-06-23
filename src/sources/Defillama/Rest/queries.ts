@@ -8,7 +8,7 @@ import { corsFetch, throwIfHttpNotOk } from '$/lib/http.ts'
 import { requiredPublicEnvString } from '$/sources/$sources.ts'
 import type { GetDefillamaCurrentPricesOptions } from '$/sources/Defillama/OpenApi/types.ts'
 import { getCurrentPrices as getCurrentPricesOpenApi } from '$/sources/Defillama/OpenApi/queries.ts'
-import Defillama from '$/sources/Defillama/index.ts'
+import { defillamaOrigins } from '$/sources/Defillama/index.ts'
 import { proBaseUrl } from '$/sources/Defillama/Rest/constants.ts'
 import type {
 	DefiLlamaCurrentPricesResponse,
@@ -41,7 +41,7 @@ export const getProCurrentPrices = async ({
 		`${proBaseUrl}/${encodeURIComponent(requiredPublicEnvString(publicEnv, 'PUBLIC_DEFILLAMA_PRO_API_KEY'))}/coins/prices/current/${coins.join(',')}`
 	)
 	if (searchWidthOption != null) url.searchParams.set('searchWidth', searchWidthOption)
-	const res = await corsFetch(url.href, { origins: Defillama.origins  })
+	const res = await corsFetch(url.href, { origins: defillamaOrigins })
 	await throwIfHttpNotOk(res, url.href)
 	return res.json<DefiLlamaCurrentPricesResponse>()
 }

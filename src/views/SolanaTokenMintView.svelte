@@ -2,15 +2,107 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			{
+				label: 'mint address',
+			},
+			{
+				label: 'latest mint snapshot',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					{
+						label: 'mint address',
+					},
+					{
+						label: 'token-account count',
+					},
+				],
+				[
+					{
+						label: 'latest supply/decimals snapshot',
+					},
+					{
+						label: 'latest mint authority',
+					},
+					{
+						label: 'latest freeze authority',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Mint observations',
+					items: [
+						{
+							label: 'slot/source mint-account observations',
+						},
+					],
+				},
+				{
+					label: 'Token accounts',
+					items: [
+						{
+							label: 'token accounts for bounded source facets',
+						},
+					],
+				},
+				{
+					label: 'Authorities',
+					items: [
+						{
+							label: 'mint authority',
+						},
+						{
+							label: 'freeze authority from latest observation',
+						},
+					],
+				},
+				{
+					label: 'Network',
+					items: [
+						{
+							label: 'parent Solana network',
+						},
+					],
+				},
+				{
+					label: 'Metadata',
+					items: [
+						{
+							label: 'Metaplex/DAS metadata row when source-backed',
+						},
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'getAccountInfo jsonParsed mint account',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +113,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,52 +121,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.SolanaTokenMint}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.mintAddress}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		<TruncatedValue
-			value={selection.entitySelector.mintAddress}
-			format={TruncatedValueFormat.Abbr}
-		/>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection(
-					({ fields: { supply: true, decimals: true } }),
-				)}
-			placeholderText={`Loading Solana Token Mint...`}
-		>
-			{#snippet children(solanaTokenMint)}
-				<dl>
-					{#if solanaTokenMint.supply != null}
-						<div>
-							<dt>Supply</dt>
-							<dd><NumberValue value={solanaTokenMint.supply} /></dd>
-						</div>
-					{/if}
-
-					{#if solanaTokenMint.decimals != null}
-						<div>
-							<dt>Decimals</dt>
-							<dd><NumberValue value={solanaTokenMint.decimals} /></dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

@@ -1,145 +1,66 @@
 <script lang="ts">
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Context
-	import { writeLocalBlockheadSession } from '$/collections/localMutations.ts'
-	import { appClient, select } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
+	const listView = {
+		entityType: EntityType.BlockheadSession,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
 		selection,
-		title = 'Simulator sessions',
+		title,
 		open = $bindable(true),
-		collapsible = true,
-		id,
+		id = 'BlockheadSessions',
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			selection: EntityProxyEntitiesResource<typeof schema, EntityType.BlockheadSession>
-				& {
-					entitySelector: {
-						readonly scope: string
-					}
-				}
 			title?: string
 			open?: boolean
-			collapsible?: boolean
-			id: string
+			id?: string
+			href?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
-
-
-	let sessionName = $state('')
-
-
-	// Actions
-	const createSession = () => {
-		writeLocalBlockheadSession(appClient, selection.entitySelector, sessionName)
-		sessionName = ''
-	}
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadSessionView from '$/views/BlockheadSessionView.svelte'
 </script>
 
 
 <EntitiesList
-	entityType={EntityType.BlockheadSession}
-	{id}
+	entityType={listView.entityType}
 	{title}
 	bind:open
-	{collapsible}
+	{id}
+	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Saved simulation projects: named capture points, loop counters, and replay bookkeeping for scripted EVM or HTTP traces.
-		</p>
-		<p>
-			Such traces are diagnostics—compare their implied state roots to a live node instead of treating them as canonical chain history.
-		</p>
-	{/snippet}
-
-	{#snippet Empty()}
-		<p data-text="muted">
-			No sessions yet.
-		</p>
-	{/snippet}
-
-	{#snippet body({ open: _bodyOpen })}
-		{#if open}
-			<form
-				data-row="align-center"
-				onsubmit={(event) => {
-					event.preventDefault()
-					createSession()
-				}}
-			>
-				<label for={`${id}-session-name`}>
-					New session
-				</label>
-
-				<input
-					id={`${id}-session-name`}
-					type="text"
-					bind:value={sessionName}
-					placeholder="Untitled session"
-				/>
-
-				<button type="submit">
-					Create
-				</button>
-			</form>
-
-			<ResourceBoundary resource={selection({
-					sources: [Source.Local_Internal],
-				})} placeholderText="Loading sessions…">
-				{#snippet children(sessions)}
-					<EntitiesList
-						collapsible={false}
-						showSummary={false}
-						entityType={EntityType.BlockheadSession}
-						id={`${id}-items`}
-						{title}
-						open={true}
-						getKey={(session) => stringify(session.entitySelector)}
-						getSortValue={(session) => stringify(session.entitySelector)}
-						items={sessions.entities}
-						UnorderedListProps={{ orientation: ListOrientation.Column }}
-					>
-						{#snippet Empty()}
-							<p data-text="muted">No sessions yet.</p>
-						{/snippet}
-
-						{#snippet Item({ item })}
-							<BlockheadSessionView
-								selection={select(EntityType.BlockheadSession, item.entitySelector)}
-								layout={EntityLayout.Summary}
-
-							/>
-						{/snippet}
-					</EntitiesList>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+	{#snippet Item({ item })}
+		<BlockheadSessionView
+			selection={select(EntityType.BlockheadSession, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

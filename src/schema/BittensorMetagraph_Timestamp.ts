@@ -1,65 +1,64 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import BittensorSubnet from '$/schema/BittensorSubnet.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum BittensorMetagraph_TimestampSelector {
-	BittensorSubnetTimestampMs = 'bittensorSubnetTimestampMs',
+	SubnetTimestampMsSource = '$subnet+timestampMs+source',
 }
-
 export default {
 	entityType: EntityType.BittensorMetagraph_Timestamp,
-
-	label: 'Bittensor metagraph snapshot',
-	labelPlural: 'Bittensor metagraph snapshots',
-
+	label: 'bittensor metagraph timestamp',
+	labelPlural: 'bittensor metagraph observations',
 	selectors: [
 		{
-			name: BittensorMetagraph_TimestampSelector.BittensorSubnetTimestampMs,
+			name: BittensorMetagraph_TimestampSelector.SubnetTimestampMsSource,
 			fields: [
 				'$subnet',
 				'timestampMs',
+				'source',
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$subnet',
+			label: 'subnet',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.BittensorSubnet,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'source',
+			label: 'Source',
+			description: 'The source that produced this observation.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'metagraphByteLength',
+			label: 'metagraph byte length',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Bittensor_JsonRpc,
-			],
 		},
 		{
 			name: 'neuronCount',
+			label: 'neuron count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Bittensor_JsonRpc,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

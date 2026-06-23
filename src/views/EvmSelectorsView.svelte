@@ -1,108 +1,66 @@
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
+	const listView = {
+		entityType: EntityType.EvmSelector,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
 		selection,
+		title,
 		open = $bindable(true),
-		collapsible = true,
-		title = '4-byte selectors',
-		id,
-				...EntitiesListProps
+		id = 'EvmSelectors',
+		href = '',
+		...EntitiesListProps
 	}: WithRest<
 		{
 			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EvmSelector>
-			open?: boolean
-			collapsible?: boolean
 			title?: string
-			id: string
+			open?: boolean
+			id?: string
+			href?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmSelectorView from '$/views/EvmSelectorView.svelte'
 </script>
 
 
 <EntitiesList
-	entityType={EntityType.EvmSelector}
-
-	{id}
+	entityType={listView.entityType}
 	{title}
 	bind:open
+	{id}
+	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Four-byte function selectors prefix calldata for contract calls; catalogs map them to human-readable signatures.
-		</p>
-		<p>
-			Receipt logs and error selectors follow different decoding rules on receipts and reverts.
-		</p>
-		<p>
-			Rows filter the shared OpenChain-style directory for the current slice.
-		</p>
-	{/snippet}
-
-	{#snippet body({ open: _bodyOpen })}
-		{#if open}
-			<ResourceBoundary
-				resource={selection({
-						sources: [Source.Local_Internal],
-					})}
-				placeholderText="Loading selectors…"
-			>
-				{#snippet children(selectors)}
-			<EntitiesList
-					collapsible={false}
-					showSummary={false}
-					entityType={EntityType.EvmSelector}
-					id={`${id}-items`}
-					{title}
-					open={true}
-					getKey={(evmSelector) => evmSelector.entitySelector.hex}
-					getSortValue={(evmSelector) => evmSelector.entitySelector.hex}
-					placeholderText="Loading 4-byte selectors…"
-					items={selectors.entities}
-					UnorderedListProps={{ orientation: ListOrientation.Column }}
-				>
-					{#snippet Empty()}
-						<p data-text="muted">
-							No selectors yet.
-						</p>
-					{/snippet}
-
-					{#snippet Item({ item })}
-						<EvmSelectorView
-							selection={select(EntityType.EvmSelector, item.entitySelector)}
-							layout={EntityLayout.Summary}
-
-							collapsible={false}
-							showTypeAnnotation={false}
-						/>
-					{/snippet}
-				</EntitiesList>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+	{#snippet Item({ item })}
+		<EvmSelectorView
+			selection={select(EntityType.EvmSelector, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

@@ -1,21 +1,30 @@
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import { stringify } from 'devalue'
+
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
+	const listView = {
+		entityType: EntityType.MevRelay,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
 		selection,
-		title = 'Relays',
+		title,
 		open = $bindable(true),
-		id,
+		id = 'MevRelays',
 		href = '',
 		...EntitiesListProps
 	}: WithRest<
@@ -23,69 +32,35 @@
 			selection: EntityProxyEntitiesResource<typeof schema, EntityType.MevRelay>
 			title?: string
 			open?: boolean
-			id: string
+			id?: string
 			href?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'CollapsibleProps'
-		>
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
+
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import MevRelayView from '$/views/MevRelayView.svelte'
 </script>
 
 
 <EntitiesList
-	entityType={EntityType.MevRelay}
+	entityType={listView.entityType}
 	{title}
 	bind:open
 	{id}
 	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
-	{#snippet body()}
-		{#if open}
-				<ResourceBoundary
-					resource={selection({
-						sources: [
-							Source.Constants_Internal,
-						],
-						limit: 16,
-					})}
-				placeholderText="Loading relays…"
-			>
-				{#snippet children(relays)}
-					<EntitiesList
-						collapsible={false}
-						showSummary={false}
-						entityType={EntityType.MevRelay}
-						id={`${id}-items`}
-						href={href}
-						getKey={(relay) => relay.entitySelector.host}
-						items={relays.entities}
-						{title}
-						UnorderedListProps={{ orientation: ListOrientation.Column }}
-						open={true}
-					>
-						{#snippet Empty()}
-							<p data-text="muted">No MEV relays mapped for this network.</p>
-						{/snippet}
-
-						{#snippet Item({ item: relay })}
-							<MevRelayView
-								selection={select(EntityType.MevRelay, relay.entitySelector)}
-								layout={EntityLayout.Summary}
-
-							/>
-						{/snippet}
-					</EntitiesList>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+	{#snippet Item({ item })}
+		<MevRelayView
+			selection={select(EntityType.MevRelay, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

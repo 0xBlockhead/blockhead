@@ -13,9 +13,9 @@
 
 
 <ParentPageCollapsible
-	title={'Selectors'}
+	title="Selectors"
 	href={resolve('/evm/selectors')}
-	id={'evm-selectors'}
+	id="evm-selectors"
 >
 	{@render children()}
 </ParentPageCollapsible>

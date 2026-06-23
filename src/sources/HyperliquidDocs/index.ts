@@ -1,15 +1,13 @@
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import { hyperliquidDocsBindings } from '$/sources/HyperliquidDocs/bindings.ts'
 
 export default {
 	provider: SourceProvider.HyperliquidDocs,
 	label: 'Hyperliquid docs',
-	origins: [
-		{
-			origin: 'https://hyperliquid.gitbook.io',
-			corsEnabled: true,
-		},
-	],
 	sources: [
 		{
 			provider: SourceProvider.HyperliquidDocs,
@@ -17,4 +15,5 @@ export default {
 			label: 'Hyperliquid docs',
 		},
 	],
-} as const satisfies SourceProviderDefinition
+	bindings: hyperliquidDocsBindings,
+} satisfies SourceProviderDefinition

@@ -1,33 +1,18 @@
 import { type } from 'arktype'
-import { lowercaseHexIdentityValue } from '$/schema/ZeroExHex.ts'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum NostrNoteSelector {
 	CanonicalEventId = 'canonicalEventId',
+	EventId = 'eventId',
 }
-
-
-const NostrEventId = type(
-	'/^[0-9a-f]{64}$/' as type.cast<string>
-)
-
-const NostrPubkey = type(
-	'/^[0-9a-f]{64}$/' as type.cast<string>
-)
-
 export default {
 	entityType: EntityType.NostrNote,
-
 	label: 'Nostr note',
 	labelPlural: 'Nostr notes',
-
 	selectors: [
 		{
 			name: NostrNoteSelector.CanonicalEventId,
@@ -36,115 +21,91 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: 'eventId',
+			label: 'event ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: NostrEventId,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: 'kind',
+			label: 'kind',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: 'pubkey',
+			label: 'public key',
 			type: EntityFieldType.Primitive,
-			primitiveType: NostrPubkey,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: 'content',
+			label: 'content',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: 'createdAt',
+			label: 'Created',
+			description: 'The time when the subject was created according to the source.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: 'tags',
+			label: 'tags',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string[][]'),
+			primitiveType: type("string[][]"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: '$author',
+			label: 'author',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.NostrProfile,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: 'replyToEventId',
+			label: 'reply to event ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: NostrEventId,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: 'rootEventId',
+			label: 'root event ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: NostrEventId,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: '$replyToNote',
+			label: 'reply to note',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.NostrNote,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: '$$replies',
+			label: 'replies',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.NostrNote,
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: '$$reactions',
+			label: 'reactions',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.NostrReaction,
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

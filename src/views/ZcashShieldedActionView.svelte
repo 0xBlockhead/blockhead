@@ -2,16 +2,86 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { ZcashShieldedActionKind } from '$/schema/ZcashShieldedAction.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'transaction',
+			},
+			'pool',
+			{
+				label: 'action kind',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'transaction',
+					},
+					'pool',
+					{
+						label: 'action kind',
+					},
+					{
+						label: 'action index',
+					},
+					{
+						label: 'pool ref',
+					},
+					'nullifier',
+					{
+						label: 'note commitment',
+					},
+					{
+						label: 'value commitment',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Transaction',
+					items: [
+						{
+							label: 'parent UTXO-family transaction',
+						},
+					],
+				},
+				{
+					label: 'Pool',
+					items: [
+						{
+							label: 'ZcashShieldedPool ref and pool enum',
+						},
+					],
+				},
+				{
+					label: 'Public action data',
+					items: [
+						{
+							label: 'nullifier/note/value commitments',
+						},
+					],
+				},
+				{
+					label: 'Local note match',
+					items: [
+						{
+							label: 'Blockhead Zcash note state when wallet scanning links the action',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -22,7 +92,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -30,94 +100,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.ZcashShieldedAction}
 	entitySelector={selection.entitySelector}
-	title={`Shielded action #${selection.entitySelector.actionIndex.toString()}`}
-	idDragPlainText={selection.entitySelector.actionIndex.toString()}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Value()}
-		<span data-badge="small">
-			#{selection.entitySelector.actionIndex.toString()}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>Shielded action </span>
-			{#if Value}
-			{@render Value()}
-					{/if}
-		</span>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection( { fields: { actionKind: true, ...(open && ({ valueCommitment: true })) } })}
-			placeholderText="Loading Zcash shielded action…"
-		>
-			{#snippet children(zcashShieldedAction)}
-				<dl data-column-item="center">
-					{#if zcashShieldedAction.actionKind != null}
-						<div>
-							<dt>Kind</dt>
-							<dd>{zcashShieldedAction.actionKind}</dd>
-						</div>
-					{/if}
-
-					{#if (
-						open
-						&& (
-							zcashShieldedAction.actionKind === ZcashShieldedActionKind.Spend
-							|| zcashShieldedAction.actionKind === ZcashShieldedActionKind.Action
-						)
-						&& zcashShieldedAction.nullifier != null
-					)}
-						<div>
-							<dt>Nullifier</dt>
-							<dd>{zcashShieldedAction.nullifier}</dd>
-						</div>
-					{/if}
-
-					{#if (
-						open
-						&& (
-							zcashShieldedAction.actionKind === ZcashShieldedActionKind.Output
-							|| zcashShieldedAction.actionKind === ZcashShieldedActionKind.Action
-						)
-						&& zcashShieldedAction.noteCommitment != null
-					)}
-						<div>
-							<dt>Note Commitment</dt>
-							<dd>
-								<TruncatedValue
-									value={zcashShieldedAction.noteCommitment}
-									format={TruncatedValueFormat.Abbr}
-								/></dd>
-						</div>
-					{/if}
-
-					{#if open && zcashShieldedAction.valueCommitment != null}
-						<div>
-							<dt>Value Commitment</dt>
-							<dd>
-								<TruncatedValue
-									value={zcashShieldedAction.valueCommitment}
-									format={TruncatedValueFormat.Abbr}
-								/></dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

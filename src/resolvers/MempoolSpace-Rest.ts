@@ -18,6 +18,7 @@ import { UtxoBlockSelector } from '$/schema/UtxoBlock.ts'
 import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
 import { UtxoInputSelector } from '$/schema/UtxoInput.ts'
 import { UtxoAddressSelector } from '$/schema/UtxoAddress.ts'
+import { UtxoAddress_TimestampSelector } from '$/schema/UtxoAddress_Timestamp.ts'
 import { UtxoOutputSelector } from '$/schema/UtxoOutput.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
@@ -208,32 +209,65 @@ export default {
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoAddress,
 			resolve: {
-				[UtxoAddressSelector.NetworkAddress]: async ({ $network, address: addressSelector }) => {
-					assertBitcoinMainnet($network)
-					const { getAddress } = await import('$/sources/MempoolSpace/Rest/queries.ts')
-					const address = await getAddress({
-						restBaseUrl: bitcoinNetworkBySlug.bitcoin.mempoolSpaceRestBaseUrl,
-						address: addressSelector,
-					})
-					const chainStats = address.chain_stats
-					return {
-						balanceSats: BigInt(chainStats.funded_txo_sum - chainStats.spent_txo_sum),
-						transactionCount: chainStats.tx_count,
-						unspentOutputCount: chainStats.funded_txo_count - chainStats.spent_txo_count,
-						totalReceivedSats: BigInt(chainStats.funded_txo_sum),
-						totalSpentSats: BigInt(chainStats.spent_txo_sum),
+					[UtxoAddressSelector.NetworkAddress]: async ({ $network, address: addressSelector }) => {
+						assertBitcoinMainnet($network)
+						return {
+							address: addressSelector,
+							$$timestamps: [
+								{
+									[EntityMetaKey.Selector]: {
+										$address: {
+											$network,
+											address: addressSelector,
+										},
+										timestampMs: Date.now(),
+										source: Source.MempoolSpace_Rest,
+									},
+								},
+							],
+						}
 					}
-				}
-			},
-		})({
-			fields: {
-				balanceSats: (address) => address.balanceSats,
-				transactionCount: (address) => address.transactionCount,
-				unspentOutputCount: (address) => address.unspentOutputCount,
-				totalReceivedSats: (address) => address.totalReceivedSats,
-				totalSpentSats: (address) => address.totalSpentSats,
-			},
-		}),
+				},
+			})({
+				fields: {
+					address: (address) => address.address,
+					$$timestamps: (address) => address.$$timestamps,
+				},
+			}),
+
+			defineResolver(Source.MempoolSpace_Rest, {
+				entityType: EntityType.UtxoAddress_Timestamp,
+				resolve: {
+					[UtxoAddress_TimestampSelector.AddressTimestampMsSource]: async ({ $address }) => {
+						assertBitcoinMainnet($address.$network)
+						const { getAddress } = await import('$/sources/MempoolSpace/Rest/queries.ts')
+						const address = await getAddress({
+							restBaseUrl: bitcoinNetworkBySlug.bitcoin.mempoolSpaceRestBaseUrl,
+							address: $address.address,
+						})
+						const chainStats = address.chain_stats
+						return {
+							balanceSats: BigInt(chainStats.funded_txo_sum - chainStats.spent_txo_sum),
+							transactionCount: chainStats.tx_count,
+							unspentOutputCount: chainStats.funded_txo_count - chainStats.spent_txo_count,
+							fundedOutputCount: chainStats.funded_txo_count,
+							spentOutputCount: chainStats.spent_txo_count,
+							fundedValueSats: BigInt(chainStats.funded_txo_sum),
+							spentValueSats: BigInt(chainStats.spent_txo_sum),
+						}
+					}
+				},
+			})({
+				fields: {
+					balanceSats: (address) => address.balanceSats,
+					transactionCount: (address) => address.transactionCount,
+					unspentOutputCount: (address) => address.unspentOutputCount,
+					fundedOutputCount: (address) => address.fundedOutputCount,
+					spentOutputCount: (address) => address.spentOutputCount,
+					fundedValueSats: (address) => address.fundedValueSats,
+					spentValueSats: (address) => address.spentValueSats,
+				},
+			}),
 
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoOutput,
@@ -310,6 +344,7 @@ export default {
 							[EntityMetaKey.Selector]: {
 								$network: $network,
 								timestampMs: Date.now(),
+								source: Source.MempoolSpace_Rest,
 							},
 							bestBlockHeight: BigInt(block.height),
 							bestBlockHash: block.id,

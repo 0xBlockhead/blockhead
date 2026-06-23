@@ -10,12 +10,12 @@
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import StateChannelsView from '$/views/StateChannelsView.svelte'
+	import BlockheadStateChannelsView from '$/views/BlockheadStateChannelsView.svelte'
 </script>
 
 
 <Page>
-	<StateChannelsView
+	<BlockheadStateChannelsView
 		href={resolve('/channels')}
 		selection={select(
 			EntityType._Global,

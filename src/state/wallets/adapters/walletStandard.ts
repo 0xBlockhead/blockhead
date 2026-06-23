@@ -2,22 +2,10 @@ import { WalletCapability, WalletDiscoveryKind, WalletProtocol, WalletTransportK
 import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
 import { SvelteMap } from 'svelte/reactivity'
 import type { WalletAdapter } from './types.ts'
-
-type WalletStandardWallet = {
-	name: string
-	icon?: string
-	version?: string
-}
-
-type WalletStandardRegisterWalletEvent = CustomEvent<{
-	register(wallet: WalletStandardWallet): void
-}>
-
-declare global {
-	interface WindowEventMap {
-		'wallet-standard:register-wallet': WalletStandardRegisterWalletEvent
-	}
-}
+import type {
+	WalletStandardRegisterWalletEvent,
+	WalletStandardWallet,
+} from '$/sources/WalletStandard/WalletApi/types.ts'
 
 export const createWalletStandardAdapter = (): WalletAdapter => ({
 	id: 'wallet-standard',

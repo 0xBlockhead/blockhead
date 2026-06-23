@@ -2,16 +2,73 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			'address',
+			{
+				label: 'latest balance/activity summary when present',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					'address',
+					{
+						label: 'latest balance/activity summary when present',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Stats',
+					items: [
+						{
+							label: 'address statistic observations',
+						},
+					],
+				},
+				{
+					label: 'Outputs',
+					items: [
+						{
+							label: 'spendable outputs when source exposes them',
+						},
+					],
+				},
+				{
+					label: 'Transactions',
+					items: [
+						{
+							label: 'address history when source exposes it',
+						},
+					],
+				},
+				{
+					label: 'Network',
+					items: [
+						{
+							label: 'parent network and UTXO-family projection',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -22,121 +79,23 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
-	const utxoAddress = $derived(selection({
-		sources: [Source.Blockchair_Rest],
-		fields: {
-			balanceSats: true,
-			transactionCount: true,
-			unspentOutputCount: true,
-			totalReceivedSats: true,
-			totalSpentSats: true,
-		},
-	}))
-
-
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.UtxoAddress}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.address}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		<TruncatedValue
-			value={selection.entitySelector.address}
-			format={TruncatedValueFormat.Abbr}
-		/>
-	{/snippet}
-
-	{#snippet Content()}
-		<dl>
-			<ResourceBoundary
-				resource={utxoAddress.balanceSats}
-				placeholderText="Loading UTXO address balance..."
-			>
-				{#snippet children(balanceSats)}
-					{#if balanceSats != null}
-						<div>
-							<dt>Balance</dt>
-							<dd><NumberValue value={balanceSats} /> sats</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={utxoAddress.transactionCount}
-				placeholderText="Loading UTXO address transaction count..."
-			>
-				{#snippet children(transactionCount)}
-					{#if transactionCount != null}
-						<div>
-							<dt>Transactions</dt>
-							<dd><NumberValue value={transactionCount} /></dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={utxoAddress.unspentOutputCount}
-				placeholderText="Loading UTXO count..."
-			>
-				{#snippet children(unspentOutputCount)}
-					{#if unspentOutputCount != null}
-						<div>
-							<dt>UTXOs</dt>
-							<dd><NumberValue value={unspentOutputCount} /></dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			{#if open}
-				<ResourceBoundary
-					resource={utxoAddress.totalReceivedSats}
-					placeholderText="Loading total received..."
-				>
-					{#snippet children(totalReceivedSats)}
-						{#if totalReceivedSats != null}
-							<div>
-								<dt>Total received</dt>
-								<dd><NumberValue value={totalReceivedSats} /> sats</dd>
-							</div>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-
-				<ResourceBoundary
-					resource={utxoAddress.totalSpentSats}
-					placeholderText="Loading total spent..."
-				>
-					{#snippet children(totalSpentSats)}
-						{#if totalSpentSats != null}
-							<div>
-								<dt>Total spent</dt>
-								<dd><NumberValue value={totalSpentSats} /> sats</dd>
-							</div>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/if}
-		</dl>
-	{/snippet}
-</EntityView>
+	{view}
+/>

@@ -1,0 +1,77 @@
+import { type as arktype } from 'arktype'
+
+import { Source } from '$/sources/Source.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import {
+	ApiFamily,
+	SourceArtifactKind,
+	SourceCredentialScope,
+	SourceDelivery,
+	SourceEndpointKind,
+	SourceOperationGroup,
+	SourceTargetKind,
+	WireProtocol,
+	type SourceBinding,
+} from '$/sources/SourceBinding.ts'
+
+const lensApiOrigin = 'https://api.lens.xyz' as const
+const lensHeyApiOrigin = 'https://api.hey.xyz' as const
+
+export const lensBindings = [
+	{
+		provider: SourceProvider.Lens,
+		source: Source.Lens_Graphql,
+		target: {
+			kind: SourceTargetKind.Global,
+			key: 'lens-protocol',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: `${lensApiOrigin}/graphql`,
+				origin: lensApiOrigin,
+				corsEnabled: false,
+			},
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: `${lensHeyApiOrigin}/graphql`,
+				origin: lensHeyApiOrigin,
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.Graphql,
+		apiFamily: ApiFamily.GraphqlHttp,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [
+			{
+				scope: SourceCredentialScope.PublicConfig,
+				env: arktype({
+					PUBLIC_LENS_API_KEY: 'string > 0?',
+				}),
+				keys: [
+					'PUBLIC_LENS_API_KEY',
+				],
+			},
+		],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GraphqlSchema,
+				path: 'src/sources/Lens/Graphql/schema.graphql',
+				generated: false,
+			},
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/Lens/Graphql/schema-source.ts',
+				generated: false,
+			},
+			{
+				kind: SourceArtifactKind.GraphqlTypes,
+				path: 'src/sources/Lens/Graphql/graphql-env.d.ts',
+				generated: true,
+			},
+		],
+	},
+] as const satisfies readonly SourceBinding[]

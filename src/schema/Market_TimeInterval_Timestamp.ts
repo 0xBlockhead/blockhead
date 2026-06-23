@@ -1,27 +1,17 @@
 import { type } from 'arktype'
 import {
-	MarketTimeIntervalUnit,
-} from '$/constants/Market.ts'
-import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Market from '$/schema/Market.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum Market_TimeInterval_TimestampSelector {
 	MarketTimeIntervalTimestampMs = 'marketTimeIntervalTimestampMs',
 }
-
 export default {
 	entityType: EntityType.Market_TimeInterval_Timestamp,
-
-	label: 'OHLC interval',
-	labelPlural: 'OHLC intervals',
-
+	label: 'market time interval timestamp',
+	labelPlural: 'market time interval observations',
 	selectors: [
 		{
 			name: Market_TimeInterval_TimestampSelector.MarketTimeIntervalTimestampMs,
@@ -32,118 +22,92 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$market',
+			label: 'market',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Market,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'timeInterval',
+			label: 'time interval',
 			type: EntityFieldType.Primitive,
-			primitiveType: type({
-				unit: type.valueOf(MarketTimeIntervalUnit),
-				value: 'number',
-			}),
+			primitiveType: type({"unit": "string", "value": "number"}),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$parentMarket',
+			label: 'parent market',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Market,
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Constants_Internal,
-				Source.Coingecko_Rest,
-				Source.Coingecko_OpenApi,
-				Source.Coinpaprika_OpenApi,
-				Source.CoinMarketCap_Rest,
-			],
 		},
 		{
 			name: 'open',
+			label: 'open',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Coingecko_Rest,
-				Source.Coingecko_OpenApi,
-				Source.Coinpaprika_OpenApi,
-				Source.CoinMarketCap_Rest,
-			],
 		},
 		{
 			name: 'high',
+			label: 'high',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Coingecko_Rest,
-				Source.Coingecko_OpenApi,
-				Source.Coinpaprika_OpenApi,
-				Source.CoinMarketCap_Rest,
-			],
 		},
 		{
 			name: 'low',
+			label: 'low',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Coingecko_Rest,
-				Source.Coingecko_OpenApi,
-				Source.Coinpaprika_OpenApi,
-				Source.CoinMarketCap_Rest,
-			],
 		},
 		{
 			name: 'close',
+			label: 'close',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Coingecko_Rest,
-				Source.Coingecko_OpenApi,
-				Source.Coinpaprika_OpenApi,
-				Source.CoinMarketCap_Rest,
-			],
 		},
 		{
 			name: 'volume',
+			label: 'volume',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			// Quote-leg candle volume, scaled by 1e8 like quote prices.
 			name: 'quoteVolume',
+			label: 'quote volume',
+			description: 'Quote-leg candle volume, scaled by 1e8 like quote prices.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Coinpaprika_OpenApi,
-				Source.CoinMarketCap_Rest,
-			],
 		},
 		{
 			name: 'tradeCount',
+			label: 'trade count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'vwap',
+			label: 'vwap',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

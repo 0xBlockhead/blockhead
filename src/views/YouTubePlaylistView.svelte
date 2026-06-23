@@ -2,229 +2,113 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
-	import { schema } from '$/schema/index.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/EntityType.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { Source } from '$/sources/Source.ts'
-	import { stringify } from 'devalue'
-
-
-	// Context
-	import { select } from '$/routes/+layout.svelte'
-	import { resolve } from '$app/paths'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 
 
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'playlist id',
+			},
+			{
+				label: 'latest title',
+			},
+			{
+				label: 'latest description',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'playlist id',
+					},
+					{
+						label: 'channel',
+					},
+					{
+						label: 'published date',
+					},
+					{
+						label: 'latest title',
+					},
+					{
+						label: 'latest description',
+					},
+					{
+						label: 'latest item-count snapshot',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Latest metadata',
+					items: [
+						{
+							label: 'latest playlist metadata observation',
+						},
+					],
+				},
+				{
+					label: 'Videos',
+					items: [
+						{
+							label: 'playlist videos',
+						},
+					],
+				},
+				{
+					label: 'Channel',
+					items: [
+						{
+							label: 'owning channel',
+						},
+					],
+				},
+				{
+					label: 'Metric snapshots',
+					items: [
+						{
+							label: 'playlist metric observations',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
-		href = resolve('/(social)/(youtube)/youtube/playlist/[playlistId]', {
-			playlistId: selection.entitySelector.playlistId,
-		}),
-		layout = EntityLayout.SummaryDetails,
-		open = $bindable(
-			layout === EntityLayout.SummaryDetails,
-		),
+		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.YouTubePlaylist>
-			href?: string
-			layout?: EntityLayout
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
+			| 'layout'
 			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
-	const playlist = $derived(
-			selection(({ sources: [
-					Source.Constants_Internal,
-					Source.Youtube_Rest,
-					Source.Piped_Rest,
-				], fields: {
-				title: true,
-				description: true,
-				$$timestamps: ({ sources: [
-					Source.Youtube_Rest,
-					Source.Piped_Rest,
-				], limit: 1 }),
-				publishedAt: true,
-				publishedAtMs: true,
-				$channel: true,
-				...(open && {
-					$$videos: ({ sources: [
-						Source.Youtube_Rest,
-						Source.Piped_Rest,
-					] }),
-				}),
-			} }),
-		)
-	)
-
-	const idKey = $derived(stringify(selection.entitySelector))
-
-
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import SocialMetricSnapshotRows from '$/views/SocialMetricSnapshotRows.svelte'
-	import YouTubeChannelView from '$/views/YouTubeChannelView.svelte'
-	import YouTubePlaylist_TimestampsView from '$/views/YouTubePlaylist_TimestampsView.svelte'
-	import YouTubeVideosView from '$/views/YouTubeVideosView.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.YouTubePlaylist}
 	entitySelector={selection.entitySelector}
-	href={href}
-	{layout}
 	bind:open
 	{...EntityViewProps}
->
-	{#snippet Value()}
-		<span>
-			{selection.entitySelector.playlistId}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		<ResourceBoundary
-			resource={playlist}
-			placeholderText="Loading playlist…"
-		>
-			{#snippet children(playlist)}
-				{playlist.title ?? selection.entitySelector.playlistId}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Playlist ids are opaque PL… curator lists or UU… channel-upload feeds from the Data API (or Piped equivalents).
-		</p>
-		<p>
-			Each item resolves to an 11-character videoId—not a Farcaster channel slug or Reddit submission id.
-		</p>
-	{/snippet}
-
-	{#snippet Content({})}
-		{#if open}
-			<ResourceBoundary
-				resource={playlist}
-				placeholderText="Loading playlist…"
-			>
-				{#snippet children(playlist)}
-					{#if playlist.description}
-						<p>
-							<TruncatedValue
-								value={playlist.description}
-								format={TruncatedValueFormat.Visual}
-							/>
-						</p>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
-
-		<dl data-column-item="center">
-			{#if open}
-				<ResourceBoundary
-					resource={playlist}
-					placeholderText="Loading playlist…"
-				>
-					{#snippet children(playlist)}
-						<SocialMetricSnapshotRows
-							metrics={[
-								{
-									label: 'Items',
-									value: playlist.$$timestamps?.values.at(0)?.itemCount,
-								},
-							]}
-						/>
-
-						{#if playlist.publishedAtMs != null}
-							<div>
-								<dt>Published</dt>
-								<dd><Timestamp timestamp={playlist.publishedAtMs} /></dd>
-							</div>
-						{:else if playlist.publishedAt != null}
-							<div>
-								<dt>Published</dt>
-								<dd>{playlist.publishedAt}</dd>
-							</div>
-						{/if}
-
-						{#if playlist.$channel}
-							<div>
-								<dt>Channel</dt>
-								<dd>
-									<YouTubeChannelView
-										selection={select(EntityType.YouTubeChannel, playlist.$channel[EntityMetaKey.Selector])}
-										layout={EntityLayout.Value}
-
-										open={false}
-										/>
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/if}
-		</dl>
-	{/snippet}
-
-	{#snippet Details({
-		open: _open,
-	})}
-		<CollapsibleTabs
-			id={`${idKey}:carousel-videos`}
-			sectionIdPrefix={idKey}
-			sections={collapsibleTabsSections([
-				{ id: 'videos', label: 'Videos' },
-				{ id: 'metric-snapshots', label: 'Metrics' },
-			])}
-			data-card
-		>
-			{#snippet Summary({
-				open: _summaryOpen,
-			})}
-				<header
-					data-row-item="flexible"
-					data-row="wrap gap-4"
-				>
-					<HeadingComponent>
-						Playlist items
-					</HeadingComponent>
-				</header>
-			{/snippet}
-
-			{#snippet SectionVideos()}
-				<YouTubeVideosView
-					CollapsibleProps={{ canToggle: false }}
-					selection={selection.$$videos}
-					id={`${idKey}:youtube-videos`}
-					open={_open}
-				/>
-			{/snippet}
-
-			{#snippet SectionMetricSnapshots()}
-				<YouTubePlaylist_TimestampsView
-					selection={selection.$$timestamps}
-					href={href}
-					id={`${idKey}:metric-snapshots`}
-					title="Metric snapshots"
-				/>
-			{/snippet}
-		</CollapsibleTabs>
-	{/snippet}
-</EntityView>
+	{view}
+/>

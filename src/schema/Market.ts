@@ -1,29 +1,22 @@
-/**
- * Tradable book or index: two market asset legs (`$base`, `$quote`) and a venue reference to merge or split providers.
- */
 import { type } from 'arktype'
-import { MarketKind } from '$/constants/Market.ts'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { marketAsset } from '$/schema/MarketAsset.ts'
+import { MarketKind } from '$/constants/Market.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
-import { Source } from '$/sources/Source.ts'
-
+import { marketAsset } from '$/schema/MarketAsset.ts'
 export enum MarketSelector {
 	BaseQuoteMarketVenueKind = 'baseQuoteMarketVenueKind',
+	BaseQuoteMarketVenueMarketKind = '$base+$quote+$marketVenue+marketKind',
 }
-
 export default {
 	entityType: EntityType.Market,
-
-	label: 'Market',
-	labelPlural: 'Markets',
-
+	label: 'market',
+	labelPlural: 'markets',
+	description: 'A tradeable market or quote pair on a venue.',
 	selectors: [
 		{
 			name: MarketSelector.BaseQuoteMarketVenueKind,
@@ -35,81 +28,83 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$base',
+			label: 'base',
 			type: EntityFieldType.Primitive,
 			primitiveType: marketAsset,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$quote',
+			label: 'quote',
 			type: EntityFieldType.Primitive,
 			primitiveType: marketAsset,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$marketVenue',
+			label: 'market venue',
 			type: EntityFieldType.Primitive,
-			primitiveType: type({
-				marketVenueId: type.valueOf(MarketVenueId),
-			}),
+			primitiveType: type({ marketVenueId: type.valueOf(MarketVenueId) }),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'marketKind',
+			label: 'market kind',
 			type: EntityFieldType.Primitive,
 			primitiveType: type.valueOf(MarketKind),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
+			name: 'venueLabel',
+			label: 'venue label',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'providerExchangeIds',
+			label: 'provider exchange ids',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("unknown"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
 			name: '$baseCoin',
+			label: 'base coin',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Coin,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [Source.Constants_Internal, Source.Coingecko_Rest],
 		},
 		{
 			name: '$$marketPrices',
+			label: 'market prices',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.MarketPrice,
-			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Constants_Internal,
-				Source.Coingecko_Rest,
-			],
+			cardinality: EntityFieldCardinality.ZeroOrMany,
 		},
 		{
 			name: '$$marketTimeIntervalTimestamps',
+			label: 'market time interval timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.Market_TimeInterval_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Coingecko_Rest,
-				Source.Coingecko_OpenApi,
-				Source.Coinpaprika_OpenApi,
-				Source.CoinMarketCap_Rest,
-			],
+			cardinality: EntityFieldCardinality.ZeroOrMany,
 		},
 		{
 			name: '$$derivativeTimestamps',
+			label: 'derivative timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.Market_Derivative_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Coingecko_OpenApi,
-			],
+			cardinality: EntityFieldCardinality.ZeroOrMany,
 		},
 		{
 			name: '$$oracleFeeds',
+			label: 'oracle feeds',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.OracleFeed,
-			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Constants_Internal,
-				Source.Voltaire_JsonRpc,
-			],
+			cardinality: EntityFieldCardinality.ZeroOrMany,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

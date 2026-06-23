@@ -1,23 +1,18 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum LitecoinMwebTransactionSelector {
 	LitecoinMwebBlockTransactionIndex = 'litecoinMwebBlockTransactionIndex',
+	MwebBlockTransactionIndex = '$mwebBlock+transactionIndex',
 }
-
 export default {
 	entityType: EntityType.LitecoinMwebTransaction,
-
-	label: 'Litecoin MWEB Transaction',
-	labelPlural: 'Litecoin MWEB Transactions',
-
+	label: 'litecoin MWEB transaction',
+	labelPlural: 'litecoin MWEB transactions',
 	selectors: [
 		{
 			name: LitecoinMwebTransactionSelector.LitecoinMwebBlockTransactionIndex,
@@ -27,43 +22,48 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$mwebBlock',
+			label: 'MWEB block',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.LitecoinMwebBlock,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'transactionIndex',
+			label: 'transaction index',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'kernelOffset',
+			label: 'kernel offset',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$$outputs',
+			label: 'outputs',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.LitecoinMwebOutput,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$pegIns',
+			label: 'peg ins',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.LitecoinMwebPegIn,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$pegOuts',
+			label: 'peg outs',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.LitecoinMwebPegOut,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
+			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

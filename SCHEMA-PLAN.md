@@ -11,7 +11,7 @@ Status: iteration artifact, not production schema. Goal: compact starting point 
 ## Intent Slice Slash Goal
 
 ```text
-/goal Research and refine Blockhead's product-intent mock schema until `SCHEMA_INTENTS.md` and `SOURCES_INTENTS.md` are implementation-useful and free of avoidable modeling errors. Each pass must preserve the split between local product goals, catalog definitions, UI invocation transport, ordered session actions, provider/order-server quote/order artifacts, wallet request/submission artifacts, simulation artifacts, and public chain evidence. Use local prior art, HackMoney specs, primary protocol docs, wallet API docs, and existing `SCHEMA.md` conventions as evidence. For every candidate row or field, state its selector, lifecycle owner, source binding, view boundary, timestamp policy, and rejection/demotion alternative. Delete or demote any concept that is only a UI label, transient drag payload, provider category, route display, or unsupported future guess. Keep provider payloads source-scoped, keep mutable status on timestamp rows, keep authority local, and keep final execution truth on public chain/protocol rows.
+/goal Research and refine Blockhead's product-intent mock schema until the intent rows in `SCHEMA.md` and intent source notes in `SOURCES.md` are implementation-useful and free of avoidable modeling errors. Each pass must preserve the split between local product goals, catalog definitions, UI invocation transport, ordered session actions, provider/order-server quote/order artifacts, wallet request/submission artifacts, simulation artifacts, and public chain evidence. Use local prior art, HackMoney specs, primary protocol docs, wallet API docs, and existing `SCHEMA.md` conventions as evidence. For every candidate row or field, state its selector, lifecycle owner, source binding, view boundary, timestamp policy, and rejection/demotion alternative. Delete or demote any concept that is only a UI label, transient drag payload, provider category, route display, or unsupported future guess. Keep provider payloads source-scoped, keep mutable status on timestamp rows, keep authority local, and keep final execution truth on public chain/protocol rows.
 ```
 
 ## Intent Slice Research Protocol
@@ -19,7 +19,7 @@ Status: iteration artifact, not production schema. Goal: compact starting point 
 Use this as the detailed `/goal` operating procedure for future intent-schema passes:
 
 ```text
-/goal Research, audit, and refine Blockhead's product-intent mock schema with schema correctness and non-conflation of axes as the highest priority. Work only from current repo state, prior local/HackMoney intent artifacts, primary protocol and wallet specifications, source/API examples, and existing Blockhead schema/source/client conventions. Keep `SCHEMA_INTENTS.md` focused on admitted rows, selectors, fields, source bindings, view boundaries, notes, list contracts, catalog mappings, implementation gates, and rejected alternatives. Keep `SOURCES_INTENTS.md` focused on source bindings, prior art, source feasibility, source mapping, and field sourceability. Keep `SCHEMA-PLAN.md` focused on methodology, slash-goal text, audit logs, and future pass planning.
+/goal Research, audit, and refine Blockhead's product-intent mock schema with schema correctness and non-conflation of axes as the highest priority. Work only from current repo state, prior local/HackMoney intent artifacts, primary protocol and wallet specifications, source/API examples, and existing Blockhead schema/source/client conventions. Keep `SCHEMA.md` focused on admitted rows, selectors, fields, source bindings, view boundaries, notes, list contracts, catalog mappings, implementation gates, and rejected alternatives. Keep `SOURCES.md` focused on source bindings, prior art, source feasibility, source mapping, and field sourceability. Keep `SCHEMA-PLAN.md` focused on methodology, slash-goal text, audit logs, and future pass planning.
 
 The non-negotiable modeling target is axis separation. Every pass must actively prove that these axes remain distinct:
 
@@ -49,7 +49,7 @@ For each research pass, follow this sequence without skipping steps:
    - State what would count as conflation for this pass.
 
 2. Gather current-state evidence.
-   - Read the relevant parts of `SCHEMA_INTENTS.md`, `SOURCES_INTENTS.md`, and `SCHEMA-PLAN.md`.
+   - Read the relevant intent/session parts of `SCHEMA.md`, `SOURCES.md`, and `SCHEMA-PLAN.md`.
    - Inspect existing repo anchors in `src/schema/**`, `src/sources/**`, `src/resolvers/**`, `src/constants/**`, `src/collections/**`, local mutation code, entity views, and tests when they are relevant to the pass.
    - Inspect HackMoney specs and prior conversation/thread artifacts when the pass touches intents, drag/drop, sessions, action params, protocols, or simulations.
    - Use primary online sources for protocol or wallet behavior when the fact might be unstable or implementation-sensitive. Prefer specifications, API docs, reference implementations, and concrete payload examples over summaries.
@@ -77,7 +77,7 @@ For each research pass, follow this sequence without skipping steps:
    - Confirm typed intent rows are scoped by `sessionId+actionId` and mutually exclusive by action family.
 
 7. Audit source ownership.
-   - Compare every inline `Sources ::` list with the `SOURCES_INTENTS.md` source mapping.
+   - Compare every inline `Sources ::` list with the intent source mapping in `SOURCES.md`.
    - Distinguish parent artifact `source` as provider correlation from timestamp `source` as observing source.
    - Keep `Constants_Internal` limited to labels, enum/catalog normalization, support keys, and reproducibility hashes.
    - Keep `Local_Internal` limited to product-local ids, links, list membership, ordering, selected options, timestamps, summaries, and retained artifact envelopes.
@@ -105,18 +105,20 @@ For each research pass, follow this sequence without skipping steps:
    - Keep the demotion/rejection note when a tempting concept is rejected.
 
 12. Patch only what survives.
-   - Update `SCHEMA_INTENTS.md` with compact admitted model changes, invariants, list contracts, enum mappings, external assumptions, implementation gates, or rejected alternatives.
-   - Update `SOURCES_INTENTS.md` with source notes, feasibility, source mapping, field sourceability, and prior-art/source links.
+   - Update `SCHEMA.md` with compact admitted model changes, invariants, list contracts, enum mappings, external assumptions, implementation gates, or rejected alternatives.
+   - Update `SOURCES.md` with source notes, feasibility, source mapping, field sourceability, and prior-art/source links.
    - Update `SCHEMA-PLAN.md` with a concise pass log naming the correction and the axis protected.
+   - If another agent is actively changing `src/schema/**` format, do not force older schema row shapes or focused tests back into the worktree. Record the modeling decision in docs, inspect the new row format first, and wait to port executable drift gates until the format migration stabilizes.
 
 13. Validate mechanically.
-   - Run `git diff --check -- SCHEMA-PLAN.md SCHEMA_INTENTS.md SOURCES_INTENTS.md`.
+   - Run `git diff --check -- SCHEMA-PLAN.md SCHEMA.md SOURCES.md`.
    - Check every `Entity ... ::` row has a source mapping.
    - Check every inline source binding appears in the source mapping and the source mapping does not imply durable ownership for transient transport.
    - Check every `_Timestamp` row that can diverge by source has `+source` in the selector and `source!` in fields.
    - Check every `$:` field ref resolves to an admitted intent entity or documented external anchor.
    - Check every `p:enum` field has an exact enum field mapping.
    - Check every `$$` list has a list contract or row note covering membership, ordering, count, and empty-state semantics.
+   - During an active schema-format migration, treat old code-level drift tests as advisory only unless they have been ported to the current schema row format. Do not use a failing old-format test as evidence that the model is wrong; use it as a list of invariants to re-express in the new format.
 
 14. Define proof obligations before implementation.
    - Write or preserve a minimal vertical fixture covering session, action, invocation, typed intent, readiness, quote/order or wallet request, simulation, outcome, timestamps, latest derivation, source ownership, and negative evidence.
@@ -126,9 +128,39 @@ For each research pass, follow this sequence without skipping steps:
 Completion requires requirement-by-requirement evidence, not absence of obvious issues. The schema is not complete merely because markdown validates or no drift check fails. It is complete only when the current docs and proof artifacts demonstrate that product requirements are modeled, source ownership is explicit, every admitted row has identity and sourceability, every enum/list/ref/timestamp axis is separated, and rejected/demoted concepts cannot re-enter unnoticed.
 ```
 
+## Intent Slice Completion Audit Matrix
+
+Use this matrix before claiming the intent mock schema is sound. Each row needs direct current-state evidence; a green markdown check, a stale pre-migration probe, or an unported old test is not enough.
+
+| Requirement | Evidence that proves it | Current status |
+| --- | --- | --- |
+| Product workflows are covered | `SCHEMA.md` intent rows and notes cover invocation, ordered session actions, readiness, intent quotes/orders, route quotes, wallet requests, simulation, outcomes, and unsupported facets. | Documented; runtime workflow proof still pending. |
+| Every admitted row has identity and lifecycle | Each intent `Entity ...` block in `SCHEMA.md` has selectors, fields, sources, view boundary, and notes; the ported drift gate confirms registered schema selectors match. | Documented; executable gate pending during schema-format migration. |
+| Catalogs and UI transport stay out of entity space | Rejected/Demoted Concepts excludes `DragAndDrop`, catalog definitions, support matrices, option labels, raw UI payloads, and generic intent roots; fixtures prove drag hover creates no durable row. | Documented; fixture pending. |
+| Local product goals stay separate from provider payloads | Typed intent rows model swap/bridge/transfer goals; `BlockheadIntentQuote` and `BlockheadIntentOrder` model retained signed-order/filler artifacts; ordinary route quotes stay on route quote timestamp rows. | Documented; drift gate and route quote negative fixture pending. |
+| Source ownership is explicit | `SOURCES.md` intent source mapping and field sourceability rules cover each row and source-owned field family; resolver proof classification handles supported, local-derived, observed, unavailable, ambiguous, and out-of-scope facts. | Documented; resolver facets pending. |
+| Timestamp policy protects mutable observations | `_Timestamp` rows include `source` where source divergence can occur; parent rows remain stable artifacts; latest surfaces derive from newest retained timestamp rows. | Documented; metadata gate and latest-display fixtures pending. |
+| Selectors do not collapse correlation handles | Local quote/order/wallet/session artifacts use local ids or scoped local ids; provider quote ids, order ids, hashes, bundle ids, and transaction hashes remain correlation/evidence fields unless an external domain owns them. | Documented; duplicate-handle fixture pending. |
+| Cardinality does not encode source support | The mock contract reserves `EntityFieldCardinality.Zero` for domain-impossible fields only; source gaps are absent facets or documented unavailable facts. | Documented; unsupported-facet fixture pending. |
+| Refs and lists do not imply completeness | `List Contracts` states membership, ordering, count meaning, empty-state semantics, and retained/local coverage for every browseable `$$` list. | Documented; list fixture pending. |
+| Wallet success is not finality | Wallet request parents and timestamps keep wallet-reported lifecycle separate from public transaction/receipt/bridge evidence. | Documented; wallet rejection/success fixture pending. |
+| Simulation is not public evidence | Simulation rows, calls, and logs are local TEVM/runtime artifacts with hashes/summaries, not canonical public transaction/log/receipt rows. | Documented; simulation runtime fixture pending. |
+| Implementation matches the contract | Ported drift gate reads `schema`/`schemaMeta` and checks rows, selectors, fields, refs, cardinalities, timestamp source selectors, and anti-fields. | Pending; active schema-format migration makes older proof advisory. |
+| Runtime/product behavior matches the contract | Minimal vertical fixture exercises one session/action path and negative evidence cases through resolver/view boundaries. | Pending. |
+
+Soundness decision rule: if any row in this matrix is `Pending`, `Documented only`, `Unproven`, or contradicted by the live schema probe, the goal remains active. Mark the schema sound only when every requirement has current executable or source-backed evidence and no axis violation remains.
+
+Fixture promotion order for the intent slice:
+
+1. Metadata drift gate proves row registration, selectors, fields, refs, cardinalities, timestamp source selectors, and anti-fields.
+2. Local mutation fixture proves local identity, links, retained list membership, and draft/accepted/rejected artifact behavior without provider data.
+3. Source/resolver fixtures prove source-owned timestamp observations, unavailable facts, source clocks, status vocabularies, and CORS/proxy behavior.
+4. View/resource fixtures prove list ordering, empty states, latest-row derivation, nested selections, and absence of parent scalar shortcuts.
+5. Route/product fixtures prove the workflow end to end. They do not replace the earlier gates; they only prove the integrated behavior once lower layers are stable.
+
 ## Intent Slice Current Audit Packet
 
-Scope: current-doc implementation-readiness audit for `SCHEMA_INTENTS.md` and `SOURCES_INTENTS.md`. This pass checks whether the docs can be mechanically audited for entity coverage, source ownership, timestamp source identity, field refs, enum mappings, and list-contract coverage.
+Scope: current-doc implementation-readiness audit for the intent rows in `SCHEMA.md` and intent source notes in `SOURCES.md`. This pass checks whether the docs can be mechanically audited for entity coverage, source ownership, timestamp source identity, field refs, enum mappings, and list-contract coverage.
 
 Competency questions:
 
@@ -141,21 +173,171 @@ Competency questions:
 
 Evidence gathered:
 
-- Current docs read: `SCHEMA_INTENTS.md`, `SOURCES_INTENTS.md`, and the intent research protocol in `SCHEMA-PLAN.md`.
-- Mechanical check result: 19 schema entities, 0 missing source mappings, 0 inline-source/source-mapping mismatches, 5 timestamp rows, 0 timestamp rows missing source identity, 22 unique `$:` field refs, 0 unresolved field refs after documented external anchors, 23 enum fields, and 0 missing enum mappings.
-- Whitespace validation command for this pass: `git diff --check -- SCHEMA-PLAN.md SCHEMA_INTENTS.md SOURCES_INTENTS.md`.
+- Current docs read: `SCHEMA.md`, `SOURCES.md`, and the intent research protocol in `SCHEMA-PLAN.md`.
+- Mechanical check result: 19 schema entities, 0 missing source mappings, 0 inline-source/source-mapping mismatches, 5 timestamp rows, 0 timestamp rows missing source identity, 22 unique `$:` field refs, 0 unresolved field refs after documented external anchors, 23 enum fields, 0 missing enum mappings, 17 `$$` list fields, 0 missing exact list contracts, and 0 list-contract quality gaps for ordering/count/coverage semantics.
+- Whitespace validation command for this pass: `git diff --check -- SCHEMA-PLAN.md SCHEMA.md SOURCES.md`.
 
 Current proof status:
 
-- Proven by current docs and mechanical checks: entity-to-source mapping coverage, durable-source alignment, timestamp source selectors, field-ref resolution, and enum-field catalog mapping.
-- Prose-covered but not yet mechanically proven: every `$$` list has a complete list contract or row note covering membership, ordering, count, empty state, linked/imported behavior, and nested-selection expectations.
-- Not yet implemented: vertical fixture tests for wrong-family typed intents, duplicate provider handles not collapsing local artifacts, drag transport creating no row, wallet success not proving finality, route quotes not becoming intent quotes, and simulated logs not becoming canonical public logs.
+- Proven by current docs and mechanical checks: entity-to-source mapping coverage, durable-source alignment, timestamp source selectors, field-ref resolution, enum-field catalog mapping, and exact list-contract coverage for every `$$` field.
+- Specified but not yet implemented: vertical fixture cases for wrong-family typed intents, duplicate provider handles not collapsing local artifacts, drag transport creating no row, wallet success not proving finality, route quotes not becoming intent quotes, simulated logs not becoming canonical public logs, latest derivation from timestamp rows, and source ownership boundaries.
 
-Next pass should target the list-contract gap with a mechanical extractor for every `$$` field and a patch for any list whose contract is incomplete or only implied by a view note.
+Implementation-readiness decision:
+
+- Last audited before the active schema-format migration: all 19 intent mock rows existed in `src/schema/**` at field-presence level.
+- Current implementation proof is suspended while `src/schema/**` is being rewritten into the newer row format. Treat row-presence claims below as migration context until rechecked against the current schema metadata shape.
+- Implemented rows are not yet contract-equivalent to the intent contract in `SCHEMA.md`: first-slice local artifact, quote/order, wallet request, and typed intent quote-axis selectors and fields have documented invariants, but the executable focused drift gate must be ported to the current schema row format before it can be treated as proof. Runtime resolver/view proof is not implemented.
+- Therefore the full vertical fixture cases should not be treated as complete yet; they would still fail on runtime contract drift and may fail mechanically while schema-format migration is in flight. The right immediate implementation proof is this checklist plus a ported focused drift gate once the active schema rewrite settles.
+
+Next pass should choose the next narrow implementation slice: port the intent drift invariants to the new schema format, then add runtime resolver/view integration and vertical fixture proof. Keep using drift gates before broad route/view integration, but do not revive old row shapes just to make an old gate pass.
+
+Implementation drift checklist:
+
+- Last audited implemented coverage: 19 of 19 intent mock rows existed as registered `src/schema/**` rows.
+- Missing registered rows at that audit point: none from the intent mock contract.
+- Selector-aligned rows at that audit point: `BlockheadSession`, `BlockheadSessionAction`, `BlockheadSessionSimulation`, `BlockheadSwapIntent`, `BlockheadBridgeIntent`, `BlockheadTransferIntent`, `BlockheadIntentInvocation`, `BlockheadActionReadinessCheck`, `BlockheadActionReadinessCheck_Timestamp`, `BlockheadActionOutcome`, `BlockheadActionOutcome_Timestamp`, `BlockheadWalletRequest`, and `BlockheadWalletRequest_Timestamp` kept the same primary selectors as the mock contract.
+- Current selector drift is unproven until the focused gate is ported to the new schema metadata shape.
+- Last audited `BlockheadSession` field state: `$$intentInvocations` and `$$simulations` existed; `$$actions+` naming still needed normalization to the mock `$$actions` contract or explicit documentation as a code-level suffix convention.
+- Last audited `BlockheadSessionAction` field state: `$originInvocation`, `$$readinessChecks`, `$$quotes`, `$$orders`, `$$walletRequests`, and `$$outcomes` existed. Remaining proof was fixture coverage that these lists preserve local retained artifact membership without implying resolver completeness.
+- Last audited typed intent field state: CAIP selector fields, optional native refs, and `$$quotes` existed for swap/bridge/transfer rows. Executable router/aggregator quote observations remained on `SwapQuote_Timestamp` / `BridgeRouteQuote_Timestamp` views.
+- Last audited `BlockheadSessionSimulation` field state: opaque `result` had been replaced with `resultSummary` and `resultPayloadHash`; `completedAt`, fork metadata, action/gas summaries, and `$$calls` / `$$logs` existed. Remaining debt was runtime fixture/resolver/view proof.
+- Last audited `BlockheadWalletRequest` field state: local artifact identity, optional action/order/wallet links, requested/submitted timestamp split, and timestamp list matched the mock contract at field-presence level. Remaining proof was fixture coverage that rejected wallet prompts can remain requested-only and wallet-reported success is not treated as finality.
+- Last audited `BlockheadWalletRequest_Timestamp` field state: `$walletRequest+timestampMs+source`, wallet numeric/status/bundle/receipt/transaction/signature/status-payload fields matched the mock contract at field-presence level; legacy `eventKind`, `message`, and `resultSummary` had been removed from the primary timestamp row.
+
+Migration-order notes:
+
+1. Last audited at field-presence level: local artifact rows existed for `BlockheadIntentInvocation`, `BlockheadActionReadinessCheck`, `BlockheadActionReadinessCheck_Timestamp`, `BlockheadActionOutcome`, and `BlockheadActionOutcome_Timestamp`.
+2. Last audited at field-presence level: `BlockheadSession` and `BlockheadSessionAction` exposed retained refs/lists for invocation, readiness, quotes, orders, wallet requests, outcomes, and simulations.
+3. Last audited at field-presence level: typed intent fields included CAIP selectors, optional native refs, and `$$quotes`; selector/value semantics still need fixture proof after the schema-format migration.
+4. Last audited at field-presence level: `BlockheadIntentQuote` / `BlockheadIntentQuote_Timestamp` and `BlockheadIntentOrder` / `BlockheadIntentOrder_Timestamp` existed as local artifacts plus provider timestamp observations.
+5. Last audited at field-presence level: wallet request identity/status split existed with action/order/wallet links and requested/submitted timestamp separation.
+6. Last audited at schema level: simulation rows used summary plus child call/log artifacts. Runtime TEVM fixtures and resolver/view integration remained future proof work.
+7. Current next step: re-run these checks against the new schema metadata shape, then turn the remaining vertical proof cases in `SCHEMA.md` into executable tests once row registration, selectors, refs, and source-owned timestamp fields are proven in the migrated format.
+
+First implementation slice acceptance criteria:
+
+- `BlockheadIntentInvocation`: add only the local accepted/recorded invocation row with `sessionId+invocationId` selector, catalog modality/intent fields, optional source/target selector payloads, reproducibility hashes, `createdAt`, and optional `$createdAction`. Do not add browser drag/drop transport rows or raw `DataTransfer` payload fields.
+- `BlockheadActionReadinessCheck`: add only the local readiness request row with `sessionId+actionId+checkId` selector, subject selectors, requested capability/amount fields, and `$$timestamps`. Do not model balance, allowance, wallet authority, route availability, or capability support as parent facts.
+- `BlockheadActionReadinessCheck_Timestamp`: add the timestamped readiness observation row with `$readinessCheck+timestampMs+source` selector. Keep observed status/amount/capability/error fields here; do not create canonical balance/allowance/capability rows in this slice.
+- `BlockheadActionOutcome`: add only the local outcome summary/evidence-handle row with `sessionId+actionId+outcomeId` selector and optional links to wallet request, order, simulation, transaction hash/id, or bridge transfer id. Do not treat outcome rows as final transaction, receipt, fill, settlement, or finality proof.
+- `BlockheadActionOutcome_Timestamp`: add the timestamped local outcome observation row with `$outcome+timestampMs+source` selector. Keep `finality` as a local display/status label until public chain/protocol evidence resolves externally.
+- Session/action integration for this slice: add `$originInvocation`, `$$readinessChecks`, and `$$outcomes` refs before quote/order/wallet/simulation refs if a smaller atomic implementation is needed.
+- Tests for this slice should cover selector shape, optional external refs, list membership/order for invocations/readiness/outcomes, latest derivation from timestamp rows, drag transport creating no durable row, readiness not proving canonical evidence, and outcome finality remaining local.
+- Defer provider quote/order rows, wallet request identity migration, and simulation child rows unless they are needed only as optional references; this slice should not introduce provider payload, wallet status, or TEVM trace axes.
+
+First-slice drift test specification:
+
+- Purpose: provide a repeatable report-only gate during and after schema-format migration so implementation changes are judged against the mock contract instead of stale row syntax or legacy subsets.
+- Inputs: `SCHEMA.md` first-slice row definitions, the list contracts for `BlockheadSession` and `BlockheadSessionAction`, `src/schema/index.ts`, and any implemented `src/schema/Blockhead*.ts` rows.
+- Required rows before the gate can pass: `BlockheadIntentInvocation`, `BlockheadActionReadinessCheck`, `BlockheadActionReadinessCheck_Timestamp`, `BlockheadActionOutcome`, and `BlockheadActionOutcome_Timestamp`.
+- Required selectors: `BlockheadIntentInvocation` uses `sessionId+invocationId`; `BlockheadActionReadinessCheck` uses `sessionId+actionId+checkId`; `BlockheadActionReadinessCheck_Timestamp` uses `$readinessCheck+timestampMs+source`; `BlockheadActionOutcome` uses `sessionId+actionId+outcomeId`; `BlockheadActionOutcome_Timestamp` uses `$outcome+timestampMs+source`.
+- Required integration fields: `BlockheadSession.$$intentInvocations`; `BlockheadSessionAction.$originInvocation`; `BlockheadSessionAction.$$readinessChecks`; `BlockheadSessionAction.$$outcomes`. `BlockheadSession.$$simulations` remains part of the full mock contract but is not required to pass the first local-artifact slice unless simulation work is included in the same implementation change.
+- Required timestamp/source checks: every first-slice `_Timestamp` row includes `source` in the selector and as a field; parent local artifact rows keep stable local identity and do not store mutable observation status that belongs to timestamp rows.
+- Required anti-fields: no `DataTransfer`, raw drag payload, browser drop payload, provider order status, wallet success/finality, canonical balance, canonical allowance, canonical wallet authority, canonical wallet capability, canonical receipt, canonical public log, or canonical transaction row is introduced by this slice.
+- Drift report categories: `missing-row`, `selector-drift`, `missing-field`, `legacy-extra-field`, `axis-violation`, and `deferred-by-design`.
+- Passing condition: all required rows are registered, required selectors match, integration fields exist, timestamp/source checks pass, and no `axis-violation` remains. `legacy-extra-field` findings may remain only when the report marks them as migration debt and they do not affect the first-slice contract.
+- Promotion rule: keep this as a report-only checklist while rows are absent. Promote it to a failing test after the first-slice rows are implemented and existing legacy fields are either removed, migrated, or explicitly documented as compatibility debt.
+
+Current first-slice drift report:
+
+- Evidence inspected in the last pre-migration audit: `src/schema/EntityType.ts`, `src/schema/index.ts`, `src/schema/$schema.ts`, `src/schema/BlockheadSession.ts`, `src/schema/BlockheadSessionAction.ts`, `src/schema/BlockheadIntentInvocation.ts`, `src/schema/BlockheadActionReadinessCheck.ts`, `src/schema/BlockheadActionReadinessCheck_Timestamp.ts`, `src/schema/BlockheadActionOutcome.ts`, `src/schema/BlockheadActionOutcome_Timestamp.ts`, `src/schema/BlockheadSwapIntent.ts`, and `src/schema/BlockheadWalletRequest_Timestamp.ts`.
+- Last audited `missing-row`: none for the first local-artifact slice. Current row presence must be rechecked against the migrated schema metadata shape.
+- Last audited `selector-drift`: none for the first local-artifact slice. Current selector drift is unproven until the ported focused gate runs.
+- Last audited `missing-field`: none for the first local-artifact slice. Current field presence must be rechecked against the migrated schema metadata shape.
+- Last audited `deferred-by-design`: runtime resolver/view integration remained outside the implemented field-presence gate.
+- Last audited `implemented-after-first-slice`: provider quote/order rows were registered as local artifacts plus timestamp observations, and their mock-contract field coverage was included in the focused gate.
+- Last audited `legacy-extra-field`: none tracked for the intent slice; executable route quote observations stayed outside typed local intent artifacts.
+- Last audited `axis-violation`: none found in the first-slice implementation; drag/drop transport, canonical balance/allowance/capability evidence, wallet finality, provider order status, transaction rows, receipts, and public logs remained outside these local artifact rows.
+- Verification: code-level focused drift verification is currently suspended while `src/schema/**` is being migrated to a newer row format by another active agent. The last stable proof target remains the documented invariant set: local artifact identity, source-scoped timestamp observations, typed intent vs executable route quote separation, wallet request vs wallet lifecycle separation, and simulation runtime vs public evidence separation. Re-enable `pnpm exec vitest run src/schema/BlockheadIntents.spec.ts` only after the test and rows are ported to the current schema format. `git diff --check -- SCHEMA-PLAN.md` passes for the doc-only methodology update.
+
+Live migration probe:
+
+- Current schema runtime shape still exports `schema` and `schemaMeta` from `src/schema/index.ts`, and `EntityDefinition` still exposes `entityType`, `selectors`, and `fields` from `src/schema/$schema.ts`.
+- Current probe evidence contradicts treating the last pre-migration drift report as live proof: `BlockheadSession` still exposes `$$actions+` and lacks the full mock list surface, `BlockheadWalletRequest_Timestamp` still uses `$request+timestampMs+source` and legacy `eventKind` / `message` / `resultSummary` fields, and searched intent rows such as `BlockheadIntentInvocation`, `BlockheadActionReadinessCheck`, `BlockheadActionOutcome`, `BlockheadIntentQuote`, and `BlockheadIntentOrder` were not present in the live registry at probe time.
+- Port the focused drift gate against `schema` / `schemaMeta`, not file existence, generated file names, or stale pre-migration assumptions. The gate should build an entity-definition map by `entityType`, then compare selectors, field names, reference targets, cardinalities, timestamp `source` selectors, and explicit anti-fields against `SCHEMA.md`.
+- Treat file-level absence during migration as `missing-row-current-probe`, not as a modeling decision. A missing row means the executable proof is incomplete; it does not weaken the documented invariant unless the new schema format intentionally replaces that row with a better non-conflating model.
+
+Ported drift-gate algorithm:
+
+1. Import `schema`, `schemaMeta`, `EntityFieldCardinality`, and `EntityFieldType` from the current schema modules, following the direct inspection style already used by `src/schema/EntityDefinition.spec.ts` and `src/params/evmRouteParams.spec.ts`.
+2. Define the intent contract as a small checked-in object in the test: required entity types, required selector field arrays, required field names, required reference targets for `$` / `$$` fields, required cardinalities where they protect axes, and forbidden anti-fields.
+3. Read current definitions from `schemaMeta.entityDefinitionByType`, `schemaMeta.entityFieldDefinitionByEntityTypeAndName`, and `schemaMeta.entitySelectorDefinitionByEntityTypeAndName`. Use direct `schema` iteration only for ordering checks or whole-row scans.
+4. Emit report categories separately: `missing-row-current-probe`, `selector-drift`, `missing-field`, `reference-target-drift`, `cardinality-drift`, `timestamp-source-drift`, `axis-violation`, and `migration-debt`.
+5. Treat timestamp rows as a hard gate: every source-divergent `_Timestamp` row in the intent contract must have a selector containing `source` and a field named `source` with `EntityFieldCardinality.One`.
+6. Treat anti-fields as hard axis violations, not cosmetic drift: raw drag payload fields, parent provider status, parent wallet status, parent finality, canonical balance/allowance/capability fields, public receipt/log fields, and simulated-public evidence fields must stay absent from local artifact rows.
+7. Keep the gate report-only until active schema-format migration settles. Promote it to a failing test only when row registration, selector shape, and current field definitions can be read without racing another migration agent.
+8. Do not parse labels, descriptions, source notes, or view text as proof. They are documentation; the executable gate proves only selectors, fields, refs, cardinalities, and anti-fields.
+
+Migration-safe proof loop for the ported gate:
+
+1. Discover the live metadata shape first. In one tiny probe, print only entity type names, selector field names, field names, field types, reference targets, and cardinalities for `Blockhead*` rows. Do not read filenames or infer row presence from generated modules.
+2. Normalize the probe into a small plain report with one row per entity and one row per field. The report is disposable evidence, not a schema artifact.
+3. Compare the normalized report against the contract object below. Classify every difference as `implementation-drift`, `format-migration`, `intentional-replacement`, `doc-contract-gap`, or `axis-violation`.
+4. Only `intentional-replacement` may change intent rows in `SCHEMA.md`; it needs a written reason showing the replacement preserves identity, source ownership, timestamp policy, refs/lists, and non-conflation better than the old row.
+5. `format-migration` may change only the drift-gate reader and report formatting. It must not change selectors, field names, source ownership, or proof obligations.
+6. `implementation-drift` becomes implementation backlog. During the active migration, keep it report-only unless the migrating agent explicitly asks for schema edits.
+7. `doc-contract-gap` means the mock contract is under-specified. Patch `SCHEMA.md` or `SOURCES.md` before changing code.
+8. `axis-violation` blocks promotion. Do not soften it into optional fields, empty lists, or compatibility notes; either remove the conflating field/row or document a replacement model that preserves the axis split.
+9. Promote from report-only to failing test only after two consecutive probes against the current schema metadata agree on row registration and field/selector readability.
+
+Normalized metadata probe report:
+
+- Entity rows:
+  - `entityType`: current `entityDefinition.entityType`.
+  - `selectors`: selector names and ordered selector field arrays from `entityDefinition.selectors`.
+  - `fieldCount`: count of flattened `entityFieldDefinitions(entityDefinition)`.
+  - `missingFromContract`: whether the row is live but absent from the intent contract.
+- Missing required entity rows:
+  - `entityType`: required contract entity type absent from `schemaMeta.entityDefinitionByType`.
+  - `contractSelectors`: expected selector field arrays from the contract object.
+  - `contractFields`: expected field names from the contract object.
+- Field rows:
+  - `entityType`: owning entity type.
+  - `fieldName`: current field definition name.
+  - `fieldType`: `Primitive`, `EntityReference`, or `EntitiesReference`.
+  - `cardinality`: current `EntityFieldCardinality`.
+  - `entityTypeTarget`: reference target for `$` / `$$` fields, omitted for primitive fields.
+  - `selectorMembership`: names of selectors that include this field, if any.
+  - `contractRole`: one of `required-field`, `required-ref`, `timestamp-source`, `anti-field`, `migration-debt`, or `untracked-live-field`.
+- Report rules:
+  - Do not include labels, descriptions, view metadata, source notes, or raw primitive ArkType schema text; they are not proof for this gate.
+  - Do not serialize example entities, field values, raw payloads, or `devalue` dumps.
+  - Sort entity rows by `entityType`, selector field names in declared order, and field rows by `entityType` then `fieldName`.
+  - Keep the report small enough for review. If the live schema is too large, filter to `BlockheadSession`, `BlockheadSessionAction`, `Blockhead*Intent*`, `BlockheadActionReadinessCheck*`, `BlockheadActionOutcome*`, `BlockheadWalletRequest*`, and `BlockheadSessionSimulation*`.
+  - Classify forbidden parent fields as `axis-violation` even when they have plausible labels or legacy compatibility reasons.
+
+Contract object outline for the ported gate:
+
+- `BlockheadSession`: selector `['id']`; required refs `$$actions -> BlockheadSessionAction`, `$$intentInvocations -> BlockheadIntentInvocation`, `$$simulations -> BlockheadSessionSimulation`, `$latestSimulation -> BlockheadSessionSimulation`; required primitive fields `id`, `name`, `status`, `createdAt`, `updatedAt`, `lockedAt`, `simulationCount`.
+- `BlockheadSessionAction`: selector `['sessionId', 'actionId']`; required refs `$session -> BlockheadSession`, `$originInvocation -> BlockheadIntentInvocation`, `$$readinessChecks -> BlockheadActionReadinessCheck`, `$$quotes -> BlockheadIntentQuote`, `$$orders -> BlockheadIntentOrder`, `$$walletRequests -> BlockheadWalletRequest`, `$$outcomes -> BlockheadActionOutcome`; required primitive fields `sessionId`, `actionId`, `indexInSequence`, `actionType`, `selectedProtocol`, `actionParams`, `createdAt`, `updatedAt`.
+- Local artifact rows: `BlockheadIntentInvocation`, `BlockheadActionReadinessCheck`, and `BlockheadActionOutcome` must use scoped local selectors from `SCHEMA.md`; their parent/action refs remain local refs, and their required primitive fields describe request/result envelopes rather than provider truth.
+- Typed intent rows: `BlockheadSwapIntent`, `BlockheadBridgeIntent`, and `BlockheadTransferIntent` must use `['sessionId', 'actionId']`, must reference `$sessionAction -> BlockheadSessionAction`, and must keep CAIP fields, native EVM shortcut fields, optional external refs, and `$$quotes` separate where the mock contract lists them.
+- Quote/order parent rows: `BlockheadIntentQuote` and `BlockheadIntentOrder` must use local `['id']` selectors. Provider handles such as `source`, `quoteRequestHash`, and `orderId` are fields/correlation handles, not replacement selectors.
+- Timestamp rows: `BlockheadActionReadinessCheck_Timestamp`, `BlockheadActionOutcome_Timestamp`, `BlockheadIntentQuote_Timestamp`, `BlockheadIntentOrder_Timestamp`, and `BlockheadWalletRequest_Timestamp` must include `source` in both selector fields and row fields; each timestamp row must reference its parent artifact with cardinality `One`.
+- Wallet request rows: `BlockheadWalletRequest` must use local `['id']`, keep `requestedAt` and optional `submittedAt` split, and keep wallet-reported lifecycle facts on `BlockheadWalletRequest_Timestamp`.
+- Simulation rows: `BlockheadSessionSimulation` must use local `['id']`, store compact summary/hash fields, and reference `$$calls -> BlockheadSessionSimulationCall` plus `$$logs -> BlockheadSessionSimulationLog`; call/log rows are local runtime artifacts keyed by simulation-local selectors.
+- Contract-level anti-fields: forbid durable `DataTransfer` / drag payload fields, provider order status on action/intent parents, wallet status/finality on action or wallet request parents, canonical balance/allowance/capability fields on readiness parents, public receipt/log rows created from simulation artifacts, and executable route quote refs such as typed-intent `$$quoteTimestamps`.
+- Contract-level list checks: every intent `$$` field named in `SCHEMA.md` must exist as `EntityFieldType.EntitiesReference` with an `entityType` target matching the mock contract. Ordering/count/empty-state semantics stay in fixture/view tests; the schema drift gate only proves the list field exists and points at the right row family.
+
+Intent invariant porting checklist for the new schema format:
+
+- Preserve field names and selectors from `SCHEMA.md`; add labels/descriptions only as metadata. Do not rename domain fields to fit display text.
+- `BlockheadSessionAction` keeps product-local action metadata and local retained artifact lists. It must not store provider order status, wallet status, readiness result, or finality as parent scalars.
+- `BlockheadIntentInvocation` persists accepted invocation results only. Browser `DataTransfer`, hover state, drag arrows, and previews remain transient UI transport.
+- `BlockheadActionReadinessCheck` stores what Blockhead asked to check; `BlockheadActionReadinessCheck_Timestamp` stores observed readiness status/amount/capability evidence. Do not create canonical balance, allowance, or wallet-authority claims from readiness rows.
+- `BlockheadSwapIntent`, `BlockheadBridgeIntent`, and `BlockheadTransferIntent` are mutually exclusive typed goal rows keyed by `sessionId+actionId`; CAIP selectors and native EVM shortcuts remain separate fields.
+- Typed intent rows may link to `BlockheadIntentQuote` records for signed-order/filler-market flows. Executable router/aggregator route quote observations stay on specialized rows such as `SwapQuote_Timestamp` and `BridgeRouteQuote_Timestamp`; do not re-add `BlockheadSwapIntent.$$quoteTimestamps`.
+- `BlockheadIntentQuote` and `BlockheadIntentOrder` use local `id` identity so identical provider request hashes or provider order ids do not collapse artifacts across sessions/actions. Provider handles remain correlation fields.
+- Quote/order mutable provider observations live on `_Timestamp` rows with `source` in the selector. Parent quote/order rows remain stable recorded artifacts.
+- `BlockheadWalletRequest` records what Blockhead asked a wallet to do, including requested/submitted time split. Wallet-reported status, signatures, transaction ids/hashes, call bundle state, observed atomicity, receipts, and errors live on `BlockheadWalletRequest_Timestamp`.
+- Wallet-reported success is not chain finality. Public transaction, receipt, bridge transfer, and log evidence must resolve through external protocol/source rows.
+- `BlockheadSessionSimulation` is a local runtime artifact. Store compact summaries and payload hashes; simulation calls/logs are local replay/debug artifacts, not canonical `EvmTransaction`, `EvmLog`, or receipt evidence.
+- Every `$$` list remains a local retained/navigation list with documented ordering/count semantics. Do not treat list presence as source completeness or global provider coverage.
+- Port the focused drift gate by reading the new schema metadata shape rather than reconstructing old row definitions. The gate should assert selectors, field names, entity refs, timestamp source selectors, and the explicit anti-fields above.
 
 Intent-slice iteration log:
 
-- Pass 01, boundary and evidence audit: split local product intents from provider/order-server payloads, kept drag/drop transport transient, kept protocol/action definitions as catalogs, removed browser drag/drop as durable invocation source ownership, made invocation source selectors optional for command/URL/agent modalities, added competency questions for invocation/action/readiness/quote/order/wallet/simulation/outcome surfaces, added local readiness-check artifacts between action params and quote/wallet/simulation execution, added local action outcome summaries that group wallet/order/simulation/public evidence without claiming finality, scoped readiness check and outcome identifiers to their session action for retry-safe identity, moved mutable provider/wallet outcomes onto timestamp rows, separated wallet requests from provider orders, added CAIP interop fields as selectors rather than replacements for native models, retained raw payloads by hash/summary instead of primary JSON fields, documented non-EVM wallet APIs as a mock source placeholder, made relationship/list refs explicitly non-complete, added implementation-facing list contracts for ordering/count/latest semantics, exposed explicit local retained list refs for session simulations and action quotes/orders/wallet requests so view tabs do not depend on implicit reverse lookups, clarified that action list refs include linked artifacts while imported standalone quote/order/wallet artifacts remain addressable by local id, documented typed intent rows as mutually exclusive by action type rather than simultaneous variants for one action, added implementation admission gates for selectors/cardinality/source facets/list facets/latest derivation/view proof/rejection tests, added a minimal vertical proof fixture covering rows/selectors/lists/latest/source ownership/negative evidence, added source feasibility statuses so local/runtime/browser/wallet bindings are distinguished from prior-art provider mocks and protocol placeholders, added field sourceability rules distinguishing local ids/links, catalog labels, provider observations, wallet observations, TEVM artifacts, evidence hashes, parent quote/order `source` correlation, and timestamp `source` semantics, consolidated rejected/demoted concepts so UI transport, catalogs, generic intent roots, provider ids, mutable statuses, raw payloads, and simulated public evidence do not re-enter as entities, assigned local source ownership to recorded order session links while provider sources own order payload/status evidence, changed intent quote requests from `source+quoteRequestHash` identity to local recorded artifacts so identical requests across sessions do not collapse, changed intent orders from provider-handle identity to local recorded artifacts with `source+orderId` as a correlation handle, added source to quote/order timestamp selectors so provider/order-server observations do not collide at the same clock, corrected source mapping so transient browser drag/drop is not listed as durable invocation source ownership, mapped every `p:enum` field to a catalog family so status/protocol/wallet/invocation/simulation axes do not collapse into one enum bucket, split wallet `requestedAt` from optional `submittedAt`, added normalized EIP-5792 atomicity and receipt-count fields at the wallet request boundary, separated requested wallet capabilities, observed capability readiness, product readiness labels, and protocol numeric wallet status codes, marked simulation lifecycle fields as local run envelope fields rather than provider observation history, replaced raw simulation result JSON with result summary plus runtime payload hash, and documented external reference anchors for existing network/account/asset/wallet rows plus non-intent route quote, transaction, receipt, bridge-transfer, and log evidence surfaces so the intent slice does not duplicate broader schema entities.
+- Pass 01, boundary and evidence audit: split local product intents from provider/order-server payloads, kept drag/drop transport transient, kept protocol/action definitions as catalogs, removed browser drag/drop as durable invocation source ownership, made invocation source selectors optional for command/URL/agent modalities, added competency questions for invocation/action/readiness/quote/order/wallet/simulation/outcome surfaces, added local readiness-check artifacts between action params and quote/wallet/simulation execution, added local action outcome summaries that group wallet/order/simulation/public evidence without claiming finality, scoped readiness check and outcome identifiers to their session action for retry-safe identity, moved mutable provider/wallet outcomes onto timestamp rows, separated wallet requests from provider orders, added CAIP interop fields as selectors rather than replacements for native models, retained raw payloads by hash/summary instead of primary JSON fields, documented non-EVM wallet APIs as a mock source placeholder, made relationship/list refs explicitly non-complete, added implementation-facing list contracts for ordering/count/latest semantics, exposed explicit local retained list refs for session simulations and action quotes/orders/wallet requests so view tabs do not depend on implicit reverse lookups, clarified that action list refs include linked artifacts while imported standalone quote/order/wallet artifacts remain addressable by local id, documented typed intent rows as mutually exclusive by action type rather than simultaneous variants for one action, added exact list contracts for all 17 `$$` fields so navigation refs do not imply source completeness, added implementation admission gates for selectors/cardinality/source facets/list facets/latest derivation/view proof/rejection tests, expanded the vertical proof fixture into concrete fixture cases for rows/selectors/lists/latest/source ownership/negative evidence, documented that current `src/schema/**` rows are a legacy subset, added a drift/migration checklist, defined first-slice acceptance criteria before executable vertical fixtures, added a first-slice drift-test specification, and recorded the current first-slice drift report from live schema files, added source feasibility statuses so local/runtime/browser/wallet bindings are distinguished from prior-art provider mocks and protocol placeholders, added field sourceability rules distinguishing local ids/links, catalog labels, provider observations, wallet observations, TEVM artifacts, evidence hashes, parent quote/order `source` correlation, and timestamp `source` semantics, consolidated rejected/demoted concepts so UI transport, catalogs, generic intent roots, provider ids, mutable statuses, raw payloads, and simulated public evidence do not re-enter as entities, assigned local source ownership to recorded order session links while provider sources own order payload/status evidence, changed intent quote requests from `source+quoteRequestHash` identity to local recorded artifacts so identical requests across sessions do not collapse, changed intent orders from provider-handle identity to local recorded artifacts with `source+orderId` as a correlation handle, added source to quote/order timestamp selectors so provider/order-server observations do not collide at the same clock, corrected source mapping so transient browser drag/drop is not listed as durable invocation source ownership, mapped every `p:enum` field to a catalog family so status/protocol/wallet/invocation/simulation axes do not collapse into one enum bucket, split wallet `requestedAt` from optional `submittedAt`, added normalized EIP-5792 atomicity and receipt-count fields at the wallet request boundary, separated requested wallet capabilities, observed capability readiness, product readiness labels, and protocol numeric wallet status codes, marked simulation lifecycle fields as local run envelope fields rather than provider observation history, replaced raw simulation result JSON with result summary plus runtime payload hash, and documented external reference anchors for existing network/account/asset/wallet rows plus non-intent route quote, transaction, receipt, bridge-transfer, and log evidence surfaces so the intent slice does not duplicate broader schema entities.
 
 ## Notation
 

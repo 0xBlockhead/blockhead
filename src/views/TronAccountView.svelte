@@ -2,15 +2,86 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			'address',
+			'name',
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					'address',
+					'name',
+					{
+						label: 'contract ref',
+					},
+					{
+						label: 'latest balance/resource/activity summary',
+					},
+					{
+						label: 'token-balance snapshot count',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'State observations',
+					items: [
+						{
+							label: 'account/resource snapshots',
+						},
+					],
+				},
+				{
+					label: 'Token balances',
+					items: [
+						{
+							label: 'token balance snapshots grouped by token',
+						},
+					],
+				},
+				{
+					label: 'Transactions',
+					items: [
+						{
+							label: 'TRON transactions',
+						},
+					],
+				},
+				{
+					label: 'Contract',
+					items: [
+						{
+							label: 'contract identity when the latest snapshot or source ref marks it as a contract',
+						},
+					],
+				},
+				{
+					label: 'Network',
+					items: [
+						{
+							label: 'parent TRON network',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +92,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,81 +100,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.TronAccount}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.address}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		<TruncatedValue
-			value={selection.entitySelector.address}
-			format={TruncatedValueFormat.Abbr}
-		/>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection(
-					({ fields: { name: true, balanceSun: true, totalTransactionCount: true, isContract: true, ...(open && ({ createdTimestampMs: true, latestOperationTimestampMs: true, bandwidthRemaining: true, energyRemaining: true })) } }),
-				)}
-			placeholderText="Loading TRON account..."
-		>
-			{#snippet children(account)}
-				<dl data-column-item="center">
-					{#if account.name != null}
-						<div>
-							<dt>Name</dt>
-							<dd>{account.name}</dd>
-						</div>
-					{/if}
-
-					{#if account.balanceSun != null}
-						<div>
-							<dt>Balance</dt>
-							<dd><NumberValue value={account.balanceSun} /></dd>
-						</div>
-					{/if}
-
-					{#if account.totalTransactionCount != null}
-						<div>
-							<dt>Transactions</dt>
-							<dd><NumberValue value={account.totalTransactionCount} /></dd>
-						</div>
-					{/if}
-
-					{#if account.isContract != null}
-						<div>
-							<dt>Contract</dt>
-							<dd>{account.isContract ? 'Yes' : 'No'}</dd>
-						</div>
-					{/if}
-
-					{#if open && account.createdTimestampMs != null}
-						<div>
-							<dt>Created</dt>
-							<dd><Timestamp timestamp={account.createdTimestampMs} /></dd>
-						</div>
-					{/if}
-
-					{#if open && account.latestOperationTimestampMs != null}
-						<div>
-							<dt>Latest operation</dt>
-							<dd><Timestamp timestamp={account.latestOperationTimestampMs} /></dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

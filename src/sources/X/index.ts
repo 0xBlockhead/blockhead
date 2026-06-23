@@ -1,20 +1,38 @@
-import { type as arktype } from 'arktype'
-
+import { Source } from '$/sources/Source.ts'
 import {
-	type SourceProviderDefinition,
 	SourceProvider,
+	type SourceProviderDefinition,
 } from '$/sources/SourceProvider.ts'
-import { xApiOrigins } from '$/sources/X/Rest/constants.ts'
-import XApiV2Source from '$/sources/X/Rest/index.ts'
+import {
+	xBindings,
+	xPublicEnv,
+} from '$/sources/X/bindings.ts'
+
+export const xOrigins = [
+	...new Map(
+		xBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.X,
 	label: 'X',
-	origins: xApiOrigins,
-	env: arktype({
-		PUBLIC_X_API_BEARER: 'string > 0',
-	}),
+	env: xPublicEnv,
 	sources: [
-		XApiV2Source,
+		{
+			provider: SourceProvider.X,
+			source: Source.X_Rest,
+			label: 'X API v2',
+			env: xPublicEnv,
+		},
 	],
+	bindings: xBindings,
 } satisfies SourceProviderDefinition

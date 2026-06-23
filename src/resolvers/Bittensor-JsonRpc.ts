@@ -71,7 +71,7 @@ export default {
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorNetwork_Timestamp,
 			resolve: {
-				[BittensorNetwork_TimestampSelector.NetworkTimestampMs]: async ({ $network }) => {
+				[BittensorNetwork_TimestampSelector.NetworkTimestampMsSource]: async ({ $network }) => {
 					assertBittensorMainnet($network)
 					const {
 						getMainnetRpcUrl,
@@ -225,7 +225,7 @@ export default {
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorMetagraph_Timestamp,
 			resolve: {
-				[BittensorMetagraph_TimestampSelector.BittensorSubnetTimestampMs]: async ({ $subnet }) => {
+				[BittensorMetagraph_TimestampSelector.SubnetTimestampMsSource]: async ({ $subnet }) => {
 					assertBittensorMainnet($subnet.$network)
 					const {
 						getMainnetRpcUrl,
@@ -271,6 +271,7 @@ export default {
 							[EntityMetaKey.Selector]: {
 								$network: $network,
 								timestampMs: Date.now(),
+								source: Source.Bittensor_JsonRpc,
 							},
 						},
 					]
@@ -357,6 +358,7 @@ export default {
 							[EntityMetaKey.Selector]: {
 								$subnet: entitySelector,
 								timestampMs: Date.now(),
+								source: Source.Bittensor_JsonRpc,
 							},
 						},
 					]

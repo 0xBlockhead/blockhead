@@ -1,20 +1,38 @@
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
-import LotusJsonRpc from '$/sources/Lotus/JsonRpc/index.ts'
+import { Source } from '$/sources/Source.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import { lotusBindings } from '$/sources/Lotus/bindings.ts'
+
+export const lotusOrigins = [
+	...new Map(
+		lotusBindings
+			.flatMap((binding) => binding.endpoints)
+			.flatMap((endpoint) => (
+				endpoint.origin == null ?
+					[]
+				:
+					[[
+						endpoint.origin,
+						{
+							origin: endpoint.origin,
+							corsEnabled: endpoint.corsEnabled === true,
+						},
+					]]
+			))
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.Lotus,
 	label: 'Lotus',
-	origins: [
-		{
-			origin: 'http://127.0.0.1:1234',
-			corsEnabled: false,
-		},
-		{
-			origin: 'https://api.node.glif.io',
-			corsEnabled: true,
-		},
-	],
 	sources: [
-		LotusJsonRpc,
+		{
+			provider: SourceProvider.Lotus,
+			source: Source.Lotus_JsonRpc,
+			label: 'Lotus JSON-RPC',
+		},
 	],
-} as const satisfies SourceProviderDefinition
+	bindings: lotusBindings,
+} satisfies SourceProviderDefinition

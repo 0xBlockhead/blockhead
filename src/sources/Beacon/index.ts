@@ -1,47 +1,38 @@
+import { Source } from '$/sources/Source.ts'
 import {
-	type SourceProviderDefinition,
 	SourceProvider,
+	type SourceProviderDefinition,
 } from '$/sources/SourceProvider.ts'
-import { ChainId } from '$/constants/ChainId.ts'
-import BeaconRestSource from '$/sources/Beacon/Rest/index.ts'
+import { beaconBindings } from '$/sources/Beacon/bindings.ts'
 
-export const beaconRestEndpoints = [
-	{
-		chainId: ChainId.Ethereum,
-		restBaseUrl: 'https://ethereum-beacon-api.publicnode.com',
-		corsEnabled: true,
-	},
-	{
-		chainId: ChainId.EthereumSepolia,
-		restBaseUrl: 'https://ethereum-sepolia-beacon-api.publicnode.com',
-		corsEnabled: true,
-	},
-	{
-		chainId: 17_000,
-		restBaseUrl: 'https://ethereum-holesky-beacon-api.publicnode.com',
-		corsEnabled: true,
-	},
-] as const satisfies readonly {
-	chainId: number
-	restBaseUrl: string
-	corsEnabled: boolean
-}[]
-
-export const beaconRestEndpointByExecutionChainId = Object.fromEntries(
-	beaconRestEndpoints.map((beaconRestEndpoint) => [
-		beaconRestEndpoint.chainId,
-		beaconRestEndpoint,
-	])
-)
+export const beaconOrigins = [
+	...new Map(
+		beaconBindings
+			.flatMap((binding) => binding.endpoints)
+			.flatMap((endpoint) => (
+				endpoint.origin == null ?
+					[]
+				:
+					[[
+						endpoint.origin,
+						{
+							origin: endpoint.origin,
+							corsEnabled: endpoint.corsEnabled === true,
+						},
+					]]
+			))
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.Beacon,
 	label: 'Beacon',
-	origins: beaconRestEndpoints.map((beaconRestEndpoint) => ({
-		origin: new URL(beaconRestEndpoint.restBaseUrl).origin,
-		corsEnabled: beaconRestEndpoint.corsEnabled,
-	})),
 	sources: [
-		BeaconRestSource,
+		{
+			provider: SourceProvider.Beacon,
+			source: Source.Beacon_Rest,
+			label: 'Beacon (consensus) REST',
+		},
 	],
+	bindings: beaconBindings,
 } satisfies SourceProviderDefinition

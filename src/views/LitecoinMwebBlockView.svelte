@@ -2,15 +2,94 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'parent UTXO block',
+			},
+			{
+				label: 'HogEx transaction id',
+			},
+			{
+				label: 'kernel root',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'parent UTXO block',
+					},
+					{
+						label: 'HogEx transaction id',
+					},
+					{
+						label: 'kernel root',
+					},
+					{
+						label: 'MWEB transaction count',
+					},
+					{
+						label: 'peg-in count',
+					},
+					{
+						label: 'peg-out count',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Parent block',
+					items: [
+						{
+							label: 'parent Litecoin UTXO block',
+						},
+					],
+				},
+				{
+					label: 'Transactions',
+					items: [
+						{
+							label: 'MWEB transactions in this extension block',
+						},
+					],
+				},
+				{
+					label: 'Peg flows',
+					items: [
+						{
+							label: 'peg-ins and peg-outs through transactions',
+						},
+					],
+				},
+				{
+					label: 'Wallet matches',
+					items: [
+						{
+							label: 'BlockheadLitecoinMwebWalletState when a connected wallet has scanned this block',
+						},
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'verbose Litecoin Core block payload',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +100,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,66 +108,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.LitecoinMwebBlock}
 	entitySelector={selection.entitySelector}
-	title={`MWEB Block #${selection.entitySelector.$block.height.toString()}`}
-	idDragPlainText={selection.entitySelector.$block.height.toString()}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Value()}
-		<span data-badge="small">
-			#{selection.entitySelector.$block.height.toString()}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>MWEB Block </span>
-			{#if Value}
-			{@render Value()}
-					{/if}
-		</span>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection( { fields: { hogExTransactionId: true, kernelRoot: true } })}
-			placeholderText={`Loading Litecoin MWEB Block...`}
-		>
-			{#snippet children(litecoinMwebBlock)}
-				<dl>
-					{#if litecoinMwebBlock.hogExTransactionId != null}
-						<div>
-							<dt>Hog Ex Transaction ID</dt>
-							<dd>
-								<TruncatedValue
-									value={litecoinMwebBlock.hogExTransactionId}
-									format={TruncatedValueFormat.Abbr}
-								/></dd>
-						</div>
-					{/if}
-
-					{#if litecoinMwebBlock.kernelRoot != null}
-						<div>
-							<dt>Kernel Root</dt>
-							<dd>
-								<TruncatedValue
-									value={litecoinMwebBlock.kernelRoot}
-									format={TruncatedValueFormat.Abbr}
-								/></dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

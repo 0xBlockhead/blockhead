@@ -1,21 +1,38 @@
-import { type as arktype } from 'arktype'
-
+import { Source } from '$/sources/Source.ts'
 import {
-	type SourceProviderDefinition,
 	SourceProvider,
+	type SourceProviderDefinition,
 } from '$/sources/SourceProvider.ts'
-import { redditApiOrigins } from '$/sources/Reddit/Rest/constants.ts'
-import RedditOauthSource from '$/sources/Reddit/Rest/index.ts'
+import {
+	redditBindings,
+	redditPublicEnv,
+} from '$/sources/Reddit/bindings.ts'
+
+export const redditOrigins = [
+	...new Map(
+		redditBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.Reddit,
 	label: 'Reddit',
-	origins: redditApiOrigins,
-	env: arktype({
-		PUBLIC_REDDIT_CLIENT_ID: 'string > 0',
-		PUBLIC_REDDIT_CLIENT_SECRET: 'string > 0',
-	}),
+	env: redditPublicEnv,
 	sources: [
-		RedditOauthSource,
+		{
+			provider: SourceProvider.Reddit,
+			source: Source.Reddit_Rest,
+			label: 'Reddit OAuth REST',
+			env: redditPublicEnv,
+		},
 	],
+	bindings: redditBindings,
 } satisfies SourceProviderDefinition

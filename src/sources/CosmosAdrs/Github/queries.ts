@@ -1,11 +1,9 @@
-import { getText, githubHttp } from '$/sources/Github/Rest/client.ts'
-import { throwHttpError } from '$/lib/http.ts'
-import {
-	getRawUserContentUrl,
-	getRestRepoContentsUrl,
-} from '$/sources/Github/Rest/queries.ts'
-import CosmosAdrs from '$/sources/CosmosAdrs/index.ts'
+import { cosmosAdrsBindings } from '$/sources/CosmosAdrs/bindings.ts'
 import type { CosmosAdrsGithubContents } from '$/sources/CosmosAdrs/Github/types.ts'
+import {
+	getGithubContents,
+	getGithubRawText,
+} from '$/sources/_shared/hosts/Github/Http/client.ts'
 
 const cosmosAdrsGithubRepo = {
 	owner: 'cosmos',
@@ -14,28 +12,19 @@ const cosmosAdrsGithubRepo = {
 	ref: 'main',
 } as const
 
-export const getContents = async (): Promise<CosmosAdrsGithubContents> => {
-	const response = await githubHttp({
-		url: getRestRepoContentsUrl({
-			owner: cosmosAdrsGithubRepo.owner,
-			repo: cosmosAdrsGithubRepo.repo,
-			pathInRepo: cosmosAdrsGithubRepo.path,
-			ref: cosmosAdrsGithubRepo.ref,
-		}),
-		origins: CosmosAdrs.origins,
-	})
-	if (!response.ok) await throwHttpError('CosmosAdrs GitHub contents', response)
-	return response.json<CosmosAdrsGithubContents>()
-}
+export const getContents = (): Promise<CosmosAdrsGithubContents> => (
+	getGithubContents({
+		endpoints: cosmosAdrsBindings[0].endpoints,
+		target: cosmosAdrsGithubRepo,
+	}) as Promise<CosmosAdrsGithubContents>
+)
 
 export const getMarkdownText = ({ number }: { number: number }) => (
-	getText({
-		url: getRawUserContentUrl({
-			owner: cosmosAdrsGithubRepo.owner,
-			repo: cosmosAdrsGithubRepo.repo,
-			ref: cosmosAdrsGithubRepo.ref,
-			pathInRepo: `${cosmosAdrsGithubRepo.path}/adr-${number.toString().padStart(3, '0')}.md`,
-		}),
-		origins: CosmosAdrs.origins,
+	getGithubRawText({
+		endpoints: cosmosAdrsBindings[0].endpoints,
+		target: {
+			...cosmosAdrsGithubRepo,
+			path: `${cosmosAdrsGithubRepo.path}/adr-${number.toString().padStart(3, '0')}.md`,
+		},
 	})
 )

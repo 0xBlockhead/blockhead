@@ -1,5 +1,5 @@
 import { getJson } from '$/lib/http.ts'
-import NostrBand from '$/sources/NostrBand/index.ts'
+import { nostrBandOrigins } from '$/sources/NostrBand/index.ts'
 import { nostrBandApiBaseUrl } from '$/sources/NostrBand/Rest/constants.ts'
 
 const toQuery = (params: Record<string, string | number | undefined>) => {
@@ -18,6 +18,6 @@ export const nostrBandGet = async <T>(
 ): Promise<T> => (
 	getJson<T>(
 		`${nostrBandApiBaseUrl}${path.startsWith('/') ? path : `/${path}`}${toQuery(params ?? {})}`,
-		{ origins: NostrBand.origins  }
+		{ origins: nostrBandOrigins }
 	)
 )

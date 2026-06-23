@@ -1,109 +1,86 @@
 import { substrateJsonRpc } from '$/sources/Substrate/JsonRpc/client.ts'
-import type { SourceOrigin } from '$/sources/SourceProvider.ts'
 import type {
 	SubstrateRpcBlock,
 	SubstrateRpcHeader,
 	SubstrateRuntimeVersion,
 	SubstrateSystemHealth,
 } from '$/sources/Substrate/JsonRpc/types.ts'
+import type { SourceOrigin } from '$/sources/SourceProvider.ts'
 
-type SubstrateJsonRpcQuery = {
+type SubstrateJsonRpcRequest = {
 	rpcUrl: string
 	origins: readonly SourceOrigin[]
 	label: string
 }
 
 export const getBlockHash = ({
-	rpcUrl,
 	blockNumber,
-	origins,
-	label,
-}: SubstrateJsonRpcQuery & {
+	...request
+}: SubstrateJsonRpcRequest & {
 	blockNumber: bigint
 }) => (
 	substrateJsonRpc<string>({
-		rpcUrl,
+		...request,
 		method: 'chain_getBlockHash',
 		params: [
 			`0x${blockNumber.toString(16)}`,
 		],
-		origins,
-		label,
 	})
 )
 
-export const getFinalizedHead = ({
-	rpcUrl,
-	origins,
-	label,
-}: SubstrateJsonRpcQuery) => (
+export const getFinalizedHead = (
+	request: SubstrateJsonRpcRequest
+) => (
 	substrateJsonRpc<string>({
-		rpcUrl,
+		...request,
 		method: 'chain_getFinalizedHead',
-		params: [],
-		origins,
-		label,
-	})
-)
-
-export const getHeader = ({
-	rpcUrl,
-	blockHash,
-	origins,
-	label,
-}: SubstrateJsonRpcQuery & {
-	blockHash?: string
-}) => (
-	substrateJsonRpc<SubstrateRpcHeader>({
-		rpcUrl,
-		method: 'chain_getHeader',
-		params: blockHash == null ? [] : [blockHash],
-		origins,
-		label,
 	})
 )
 
 export const getBlock = ({
-	rpcUrl,
 	blockHash,
-	origins,
-	label,
-}: SubstrateJsonRpcQuery & {
+	...request
+}: SubstrateJsonRpcRequest & {
 	blockHash: string
 }) => (
 	substrateJsonRpc<SubstrateRpcBlock>({
-		rpcUrl,
+		...request,
 		method: 'chain_getBlock',
-		params: [blockHash],
-		origins,
-		label,
+		params: [
+			blockHash,
+		],
 	})
 )
 
-export const getRuntimeVersion = ({
-	rpcUrl,
-	origins,
-	label,
-}: SubstrateJsonRpcQuery) => (
+export const getHeader = ({
+	blockHash,
+	...request
+}: SubstrateJsonRpcRequest & {
+	blockHash?: string
+}) => (
+	substrateJsonRpc<SubstrateRpcHeader>({
+		...request,
+		method: 'chain_getHeader',
+		params: blockHash == null ? [] : [
+			blockHash,
+		],
+	})
+)
+
+export const getRuntimeVersion = (
+	request: SubstrateJsonRpcRequest
+) => (
 	substrateJsonRpc<SubstrateRuntimeVersion>({
-		rpcUrl,
-		method: 'chain_getRuntimeVersion',
-		params: [],
-		origins,
-		label,
+		...request,
+		method: 'state_getRuntimeVersion',
 	})
 )
 
-export const getSystemHealth = ({
-	rpcUrl,
-	origins,
-	label,
-}: SubstrateJsonRpcQuery) => (
+export const getSystemHealth = (
+	request: SubstrateJsonRpcRequest
+) => (
 	substrateJsonRpc<SubstrateSystemHealth>({
-		rpcUrl,
+		...request,
 		method: 'system_health',
-		params: [],
-		origins,
-		label,
 	})
 )

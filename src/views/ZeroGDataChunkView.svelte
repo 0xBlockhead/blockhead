@@ -2,15 +2,75 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'data blob',
+			},
+			{
+				label: 'chunk index',
+			},
+			{
+				label: 'chunk root',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'data blob',
+					},
+					{
+						label: 'chunk index',
+					},
+					{
+						label: 'chunk root',
+					},
+					{
+						label: 'size',
+					},
+					{
+						label: 'storage node',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Data blob',
+					items: [
+						{
+							label: 'parent data-root blob',
+						},
+					],
+				},
+				{
+					label: 'Storage node',
+					items: [
+						{
+							label: 'public storage node when linked',
+						},
+					],
+				},
+				{
+					label: 'Local availability',
+					items: [
+						{
+							label: 'Blockhead stored-chunk state when a connected node exposes ownership/storage state',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +81,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,65 +89,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.ZeroGDataChunk}
 	entitySelector={selection.entitySelector}
-	title={`Data chunk #${selection.entitySelector.chunkIndex.toString()}`}
-	idDragPlainText={selection.entitySelector.chunkIndex.toString()}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Value()}
-		<span data-badge="small">
-			#{selection.entitySelector.chunkIndex.toString()}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>Data chunk </span>
-			{#if Value}
-			{@render Value()}
-					{/if}
-		</span>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection(
-					({ fields: { chunkRoot: true, sizeBytes: true } }),
-				)}
-			placeholderText={`Loading 0G data chunk...`}
-		>
-			{#snippet children(zeroGDataChunk)}
-				<dl>
-					{#if zeroGDataChunk.chunkRoot != null}
-						<div>
-							<dt>Chunk Root</dt>
-							<dd>
-								<TruncatedValue
-									value={zeroGDataChunk.chunkRoot}
-									format={TruncatedValueFormat.Abbr}
-								/></dd>
-						</div>
-					{/if}
-
-					{#if zeroGDataChunk.sizeBytes != null}
-						<div>
-							<dt>Size Bytes</dt>
-							<dd><NumberValue value={zeroGDataChunk.sizeBytes} /> bytes</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

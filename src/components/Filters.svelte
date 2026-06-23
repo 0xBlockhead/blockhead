@@ -166,7 +166,7 @@
 	import Icon from '$/components/Icon.svelte'
 	import Select from '$/components/Select.svelte'
 	import SelectMultiple from '$/components/SelectMultiple.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import NumberValue from '$/components/NumberValue.svelte'
 </script>
 
 

@@ -1,5 +1,5 @@
-import { getJson } from '$/lib/http.ts'
-import Superchain from '$/sources/Superchain/index.ts'
+import { getText } from '$/lib/http.ts'
+import { superchainBindings } from '$/sources/Superchain/bindings.ts'
 import {
 	chainListPath,
 	networkChainIdBySuperchainIdentifier,
@@ -9,6 +9,11 @@ import type {
 	SuperchainChainListEntry,
 	SuperchainNetwork,
 } from '$/sources/Superchain/Github/types.ts'
+
+const origins = superchainBindings[0].endpoints.map((endpoint) => ({
+	origin: endpoint.origin,
+	corsEnabled: endpoint.corsEnabled,
+}))
 
 const splitIdentifier = (identifier: string): {
 	namespace: string
@@ -22,9 +27,11 @@ const splitIdentifier = (identifier: string): {
 }
 
 const fetchSuperchainChainList = async (): Promise<SuperchainChainListEntry[]> => (
-	getJson<SuperchainChainListEntry[]>(
-		`${origin}${chainListPath}`,
-		{ origins: Superchain.origins }
+	JSON.parse(
+		await getText(
+			`${origin}${chainListPath}`,
+			{ origins }
+		)
 	)
 )
 

@@ -1,0 +1,145 @@
+import { type } from 'arktype'
+import {
+	EntityFieldCardinality,
+	EntityFieldType,
+	type EntityDefinition,
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+export enum Eip8004ReputationFeedback_TimestampSelector {
+	RegistrationClientAddressFeedbackIndexTimestampMsSource = '$registration+clientAddress+feedbackIndex+timestampMs+source',
+}
+export default {
+	entityType: EntityType.Eip8004ReputationFeedback_Timestamp,
+	label: 'eip8004 reputation feedback timestamp',
+	labelPlural: 'eip8004 reputation feedback observations',
+	selectors: [
+		{
+			name: Eip8004ReputationFeedback_TimestampSelector.RegistrationClientAddressFeedbackIndexTimestampMsSource,
+			fields: [
+				'$registration',
+				'clientAddress',
+				'feedbackIndex',
+				'timestampMs',
+				'source',
+			],
+		},
+	],
+	fields: [
+		{
+			name: '$registration',
+			label: 'registration',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Eip8004AgentRegistration,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'clientAddress',
+			label: 'client address',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("unknown"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'feedbackIndex',
+			label: 'feedback index',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'source',
+			label: 'Source',
+			description: 'The source that produced this observation.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'value',
+			label: 'Value',
+			description: 'The source-domain value.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'valueDecimals',
+			label: 'value decimals',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'tag1',
+			label: 'tag1',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'tag2',
+			label: 'tag2',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'endpoint',
+			label: 'endpoint',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'feedbackUri',
+			label: 'feedback URI',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'feedbackHashAlgorithm',
+			label: 'feedback hash algorithm',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'feedbackHash',
+			label: 'feedback hash',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'revoked',
+			label: 'revoked',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("boolean"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'blockNumber',
+			label: 'Block number',
+			description: 'The block height or number in its network.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'transactionHash',
+			label: 'transaction hash',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("unknown"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+	],
+} as const satisfies EntityDefinition

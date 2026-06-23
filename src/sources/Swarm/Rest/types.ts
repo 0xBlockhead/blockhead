@@ -1,3 +1,5 @@
+import type { ContentDisplayType } from '$/sources/contentResponse.ts'
+
 export type SwarmBrowseResult = {
 	reference: string
 	contentPath: string
@@ -7,7 +9,7 @@ export type SwarmBrowseResult = {
 	extension?: string
 	contentType?: string
 	contentLength?: number
-	displayType: 'text' | 'image' | 'video' | 'audio' | 'json' | 'xml' | 'pdf' | 'iframe' | 'binary'
+	displayType: ContentDisplayType
 	isContentTypeInferred: boolean
 	text?: string
 }

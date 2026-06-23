@@ -1,11 +1,13 @@
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
-import { githubHttpAllowedOrigins } from '$/sources/Github/githubHttpOrigins.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import { dogecoinDipsBindings } from '$/sources/DogecoinDips/bindings.ts'
 
 export default {
 	provider: SourceProvider.DogecoinDips,
 	label: 'Dogecoin DIPs',
-	origins: githubHttpAllowedOrigins,
 	sources: [
 		{
 			provider: SourceProvider.DogecoinDips,
@@ -13,4 +15,5 @@ export default {
 			label: 'Dogecoin DIPs GitHub',
 		},
 	],
-} as const satisfies SourceProviderDefinition
+	bindings: dogecoinDipsBindings,
+} satisfies SourceProviderDefinition

@@ -62,12 +62,6 @@ export default {
 								},
 							},
 						}),
-						...(latestDexPair.baseToken?.symbol != null && { baseTokenSymbol: latestDexPair.baseToken.symbol }),
-						...(latestDexPair.quoteToken?.symbol != null && { quoteTokenSymbol: latestDexPair.quoteToken.symbol }),
-						...(latestDexPair.pairCreatedAt != null && { pairCreatedAtMs: latestDexPair.pairCreatedAt }),
-						...(latestDexPair.labels != null && { dexscreenerLabels: latestDexPair.labels }),
-						...(latestDexPair.dexId != null && latestDexPair.dexId !== '' && { dexId: latestDexPair.dexId }),
-						...(latestDexPair.url != null && latestDexPair.url !== '' && { dexscreenerPairUrl: latestDexPair.url }),
 					}
 				}
 			}
@@ -75,12 +69,6 @@ export default {
 			fields: {
 				$baseToken: (snapshot) => snapshot.$baseToken,
 				$quoteToken: (snapshot) => snapshot.$quoteToken,
-				baseTokenSymbol: (snapshot) => snapshot.baseTokenSymbol,
-				quoteTokenSymbol: (snapshot) => snapshot.quoteTokenSymbol,
-				pairCreatedAtMs: (snapshot) => snapshot.pairCreatedAtMs,
-				dexscreenerLabels: (snapshot) => snapshot.dexscreenerLabels ?? [],
-				dexId: (snapshot) => snapshot.dexId,
-				dexscreenerPairUrl: (snapshot) => snapshot.dexscreenerPairUrl,
 			},
 		}),
 
@@ -107,6 +95,12 @@ export default {
 						throw new Error('Dexscreener_OpenApi: liquidity pool / pair not found for timestamp id')
 
 					return {
+						...(latestDexPair.baseToken?.symbol != null && { baseTokenSymbol: latestDexPair.baseToken.symbol }),
+						...(latestDexPair.quoteToken?.symbol != null && { quoteTokenSymbol: latestDexPair.quoteToken.symbol }),
+						...(latestDexPair.pairCreatedAt != null && { pairCreatedAtMs: latestDexPair.pairCreatedAt }),
+						...(latestDexPair.labels != null && { dexscreenerLabels: latestDexPair.labels }),
+						...(latestDexPair.dexId != null && latestDexPair.dexId !== '' && { dexId: latestDexPair.dexId }),
+						...(latestDexPair.url != null && latestDexPair.url !== '' && { dexscreenerPairUrl: latestDexPair.url }),
 						...(latestDexPair.priceUsd != null && { priceUsd: latestDexPair.priceUsd }),
 						...(latestDexPair.priceNative != null && { priceNative: latestDexPair.priceNative }),
 						...(latestDexPair.liquidity?.usd != null && { liquidityUsd: latestDexPair.liquidity.usd }),
@@ -122,6 +116,12 @@ export default {
 			}
 		})({
 			fields: {
+				baseTokenSymbol: (snapshot) => snapshot.baseTokenSymbol,
+				quoteTokenSymbol: (snapshot) => snapshot.quoteTokenSymbol,
+				pairCreatedAtMs: (snapshot) => snapshot.pairCreatedAtMs,
+				dexscreenerLabels: (snapshot) => snapshot.dexscreenerLabels ?? [],
+				dexId: (snapshot) => snapshot.dexId,
+				dexscreenerPairUrl: (snapshot) => snapshot.dexscreenerPairUrl,
 				priceUsd: (snapshot) => snapshot.priceUsd,
 				priceNative: (snapshot) => snapshot.priceNative,
 				liquidityUsd: (snapshot) => snapshot.liquidityUsd,

@@ -352,6 +352,7 @@ export default {
 					const nativeCoin = coinBySymbol[nativeSymbol.toUpperCase()]
 					return {
 						[EntityMetaKey.Selector]: evmNetworkIdFromChainId(chain.chainId),
+						...(icon != null && { iconUrl: icon }),
 						...((iconMedia) => iconMedia != null && { $icon: iconMedia })(mediaFromUrl(icon, MediaType.Image)),
 						...(chain.status != null && chain.status !== '' && { registryStatus: String(chain.status) }),
 						executionEndpoints: rpcUrls.map((url) => ({
@@ -394,31 +395,12 @@ export default {
 								}
 							))(chain.parent?.chain == null ? null : /^eip155[:-](\d+)$/i.exec(chain.parent.chain.trim()))
 						),
-						layerNumber: (() => {
-							const chainByChainId = new Map(chains.map((chain) => [
-								chain.chainId,
-								chain,
-							]))
-							let layer = 1
-							let currentChainId: number | undefined = chain.chainId
-							const visitedChainIds = new Set<number>()
-							for (let hop = 0; hop < 256; hop += 1) {
-								if (visitedChainIds.has(currentChainId)) return layer
-								visitedChainIds.add(currentChainId)
-								const currentChain = chainByChainId.get(currentChainId)
-								if (currentChain == null) return layer
-								const parentMatch = currentChain.parent?.chain == null ? null : /^eip155[:-](\d+)$/i.exec(currentChain.parent.chain.trim())
-								if (parentMatch == null || Number(parentMatch[1]) === currentChainId) return layer
-								layer += 1
-								currentChainId = Number(parentMatch[1])
-							}
-							return layer
-						})(),
 					}
 				}
 			},
 		})({
 			fields: {
+				iconUrl: (network) => network.iconUrl,
 				$icon: (network) => network.$icon,
 				registryStatus: (network) => network.registryStatus,
 				executionEndpoints: (network) => network.executionEndpoints,
@@ -431,7 +413,6 @@ export default {
 				slip44: (network) => network.slip44,
 				environment: (network) => network.environment,
 				$parent: (network) => network.$parent,
-				layerNumber: (network) => network.layerNumber,
 			},
 		}),
 
@@ -480,30 +461,6 @@ export default {
 		})({
 			fields: {
 				$$bridges: (bridges) => bridges,
-			},
-		}),
-
-		defineResolver(Source.EthereumLists_Rest, {
-			entityType: EntityType.EvmNetwork,
-			resolve: {
-				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
-					const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
-					const chains = await fetchChainsJson()
-					const chainId = Number(caip2.reference)
-					if (chains.find((c) => c.chainId === chainId) == null)
-						throw new Error('EthereumLists_Rest: network not in chains.json for child list')
-					return chains.flatMap((chain) => {
-						const parentMatch = chain.parent?.chain == null ? null : /^eip155[:-](\d+)$/i.exec(chain.parent.chain.trim())
-						return parentMatch == null || Number(parentMatch[1]) !== chainId || chain.chainId === chainId ?
-							[]
-						:
-							[{ [EntityMetaKey.Selector]: evmNetworkIdFromChainId(chain.chainId) }]
-					})
-				}
-			},
-		})({
-			fields: {
-				$$childLayers: (childLayers) => childLayers,
 			},
 		}),
 

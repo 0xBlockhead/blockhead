@@ -373,26 +373,6 @@ export default {
 								}
 							))(chain.parent?.chain == null ? null : /^eip155[:-](\d+)$/i.exec(chain.parent.chain.trim()))
 						),
-						layerNumber: (() => {
-							const chainByChainId = new Map(chains.map((chain) => [
-								chain.chainId,
-								chain,
-							]))
-							let layer = 1
-							let currentChainId: number | undefined = chain.chainId
-							const visitedChainIds = new Set<number>()
-							for (let hop = 0; hop < 256; hop += 1) {
-								if (visitedChainIds.has(currentChainId)) return layer
-								visitedChainIds.add(currentChainId)
-								const currentChain = chainByChainId.get(currentChainId)
-								if (currentChain == null) return layer
-								const parentMatch = currentChain.parent?.chain == null ? null : /^eip155[:-](\d+)$/i.exec(currentChain.parent.chain.trim())
-								if (parentMatch == null || Number(parentMatch[1]) === currentChainId) return layer
-								layer += 1
-								currentChainId = Number(parentMatch[1])
-							}
-							return layer
-						})(),
 						...(chain.shortName != null && String(chain.shortName).length > 0 && { shortName: String(chain.shortName) }),
 						...(chain.status != null && String(chain.status).length > 0 && { registryStatus: String(chain.status) }),
 						...(chain.networkId != null && { peeringId: chain.networkId }),
@@ -410,7 +390,6 @@ export default {
 				$$rpcUrls: (network) => network.$$rpcUrls,
 				environment: (network) => network.environment,
 				$parent: (network) => network.$parent,
-				layerNumber: (network) => network.layerNumber,
 				shortName: (network) => network.shortName,
 				registryStatus: (network) => network.registryStatus,
 				peeringId: (network) => network.peeringId,
@@ -466,29 +445,6 @@ export default {
 		})({
 			fields: {
 				$$bridges: (bridges) => bridges,
-			},
-		}),
-
-		defineResolver(Source.Chainlist_Rest, {
-			entityType: EntityType.EvmNetwork,
-			resolve: {
-				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
-					const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
-					const chains = await fetchRpcsJson()
-					if (chains.find((chain) => chain.chainId === Number(caip2.reference)) == null)
-						throw new Error('Chainlist_Rest: network not in rpcs.json for child list')
-					return chains.flatMap((chain) => {
-						const parentMatch = chain.parent?.chain == null ? null : /^eip155[:-](\d+)$/i.exec(chain.parent.chain.trim())
-						return parentMatch == null || Number(parentMatch[1]) !== Number(caip2.reference) || chain.chainId === Number(caip2.reference) ?
-							[]
-						:
-							[{ [EntityMetaKey.Selector]: evmNetworkIdFromChainId(chain.chainId) }]
-					})
-				}
-			},
-		})({
-			fields: {
-				$$childLayers: (childLayers) => childLayers,
 			},
 		}),
 

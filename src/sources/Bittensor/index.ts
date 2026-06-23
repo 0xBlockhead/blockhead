@@ -1,20 +1,33 @@
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
-import BittensorJsonRpc from '$/sources/Bittensor/JsonRpc/index.ts'
+import { Source } from '$/sources/Source.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import { bittensorBindings } from '$/sources/Bittensor/bindings.ts'
+
+export const bittensorOrigins = [
+	...new Map(
+		bittensorBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.Bittensor,
 	label: 'Bittensor',
-	origins: [
-		{
-			origin: 'https://entrypoint-finney.opentensor.ai',
-			corsEnabled: false,
-		},
-		{
-			origin: 'https://lite.chain.opentensor.ai',
-			corsEnabled: false,
-		},
-	],
 	sources: [
-		BittensorJsonRpc,
+		{
+			provider: SourceProvider.Bittensor,
+			source: Source.Bittensor_JsonRpc,
+			label: 'Bittensor JSON-RPC',
+		},
 	],
-} as const satisfies SourceProviderDefinition
+	bindings: bittensorBindings,
+} satisfies SourceProviderDefinition

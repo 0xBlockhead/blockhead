@@ -12,5 +12,6 @@ export type HyperliquidEvmTransaction = {
 }
 
 export type HyperliquidEvmTransactionReceipt = {
+	blockNumber?: string | null
 	status?: string
 }

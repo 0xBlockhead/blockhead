@@ -1,22 +1,30 @@
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
+	const listView = {
+		entityType: EntityType.MevBuilder,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
 		selection,
-		title = 'Builders',
+		title,
 		open = $bindable(true),
-		id,
+		id = 'MevBuilders',
 		href = '',
 		...EntitiesListProps
 	}: WithRest<
@@ -24,68 +32,35 @@
 			selection: EntityProxyEntitiesResource<typeof schema, EntityType.MevBuilder>
 			title?: string
 			open?: boolean
-			id: string
+			id?: string
 			href?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'CollapsibleProps'
-		>
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
+
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import MevBuilderView from '$/views/MevBuilderView.svelte'
 </script>
 
 
 <EntitiesList
-	entityType={EntityType.MevBuilder}
+	entityType={listView.entityType}
 	{title}
 	bind:open
 	{id}
 	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
-	{#snippet body()}
-		{#if open}
-				<ResourceBoundary
-					resource={selection({
-						sources: [Source.MevRelay_Rest],
-						limit: 16,
-					})}
-				placeholderText="Loading builders…"
-			>
-				{#snippet children(builders)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.MevBuilder}
-				id={`${id}-items`}
-				href={href}
-				getKey={(builder) => builder.entitySelector.builderPubkey}
-				placeholderText="Loading builders…"
-				items={builders.entities}
-				{title}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-				open={true}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">No MEV builders loaded yet.</p>
-				{/snippet}
-
-				{#snippet Item({ item: builder })}
-					<MevBuilderView
-						selection={select(EntityType.MevBuilder, builder.entitySelector)}
-						layout={EntityLayout.Summary}
-
-					/>
-				{/snippet}
-			</EntitiesList>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+	{#snippet Item({ item })}
+		<MevBuilderView
+			selection={select(EntityType.MevBuilder, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

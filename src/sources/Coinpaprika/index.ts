@@ -1,32 +1,37 @@
-import { type as arktype } from 'arktype'
-
+import { Source } from '$/sources/Source.ts'
 import {
-	type SourceProviderDefinition,
 	SourceProvider,
+	type SourceProviderDefinition,
 } from '$/sources/SourceProvider.ts'
 import {
-	freeOrigin,
-	proOrigin,
-} from '$/sources/Coinpaprika/OpenApi/constants.ts'
-import CoinpaprikaOpenApiSource from '$/sources/Coinpaprika/OpenApi/index.ts'
+	coinpaprikaBindings,
+	coinpaprikaPublicEnv,
+} from '$/sources/Coinpaprika/bindings.ts'
+
+export const coinpaprikaOrigins = [
+	...new Map(
+		coinpaprikaBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.Coinpaprika,
 	label: 'Coinpaprika',
-	env: arktype({
-		PUBLIC_COINPAPRIKA_API_KEY: 'string > 0?',
-	}),
-	origins: [
-		{
-			origin: freeOrigin,
-			corsEnabled: false,
-		},
-		{
-			origin: proOrigin,
-			corsEnabled: false,
-		},
-	],
+	env: coinpaprikaPublicEnv,
 	sources: [
-		CoinpaprikaOpenApiSource,
+		{
+			provider: SourceProvider.Coinpaprika,
+			source: Source.Coinpaprika_OpenApi,
+			label: 'Coinpaprika OpenAPI',
+		},
 	],
+	bindings: coinpaprikaBindings,
 } satisfies SourceProviderDefinition

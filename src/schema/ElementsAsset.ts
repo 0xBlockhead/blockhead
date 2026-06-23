@@ -1,24 +1,18 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum ElementsAssetSelector {
 	ElementsNetworkAssetId = 'elementsNetworkAssetId',
+	NetworkAssetId = '$network+assetId',
 }
-
 export default {
 	entityType: EntityType.ElementsAsset,
-
-	label: 'Elements asset',
-	labelPlural: 'Elements assets',
-
+	label: 'elements asset',
+	labelPlural: 'elements assets',
 	selectors: [
 		{
 			name: ElementsAssetSelector.ElementsNetworkAssetId,
@@ -28,109 +22,77 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.ElementsNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'assetId',
+			label: 'asset ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'name',
+			label: 'Name',
+			description: 'The human-readable name of the subject.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Esplora_Rest,
-			],
 		},
 		{
 			name: 'ticker',
+			label: 'ticker',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Esplora_Rest,
-			],
 		},
 		{
 			name: 'precision',
+			label: 'precision',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Esplora_Rest,
-			],
 		},
 		{
 			name: 'entityDomain',
+			label: 'entity domain',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Esplora_Rest,
-			],
 		},
 		{
 			name: 'contractJson',
+			label: 'contract JSON',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Esplora_Rest,
-			],
-		},
-		{
-			name: 'issuedAmount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Esplora_Rest,
-			],
-		},
-		{
-			name: 'burnedAmount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Esplora_Rest,
-			],
 		},
 		{
 			name: 'hasBlindedIssuances',
+			label: 'has blinded issuances',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
+			primitiveType: type("boolean"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Esplora_Rest,
-			],
-		},
-		{
-			name: 'reissuanceTokenCount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Esplora_Rest,
-			],
 		},
 		{
 			name: '$$issuances',
+			label: 'issuances',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.ElementsIssuance,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Esplora_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: '$$timestamps',
+			label: 'timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.ElementsAsset_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
+		},
+	],
 } as const satisfies EntityDefinition

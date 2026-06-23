@@ -2,15 +2,90 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			{
+				label: 'referendum id',
+			},
+			'track',
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					{
+						label: 'referendum id',
+					},
+					'track',
+					{
+						label: 'submitted block',
+					},
+					{
+						label: 'latest lifecycle/tally observation',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Lifecycle',
+					items: [
+						{
+							label: 'timestamped referendum lifecycle observations',
+						},
+					],
+				},
+				{
+					label: 'Tally',
+					items: [
+						{
+							label: 'aye/nay/support fields from latest runtime/indexer payload',
+						},
+					],
+				},
+				{
+					label: 'Votes/deposits',
+					items: [
+						{
+							label: 'vote',
+						},
+						{
+							label: 'deposit child rows once selectors are modeled',
+						},
+					],
+				},
+				{
+					label: 'Preimage/call',
+					items: [
+						{
+							label: 'linked preimage or call metadata',
+						},
+					],
+				},
+				{
+					label: 'Discussions',
+					items: [
+						{
+							label: 'source-attributed forum/indexer links only when selectors exist',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +96,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,61 +104,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.PolkadotReferendum}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.referendumId}
-	idDragPlainText={selection.entitySelector.referendumId}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Value()}
-		<TruncatedValue
-			value={selection.entitySelector.referendumId}
-			format={TruncatedValueFormat.Abbr}
-		/>
-	{/snippet}
-
-	{#snippet Title()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>Referendum </span>
-			{#if Value}
-			{@render Value()}
-					{/if}
-		</span>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection(
-					({ fields: { track: true, status: true } }),
-				)}
-			placeholderText={`Loading Polkadot referendum...`}
-		>
-			{#snippet children(polkadotReferendum)}
-				<dl>
-					{#if polkadotReferendum.track != null}
-						<div>
-							<dt>Track</dt>
-							<dd>{polkadotReferendum.track}</dd>
-						</div>
-					{/if}
-
-					{#if polkadotReferendum.status != null}
-						<div>
-							<dt>Status</dt>
-							<dd>{polkadotReferendum.status}</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

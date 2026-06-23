@@ -2,16 +2,108 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			'height',
+			'hash',
+			{
+				label: 'epoch',
+			},
+		],
+		content: {
+			dl: [
+				[
+					'height',
+					'hash',
+					{
+						label: 'parent',
+					},
+					{
+						label: 'epoch id',
+					},
+					{
+						label: 'timestamp',
+					},
+				],
+				[
+					{
+						label: 'chunk count',
+					},
+					{
+						label: 'parent/chain context',
+					},
+					{
+						label: 'source evidence',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Network',
+					items: [
+						{
+							label: 'NearNetwork/Network',
+						},
+					],
+				},
+				{
+					label: 'Header',
+					items: [
+						'height',
+						'hash',
+						{
+							label: 'parent',
+						},
+						{
+							label: 'epoch id',
+						},
+						{
+							label: 'timestamp',
+						},
+					],
+				},
+				{
+					label: 'Chunks',
+					items: [
+						{
+							label: 'NearChunk list',
+						},
+					],
+				},
+				{
+					label: 'Lookup evidence',
+					items: [
+						{
+							label: 'RPC block_id height lookup',
+						},
+						{
+							label: 'RPC block_id hash lookup',
+						},
+						{
+							label: 'NearBlocks indexer block lookup',
+						},
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'NEAR RPC/indexer block payload',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -22,7 +114,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -30,94 +122,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.NearBlock}
 	entitySelector={selection.entitySelector}
-	title={`Block #${selection.entitySelector.height.toString()}`}
-	idDragPlainText={selection.entitySelector.height.toString()}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Value()}
-		<span data-badge="small">
-			#{selection.entitySelector.height.toString()}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>Block </span>
-			{#if Value}
-			{@render Value()}
-					{/if}
-		</span>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			NEAR blocks contain shard chunks; transactions and receipts are separate execution objects.
-		</p>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection(
-					({ sources: [
-							Source.NearRpc_JsonRpc,
-						], fields: { hash: true, timestampMs: true, $$chunks: true, ...(open && ({ epochId: true })) } }),
-				)}
-			placeholderText="Loading NEAR block…"
-		>
-			{#snippet children(block)}
-				<dl data-column-item="center">
-					{#if ('hash' in selection.entitySelector && selection.entitySelector.hash != null) || block.hash != null}
-						<div>
-							<dt>Hash</dt>
-							<dd>
-								<TruncatedValue
-									value={'hash' in selection.entitySelector ? selection.entitySelector.hash : block.hash}
-									format={TruncatedValueFormat.Abbr}
-								/>
-							</dd>
-						</div>
-					{/if}
-
-						{#if (block.$$chunks?.values.length ?? 0) > 0}
-							<div>
-								<dt>Chunks</dt>
-								<dd><NumberValue value={block.$$chunks?.values.length ?? 0} /></dd>
-							</div>
-						{/if}
-
-					{#if block.timestampMs != null}
-						<div>
-							<dt>Timestamp</dt>
-							<dd><Timestamp timestamp={block.timestampMs} /></dd>
-						</div>
-					{/if}
-
-					{#if open && block.epochId != null}
-						<div>
-							<dt>Epoch ID</dt>
-							<dd>
-								<TruncatedValue
-									value={block.epochId}
-									format={TruncatedValueFormat.Abbr}
-								/>
-							</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

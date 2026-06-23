@@ -1,16 +1,33 @@
+import { Source } from '$/sources/Source.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import { snapchainBindings } from '$/sources/Snapchain/bindings.ts'
 
-import { type SourceProviderDefinition, SourceProvider } from '$/sources/SourceProvider.ts'
-import { nodeEndpoints } from '$/sources/Snapchain/Rest/constants.ts'
-import SnapchainRestSource from '$/sources/Snapchain/Rest/index.ts'
+export const snapchainOrigins = [
+	...new Map(
+		snapchainBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.Snapchain,
 	label: 'Snapchain',
-	origins: nodeEndpoints.map((endpoint) => ({
-		origin: new URL(endpoint.url).origin,
-		corsEnabled: false,
-	})),
 	sources: [
-		SnapchainRestSource,
+		{
+			provider: SourceProvider.Snapchain,
+			source: Source.Snapchain_Rest,
+			label: 'Snapchain REST',
+		},
 	],
+	bindings: snapchainBindings,
 } satisfies SourceProviderDefinition

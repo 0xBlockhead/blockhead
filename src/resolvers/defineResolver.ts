@@ -1,7 +1,7 @@
 import type { EntityFieldName, EntitySelectorForSelectorName, EntitySelectorName, EntityType, Schema } from '$/schema/$schema.ts'
 import type { schema } from '$/schema/index.ts'
 import type { Source } from '$/sources/Source.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import type {
 	FieldSelector,
 	ResolveLivePublishers,
@@ -12,7 +12,7 @@ import type {
 export type SourceResolverContext<
 	_Source extends Source,
 > = Omit<ResolverContext, 'publicEnv'> & {
-	readonly publicEnv: SourcePublicEnvFor<_Source>
+	readonly publicEnv: SourcePublicEnv
 }
 
 type ResolverSnapshotValue<_Resolve> = Awaited<ReturnType<Extract<_Resolve[keyof _Resolve], (...parameters: never[]) => Promise<ResolverValue>>>>

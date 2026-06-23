@@ -1,16 +1,33 @@
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
-import LightningMempoolSpaceRest from '$/sources/LightningMempoolSpace/Rest/index.ts'
+import { Source } from '$/sources/Source.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import { lightningMempoolSpaceBindings } from '$/sources/LightningMempoolSpace/bindings.ts'
+
+export const lightningMempoolSpaceOrigins = [
+	...new Map(
+		lightningMempoolSpaceBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.LightningMempoolSpace,
 	label: 'mempool.space Lightning',
-	origins: [
+	sources: [
 		{
-			origin: 'https://mempool.space',
-			corsEnabled: true,
+			provider: SourceProvider.LightningMempoolSpace,
+			source: Source.LightningMempoolSpace_Rest,
+			label: 'mempool.space Lightning REST',
 		},
 	],
-	sources: [
-		LightningMempoolSpaceRest,
-	],
-} as const satisfies SourceProviderDefinition
+	bindings: lightningMempoolSpaceBindings,
+} satisfies SourceProviderDefinition

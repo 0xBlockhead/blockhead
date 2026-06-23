@@ -19,7 +19,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -27,12 +27,13 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.LogosAccount}
 	entitySelector={selection.entitySelector}
 	title={selection.entitySelector.accountAddress}
@@ -47,4 +48,4 @@
 		/>
 
 	{/snippet}
-</EntityView>
+</EntityView2>

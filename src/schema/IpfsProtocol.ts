@@ -1,24 +1,17 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { UrlString } from '$/schema/UrlString.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum IpfsProtocolSelector {
 	Scope = 'scope',
 }
-
 export default {
 	entityType: EntityType.IpfsProtocol,
-
 	label: 'IPFS protocol',
 	labelPlural: 'IPFS protocols',
-
 	selectors: [
 		{
 			name: IpfsProtocolSelector.Scope,
@@ -27,58 +20,49 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: 'scope',
+			label: 'Scope',
+			description: 'The fixed scope value that identifies this hub row.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.unit('IpfsProtocol'),
+			primitiveType: type("'IpfsProtocol'"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'protocolName',
+			label: 'protocol name',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: 'homeUrl',
+			label: 'home URL',
 			type: EntityFieldType.Primitive,
-			primitiveType: UrlString,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: 'docsUrl',
+			label: 'docs URL',
 			type: EntityFieldType.Primitive,
-			primitiveType: UrlString,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: 'registryLabel',
+			label: 'registry label',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: 'topology',
+			label: 'topology',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

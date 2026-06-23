@@ -1,25 +1,19 @@
 import { type } from 'arktype'
-import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Market from '$/schema/Market.ts'
-import { Source } from '$/sources/Source.ts'
-
+import { EvmAddress } from '$/schema/ZeroExHex.ts'
 export enum OracleFeedSelector {
 	EvmNetworkAddress = 'evmNetworkAddress',
+	NetworkAddress = '$network+address',
 }
-
 export default {
 	entityType: EntityType.OracleFeed,
-
-	label: 'Oracle feed',
-	labelPlural: 'Oracle feeds',
-
+	label: 'oracle feed',
+	labelPlural: 'oracle feeds',
 	selectors: [
 		{
 			name: OracleFeedSelector.EvmNetworkAddress,
@@ -29,61 +23,57 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'address',
+			label: 'Address',
+			description: 'The address or account identifier used by the source protocol.',
 			type: EntityFieldType.Primitive,
 			primitiveType: EvmAddress,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$market',
+			label: 'market',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Market,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: 'label',
+			label: 'Label',
+			description: 'A human-readable name for the subject.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'decimals',
+			name: 'feedKind',
+			label: 'feed kind',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-			],
-		},
-		{
-			name: 'description',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-			],
 		},
 		{
 			name: '$$rounds',
+			label: 'rounds',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.OracleFeed_Round,
-			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-			],
+			cardinality: EntityFieldCardinality.ZeroOrMany,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: '$$timestamps',
+			label: 'timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.OracleFeed_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
+		},
+	],
 } as const satisfies EntityDefinition

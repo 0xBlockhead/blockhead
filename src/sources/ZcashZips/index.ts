@@ -1,11 +1,13 @@
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
-import { githubHttpAllowedOrigins } from '$/sources/Github/githubHttpOrigins.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import { zcashZipsBindings } from '$/sources/ZcashZips/bindings.ts'
 
 export default {
 	provider: SourceProvider.ZcashZips,
 	label: 'Zcash ZIPs',
-	origins: githubHttpAllowedOrigins,
 	sources: [
 		{
 			provider: SourceProvider.ZcashZips,
@@ -13,4 +15,5 @@ export default {
 			label: 'Zcash ZIPs GitHub',
 		},
 	],
-} as const satisfies SourceProviderDefinition
+	bindings: zcashZipsBindings,
+} satisfies SourceProviderDefinition

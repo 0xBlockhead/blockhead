@@ -2,71 +2,92 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
-	import { schema } from '$/schema/index.ts'
-	import { EntityType } from '$/schema/EntityType.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 
 
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'slashing kind',
+			},
+			'slot',
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'slashing kind',
+					},
+					'slot',
+				],
+				[
+					{
+						label: 'slashing index',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Slot',
+					items: [
+						{
+							label: 'beacon block/body context',
+						},
+					],
+				},
+				{
+					label: 'Slashing',
+					items: [
+						'kind',
+						{
+							label: 'slot-local index',
+						},
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'beacon block proposer/attester slashing payload',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
-		layout = EntityLayout.Summary,
-		title: titleProp,
-		open = $bindable(false),
+		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.BeaconSlashing>
-			layout?: EntityLayout
-			title?: string
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
+			| 'layout'
 			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
-	const title = $derived(
-		titleProp
-		?? `${selection.entitySelector.kind} slashing · slot ${selection.entitySelector.slot.toLocaleString()}`
-	)
-
-
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.BeaconSlashing}
 	entitySelector={selection.entitySelector}
-	{title}
-	{layout}
 	bind:open
 	{...EntityViewProps}
->
-	{#snippet Value()}
-		<span>
-			{selection.entitySelector.kind}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		{title}
-	{/snippet}
-
-	{#snippet Content()}
-		{#if open}
-			<dl data-column-item="center">
-				<div>
-					<dt>Index</dt>
-					<dd><NumberValue value={selection.entitySelector.index} /></dd>
-				</div>
-			</dl>
-		{/if}
-	{/snippet}
-</EntityView>
+	{view}
+/>

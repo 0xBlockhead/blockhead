@@ -1,23 +1,17 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum FilecoinActorSelector {
 	NetworkAddress = 'networkAddress',
 }
-
 export default {
 	entityType: EntityType.FilecoinActor,
-
-	label: 'Filecoin Actor',
-	labelPlural: 'Filecoin Actors',
-
+	label: 'filecoin actor',
+	labelPlural: 'filecoin actors',
 	selectors: [
 		{
 			name: FilecoinActorSelector.NetworkAddress,
@@ -27,37 +21,42 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'address',
+			label: 'Address',
+			description: 'The address or account identifier used by the source protocol.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'actorCodeCid',
+			label: 'actor code CID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'nonce',
+			label: 'nonce',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'balanceAttoFil',
+			label: 'balance atto fil',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

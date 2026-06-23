@@ -1,8 +1,6 @@
 <script lang="ts">
-	import { EntityType } from '$/schema/EntityType.ts'
-	import { select } from '$/routes/+layout.svelte'
-	import { eip155NetworkSelectorFromCaip2 } from '$/lib/caip2.ts'
 	// Types/constants
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 
 
@@ -24,26 +22,35 @@
 	)
 
 
-	// Components
-	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
-	import EvmBlockView from '$/views/EvmBlockView.svelte'
+	// Functions
+	import { eip155NetworkSelectorFromCaip2 } from '$/lib/caip2.ts'
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
+	import EvmBlockView from '$/views/EvmBlockView.svelte'
 </script>
 
 
 <ParentPageCollapsible
-	href={resolve(
-		'/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]',
-		params,
-	)}
+	href={
+		resolve(
+			'/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]',
+			params
+		)
+	}
 	id={stringify(blockEntitySelector)}
 >
 	{#snippet Summary({ open: _open })}
 		<EvmBlockView
-			selection={select(EntityType.EvmBlock, blockEntitySelector)}
+			selection={
+				select(
+					EntityType.EvmBlock,
+					blockEntitySelector
+				)
+			}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

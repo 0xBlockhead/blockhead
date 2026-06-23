@@ -8,7 +8,7 @@
  */
 
 import { getJson } from '$/lib/http.ts'
-import ThreeXpl from '$/sources/ThreeXpl/index.ts'
+import { threeXplOrigins } from '$/sources/ThreeXpl/index.ts'
 import {
 	productionBaseUrl,
 	sandboxBaseUrl,
@@ -73,7 +73,7 @@ export const threeXplGetJson = async <T>({
 			server: options?.server,
 		}),
 		{
-			origins: ThreeXpl.origins,
+			origins: threeXplOrigins,
 			...(options?.token != null && options.token !== '' && {
 				init: {
 					headers: {

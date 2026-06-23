@@ -16,12 +16,16 @@ import type {
 import { TronBlockSelector } from '$/schema/TronBlock.ts'
 import { TronTransactionSelector } from '$/schema/TronTransaction.ts'
 import { TronAccountSelector } from '$/schema/TronAccount.ts'
-import { tronFullNodeRestEndpoints } from '$/sources/TronFullNode/index.ts'
+import { TronAccount_TimestampSelector } from '$/schema/TronAccount_Timestamp.ts'
 
 type NetworkId = { caip2: {
 	namespace: string
 	reference: string
 } } | { slug: string }
+
+const tronFullNodeRestBaseUrl = async () => (
+	(await import('$/sources/TronFullNode/Rest/queries.ts')).tronFullNodeRestEndpoints[0].restBaseUrl
+)
 
 const assertTronMainnet = (network: NetworkId) => {
 	if (!('slug' in network) || network.slug !== networkBySlug.tron.slug)
@@ -163,7 +167,7 @@ export default {
 					return blockFields(
 						$network,
 						await getBlockByNumber({
-							restBaseUrl: tronFullNodeRestEndpoints[0].restBaseUrl,
+							restBaseUrl: await tronFullNodeRestBaseUrl(),
 							height: height,
 						})
 					)
@@ -196,7 +200,7 @@ export default {
 						getTransactionInfoById,
 					} = await import('$/sources/TronFullNode/Rest/queries.ts')
 					const transaction = await getTransactionById({
-						restBaseUrl: tronFullNodeRestEndpoints[0].restBaseUrl,
+						restBaseUrl: await tronFullNodeRestBaseUrl(),
 						transactionId: transactionId,
 					})
 					if (transaction.txID == null) throw new Error(`TronFullNode_Rest: transaction not found for ${transactionId}`)
@@ -204,7 +208,7 @@ export default {
 						$network,
 						transaction,
 						await getTransactionInfoById({
-							restBaseUrl: tronFullNodeRestEndpoints[0].restBaseUrl,
+							restBaseUrl: await tronFullNodeRestBaseUrl(),
 							transactionId: transactionId,
 						})
 					)
@@ -236,11 +240,50 @@ export default {
 					assertTronMainnet($network)
 					const { getAccount } = await import('$/sources/TronFullNode/Rest/queries.ts')
 					const account = await getAccount({
-						restBaseUrl: tronFullNodeRestEndpoints[0].restBaseUrl,
+						restBaseUrl: await tronFullNodeRestBaseUrl(),
 						address: address,
 					})
 					return {
 						name: account.account_name,
+					}
+				}
+			},
+		})({
+			fields: {
+				name: (account) => account.name,
+			},
+		}),
+
+		defineResolver(Source.TronFullNode_Rest, {
+			entityType: EntityType.TronAccount,
+			resolve: {
+				[TronAccountSelector.NetworkAddress]: async (entitySelector) => [
+					{
+						[EntityMetaKey.Selector]: {
+							$account: entitySelector,
+							timestampMs: Date.now(),
+							source: Source.TronFullNode_Rest,
+						},
+					},
+				],
+			},
+		})({
+			fields: {
+				$$timestamps: (snapshot) => snapshot,
+			},
+		}),
+
+		defineResolver(Source.TronFullNode_Rest, {
+			entityType: EntityType.TronAccount_Timestamp,
+			resolve: {
+				[TronAccount_TimestampSelector.AccountTimestampMsSource]: async ({ $account }) => {
+					assertTronMainnet($account.$network)
+					const { getAccount } = await import('$/sources/TronFullNode/Rest/queries.ts')
+					const account = await getAccount({
+						restBaseUrl: await tronFullNodeRestBaseUrl(),
+						address: $account.address,
+					})
+					return {
 						...(account.balance != null && {
 							balanceSun: BigInt(account.balance),
 						}),
@@ -251,7 +294,6 @@ export default {
 			},
 		})({
 			fields: {
-				name: (account) => account.name,
 				balanceSun: (account) => account.balanceSun,
 				createdTimestampMs: (account) => account.createdTimestampMs,
 				latestOperationTimestampMs: (account) => account.latestOperationTimestampMs,

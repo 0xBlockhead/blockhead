@@ -1,24 +1,18 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import ActivityPubActor from '$/schema/ActivityPubActor.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum ActivityPubActor_TimestampSelector {
 	ActivityPubActorTimestampMs = 'activityPubActorTimestampMs',
+	ActorTimestampMs = '$actor+timestampMs',
 }
-
 export default {
 	entityType: EntityType.ActivityPubActor_Timestamp,
-
-	label: 'ActivityPub actor snapshot',
-	labelPlural: 'ActivityPub actor snapshots',
-
+	label: 'activity pub actor timestamp',
+	labelPlural: 'activity pub actor observations',
 	selectors: [
 		{
 			name: ActivityPubActor_TimestampSelector.ActivityPubActorTimestampMs,
@@ -28,49 +22,42 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$actor',
+			label: 'actor',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.ActivityPubActor,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'followersCount',
+			label: 'followers count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Mastodon_Rest,
-				Source.Fedi_Rest,
-			],
 		},
 		{
 			name: 'followingCount',
+			label: 'following count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Mastodon_Rest,
-				Source.Fedi_Rest,
-			],
 		},
 		{
 			name: 'statusesCount',
+			label: 'statuses count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Mastodon_Rest,
-				Source.Fedi_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

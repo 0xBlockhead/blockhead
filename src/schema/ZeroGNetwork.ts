@@ -1,35 +1,17 @@
 import { type } from 'arktype'
-
-import { NetworkEnvironment } from '$/constants/Network.ts'
-import { TransportType } from '$/constants/TransportType.ts'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { UrlString } from '$/schema/UrlString.ts'
-import { networkFields } from '$/schema/Network.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum ZeroGNetworkSelector {
 	Slug = 'slug',
 }
-
-
-const zeroGEndpointField = type({
-	url: UrlString,
-	transportType: type.valueOf(TransportType),
-	providerName: 'string',
-})
-
 export default {
 	entityType: EntityType.ZeroGNetwork,
-
-	label: '0G network',
-	labelPlural: '0G networks',
-
+	label: 'zero g network',
+	labelPlural: 'zero g networks',
 	selectors: [
 		{
 			name: ZeroGNetworkSelector.Slug,
@@ -38,119 +20,108 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: 'slug',
+			label: 'Slug',
+			description: 'A stable short name used by catalogs and URLs.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.unit('0g'),
+			primitiveType: type("'0g'"),
 			cardinality: EntityFieldCardinality.One,
 		},
-		networkFields[1],
-		networkFields[3],
-		networkFields[11],
-		networkFields[12],
-		networkFields[13],
-		networkFields[14],
+		{
+			name: 'name',
+			label: 'Name',
+			description: 'The human-readable name of the subject.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'namespace',
+			label: 'Namespace',
+			description: 'The namespace that qualifies the identifier.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'environment',
+			label: 'environment',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(NetworkEnvironment),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: 'chainId',
+			label: 'Chain ID',
+			description: 'The chain identifier used by the network family.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: 'rpcEndpoints',
+			label: 'RPC endpoints',
 			type: EntityFieldType.Primitive,
-			primitiveType: zeroGEndpointField,
+			primitiveType: type({"url": "string", "transportType": "string", "providerName": "string"}),
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: 'explorerEndpoints',
+			label: 'explorer endpoints',
 			type: EntityFieldType.Primitive,
-			primitiveType: zeroGEndpointField,
+			primitiveType: type({"url": "string", "transportType": "string", "providerName": "string"}),
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: 'storageEndpoints',
+			label: 'storage endpoints',
 			type: EntityFieldType.Primitive,
-			primitiveType: zeroGEndpointField,
+			primitiveType: type({"url": "string", "transportType": "string", "providerName": "string"}),
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: '$executionNetwork',
+			label: 'execution network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: '$consensusNetwork',
+			label: 'consensus network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.ZeroGConsensusNetwork,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.ZeroGChainScan_Rest,
-			],
 		},
 		{
 			name: '$$timestamps',
+			label: 'timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.ZeroGNetwork_Timestamp,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.ZeroGChain_JsonRpc,
-				Source.ZeroGStorageScan_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$blocks',
+			label: 'blocks',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.EvmBlock,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.ZeroGChain_JsonRpc,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$storageNodes',
+			label: 'storage nodes',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.ZeroGStorageNode,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.ZeroGStorageScan_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$dataBlobs',
+			label: 'data blobs',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.ZeroGDataBlob,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.ZeroGStorageScan_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

@@ -1,25 +1,17 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum TronWitnessSelector {
 	NetworkAddress = 'networkAddress',
 }
-import { UrlString } from '$/schema/UrlString.ts'
-import { Source } from '$/sources/Source.ts'
-
 export default {
 	entityType: EntityType.TronWitness,
-
-	label: 'TRON witness',
-	labelPlural: 'TRON witnesses',
-
+	label: 'tron witness',
+	labelPlural: 'tron witnesses',
 	selectors: [
 		{
 			name: TronWitnessSelector.NetworkAddress,
@@ -29,73 +21,28 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'address',
+			label: 'Address',
+			description: 'The address or account identifier used by the source protocol.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'url',
-			type: EntityFieldType.Primitive,
-			primitiveType: UrlString,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.TronGrid_Rest,
-			],
+			name: '$$timestamps',
+			label: 'timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.TronWitness_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
 		},
-		{
-			name: 'voteCount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.TronGrid_Rest,
-			],
-		},
-		{
-			name: 'totalProduced',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.TronGrid_Rest,
-			],
-		},
-		{
-			name: 'totalMissed',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.TronGrid_Rest,
-			],
-		},
-		{
-			name: 'latestBlockHeight',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.TronGrid_Rest,
-			],
-		},
-		{
-			name: 'active',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.TronGrid_Rest,
-			],
-		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

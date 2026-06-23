@@ -13,9 +13,9 @@
 
 
 <ParentPageCollapsible
-	title={'Calldata'}
+	title="Calldata"
 	href={resolve('/evm/calldata')}
-	id={'evm-calldata'}
+	id="evm-calldata"
 >
 	{@render children()}
 </ParentPageCollapsible>

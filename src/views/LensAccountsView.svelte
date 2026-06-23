@@ -1,100 +1,66 @@
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
+	const listView = {
+		entityType: EntityType.LensAccount,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
 		selection,
-		id,
+		title,
 		open = $bindable(true),
-		collapsible = true,
-		title = 'Lens v3 profiles',
+		id = 'LensAccounts',
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			selection: EntityProxyEntitiesResource<typeof schema, EntityType.LensAccount>
-			id: string
-			open?: boolean
-			collapsible?: boolean
 			title?: string
+			open?: boolean
+			id?: string
+			href?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import LensAccountView from '$/views/LensAccountView.svelte'
 </script>
 
 
 <EntitiesList
-	entityType={EntityType.LensAccount}
-	{id}
-	bind:open
+	entityType={listView.entityType}
 	{title}
+	bind:open
+	{id}
+	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Lens profiles are on-chain publisher identities tied to an address.
-		</p>
-		<p>
-			Publications for the Lens network aggregate in resolver-backed feeds; profile-scoped indexes align with that network’s publication graph.
-		</p>
-	{/snippet}
-
-	{#snippet body({ open: _bodyOpen })}
-		{#if open}
-			<ResourceBoundary resource={selection({
-					sources: [
-						Source.Constants_Internal,
-						Source.Lens_Graphql,
-					],
-				})} placeholderText="Loading Lens network…">
-				{#snippet children(accounts)}
-					<EntitiesList
-						collapsible={false}
-						showSummary={false}
-						entityType={EntityType.LensAccount}
-						id={`${id}-items`}
-						{title}
-						open={true}
-						items={accounts.entities}
-						getKey={(account) => stringify(account.entitySelector)}
-						getSortValue={(account) => stringify(account.entitySelector)}
-					>
-						{#snippet Empty()}
-							<p data-text="muted">
-								No Lens profiles for this slice yet.
-							</p>
-						{/snippet}
-
-						{#snippet Item({ item })}
-							<LensAccountView
-								selection={select(EntityType.LensAccount, item.entitySelector)}
-								layout={EntityLayout.Summary}
-
-							/>
-						{/snippet}
-					</EntitiesList>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+	{#snippet Item({ item })}
+		<LensAccountView
+			selection={select(EntityType.LensAccount, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

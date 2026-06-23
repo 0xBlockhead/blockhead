@@ -2,15 +2,107 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			{
+				label: 'CID',
+			},
+			{
+				label: 'from actor',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					{
+						label: 'CID',
+					},
+					{
+						label: 'from actor',
+					},
+					{
+						label: 'to actor',
+					},
+					{
+						label: 'method number',
+					},
+					'nonce',
+					{
+						label: 'value in attoFIL',
+					},
+					{
+						label: 'gas limit',
+					},
+					{
+						label: 'fee cap',
+					},
+					{
+						label: 'premium',
+					},
+					{
+						label: 'receipt count',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'From',
+					items: [
+						{
+							label: 'from Filecoin actor',
+						},
+					],
+				},
+				{
+					label: 'To',
+					items: [
+						{
+							label: 'to Filecoin actor',
+						},
+					],
+				},
+				{
+					label: 'Receipts',
+					items: [
+						{
+							label: 'Filecoin message receipts',
+						},
+					],
+				},
+				{
+					label: 'Blocks/tipsets',
+					items: [
+						{
+							label: 'block/tipset refs when source context provides inclusion',
+						},
+					],
+				},
+				{
+					label: 'Params',
+					items: [
+						{
+							label: 'raw params preview when source-backed',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +113,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,64 +121,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.FilecoinMessage}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.cid}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		<TruncatedValue
-			value={selection.entitySelector.cid}
-			format={TruncatedValueFormat.Abbr}
-		/>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection( { fields: { method: true, nonce: true, valueAttoFil: true, gasLimit: true } })}
-			placeholderText="Loading Filecoin message…"
-		>
-			{#snippet children(filecoinMessage)}
-				<dl>
-					{#if filecoinMessage.method != null}
-						<div>
-							<dt>Method</dt>
-							<dd><NumberValue value={filecoinMessage.method} /></dd>
-						</div>
-					{/if}
-
-					{#if filecoinMessage.nonce != null}
-						<div>
-							<dt>Nonce</dt>
-							<dd><NumberValue value={filecoinMessage.nonce} /></dd>
-						</div>
-					{/if}
-
-					{#if filecoinMessage.valueAttoFil != null}
-						<div>
-							<dt>Value</dt>
-							<dd><NumberValue value={filecoinMessage.valueAttoFil} /> attoFIL</dd>
-						</div>
-					{/if}
-
-					{#if filecoinMessage.gasLimit != null}
-						<div>
-							<dt>Gas Limit</dt>
-							<dd><NumberValue value={filecoinMessage.gasLimit} /></dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

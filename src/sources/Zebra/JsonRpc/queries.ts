@@ -1,6 +1,6 @@
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
 import { jsonRpcHeaders, jsonRpcVersion } from '$/sources/Evm/JsonRpc/constants.ts'
-import Zebra from '$/sources/Zebra/index.ts'
+import { utxoJsonRpcOrigins } from '$/sources/_shared/interfaces/UtxoJsonRpc/localOrigins.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	ZebraBlock,
@@ -28,7 +28,7 @@ const zebraJsonRpc = async <_Result>({
 	params: JsonValue[]
 }) => {
 	const response = await corsFetch(rpcUrl, {
-		origins: Zebra.origins,
+		origins: utxoJsonRpcOrigins,
 		init: {
 			method: 'POST',
 			headers: jsonRpcHeaders,

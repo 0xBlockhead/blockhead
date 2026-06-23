@@ -1,22 +1,19 @@
+import { Source } from '$/sources/Source.ts'
 import {
-	type SourceProviderDefinition,
 	SourceProvider,
+	type SourceProviderDefinition,
 } from '$/sources/SourceProvider.ts'
-import {
-	origin,
-} from '$/sources/Superchain/Github/constants.ts'
-import SuperchainGithubSource from '$/sources/Superchain/Github/index.ts'
+import { superchainBindings } from '$/sources/Superchain/bindings.ts'
 
 export default {
 	provider: SourceProvider.Superchain,
 	label: 'Superchain',
-	origins: [
+	sources: [
 		{
-			origin,
-			corsEnabled: false,
+			provider: SourceProvider.Superchain,
+			source: Source.Superchain_Github,
+			label: 'Superchain GitHub',
 		},
 	],
-	sources: [
-		SuperchainGithubSource,
-	],
+	bindings: superchainBindings,
 } satisfies SourceProviderDefinition

@@ -9,8 +9,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { _GlobalSelector } from '$/schema/_Global.ts'
 import { SpecificationProposalSelector } from '$/schema/SpecificationProposal.ts'
-import { SpecificationRealmSelector } from '$/schema/SpecificationRealm.ts'
-import { SpecificationProposalKindSelector } from '$/schema/SpecificationProposalKind.ts'
 
 const metadataValue = (text: string, key: string) => (
 	new RegExp(`^\\s*${key}:\\s*(.+?)\\s*$`, 'im').exec(text)?.[1]?.trim()
@@ -68,38 +66,6 @@ export default {
 			entityType: EntityType._Global,
 			resolve: {
 				[_GlobalSelector.Scope]: async () => {
-				const { getContents } = await import('$/sources/LitecoinLips/Github/queries.ts')
-				return litecoinLipRows(await getContents())
-			}
-			}
-		})({
-				fields: {
-			$$proposals: (snapshot) => snapshot,
-		},
-			}),
-
-		defineResolver(Source.LitecoinLips_Github, {
-			entityType: EntityType.SpecificationRealm,
-			resolve: {
-				[SpecificationRealmSelector.Realm]: async ({ realm }) => {
-				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (realm !== SpecificationRealm.Litecoin) throw new Error('LitecoinLips_Github: $$proposals only supports Litecoin')
-				const { getContents } = await import('$/sources/LitecoinLips/Github/queries.ts')
-				return litecoinLipRows(await getContents())
-			}
-			}
-		})({
-				fields: {
-			$$proposals: (snapshot) => snapshot,
-		},
-			}),
-
-		defineResolver(Source.LitecoinLips_Github, {
-			entityType: EntityType.SpecificationProposalKind,
-			resolve: {
-				[SpecificationProposalKindSelector.RealmCategory]: async ({ category, realm }) => {
-				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (realm !== SpecificationRealm.Litecoin || category !== ProposalCategory.Lip) throw new Error('LitecoinLips_Github: $$proposals only supports Litecoin LIPs')
 				const { getContents } = await import('$/sources/LitecoinLips/Github/queries.ts')
 				return litecoinLipRows(await getContents())
 			}

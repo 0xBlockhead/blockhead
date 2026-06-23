@@ -1,8 +1,7 @@
 import { getJson } from '$/lib/http.ts'
 import { requiredPublicEnvString } from '$/sources/$sources.ts'
-import LightningLnd from '$/sources/LightningLnd/index.ts'
-import type { Source } from '$/sources/Source.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import { lightningLndOrigins } from '$/sources/LightningLnd/index.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import type {
 	LndGetInfoResponse,
 	LndListChannelsResponse,
@@ -17,12 +16,12 @@ const lndHeaders = (macaroonHex: string) => ({
 })
 
 export const getInfo = (
-	publicEnv: SourcePublicEnvFor<Source.LightningLnd_Rest>
+	publicEnv: SourcePublicEnv
 ) => (
 	getJson<LndGetInfoResponse>(
 		`${base(requiredPublicEnvString(publicEnv, 'PUBLIC_LND_REST_BASE_URL'))}/v1/getinfo`,
 		{
-			origins: LightningLnd.origins,
+			origins: lightningLndOrigins,
 			init: {
 				headers: lndHeaders(requiredPublicEnvString(publicEnv, 'PUBLIC_LND_MACAROON_HEX')),
 			},
@@ -31,12 +30,12 @@ export const getInfo = (
 )
 
 export const listChannels = (
-	publicEnv: SourcePublicEnvFor<Source.LightningLnd_Rest>
+	publicEnv: SourcePublicEnv
 ) => (
 	getJson<LndListChannelsResponse>(
 		`${base(requiredPublicEnvString(publicEnv, 'PUBLIC_LND_REST_BASE_URL'))}/v1/channels`,
 		{
-			origins: LightningLnd.origins,
+			origins: lightningLndOrigins,
 			init: {
 				headers: lndHeaders(requiredPublicEnvString(publicEnv, 'PUBLIC_LND_MACAROON_HEX')),
 			},
@@ -48,13 +47,13 @@ export const listInvoices = ({
 	publicEnv,
 	numMaxInvoices,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.LightningLnd_Rest>
+	publicEnv: SourcePublicEnv
 	numMaxInvoices?: number
 }) => (
 	getJson<LndListInvoicesResponse>(
 		`${base(requiredPublicEnvString(publicEnv, 'PUBLIC_LND_REST_BASE_URL'))}/v1/invoices${numMaxInvoices == null ? '' : `?num_max_invoices=${numMaxInvoices}`}`,
 		{
-			origins: LightningLnd.origins,
+			origins: lightningLndOrigins,
 			init: {
 				headers: lndHeaders(requiredPublicEnvString(publicEnv, 'PUBLIC_LND_MACAROON_HEX')),
 			},
@@ -66,13 +65,13 @@ export const listPayments = ({
 	publicEnv,
 	maxPayments,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.LightningLnd_Rest>
+	publicEnv: SourcePublicEnv
 	maxPayments?: number
 }) => (
 	getJson<LndListPaymentsResponse>(
 		`${base(requiredPublicEnvString(publicEnv, 'PUBLIC_LND_REST_BASE_URL'))}/v1/payments${maxPayments == null ? '' : `?max_payments=${maxPayments}`}`,
 		{
-			origins: LightningLnd.origins,
+			origins: lightningLndOrigins,
 			init: {
 				headers: lndHeaders(requiredPublicEnvString(publicEnv, 'PUBLIC_LND_MACAROON_HEX')),
 			},

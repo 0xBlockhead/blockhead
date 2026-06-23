@@ -1,20 +1,38 @@
-import { type as arktype } from 'arktype'
-
+import { Source } from '$/sources/Source.ts'
 import {
-	type SourceProviderDefinition,
 	SourceProvider,
+	type SourceProviderDefinition,
 } from '$/sources/SourceProvider.ts'
-import { youtubeApiOrigins } from '$/sources/Youtube/Rest/constants.ts'
-import YoutubeRestSource from '$/sources/Youtube/Rest/index.ts'
+import {
+	youtubeBindings,
+	youtubePublicEnv,
+} from '$/sources/Youtube/bindings.ts'
+
+export const youtubeOrigins = [
+	...new Map(
+		youtubeBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.Youtube,
 	label: 'YouTube',
-	origins: youtubeApiOrigins,
-	env: arktype({
-		PUBLIC_YOUTUBE_API_KEY: 'string > 0',
-	}),
+	env: youtubePublicEnv,
 	sources: [
-		YoutubeRestSource,
+		{
+			provider: SourceProvider.Youtube,
+			source: Source.Youtube_Rest,
+			label: 'YouTube Data API v3',
+			env: youtubePublicEnv,
+		},
 	],
+	bindings: youtubeBindings,
 } satisfies SourceProviderDefinition

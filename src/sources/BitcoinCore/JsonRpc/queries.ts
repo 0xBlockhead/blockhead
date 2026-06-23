@@ -1,6 +1,6 @@
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
-import BitcoinCore from '$/sources/BitcoinCore/index.ts'
 import { jsonRpcHeaders, jsonRpcVersion } from '$/sources/Evm/JsonRpc/constants.ts'
+import { utxoJsonRpcOrigins } from '$/sources/_shared/interfaces/UtxoJsonRpc/localOrigins.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	BitcoinCoreBlock,
@@ -29,7 +29,7 @@ const bitcoinCoreJsonRpc = async <_Result>({
 	params: JsonValue[]
 }) => {
 	const response = await corsFetch(rpcUrl, {
-		origins: BitcoinCore.origins,
+		origins: utxoJsonRpcOrigins,
 		init: {
 			method: 'POST',
 			headers: jsonRpcHeaders,

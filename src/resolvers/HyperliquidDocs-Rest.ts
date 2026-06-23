@@ -8,8 +8,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { _GlobalSelector } from '$/schema/_Global.ts'
 import { SpecificationProposalSelector } from '$/schema/SpecificationProposal.ts'
-import { SpecificationRealmSelector } from '$/schema/SpecificationRealm.ts'
-import { SpecificationProposalKindSelector } from '$/schema/SpecificationProposalKind.ts'
 
 const hyperliquidHipRows = async () => {
 	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
@@ -73,36 +71,6 @@ export default {
 			entityType: EntityType._Global,
 			resolve: {
 				[_GlobalSelector.Scope]: hyperliquidHipRows
-			}
-		})({
-				fields: {
-			$$proposals: (snapshot) => snapshot,
-		},
-			}),
-
-		defineResolver(Source.HyperliquidDocs_Rest, {
-			entityType: EntityType.SpecificationRealm,
-			resolve: {
-				[SpecificationRealmSelector.Realm]: async ({ realm }) => {
-				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (realm !== SpecificationRealm.Hyperliquid) throw new Error('HyperliquidDocs_Rest: $$proposals only supports Hyperliquid')
-				return hyperliquidHipRows()
-			}
-			}
-		})({
-				fields: {
-			$$proposals: (snapshot) => snapshot,
-		},
-			}),
-
-		defineResolver(Source.HyperliquidDocs_Rest, {
-			entityType: EntityType.SpecificationProposalKind,
-			resolve: {
-				[SpecificationProposalKindSelector.RealmCategory]: async ({ category, realm }) => {
-				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (realm !== SpecificationRealm.Hyperliquid || category !== ProposalCategory.Hip) throw new Error('HyperliquidDocs_Rest: $$proposals only supports Hyperliquid HIPs')
-				return hyperliquidHipRows()
-			}
 			}
 		})({
 				fields: {

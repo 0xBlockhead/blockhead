@@ -1,6 +1,8 @@
 <script lang="ts">
+	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { select } from '$/routes/+layout.svelte'
+
+
 	// Context
 	import { resolve } from '$app/paths'
 	import { page } from '$app/state'
@@ -12,6 +14,10 @@
 	const feedUrl = $derived(
 		decodeURIComponent(page.params.feedKey ?? ''),
 	)
+
+
+	// Functions
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// Components
@@ -29,7 +35,14 @@
 >
 	{#snippet Summary({ open: _open })}
 		<RssFeedView
-			selection={select(EntityType.RssFeed, { feedUrl })}
+			selection={
+				select(
+					EntityType.RssFeed,
+					{
+						feedUrl: feedUrl,
+					}
+				)
+			}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

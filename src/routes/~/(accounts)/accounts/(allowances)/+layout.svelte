@@ -13,7 +13,7 @@
 
 
 <ParentPageCollapsible
-	title={'Allowances'}
+	title="Allowances"
 	href={resolve('/~/accounts/allowances')}
 >
 	{@render children()}

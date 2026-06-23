@@ -1,23 +1,18 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum EvmRollupSelector {
 	EvmNetworkProjectId = 'evmNetworkProjectId',
+	NetworkProjectId = '$network+projectId',
 }
-
 export default {
 	entityType: EntityType.EvmRollup,
-
 	label: 'EVM rollup',
 	labelPlural: 'EVM rollups',
-
 	selectors: [
 		{
 			name: EvmRollupSelector.EvmNetworkProjectId,
@@ -27,100 +22,72 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'projectId',
+			label: 'project ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$settlementNetwork',
+			label: 'settlement network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.L2Beat_Rest,
-			],
 		},
 		{
 			name: 'name',
+			label: 'Name',
+			description: 'The human-readable name of the subject.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.L2Beat_Rest,
-			],
 		},
 		{
 			name: 'slug',
+			label: 'Slug',
+			description: 'A stable short name used by catalogs and URLs.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.L2Beat_Rest,
-			],
 		},
 		{
 			name: 'type',
+			label: 'Type',
+			description: 'The source-domain type or category.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.L2Beat_Rest,
-			],
 		},
 		{
 			name: 'category',
+			label: 'category',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.L2Beat_Rest,
-			],
 		},
 		{
 			name: 'hostChain',
+			label: 'host chain',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.L2Beat_Rest,
-			],
 		},
 		{
-			name: 'isArchived',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.L2Beat_Rest,
-			],
+			name: '$$timestamps',
+			label: 'timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.EvmRollup_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
 		},
-		{
-			name: 'isUpcoming',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.L2Beat_Rest,
-			],
-		},
-		{
-			name: 'isUnderReview',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.L2Beat_Rest,
-			],
-		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

@@ -1,22 +1,33 @@
+import { Source } from '$/sources/Source.ts'
 import {
-	type SourceProviderDefinition,
 	SourceProvider,
+	type SourceProviderDefinition,
 } from '$/sources/SourceProvider.ts'
-import {
-	origin,
-} from '$/sources/L2Beat/Rest/constants.ts'
-import L2BeatRestSource from '$/sources/L2Beat/Rest/index.ts'
+import { l2BeatBindings } from '$/sources/L2Beat/bindings.ts'
+
+export const l2BeatOrigins = [
+	...new Map(
+		l2BeatBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.L2Beat,
 	label: 'L2Beat',
-	origins: [
+	sources: [
 		{
-			origin,
-			corsEnabled: false,
+			provider: SourceProvider.L2Beat,
+			source: Source.L2Beat_Rest,
+			label: 'L2Beat REST',
 		},
 	],
-	sources: [
-		L2BeatRestSource,
-	],
+	bindings: l2BeatBindings,
 } satisfies SourceProviderDefinition

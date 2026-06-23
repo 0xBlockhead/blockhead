@@ -1,127 +1,153 @@
 <script lang="ts">
 	// Types/constants
+	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'observation time',
+			},
+			'source',
+			{
+				label: 'perp market count',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'observation time',
+					},
+					'source',
+					{
+						label: 'perp market count',
+					},
+					{
+						label: 'spot asset count',
+					},
+					{
+						label: 'spot pair count',
+					},
+					{
+						label: 'validator count',
+					},
+					{
+						label: 'active validator count',
+					},
+					{
+						label: 'jailed validator count',
+					},
+					{
+						label: 'total stake',
+					},
+					{
+						label: 'borrow/lend reserve count',
+					},
+					{
+						label: 'vault count',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Network',
+					items: [
+						{
+							label: 'parent Hyperliquid network',
+						},
+					],
+				},
+				{
+					label: 'Validator summary',
+					items: [
+						{
+							label: 'active/jailed/stake aggregate',
+						},
+					],
+				},
+				{
+					label: 'Market universe',
+					items: [
+						{
+							label: 'perp',
+						},
+						{
+							label: 'spot universe counts',
+						},
+					],
+				},
+				{
+					label: 'Borrow/lend reserves',
+					items: [
+						{
+							label: 'all reserve-state payload summary',
+						},
+					],
+				},
+				{
+					label: 'Vaults',
+					items: [
+						{
+							label: 'vault count/source summary',
+						},
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'meta',
+						},
+						{
+							label: 'spotMeta',
+						},
+						{
+							label: 'validatorSummaries',
+						},
+						{
+							label: 'borrow/lend/vault list payload freshness',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
-		layout = EntityLayout.SummaryDetails,
-		open = $bindable(layout === EntityLayout.SummaryDetails),
-	}: {
-		selection: EntityProxyResource<typeof schema, EntityType.HyperliquidNetwork_Timestamp>
-		layout?: EntityLayout
-		open?: boolean
-	} = $props()
-
-
-	const snapshot = $derived(selection(
-		({ sources: [
-				Source.Hyperliquid_Rest,
-			], fields: { perpMarketCount: true, spotAssetCount: true, spotPairCount: true, validatorCount: true, activeValidatorCount: true, jailedValidatorCount: true, totalStake: true } }),
-	))
+		open = $bindable(true),
+		...EntityViewProps
+	}: WithRest<
+		{
+			selection: EntityProxyResource<typeof schema, EntityType.HyperliquidNetwork_Timestamp>
+			open?: boolean
+		},
+		Pick<
+			ComponentProps<typeof EntityView2>,
+			| 'layout'
+			| 'showTypeAnnotation'
+		>
+	> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.HyperliquidNetwork_Timestamp}
 	entitySelector={selection.entitySelector}
 	bind:open
-	{layout}
->
-	{#snippet Value()}
-		<ResourceBoundary
-			resource={snapshot}
-			placeholderText="Loading Hyperliquid network snapshot..."
-		>
-			{#snippet children(snapshot)}
-				{#if snapshot.perpMarketCount !== undefined}
-					<NumberValue value={snapshot.perpMarketCount} />
-					perps
-				{:else if snapshot.validatorCount !== undefined}
-					<NumberValue value={snapshot.validatorCount} />
-					validators
-				{:else}
-					<Timestamp timestamp={selection.entitySelector.timestampMs} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Title()}
-		<Timestamp timestamp={selection.entitySelector.timestampMs} />
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={snapshot}
-			placeholderText="Loading Hyperliquid network snapshot..."
-		>
-			{#snippet children(snapshot)}
-				<dl data-column-item="center">
-					{#if snapshot.perpMarketCount !== undefined}
-						<div>
-							<dt>Perp markets</dt>
-							<dd><NumberValue value={snapshot.perpMarketCount} /></dd>
-						</div>
-					{/if}
-
-					{#if snapshot.spotPairCount !== undefined}
-						<div>
-							<dt>Spot pairs</dt>
-							<dd><NumberValue value={snapshot.spotPairCount} /></dd>
-						</div>
-					{/if}
-
-					{#if snapshot.validatorCount !== undefined}
-						<div>
-							<dt>Validators</dt>
-							<dd><NumberValue value={snapshot.validatorCount} /></dd>
-						</div>
-					{/if}
-
-					{#if open && snapshot.activeValidatorCount !== undefined}
-						<div>
-							<dt>Active validators</dt>
-							<dd><NumberValue value={snapshot.activeValidatorCount} /></dd>
-						</div>
-					{/if}
-
-					{#if open && snapshot.jailedValidatorCount !== undefined}
-						<div>
-							<dt>Jailed validators</dt>
-							<dd><NumberValue value={snapshot.jailedValidatorCount} /></dd>
-						</div>
-					{/if}
-
-					{#if open && snapshot.spotAssetCount !== undefined}
-						<div>
-							<dt>Spot assets</dt>
-							<dd><NumberValue value={snapshot.spotAssetCount} /></dd>
-						</div>
-					{/if}
-
-					{#if open && snapshot.totalStake !== undefined}
-						<div>
-							<dt>Total stake</dt>
-							<dd><NumberValue value={snapshot.totalStake} /></dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{...EntityViewProps}
+	{view}
+/>

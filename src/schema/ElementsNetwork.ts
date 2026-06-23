@@ -1,25 +1,17 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum ElementsNetworkSelector {
 	Network = 'network',
 }
-
 export default {
 	entityType: EntityType.ElementsNetwork,
-
-	label: 'Elements network',
-	labelPlural: 'Elements networks',
-
+	label: 'elements network',
+	labelPlural: 'elements networks',
 	selectors: [
 		{
 			name: ElementsNetworkSelector.Network,
@@ -28,71 +20,55 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: '$settlementNetwork',
+			label: 'settlement network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.UtxoNetwork,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: 'federationName',
+			label: 'federation name',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: 'blockTimeSeconds',
+			label: 'block time seconds',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: '$nativeAsset',
+			label: 'native asset',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.ElementsAsset,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Constants_Internal,
-				Source.Esplora_Rest,
-			],
 		},
 		{
 			name: 'confidentialTransactionsDefault',
+			label: 'confidential transactions default',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
+			primitiveType: type("boolean"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: '$$assets',
+			label: 'assets',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.ElementsAsset,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Esplora_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

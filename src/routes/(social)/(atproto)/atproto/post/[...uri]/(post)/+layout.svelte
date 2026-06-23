@@ -1,6 +1,8 @@
 <script lang="ts">
+	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { select } from '$/routes/+layout.svelte'
+
+
 	// Context
 	import { resolve } from '$app/paths'
 	import { page } from '$app/state'
@@ -14,10 +16,14 @@
 	)
 
 
+	// Functions
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import AtprotoPostView from '$/views/AtprotoPostView.svelte'
 	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
+	import AtprotoPostView from '$/views/AtprotoPostView.svelte'
 </script>
 
 
@@ -29,7 +35,14 @@
 >
 	{#snippet Summary({ open: _open })}
 		<AtprotoPostView
-			selection={select(EntityType.AtprotoPost, { uri: decodeURIComponent(uri) })}
+			selection={
+				select(
+					EntityType.AtprotoPost,
+					{
+						uri: decodeURIComponent(uri),
+					}
+				)
+			}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

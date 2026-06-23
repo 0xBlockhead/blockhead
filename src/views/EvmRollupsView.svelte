@@ -1,24 +1,30 @@
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
-		// State
+	import { select } from '$/routes/+layout.svelte'
+
+
+	// State
+	const listView = {
+		entityType: EntityType.EvmRollup,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
 		selection,
-		title = 'Rollups',
+		title,
 		open = $bindable(true),
-		id,
+		id = 'EvmRollups',
 		href = '',
 		...EntitiesListProps
 	}: WithRest<
@@ -26,78 +32,35 @@
 			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EvmRollup>
 			title?: string
 			open?: boolean
-			id: string
+			id?: string
 			href?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'CollapsibleProps'
-		>
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
+
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmRollupView from '$/views/EvmRollupView.svelte'
 </script>
 
 
 <EntitiesList
-	entityType={EntityType.EvmRollup}
+	entityType={listView.entityType}
 	{title}
 	bind:open
 	{id}
 	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			L2Beat rollup projects linked to this execution network when chain metadata matches.
-		</p>
-	{/snippet}
-
-	{#snippet body()}
-		{#if open}
-				<ResourceBoundary
-					resource={selection({
-						sources: [
-							Source.L2Beat_Rest,
-						],
-						limit: 16,
-					})}
-				placeholderText="Loading rollups…"
-			>
-				{#snippet children(rollups)}
-					<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.EvmRollup}
-				id={`${id}-items`}
-				href={href}
-				getKey={(rollup) => rollup[EntityMetaKey.Selector].projectId}
-				placeholderText="Loading rollups…"
-				items={rollups.values}
-				{title}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-				open={true}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No rollups mapped here yet.
-					</p>
-				{/snippet}
-
-				{#snippet Item({ item: rollup })}
-					<EvmRollupView
-						selection={select(EntityType.EvmRollup, rollup[EntityMetaKey.Selector])}
-						layout={EntityLayout.Summary}
-
-					/>
-				{/snippet}
-			</EntitiesList>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+	{#snippet Item({ item })}
+		<EvmRollupView
+			selection={select(EntityType.EvmRollup, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

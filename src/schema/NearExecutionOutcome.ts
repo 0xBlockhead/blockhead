@@ -1,23 +1,18 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum NearExecutionOutcomeSelector {
 	NearTransactionOutcomeId = 'nearTransactionOutcomeId',
+	TransactionOutcomeId = '$transaction+outcomeId',
 }
-
 export default {
 	entityType: EntityType.NearExecutionOutcome,
-
-	label: 'NEAR Execution Outcome',
-	labelPlural: 'NEAR Execution Outcomes',
-
+	label: 'near execution outcome',
+	labelPlural: 'near execution outcomes',
 	selectors: [
 		{
 			name: NearExecutionOutcomeSelector.NearTransactionOutcomeId,
@@ -27,37 +22,41 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$transaction',
+			label: 'transaction',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.NearTransaction,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'outcomeId',
+			label: 'outcome ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'status',
+			label: 'status',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'gasBurnt',
+			label: 'gas burnt',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$$receipts',
+			label: 'receipts',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.NearReceipt,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
+			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

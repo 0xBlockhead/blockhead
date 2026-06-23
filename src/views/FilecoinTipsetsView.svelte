@@ -1,33 +1,38 @@
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
-import { stringify } from 'devalue'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
 
-	type FilecoinTipsetsResource = EntityProxyFieldResource<
-		typeof schema,
-		EntityType.FilecoinNetwork,
-		'$$tipsets'
-	>
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
+	const listView = {
+		entityType: EntityType.FilecoinTipset,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
 		selection,
-		title = 'Tipsets',
+		title,
 		open = $bindable(true),
-		id,
+		id = 'FilecoinTipsets',
 		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: FilecoinTipsetsResource
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.FilecoinTipset>
 			title?: string
 			open?: boolean
-			id: string
+			id?: string
 			href?: string
 		},
 		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
@@ -36,59 +41,26 @@ import { stringify } from 'devalue'
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import FilecoinTipsetView from '$/views/FilecoinTipsetView.svelte'
 </script>
 
 
 <EntitiesList
-	entityType={EntityType.FilecoinTipset}
+	entityType={listView.entityType}
 	{title}
 	bind:open
 	{id}
 	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Filecoin tipsets group one or more blocks at the same epoch height in Expected Consensus.
-		</p>
-	{/snippet}
-
-	{#snippet body()}
-		{#if open}
-			<ResourceBoundary resource={selection} placeholderText="Loading tipsets…">
-				{#snippet children(tipsets)}
-					<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.FilecoinTipset}
-				id={`${id}-items`}
-				href={href}
-				getKey={(tipset) => stringify(tipset.entitySelector)}
-				getSortValue={(tipset) => -Number(tipset.entitySelector.height)}
-				open={true}
-				items={tipsets.entities}
-				{title}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No recent tipsets yet.
-					</p>
-				{/snippet}
-
-				{#snippet Item({ item })}
-					<FilecoinTipsetView
-						selection={select(EntityType.FilecoinTipset, item.entitySelector)}
-						layout={EntityLayout.Summary}
-
-					/>
-				{/snippet}
-					</EntitiesList>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+	{#snippet Item({ item })}
+		<FilecoinTipsetView
+			selection={select(EntityType.FilecoinTipset, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

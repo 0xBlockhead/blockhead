@@ -2,19 +2,92 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
-
-
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'namespace/reference/address',
+			},
+			{
+				label: 'address kind',
+			},
+			{
+				label: 'optional label',
+			},
+		],
+		content: {
+			dl: [
+				[
+					'namespace',
+					'reference',
+					{
+						label: 'account address',
+					},
+					{
+						label: 'address kind',
+					},
+					{
+						label: 'canonical address',
+					},
+					{
+						label: 'network when resolved',
+					},
+				],
+				[
+					'label',
+					{
+						label: 'public key presence',
+					},
+					{
+						label: 'derivation path presence',
+					},
+					'capabilities',
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Network',
+					items: [
+						{
+							label: 'NetworkView when CAIP-2/reference resolves',
+						},
+					],
+				},
+				{
+					label: 'Native account',
+					items: [
+						{
+							label: 'Account/native account view when linked by selector',
+						},
+					],
+				},
+				{
+					label: 'Connections',
+					items: [
+						{
+							label: 'BlockheadWalletConnection rows that exposed the account',
+						},
+					],
+				},
+				{
+					label: 'Capabilities',
+					items: [
+						{
+							label: 'account-level sign/send/list/watch/delegate capabilities supplied by the session',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -25,109 +98,23 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
-			| 'collapsible'
 			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
-	const walletAccount = $derived(selection(
-		({ sources: [
-				Source.Local_Internal,
-			], fields: { $network: true, address: true, label: true, capabilities: true } }),
-	))
-
-
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import NetworkView from '$/views/NetworkView.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.BlockheadWalletAccount}
-	bind:open
 	entitySelector={selection.entitySelector}
-	title={`${selection.entitySelector.caip10.namespace}:${selection.entitySelector.caip10.reference}:${selection.entitySelector.caip10.accountAddress}`}
+	bind:open
 	{...EntityViewProps}
->
-	{#snippet Value()}
-		<TruncatedValue value={selection.entitySelector.caip10.accountAddress} />
-	{/snippet}
-
-	{#snippet Title()}
-		<ResourceBoundary
-			resource={walletAccount}
-			placeholderText={selection.entitySelector.caip10.accountAddress}
-		>
-			{#snippet children(walletAccount)}
-				{walletAccount.label ?? walletAccount.address}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Wallet accounts use structured CAIP-10 parts so the same connection model can represent EVM, Solana, Cosmos, Polkadot, Bitcoin, and other signer accounts.
-		</p>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={walletAccount}
-			placeholderText="Loading wallet account…"
-		>
-			{#snippet children(walletAccount)}
-				<dl data-column-item="center">
-					<div>
-						<dt>Namespace</dt>
-						<dd>{selection.entitySelector.caip10.namespace}</dd>
-					</div>
-
-					<div>
-						<dt>Reference</dt>
-						<dd>{selection.entitySelector.caip10.reference}</dd>
-					</div>
-
-					<div>
-						<dt>Address</dt>
-						<dd>
-							<TruncatedValue value={walletAccount.address} />
-						</dd>
-					</div>
-
-					{#if walletAccount.label != null}
-						<div>
-							<dt>Label</dt>
-							<dd>{walletAccount.label}</dd>
-						</div>
-					{/if}
-
-					{#if walletAccount.$network != null}
-						<div>
-							<dt>Network</dt>
-							<dd>
-								<NetworkView
-									selection={select(EntityType.Network, walletAccount.$network[EntityMetaKey.Selector])}
-
-									layout={EntityLayout.Value}
-								/>
-							</dd>
-						</div>
-					{/if}
-
-					{#if open}
-						<div>
-							<dt>Capabilities</dt>
-							<dd>{walletAccount.capabilities?.join(', ')}</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

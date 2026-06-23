@@ -5,102 +5,96 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
-
-
-	// Context
-	import { select } from '$/routes/+layout.svelte'
-	import { resolve } from '$app/paths'
 
 
 	// State
+	const view = {
+		lists: [
+			{
+				id: 'markets',
+				label: 'Markets',
+				field: '$$markets',
+				slot: 'MarketsList',
+			},
+		],
+		slots: [
+			{
+				slot: 'MarketsList',
+				label: 'venue markets list',
+				for: 'Details',
+			},
+		],
+		closed: [
+			{
+				label: 'venue id',
+			},
+			'label',
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'venue id',
+					},
+					'label',
+					{
+						label: 'market count',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Markets',
+					items: [
+						{
+							label: 'Market rows for this venue',
+						},
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'checked-in venue catalog',
+						},
+						{
+							label: 'provider exchange mappings',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
-		href,
-		layout = EntityLayout.SummaryDetails,
-		open = $bindable(layout === EntityLayout.SummaryDetails),
+		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.MarketVenue>
-			href?: string
-			layout?: EntityLayout
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
+			| 'layout'
 			| 'showTypeAnnotation'
 		>
 	> = $props()
 
-	const marketVenue = $derived(selection(({ sources: [
-				Source.Constants_Internal,
-			], fields: { label: true } })))
-
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import MarketsView from '$/views/MarketsView.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.MarketVenue}
 	entitySelector={selection.entitySelector}
-	href={href ?? resolve('/(assets)/(marketVenues)/market-venue/[marketVenueId=marketVenueId]', {
-			marketVenueId: selection.entitySelector.marketVenueId,
-	})}
-	title={selection.entitySelector.marketVenueId}
-	{layout}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		<ResourceBoundary
-			resource={marketVenue}
-			placeholderText="Loading market venue…"
-		>
-			{#snippet children(marketVenue)}
-				{marketVenue.label ?? selection.entitySelector.marketVenueId}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Content({})}
-		<ResourceBoundary
-			resource={marketVenue}
-			placeholderText="Loading market venue…"
-		>
-			{#snippet children(marketVenue)}
-				<dl data-column-item="center">
-					<div>
-						<dt>Venue id</dt>
-						<dd>
-							<code>{selection.entitySelector.marketVenueId}</code>
-						</dd>
-					</div>
-
-					<div>
-						<dt>Label</dt>
-						<dd>
-				{marketVenue.label ?? selection.entitySelector.marketVenueId}
-						</dd>
-					</div>
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Details({
-		open: _open,
-	})}
-		<MarketsView
-			href={resolve('/markets')}
-			selection={selection.$$markets}
-
-			title="Markets"
-		/>
-	{/snippet}
-</EntityView>
+	{view}
+/>

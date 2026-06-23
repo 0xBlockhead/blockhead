@@ -22,7 +22,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -30,12 +30,13 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.LogosZone}
 	entitySelector={selection.entitySelector}
 	title={selection.entitySelector.zoneId}
@@ -47,11 +48,6 @@
 		{selection.entitySelector.zoneId}
 	{/snippet}
 
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Logos zones model documented components of the Logos stack, including the Logos Chain, DVCI, Network Gatekeeper, and W3bI.
-		</p>
-	{/snippet}
 
 	{#snippet Content()}
 		<ResourceBoundary
@@ -72,4 +68,4 @@
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
-</EntityView>
+</EntityView2>

@@ -1,136 +1,141 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum PolkadotNetwork_TimestampSelector {
-	NetworkTimestampMs = 'networkTimestampMs',
+	NetworkTimestampMsSource = '$network+timestampMs+source',
 }
-import { Source } from '$/sources/Source.ts'
-
 export default {
 	entityType: EntityType.PolkadotNetwork_Timestamp,
-
-	label: 'Polkadot network snapshot',
-	labelPlural: 'Polkadot network snapshots',
-
+	label: 'polkadot network timestamp',
+	labelPlural: 'polkadot network observations',
 	selectors: [
 		{
-			name: PolkadotNetwork_TimestampSelector.NetworkTimestampMs,
+			name: PolkadotNetwork_TimestampSelector.NetworkTimestampMsSource,
 			fields: [
 				'$network',
 				'timestampMs',
+				'source',
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'source',
+			label: 'Source',
+			description: 'The source that produced this observation.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'finalizedBlockNumber',
+			label: 'finalized block number',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Polkadot_JsonRpc,
-			],
 		},
 		{
 			name: 'finalizedBlockHash',
+			label: 'finalized block hash',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Polkadot_JsonRpc,
-			],
 		},
 		{
 			name: 'finalizedExtrinsicCount',
+			label: 'finalized extrinsic count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Polkadot_JsonRpc,
-			],
 		},
 		{
 			name: 'runtimeSpecName',
+			label: 'runtime spec name',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Polkadot_JsonRpc,
-			],
 		},
 		{
 			name: 'runtimeSpecVersion',
+			label: 'runtime spec version',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Polkadot_JsonRpc,
-			],
 		},
 		{
 			name: 'transactionVersion',
+			label: 'transaction version',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Polkadot_JsonRpc,
-			],
 		},
 		{
 			name: 'stateVersion',
+			label: 'state version',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Polkadot_JsonRpc,
-			],
 		},
 		{
 			name: 'peerCount',
+			label: 'peer count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Polkadot_JsonRpc,
-			],
 		},
 		{
 			name: 'isSyncing',
+			label: 'is syncing',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
+			primitiveType: type("boolean"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Polkadot_JsonRpc,
-			],
 		},
 		{
 			name: 'shouldHavePeers',
+			label: 'should have peers',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
+			primitiveType: type("boolean"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Polkadot_JsonRpc,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: 'eraIndex',
+			label: 'era index',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("bigint"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'sessionIndex',
+			label: 'session index',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("bigint"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'activeValidatorCount',
+			label: 'active validator count',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+	],
 } as const satisfies EntityDefinition

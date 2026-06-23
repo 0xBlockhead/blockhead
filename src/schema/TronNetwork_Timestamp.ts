@@ -1,154 +1,134 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum TronNetwork_TimestampSelector {
-	NetworkTimestampMs = 'networkTimestampMs',
+	NetworkTimestampMsSource = '$network+timestampMs+source',
 }
-import { Source } from '$/sources/Source.ts'
-
 export default {
 	entityType: EntityType.TronNetwork_Timestamp,
-
-	label: 'TRON network snapshot',
-	labelPlural: 'TRON network snapshots',
-
+	label: 'tron network timestamp',
+	labelPlural: 'tron network observations',
 	selectors: [
 		{
-			name: TronNetwork_TimestampSelector.NetworkTimestampMs,
+			name: TronNetwork_TimestampSelector.NetworkTimestampMsSource,
 			fields: [
 				'$network',
 				'timestampMs',
+				'source',
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'source',
+			label: 'Source',
+			description: 'The source that produced this observation.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'latestBlockHeight',
+			label: 'latest block height',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.TronGrid_Rest,
-			],
 		},
 		{
 			name: 'latestBlockHash',
+			label: 'latest block hash',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.TronGrid_Rest,
-			],
 		},
 		{
 			name: 'latestBlockTimeMs',
+			label: 'latest block time ms',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.TronGrid_Rest,
-			],
 		},
 		{
 			name: 'latestBlockTransactionCount',
+			label: 'latest block transaction count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.TronGrid_Rest,
-			],
 		},
 		{
 			name: 'witnessCount',
+			label: 'witness count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.TronGrid_Rest,
-			],
 		},
 		{
 			name: 'activeWitnessCount',
+			label: 'active witness count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.TronGrid_Rest,
-			],
 		},
 		{
 			name: 'nodeBlockHeight',
+			label: 'node block height',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.TronGrid_Rest,
-			],
 		},
 		{
 			name: 'solidityBlockHeight',
+			label: 'solidity block height',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.TronGrid_Rest,
-			],
 		},
 		{
 			name: 'currentPeerCount',
+			label: 'current peer count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.TronGrid_Rest,
-			],
 		},
 		{
 			name: 'maintenanceIntervalMs',
+			label: 'maintenance interval ms',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.TronGrid_Rest,
-			],
 		},
 		{
 			name: 'transactionFeeSun',
+			label: 'transaction fee sun',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.TronGrid_Rest,
-			],
 		},
 		{
 			name: 'createAccountFeeSun',
+			label: 'create account fee sun',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.TronGrid_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

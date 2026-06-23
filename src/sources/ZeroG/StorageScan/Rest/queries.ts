@@ -1,7 +1,7 @@
 import { getJson } from '$/lib/http.ts'
 import type { EvmAddress } from '$/schema/ZeroExHex.ts'
-import { zeroGMainnetStorageEndpoints } from '$/sources/ZeroG/StorageScan/Rest/index.ts'
-import ZeroG from '$/sources/ZeroG/index.ts'
+import { zeroGMainnetStorageEndpoints } from '$/sources/ZeroG/StorageScan/Rest/endpoints.ts'
+import { zeroGOrigins } from '$/sources/ZeroG/index.ts'
 import type {
 	ZeroGStorageScanList,
 	ZeroGStorageScanMiner,
@@ -37,7 +37,7 @@ const getStorageScanData = async <_Data>({
 			path,
 			searchParams,
 		}),
-		{ origins: ZeroG.origins }
+		{ origins: zeroGOrigins }
 	)
 	if (response.code !== 0) throw new Error(`ZeroGStorageScan_Rest: ${response.message}`)
 	return response.data

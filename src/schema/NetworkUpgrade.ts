@@ -1,23 +1,17 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum NetworkUpgradeSelector {
 	NetworkUpgradeId = 'networkUpgradeId',
 }
-import { Source } from '$/sources/Source.ts'
-
 export default {
 	entityType: EntityType.NetworkUpgrade,
-
-	label: 'Network upgrade',
-	labelPlural: 'Network upgrades',
-
+	label: 'network upgrade',
+	labelPlural: 'network upgrades',
 	selectors: [
 		{
 			name: NetworkUpgradeSelector.NetworkUpgradeId,
@@ -27,46 +21,42 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'upgradeId',
+			label: 'upgrade ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'name',
+			label: 'Name',
+			description: 'The human-readable name of the subject.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
-		},
-		{
-			name: 'status',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: '$$specificationProposals',
+			label: 'specification proposals',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.SpecificationProposal,
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: '$$timestamps',
+			label: 'timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.NetworkUpgrade_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
+		},
+	],
 } as const satisfies EntityDefinition

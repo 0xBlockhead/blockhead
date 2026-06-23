@@ -1,7 +1,15 @@
 import { corsFetch, jsonErrorHintFromResponse } from '$/lib/http.ts'
-import { gatewayUrls } from '$/sources/Swarm/Rest/constants.ts'
-import Swarm from '$/sources/Swarm/index.ts'
+import { swarmBindings } from '$/sources/Swarm/bindings.ts'
 import type { SwarmBrowseResult } from '$/sources/Swarm/Rest/types.ts'
+
+const swarmGatewayEndpoints = swarmBindings[0].endpoints
+
+const swarmGatewayOrigins = swarmGatewayEndpoints.flatMap((endpoint) => (
+	[{
+		origin: endpoint.origin,
+		corsEnabled: endpoint.corsEnabled,
+	}]
+))
 
 const stripHexPrefix = (value: string) => (
 	value.toLowerCase().startsWith('0x') ?
@@ -55,24 +63,24 @@ export const fetchBrowseResult = async ({
 	const trimmedPath = trimSlashes(contentPath?.trim() ?? '')
 	const failures: string[] = []
 
-	for (const gatewayOrigin of gatewayUrls) {
+	for (const endpoint of swarmGatewayEndpoints) {
 		const gatewayUrl = getGatewayUrl({
 			reference: trimmedReference,
 			contentPath: trimmedPath,
-			gatewayOrigin,
+			gatewayOrigin: endpoint.origin,
 		})
 
 		const response = await corsFetch(gatewayUrl, {
-			origins: Swarm.origins,
+			origins: swarmGatewayOrigins,
 			init: { signal },
 		})
 		if (!response.ok) {
 			const hint = await jsonErrorHintFromResponse(response)
 			failures.push(
 				hint ?
-					`${gatewayOrigin} (${response.status}): ${hint}`
+					`${endpoint.locator} (${response.status}): ${hint}`
 				:
-					`${gatewayOrigin} (${response.status} ${response.statusText})`
+					`${endpoint.locator} (${response.status} ${response.statusText})`
 			)
 			continue
 		}
@@ -91,7 +99,7 @@ export const fetchBrowseResult = async ({
 		return {
 			reference: trimmedReference,
 			contentPath: trimmedPath,
-			gatewayOrigin,
+			gatewayOrigin: endpoint.origin,
 			gatewayUrl,
 			fileName: parsedContent.fileName,
 			extension: parsedContent.extension,

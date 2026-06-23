@@ -2,151 +2,183 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import { EntityMetaKey, type EntitySelector } from '$/schema/$schema.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { ActionType, actionTypeDefinitionByActionType, actionTypeDefinitions } from '$/constants/actions.ts'
-	import { Source } from '$/sources/Source.ts'
-
-
-	// Context
-	import { updateLocalBlockheadSessionActionType } from '$/collections/localMutations.ts'
-	import { appClient } from '$/routes/+layout.svelte'
 
 
 	// State
+	const view = {
+		actions: [
+			{
+				id: 'reveal-action-params',
+				label: 'Reveal action parameters',
+				kind: 'reveal',
+				field: 'actionParams',
+			},
+			{
+				id: 'delete-action',
+				label: 'Delete action',
+				kind: 'deleteLocal',
+				slot: 'DeleteSessionAction',
+			},
+		],
+		forms: [
+			{
+				id: 'edit-params',
+				label: 'Edit parameters',
+				kind: 'createLocal',
+				fields: [
+					{
+						name: 'actionParams',
+						label: 'Action parameters',
+						kind: 'textarea',
+					},
+				],
+				slot: 'EditActionParamsForm',
+			},
+		],
+		closed: [
+			{
+				label: 'session',
+			},
+			{
+				label: 'action id',
+			},
+			{
+				label: 'sequence index',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'session',
+					},
+					{
+						label: 'action id',
+					},
+					{
+						label: 'sequence index',
+					},
+					{
+						label: 'action type',
+					},
+					{
+						label: 'selected protocol',
+					},
+					{
+						label: 'created/updated timestamps',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Typed intent',
+					items: [
+						{
+							label: 'BlockheadSwapIntent',
+						},
+						{
+							label: 'BlockheadBridgeIntent',
+						},
+						{
+							label: 'BlockheadTransferIntent',
+						},
+						{
+							label: 'or future typed local intent row',
+						},
+					],
+				},
+				{
+					label: 'Readiness',
+					items: [
+						{
+							label: 'BlockheadActionReadinessCheck list',
+						},
+					],
+				},
+				{
+					label: 'Quotes',
+					items: [
+						{
+							label: 'BlockheadIntentQuote list when signed-order/filler-market backed',
+						},
+					],
+				},
+				{
+					label: 'Orders',
+					items: [
+						{
+							label: 'BlockheadIntentOrder list when submitted',
+						},
+					],
+				},
+				{
+					label: 'Wallet requests',
+					items: [
+						{
+							label: 'BlockheadWalletRequest list when signing/submission is requested',
+						},
+					],
+				},
+				{
+					label: 'Outcomes',
+					items: [
+						{
+							label: 'BlockheadActionOutcome list',
+						},
+					],
+				},
+				{
+					label: 'Raw params',
+					items: [
+						{
+							label: 'actionParams fallback/debug payload',
+						},
+					],
+				},
+				{
+					label: 'Session',
+					items: [
+						{
+							label: 'parent local session',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
-		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.BlockheadSessionAction>
 			open?: boolean
-			collapsible?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
-	const sessionAction = $derived(
-		selection(
-			({ sources: [
-					Source.Local_Internal,
-				], fields: { $session: true, indexInSequence: true, action: true, createdAt: true, updatedAt: true } }),
-		),
-	)
-
-
-	// Actions
-	const actionTypeFromValue = (value: string) => (
-		actionTypeDefinitions.find((definition) => definition.type === value)?.type ?? ActionType.Swap
-	)
-
-	const updateActionType = (
-		sessionSelector: EntitySelector<typeof schema, EntityType.BlockheadSession>,
-		indexInSequence: number,
-		createdAt: number,
-		actionType: ActionType,
-	) => {
-		updateLocalBlockheadSessionActionType(
-			appClient,
-			selection.entitySelector,
-			sessionSelector,
-			indexInSequence,
-			createdAt,
-			actionType,
-		)
-	}
-
-
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.BlockheadSessionAction}
 	entitySelector={selection.entitySelector}
 	bind:open
-	{collapsible}
 	{...EntityViewProps}
->
-	{#snippet Value()}
-		<span>{selection.entitySelector.actionId}</span>
-	{/snippet}
-
-	{#snippet Title()}
-		<ResourceBoundary
-			resource={sessionAction}
-			placeholderText="Loading action…"
-		>
-			{#snippet children(sessionAction)}
-					{#if sessionAction.action !== undefined}
-						{actionTypeDefinitionByActionType[sessionAction.action.type].icon}
-						{' ' /* gap between icon and label */}
-						{actionTypeDefinitionByActionType[sessionAction.action.type].label}
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Content()}
-		<dl>
-			<div>
-				<dt>Index</dt>
-				<dd>
-					<ResourceBoundary
-						resource={sessionAction}
-						placeholderText="Loading action…"
-					>
-						{#snippet children(sessionAction)}
-							{String(sessionAction.indexInSequence)}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-
-			<div>
-				<dt>Type</dt>
-				<dd>
-					<ResourceBoundary
-						resource={sessionAction}
-						placeholderText="Loading action…"
-					>
-						{#snippet children(sessionAction)}
-							{#if sessionAction.action !== undefined && sessionAction.$session !== undefined && sessionAction.indexInSequence !== undefined && sessionAction.createdAt !== undefined}
-								{@const sessionSelector = sessionAction.$session[EntityMetaKey.Selector]}
-								{@const indexInSequence = sessionAction.indexInSequence}
-								{@const createdAt = sessionAction.createdAt}
-								<select
-									value={sessionAction.action.type}
-									onchange={(event) => {
-										updateActionType(
-											sessionSelector,
-											indexInSequence,
-											createdAt,
-											actionTypeFromValue(event.currentTarget.value),
-										)
-									}}
-									>
-										{#each actionTypeDefinitions as definition (definition.type)}
-											<option value={definition.type}>
-											{definition.label}
-										</option>
-									{/each}
-								</select>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-		</dl>
-	{/snippet}
-</EntityView>
+	{view}
+/>

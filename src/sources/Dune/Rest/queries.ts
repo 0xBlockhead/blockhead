@@ -7,8 +7,7 @@
  */
 
 import { duneFetch } from '$/sources/Dune/Rest/client.ts'
-import { Source } from '$/sources/Source.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import type {
 	DuneExecuteQueryBody,
 	DuneExecuteQueryResponse,
@@ -39,7 +38,7 @@ const appendDuneExecutionResultsSearchParams = (
  * `GET /api/v1/query/{queryId}` — query metadata (requires plan with API access).
  */
 export async function getQuery(
-	publicEnv: SourcePublicEnvFor<Source.Dune_Rest>,
+	publicEnv: SourcePublicEnv,
 	queryId: number,
 	options?: { include_contributors?: boolean }
 ): Promise<DuneQueryMetadata> {
@@ -54,7 +53,7 @@ export async function getQuery(
  * `POST /api/v1/query/{query_id}/execute` — start run; returns `execution_id`.
  */
 export async function executeQuery(
-	publicEnv: SourcePublicEnvFor<Source.Dune_Rest>,
+	publicEnv: SourcePublicEnv,
 	queryId: number,
 	body?: DuneExecuteQueryBody
 ): Promise<DuneExecuteQueryResponse> {
@@ -68,7 +67,7 @@ export async function executeQuery(
  * `GET /api/v1/execution/{execution_id}/results` — rows + state.
  */
 export async function getExecutionResults(
-	publicEnv: SourcePublicEnvFor<Source.Dune_Rest>,
+	publicEnv: SourcePublicEnv,
 	executionId: string,
 	params?: DuneGetExecutionResultsParams
 ): Promise<DuneExecutionResult> {
@@ -89,7 +88,7 @@ export async function getExecutionResults(
  * @see https://docs.dune.com/api-reference/executions/endpoint/get-query-result
  */
 export async function getLatestQueryResults(
-	publicEnv: SourcePublicEnvFor<Source.Dune_Rest>,
+	publicEnv: SourcePublicEnv,
 	queryId: number,
 	params?: DuneGetExecutionResultsParams
 ): Promise<DuneExecutionResult> {
@@ -112,7 +111,7 @@ export async function getLatestQueryResults(
  * @see https://docs.dune.com/api-reference/usage/endpoint/get-usage.md
  */
 export async function getUsage(
-	publicEnv: SourcePublicEnvFor<Source.Dune_Rest>,
+	publicEnv: SourcePublicEnv,
 	body?: { start_date?: string; end_date?: string }
 ) {
 	return duneFetch<{

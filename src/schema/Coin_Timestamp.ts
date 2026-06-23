@@ -1,99 +1,99 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum Coin_TimestampSelector {
-	CoinTimestampMs = 'coinTimestampMs',
+	CoinTimestampMsSource = '$coin+timestampMs+source',
 }
-
 export default {
 	entityType: EntityType.Coin_Timestamp,
-
-	label: 'Coin Timestamp',
-	labelPlural: 'Coin Timestamps',
-
+	label: 'coin timestamp',
+	labelPlural: 'coin observations',
 	selectors: [
 		{
-			name: Coin_TimestampSelector.CoinTimestampMs,
+			name: Coin_TimestampSelector.CoinTimestampMsSource,
 			fields: [
 				'$coin',
 				'timestampMs',
+				'source',
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$coin',
+			label: 'coin',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Coin,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'source',
+			label: 'Source',
+			description: 'The source that produced this observation.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'marketCapRank',
+			label: 'market cap rank',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Coingecko_Rest,
-			],
 		},
 		{
 			name: 'marketCapUsd',
+			label: 'market cap usd',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Coingecko_Rest,
-			],
 		},
 		{
 			name: 'marketCap',
+			label: 'market cap',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
 		},
 		{
 			name: 'change24hPercent',
+			label: 'change24h percent',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
-		},
-		{
-			name: 'transport',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'providerAssetId',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'totalSupply',
+			label: 'total supply',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: 'transport',
+			label: 'transport',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'providerAssetId',
+			label: 'provider asset ID',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+	],
 } as const satisfies EntityDefinition

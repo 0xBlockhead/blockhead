@@ -121,13 +121,10 @@ export default {
 					if (
 						walletTokenBalance == null
 						|| token == null
-						|| walletTokenBalance.raw_balance == null && walletTokenBalance.raw_balance_str == null
 						|| token.info == null
 						|| token.info.symbol === ''
 						|| token.decimals == null
 					) throw new Error('Allium_Rest: wallet token balance incomplete')
-
-					const balance = BigInt(walletTokenBalance.raw_balance_str ?? String(walletTokenBalance.raw_balance ?? 0))
 
 					return {
 						$network,
@@ -140,16 +137,6 @@ export default {
 						},
 						symbol: token.info.symbol.toUpperCase(),
 						decimals: token.decimals,
-						balance,
-						...(token.price != null
-							&& Number.isFinite(token.price)
-							&& Number.isFinite(token.decimals)
-							&& token.decimals >= 0 ?
-							{
-								usdValue: (Number(balance) / 10 ** token.decimals) * token.price,
-							}
-						:
-							{}),
 					}
 				},
 				[EvmNetworkActorCoinBalanceSelector.EvmAccountErc20CoinInstance]: async ({ $actor, $contract }, context) => {
@@ -175,13 +162,10 @@ export default {
 					if (
 						walletTokenBalance == null
 						|| token == null
-						|| walletTokenBalance.raw_balance == null && walletTokenBalance.raw_balance_str == null
 						|| token.info == null
 						|| token.info.symbol === ''
 						|| token.decimals == null
 					) throw new Error('Allium_Rest: wallet token balance incomplete')
-
-					const balance = BigInt(walletTokenBalance.raw_balance_str ?? String(walletTokenBalance.raw_balance ?? 0))
 
 					return {
 						$network: $contract.$network,
@@ -195,16 +179,6 @@ export default {
 						},
 						symbol: token.info.symbol.toUpperCase(),
 						decimals: token.decimals,
-						balance,
-						...(token.price != null
-							&& Number.isFinite(token.price)
-							&& Number.isFinite(token.decimals)
-							&& token.decimals >= 0 ?
-							{
-								usdValue: (Number(balance) / 10 ** token.decimals) * token.price,
-							}
-						:
-							{}),
 					}
 				},
 			},
@@ -229,8 +203,6 @@ export default {
 				$coinInstance: (balance) => balance.$coinInstance,
 				symbol: (balance) => balance.symbol,
 				decimals: (balance) => balance.decimals,
-				balance: (balance) => balance.balance,
-				usdValue: (balance) => balance.usdValue,
 			},
 		}),
 

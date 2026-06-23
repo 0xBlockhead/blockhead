@@ -1,66 +1,64 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import RedditLink from '$/schema/RedditLink.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum RedditLink_TimestampSelector {
-	RedditLinkTimestampMs = 'redditLinkTimestampMs',
+	LinkTimestampMsSource = '$link+timestampMs+source',
 }
-
 export default {
 	entityType: EntityType.RedditLink_Timestamp,
-
-	label: 'Reddit post snapshot',
-	labelPlural: 'Reddit post snapshots',
-
+	label: 'Reddit link timestamp',
+	labelPlural: 'Reddit link observations',
 	selectors: [
 		{
-			name: RedditLink_TimestampSelector.RedditLinkTimestampMs,
+			name: RedditLink_TimestampSelector.LinkTimestampMsSource,
 			fields: [
 				'$link',
 				'timestampMs',
+				'source',
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$link',
+			label: 'link',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.RedditLink,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'source',
+			label: 'Source',
+			description: 'The source that produced this observation.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'score',
+			label: 'score',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Reddit_Rest,
-				Source.Reddit_PublicJson,
-			],
 		},
 		{
 			name: 'commentCount',
+			label: 'comment count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Reddit_Rest,
-				Source.Reddit_PublicJson,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

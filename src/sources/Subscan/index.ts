@@ -1,15 +1,17 @@
-import { type as arktype } from 'arktype'
-
 import { TransportType } from '$/constants/TransportType.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
-import SubscanRest from '$/sources/Subscan/Rest/index.ts'
-
-
-// Constants
+import { Source } from '$/sources/Source.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import {
+	subscanBindings,
+	subscanPublicEnv,
+} from '$/sources/Subscan/bindings.ts'
 
 export const subscanPolkadotRestEndpoints = [
 	{
-		url: 'https://polkadot.api.subscan.io',
+		url: subscanBindings[0].endpoints[0].locator,
 		transportType: TransportType.Http,
 		providerName: 'Subscan',
 	},
@@ -19,20 +21,31 @@ export const subscanPolkadotRestEndpoints = [
 	providerName: string
 }[]
 
-
-// Provider
+export const subscanOrigins = [
+	...new Map(
+		subscanBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.Subscan,
 	label: 'Subscan',
-	env: arktype({
-		PUBLIC_SUBSCAN_API_KEY: 'string',
-	}),
-	origins: subscanPolkadotRestEndpoints.map((endpoint) => ({
-		origin: new URL(endpoint.url).origin,
-		corsEnabled: false,
-	})),
+	env: subscanPublicEnv,
 	sources: [
-		SubscanRest,
+		{
+			provider: SourceProvider.Subscan,
+			source: Source.Subscan_Rest,
+			label: 'Subscan REST',
+			env: subscanPublicEnv,
+		},
 	],
-} as const satisfies SourceProviderDefinition
+	bindings: subscanBindings,
+} satisfies SourceProviderDefinition

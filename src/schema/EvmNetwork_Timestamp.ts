@@ -1,54 +1,58 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum EvmNetwork_TimestampSelector {
-	EvmNetworkTimestampMs = 'evmNetworkTimestampMs',
+	NetworkTimestampMsSource = '$network+timestampMs+source',
 }
-
 export default {
 	entityType: EntityType.EvmNetwork_Timestamp,
-
-	label: 'EVM network snapshot',
-	labelPlural: 'EVM network snapshots',
-
+	label: 'EVM network timestamp',
+	labelPlural: 'EVM network observations',
+	description: 'A point-in-time observation of an EVM-compatible network.',
 	selectors: [
 		{
-			name: EvmNetwork_TimestampSelector.EvmNetworkTimestampMs,
+			name: EvmNetwork_TimestampSelector.NetworkTimestampMsSource,
 			fields: [
 				'$network',
 				'timestampMs',
+				'source',
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'source',
+			label: 'Source',
+			description: 'The source that produced this observation.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'blockHeight',
+			label: 'block height',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

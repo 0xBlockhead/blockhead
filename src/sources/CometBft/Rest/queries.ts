@@ -1,5 +1,5 @@
 import { getJson } from '$/lib/http.ts'
-import CometBft from '$/sources/CometBft/index.ts'
+import { cometBftOrigins } from '$/sources/CometBft/index.ts'
 import type {
 	CometBftBlockResponse,
 	CometBftTxResponse,
@@ -16,7 +16,7 @@ export const getBlock = ({
 }) => (
 	getJson<CometBftBlockResponse>(
 		`${base(restBaseUrl)}/block?height=${height.toString()}`,
-		{ origins: CometBft.origins  }
+		{ origins: cometBftOrigins }
 	)
 )
 
@@ -29,6 +29,6 @@ export const getTx = ({
 }) => (
 	getJson<CometBftTxResponse>(
 		`${base(restBaseUrl)}/tx?hash=0x${txHash.replace(/^0x/i, '')}`,
-		{ origins: CometBft.origins  }
+		{ origins: cometBftOrigins }
 	)
 )

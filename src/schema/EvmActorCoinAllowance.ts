@@ -1,29 +1,18 @@
 import { type } from 'arktype'
-import EvmNetworkActorCoinBalance from '$/schema/EvmNetworkActorCoinBalance.ts'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
-import type { EntitySelector } from '$/schema/$schema.ts'
-import type { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum EvmActorCoinAllowanceSelector {
 	EvmAccountEvmContractSpenderInteropAddress = 'evmAccountEvmContractSpenderInteropAddress',
+	ActorContractSpenderInteropAddress = '$actor+$contract+$spender+interopAddress',
 }
-
-
-// On-chain ERC-20 allowance (owner × token contract × spender). Voltaire reads allowance via eth_call when the composite id is known; discovery/list fields are not indexed yet.
-
 export default {
 	entityType: EntityType.EvmActorCoinAllowance,
-
-	label: 'Coin Allowance',
-	labelPlural: 'Coin Allowances',
-
+	label: 'EVM actor coin allowance',
+	labelPlural: 'EVM actor coin allowances',
 	selectors: [
 		{
 			name: EvmActorCoinAllowanceSelector.EvmAccountEvmContractSpenderInteropAddress,
@@ -35,87 +24,55 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$actor',
+			label: 'actor',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$contract',
+			label: 'contract',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmContract,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$actorCoin',
+			label: 'actor coin',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetworkActorCoinBalance,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$spender',
+			label: 'spender',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'interopAddress',
+			label: 'interop address',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'allowance',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-			],
-		},
-		{
-			name: 'lastChecked',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-			],
 		},
 		{
 			name: '$spenderContract',
+			label: 'spender contract',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmContract,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
-} as const satisfies EntityDefinition
-
-export const toEvmActorCoinAllowanceEntitySelector = (
-	chainId: number,
-	address: `0x${string}`,
-	tokenContract: `0x${string}`,
-	spenderAddress: `0x${string}`
-): EntitySelector<typeof schema, EntityType.EvmActorCoinAllowance> => ({
-	$actor: {
-		address,
-		interopAddress: address,
-	},
-	$contract: {
-		$network: {
-			caip2: {
-				namespace: 'eip155' as const,
-				reference: String(chainId),
-			},
+		{
+			name: '$$blocks',
+			label: 'blocks',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.EvmActorCoinAllowance_Block,
+			cardinality: EntityFieldCardinality.Many,
 		},
-		address: tokenContract,
-	},
-	$spender: {
-		address: spenderAddress,
-		interopAddress: spenderAddress,
-	},
-	interopAddress: spenderAddress,
-})
+	],
+} as const satisfies EntityDefinition

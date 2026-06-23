@@ -1,17 +1,10 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
-export enum BlockheadSocialPostSessionSelector {
-	Id = 'id',
-}
-
-
 export enum SocialProtocol {
 	Farcaster = 'Farcaster',
 }
@@ -21,13 +14,13 @@ export enum BlockheadSocialPostSessionStatus {
 	Submitted = 'Submitted',
 	Finalized = 'Finalized',
 }
-
+export enum BlockheadSocialPostSessionSelector {
+	Id = 'id',
+}
 export default {
 	entityType: EntityType.BlockheadSocialPostSession,
-
-	label: 'Social Post Session',
-	labelPlural: 'Social Post Sessions',
-
+	label: 'blockhead social post session',
+	labelPlural: 'blockhead social post sessions',
 	selectors: [
 		{
 			name: BlockheadSocialPostSessionSelector.Id,
@@ -36,55 +29,66 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: 'id',
+			label: 'ID',
+			description: 'The identifier assigned by the source domain.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'name',
+			label: 'Name',
+			description: 'The human-readable name of the subject.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'status',
+			label: 'status',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(BlockheadSocialPostSessionStatus),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'protocol',
+			label: 'protocol',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(SocialProtocol),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'authorId',
+			label: 'author ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'createdAt',
+			label: 'Created',
+			description: 'The time when the subject was created according to the source.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'updatedAt',
+			label: 'Updated',
+			description: 'The time when the subject was last updated according to the source.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'lockedAt',
+			label: 'locked AT',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

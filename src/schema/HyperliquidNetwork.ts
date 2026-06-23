@@ -1,34 +1,17 @@
 import { type } from 'arktype'
-
-import { TransportType } from '$/constants/TransportType.ts'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { UrlString } from '$/schema/UrlString.ts'
-import Network from '$/schema/Network.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum HyperliquidNetworkSelector {
 	Network = 'network',
 }
-
-
-const hyperliquidEndpointField = type({
-	url: UrlString,
-	transportType: type.valueOf(TransportType),
-	providerName: 'string',
-})
-
 export default {
 	entityType: EntityType.HyperliquidNetwork,
-
-	label: 'Hyperliquid network',
-	labelPlural: 'Hyperliquid networks',
-
+	label: 'hyperliquid network',
+	labelPlural: 'hyperliquid networks',
 	selectors: [
 		{
 			name: HyperliquidNetworkSelector.Network,
@@ -37,88 +20,83 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: 'rpcEndpoints',
+			label: 'RPC endpoints',
 			type: EntityFieldType.Primitive,
-			primitiveType: hyperliquidEndpointField,
+			primitiveType: type({"url": "string", "transportType": "string", "providerName": "string"}),
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Hyperliquid_JsonRpc,
-			],
 		},
 		{
 			name: 'restEndpoints',
+			label: 'REST endpoints',
 			type: EntityFieldType.Primitive,
-			primitiveType: hyperliquidEndpointField,
+			primitiveType: type({"url": "string", "transportType": "string", "providerName": "string"}),
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Hyperliquid_Rest,
-			],
 		},
 		{
 			name: '$$timestamps',
+			label: 'timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.HyperliquidNetwork_Timestamp,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Hyperliquid_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$blocks',
+			label: 'blocks',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.HyperliquidBlock,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Hyperliquid_JsonRpc,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$transactions',
+			label: 'transactions',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.HyperliquidTransaction,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Hyperliquid_JsonRpc,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$validators',
+			label: 'validators',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.HyperliquidValidator,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Hyperliquid_Rest,
-			],
-		},
-		{
-			name: '$$perpMarkets',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.HyperliquidPerpMarket,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Hyperliquid_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$spotAssets',
+			label: 'spot assets',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.HyperliquidSpotAsset,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Hyperliquid_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: '$$spotPairs',
+			label: 'spot pairs',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.HyperliquidSpotPair,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: '$$perpMarkets',
+			label: 'perp markets',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.HyperliquidPerpMarket,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: '$$vaults',
+			label: 'vaults',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.HyperliquidVault,
+			cardinality: EntityFieldCardinality.Many,
+		},
+	],
 } as const satisfies EntityDefinition

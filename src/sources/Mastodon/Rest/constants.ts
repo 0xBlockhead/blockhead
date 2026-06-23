@@ -1,10 +1,8 @@
 import { mastodonInstanceByKey } from '$/constants/Mastodon.ts'
 
-import type { SourceOrigin } from '$/sources/SourceProvider.ts'
-
-export const mastodonOrigins: readonly SourceOrigin[] = [
+export const mastodonRestOrigins = [
 	{
 		origin: mastodonInstanceByKey.mastodon_social.origin,
 		corsEnabled: false,
 	},
-]
+] as const

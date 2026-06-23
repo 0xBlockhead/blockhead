@@ -1,136 +1,91 @@
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import type { MarketKind } from '$/constants/Market.ts'
-	import type { MarketVenueId } from '$/constants/MarketVenue.ts'
+	import { Source } from '$/sources/Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
+
 
 	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
+	const listView = {
+		entityType: EntityType.Market,
+		emptyText: 'No markets in this context yet.',
+		item: 'Title',
+		itemOpen: false,
+		placeholderText: 'Loading markets…',
+		query: {
+			sources: [
+				Source.Constants_Internal,
+			],
+		},
+		itemLayout: EntityLayout.Title,
+		orientation: 'column',
+	} as const
+
 	let {
-		title = 'Markets',
-		open = $bindable(true),
-		collapsible = true,
 		selection,
-		filterMarketVenueId,
+		title,
+		open = $bindable(true),
+		id = 'Markets',
+		href = '',
+		filterMarketVenue,
 		filterMarketKind,
-				...EntitiesListProps
+		...EntitiesListProps
 	}: WithRest<
 		{
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.Market>
 			title?: string
 			open?: boolean
-			collapsible?: boolean
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.Market>
-			filterMarketVenueId?: MarketVenueId
-			filterMarketKind?: MarketKind
+			id?: string
+			href?: string
+			filterMarketVenue?: EntitySelector<typeof schema, EntityType.Market>['$marketVenue']
+			filterMarketKind?: EntitySelector<typeof schema, EntityType.Market>['marketKind']
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'id'
-			| 'CollapsibleProps'
-		>
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import MarketView from '$/views/MarketView.svelte'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 </script>
 
 
 <EntitiesList
-	{...EntitiesListProps}
-	bind:open
-	{collapsible}
-	entityType={EntityType.Market}
+	entityType={listView.entityType}
 	{title}
+	bind:open
+	{id}
+	href={href}
+	resource={selection(listView.query)}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
+	placeholderText={listView.placeholderText}
+	{...EntitiesListProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A market pairs a base asset with a quote so feeds can publish prices, volume, and related stats.
-		</p>
-		<p>
-			Each row is a venue book with a kind: spot (CEX/DEX cash markets), perpetual (funding + open interest), or dated futures.
-		</p>
-		<p>
-			Spot markets expose quote streams and OHLC where wired; perpetual and futures markets may include funding and open interest when a provider supplies them.
-		</p>
-	{/snippet}
-
 	{#snippet Empty()}
 		<p data-text="muted">
-			No markets in this context yet.
+			{listView.emptyText}
 		</p>
 	{/snippet}
 
-	{#snippet body({ open: _bodyOpen })}
-		{#if open}
-			<ResourceBoundary
-				resource={selection({
-						limit: 8192,
-					})}
-				placeholderText="Loading markets…"
-			>
-				{#snippet children(markets)}
-					<EntitiesList
-						collapsible={false}
-						showSummary={false}
-						entityType={EntityType.Market}
-						getKey={(row) => stringify(row.entitySelector)}
-						getSortValue={(row) => stringify(row.entitySelector)}
-						open={true}
-						items={Object.values(
-							Object.groupBy(
-								markets.entities,
-								(market) => stringify(market.entitySelector),
-							),
-						)
-							.flatMap((group) => (
-								group == null ?
-									[]
-								:
-									[group[0]]
-							))
-							.filter((market) => (
-								(
-									filterMarketVenueId == null
-									|| market.entitySelector.$marketVenue.marketVenueId === filterMarketVenueId
-								)
-								&& (
-									filterMarketKind == null
-									|| market.entitySelector.marketKind === filterMarketKind
-								)
-							))}
-						{title}
-						UnorderedListProps={{ orientation: ListOrientation.Column }}
-					>
-						{#snippet Empty()}
-							<p data-text="muted">
-								No markets in this context yet.
-							</p>
-						{/snippet}
-
-						{#snippet Item({ item })}
-							<MarketView
-								selection={select(EntityType.Market, item.entitySelector)}
-								id={stringify(item.entitySelector)}
-								layout={EntityLayout.Title}
-								open={false}
-
-							/>
-						{/snippet}
-					</EntitiesList>
-				{/snippet}
-			</ResourceBoundary>
+	{#snippet Item({ item })}
+		{#if (filterMarketVenue === undefined || item.entitySelector.$marketVenue === filterMarketVenue) && (filterMarketKind === undefined || item.entitySelector.marketKind === filterMarketKind)}
+			<MarketView
+				selection={select(EntityType.Market, item.entitySelector)}
+				layout={listView.itemLayout}
+				open={listView.itemOpen}
+			/>
 		{/if}
 	{/snippet}
 </EntitiesList>

@@ -1,24 +1,18 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum ElementsIssuanceSelector {
 	UtxoTransactionInputIndex = 'utxoTransactionInputIndex',
+	TransactionInputIndex = '$transaction+inputIndex',
 }
-
 export default {
 	entityType: EntityType.ElementsIssuance,
-
-	label: 'Elements issuance',
-	labelPlural: 'Elements issuances',
-
+	label: 'elements issuance',
+	labelPlural: 'elements issuances',
 	selectors: [
 		{
 			name: ElementsIssuanceSelector.UtxoTransactionInputIndex,
@@ -28,82 +22,69 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$transaction',
+			label: 'transaction',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.UtxoTransaction,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'inputIndex',
+			label: 'input index',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$asset',
+			label: 'asset',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.ElementsAsset,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Esplora_Rest,
-			],
 		},
 		{
 			name: '$reissuanceTokenAsset',
+			label: 'reissuance token asset',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.ElementsAsset,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Esplora_Rest,
-			],
 		},
 		{
 			name: 'assetEntropy',
+			label: 'asset entropy',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Esplora_Rest,
-			],
 		},
 		{
 			name: 'assetBlindingNonce',
+			label: 'asset blinding nonce',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Esplora_Rest,
-			],
 		},
 		{
 			name: 'issuedAmount',
+			label: 'issued amount',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Esplora_Rest,
-			],
 		},
 		{
 			name: 'tokenAmount',
+			label: 'token amount',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Esplora_Rest,
-			],
 		},
 		{
 			name: 'isReissuance',
+			label: 'is reissuance',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
+			primitiveType: type("boolean"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Esplora_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

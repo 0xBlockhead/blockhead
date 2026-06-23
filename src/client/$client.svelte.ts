@@ -2,10 +2,13 @@ import type { QueryClient } from '@tanstack/query-core'
 import type {
 	Collection,
 	LoadSubsetOptions,
+	Ref,
 	SyncConfig,
 	UtilsRecord,
+	WithVirtualProps,
 } from '@tanstack/db'
 import {
+	BasicIndex,
 	createCollection,
 } from '@tanstack/db'
 import {
@@ -54,6 +57,7 @@ import {
 	validateEntitySelector,
 } from '$/schema/$schema.ts'
 import {
+	enabledSourcesFromBindings,
 	type SourceProviderDefinition,
 	type SourcePublicEnv,
 	indexSourceProviders,
@@ -246,17 +250,17 @@ export type ClientContext<
 	schemaVersion: number
 	select: <
 		const _EntityType extends EntityType<_Schema>,
-	>(
-		entityType: _EntityType,
-		entitySelector: EntitySelector<_Schema, _EntityType>,
-		selection?: SubscribeSelection<_Schema, _EntityType>
-	) => EntityProxyResource<_Schema, _EntityType>
+		>(
+			entityType: _EntityType,
+			entitySelector: EntitySelector<_Schema, _EntityType>,
+			selection?: SubscribeSelection<_Schema, _EntityType, object>
+		) => EntityProxyResource<_Schema, _EntityType>
 }
 
 export type SubscribeSelection<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
-	_FieldRow extends object = never,
+	_FieldRow extends object = Ref<WithVirtualProps<EntityFieldCollectionItem<_Schema, _EntityType>>>,
 > = Omit<LoadSubsetOptions, 'orderBy'> & {
 	readonly sources?: readonly string[]
 	readonly count?: boolean
@@ -280,7 +284,11 @@ export type SubscribeSelectedFields<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
 > = {
-	readonly [fieldName: string]: true | SubscribeSelection<_Schema, _EntityType> | undefined
+	readonly [fieldName: string]: true | SubscribeSelection<
+		_Schema,
+		_EntityType,
+		Ref<WithVirtualProps<EntityFieldCollectionItem<_Schema>>>
+	> | undefined
 }
 
 export type SubscribeError<_Schema extends Schema = Schema> = {
@@ -1501,11 +1509,13 @@ export const client = <
 		return context
 	}
 	const {
-		enabledSources,
 		resolverPublicEnvBySource,
 	} = indexSourceProviders(
 		sourceProviders,
 		env
+	)
+	const enabledSources = enabledSourcesFromBindings<_Source>(
+		sourceProviders.flatMap((sourceProvider) => sourceProvider.bindings)
 	)
 	const {
 		resolverIndexes,
@@ -1685,6 +1695,12 @@ export const client = <
 					onDelete: async () => {},
 				})
 			)
+			entityFieldCollections[entityDefinition.entityType][definition.name].createIndex(
+				(row) => row.valueIndex,
+				{
+					indexType: BasicIndex,
+				}
+			)
 			if (
 				definition.type === EntityFieldType.EntitiesReference
 				|| definition.cardinality === EntityFieldCardinality.Many
@@ -1771,22 +1787,22 @@ export const client = <
 
 	context = {
 		schema,
-			entityDefinitionByType,
-			resolverIndexes,
-			resolverPublicEnvBySource,
-			enabledSources,
-			collectionLoadFailures,
-			queryClient,
+		entityDefinitionByType,
+		resolverIndexes,
+		resolverPublicEnvBySource,
+		enabledSources,
+		collectionLoadFailures,
+		queryClient,
 		events,
 		schemaVersion,
 		entityCollections,
 		entityFieldCollections,
 		entityFieldCountCollections,
-			select: (
-				entityType,
-				entitySelector,
-				selection
-			) => createEntityProxy(
+		select: (
+			entityType,
+			entitySelector,
+			selection
+		) => createEntityProxy(
 			requireContext(),
 			entityType,
 			entitySelector,

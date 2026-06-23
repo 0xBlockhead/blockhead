@@ -14,8 +14,7 @@ import { optionalPublicEnvString } from '$/sources/$sources.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import { Source } from '$/sources/Source.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import {
 	coinpaprikaMarketVenueIdByHostnameFragment,
 	coinpaprikaUsdQuoteWireIds,
@@ -139,7 +138,7 @@ export const collectMarketEntitySelectorsForCoin = async ({
 	catalogCoinId,
 	coinpaprikaId,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Coinpaprika_OpenApi>
+	publicEnv: SourcePublicEnv
 	catalogCoinId: CoinId
 	coinpaprikaId: string
 }): Promise<EntitySelector<typeof schema, EntityType.Market>[]> => {
@@ -169,7 +168,7 @@ export const collectMarketEntitySelectorsForExchange = async ({
 	publicEnv,
 	marketVenueId,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Coinpaprika_OpenApi>
+	publicEnv: SourcePublicEnv
 	marketVenueId: MarketVenueId
 }): Promise<EntitySelector<typeof schema, EntityType.Market>[]> => {
 	const { coinpaprikaExchangeIdByMarketVenueId } = await import(
@@ -204,7 +203,7 @@ export const collectMarketEntitySelectorsForExchange = async ({
 	* (`Authorization` on api-pro); free plan only supports today / 24h historical per OpenAPI plan table.
 	*/
 export const getOhlcDayWindowValues = (
-	publicEnv: SourcePublicEnvFor<Source.Coinpaprika_OpenApi>
+	publicEnv: SourcePublicEnv
 ) => (
 	optionalPublicEnvString(publicEnv, 'PUBLIC_COINPAPRIKA_API_KEY') != null ?
 		[...marketOhlcDayLookbackValues]
@@ -216,7 +215,7 @@ export const getCoinById = async ({
 	publicEnv,
 	coinpaprikaId,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Coinpaprika_OpenApi>
+	publicEnv: SourcePublicEnv
 	coinpaprikaId: string
 }) => (
 	await getCoinpaprikaJson<CoinpaprikaCoin>(
@@ -233,7 +232,7 @@ export const getCoinMarkets = async ({
 	publicEnv,
 	coinpaprikaId,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Coinpaprika_OpenApi>
+	publicEnv: SourcePublicEnv
 	coinpaprikaId: string
 }) => (
 	await getCoinpaprikaJson<CoinpaprikaMarket[]>(
@@ -252,7 +251,7 @@ export const getExchangeMarkets = async ({
 	publicEnv,
 	exchangeId,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Coinpaprika_OpenApi>
+	publicEnv: SourcePublicEnv
 	exchangeId: string
 }) => (
 	await getCoinpaprikaJson<CoinpaprikaMarket[]>(
@@ -267,7 +266,7 @@ export const getTickerById = async ({
 	publicEnv,
 	coinpaprikaId,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Coinpaprika_OpenApi>
+	publicEnv: SourcePublicEnv
 	coinpaprikaId: string
 }) => (
 	await getCoinpaprikaJson<CoinpaprikaTicker>(
@@ -284,7 +283,7 @@ export const getOhlcvTodayRows = async ({
 	publicEnv,
 	coinpaprikaId,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Coinpaprika_OpenApi>
+	publicEnv: SourcePublicEnv
 	coinpaprikaId: string
 }): Promise<OhlcCandle[]> => {
 	const rows = await getCoinpaprikaJson<CoinpaprikaOhlcv[]>(
@@ -319,7 +318,7 @@ export const getOhlcvHistoricalRows = async ({
 	coinpaprikaId,
 	lookbackDayCount,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Coinpaprika_OpenApi>
+	publicEnv: SourcePublicEnv
 	coinpaprikaId: string
 	lookbackDayCount: number
 }): Promise<OhlcCandle[]> => {

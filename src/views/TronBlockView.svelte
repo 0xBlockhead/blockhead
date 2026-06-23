@@ -2,15 +2,82 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// State
-	import { select } from '$/routes/+layout.svelte'
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			'height',
+			'hash',
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					'height',
+					'hash',
+					{
+						label: 'parent hash/ref',
+					},
+					{
+						label: 'timestamp',
+					},
+					{
+						label: 'witness',
+					},
+					'txTrieRoot',
+					'version',
+					{
+						label: 'transaction count',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Transactions',
+					items: [
+						{
+							label: 'transactions in block',
+						},
+					],
+				},
+				{
+					label: 'Parent',
+					items: [
+						{
+							label: 'parent block',
+						},
+					],
+				},
+				{
+					label: 'Witness',
+					items: [
+						{
+							label: 'producing witness',
+						},
+					],
+				},
+				{
+					label: 'Network',
+					items: [
+						{
+							label: 'parent TRON network',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,
@@ -21,113 +88,24 @@
 			selection: EntityProxyResource<typeof schema, EntityType.TronBlock>
 			open?: boolean
 		},
-		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
+		Pick<
+			ComponentProps<typeof EntityView2>,
+			| 'layout'
+			| 'showTypeAnnotation'
+		>
 	> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
-	import TronWitnessView from '$/views/TronWitnessView.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.TronBlock}
 	entitySelector={selection.entitySelector}
-	title={`Block #${selection.entitySelector.height.toString()}`}
-	idDragPlainText={selection.entitySelector.height.toString()}
 	bind:open
 	{...EntityViewProps}
->
-	{#snippet Value()}
-		<span data-badge="small">
-			#{selection.entitySelector.height.toString()}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>Block </span>
-			{#if Value}
-				{@render Value()}
-			{/if}
-		</span>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>TRON blocks are DPoS-produced ledger blocks; TVM execution is modeled separately as the network execution environment.</p>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection( { fields: { hash: true, timestampMs: true, transactionCount: true, ...(open && ({ parentHash: true, $witness: true, txTrieRoot: true, version: true })) } })}
-			placeholderText="Loading TRON block..."
-		>
-			{#snippet children(block)}
-				<dl data-column-item="center">
-					{#if block.hash != null}
-						<div>
-							<dt>Hash</dt>
-							<dd>
-								<TruncatedValue
-									value={block.hash}
-									format={TruncatedValueFormat.Abbr}
-								/>
-							</dd>
-						</div>
-					{/if}
-
-					{#if open && block.parentHash != null}
-						<div>
-							<dt>Parent hash</dt>
-							<dd>
-								<TruncatedValue
-									value={block.parentHash}
-									format={TruncatedValueFormat.Abbr}
-								/>
-							</dd>
-						</div>
-					{/if}
-
-					{#if block.transactionCount != null}
-						<div>
-							<dt>Transactions</dt>
-							<dd><NumberValue value={block.transactionCount} /></dd>
-						</div>
-					{/if}
-
-					{#if block.timestampMs != null}
-						<div>
-							<dt>Timestamp</dt>
-							<dd><Timestamp timestamp={block.timestampMs} /></dd>
-						</div>
-					{/if}
-
-					{#if open && block.$witness != null}
-						<div>
-							<dt>Witness</dt>
-							<dd>
-								<TronWitnessView
-									selection={select(EntityType.TronWitness, block.$witness[EntityMetaKey.Selector])}
-									layout={EntityLayout.Title}
-
-								/>
-							</dd>
-						</div>
-					{/if}
-
-					{#if open && block.version != null}
-						<div>
-							<dt>Version</dt>
-							<dd><NumberValue value={block.version} /></dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

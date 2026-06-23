@@ -13,9 +13,9 @@
 
 
 <ParentPageCollapsible
-	title={'Topics'}
+	title="Topics"
 	href={resolve('/evm/topics')}
-	id={'evm-topics'}
+	id="evm-topics"
 >
 	{@render children()}
 </ParentPageCollapsible>

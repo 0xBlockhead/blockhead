@@ -1,23 +1,17 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum ZeroGDaQuorumSelector {
 	NetworkQuorumId = 'networkQuorumId',
 }
-
 export default {
 	entityType: EntityType.ZeroGDaQuorum,
-
-	label: '0G DA quorum',
-	labelPlural: '0G DA quorums',
-
+	label: 'zero g da quorum',
+	labelPlural: 'zero g da quorums',
 	selectors: [
 		{
 			name: ZeroGDaQuorumSelector.NetworkQuorumId,
@@ -27,37 +21,41 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'quorumId',
+			label: 'quorum ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$consensusNetwork',
+			label: 'consensus network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.ZeroGConsensusNetwork,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'selectionMethod',
+			label: 'selection method',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$$daNodes',
+			label: 'da nodes',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.ZeroGDaNode,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
+			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

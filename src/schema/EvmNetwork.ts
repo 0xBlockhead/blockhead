@@ -1,553 +1,437 @@
 import { type } from 'arktype'
-import { ConsensusProtocol } from '$/schema/NetworkUpgradeProtocols.ts'
-import { ExecutionRpcProvider } from '$/constants/ExecutionRpcProvider.ts'
-import { NetworkNamespace } from '$/constants/Network.ts'
-import { TransportType } from '$/constants/TransportType.ts'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { networkFields } from '$/schema/Network.ts'
-import { UrlString } from '$/schema/UrlString.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum EvmNetworkSelector {
 	Caip2 = 'caip2',
 }
-
-const executionEndpointField = type({
-	url: UrlString,
-	serviceProvider: type.valueOf(ExecutionRpcProvider),
-	transportType: type.valueOf(TransportType),
-})
-
-const consensusEndpointField = type({
-	restBaseUrl: UrlString,
-	consensusProtocol: type.valueOf(ConsensusProtocol),
-})
-
 export default {
 	entityType: EntityType.EvmNetwork,
-
 	label: 'EVM network',
 	labelPlural: 'EVM networks',
-
+	description: 'An EVM-compatible chain or rollup identified independently of any single RPC provider.',
 	selectors: [
 		{
 			name: EvmNetworkSelector.Caip2,
-			fields: ['caip2'],
+			fields: [
+				'caip2',
+			],
 		},
 	],
-
 	fields: [
-		networkFields[0],
-		networkFields[1],
+		{
+			name: 'slug',
+			label: 'Slug',
+			description: 'A stable short name used by catalogs and URLs.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'name',
+			label: 'Name',
+			description: 'The human-readable name of the subject.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
 		{
 			name: 'caip2',
+			label: 'CAIP-2',
+			description: 'The chain identifier in CAIP-2 namespace and reference form.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type({
-				namespace: type.unit('eip155'),
-				reference: 'string',
-			}),
+			primitiveType: type({"namespace": "'eip155'", "reference": "string"}),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: 'namespace',
+			label: 'Namespace',
+			description: 'The namespace that qualifies the identifier.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.unit(NetworkNamespace.Evm),
+			primitiveType: type("'Evm'"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
+		},
+		{
+			name: 'environment',
+			label: 'environment',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'iconUrl',
+			label: 'icon URL',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$icon',
+			label: 'icon',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Media,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$nativeCoin',
+			label: 'native coin',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Coin,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Chainlist_Rest,
-				Source.EthereumLists_Rest,
-			],
 		},
 		{
 			name: '$nativeCoinInstance',
+			label: 'native coin instance',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmCoinInstance,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Chainlist_Rest,
-				Source.EthereumLists_Rest,
-			],
-		},
-		{
-			name: '$$blockExplorerUrls',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.Url,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Chainlist_Rest,
-				Source.EthereumLists_Rest,
-				Source.Lifi_Rest,
-			],
 		},
 		{
 			name: 'executionEndpoints',
+			label: 'execution endpoints',
 			type: EntityFieldType.Primitive,
-			primitiveType: executionEndpointField,
+			primitiveType: type({"url": "string", "serviceProvider": "string", "transportType": "string"}),
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-				Source.Chainlist_Rest,
-				Source.EthereumLists_Rest,
-				Source.Lifi_Rest,
-			],
 		},
 		{
 			name: 'consensusEndpoints',
+			label: 'consensus endpoints',
 			type: EntityFieldType.Primitive,
-			primitiveType: consensusEndpointField,
+			primitiveType: type({"restBaseUrl": "string", "consensusProtocol": "string"}),
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: '$$rpcUrls',
+			label: 'RPC urls',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.Url,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Constants_Internal,
-				Source.Chainlist_Rest,
-				Source.EthereumLists_Rest,
-				Source.Lifi_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
-		networkFields[4],
-		networkFields[5],
-		networkFields[6],
-		networkFields[7],
-		networkFields[8],
-		networkFields[9],
 		{
-			name: '$$siblingShardNetworks',
+			name: '$$blockExplorerUrls',
+			label: 'block explorer urls',
 			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.EvmNetwork,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Chainlist_Rest,
-				Source.EthereumLists_Rest,
-			],
-		},
-		{
-			name: 'shortName',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Chainlist_Rest,
-				Source.EthereumLists_Rest,
-			],
-		},
-		{
-			name: 'registryStatus',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Chainlist_Rest,
-				Source.EthereumLists_Rest,
-			],
-		},
-		{
-			name: 'peeringId',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Chainlist_Rest,
-				Source.EthereumLists_Rest,
-			],
+			entityType: EntityType.Url,
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$faucetUrls',
+			label: 'faucet urls',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.Url,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Chainlist_Rest,
-				Source.EthereumLists_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: '$$nativeAssets',
+			label: 'native assets',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.AssetInstance,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: '$$testnets',
+			label: 'testnets',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: '$parent',
+			label: 'parent',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$mainnet',
+			label: 'mainnet',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$$siblingShardNetworks',
+			label: 'sibling shard networks',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.EvmNetwork,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: 'shortName',
+			label: 'short name',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'registryStatus',
+			label: 'registry status',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'peeringId',
+			label: 'peering ID',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'slip44',
+			label: 'slip44',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Chainlist_Rest,
-				Source.EthereumLists_Rest,
-			],
 		},
-		networkFields[10],
 		{
 			name: '$$upgrades',
+			label: 'upgrades',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.EthereumNetworkUpgrade,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$executionUpgrades',
+			label: 'execution upgrades',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.EthereumExecutionUpgrade,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$consensusUpgrades',
+			label: 'consensus upgrades',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.EthereumConsensusUpgrade,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: 'consensusProtocol',
+			label: 'consensus protocol',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(ConsensusProtocol),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
-		},
-		{
-			name: 'consensusSpecsConfigYaml',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.EthereumSpecs_Github,
-			],
-		},
-		{
-			name: 'goEthereumParamsConfigGo',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.EthereumSpecs_Github,
-			],
-		},
-		{
-			name: 'hasBlobParameterExecutionUpgrade',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: '$$bridges',
+			label: 'bridges',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.EvmNetworkBridge,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Chainlist_Rest,
-				Source.EthereumLists_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$rollup',
+			label: 'rollup',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmRollup,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.L2Beat_Rest,
-			],
 		},
 		{
 			name: '$$settledRollups',
+			label: 'settled rollups',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.EvmRollup,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.L2Beat_Rest,
-			],
-		},
-		{
-			name: '$$blobs',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.EvmBlob,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-			],
-		},
-		{
-			name: '$$erc20TokenTransfers',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.EvmTokenTransfer,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
-		},
-		{
-			name: '$$nftTokenTransfers',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.EvmTokenTransfer,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$timestamps',
+			label: 'timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.EvmNetwork_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-			],
+			cardinality: EntityFieldCardinality.ZeroOrMany,
 		},
 		{
 			name: '$$blocks',
+			label: 'blocks',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.EvmBlock,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-				Source.Blockscout_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$transactions',
+			label: 'transactions',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.EvmTransaction,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
-		},
-		{
-			name: '$$gasFeeBlocks',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.EvmNetwork_GasFee_Block,
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-			],
-		},
-		{
-			name: '$$gasEstimateTimestamps',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.EvmNetwork_GasEstimate_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Blockscout_Rest,
-				Source.Etherscan_Rest,
-			],
-		},
-		{
-			name: '$$txpoolTimestamps',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.EvmNetwork_Txpool_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-			],
-		},
-		{
-			name: '$$mevProposerPayloadDelivered',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.MevRelay_ProposerPayloadDelivered,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.MevRelay_Rest,
-			],
-		},
-		{
-			name: '$$mevRelays',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.MevRelay,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
-		},
-		{
-			name: '$$mevBuilders',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.MevBuilder,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.MevRelay_Rest,
-			],
-		},
-		{
-			name: '$$precompiles',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.EvmContract,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: '$$contracts',
+			label: 'contracts',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.EvmContract,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: '$$precompiles',
+			label: 'precompiles',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.EvmContract,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: '$$blobs',
+			label: 'blobs',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.EvmBlob,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: '$$gasFeeBlocks',
+			label: 'gas fee blocks',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.EvmNetwork_GasFee_Block,
 			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
+		},
+		{
+			name: '$$gasEstimateTimestamps',
+			label: 'gas estimate timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.EvmNetwork_GasEstimate_Timestamp,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+		},
+		{
+			name: '$$txpoolTimestamps',
+			label: 'txpool timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.EvmNetwork_Txpool_Timestamp,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+		},
+		{
+			name: '$$erc20TokenTransfers',
+			label: 'erc20 token transfers',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.EvmTokenTransfer,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: '$$nftTokenTransfers',
+			label: 'NFT token transfers',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.EvmTokenTransfer,
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$erc4337SmartAccounts',
+			label: 'erc4337 smart accounts',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.Erc4337SmartAccount,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$erc4337Bundlers',
+			label: 'erc4337 bundlers',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.Erc4337Bundler,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$erc4337Paymasters',
+			label: 'erc4337 paymasters',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.Erc4337Paymaster,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$erc4337AccountFactories',
+			label: 'erc4337 account factories',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.Erc4337AccountFactory,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$userOperations',
+			label: 'user operations',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.EvmUserOperation,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$beaconFinalityTimestamps',
+			label: 'beacon finality timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.EthereumBeaconFinality_Timestamp,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
-		// Hoisted: recent epochs across this network; intrinsic parent is the network.
 		{
 			name: '$$beaconEpochs',
+			label: 'beacon epochs',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.BeaconEpoch,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
-		// Hoisted: recent slots across this network; slots are intrinsically contained by epochs.
 		{
 			name: '$$beaconSlots',
+			label: 'beacon slots',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.BeaconSlot,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
-		// Hoisted: current/recent slot committees; intrinsic parent is BeaconSlot.
 		{
 			name: '$$beaconCommittees',
+			label: 'beacon committees',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.BeaconCommittee,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
-		// Hoisted: current sync committee periods across this network.
 		{
 			name: '$$beaconSyncCommittees',
+			label: 'beacon sync committees',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.BeaconSyncCommittee,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
-		// Hoisted: current/recent slot attestations; intrinsic parent is BeaconSlot.
 		{
 			name: '$$beaconAttestations',
+			label: 'beacon attestations',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.BeaconAttestation,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
-		// Hoisted: current/recent slot withdrawals; intrinsic parent is BeaconSlot.
 		{
 			name: '$$beaconWithdrawals',
+			label: 'beacon withdrawals',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.BeaconWithdrawal,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
-		// Hoisted: current/recent slot slashings; intrinsic parent is BeaconSlot.
 		{
 			name: '$$beaconSlashings',
+			label: 'beacon slashings',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.BeaconSlashing,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$beaconValidators',
+			label: 'beacon validators',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.BeaconValidator,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: '$$mevRelays',
+			label: 'mev relays',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.MevRelay,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: '$$mevBuilders',
+			label: 'mev builders',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.MevBuilder,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: '$$mevProposerPayloadDelivered',
+			label: 'mev proposer payload delivered',
+			labelPlural: 'mev proposer payload deliveredses',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.MevRelay_ProposerPayloadDelivered,
+			cardinality: EntityFieldCardinality.Many,
+		},
+	],
 } as const satisfies EntityDefinition

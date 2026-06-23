@@ -2,15 +2,96 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			{
+				label: 'token id',
+			},
+			'standard',
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					{
+						label: 'token id',
+					},
+					'standard',
+					{
+						label: 'owner',
+					},
+					{
+						label: 'contract',
+					},
+					{
+						label: 'creation timestamp',
+					},
+					{
+						label: 'latest metadata/supply/holder/transfer summary',
+					},
+					{
+						label: 'latest observation time',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Token observations',
+					items: [
+						{
+							label: 'token metadata and metric observations',
+						},
+					],
+				},
+				{
+					label: 'Account balances',
+					items: [
+						{
+							label: 'account-token balance observations when source-scoped',
+						},
+					],
+				},
+				{
+					label: 'Contract',
+					items: [
+						{
+							label: 'contract identity when contract-backed',
+						},
+					],
+				},
+				{
+					label: 'Owner',
+					items: [
+						{
+							label: 'owner account identity',
+						},
+					],
+				},
+				{
+					label: 'Transfers',
+					items: [
+						{
+							label: 'token transfers when scoped by transaction/account source context',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,93 +102,23 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
-	const token = $derived(selection(
-		({ fields: { standard: true, name: true, symbol: true, decimals: true, totalSupply: true, ...(open && ({ createdTimestampMs: true, holderCount: true })) } }),
-	))
-
-
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.TronToken}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.tokenId}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		<ResourceBoundary resource={token}>
-			{#snippet children(token)}
-				{token.symbol ?? token.name ?? selection.entitySelector.tokenId}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={token}
-			placeholderText="Loading TRON token..."
-		>
-			{#snippet children(token)}
-				<dl data-column-item="center">
-					{#if token.standard != null}
-						<div>
-							<dt>Standard</dt>
-							<dd>{token.standard}</dd>
-						</div>
-					{/if}
-
-					{#if token.name != null}
-						<div>
-							<dt>Name</dt>
-							<dd>{token.name}</dd>
-						</div>
-					{/if}
-
-					{#if token.symbol != null}
-						<div>
-							<dt>Symbol</dt>
-							<dd>{token.symbol}</dd>
-						</div>
-					{/if}
-
-					{#if token.decimals != null}
-						<div>
-							<dt>Decimals</dt>
-							<dd><NumberValue value={token.decimals} /></dd>
-						</div>
-					{/if}
-
-					{#if token.totalSupply != null}
-						<div>
-							<dt>Total supply</dt>
-							<dd><NumberValue value={token.totalSupply} /></dd>
-						</div>
-					{/if}
-
-					{#if open && token.createdTimestampMs != null}
-						<div>
-							<dt>Created</dt>
-							<dd><Timestamp timestamp={token.createdTimestampMs} /></dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

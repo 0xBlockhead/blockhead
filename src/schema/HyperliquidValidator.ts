@@ -1,23 +1,17 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum HyperliquidValidatorSelector {
 	NetworkValidator = 'networkValidator',
 }
-
 export default {
 	entityType: EntityType.HyperliquidValidator,
-
-	label: 'Hyperliquid Validator',
-	labelPlural: 'Hyperliquid Validators',
-
+	label: 'hyperliquid validator',
+	labelPlural: 'hyperliquid validators',
 	selectors: [
 		{
 			name: HyperliquidValidatorSelector.NetworkValidator,
@@ -27,61 +21,27 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'validator',
+			label: 'validator',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'name',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			name: '$$timestamps',
+			label: 'timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.HyperliquidValidator_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
 		},
-		{
-			name: '$signer',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.HyperliquidAccount,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'commission',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'recentBlockCount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'isActive',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'stake',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'isJailed',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

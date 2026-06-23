@@ -1,14 +1,18 @@
 <script lang="ts">
-	import { EntityType } from '$/schema/EntityType.ts'
-	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+
+	// Functions
+	import { select } from '$/routes/+layout.svelte'
+
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -17,5 +21,12 @@
 
 
 <Page>
-	<BridgeRouteView selection={select(EntityType.BridgeRoute, data.selector)} />
+	<BridgeRouteView
+		selection={
+			select(
+				EntityType.BridgeRoute,
+				data.selector
+			)
+		}
+	/>
 </Page>

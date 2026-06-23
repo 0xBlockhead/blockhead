@@ -1,24 +1,18 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import UtxoOutput from '$/schema/UtxoOutput.ts'
-
 export enum BitcoinCashCashTokenFungibleAmountSelector {
 	UtxoOutput = 'utxoOutput',
+	Output = '$output',
 }
-
 export default {
 	entityType: EntityType.BitcoinCashCashTokenFungibleAmount,
-
-	label: 'Bitcoin Cash CashToken Fungible Amount',
-	labelPlural: 'Bitcoin Cash CashToken Fungible Amounts',
-
+	label: 'Bitcoin cash cash token fungible amount',
+	labelPlural: 'Bitcoin cash cash token fungible amounts',
 	selectors: [
 		{
 			name: BitcoinCashCashTokenFungibleAmountSelector.UtxoOutput,
@@ -27,25 +21,27 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$output',
+			label: 'output',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.UtxoOutput,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$category',
+			label: 'category',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.BitcoinCashCashTokenCategory,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'amount',
+			label: 'amount',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.One,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

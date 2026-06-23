@@ -2,87 +2,115 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
-	import { schema } from '$/schema/index.ts'
-	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			{
+				label: 'relay host',
+			},
+			{
+				label: 'URL',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					{
+						label: 'relay host',
+					},
+					{
+						label: 'URL',
+					},
+					{
+						label: 'latest fetchability/sample summary',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Delivered payloads',
+					items: [
+						{
+							label: 'delivered-payload rows scoped by relay host',
+						},
+					],
+				},
+				{
+					label: 'Builders',
+					items: [
+						{
+							label: 'builders observed through this relay',
+						},
+					],
+				},
+				{
+					label: 'Relay observations',
+					items: [
+						{
+							label: 'timestamped relay reachability/sample observations',
+						},
+					],
+				},
+				{
+					label: 'Network',
+					items: [
+						{
+							label: 'parent EVM network MEV-Boost section',
+						},
+					],
+				},
+				{
+					label: 'Catalog',
+					items: [
+						{
+							label: 'configured relay host/origin mapping',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
-		layout = EntityLayout.Summary,
-		title: titleProp,
-		open = $bindable(false),
+		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.MevRelay>
-			layout?: EntityLayout
-			title?: string
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
+			| 'layout'
 			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
-	// (Derived)
-	const title = $derived(
-		titleProp
-		?? selection.entitySelector.host
-	)
-
-
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.MevRelay}
 	entitySelector={selection.entitySelector}
-	{title}
-	{layout}
 	bind:open
 	{...EntityViewProps}
->
-	{#snippet Value()}
-		<span>
-			{selection.entitySelector.host}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		{title}
-	{/snippet}
-
-	{#snippet Content()}
-		{#if open}
-			<ResourceBoundary
-				resource={selection({
-							sources: [Source.Constants_Internal],
-						},
-					).url}
-				placeholderText="Loading MEV relay…"
-			>
-				{#snippet children(url)}
-					<dl data-column-item="center">
-						{#if url !== undefined}
-							<div>
-								<dt>URL</dt>
-								<dd>{url}</dd>
-							</div>
-						{/if}
-					</dl>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
-	{/snippet}
-</EntityView>
+	{view}
+/>

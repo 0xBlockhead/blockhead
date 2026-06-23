@@ -1,26 +1,17 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum FarcasterVerifiedAddressSelector {
 	FidProtocolAddress = 'fidProtocolAddress',
 }
-
-
-const farcasterVerifiedAddressProtocol = type("'ethereum' | 'solana'")
-
 export default {
 	entityType: EntityType.FarcasterVerifiedAddress,
-
-	label: 'Farcaster Verified Address',
-	labelPlural: 'Farcaster Verified Addresses',
-
+	label: 'Farcaster verified address',
+	labelPlural: 'Farcaster verified addresses',
 	selectors: [
 		{
 			name: FarcasterVerifiedAddressSelector.FidProtocolAddress,
@@ -31,43 +22,49 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: 'fid',
+			label: 'FID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'protocol',
+			label: 'protocol',
 			type: EntityFieldType.Primitive,
-			primitiveType: farcasterVerifiedAddressProtocol,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'address',
+			label: 'Address',
+			description: 'The address or account identifier used by the source protocol.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$user',
+			label: 'user',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.FarcasterUser,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$evmAccount',
+			label: 'EVM account',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$solanaAccount',
+			label: 'solana account',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.SolanaAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

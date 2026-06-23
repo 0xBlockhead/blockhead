@@ -1,37 +1,19 @@
 import { type } from 'arktype'
-
-import { EvmTokenStandard } from '$/constants/Evm.ts'
-import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
-	conditionalOn,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
-
+import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 export enum EvmTokenTransferSelector {
 	EvmNetworkTxHashLogIndexTransferIndex = 'evmNetworkTxHashLogIndexTransferIndex',
+	NetworkTxHashLogIndexTransferIndex = '$network+txHash+logIndex+transferIndex',
 }
-
-
-const evmTokenTransferDiscriminatorFields = [
-	{
-		name: 'standard',
-		type: EntityFieldType.Primitive,
-		primitiveType: type.valueOf(EvmTokenStandard),
-		cardinality: EntityFieldCardinality.One,
-	},
-] as const satisfies readonly EntityFieldDefinition[]
-
 export default {
 	entityType: EntityType.EvmTokenTransfer,
-
-	label: 'Token transfer',
-	labelPlural: 'Token transfers',
-
+	label: 'EVM token transfer',
+	labelPlural: 'EVM token transfers',
 	selectors: [
 		{
 			name: EvmTokenTransferSelector.EvmNetworkTxHashLogIndexTransferIndex,
@@ -43,106 +25,106 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
-		...evmTokenTransferDiscriminatorFields,
 		{
 			name: 'txHash',
+			label: 'Transaction hash',
+			description: 'The transaction hash in its network.',
 			type: EntityFieldType.Primitive,
 			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'logIndex',
+			label: 'log index',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'transferIndex',
+			label: 'transfer index',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'standard',
+			label: 'standard',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$from',
+			label: 'from',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$to',
+			label: 'to',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$tokenContract',
+			label: 'token contract',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmContract,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$coinInstance',
+			label: 'coin instance',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmCoinInstance,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'amount',
+			label: 'amount',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'tokenId',
+			label: 'Token ID',
+			description: 'The token identifier within its collection or contract.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			when: conditionalOn(
-				evmTokenTransferDiscriminatorFields,
-				'standard',
-				[
-					EvmTokenStandard.Erc721,
-					EvmTokenStandard.Erc1155,
-				]
-			),
 		},
 		{
 			name: 'tokenSymbol',
+			label: 'token symbol',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-				Source.Etherscan_Rest,
-			],
 		},
 		{
 			name: 'tokenName',
+			label: 'token name',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-				Source.Etherscan_Rest,
-			],
 		},
 		{
 			name: 'tokenDecimals',
+			label: 'token decimals',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-				Source.Etherscan_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

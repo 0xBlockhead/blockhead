@@ -1,25 +1,33 @@
-import { type as arktype } from 'arktype'
-
 import {
-	type SourceProviderDefinition,
 	SourceProvider,
+	type SourceProviderDefinition,
 } from '$/sources/SourceProvider.ts'
-import { origin } from '$/sources/Etherscan/Rest/constants.ts'
-import EtherscanRestSource from '$/sources/Etherscan/Rest/index.ts'
+import { Source } from '$/sources/Source.ts'
+import { etherscanBindings } from '$/sources/Etherscan/bindings.ts'
+
+export const etherscanOrigins = [
+	...new Map(
+		etherscanBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.Etherscan,
 	label: 'Etherscan',
-	env: arktype({
-		PUBLIC_ETHERSCAN_API_KEY: 'string > 0?',
-	}),
-	origins: [
+	sources: [
 		{
-			origin,
-			corsEnabled: false,
+			provider: SourceProvider.Etherscan,
+			source: Source.Etherscan_Rest,
+			label: 'Etherscan REST',
 		},
 	],
-	sources: [
-		EtherscanRestSource,
-	],
+	bindings: etherscanBindings,
 } satisfies SourceProviderDefinition

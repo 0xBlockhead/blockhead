@@ -6,11 +6,13 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import type { EnsSubgraphDomain } from '$/sources/TheGraph/Graphql/Ens/types.ts'
 import { EnsNameSelector } from '$/schema/EnsName.ts'
+import { BlockheadEnsNameSearchSelector } from '$/schema/BlockheadEnsNameSearch.ts'
 import { EvmAccountSelector } from '$/schema/EvmAccount.ts'
 
 
 const getName = vi.fn()
 const getDomainsByOwner = vi.fn()
+const getDomainsContaining = vi.fn()
 
 vi.mock('@tevm/voltaire/Ens', () => ({
 	normalize: (name: string) => name,
@@ -20,6 +22,7 @@ vi.mock('@tevm/voltaire/Ens', () => ({
 vi.mock('$/sources/TheGraph/Graphql/Ens/queries.ts', () => ({
 	getName,
 	getDomainsByOwner,
+	getDomainsContaining,
 }))
 
 const { default: ensTheGraphResolvers } = await import('$/resolvers/Ens-TheGraph.ts')
@@ -42,6 +45,18 @@ if (ensNameResolver == null)
 
 if (ensNamesOwnedResolver == null)
 	throw new Error('Ens-TheGraph spec missing EvmAccount $$ensNamesOwned resolver')
+
+const ensNameSearchResolver = ensTheGraphResolvers.resolvers.find((
+	resolver
+): resolver is Extract<
+	typeof ensTheGraphResolvers.resolvers[number],
+	{ entityType: EntityType.BlockheadEnsNameSearch }
+> => (
+	resolver.entityType === EntityType.BlockheadEnsNameSearch
+))
+
+if (ensNameSearchResolver == null)
+	throw new Error('Ens-TheGraph spec missing BlockheadEnsNameSearch $$matchingNames resolver')
 
 const resolverContext = {
 	filters: [],
@@ -104,7 +119,8 @@ describe('Ens-TheGraph entity resolver', () => {
 		)
 
 		expect(resolvedEntity).toMatchObject({
-			subgraphId: vitalikDomainWire.id,
+			name: 'vitalik.eth',
+			normalizedName: 'vitalik.eth',
 			labelName: 'vitalik',
 			$parent: {
 				[EntityMetaKey.Selector]: {
@@ -118,28 +134,10 @@ describe('Ens-TheGraph entity resolver', () => {
 					},
 				},
 			],
-			$subgraphResolvedActor: {
-				[EntityMetaKey.Selector]: {
-					address: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
-				},
-			},
-			$subgraphOwnerActor: {
-				[EntityMetaKey.Selector]: {
-					address: '0x000000000000000000000000000000000000dead',
-				},
-			},
-			ttl: 300n,
-			createdAt: 1700000000000n,
-			expiryDate: 1800000000000n,
-			subdomainCount: 1,
-			isMigrated: true,
-			contentHash: '0xcontent',
-			resolverTextKeys: ['url'],
-			resolverCoinTypes: ['60'],
 		})
 	})
 
-	it('omits invalid subgraph account ids', async () => {
+	it('ignores account-only subgraph fields that are not in the current schema', async () => {
 		getName.mockResolvedValueOnce([{
 			...vitalikDomainWire,
 			resolvedAddress: {
@@ -153,8 +151,10 @@ describe('Ens-TheGraph entity resolver', () => {
 			resolverContext
 		)
 
-		expect(resolvedEntity.$subgraphResolvedActor).toBeUndefined()
-		expect(resolvedEntity.$subgraphOwnerActor).toBeUndefined()
+		expect(resolvedEntity).toMatchObject({
+			name: 'vitalik.eth',
+			normalizedName: 'vitalik.eth',
+		})
 	})
 })
 
@@ -172,18 +172,54 @@ describe('Ens-TheGraph $$ensNamesOwned field resolver', () => {
 			},
 		])
 
-			const resolvedEntity = await ensNamesOwnedResolver.resolve[EvmAccountSelector.AddressInteropAddress](
-				{
-					address: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
-					interopAddress: 'eip155:1:0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
-				},
-				resolverContext
-			)
+		const resolvedEntity = await ensNamesOwnedResolver.resolve[EvmAccountSelector.AddressInteropAddress](
+			{
+				address: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+				interopAddress: 'eip155:1:0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+			},
+			resolverContext
+		)
 
-			expect(resolvedEntity).toEqual([
-				{
-					[EntityMetaKey.Selector]: {
-						name: 'owned.eth',
+		expect(resolvedEntity).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					name: 'owned.eth',
+				},
+			},
+		])
+	})
+})
+
+describe('Ens-TheGraph BlockheadEnsNameSearch $$matchingNames field resolver', () => {
+	it('returns ens name entity refs from substring search', async () => {
+		getDomainsContaining.mockResolvedValueOnce([
+			{
+				...vitalikDomainWire,
+				name: 'vitalik.eth',
+			},
+			{
+				...vitalikDomainWire,
+				name: '',
+			},
+		])
+
+		const resolvedEntity = await ensNameSearchResolver.resolve[BlockheadEnsNameSearchSelector.Query](
+			{ query: 'vitalik' },
+			{
+				...resolverContext,
+				pagination: { limit: 32 },
+			}
+		)
+
+		expect(getDomainsContaining).toHaveBeenCalledWith({
+			publicEnv: {},
+			query: 'vitalik',
+			limit: 32,
+		})
+		expect(resolvedEntity).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					name: 'vitalik.eth',
 				},
 			},
 		])

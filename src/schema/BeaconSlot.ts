@@ -2,24 +2,17 @@ import { type } from 'arktype'
 import {
 	EntityFieldCardinality,
 	EntityFieldType,
-	NonNegativeInteger,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { ZeroExHex } from '$/schema/ZeroExHex.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum BeaconSlotSelector {
 	EvmNetworkSlot = 'evmNetworkSlot',
+	NetworkSlot = '$network+slot',
 }
-
 export default {
 	entityType: EntityType.BeaconSlot,
-
-	label: 'Beacon slot',
-	labelPlural: 'Beacon slots',
-
+	label: 'beacon slot',
+	labelPlural: 'beacon slots',
 	selectors: [
 		{
 			name: BeaconSlotSelector.EvmNetworkSlot,
@@ -29,128 +22,104 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'slot',
+			label: 'slot',
 			type: EntityFieldType.Primitive,
-			primitiveType: NonNegativeInteger,
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'epoch',
+			label: 'epoch',
 			type: EntityFieldType.Primitive,
-			primitiveType: NonNegativeInteger,
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
 		},
 		{
 			name: 'proposerIndex',
+			label: 'proposer index',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
 		},
 		{
 			name: 'root',
+			label: 'root',
 			type: EntityFieldType.Primitive,
-			primitiveType: ZeroExHex,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
 		},
 		{
 			name: 'parentRoot',
+			label: 'parent root',
 			type: EntityFieldType.Primitive,
-			primitiveType: ZeroExHex,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
 		},
 		{
 			name: 'stateRoot',
+			label: 'state root',
 			type: EntityFieldType.Primitive,
-			primitiveType: ZeroExHex,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
 		},
 		{
 			name: 'bodyRoot',
+			label: 'body root',
 			type: EntityFieldType.Primitive,
-			primitiveType: ZeroExHex,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
 		},
 		{
 			name: 'canonical',
+			label: 'canonical',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
+			primitiveType: type("boolean"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
 		},
 		{
 			name: 'signature',
+			label: 'signature',
 			type: EntityFieldType.Primitive,
-			primitiveType: ZeroExHex,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
 		},
-		// Intrinsic: committees and block body rows belong to this slot.
 		{
 			name: '$$beaconCommittees',
+			label: 'beacon committees',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.BeaconCommittee,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$beaconAttestations',
+			label: 'beacon attestations',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.BeaconAttestation,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$beaconWithdrawals',
+			label: 'beacon withdrawals',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.BeaconWithdrawal,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$beaconSlashings',
+			label: 'beacon slashings',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.BeaconSlashing,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

@@ -1,6 +1,8 @@
 <script lang="ts">
+	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { select } from '$/routes/+layout.svelte'
+
+
 	// Context
 	import { resolve } from '$app/paths'
 	import { page } from '$app/state'
@@ -8,6 +10,14 @@
 
 	// State
 	let { children } = $props()
+
+	const accountId = $derived(
+		page.params.accountId ?? '',
+	)
+
+
+	// Functions
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// Components
@@ -18,15 +28,21 @@
 
 
 <ParentPageCollapsible
-	href={resolve(
-		'/(social)/(farcaster)/farcaster/(accounts)/account/[accountId]',
-		{ accountId: String(page.params.accountId) },
-	)}
-	id={page.params.accountId}
+	href={resolve('/(social)/(farcaster)/farcaster/(accounts)/account/[accountId]', {
+		accountId: String(accountId),
+	})}
+	id={accountId}
 >
 	{#snippet Summary({ open: _open })}
 		<BlockheadFarcasterAccountConnectionView
-			selection={select(EntityType.BlockheadFarcasterAccountConnection, { fid: Number(page.params.accountId) })}
+			selection={
+				select(
+					EntityType.BlockheadFarcasterAccountConnection,
+					{
+						fid: Number(accountId),
+					}
+				)
+			}
 			layout={EntityLayout.SummaryInline}
 			title="Account"
 		/>

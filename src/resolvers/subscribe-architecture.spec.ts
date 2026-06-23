@@ -1,10 +1,21 @@
 import {
 	defaultResolverContextRowLimit,
+	fieldLoadedSubsetKey,
 	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import {
 	BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION,
 } from '$/constants/Persistence.ts'
+import {
+	BaseQueryBuilder,
+	and,
+	createCollection,
+	eq,
+} from '@tanstack/db'
+import { stringify } from 'devalue'
+import { EntityMetaKey } from '$/schema/$schema.ts'
+import { Source } from '$/sources/Source.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
 import {
 	describe,
 	expect,
@@ -24,6 +35,7 @@ const srcPath = join(
 	process.cwd(),
 	'src'
 )
+const rootPath = process.cwd()
 
 const sourceFiles = (
 	directory: string
@@ -33,7 +45,10 @@ const sourceFiles = (
 	})
 		.flatMap((entry) => (
 			entry.isDirectory() ?
-				sourceFiles(join(directory, entry.name))
+				entry.name.endsWith('_') ?
+					[]
+				:
+					sourceFiles(join(directory, entry.name))
 			:
 				/\.(?:test|spec)\.ts$/.test(entry.name) ?
 					[]
@@ -51,8 +66,31 @@ const scannedSourceByFilePath = Object.fromEntries(scannedSourceFiles.map((fileP
 	readFileSync(filePath, 'utf8'),
 ]))
 const scannedSource = Object.values(scannedSourceByFilePath).join('\n')
+const topLevelMarkdownFiles = readdirSync(rootPath)
+	.filter((fileName) => fileName.endsWith('.md'))
+	.map((fileName) => join(rootPath, fileName))
+const sourceRegistryEnumNames = [
+	'Source',
+	'SourceBinding',
+	'SourceProvider',
+] as const
 
 describe('client resolver architecture', () => {
+	it('keeps top-level markdown enum references aligned with source registries', () => {
+		const enumValuesByName = {
+			Source: new Set(Object.keys(Source)),
+			SourceBinding: new Set(Object.keys(Source)),
+			SourceProvider: new Set(Object.keys(SourceProvider)),
+		} as const
+
+		for (const filePath of topLevelMarkdownFiles) {
+			const markdown = readFileSync(filePath, 'utf8')
+			for (const enumName of sourceRegistryEnumNames)
+				for (const match of markdown.matchAll(new RegExp(String.raw`\b${enumName}\.([A-Z][A-Za-z0-9_]*)\b`, 'g')))
+					expect(enumValuesByName[enumName], `${filePath}: ${enumName}.${match[1]}`).toContain(match[1])
+		}
+	})
+
 	it('exposes only the strict Resolver Context shape to real resolvers', () => {
 		expect(resolverContextRowLimit({
 			filters: [],
@@ -84,6 +122,7 @@ describe('client resolver architecture', () => {
 			],
 			[join(srcPath, 'sources', '$sources.ts')]: [
 				'arktype',
+				'$/sources/SourceBinding.ts',
 			],
 			[join(srcPath, 'resolvers', '$resolvers.ts')]: [
 				'@tanstack/db',
@@ -116,7 +155,7 @@ describe('client resolver architecture', () => {
 
 			expect(source, filePath).not.toMatch(/\b(?:EntityType|Source)\.[A-Za-z0-9_]+\b/)
 			expect(source, filePath).not.toMatch(/\$\/(?:constants|views|components|routes|collections)\//)
-			expect(source, filePath).not.toMatch(new RegExp(String.raw`\$\/sources\/(?!\$sources\.ts)`))
+			expect(source, filePath).not.toMatch(new RegExp(String.raw`\$\/sources\/(?!(?:\$sources|SourceBinding)\.ts)`))
 			expect(source, filePath).not.toMatch(new RegExp(String.raw`\$\/resolvers\/(?!\$resolvers\.ts)`))
 			expect(source, filePath).not.toMatch(new RegExp(String.raw`\$\/schema\/(?!\$schema\.ts)`))
 		}
@@ -225,6 +264,23 @@ describe('client resolver architecture', () => {
 			|| path.startsWith(join(srcPath, 'sources'))
 		)))
 			expect(scannedSourceByFilePath[filePath], filePath).not.toMatch(/\$\/lib\/marketOhlcCandles\.ts/)
+	})
+
+	it('does not keep legacy nested source metadata barrels', () => {
+		const legacyNestedSourceMetadataBarrels = Object.entries(scannedSourceByFilePath).flatMap(([filePath, source]) => {
+			const relativePath = filePath.slice(srcPath.length + 1)
+			return (
+				!relativePath.startsWith('sources/')
+				|| basename(filePath) !== 'index.ts'
+				|| relativePath.split('/').length <= 3
+				|| !/export default \{\s*provider: SourceProvider\./.test(source)
+			) ?
+				[]
+			:
+				[relativePath]
+		})
+
+		expect(legacyNestedSourceMetadataBarrels).toEqual([])
 	})
 
 	it('keeps direct Coin_Timestamp resolvers tied to source clocks', () => {
@@ -355,7 +411,7 @@ describe('client resolver architecture', () => {
 		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Evm', 'JsonRpc', 'client.ts')]).not.toMatch(/\$\/constants\/ExecutionEndpoints\.ts/)
 		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Evm', 'JsonRpc', 'client.ts')]).not.toMatch(/\$\/sources\/Voltaire\//)
 		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Evm', 'JsonRpc', 'client.ts')]).toMatch(/\borigins:\s*readonly SourceOrigin\[\]/)
-		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Voltaire', 'index.ts')]).toMatch(/\$\/sources\/Voltaire\/JsonRpc\/executionEndpoints\.ts/)
+		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Voltaire', 'index.ts')]).toMatch(/\$\/sources\/Voltaire\/bindings\.ts/)
 	})
 
 	it('keeps generic lib out of Persisted collection and provider ownership', () => {
@@ -422,6 +478,17 @@ describe('client resolver architecture', () => {
 		expect(scannedSource).not.toMatch(/\bresolver\.accepts\b/)
 		expect(scannedSource).not.toMatch(/\bresolver\.resolve\(/)
 		expect(scannedSourceByFilePath[join(srcPath, 'resolvers', 'defineResolver.ts')]).not.toMatch(/\bfields:\s*\{\s*\}/)
+	})
+
+	it('keeps resolvers out of provider metadata and binding modules', () => {
+		for (const filePath of scannedSourceFiles.filter((path) => path.startsWith(join(srcPath, 'resolvers')))) {
+			const relativePath = filePath.slice(srcPath.length + 1)
+			if (relativePath.endsWith('.spec.ts')) continue
+
+			const source = scannedSourceByFilePath[filePath]
+			expect(source, relativePath).not.toMatch(/['"]\$\/sources\/[^'"]+\/index\.ts['"]/)
+			expect(source, relativePath).not.toMatch(/['"]\$\/sources\/[^'"]+\/bindings\.ts['"]/)
+		}
 	})
 
 	it('does not retain legacy Resolver Context compatibility aliases', () => {
@@ -841,6 +908,53 @@ describe('client resolver architecture', () => {
 		}
 	})
 
+	it('keeps provider index value imports out of resolver modules', () => {
+		const knownProviderIndexValueImportViolations = [
+			// TODO: remove entries as resolver modules move provider index values behind source query/runtime ownership.
+		]
+
+		for (const filePath of scannedSourceFiles.filter((path) => (
+			path.startsWith(join(srcPath, 'resolvers'))
+			&& basename(path) !== '$resolvers.ts'
+			&& basename(path) !== 'index.ts'
+		))) {
+			const relativePath = filePath.slice(srcPath.length + 1)
+			if (knownProviderIndexValueImportViolations.includes(relativePath))
+				continue
+
+			expect(scannedSourceByFilePath[filePath], relativePath).not.toMatch(
+				/^import\s+(?!type\b)[\s\S]*?from ['"]\$\/sources\/.*\/index\.ts['"]/m
+			)
+		}
+	})
+
+	it('keeps source binding lookup hot paths pre-indexed', () => {
+		for (const filePath of scannedSourceFiles.filter((path) => (
+			path.startsWith(join(srcPath, 'sources'))
+			|| path.startsWith(join(srcPath, 'resolvers'))
+		))) {
+			const relativePath = filePath.slice(srcPath.length + 1)
+			const source = scannedSourceByFilePath[filePath]
+
+			expect(source, relativePath).not.toMatch(/\b\w*Bindings\.find\(\(binding\)/)
+			expect(source, relativePath).not.toMatch(/\b\w*Bindings\.find\(\(candidate\)/)
+		}
+	})
+
+	it('keeps static source support as row-derived lookup maps instead of exported support functions', () => {
+		for (const filePath of scannedSourceFiles.filter((path) => (
+			path.startsWith(join(srcPath, 'sources'))
+			&& basename(path) !== 'SourceBinding.ts'
+		))) {
+			const relativePath = filePath.slice(srcPath.length + 1)
+			const source = scannedSourceByFilePath[filePath]
+
+			expect(source, relativePath).not.toMatch(
+				/export const \w*(?:ForChainId|ForNetworkKey|SupportedByChainId|SupportedByNetworkKey)\s*=\s*\(/
+			)
+		}
+	})
+
 	it('keeps resolver and source env reads behind source registry and resolver context', () => {
 		for (const filePath of scannedSourceFiles.filter((path) => (
 			path.startsWith(join(srcPath, 'resolvers'))
@@ -849,7 +963,9 @@ describe('client resolver architecture', () => {
 			const relativePath = filePath.slice(srcPath.length + 1)
 			if (
 				relativePath === 'sources/index.ts'
+				|| relativePath === 'sources/index.server.ts'
 				|| relativePath === 'sources/$sources.ts'
+				|| relativePath === 'sources/validateSourceRegistry.ts'
 			)
 				continue
 
@@ -873,6 +989,8 @@ describe('client resolver architecture', () => {
 	it('keeps source HTTP CORS policy on provider origins instead of source call sites', () => {
 		for (const filePath of scannedSourceFiles.filter((path) => (
 			path.startsWith(join(srcPath, 'sources'))
+			&& !path.startsWith(join(srcPath, 'sources', '_runtime'))
+			&& !path.endsWith('.d.ts')
 			&& !/(?:^|\/)index\.ts$/.test(path)
 			&& !/(?:^|\/)constants\.ts$/.test(path)
 		))) {
@@ -940,6 +1058,70 @@ describe('client resolver architecture', () => {
 		}
 	})
 
+	it('wires subscribe selection windows into field live-query load subsets', () => {
+		const subscribeSource = scannedSourceByFilePath[join(srcPath, 'client', '$subscribe.svelte.ts')]
+
+		expect(subscribeSource).toMatch(/\bcreateLiveQueryCollection\b/)
+		expect(subscribeSource).toMatch(/\browsCollection\b/)
+		expect(subscribeSource).toMatch(/selection\.limit != null[\s\S]*\.limit\(selection\.limit\)/)
+		expect(subscribeSource).toMatch(/selection\.offset != null[\s\S]*\.offset\(selection\.offset\)/)
+		expect(subscribeSource).toMatch(/selection\.orderBy/)
+		expect(subscribeSource).toMatch(/selection\.where/)
+		expect(subscribeSource).toMatch(/\bcountCollection\b/)
+		expect(subscribeSource).toMatch(/fieldResourceQueries[\s\S]*selection: SubscribeSelection/)
+	})
+
+	it('keeps distinct field loaded-subset keys for different subscribe limits', () => {
+		type Row = {
+			readonly [EntityMetaKey.ParentSelectorKey]: string
+			readonly [EntityMetaKey.Source]: string
+			readonly valueKey: string
+			readonly valueIndex?: number
+		}
+
+		const rows = createCollection<Row, string>({
+			id: 'subscribe-architecture.spec.field-rows',
+			getKey: (row) => row.valueKey,
+			sync: {
+				sync: () => {},
+			},
+		})
+
+		const subsetOptions = (
+			limit: number
+		) => {
+			const query = new BaseQueryBuilder()
+				.from({
+					row: rows,
+				})
+				.where(({ row }) => (
+					and(
+						eq(row[EntityMetaKey.ParentSelectorKey], 'parent-a'),
+						eq(row[EntityMetaKey.Source], 'SourceA')
+					)
+				))
+				.orderBy(
+					({ row }) => row.valueKey,
+					'asc'
+				)
+				.limit(limit)
+			const ir = (query as { _getQuery(): { where?: { expression?: unknown }[], orderBy?: unknown } })._getQuery()
+			const where = ir.where?.[0]
+			return {
+				where: where != null && 'expression' in where ? where.expression : where,
+				orderBy: ir.orderBy,
+				limit,
+			}
+		}
+
+		const keys = [
+			1,
+			2,
+		].map((limit) => stringify(fieldLoadedSubsetKey(subsetOptions(limit))))
+
+		expect(keys[0]).not.toBe(keys[1])
+	})
+
 	it('keeps views, components, and routes from importing resolver/source internals', () => {
 		for (const filePath of [
 			...scannedSourceFiles.filter((sourceFilePath) => sourceFilePath.startsWith(join(srcPath, 'views'))),
@@ -983,6 +1165,8 @@ describe('client resolver architecture', () => {
 	})
 
 	it('keeps appClient usage limited to debug inspection and sanctioned local mutations', () => {
+		const violations: string[] = []
+
 		for (const filePath of scannedSourceFiles) {
 			const relativePath = filePath.slice(srcPath.length + 1)
 			const source = scannedSourceByFilePath[filePath]
@@ -999,14 +1183,22 @@ describe('client resolver architecture', () => {
 			)
 				continue
 
-			expect(relativePath, filePath).toMatch(/^views\//)
-			expect(source, filePath).toMatch(/\$\/collections\/localMutations\.ts/)
-			expect(source, filePath).not.toMatch(/\bappClient\.(?:entityCollections|entityFieldCollections|entityFieldCountCollections|queryClient|loadedSubsets|events|subscribe)\b/)
-			expect(source, filePath).toMatch(/\b(?:write|update|delete)Local[A-Za-z0-9_]*\([\s\S]{0,240}\bappClient\b/)
+			if (!/^views\//.test(relativePath))
+				violations.push(`${relativePath}: appClient outside sanctioned view/local route`)
+			if (!/\$\/collections\/localMutations\.ts/.test(source))
+				violations.push(`${relativePath}: appClient without localMutations import`)
+			if (/\bappClient\.(?:entityCollections|entityFieldCollections|entityFieldCountCollections|queryClient|loadedSubsets|events|subscribe)\b/.test(source))
+				violations.push(`${relativePath}: appClient reaches raw client internals`)
+			if (!/\b(?:write|update|delete)Local[A-Za-z0-9_]*\([\s\S]{0,240}\bappClient\b/.test(source))
+				violations.push(`${relativePath}: appClient usage is not a local mutation call`)
 		}
+
+		expect(violations).toEqual([])
 	})
 
 	it('keeps route-local selector bindings aligned with selector props', () => {
+		const violations: string[] = []
+
 		for (const filePath of scannedSourceFiles.filter((sourceFilePath) => (
 			sourceFilePath.startsWith(join(srcPath, 'routes'))
 			&& sourceFilePath.endsWith('.svelte')
@@ -1016,9 +1208,13 @@ describe('client resolver architecture', () => {
 			if (!/\bentitySelector\b/.test(source))
 				continue
 
-			expect(source, filePath).not.toMatch(/\bselector=\{selector\}/)
-			expect(source, filePath).not.toMatch(/\$network:\s*selector\b/)
+			if (/\bselector=\{selector\}/.test(source))
+				violations.push(`${filePath}: passes legacy selector prop`)
+			if (/\$network:\s*selector\b/.test(source))
+				violations.push(`${filePath}: maps route selector as network`)
 		}
+
+		expect(violations).toEqual([])
 	})
 
 	it('keeps Market_Timestamp feedKey resolvers tied to the requested feed identity', () => {
@@ -1032,7 +1228,10 @@ describe('client resolver architecture', () => {
 			'Defillama-Rest.ts',
 		]) {
 			const source = scannedSourceByFilePath[join(srcPath, 'resolvers', fileName)]
-			const resolverStart = source.indexOf('[Market_TimestampSelector.MarketTimestampMsFeedKey]: async')
+			const resolverStart = Math.max(
+				source.indexOf('[Market_TimestampSelector.MarketTimestampMsFeedKey]: async'),
+				source.indexOf('marketTimestampMsFeedKey: async')
+			)
 			expect(resolverStart, fileName).toBeGreaterThanOrEqual(0)
 			const resolverSource = source.slice(
 				resolverStart,
@@ -1068,7 +1267,7 @@ describe('client resolver architecture', () => {
 	it('documents OHLC quote volume as quote-leg units scaled by price scale', () => {
 		const source = scannedSourceByFilePath[join(srcPath, 'schema', 'Market_TimeInterval_Timestamp.ts')]
 
-		expect(source).toMatch(/Quote-leg candle volume, scaled by 1e8 like quote prices\.[\s\S]*name: 'quoteVolume'/)
+		expect(source).toMatch(/name: 'quoteVolume'[\s\S]*Quote-leg candle volume, scaled by 1e8 like quote prices\./)
 	})
 
 	it('keeps OHLC candle interval identity separate from provider lookback windows', () => {
@@ -1094,13 +1293,14 @@ describe('client resolver architecture', () => {
 				expect(resolverSource, fileName).not.toMatch(/\bincludes\(timeInterval\.value\)/)
 				expect(resolverSource, fileName).not.toMatch(/\bsome\(\(value\) => value === timeInterval\.value\)/)
 				expect(resolverSource, fileName).toMatch(/\btimeInterval:\s*marketOhlcDailyTimeInterval\b/)
+				expect(resolverSource, fileName).not.toMatch(/\[EntityMetaKey\.Selector\]:[\s\S]*?\bsource:\s*Source\./)
 			}
 		}
 
 		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'CoinMarketCap', 'Rest', 'queries.ts')]).toMatch(/count=\$\{lookbackDayCount\}/)
 		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Coinpaprika', 'OpenApi', 'queries.ts')]).toMatch(/limit=\$\{lookbackDayCount\}[\s\S]*interval=24h/)
-		expect(scannedSourceByFilePath[join(srcPath, 'views', 'MarketOhlcHub.svelte')]).not.toMatch(/\btimeInterval = \$bindable/)
-		expect(scannedSourceByFilePath[join(srcPath, 'views', 'MarketOhlcHub.svelte')]).not.toMatch(/\blookbackDayCount\s*\*\s*24\b/)
+		expect(scannedSourceByFilePath[join(srcPath, 'views', 'Market_TimeInterval_TimestampsView.svelte')]).not.toMatch(/\btimeInterval = \$bindable/)
+		expect(scannedSourceByFilePath[join(srcPath, 'views', 'Market_TimeInterval_TimestampsView.svelte')]).not.toMatch(/\blookbackDayCount\s*\*\s*24\b/)
 	})
 
 	it('does not export legacy raw Persisted collection aliases from app layout', () => {

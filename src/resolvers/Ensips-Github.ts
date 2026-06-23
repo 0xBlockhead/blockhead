@@ -10,8 +10,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { _GlobalSelector } from '$/schema/_Global.ts'
 import { SpecificationProposalSelector } from '$/schema/SpecificationProposal.ts'
-import { SpecificationRealmSelector } from '$/schema/SpecificationRealm.ts'
-import { SpecificationProposalKindSelector } from '$/schema/SpecificationProposalKind.ts'
 
 const githubEnsipProposalIndexRows = async (
 	data: {
@@ -86,42 +84,6 @@ export default {
 			entityType: EntityType._Global,
 			resolve: {
 				[_GlobalSelector.Scope]: async () => {
-				const { getContents } = await import('$/sources/Ensips/Github/queries.ts')
-				return githubEnsipProposalIndexRows(await getContents())
-			}
-			}
-		})({
-				fields: {
-			$$proposals: (snapshot) => snapshot,
-		},
-			}),
-
-		defineResolver(Source.Ensips_Github, {
-			entityType: EntityType.SpecificationRealm,
-			resolve: {
-				[SpecificationRealmSelector.Realm]: async ({ realm }) => {
-				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (realm !== SpecificationRealm.Ens) {
-					throw new Error('Ensips_Github: $$proposals only supports SpecificationRealm.Ens')
-				}
-				const { getContents } = await import('$/sources/Ensips/Github/queries.ts')
-				return githubEnsipProposalIndexRows(await getContents())
-			}
-			}
-		})({
-				fields: {
-			$$proposals: (snapshot) => snapshot,
-		},
-			}),
-
-		defineResolver(Source.Ensips_Github, {
-			entityType: EntityType.SpecificationProposalKind,
-			resolve: {
-				[SpecificationProposalKindSelector.RealmCategory]: async ({ category, realm }) => {
-				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (realm !== SpecificationRealm.Ens || category !== ProposalCategory.Ensip) {
-					throw new Error('Ensips_Github: $$proposals only supports ENSIP proposal kind')
-				}
 				const { getContents } = await import('$/sources/Ensips/Github/queries.ts')
 				return githubEnsipProposalIndexRows(await getContents())
 			}

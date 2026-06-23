@@ -1,29 +1,48 @@
-import { type as arktype } from 'arktype'
-
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
-import TronFullNodeRest from '$/sources/TronFullNode/Rest/index.ts'
+import { Source } from '$/sources/Source.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import {
+	tronFullNodeBindings,
+	tronFullNodePublicEnv,
+} from '$/sources/TronFullNode/bindings.ts'
 
 export const tronFullNodeRestEndpoints = [
 	{
 		slug: 'full_node_local',
-		restBaseUrl: 'http://127.0.0.1:8090',
+		restBaseUrl: tronFullNodeBindings[0].endpoints[0].locator,
 	},
 ] as const satisfies readonly {
 	slug: 'full_node_local'
 	restBaseUrl: string
 }[]
 
+export const tronFullNodeOrigins = [
+	...new Map(
+		tronFullNodeBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
+
 export default {
 	provider: SourceProvider.TronFullNode,
 	label: 'TRON FullNode',
-	env: arktype({
-		PUBLIC_TRON_FULL_NODE_REST_BASE_URL: 'string',
-	}),
-	origins: tronFullNodeRestEndpoints.map((endpoint) => ({
-		origin: endpoint.restBaseUrl,
-		corsEnabled: false,
-	})),
+	env: tronFullNodePublicEnv,
 	sources: [
-		TronFullNodeRest,
+		{
+			provider: SourceProvider.TronFullNode,
+			source: Source.TronFullNode_Rest,
+			label: 'TRON FullNode REST',
+			env: tronFullNodePublicEnv,
+		},
 	],
-} as const satisfies SourceProviderDefinition
+	bindings: tronFullNodeBindings,
+} satisfies SourceProviderDefinition

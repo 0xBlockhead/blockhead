@@ -1,10 +1,5 @@
-import { getText, githubHttp } from '$/sources/Github/Rest/client.ts'
-import { throwHttpError } from '$/lib/http.ts'
-import {
-	getRawUserContentUrl,
-	getRestRepoContentsUrl,
-} from '$/sources/Github/Rest/queries.ts'
-import DogecoinDips from '$/sources/DogecoinDips/index.ts'
+import { getGithubContents, getGithubRawText, githubContentsUrl, githubRawUrl } from '$/sources/_shared/hosts/Github/Http/client.ts'
+import { dogecoinDipsBindings } from '$/sources/DogecoinDips/bindings.ts'
 import type { DogecoinDipsGithubContents } from '$/sources/DogecoinDips/Github/types.ts'
 
 const dogecoinDipsGithubRepo = {
@@ -14,28 +9,19 @@ const dogecoinDipsGithubRepo = {
 	ref: 'master',
 } as const
 
-export const getContents = async (): Promise<DogecoinDipsGithubContents> => {
-	const response = await githubHttp({
-		url: getRestRepoContentsUrl({
-			owner: dogecoinDipsGithubRepo.owner,
-			repo: dogecoinDipsGithubRepo.repo,
-			pathInRepo: dogecoinDipsGithubRepo.path,
-			ref: dogecoinDipsGithubRepo.ref,
-		}),
-		origins: DogecoinDips.origins,
-	})
-	if (!response.ok) await throwHttpError('DogecoinDips GitHub contents', response)
-	return response.json<DogecoinDipsGithubContents>()
-}
+export const getContents = (): Promise<DogecoinDipsGithubContents> => (
+	getGithubContents({
+		endpoints: dogecoinDipsBindings[0].endpoints,
+		target: dogecoinDipsGithubRepo,
+	}) as Promise<DogecoinDipsGithubContents>
+)
 
 export const getMediaWikiText = ({ number }: { number: number }) => (
-	getText({
-		url: getRawUserContentUrl({
-			owner: dogecoinDipsGithubRepo.owner,
-			repo: dogecoinDipsGithubRepo.repo,
-			ref: dogecoinDipsGithubRepo.ref,
-			pathInRepo: `dip-${number.toString().padStart(4, '0')}.mediawiki`,
-		}),
-		origins: DogecoinDips.origins,
+	getGithubRawText({
+		endpoints: dogecoinDipsBindings[0].endpoints,
+		target: {
+			...dogecoinDipsGithubRepo,
+			path: `dip-${number.toString().padStart(4, '0')}.mediawiki`,
+		},
 	})
 )

@@ -14,8 +14,7 @@ import type {
 	PipedStreamItem,
 	PipedStream,
 } from '$/sources/Piped/Rest/types.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import { Source } from '$/sources/Source.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 
 const clampPipedLimit = (limit: number) => (
 	Math.min(100, Math.max(1, limit))
@@ -72,7 +71,7 @@ const pipedPlaylistSummariesFromTabContent = (
 )
 
 export const getStream = async (
-	publicEnv: SourcePublicEnvFor<Source.Piped_Rest>,
+	publicEnv: SourcePublicEnv,
 	videoId: string
 ) => (
 	pipedApiGet<PipedStream>(
@@ -82,7 +81,7 @@ export const getStream = async (
 )
 
 export const getChannel = async (
-	publicEnv: SourcePublicEnvFor<Source.Piped_Rest>,
+	publicEnv: SourcePublicEnv,
 	channelId: string
 ) => (
 	pipedApiGet<PipedChannel>(
@@ -92,7 +91,7 @@ export const getChannel = async (
 )
 
 export const listTrending = async (
-	publicEnv: SourcePublicEnvFor<Source.Piped_Rest>,
+	publicEnv: SourcePublicEnv,
 	limit: number,
 	region = 'US'
 ) => (
@@ -107,7 +106,7 @@ export const listTrending = async (
 )
 
 export const getPlaylist = async (
-	publicEnv: SourcePublicEnvFor<Source.Piped_Rest>,
+	publicEnv: SourcePublicEnv,
 	playlistId: string
 ) => (
 	pipedApiGet<PipedPlaylist>(
@@ -117,7 +116,7 @@ export const getPlaylist = async (
 )
 
 export const listPlaylistVideos = async (
-	publicEnv: SourcePublicEnvFor<Source.Piped_Rest>,
+	publicEnv: SourcePublicEnv,
 	playlistId: string,
 	limit: number,
 	options?: {
@@ -150,7 +149,7 @@ export const listPlaylistVideos = async (
 )
 
 export const getChannelTab = async (
-	publicEnv: SourcePublicEnvFor<Source.Piped_Rest>,
+	publicEnv: SourcePublicEnv,
 	data: string,
 	nextpage?: string
 ) => (
@@ -165,7 +164,7 @@ export const getChannelTab = async (
 )
 
 export const getComments = async (
-	publicEnv: SourcePublicEnvFor<Source.Piped_Rest>,
+	publicEnv: SourcePublicEnv,
 	videoId: string
 ) => (
 	pipedApiGet<PipedComments>(
@@ -175,7 +174,7 @@ export const getComments = async (
 )
 
 export const listComments = async (
-	publicEnv: SourcePublicEnvFor<Source.Piped_Rest>,
+	publicEnv: SourcePublicEnv,
 	videoId: string,
 	limit: number,
 	options?: {
@@ -205,7 +204,7 @@ export const listComments = async (
 )
 
 export const listChannelPlaylists = async (
-	publicEnv: SourcePublicEnvFor<Source.Piped_Rest>,
+	publicEnv: SourcePublicEnv,
 	channelId: string,
 	limit: number,
 	options?: {
@@ -235,7 +234,7 @@ export const listChannelPlaylists = async (
 }
 
 export const listChannelVideos = async (
-	publicEnv: SourcePublicEnvFor<Source.Piped_Rest>,
+	publicEnv: SourcePublicEnv,
 	channelId: string,
 	limit: number,
 	options?: {

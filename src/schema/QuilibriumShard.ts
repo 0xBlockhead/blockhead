@@ -1,23 +1,17 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum QuilibriumShardSelector {
 	NetworkShardKey = 'networkShardKey',
 }
-
 export default {
 	entityType: EntityType.QuilibriumShard,
-
-	label: 'Quilibrium Shard',
-	labelPlural: 'Quilibrium Shards',
-
+	label: 'quilibrium shard',
+	labelPlural: 'quilibrium shards',
 	selectors: [
 		{
 			name: QuilibriumShardSelector.NetworkShardKey,
@@ -27,31 +21,41 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'shardKey',
+			label: 'shard key',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'shardKind',
+			label: 'shard kind',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$applicationAccount',
+			label: 'application account',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.QuilibriumAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: '$$frames',
+			label: 'frames',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.QuilibriumFrame,
+			cardinality: EntityFieldCardinality.Many,
+		},
+	],
 } as const satisfies EntityDefinition

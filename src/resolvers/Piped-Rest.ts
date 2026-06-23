@@ -17,7 +17,6 @@ import { YouTubeCommentSelector } from '$/schema/YouTubeComment.ts'
 import { YouTubeChannel_TimestampSelector } from '$/schema/YouTubeChannel_Timestamp.ts'
 import { YouTubeComment_TimestampSelector } from '$/schema/YouTubeComment_Timestamp.ts'
 import { YouTubePlaylist_TimestampSelector } from '$/schema/YouTubePlaylist_Timestamp.ts'
-import { YouTubeNetworkSelector } from '$/schema/YouTubeNetwork.ts'
 export default {
 	source: Source.Piped_Rest,
 
@@ -178,74 +177,6 @@ export default {
 				itemCount: (timestamp) => timestamp.itemCount,
 			},
 		}),
-		defineResolver(Source.Piped_Rest, {
-			entityType: EntityType.YouTubeNetwork,
-			resolve: {
-				[YouTubeNetworkSelector.Scope]: async (_entitySelector, context) => {
-					const { getChannelIdFromUploaderUrl, listTrending } = await import('$/sources/Piped/Rest/queries.ts')
-					const publicEnv = context.publicEnv
-					const limit = resolverContextRowLimit(context)
-					return (
-						(await listTrending(publicEnv, limit))
-							.flatMap((video) => {
-							const channelId = getChannelIdFromUploaderUrl(video.uploaderUrl)
-							return channelId == null ?
-								[]
-							:
-								[{
-									[EntityMetaKey.Selector]: { channelId },
-								}]
-							})
-					)
-				}
-			},
-		})({
-			fields: {
-				$$youtubeChannels: (network) => network,
-			},
-		}),
-
-		defineResolver(Source.Piped_Rest, {
-			entityType: EntityType.YouTubeNetwork,
-			resolve: {
-				[YouTubeNetworkSelector.Scope]: async (_entitySelector, context) => {
-					const { listTrending, getVideoIdFromUrl } = await import('$/sources/Piped/Rest/queries.ts')
-					const publicEnv = context.publicEnv
-					const limit = resolverContextRowLimit(context)
-					return (
-						((await listTrending(publicEnv, limit)))
-							.flatMap((video) => (
-							((videoId) => (
-								videoId == null ?
-									[]
-								:
-									[{
-										[EntityMetaKey.Selector]: { videoId },
-									}]
-							))(getVideoIdFromUrl(video.url))
-							))
-					)
-				}
-			},
-		})({
-			fields: {
-				$$youtubeVideos: (network) => network,
-			},
-		}),
-
-		defineResolver(Source.Piped_Rest, {
-			entityType: EntityType.YouTubeNetwork,
-			resolve: {
-				[YouTubeNetworkSelector.Scope]: async () => (
-					[]
-				)
-			},
-		})({
-			fields: {
-				$$youtubePlaylists: (network) => network,
-			},
-		}),
-
 		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType.YouTubeChannel,
 			resolve: {

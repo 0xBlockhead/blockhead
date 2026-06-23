@@ -1,23 +1,30 @@
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
-import { stringify } from 'devalue'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
+	const listView = {
+		entityType: EntityType.HyperliquidSpotAsset,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
 		selection,
-		title = 'Spot assets',
+		title,
 		open = $bindable(true),
-		id,
+		id = 'HyperliquidSpotAssets',
 		href = '',
 		...EntitiesListProps
 	}: WithRest<
@@ -25,7 +32,7 @@ import { stringify } from 'devalue'
 			selection: EntityProxyEntitiesResource<typeof schema, EntityType.HyperliquidSpotAsset>
 			title?: string
 			open?: boolean
-			id: string
+			id?: string
 			href?: string
 		},
 		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
@@ -34,59 +41,26 @@ import { stringify } from 'devalue'
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import HyperliquidSpotAssetView from '$/views/HyperliquidSpotAssetView.svelte'
 </script>
 
 
 <EntitiesList
-	entityType={EntityType.HyperliquidSpotAsset}
+	entityType={listView.entityType}
 	{title}
 	bind:open
 	{id}
 	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>Spot assets describe HyperCore token metadata used by spot pairs.</p>
-	{/snippet}
-
-	{#snippet body()}
-		{#if open}
-			<ResourceBoundary resource={selection({
-					sources: [
-						Source.Hyperliquid_Rest,
-					],
-					limit: 16,
-				})} placeholderText="Loading assets…">
-				{#snippet children(assets)}
-					<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.HyperliquidSpotAsset}
-				id={`${id}-items`}
-				href={href}
-				getKey={(asset) => stringify(asset.entitySelector)}
-				open={true}
-				items={assets.entities}
-				{title}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">No spot assets yet.</p>
-				{/snippet}
-
-				{#snippet Item({ item })}
-					<HyperliquidSpotAssetView
-						selection={select(EntityType.HyperliquidSpotAsset, item.entitySelector)}
-						layout={EntityLayout.Summary}
-
-					/>
-				{/snippet}
-					</EntitiesList>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+	{#snippet Item({ item })}
+		<HyperliquidSpotAssetView
+			selection={select(EntityType.HyperliquidSpotAsset, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

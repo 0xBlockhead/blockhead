@@ -2,15 +2,93 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			'address',
+			{
+				label: 'actor code CID',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					'address',
+					{
+						label: 'actor code CID',
+					},
+				],
+				[
+					'nonce',
+					{
+						label: 'balance in attoFIL',
+					},
+					{
+						label: 'latest observation row',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'State observations',
+					items: [
+						{
+							label: 'timestamped actor state observations',
+						},
+					],
+				},
+				{
+					label: 'Messages',
+					items: [
+						{
+							label: 'Filecoin messages when scoped by source context',
+						},
+					],
+				},
+				{
+					label: 'Miner',
+					items: [
+						{
+							label: 'Filecoin miner row when the address is a miner actor',
+						},
+					],
+				},
+				{
+					label: 'Network',
+					items: [
+						{
+							label: 'parent Filecoin network',
+						},
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'StateGetActor',
+						},
+						{
+							label: 'indexer address payloads',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +99,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,63 +107,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.FilecoinActor}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.address}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		<TruncatedValue
-			value={selection.entitySelector.address}
-			format={TruncatedValueFormat.Abbr}
-		/>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection(
-					({ fields: { actorCodeCid: true, nonce: true, balanceAttoFil: true } }),
-				)}
-			placeholderText="Loading Filecoin actor…"
-		>
-			{#snippet children(filecoinActor)}
-				<dl>
-					{#if filecoinActor.actorCodeCid != null}
-						<div>
-							<dt>Actor Code CID</dt>
-							<dd>
-								<TruncatedValue
-									value={filecoinActor.actorCodeCid}
-									format={TruncatedValueFormat.Abbr}
-								/></dd>
-						</div>
-					{/if}
-
-					{#if filecoinActor.nonce != null}
-						<div>
-							<dt>Nonce</dt>
-							<dd><NumberValue value={filecoinActor.nonce} /></dd>
-						</div>
-					{/if}
-
-					{#if filecoinActor.balanceAttoFil != null}
-						<div>
-							<dt>Balance</dt>
-							<dd><NumberValue value={filecoinActor.balanceAttoFil} /> attoFIL</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

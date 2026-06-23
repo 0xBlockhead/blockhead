@@ -1,25 +1,33 @@
-import { type as arktype } from 'arktype'
-
+import { Source } from '$/sources/Source.ts'
 import {
-	type SourceProviderDefinition,
 	SourceProvider,
+	type SourceProviderDefinition,
 } from '$/sources/SourceProvider.ts'
-import { gatewayOrigin } from '$/sources/TheGraph/Graphql/constants.ts'
-import TheGraphGraphqlSource from '$/sources/TheGraph/Graphql/index.ts'
+import { theGraphBindings } from '$/sources/TheGraph/bindings.ts'
+
+export const theGraphOrigins = [
+	...new Map(
+		theGraphBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.TheGraph,
 	label: 'The Graph',
-	env: arktype({
-		PUBLIC_THEGRAPH_API_KEY: 'string > 0?',
-	}),
-	origins: [
+	sources: [
 		{
-			origin: gatewayOrigin,
-			corsEnabled: false,
+			provider: SourceProvider.TheGraph,
+			source: Source.TheGraph_Graphql,
+			label: 'The Graph GraphQL',
 		},
 	],
-	sources: [
-		TheGraphGraphqlSource,
-	],
+	bindings: theGraphBindings,
 } satisfies SourceProviderDefinition

@@ -1,29 +1,18 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum TronBlockSelector {
 	NetworkHeight = 'networkHeight',
 	NetworkHeightHash = 'networkHeightHash',
 }
-import { Source } from '$/sources/Source.ts'
-
-const tronPublicBlockSources = [
-	Source.TronScan_Rest,
-	Source.TronGrid_Rest,
-]
-
 export default {
 	entityType: EntityType.TronBlock,
-
-	label: 'TRON Block',
-	labelPlural: 'TRON Blocks',
-
+	label: 'tron block',
+	labelPlural: 'tron blocks',
 	selectors: [
 		{
 			name: TronBlockSelector.NetworkHeight,
@@ -41,84 +30,86 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'height',
+			label: 'Height',
+			description: 'The block or ledger height in its network.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'hash',
+			label: 'Hash',
+			description: 'The hash that identifies this object in its protocol.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: tronPublicBlockSources,
 		},
 		{
 			name: '$parent',
+			label: 'parent',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.TronBlock,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: tronPublicBlockSources,
 		},
 		{
 			name: 'parentHash',
+			label: 'parent hash',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: tronPublicBlockSources,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: tronPublicBlockSources,
 		},
 		{
 			name: '$witness',
+			label: 'witness',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.TronWitness,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: tronPublicBlockSources,
 		},
 		{
 			name: 'txTrieRoot',
+			label: 'transaction trie root',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: tronPublicBlockSources,
 		},
 		{
 			name: 'version',
+			label: 'version',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: tronPublicBlockSources,
 		},
 		{
 			name: 'transactionCount',
+			label: 'transaction count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: tronPublicBlockSources,
 		},
 		{
 			name: '$$transactions',
+			label: 'transactions',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.TronTransaction,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.TronGrid_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

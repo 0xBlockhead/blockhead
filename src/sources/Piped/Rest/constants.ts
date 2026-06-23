@@ -1,8 +1,6 @@
-import type { SourceOrigin } from '$/sources/SourceProvider.ts'
-
 export const pipedApiDefaultOrigin = 'https://api.piped.private.coffee' as const
 
-export const pipedApiOrigins: readonly SourceOrigin[] = [
+export const pipedApiOrigins = [
 	{
 		origin: pipedApiDefaultOrigin,
 		corsEnabled: false,

@@ -2,15 +2,78 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'transaction',
+			},
+			{
+				label: 'action index',
+			},
+			{
+				label: 'action kind',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'transaction',
+					},
+					{
+						label: 'action index',
+					},
+					{
+						label: 'action kind',
+					},
+					{
+						label: 'method name',
+					},
+					{
+						label: 'deposit',
+					},
+					{
+						label: 'receiver context',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Transaction',
+					items: [
+						{
+							label: 'parent NEAR transaction',
+						},
+					],
+				},
+				{
+					label: 'Payload',
+					items: [
+						{
+							label: 'action-specific transfer/stake/key/deploy/function-call fields when source-backed',
+						},
+					],
+				},
+				{
+					label: 'Effects',
+					items: [
+						{
+							label: 'execution outcomes produced by the transaction status payload',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +84,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,67 +92,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.NearAction}
 	entitySelector={selection.entitySelector}
-	title={`Action #${selection.entitySelector.actionIndex.toString()}`}
-	idDragPlainText={selection.entitySelector.actionIndex.toString()}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Value()}
-		<span data-badge="small">
-			#{selection.entitySelector.actionIndex.toString()}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>Action </span>
-			{#if Value}
-			{@render Value()}
-					{/if}
-		</span>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection(
-					({ fields: { actionKind: true, methodName: true, depositYoctoNear: true } }),
-				)}
-			placeholderText={`Loading NEAR Action...`}
-		>
-			{#snippet children(nearAction)}
-				<dl>
-					{#if nearAction.actionKind != null}
-						<div>
-							<dt>Action Kind</dt>
-							<dd>{nearAction.actionKind}</dd>
-						</div>
-					{/if}
-
-					{#if nearAction.methodName != null}
-						<div>
-							<dt>Method Name</dt>
-							<dd>{nearAction.methodName}</dd>
-						</div>
-					{/if}
-
-					{#if nearAction.depositYoctoNear != null}
-						<div>
-							<dt>Deposit Yocto Near</dt>
-							<dd><NumberValue value={nearAction.depositYoctoNear} /> yoctoNEAR</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

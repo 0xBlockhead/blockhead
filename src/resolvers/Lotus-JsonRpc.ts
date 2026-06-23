@@ -119,7 +119,7 @@ export default {
 		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinNetwork_Timestamp,
 			resolve: {
-				[FilecoinNetwork_TimestampSelector.NetworkTimestampMs]: async ({ $network }) => {
+				[FilecoinNetwork_TimestampSelector.NetworkTimestampMsSource]: async ({ $network }) => {
 					assertFilecoinMainnet($network)
 					const {
 						getHead,
@@ -313,6 +313,7 @@ export default {
 							[EntityMetaKey.Selector]: {
 								$network: $network,
 								timestampMs: Date.now(),
+								source: Source.Lotus_JsonRpc,
 							},
 						},
 					]

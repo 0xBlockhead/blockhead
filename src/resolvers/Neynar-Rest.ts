@@ -5,7 +5,6 @@ import {
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { resolveMediaUrlTransport } from '$/lib/media.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
-import type { CastHash } from '$/schema/FarcasterCast.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
@@ -20,6 +19,8 @@ import { BlockheadFarcasterAccountConnectionSelector } from '$/schema/BlockheadF
 import { FarcasterCastSelector } from '$/schema/FarcasterCast.ts'
 import { FarcasterFeedSelector } from '$/schema/FarcasterFeed.ts'
 import { FarcasterChannelSelector } from '$/schema/FarcasterChannel.ts'
+
+type CastHash = `0x${string}`
 
 const zeroXLowerHexCastHash = (hash: string): CastHash => {
 	const hex = (
@@ -104,16 +105,13 @@ export default {
 					const bio = optionalNonemptyString(
 						bioRaw != null && typeof bioRaw === 'object' ? bioRaw.text : bioRaw ?? undefined
 					)
+					const iconUrl = neynarPfpHttpUrl(user.pfp_url)
+					const iconMedia = iconUrl == null ? undefined : mediaFromUrl(iconUrl, MediaType.Image)
 					return {
 						...(username != null && { username }),
 						...(displayName != null && { displayName }),
-						...((
-							iconMedia
-					) => (
-						iconMedia != null && {
-							$icon: iconMedia,
-						}
-					))(mediaFromUrl(neynarPfpHttpUrl(user.pfp_url), MediaType.Image)),
+						...(iconUrl != null && { iconUrl }),
+						...(iconMedia != null && { $icon: iconMedia }),
 						...(bio != null && { bio }),
 						...verifiedPart,
 						$$verifiedAddresses: [
@@ -167,6 +165,7 @@ export default {
 			fields: {
 				username: (user) => user.username,
 				displayName: (user) => user.displayName,
+				iconUrl: (user) => user.iconUrl,
 				$icon: (user) => user.$icon,
 				bio: (user) => user.bio,
 				$primaryEvmAccount: (user) => user.$primaryEvmAccount,
@@ -202,16 +201,13 @@ export default {
 					const bio = optionalNonemptyString(
 						bioRaw != null && typeof bioRaw === 'object' ? bioRaw.text : bioRaw ?? undefined
 					)
+					const iconUrl = neynarPfpHttpUrl(user.pfp_url)
+					const iconMedia = iconUrl == null ? undefined : mediaFromUrl(iconUrl, MediaType.Image)
 					return {
 						...(username != null && { username }),
 						...(displayName != null && { displayName }),
-						...((
-							iconMedia
-					) => (
-						iconMedia != null && {
-							$icon: iconMedia,
-						}
-					))(mediaFromUrl(neynarPfpHttpUrl(user.pfp_url), MediaType.Image)),
+						...(iconUrl != null && { iconUrl }),
+						...(iconMedia != null && { $icon: iconMedia }),
 						...(bio != null && { bio }),
 						...(ethList.length > 0 && { verifications: ethList }),
 					}
@@ -221,6 +217,7 @@ export default {
 			fields: {
 				username: (connection) => connection.username,
 				displayName: (connection) => connection.displayName,
+				iconUrl: (connection) => connection.iconUrl,
 				$icon: (connection) => connection.$icon,
 				bio: (connection) => connection.bio,
 				verifications: (connection) => connection.verifications,
@@ -339,16 +336,18 @@ export default {
 								),
 								title: optionalNonemptyString(embed.metadata?.html?.ogTitle),
 								description: optionalNonemptyString(embed.metadata?.html?.ogDescription),
-								...((
-									iconMedia
-							) => (
-								iconMedia != null && {
-									$icon: iconMedia,
-								}
-							))(mediaFromUrl(neynarPfpHttpUrl(
-										og0 ?? undefined,
-										{ pageBaseUrl: optionalNonemptyString(embed.url) }
-										), MediaType.Image)),
+								...((iconUrl) => (
+									iconUrl == null ?
+										{}
+									:
+										{
+											iconUrl,
+											...((iconMedia) => iconMedia != null && { $icon: iconMedia })(mediaFromUrl(iconUrl, MediaType.Image)),
+										}
+								))(neynarPfpHttpUrl(
+									og0 ?? undefined,
+									{ pageBaseUrl: optionalNonemptyString(embed.url) }
+								)),
 								quotedPreviewText: optionalNonemptyString(embed.cast?.text),
 							}))
 						}),
@@ -460,16 +459,18 @@ export default {
 								),
 								title: optionalNonemptyString(embed.metadata?.html?.ogTitle),
 								description: optionalNonemptyString(embed.metadata?.html?.ogDescription),
-								...((
-									iconMedia
-							) => (
-								iconMedia != null && {
-									$icon: iconMedia,
-								}
-							))(mediaFromUrl(neynarPfpHttpUrl(
-										og0 ?? undefined,
-										{ pageBaseUrl: optionalNonemptyString(embed.url) }
-										), MediaType.Image)),
+								...((iconUrl) => (
+									iconUrl == null ?
+										{}
+									:
+										{
+											iconUrl,
+											...((iconMedia) => iconMedia != null && { $icon: iconMedia })(mediaFromUrl(iconUrl, MediaType.Image)),
+										}
+								))(neynarPfpHttpUrl(
+									og0 ?? undefined,
+									{ pageBaseUrl: optionalNonemptyString(embed.url) }
+								)),
 								quotedPreviewText: optionalNonemptyString(embed.cast?.text),
 							}))
 						}),
@@ -508,8 +509,9 @@ export default {
 		defineResolver(Source.Neynar_Rest, {
 			entityType: EntityType.FarcasterFeed,
 			resolve: {
-				[FarcasterFeedSelector.Trending]: async (_selector, context) => {
+				[FarcasterFeedSelector.Variant]: async ({ variant }, context) => {
 					const { getFeed } = await import('$/sources/Neynar/Rest/queries.ts')
+					if (variant !== 'trending') throw new Error(`Neynar_Rest: unsupported feed variant ${variant}`)
 					const limit = resolverContextRowLimit(context)
 					const page = await getFeed(
 						context.publicEnv,

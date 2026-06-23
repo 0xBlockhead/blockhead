@@ -1,35 +1,38 @@
-import { type as arktype } from 'arktype'
-
+import { Source } from '$/sources/Source.ts'
 import {
-	type SourceProviderDefinition,
 	SourceProvider,
+	type SourceProviderDefinition,
 } from '$/sources/SourceProvider.ts'
-import {
-	demoOrigin,
-	proOrigin,
-} from '$/sources/Coingecko/Rest/constants.ts'
-import CoingeckoOpenApiSource from '$/sources/Coingecko/OpenApi/index.ts'
-import CoingeckoRestSource from '$/sources/Coingecko/Rest/index.ts'
+import { coingeckoBindings } from '$/sources/Coingecko/bindings.ts'
+
+export const coingeckoOrigins = [
+	...new Map(
+		coingeckoBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.Coingecko,
 	label: 'Coingecko',
-	env: arktype({
-		PUBLIC_COINGECKO_PRO_API_KEY: 'string > 0?',
-		PUBLIC_COINGECKO_DEMO_API_KEY: 'string > 0?',
-	}),
-	origins: [
-		{
-			origin: demoOrigin,
-			corsEnabled: false,
-		},
-		{
-			origin: proOrigin,
-			corsEnabled: false,
-		},
-	],
 	sources: [
-		CoingeckoRestSource,
-		CoingeckoOpenApiSource,
+		{
+			provider: SourceProvider.Coingecko,
+			source: Source.Coingecko_OpenApi,
+			label: 'Coingecko OpenAPI',
+		},
+		{
+			provider: SourceProvider.Coingecko,
+			source: Source.Coingecko_Rest,
+			label: 'Coingecko REST',
+		},
 	],
+	bindings: coingeckoBindings,
 } satisfies SourceProviderDefinition

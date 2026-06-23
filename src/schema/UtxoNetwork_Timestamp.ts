@@ -1,172 +1,148 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum UtxoNetwork_TimestampSelector {
-	NetworkTimestampMs = 'networkTimestampMs',
+	NetworkTimestampMsSource = '$network+timestampMs+source',
 }
-import { Source } from '$/sources/Source.ts'
-
 export default {
 	entityType: EntityType.UtxoNetwork_Timestamp,
-
-	label: 'UTXO network snapshot',
-	labelPlural: 'UTXO network snapshots',
-
+	label: 'UTXO network timestamp',
+	labelPlural: 'UTXO network observations',
 	selectors: [
 		{
-			name: UtxoNetwork_TimestampSelector.NetworkTimestampMs,
+			name: UtxoNetwork_TimestampSelector.NetworkTimestampMsSource,
 			fields: [
 				'$network',
 				'timestampMs',
+				'source',
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'source',
+			label: 'Source',
+			description: 'The source that produced this observation.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'bestBlockHeight',
+			label: 'best block height',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockchair_Rest,
-			],
 		},
 		{
 			name: 'bestBlockHash',
+			label: 'best block hash',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockchair_Rest,
-			],
 		},
 		{
 			name: 'bestBlockTimeMs',
+			label: 'best block time ms',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockchair_Rest,
-			],
 		},
 		{
 			name: 'blockCount',
+			label: 'block count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockchair_Rest,
-			],
 		},
 		{
 			name: 'transactionCount',
+			label: 'transaction count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockchair_Rest,
-			],
 		},
 		{
 			name: 'blocks24h',
+			label: 'blocks24h',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockchair_Rest,
-			],
 		},
 		{
 			name: 'transactions24h',
+			label: 'transactions24h',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockchair_Rest,
-			],
 		},
 		{
 			name: 'mempoolTransactionCount',
+			label: 'mempool transaction count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockchair_Rest,
-			],
 		},
 		{
 			name: 'mempoolSizeBytes',
+			label: 'mempool size bytes',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockchair_Rest,
-			],
 		},
 		{
 			name: 'mempoolTps',
+			label: 'mempool tps',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockchair_Rest,
-			],
 		},
 		{
 			name: 'averageTransactionFee24hSats',
+			label: 'average transaction fee24h sats',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockchair_Rest,
-			],
 		},
 		{
 			name: 'medianTransactionFee24hSats',
+			label: 'median transaction fee24h sats',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockchair_Rest,
-			],
 		},
 		{
 			name: 'suggestedTransactionFeePerByteSats',
+			label: 'suggested transaction fee per byte sats',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockchair_Rest,
-			],
 		},
 		{
 			name: 'blockchainSizeBytes',
+			label: 'blockchain size bytes',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockchair_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

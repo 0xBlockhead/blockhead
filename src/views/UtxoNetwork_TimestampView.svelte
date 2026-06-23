@@ -1,208 +1,147 @@
 <script lang="ts">
 	// Types/constants
+	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'timestamp',
+			},
+			'source',
+			{
+				label: 'best block height/hash',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'timestamp',
+					},
+					'source',
+					{
+						label: 'best block height/hash',
+					},
+					{
+						label: 'mempool transaction count',
+					},
+					{
+						label: 'mempool size',
+					},
+					{
+						label: 'suggested fee',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Head',
+					items: [
+						{
+							label: 'best block time/hash',
+						},
+					],
+				},
+				{
+					label: 'Chain totals',
+					items: [
+						{
+							label: 'block count',
+						},
+						{
+							label: 'transaction count',
+						},
+						{
+							label: 'chain size',
+						},
+					],
+				},
+				{
+					label: 'Recent activity',
+					items: [
+						{
+							label: '24h block/transaction counts',
+						},
+					],
+				},
+				{
+					label: 'Mempool',
+					items: [
+						{
+							label: 'count',
+						},
+						{
+							label: 'bytes',
+						},
+						{
+							label: 'TPS',
+						},
+						{
+							label: 'suggested fee',
+						},
+					],
+				},
+				{
+					label: 'Fee summary',
+					items: [
+						{
+							label: 'average/median 24h fees',
+						},
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'node RPC',
+						},
+						{
+							label: 'Blockchair dashboard stats',
+						},
+						{
+							label: 'Esplora/mempool.space mempool and fee payloads',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
-		layout = EntityLayout.SummaryDetails,
-		open = $bindable(layout === EntityLayout.SummaryDetails),
-		sources = [
-			Source.Blockchair_Rest,
-		],
-	}: {
-		selection: EntityProxyResource<typeof schema, EntityType.UtxoNetwork_Timestamp>
-		layout?: EntityLayout
-		open?: boolean
-		sources?: readonly Source[]
-	} = $props()
-
-
-	const snapshot = $derived(selection({
-			sources,
+		open = $bindable(true),
+		...EntityViewProps
+	}: WithRest<
+		{
+			selection: EntityProxyResource<typeof schema, EntityType.UtxoNetwork_Timestamp>
+			open?: boolean
 		},
-	))
-	const bestBlockHeight = $derived(snapshot.bestBlockHeight)
-	const bestBlockHash = $derived(snapshot.bestBlockHash)
-	const bestBlockTimeMs = $derived(snapshot.bestBlockTimeMs)
-	const blockCount = $derived(snapshot.blockCount)
-	const transactionCount = $derived(snapshot.transactionCount)
-	const blocks24h = $derived(snapshot.blocks24h)
-	const transactions24h = $derived(snapshot.transactions24h)
-	const mempoolTransactionCount = $derived(snapshot.mempoolTransactionCount)
-	const mempoolSizeBytes = $derived(snapshot.mempoolSizeBytes)
-	const mempoolTps = $derived(snapshot.mempoolTps)
-	const averageTransactionFee24hSats = $derived(snapshot.averageTransactionFee24hSats)
-	const medianTransactionFee24hSats = $derived(snapshot.medianTransactionFee24hSats)
-	const suggestedTransactionFeePerByteSats = $derived(snapshot.suggestedTransactionFeePerByteSats)
-	const blockchainSizeBytes = $derived(snapshot.blockchainSizeBytes)
+		Pick<
+			ComponentProps<typeof EntityView2>,
+			| 'layout'
+			| 'showTypeAnnotation'
+		>
+	> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.UtxoNetwork_Timestamp}
 	entitySelector={selection.entitySelector}
 	bind:open
-	{layout}
->
-	{#snippet Value()}
-		<ResourceBoundary
-			resource={bestBlockHeight}
-			placeholderText="Loading UTXO network snapshot…"
-		>
-			{#snippet children(bestBlockHeight)}
-				{#if bestBlockHeight !== undefined}
-					<NumberValue value={bestBlockHeight} />
-				{:else}
-					<Timestamp timestamp={selection.entitySelector.timestampMs} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={bestBlockHeight}
-			placeholderText="Loading UTXO network snapshot…"
-		>
-			{#snippet children(bestBlockHeight)}
-				<dl data-column-item="center">
-					{#if bestBlockHeight !== undefined}
-						<div>
-							<dt>Best block</dt>
-							<dd><NumberValue value={bestBlockHeight} /></dd>
-						</div>
-					{/if}
-
-					{#if mempoolTransactionCount !== undefined}
-						<div>
-							<dt>Mempool transactions</dt>
-							<dd><NumberValue resource={mempoolTransactionCount} /></dd>
-						</div>
-					{/if}
-
-					{#if suggestedTransactionFeePerByteSats !== undefined}
-						<div>
-							<dt>Suggested fee</dt>
-							<dd><NumberValue resource={suggestedTransactionFeePerByteSats} /> sat/vB</dd>
-						</div>
-					{/if}
-
-					{#if bestBlockTimeMs !== undefined}
-						<div>
-							<dt>Best block time</dt>
-							<dd>
-								<ResourceBoundary
-									resource={bestBlockTimeMs}
-									placeholderText="Loading block time…"
-								>
-									{#snippet children(bestBlockTimeMs)}
-										{#if bestBlockTimeMs !== undefined}
-											<Timestamp timestamp={bestBlockTimeMs} />
-										{/if}
-									{/snippet}
-								</ResourceBoundary>
-							</dd>
-						</div>
-					{/if}
-
-					{#if open && bestBlockHash != null}
-						<div>
-							<dt>Best block hash</dt>
-							<dd>
-								<ResourceBoundary
-									resource={bestBlockHash}
-									placeholderText="Loading block hash…"
-								>
-									{#snippet children(bestBlockHash)}
-										{#if bestBlockHash !== undefined}
-											<TruncatedValue
-												value={bestBlockHash}
-												format={TruncatedValueFormat.Abbr}
-											/>
-										{/if}
-									{/snippet}
-								</ResourceBoundary>
-							</dd>
-						</div>
-					{/if}
-
-					{#if open && blockCount !== undefined}
-						<div>
-							<dt>Blocks</dt>
-							<dd><NumberValue resource={blockCount} /></dd>
-						</div>
-					{/if}
-
-					{#if open && transactionCount !== undefined}
-						<div>
-							<dt>Transactions</dt>
-							<dd><NumberValue resource={transactionCount} /></dd>
-						</div>
-					{/if}
-
-					{#if open && blocks24h !== undefined}
-						<div>
-							<dt>Blocks 24h</dt>
-							<dd><NumberValue resource={blocks24h} /></dd>
-						</div>
-					{/if}
-
-					{#if open && transactions24h !== undefined}
-						<div>
-							<dt>Transactions 24h</dt>
-							<dd><NumberValue resource={transactions24h} /></dd>
-						</div>
-					{/if}
-
-					{#if open && mempoolSizeBytes !== undefined}
-						<div>
-							<dt>Mempool size</dt>
-							<dd><NumberValue resource={mempoolSizeBytes} /> bytes</dd>
-						</div>
-					{/if}
-
-					{#if open && mempoolTps !== undefined}
-						<div>
-							<dt>Mempool TPS</dt>
-							<dd><NumberValue resource={mempoolTps} /></dd>
-						</div>
-					{/if}
-
-					{#if open && averageTransactionFee24hSats !== undefined}
-						<div>
-							<dt>Average fee 24h</dt>
-							<dd><NumberValue resource={averageTransactionFee24hSats} /> sats</dd>
-						</div>
-					{/if}
-
-					{#if open && medianTransactionFee24hSats !== undefined}
-						<div>
-							<dt>Median fee 24h</dt>
-							<dd><NumberValue resource={medianTransactionFee24hSats} /> sats</dd>
-						</div>
-					{/if}
-
-					{#if open && blockchainSizeBytes !== undefined}
-						<div>
-							<dt>Chain size</dt>
-							<dd><NumberValue resource={blockchainSizeBytes} /> bytes</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{...EntityViewProps}
+	{view}
+/>

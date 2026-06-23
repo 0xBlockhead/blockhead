@@ -1,23 +1,17 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum ZeroGKvEntrySelector {
 	NetworkNamespaceKey = 'networkNamespaceKey',
 }
-
 export default {
 	entityType: EntityType.ZeroGKvEntry,
-
-	label: '0G KV entry',
-	labelPlural: '0G KV entries',
-
+	label: 'zero g kv entry',
+	labelPlural: 'zero g kv entries',
 	selectors: [
 		{
 			name: ZeroGKvEntrySelector.NetworkNamespaceKey,
@@ -28,43 +22,49 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'namespace',
+			label: 'Namespace',
+			description: 'The namespace that qualifies the identifier.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'key',
+			label: 'key',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$logEntry',
+			label: 'log entry',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.ZeroGStorageLogEntry,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$owner',
+			label: 'owner',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'valueHash',
+			label: 'value hash',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

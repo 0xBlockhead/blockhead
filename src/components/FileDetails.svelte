@@ -11,7 +11,7 @@
 	}: {
 		contentSize?: number
 		contentType?: string
-		displayType: ContentDisplayType
+		displayType: string
 		extension?: string
 		fileName?: string
 		src?: string
@@ -40,32 +40,22 @@
 
 	import { formatByteCount } from '$/lib/bytes.ts'
 
-	type ContentDisplayType =
-		| 'text'
-		| 'image'
-		| 'video'
-		| 'audio'
-		| 'json'
-		| 'xml'
-		| 'pdf'
-		| 'iframe'
-		| 'binary'
-
-	const displayIconByType = {
-		text: '📄',
-		image: '🖼️',
-		video: '🎥',
-		audio: '🔊',
-		json: '🗒️',
-		xml: '🗒️',
-		pdf: '📄',
-		iframe: '🌐',
-		binary: '📦',
-	} as const satisfies Record<ContentDisplayType, string>
-
-
 	const mediaType = $derived(
 		contentType?.split(/;\s*/)[0],
+	)
+	const displayIcon = $derived(
+		displayType === 'image' ?
+			'🖼️'
+		: displayType === 'video' ?
+			'🎥'
+		: displayType === 'audio' ?
+			'🔊'
+		: displayType === 'json' || displayType === 'xml' ?
+			'🗒️'
+		: displayType === 'binary' ?
+			'📦'
+		:
+			'📄',
 	)
 
 	// Components
@@ -84,7 +74,7 @@
 			data-row-item="flexible"
 		>
 			<h3>
-				{displayIconByType[displayType]}
+				{displayIcon}
 				{#if fileName !== undefined}
 					<TruncatedValue
 						value={fileName}

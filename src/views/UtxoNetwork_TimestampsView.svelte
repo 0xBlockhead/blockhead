@@ -1,112 +1,66 @@
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-		import type { WithRest } from '$/typescript/WithRest.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
+	const listView = {
+		entityType: EntityType.UtxoNetwork_Timestamp,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
 		selection,
-		title = 'Network snapshots',
+		title,
 		open = $bindable(true),
-		id,
+		id = 'UtxoNetwork_Timestamps',
 		href = '',
-		sources = [
-			Source.Blockchair_Rest,
-			Source.Esplora_Rest,
-			Source.MempoolSpace_Rest,
-			Source.BitcoinCore_JsonRpc,
-			Source.LitecoinCore_JsonRpc,
-			Source.DogecoinCore_JsonRpc,
-			Source.BitcoinCashNode_JsonRpc,
-			Source.Zcashd_JsonRpc,
-		],
 		...EntitiesListProps
 	}: WithRest<
 		{
 			selection: EntityProxyEntitiesResource<typeof schema, EntityType.UtxoNetwork_Timestamp>
 			title?: string
 			open?: boolean
-			id: string
+			id?: string
 			href?: string
-			sources?: readonly Source[]
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'CollapsibleProps'
-		>
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import UtxoNetwork_TimestampView from '$/views/UtxoNetwork_TimestampView.svelte'
 </script>
 
 
 <EntitiesList
-	entityType={EntityType.UtxoNetwork_Timestamp}
+	entityType={listView.entityType}
 	{title}
 	bind:open
 	{id}
 	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Network snapshots capture observed UTXO chain state such as tip, mempool size, fee estimates, and chain-size metrics at a resolver timestamp.
-		</p>
-	{/snippet}
-
-	{#snippet body()}
-		{#if open}
-			<ResourceBoundary
-				resource={selection({
-						sources,
-						limit: 16,
-					})}
-				placeholderText="Loading timestamps…"
-			>
-				{#snippet children(timestamps)}
-					<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.UtxoNetwork_Timestamp}
-				id={`${id}-items`}
-				href={href}
-				getKey={(timestamp) => stringify(timestamp.entitySelector)}
-				getSortValue={(timestamp) => -timestamp.entitySelector.timestampMs}
-				open={true}
-				items={timestamps.entities}
-				{title}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No network snapshots yet.
-					</p>
-				{/snippet}
-
-				{#snippet Item(context)}
-					<UtxoNetwork_TimestampView
-						selection={select(EntityType.UtxoNetwork_Timestamp, context!.item.entitySelector)}
-						layout={EntityLayout.Summary}
-						{sources}
-					/>
-				{/snippet}
-			</EntitiesList>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+	{#snippet Item({ item })}
+		<UtxoNetwork_TimestampView
+			selection={select(EntityType.UtxoNetwork_Timestamp, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

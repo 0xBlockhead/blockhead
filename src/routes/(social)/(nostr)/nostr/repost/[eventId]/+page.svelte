@@ -1,10 +1,17 @@
 <script lang="ts">
-	import { EntityType } from '$/schema/EntityType.ts'
-	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 
-	let { data }: PageProps = $props()
+
+	// State
+	let {
+		data,
+	}: PageProps = $props()
+
+
+	// Functions
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// Components
@@ -15,6 +22,11 @@
 
 <Page>
 	<NostrRepostView
-		selection={select(EntityType.NostrRepost, data.selector)}
+		selection={
+			select(
+				EntityType.NostrRepost,
+				data.selector
+			)
+		}
 	/>
 </Page>

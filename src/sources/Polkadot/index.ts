@@ -1,13 +1,14 @@
 import { TransportType } from '$/constants/TransportType.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
-
-
-// Constants
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import { polkadotBindings } from '$/sources/Polkadot/bindings.ts'
 
 export const polkadotMainnetRpcEndpoints = [
 	{
-		url: 'https://rpc.polkadot.io',
+		url: polkadotBindings[0].endpoints[0].locator,
 		transportType: TransportType.Http,
 		providerName: 'Parity',
 	},
@@ -17,16 +18,23 @@ export const polkadotMainnetRpcEndpoints = [
 	providerName: string
 }[]
 
-
-// Provider
+export const polkadotOrigins = [
+	...new Map(
+		polkadotBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.Polkadot,
 	label: 'Polkadot',
-	origins: polkadotMainnetRpcEndpoints.map((endpoint) => ({
-		origin: new URL(endpoint.url).origin,
-		corsEnabled: true,
-	})),
 	sources: [
 		{
 			provider: SourceProvider.Polkadot,
@@ -34,4 +42,5 @@ export default {
 			label: 'Polkadot JSON-RPC',
 		},
 	],
-} as const satisfies SourceProviderDefinition
+	bindings: polkadotBindings,
+} satisfies SourceProviderDefinition

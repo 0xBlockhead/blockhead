@@ -1,6 +1,6 @@
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { getJson } from '$/lib/http.ts'
-import Eip8004Scan from '$/sources/Eip8004Scan/index.ts'
+import { eip8004ScanOrigins } from '$/sources/Eip8004Scan/index.ts'
 import { eip8004ScanPublicBase } from '$/sources/Eip8004Scan/Rest/constants.ts'
 import type {
 	Eip8004ScanAgentDetailResponse,
@@ -77,7 +77,7 @@ export const fetchAgentList = async ({
 } = {}): Promise<NormalizedEip8004ScanAgent[]> => {
 	const url = `${eip8004ScanPublicBase}/agents?limit=${String(limit)}&page=${String(page)}`
 	const wire = await getJson<Eip8004ScanAgentsListResponse>(url, {
-		origins: Eip8004Scan.origins,
+		origins: eip8004ScanOrigins,
 	})
 	const rows = wire.data ?? []
 	return (
@@ -96,7 +96,7 @@ export const fetchAgentDetail = async ({
 }): Promise<NormalizedEip8004ScanAgentDetail | undefined> => {
 	const url = `${eip8004ScanPublicBase}/agents/${String(chainId)}/${encodeURIComponent(tokenId)}`
 	const wire = await getJson<Eip8004ScanAgentDetailResponse>(url, {
-		origins: Eip8004Scan.origins,
+		origins: eip8004ScanOrigins,
 	})
 	const row = wire.data
 	if (row == null) {

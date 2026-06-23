@@ -1,20 +1,33 @@
+import { Source } from '$/sources/Source.ts'
 import {
-	type SourceProviderDefinition,
 	SourceProvider,
+	type SourceProviderDefinition,
 } from '$/sources/SourceProvider.ts'
-import { origin } from '$/sources/TradingView/Rest/constants.ts'
-import TradingViewRestSource from '$/sources/TradingView/Rest/index.ts'
+import { tradingViewBindings } from '$/sources/TradingView/bindings.ts'
+
+export const tradingViewOrigins = [
+	...new Map(
+		tradingViewBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.TradingView,
 	label: 'TradingView',
-	origins: [
+	sources: [
 		{
-			origin,
-			corsEnabled: false,
+			provider: SourceProvider.TradingView,
+			source: Source.TradingView_Rest,
+			label: 'TradingView REST',
 		},
 	],
-	sources: [
-		TradingViewRestSource,
-	],
+	bindings: tradingViewBindings,
 } satisfies SourceProviderDefinition

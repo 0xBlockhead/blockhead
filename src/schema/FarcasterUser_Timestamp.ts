@@ -1,24 +1,18 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import FarcasterUser from '$/schema/FarcasterUser.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum FarcasterUser_TimestampSelector {
 	FarcasterUserTimestampMs = 'farcasterUserTimestampMs',
+	UserTimestampMs = '$user+timestampMs',
 }
-
 export default {
 	entityType: EntityType.FarcasterUser_Timestamp,
-
-	label: 'Farcaster user snapshot',
-	labelPlural: 'Farcaster user snapshots',
-
+	label: 'Farcaster user timestamp',
+	labelPlural: 'Farcaster user observations',
 	selectors: [
 		{
 			name: FarcasterUser_TimestampSelector.FarcasterUserTimestampMs,
@@ -28,39 +22,35 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$user',
+			label: 'user',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.FarcasterUser,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'followerCount',
+			label: 'follower count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Neynar_Rest,
-				Source.Snapchain_Rest,
-			],
 		},
 		{
 			name: 'followingCount',
+			label: 'following count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Neynar_Rest,
-				Source.Snapchain_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

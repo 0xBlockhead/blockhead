@@ -1,24 +1,18 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import ZeroGServiceProvider from '$/schema/ZeroGServiceProvider.ts'
-
 export enum ZeroGServiceRequestSelector {
 	ZeroGServiceProviderRequestId = 'zeroGServiceProviderRequestId',
+	ServiceProviderRequestId = '$serviceProvider+requestId',
 }
-
 export default {
 	entityType: EntityType.ZeroGServiceRequest,
-
-	label: '0G service request',
-	labelPlural: '0G service requests',
-
+	label: 'zero g service request',
+	labelPlural: 'zero g service requests',
 	selectors: [
 		{
 			name: ZeroGServiceRequestSelector.ZeroGServiceProviderRequestId,
@@ -28,43 +22,48 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$serviceProvider',
+			label: 'service provider',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.ZeroGServiceProvider,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'requestId',
+			label: 'request ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$requester',
+			label: 'requester',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'requestHash',
+			label: 'request hash',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'responseHash',
+			label: 'response hash',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$settlementTrace',
+			label: 'settlement trace',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.ZeroGSettlementTrace,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

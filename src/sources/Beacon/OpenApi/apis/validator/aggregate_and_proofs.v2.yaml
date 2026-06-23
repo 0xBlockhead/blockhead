@@ -1,0 +1,42 @@
+post:
+  operationId: "publishAggregateAndProofsV2"
+  summary: "Publish multiple aggregate and proofs"
+  description: "Verifies given aggregate and proofs and publishes them on appropriate gossipsub topic."
+  tags:
+    - ValidatorRequiredApi
+    - Validator
+  parameters:
+    - in: header
+      schema:
+        $ref: '../../beacon-node-oapi.yaml#/components/schemas/ConsensusVersion'
+      required: true
+      name: Eth-Consensus-Version
+      description: "The active consensus version to which the aggregate and proofs being submitted belong."
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          anyOf:
+            - type: array
+              items:
+                $ref: '../../beacon-node-oapi.yaml#/components/schemas/Electra.SignedAggregateAndProof'
+            - type: array
+              items:
+                $ref: '../../beacon-node-oapi.yaml#/components/schemas/Phase0.SignedAggregateAndProof'
+      application/octet-stream:
+        schema:
+          description: "SSZ serialized `List[SignedAggregateAndProof, MAX_COMMITTEES_PER_SLOT * TARGET_AGGREGATORS_PER_COMMITTEE]` bytes. Use content type header to indicate that SSZ data is contained in the request body."
+  responses:
+    "200":
+      description: "Successful response"
+    "400":
+      description: "Errors with one or more aggregate and proofs"
+      content:
+        application/json:
+          schema:
+            $ref: "../../beacon-node-oapi.yaml#/components/schemas/IndexedErrorMessage"
+    "415":
+      $ref: '../../beacon-node-oapi.yaml#/components/responses/UnsupportedMediaType'
+    "500":
+      $ref: '../../beacon-node-oapi.yaml#/components/responses/InternalError'

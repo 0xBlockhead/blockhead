@@ -1,23 +1,18 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum PolkadotBlockSelector {
 	NetworkBlockNumber = 'networkBlockNumber',
 	NetworkBlockNumberHash = 'networkBlockNumberHash',
 }
-
 export default {
 	entityType: EntityType.PolkadotBlock,
-
-	label: 'Polkadot Block',
-	labelPlural: 'Polkadot Blocks',
-
+	label: 'polkadot block',
+	labelPlural: 'polkadot blocks',
 	selectors: [
 		{
 			name: PolkadotBlockSelector.NetworkBlockNumber,
@@ -35,55 +30,64 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'blockNumber',
+			label: 'Block number',
+			description: 'The block height or number in its network.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'hash',
+			label: 'Hash',
+			description: 'The hash that identifies this object in its protocol.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$parent',
+			label: 'parent',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.PolkadotBlock,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'stateRoot',
+			label: 'state root',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'extrinsicsRoot',
+			label: 'extrinsics root',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$$extrinsics',
+			label: 'extrinsics',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.PolkadotExtrinsic,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$events',
+			label: 'events',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.PolkadotEvent,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
+			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

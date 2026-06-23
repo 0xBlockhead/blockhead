@@ -1,11 +1,13 @@
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
-import { githubHttpAllowedOrigins } from '$/sources/Github/githubHttpOrigins.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import { filecoinFipsBindings } from '$/sources/FilecoinFips/bindings.ts'
 
 export default {
 	provider: SourceProvider.FilecoinFips,
 	label: 'Filecoin FIPs',
-	origins: githubHttpAllowedOrigins,
 	sources: [
 		{
 			provider: SourceProvider.FilecoinFips,
@@ -13,4 +15,5 @@ export default {
 			label: 'Filecoin FIPs GitHub',
 		},
 	],
-} as const satisfies SourceProviderDefinition
+	bindings: filecoinFipsBindings,
+} satisfies SourceProviderDefinition

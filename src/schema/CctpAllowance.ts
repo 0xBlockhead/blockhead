@@ -1,22 +1,17 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum CctpAllowanceSelector {
 	ApiHost = 'apiHost',
 }
-
 export default {
 	entityType: EntityType.CctpAllowance,
-
-	label: 'CCTP Allowance',
-	labelPlural: 'CCTP Allowances',
-
+	label: 'cctp allowance',
+	labelPlural: 'cctp allowances',
 	selectors: [
 		{
 			name: CctpAllowanceSelector.ApiHost,
@@ -25,25 +20,27 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: 'apiHost',
+			label: 'API host',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'allowance',
+			label: 'allowance',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number | null'),
+			primitiveType: type("number | null"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'fetchedAt',
+			label: 'fetched AT',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

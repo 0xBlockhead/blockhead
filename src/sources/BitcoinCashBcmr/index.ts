@@ -1,12 +1,19 @@
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
-import { githubHttpAllowedOrigins } from '$/sources/Github/githubHttpOrigins.ts'
-import BitcoinCashBcmrGithub from '$/sources/BitcoinCashBcmr/Github/index.ts'
+import { Source } from '$/sources/Source.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import { bitcoinCashBcmrBindings } from '$/sources/BitcoinCashBcmr/bindings.ts'
 
 export default {
 	provider: SourceProvider.BitcoinCashBcmr,
 	label: 'Bitcoin Cash Metadata Registries',
-	origins: githubHttpAllowedOrigins,
 	sources: [
-		BitcoinCashBcmrGithub,
+		{
+			provider: SourceProvider.BitcoinCashBcmr,
+			source: Source.BitcoinCashBcmr_Github,
+			label: 'Bitcoin Cash BCMR GitHub',
+		},
 	],
-} as const satisfies SourceProviderDefinition
+	bindings: bitcoinCashBcmrBindings,
+} satisfies SourceProviderDefinition

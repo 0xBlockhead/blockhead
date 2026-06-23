@@ -1,30 +1,21 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
-
-export enum ZcashShieldedPoolSelector {
-	NetworkPool = 'networkPool',
-}
-
-
 export enum ZcashShieldedPoolKind {
 	Sapling = 'sapling',
 	Orchard = 'orchard',
 }
-
+export enum ZcashShieldedPoolSelector {
+	NetworkPool = 'networkPool',
+}
 export default {
 	entityType: EntityType.ZcashShieldedPool,
-
-	label: 'Zcash Sapling/Orchard Pool',
-	labelPlural: 'Zcash Sapling/Orchard Pools',
-
+	label: 'zcash shielded pool',
+	labelPlural: 'zcash shielded pools',
 	selectors: [
 		{
 			name: ZcashShieldedPoolSelector.NetworkPool,
@@ -34,31 +25,34 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'pool',
+			label: 'pool',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(ZcashShieldedPoolKind),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'activationNetworkUpgrade',
+			label: 'activation network upgrade',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'noteProtocol',
+			label: 'note protocol',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

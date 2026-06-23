@@ -193,7 +193,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import UnorderedList from '$/components/UnorderedList.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import NumberValue from '$/components/NumberValue.svelte'
 </script>
 
 

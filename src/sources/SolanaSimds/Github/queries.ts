@@ -1,47 +1,49 @@
-import { getJson, getText } from '$/lib/http.ts'
-import {
-	getRawUserContentUrl,
-	getRestRepoContentsUrl,
-} from '$/sources/Github/Rest/queries.ts'
-import SolanaSimds from '$/sources/SolanaSimds/index.ts'
+import { getText } from '$/lib/http.ts'
+import { solanaSimdsBindings } from '$/sources/SolanaSimds/bindings.ts'
 import type { SolanaSimdContentEntry } from '$/sources/SolanaSimds/Github/types.ts'
+import {
+	getGithubContents,
+	getGithubRawText,
+	githubRawUrl,
+} from '$/sources/_shared/hosts/Github/Http/client.ts'
 
-const owner = 'solana-foundation'
-const repo = 'solana-improvement-documents'
-const ref = 'main'
+const solanaSimdsGithubRepo = {
+	owner: 'solana-foundation',
+	repo: 'solana-improvement-documents',
+	path: 'proposals',
+	ref: 'main',
+} as const
 
-export const getProposalContents = () => (
-	getJson<SolanaSimdContentEntry[]>(
-		getRestRepoContentsUrl({
-			owner,
-			repo,
-			pathInRepo: 'proposals',
-			ref,
-		}),
-		{ origins: SolanaSimds.origins  }
-	)
+const origins = solanaSimdsBindings[0].endpoints.map((endpoint) => ({
+	origin: endpoint.origin,
+	corsEnabled: endpoint.corsEnabled,
+}))
+
+export const getProposalContents = (): Promise<SolanaSimdContentEntry[]> => (
+	getGithubContents({
+		endpoints: solanaSimdsBindings[0].endpoints,
+		target: solanaSimdsGithubRepo,
+	}) as Promise<SolanaSimdContentEntry[]>
 )
 
 export const getProposalMarkdownText = ({ number }: { number: number }) => (
-	getText(
-		getRawUserContentUrl({
-			owner,
-			repo,
-			ref,
-			pathInRepo: `proposals/${number.toString().padStart(4, '0')}-simd-process.md`,
-		}),
-		{ origins: SolanaSimds.origins  }
-	).catch(() => (
+	getGithubRawText({
+		endpoints: solanaSimdsBindings[0].endpoints,
+		target: {
+			...solanaSimdsGithubRepo,
+			path: `proposals/${number.toString().padStart(4, '0')}-simd-process.md`,
+		},
+	}).catch(() => (
 		getProposalContents()
 			.then((entries) => {
 				const entry = entries.find((contentEntry) => (
 					contentEntry.type === 'file'
 					&& contentEntry.name.startsWith(`${number.toString().padStart(4, '0')}-`)
 				))
-				if (entry?.download_url == null) {
+				if (entry?.download_url == null)
 					throw new Error(`SolanaSimds_Github: proposal ${number} not found`)
-				}
-				return getText(entry.download_url, { origins: SolanaSimds.origins  })
+
+				return getText(entry.download_url, { origins })
 			})
 	))
 )

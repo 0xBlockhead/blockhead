@@ -1,23 +1,17 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum PolkadotValidatorSelector {
 	NetworkStashAccountId = 'networkStashAccountId',
 }
-
 export default {
 	entityType: EntityType.PolkadotValidator,
-
-	label: 'Polkadot Validator',
-	labelPlural: 'Polkadot Validators',
-
+	label: 'polkadot validator',
+	labelPlural: 'polkadot validators',
 	selectors: [
 		{
 			name: PolkadotValidatorSelector.NetworkStashAccountId,
@@ -27,37 +21,27 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'stashAccountId',
+			label: 'stash account ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$controller',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.PolkadotAccount,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			name: '$$eras',
+			label: 'eras',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.PolkadotValidator_Era,
+			cardinality: EntityFieldCardinality.Many,
 		},
-		{
-			name: 'commissionPerBillion',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'totalStakePlancks',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

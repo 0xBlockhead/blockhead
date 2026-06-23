@@ -5,9 +5,113 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
+
 
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			{
+				label: 'public key',
+			},
+			{
+				label: 'latest observed alias/color/capacity/channel count',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					{
+						label: 'public key',
+					},
+					{
+						label: 'latest observed alias/color/capacity/channel count',
+					},
+					{
+						label: 'latest location/address summary',
+					},
+					{
+						label: 'channel count',
+					},
+					{
+						label: 'local-node-state count when connected',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Channels',
+					items: [
+						{
+							label: 'public channels connected to this node',
+						},
+					],
+				},
+				{
+					label: 'Public observations',
+					items: [
+						{
+							label: 'timestamped graph/node observations',
+						},
+					],
+				},
+				{
+					label: 'Location',
+					items: [
+						{
+							label: 'country/city',
+						},
+						{
+							label: 'source labels',
+						},
+					],
+				},
+				{
+					label: 'Addresses',
+					items: [
+						{
+							label: 'advertised network addresses from timestamp observations',
+						},
+					],
+				},
+				{
+					label: 'Local node state',
+					items: [
+						{
+							label: 'BlockheadLightningNodeState when connected locally',
+						},
+					],
+				},
+				{
+					label: 'Network',
+					items: [
+						{
+							label: 'parent Lightning network',
+						},
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'public graph',
+						},
+						{
+							label: 'LND node payloads',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -18,105 +122,23 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
 	> = $props()
 
-	const node = $derived(selection(
-		({ sources: [
-				Source.LightningMempoolSpace_Rest,
-				Source.LightningLnd_Rest,
-			], fields: { alias: true, capacitySats: true, channelCount: true, countryCode: true, city: true, ...(open && ({ networkAddresses: true })) } }),
-	))
-
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.LightningNode}
 	entitySelector={selection.entitySelector}
-	href={`/network/${
-		'slug' in selection.entitySelector.$network ?
-			selection.entitySelector.$network.slug
-		:
-			`${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`
-	}/nodes/${selection.entitySelector.publicKey}`}
-	title={selection.entitySelector.publicKey}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		<ResourceBoundary
-			resource={node}
-		>
-			{#snippet children(lightningNode)}
-				{lightningNode.alias ?? selection.entitySelector.publicKey}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={node}
-			placeholderText="Loading node…"
-		>
-			{#snippet children(lightningNode)}
-				<dl>
-					<div>
-						<dt>Public key</dt>
-						<dd>
-							<TruncatedValue
-								value={selection.entitySelector.publicKey}
-								format={TruncatedValueFormat.Abbr}
-							/>
-						</dd>
-					</div>
-
-					{#if lightningNode.channelCount != null}
-						<div>
-							<dt>Channels</dt>
-							<dd><NumberValue value={lightningNode.channelCount} /></dd>
-						</div>
-					{/if}
-
-					{#if lightningNode.capacitySats != null}
-						<div>
-							<dt>Capacity</dt>
-							<dd>{lightningNode.capacitySats.toString()} sats</dd>
-						</div>
-					{/if}
-
-					{#if lightningNode.countryCode != null}
-						<div>
-							<dt>Country</dt>
-							<dd>{lightningNode.countryCode}</dd>
-						</div>
-					{/if}
-
-					{#if lightningNode.city != null}
-						<div>
-							<dt>City</dt>
-							<dd>{lightningNode.city}</dd>
-						</div>
-					{/if}
-
-					{#each open ? (lightningNode.networkAddresses?.values ?? []) : [] as address (address)}
-						<div>
-							<dt>Address</dt>
-							<dd><code>{address}</code></dd>
-						</div>
-					{/each}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

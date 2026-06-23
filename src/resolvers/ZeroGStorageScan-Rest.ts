@@ -1,3 +1,4 @@
+import { networkBySlug } from '$/constants/Network.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
@@ -6,18 +7,28 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
+import { ZeroGDataBlobSelector } from '$/schema/ZeroGDataBlob.ts'
 import { ZeroGNetworkSelector } from '$/schema/ZeroGNetwork.ts'
 import { ZeroGNetwork_TimestampSelector } from '$/schema/ZeroGNetwork_Timestamp.ts'
-import { ZeroGStorageNodeSelector } from '$/schema/ZeroGStorageNode.ts'
-import { ZeroGDataBlobSelector } from '$/schema/ZeroGDataBlob.ts'
 import { ZeroGStorageLogEntrySelector } from '$/schema/ZeroGStorageLogEntry.ts'
+import { ZeroGStorageNodeSelector } from '$/schema/ZeroGStorageNode.ts'
+import { ZeroGStorageNode_TimestampSelector } from '$/schema/ZeroGStorageNode_Timestamp.ts'
+import { EvmAddress } from '$/schema/ZeroExHex.ts'
+import { Source } from '$/sources/Source.ts'
 
-const assertZeroGMainnet = (network: { caip2: { namespace: string; reference: string } } | { slug: string }) => {
-	if (!('slug' in network) || network.slug !== '0g') {
+type NetworkId = { readonly slug: '0g' }
+
+type InputNetworkId = { readonly caip2: {
+	readonly namespace: string
+	readonly reference: string
+} } | { readonly slug: string }
+
+const assertZeroGMainnet: (network: InputNetworkId) => asserts network is NetworkId = (network) => {
+	if (!('slug' in network) || network.slug !== networkBySlug['0g'].slug)
 		throw new Error('ZeroGStorageScan_Rest: unsupported network')
-	}
 }
+
+const zeroGConsensusNetworkId = (network: NetworkId) => network.slug
 
 const zeroGStorageTimestampFields = async () => {
 	const {
@@ -61,6 +72,142 @@ const zeroGStorageTimestampFields = async () => {
 	}
 }
 
+const zeroGNetworkTimestampSelector = ($network: NetworkId, timestampMs: number) => ({
+	$network,
+	timestampMs,
+	source: Source.ZeroGStorageScan_Rest,
+})
+
+const zeroGStorageNodeTimestampRow = ({
+	$network,
+	nodeId,
+	timestampMs,
+	balance,
+	totalReward,
+	winCount,
+	miningAttempts,
+	source: _source,
+}: {
+	$network: NetworkId
+	nodeId: `0x${string}`
+	timestampMs: number
+	balance?: string
+	totalReward?: string
+	winCount?: number
+	miningAttempts?: number
+	source?: Source
+}) => ({
+	[EntityMetaKey.Selector]: {
+		$storageNode: {
+			$network,
+			nodeId,
+		},
+		timestampMs,
+		source: Source.ZeroGStorageScan_Rest,
+	},
+	$storageNode: {
+		[EntityMetaKey.Selector]: {
+			$network,
+			nodeId,
+		},
+	},
+	timestampMs,
+	source: Source.ZeroGStorageScan_Rest,
+	balance,
+	totalReward,
+	winCount,
+	miningAttempts,
+})
+
+const zeroGStorageNodeRow = ({
+	$network,
+	nodeId,
+	totalReward,
+	winCount,
+	miningAttempts,
+	timestampMs,
+}: {
+	$network: NetworkId
+	nodeId: `0x${string}`
+	totalReward?: string
+	winCount?: number
+	miningAttempts?: number
+	timestampMs: number
+}) => ({
+	[EntityMetaKey.Selector]: {
+		$network,
+		nodeId,
+	},
+	$operator: {
+		[EntityMetaKey.Selector]: {
+			address: nodeId,
+		},
+	},
+	$$timestamps: [
+		zeroGStorageNodeTimestampRow({
+			$network,
+			nodeId,
+			timestampMs,
+			totalReward,
+			winCount,
+			miningAttempts,
+		}),
+	],
+})
+
+const zeroGDataBlobRow = ({
+	$network,
+	dataRoot,
+	dataSize,
+	txSeq,
+}: {
+	$network: NetworkId
+	dataRoot: string
+	dataSize: number
+	txSeq: string | number
+}) => ({
+	[EntityMetaKey.Selector]: {
+		$network,
+		dataRoot,
+	},
+	sizeBytes: BigInt(dataSize),
+	$storageLogEntry: {
+		[EntityMetaKey.Selector]: {
+			$network,
+			logEntryId: txSeq.toString(),
+		},
+	},
+})
+
+const zeroGStorageLogEntryFields = ({
+	$network,
+	txSeq,
+	rootHash,
+}: {
+	$network: NetworkId
+	txSeq: string | number
+	rootHash: string
+}) => ({
+	[EntityMetaKey.Selector]: {
+		$network,
+		logEntryId: txSeq.toString(),
+	},
+	$dataBlob: {
+		[EntityMetaKey.Selector]: {
+			$network,
+			dataRoot: rootHash,
+		},
+	},
+	$consensusNetwork: {
+		[EntityMetaKey.Selector]: {
+			$network,
+			consensusNetworkId: zeroGConsensusNetworkId($network),
+		},
+	},
+	sequenceNumber: BigInt(txSeq),
+	commitment: rootHash,
+})
+
 export default {
 	source: Source.ZeroGStorageScan_Rest,
 
@@ -69,296 +216,326 @@ export default {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
 				[ZeroGNetworkSelector.Slug]: async (entitySelector) => {
-				assertZeroGMainnet(entitySelector)
-				const {
-					listStorageMiners,
-					listStorageTransactions,
-				} = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
-				const [
-					timestampFields,
-					miners,
-					transactions,
-				] = await Promise.all([
-					zeroGStorageTimestampFields(),
-					listStorageMiners({
-						limit: 6,
-					}),
-					listStorageTransactions({
-						limit: 6,
-					}),
-				])
-				return {
-					$$timestamps: [
-						{
-							[EntityMetaKey.Selector]: {
-								$network: entitySelector,
-								timestampMs: Date.now(),
+					assertZeroGMainnet(entitySelector)
+					const {
+						listStorageMiners,
+						listStorageTransactions,
+					} = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
+					const timestampMs = Date.now()
+					const [
+						timestampFields,
+						miners,
+						transactions,
+					] = await Promise.all([
+						zeroGStorageTimestampFields(),
+						listStorageMiners({
+							limit: 6,
+						}),
+						listStorageTransactions({
+							limit: 6,
+						}),
+					])
+					return {
+						$$timestamps: [
+							{
+								[EntityMetaKey.Selector]: zeroGNetworkTimestampSelector(
+									entitySelector,
+									timestampMs
+								),
+								$network: {
+									[EntityMetaKey.Selector]: entitySelector,
+								},
+								timestampMs,
+								source: Source.ZeroGStorageScan_Rest,
+								...timestampFields,
 							},
-							...timestampFields,
-						},
-					],
-					$$storageNodes: miners.list.map((miner) => ({
-						[EntityMetaKey.Selector]: {
+						],
+						$$storageNodes: miners.list.map((miner) => zeroGStorageNodeRow({
 							$network: entitySelector,
-							nodeId: miner.miner,
-						},
-						$operator: {
-							[EntityMetaKey.Selector]: {
-								address: miner.miner,
-							},
-						},
-						totalReward: miner.totalReward,
-						winCount: miner.winCount,
-						miningAttempts: miner.miningAttempts,
-					})),
-					$$dataBlobs: transactions.list.map((transaction) => ({
-						[EntityMetaKey.Selector]: {
+							nodeId: EvmAddress.assert(miner.miner),
+							totalReward: miner.totalReward,
+							winCount: miner.winCount,
+							miningAttempts: miner.miningAttempts,
+							timestampMs,
+						})),
+						$$dataBlobs: transactions.list.map((transaction) => zeroGDataBlobRow({
 							$network: entitySelector,
 							dataRoot: transaction.rootHash,
-						},
-						sizeBytes: BigInt(transaction.dataSize),
-						$storageLogEntry: {
-							[EntityMetaKey.Selector]: {
-								$network: entitySelector,
-								logEntryId: transaction.txSeq.toString(),
-							},
-						},
-					})),
-				}
-			}
-			}
+							dataSize: transaction.dataSize,
+							txSeq: transaction.txSeq,
+						})),
+					}
+				},
+			},
 		})({
-				fields: {
-			$$timestamps: (snapshot) => snapshot.$$timestamps,
-			$$storageNodes: (snapshot) => snapshot.$$storageNodes,
-			$$dataBlobs: (snapshot) => snapshot.$$dataBlobs,
-		},
-			}),
+			fields: {
+				$$timestamps: (snapshot) => snapshot.$$timestamps.map((timestamp) => ({
+					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
+				})),
+				$$storageNodes: (snapshot) => snapshot.$$storageNodes,
+				$$dataBlobs: (snapshot) => snapshot.$$dataBlobs,
+			},
+		}),
 
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGNetwork_Timestamp,
 			resolve: {
-				[ZeroGNetwork_TimestampSelector.ZeroGNetworkTimestampMs]: async ({ $network }) => {
-				assertZeroGMainnet($network)
-				return zeroGStorageTimestampFields()
-			}
-			}
+				[ZeroGNetwork_TimestampSelector.NetworkTimestampMsSource]: async ({
+					$network,
+					timestampMs,
+					source,
+				}) => {
+					if (source !== Source.ZeroGStorageScan_Rest)
+						throw new Error('ZeroGStorageScan_Rest: unsupported timestamp source')
+					assertZeroGMainnet($network)
+					return {
+						$network: {
+							[EntityMetaKey.Selector]: $network,
+						},
+						timestampMs,
+						source,
+						...(await zeroGStorageTimestampFields()),
+					}
+				},
+			},
 		})({
-				fields: {
-			storageLogSyncHeight: (snapshot) => snapshot.storageLogSyncHeight,
-			storageLayer1LogSyncHeight: (snapshot) => snapshot.storageLayer1LogSyncHeight,
-			storageTransactionCount: (snapshot) => snapshot.storageTransactionCount,
-			latestDataRoot: (snapshot) => snapshot.latestDataRoot,
-			latestDataSizeBytes: (snapshot) => snapshot.latestDataSizeBytes,
-			latestStorageTxHash: (snapshot) => snapshot.latestStorageTxHash,
-			storageMinerCount: (snapshot) => snapshot.storageMinerCount,
-			latestStorageMiner: (snapshot) => snapshot.latestStorageMiner,
-			storageFeeTotal: (snapshot) => snapshot.storageFeeTotal,
-			storageRewardTotal: (snapshot) => snapshot.storageRewardTotal,
-			storageTotalWinCount: (snapshot) => snapshot.storageTotalWinCount,
-			expiredFileCount: (snapshot) => snapshot.expiredFileCount,
-			prunedFileCount: (snapshot) => snapshot.prunedFileCount,
-		},
-			}),
+			fields: {
+				$network: (snapshot) => snapshot.$network,
+				timestampMs: (snapshot) => snapshot.timestampMs,
+				source: (snapshot) => snapshot.source,
+				storageLogSyncHeight: (snapshot) => snapshot.storageLogSyncHeight,
+				storageLayer1LogSyncHeight: (snapshot) => snapshot.storageLayer1LogSyncHeight,
+				storageTransactionCount: (snapshot) => snapshot.storageTransactionCount,
+				latestDataRoot: (snapshot) => snapshot.latestDataRoot,
+				latestDataSizeBytes: (snapshot) => snapshot.latestDataSizeBytes,
+				latestStorageTxHash: (snapshot) => snapshot.latestStorageTxHash,
+				storageMinerCount: (snapshot) => snapshot.storageMinerCount,
+				latestStorageMiner: (snapshot) => snapshot.latestStorageMiner,
+				storageFeeTotal: (snapshot) => snapshot.storageFeeTotal,
+				storageRewardTotal: (snapshot) => snapshot.storageRewardTotal,
+				storageTotalWinCount: (snapshot) => snapshot.storageTotalWinCount,
+				expiredFileCount: (snapshot) => snapshot.expiredFileCount,
+				prunedFileCount: (snapshot) => snapshot.prunedFileCount,
+			},
+		}),
 
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGStorageNode,
 			resolve: {
-				[ZeroGStorageNodeSelector.NetworkNodeId]: async ({ $network, nodeId }) => {
-				assertZeroGMainnet($network)
-				const { getStorageMiner } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
-				const miner = await getStorageMiner({
-					address: nodeId,
-				})
-				return {
-					$operator: {
-						[EntityMetaKey.Selector]: {
-							address: nodeId,
+				[ZeroGStorageNodeSelector.NetworkNodeId]: async ({
+					$network,
+					nodeId,
+				}) => {
+					assertZeroGMainnet($network)
+					const { getStorageMiner } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
+					const miner = await getStorageMiner({
+						address: EvmAddress.assert(nodeId),
+					})
+					return {
+						$operator: {
+							[EntityMetaKey.Selector]: {
+								address: nodeId,
+							},
 						},
-					},
-					balance: miner.balance,
-					totalReward: miner.totalReward,
-				}
-			}
-			}
+						$$timestamps: [
+							zeroGStorageNodeTimestampRow({
+								$network,
+								nodeId,
+								timestampMs: Date.now(),
+								balance: miner.balance,
+								totalReward: miner.totalReward,
+							}),
+						],
+					}
+				},
+			},
 		})({
-				fields: {
-			$operator: (snapshot) => snapshot.$operator,
-			balance: (snapshot) => snapshot.balance,
-			totalReward: (snapshot) => snapshot.totalReward,
-		},
-			}),
+			fields: {
+				$operator: (snapshot) => snapshot.$operator,
+				$$timestamps: (snapshot) => snapshot.$$timestamps,
+			},
+		}),
+
+		defineResolver(Source.ZeroGStorageScan_Rest, {
+			entityType: EntityType.ZeroGStorageNode_Timestamp,
+			resolve: {
+				[ZeroGStorageNode_TimestampSelector.StorageNodeTimestampMsSource]: async ({
+					$storageNode,
+					timestampMs,
+					source,
+				}) => {
+					if (source !== Source.ZeroGStorageScan_Rest)
+						throw new Error('ZeroGStorageScan_Rest: unsupported storage node timestamp source')
+					assertZeroGMainnet($storageNode.$network)
+					const { getStorageMiner } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
+					const miner = await getStorageMiner({
+						address: EvmAddress.assert($storageNode.nodeId),
+					})
+					return zeroGStorageNodeTimestampRow({
+						$network: $storageNode.$network,
+						nodeId: $storageNode.nodeId,
+						timestampMs,
+						source,
+						balance: miner.balance,
+						totalReward: miner.totalReward,
+					})
+				},
+			},
+		})({
+			fields: {
+				$storageNode: (snapshot) => snapshot.$storageNode,
+				timestampMs: (snapshot) => snapshot.timestampMs,
+				source: (snapshot) => snapshot.source,
+				balance: (snapshot) => snapshot.balance,
+				totalReward: (snapshot) => snapshot.totalReward,
+				winCount: (snapshot) => snapshot.winCount,
+				miningAttempts: (snapshot) => snapshot.miningAttempts,
+			},
+		}),
 
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGDataBlob,
 			resolve: {
-				[ZeroGDataBlobSelector.NetworkDataRoot]: async ({ $network, dataRoot }) => {
-				assertZeroGMainnet($network)
-				const { listStorageTransactions } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
-				const transactions = await listStorageTransactions({
-					limit: 1,
-					rootHash: dataRoot,
-				})
-				const transaction = transactions.list.at(0)
-				if (transaction == null) throw new Error(`ZeroGStorageScan_Rest: data root not found ${dataRoot}`)
-				return {
-					$consensusNetwork: {
-						[EntityMetaKey.Selector]: {
-							$network: $network,
-							consensusNetworkId: 'slug' in $network ? $network.slug : $network.caip2.reference,
-						},
-					},
-					sizeBytes: BigInt(transaction.dataSize),
-					$storageLogEntry: {
-						[EntityMetaKey.Selector]: {
-							$network: $network,
-							logEntryId: transaction.txSeq.toString(),
-						},
-						$dataBlob: {
-							[EntityMetaKey.Selector]: {
-								$network: $network,
-								dataRoot: transaction.rootHash,
-							},
-						},
+				[ZeroGDataBlobSelector.NetworkDataRoot]: async ({
+					$network,
+					dataRoot,
+				}) => {
+					assertZeroGMainnet($network)
+					const { listStorageTransactions } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
+					const transactions = await listStorageTransactions({
+						limit: 1,
+						rootHash: dataRoot,
+					})
+					const transaction = transactions.list.at(0)
+					if (transaction == null)
+						throw new Error(`ZeroGStorageScan_Rest: data root not found ${dataRoot}`)
+					return {
 						$consensusNetwork: {
 							[EntityMetaKey.Selector]: {
-								$network: $network,
-								consensusNetworkId: 'slug' in $network ? $network.slug : $network.caip2.reference,
+								$network,
+								consensusNetworkId: zeroGConsensusNetworkId($network),
 							},
 						},
-						sequenceNumber: BigInt(transaction.txSeq),
-						commitment: transaction.rootHash,
-					},
-				}
-			}
-			}
+						sizeBytes: BigInt(transaction.dataSize),
+						$storageLogEntry: zeroGStorageLogEntryFields({
+							$network,
+							txSeq: transaction.txSeq,
+							rootHash: transaction.rootHash,
+						}),
+					}
+				},
+			},
 		})({
-				fields: {
-			$consensusNetwork: (snapshot) => snapshot.$consensusNetwork,
-			sizeBytes: (snapshot) => snapshot.sizeBytes,
-			$storageLogEntry: (snapshot) => snapshot.$storageLogEntry,
-		},
-			}),
+			fields: {
+				$consensusNetwork: (snapshot) => snapshot.$consensusNetwork,
+				sizeBytes: (snapshot) => snapshot.sizeBytes,
+				$storageLogEntry: (snapshot) => snapshot.$storageLogEntry,
+			},
+		}),
 
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGStorageLogEntry,
 			resolve: {
-				[ZeroGStorageLogEntrySelector.NetworkLogEntryId]: async ({ $network, logEntryId }) => {
-				assertZeroGMainnet($network)
-				const { getStorageTransaction } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
-				const transaction = await getStorageTransaction({
-					txSeq: logEntryId,
-				})
-				return {
-					[EntityMetaKey.Selector]: {
-						$network: $network,
-						logEntryId: transaction.txSeq.toString(),
-					},
-					$dataBlob: {
-						[EntityMetaKey.Selector]: {
-							$network: $network,
-							dataRoot: transaction.rootHash,
-						},
-					},
-					$consensusNetwork: {
-						[EntityMetaKey.Selector]: {
-							$network: $network,
-							consensusNetworkId: 'slug' in $network ? $network.slug : $network.caip2.reference,
-						},
-					},
-					sequenceNumber: BigInt(transaction.txSeq),
-					commitment: transaction.rootHash,
-				}
-			}
-			}
+				[ZeroGStorageLogEntrySelector.NetworkLogEntryId]: async ({
+					$network,
+					logEntryId,
+				}) => {
+					assertZeroGMainnet($network)
+					const { getStorageTransaction } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
+					const transaction = await getStorageTransaction({
+						txSeq: logEntryId,
+					})
+					return zeroGStorageLogEntryFields({
+						$network,
+						txSeq: transaction.txSeq,
+						rootHash: transaction.rootHash,
+					})
+				},
+			},
 		})({
-				fields: {
-			$dataBlob: (snapshot) => snapshot.$dataBlob,
-			$consensusNetwork: (snapshot) => snapshot.$consensusNetwork,
-			sequenceNumber: (snapshot) => snapshot.sequenceNumber,
-			commitment: (snapshot) => snapshot.commitment,
-		},
-			}),
+			fields: {
+				$dataBlob: (snapshot) => snapshot.$dataBlob,
+				$consensusNetwork: (snapshot) => snapshot.$consensusNetwork,
+				sequenceNumber: (snapshot) => snapshot.sequenceNumber,
+				commitment: (snapshot) => snapshot.commitment,
+			},
+		}),
 
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
 				[ZeroGNetworkSelector.Slug]: async (entitySelector) => {
-				assertZeroGMainnet(entitySelector)
-				return [
-					{
-						[EntityMetaKey.Selector]: {
-							$network: entitySelector,
-							timestampMs: Date.now(),
+					assertZeroGMainnet(entitySelector)
+					const timestampMs = Date.now()
+					return [
+						{
+							[EntityMetaKey.Selector]: zeroGNetworkTimestampSelector(
+								entitySelector,
+								timestampMs
+							),
+							$network: {
+								[EntityMetaKey.Selector]: entitySelector,
+							},
+							timestampMs,
+							source: Source.ZeroGStorageScan_Rest,
+							...(await zeroGStorageTimestampFields()),
 						},
-						...(await zeroGStorageTimestampFields()),
-					},
-				]
-			}
-			}
+					]
+				},
+			},
 		})({
-				fields: {
-			$$timestamps: (snapshot) => snapshot,
-		},
-			}),
+			fields: {
+				$$timestamps: (snapshot) => snapshot.map((timestamp) => ({
+					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
+				})),
+			},
+		}),
 
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
 				[ZeroGNetworkSelector.Slug]: async (entitySelector, context) => {
-				assertZeroGMainnet(entitySelector)
-				const { listStorageMiners } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
-				return (await listStorageMiners({
-					limit: resolverContextRowLimit(context),
-				})).list.map((miner) => ({
-					[EntityMetaKey.Selector]: {
+					assertZeroGMainnet(entitySelector)
+					const { listStorageMiners } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
+					const timestampMs = Date.now()
+					return (await listStorageMiners({
+						limit: resolverContextRowLimit(context),
+					})).list.map((miner) => zeroGStorageNodeRow({
 						$network: entitySelector,
-						nodeId: miner.miner,
-					},
-					$operator: {
-						[EntityMetaKey.Selector]: {
-							address: miner.miner,
-						},
-					},
-					totalReward: miner.totalReward,
-					winCount: miner.winCount,
-					miningAttempts: miner.miningAttempts,
-				}))
-			}
-			}
+						nodeId: EvmAddress.assert(miner.miner),
+						totalReward: miner.totalReward,
+						winCount: miner.winCount,
+						miningAttempts: miner.miningAttempts,
+						timestampMs,
+					}))
+				},
+			},
 		})({
-				fields: {
-			$$storageNodes: (snapshot) => snapshot,
-		},
-			}),
+			fields: {
+				$$storageNodes: (snapshot) => snapshot,
+			},
+		}),
 
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
 				[ZeroGNetworkSelector.Slug]: async (entitySelector, context) => {
-				assertZeroGMainnet(entitySelector)
-				const { listStorageTransactions } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
-				return (await listStorageTransactions({
-					limit: resolverContextRowLimit(context),
-				})).list.map((transaction) => ({
-					[EntityMetaKey.Selector]: {
+					assertZeroGMainnet(entitySelector)
+					const { listStorageTransactions } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
+					return (await listStorageTransactions({
+						limit: resolverContextRowLimit(context),
+					})).list.map((transaction) => zeroGDataBlobRow({
 						$network: entitySelector,
 						dataRoot: transaction.rootHash,
-					},
-					sizeBytes: BigInt(transaction.dataSize),
-					$storageLogEntry: {
-						[EntityMetaKey.Selector]: {
-							$network: entitySelector,
-							logEntryId: transaction.txSeq.toString(),
-						},
-					},
-				}))
-			}
-			}
+						dataSize: transaction.dataSize,
+						txSeq: transaction.txSeq,
+					}))
+				},
+			},
 		})({
-				fields: {
-			$$dataBlobs: (snapshot) => snapshot,
-		},
-			}),
+			fields: {
+				$$dataBlobs: (snapshot) => snapshot,
+			},
+		}),
 	],
 }

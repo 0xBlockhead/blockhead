@@ -2,16 +2,99 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// State
-	import { select } from '$/routes/+layout.svelte'
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			{
+				label: 'node id',
+			},
+			{
+				label: 'operator',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					{
+						label: 'node id',
+					},
+					{
+						label: 'operator',
+					},
+					'endpoint',
+					{
+						label: 'latest storage-node observation balance/reward/mining summary',
+					},
+					{
+						label: 'latest observation time',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Node observations',
+					items: [
+						{
+							label: 'timestamped balance/reward/mining rows',
+						},
+					],
+				},
+				{
+					label: 'Stored chunks',
+					items: [
+						{
+							label: 'public data-chunk rows linked to this node',
+						},
+					],
+				},
+				{
+					label: 'Proofs',
+					items: [
+						{
+							label: 'public storage-proof rows linked to this node',
+						},
+					],
+				},
+				{
+					label: 'Operator',
+					items: [
+						{
+							label: 'operator EVM account when resolved',
+						},
+					],
+				},
+				{
+					label: 'Network',
+					items: [
+						{
+							label: 'parent 0G network',
+						},
+					],
+				},
+				{
+					label: 'Local node state',
+					items: [
+						{
+							label: 'Blockhead node state when connected',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,
@@ -22,77 +105,24 @@
 			selection: EntityProxyResource<typeof schema, EntityType.ZeroGStorageNode>
 			open?: boolean
 		},
-		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
+		Pick<
+			ComponentProps<typeof EntityView2>,
+			| 'layout'
+			| 'showTypeAnnotation'
+		>
 	> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import EvmAccountView from '$/views/EvmAccountView.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.ZeroGStorageNode}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.nodeId}
 	bind:open
 	{...EntityViewProps}
->
-	{#snippet Title()}
-		<TruncatedValue
-			value={selection.entitySelector.nodeId}
-			format={TruncatedValueFormat.Abbr}
-		/>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>A 0G storage node stores chunks and participates in storage proof and reward flows.</p>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection({
-				sources: [Source.ZeroGStorageScan_Rest],
-				fields: { $operator: true, balance: true, totalReward: true },
-			})}
-			placeholderText="Loading 0G storage node…"
-		>
-			{#snippet children(storageNode)}
-				<dl>
-					{#if storageNode.$operator != null}
-						<div>
-							<dt>Operator</dt>
-							<dd>
-								<EvmAccountView
-									selection={select(EntityType.EvmAccount, storageNode.$operator[EntityMetaKey.Selector])}
-									layout={EntityLayout.Title}
-
-									open={false}
-									/>
-							</dd>
-						</div>
-					{/if}
-
-					{#if storageNode.balance != null}
-						<div>
-							<dt>Balance</dt>
-							<dd>{storageNode.balance}</dd>
-						</div>
-					{/if}
-
-					{#if storageNode.totalReward != null}
-						<div>
-							<dt>Total reward</dt>
-							<dd>{storageNode.totalReward}</dd>
-						</div>
-					{/if}
-
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

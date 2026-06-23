@@ -1,24 +1,18 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import UtxoOutput from '$/schema/UtxoOutput.ts'
-
 export enum BitcoinCashCashTokenNftSelector {
 	UtxoOutput = 'utxoOutput',
+	Output = '$output',
 }
-
 export default {
 	entityType: EntityType.BitcoinCashCashTokenNft,
-
-	label: 'Bitcoin Cash CashToken NFT',
-	labelPlural: 'Bitcoin Cash CashToken NFTs',
-
+	label: 'Bitcoin cash cash token NFT',
+	labelPlural: 'Bitcoin cash cash token NFTs',
 	selectors: [
 		{
 			name: BitcoinCashCashTokenNftSelector.UtxoOutput,
@@ -27,31 +21,34 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$output',
+			label: 'output',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.UtxoOutput,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$category',
+			label: 'category',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.BitcoinCashCashTokenCategory,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$commitment',
+			label: 'commitment',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.BitcoinCashCashTokenCommitment,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'capability',
+			label: 'capability',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('"none" | "mutable" | "minting"'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

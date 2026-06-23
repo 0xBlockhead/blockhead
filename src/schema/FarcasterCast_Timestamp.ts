@@ -1,24 +1,18 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import FarcasterCast from '$/schema/FarcasterCast.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum FarcasterCast_TimestampSelector {
 	FarcasterCastTimestampMs = 'farcasterCastTimestampMs',
+	CastTimestampMs = '$cast+timestampMs',
 }
-
 export default {
 	entityType: EntityType.FarcasterCast_Timestamp,
-
-	label: 'Farcaster cast snapshot',
-	labelPlural: 'Farcaster cast snapshots',
-
+	label: 'Farcaster cast timestamp',
+	labelPlural: 'Farcaster cast observations',
 	selectors: [
 		{
 			name: FarcasterCast_TimestampSelector.FarcasterCastTimestampMs,
@@ -28,49 +22,42 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$cast',
+			label: 'cast',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.FarcasterCast,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'likeCount',
+			label: 'like count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Neynar_Rest,
-				Source.Snapchain_Rest,
-			],
 		},
 		{
 			name: 'recastCount',
+			label: 'recast count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Neynar_Rest,
-				Source.Snapchain_Rest,
-			],
 		},
 		{
 			name: 'replyCount',
+			label: 'reply count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Neynar_Rest,
-				Source.Snapchain_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

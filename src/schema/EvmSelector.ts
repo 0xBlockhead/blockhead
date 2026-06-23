@@ -1,25 +1,18 @@
 import { type } from 'arktype'
-
-import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
-
+import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 export enum EvmSelectorSelector {
 	Hex = 'hex',
 }
-
 export default {
 	entityType: EntityType.EvmSelector,
-
-	label: 'EVM Selector',
-	labelPlural: 'EVM Selectors',
-
+	label: 'EVM selector',
+	labelPlural: 'EVM selectors',
 	selectors: [
 		{
 			name: EvmSelectorSelector.Hex,
@@ -28,22 +21,20 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: 'hex',
+			label: 'hex',
 			type: EntityFieldType.Primitive,
 			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'signatures',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string[]'),
-			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Openchain_Rest,
-			],
+			name: '$$timestamps',
+			label: 'timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.EvmSelector_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

@@ -1,90 +1,66 @@
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
+	const listView = {
+		entityType: EntityType.RedditComment,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
 		selection,
-		id,
-		href = '',
-		limit = 50,
+		title,
 		open = $bindable(true),
-		sortMode = 'api',
-		title = 'Top-level comments',
-		CollapsibleProps = {},
-	}: {
-		selection: EntityProxyEntitiesResource<typeof schema, EntityType.RedditComment>
-		id: string
-		href?: string
-		limit?: number
-		open?: boolean
-		sortMode?: 'api' | 'createdAtAsc' | 'createdAtDesc'
-		title?: string
-		CollapsibleProps?: ComponentProps<typeof EntitiesList>['CollapsibleProps']
-	} = $props()
+		id = 'RedditComments',
+		href = '',
+		...EntitiesListProps
+	}: WithRest<
+		{
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.RedditComment>
+			title?: string
+			open?: boolean
+			id?: string
+			href?: string
+		},
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
+	> = $props()
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import RedditCommentView from '$/views/RedditCommentView.svelte'
 </script>
 
 
-<div data-column="gap-2">
-	<ResourceBoundary resource={selection({
-		sources: [
-			Source.Constants_Internal,
-		],
-		limit,
-		...(sortMode !== 'api' && {
-			fields: {
-				createdAt: true,
-			},
-		}),
-	})}>
-		{#snippet children(comments)}
-			<EntitiesList
-				{CollapsibleProps}
-				entityType={EntityType.RedditComment}
-				{id}
-				{title}
-				href={href}
-				bind:open
-				items={comments.entities}
-				getKey={(comment) => comment.entitySelector.fullname}
-			>
-				{#snippet TypeAnnotationTooltip()}
-					<p>
-						{
-							selection.fieldName === '$$replies' ?
-								'Direct replies nested under this comment in Reddit’s threaded model.'
-							:
-								'Top-level comments are direct replies to a Reddit submission.'
-						}
-					</p>
-					<p>
-						They are specific to Reddit’s data model—not Farcaster feeds or in-app multiplayer chat.
-					</p>
-				{/snippet}
-
-				{#snippet Item({ item })}
-					<RedditCommentView
-						selection={select(EntityType.RedditComment, item.entitySelector)}
-						layout={EntityLayout.Summary}
-
-						showTypeAnnotation={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-</div>
+<EntitiesList
+	entityType={listView.entityType}
+	{title}
+	bind:open
+	{id}
+	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
+	{...EntitiesListProps}
+>
+	{#snippet Item({ item })}
+		<RedditCommentView
+			selection={select(EntityType.RedditComment, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
+	{/snippet}
+</EntitiesList>

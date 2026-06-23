@@ -1,16 +1,24 @@
-import { ipfsPublicGateways } from '$/constants/IpfsProtocol.ts'
 import { corsFetch, jsonErrorHintFromResponse } from '$/lib/http.ts'
 import {
 	ipfsNamespaceForTarget,
 	trimIpfsSlashes,
 } from '$/lib/ipfs.ts'
-import Ipfs from '$/sources/Ipfs/index.ts'
+import { ipfsBindings } from '$/sources/Ipfs/bindings.ts'
 import type {
 	IpfsBrowseResult,
 	IpfsNamespace,
 } from '$/sources/Ipfs/Rest/types.ts'
 
 const gatewayUrlLastSegment = /([^/]+)$/
+
+const ipfsGatewayEndpoints = ipfsBindings[0].endpoints
+
+const ipfsGatewayOrigins = ipfsGatewayEndpoints.flatMap((endpoint) => (
+	[{
+		origin: endpoint.origin,
+		corsEnabled: endpoint.corsEnabled,
+	}]
+))
 
 const resolvedIpfsNamespace = ({
 	target,
@@ -60,25 +68,25 @@ export const fetchBrowseResult = async ({
 	})
 	const failures: string[] = []
 
-	for (const { origin: gatewayOrigin } of ipfsPublicGateways) {
+	for (const endpoint of ipfsGatewayEndpoints) {
 		const gatewayUrl = getGatewayUrl({
 			namespace: resolvedNamespace,
 			target: trimmedTarget,
 			contentPath: trimmedPath,
-			gatewayOrigin,
+			gatewayOrigin: endpoint.origin,
 		})
 
 		const response = await corsFetch(gatewayUrl, {
-			origins: Ipfs.origins,
+			origins: ipfsGatewayOrigins,
 			init: { signal },
 		})
 		if (!response.ok) {
 			const hint = await jsonErrorHintFromResponse(response)
 			failures.push(
 				hint ?
-					`${gatewayOrigin} (${response.status}): ${hint}`
+					`${endpoint.locator} (${response.status}): ${hint}`
 				:
-					`${gatewayOrigin} (${response.status} ${response.statusText})`
+					`${endpoint.locator} (${response.status} ${response.statusText})`
 			)
 			continue
 		}
@@ -93,7 +101,7 @@ export const fetchBrowseResult = async ({
 			namespace: resolvedNamespace,
 			target: trimmedTarget,
 			contentPath: trimmedPath,
-			gatewayOrigin,
+			gatewayOrigin: endpoint.origin,
 			gatewayUrl,
 			fileName: parsedContent.fileName,
 			extension: parsedContent.extension,

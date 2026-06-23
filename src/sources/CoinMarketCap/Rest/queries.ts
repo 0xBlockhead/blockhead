@@ -4,8 +4,7 @@
 	*/
 
 import { coinMarketCapFetch } from '$/sources/CoinMarketCap/Rest/client.ts'
-import { Source } from '$/sources/Source.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import type {
 	CoinMarketCapInfoLatestResponse,
 	CoinMarketCapOhlcvHistoricalResponse,
@@ -28,7 +27,7 @@ export const getQuotesLatest = async ({
 	publicEnv,
 	id,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.CoinMarketCap_Rest>
+	publicEnv: SourcePublicEnv
 	id: number
 }) => (
 	await coinMarketCapFetch<CoinMarketCapQuotesLatestResponse>(
@@ -44,7 +43,7 @@ export const getInfo = async ({
 	publicEnv,
 	id,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.CoinMarketCap_Rest>
+	publicEnv: SourcePublicEnv
 	id: number
 }) => (
 	await coinMarketCapFetch<CoinMarketCapInfoLatestResponse>(
@@ -62,7 +61,7 @@ export const getOhlcvHistoricalRows = async ({
 	id,
 	lookbackDayCount,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.CoinMarketCap_Rest>
+	publicEnv: SourcePublicEnv
 	id: number
 	lookbackDayCount: number
 }): Promise<OhlcCandle[]> => {

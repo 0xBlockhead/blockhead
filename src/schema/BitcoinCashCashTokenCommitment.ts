@@ -1,24 +1,18 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import UtxoOutput from '$/schema/UtxoOutput.ts'
-
 export enum BitcoinCashCashTokenCommitmentSelector {
 	UtxoOutput = 'utxoOutput',
+	Output = '$output',
 }
-
 export default {
 	entityType: EntityType.BitcoinCashCashTokenCommitment,
-
-	label: 'Bitcoin Cash CashToken Commitment',
-	labelPlural: 'Bitcoin Cash CashToken Commitments',
-
+	label: 'Bitcoin cash cash token commitment',
+	labelPlural: 'Bitcoin cash cash token commitments',
 	selectors: [
 		{
 			name: BitcoinCashCashTokenCommitmentSelector.UtxoOutput,
@@ -27,19 +21,20 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$output',
+			label: 'output',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.UtxoOutput,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'commitmentHex',
+			label: 'commitment hex',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

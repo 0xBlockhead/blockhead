@@ -14,7 +14,10 @@ const files = execFileSync(
 )
 	.trim()
 	.split('\n')
-	.filter(Boolean)
+	.filter((file) => (
+		file
+		&& !file.split('/').some((part) => part.endsWith('_') || part.endsWith('__'))
+	))
 
 const failures = []
 const shouldFix = process.argv.includes('--fix')

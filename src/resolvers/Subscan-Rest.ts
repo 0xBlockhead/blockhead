@@ -1,9 +1,6 @@
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
-import {
-	subscanPolkadotRestEndpoints,
-} from '$/sources/Subscan/index.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
@@ -28,6 +25,10 @@ const assertPolkadotMainnet = (network: NetworkId) => {
 	}
 }
 
+const subscanPolkadotRestBaseUrl = async () => (
+	(await import('$/sources/Subscan/Rest/queries.ts')).subscanPolkadotRestEndpoints[0].url
+)
+
 export default {
 	source: Source.Subscan_Rest,
 
@@ -39,7 +40,7 @@ export default {
 					assertPolkadotMainnet($network)
 					const { getBlock } = await import('$/sources/Subscan/Rest/queries.ts')
 					const block = (await getBlock({
-						restBaseUrl: subscanPolkadotRestEndpoints[0].url,
+						restBaseUrl: await subscanPolkadotRestBaseUrl(),
 						height: blockNumber,
 						publicEnv: context.publicEnv,
 					})).data
@@ -75,7 +76,7 @@ export default {
 					assertPolkadotMainnet($block.$network)
 					const { getExtrinsic } = await import('$/sources/Subscan/Rest/queries.ts')
 					const extrinsic = (await getExtrinsic({
-						restBaseUrl: subscanPolkadotRestEndpoints[0].url,
+						restBaseUrl: await subscanPolkadotRestBaseUrl(),
 						extrinsicIndex: `${$block.blockNumber.toString()}-${extrinsicIndex}`,
 						publicEnv: context.publicEnv,
 					})).data

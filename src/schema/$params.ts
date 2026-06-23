@@ -15,8 +15,11 @@ export const matchSchemaPrimitiveParam = <
 	value: string | number | bigint | object
 ) => {
 	const fieldDefinition = schemaMeta.entityFieldDefinitionByEntityTypeAndName[entityType][fieldName]
+	if (fieldDefinition === undefined)
+		return false
+
 	return (
-		fieldDefinition?.type === EntityFieldType.Primitive
+		fieldDefinition.type === EntityFieldType.Primitive
 		&& entityFieldPrimitiveValueIsValid(
 			fieldDefinition,
 			value

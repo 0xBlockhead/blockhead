@@ -1,24 +1,18 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import LensPost from '$/schema/LensPost.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum LensPost_TimestampSelector {
 	LensPostTimestampMs = 'lensPostTimestampMs',
+	PostTimestampMs = '$post+timestampMs',
 }
-
 export default {
 	entityType: EntityType.LensPost_Timestamp,
-
-	label: 'Lens post snapshot',
-	labelPlural: 'Lens post snapshots',
-
+	label: 'lens post timestamp',
+	labelPlural: 'lens post observations',
 	selectors: [
 		{
 			name: LensPost_TimestampSelector.LensPostTimestampMs,
@@ -28,73 +22,63 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$post',
+			label: 'post',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.LensPost,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'commentCount',
+			label: 'comment count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Lens_Graphql,
-			],
 		},
 		{
 			name: 'repostCount',
+			label: 'repost count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Lens_Graphql,
-			],
 		},
 		{
 			name: 'quoteCount',
+			label: 'quote count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Lens_Graphql,
-			],
 		},
 		{
 			name: 'bookmarkCount',
+			label: 'bookmark count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Lens_Graphql,
-			],
 		},
 		{
 			name: 'collectCount',
+			label: 'collect count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Lens_Graphql,
-			],
 		},
 		{
 			name: 'reactionCount',
+			label: 'reaction count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Lens_Graphql,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

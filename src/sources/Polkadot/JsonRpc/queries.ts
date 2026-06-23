@@ -1,4 +1,5 @@
-import Polkadot from '$/sources/Polkadot/index.ts'
+import { TransportType } from '$/constants/TransportType.ts'
+import { polkadotBindings } from '$/sources/Polkadot/bindings.ts'
 import {
 	getBlock as getSubstrateBlock,
 	getBlockHash as getSubstrateBlockHash,
@@ -8,8 +9,30 @@ import {
 	getSystemHealth as getSubstrateSystemHealth,
 } from '$/sources/Substrate/JsonRpc/queries.ts'
 
+export const polkadotMainnetRpcEndpoints = [
+	{
+		url: polkadotBindings[0].endpoints[0].locator,
+		transportType: TransportType.Http,
+		providerName: 'Parity',
+	},
+] as const
+
+export const polkadotOrigins = [
+	...new Map(
+		polkadotBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
+
 const polkadotJsonRpc = {
-	origins: Polkadot.origins,
+	origins: polkadotOrigins,
 	label: 'Polkadot',
 } as const
 

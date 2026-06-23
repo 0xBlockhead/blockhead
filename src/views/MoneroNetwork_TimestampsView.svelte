@@ -1,23 +1,30 @@
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
+	const listView = {
+		entityType: EntityType.MoneroNetwork_Timestamp,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
 		selection,
-		title = 'Network snapshots',
+		title,
 		open = $bindable(true),
-		id,
+		id = 'MoneroNetwork_Timestamps',
 		href = '',
 		...EntitiesListProps
 	}: WithRest<
@@ -25,7 +32,7 @@
 			selection: EntityProxyEntitiesResource<typeof schema, EntityType.MoneroNetwork_Timestamp>
 			title?: string
 			open?: boolean
-			id: string
+			id?: string
 			href?: string
 		},
 		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
@@ -35,49 +42,25 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import MoneroNetwork_TimestampView from '$/views/MoneroNetwork_TimestampView.svelte'
 </script>
 
 
-<EntitiesList entityType={EntityType.MoneroNetwork_Timestamp} {title} bind:open {id} href={href} {...EntitiesListProps}>
-	{#snippet TypeAnnotationTooltip()}
-		<p>Timestamp moneroNetworkTimestamps hold observed Monero daemon and txpool state.</p>
-	{/snippet}
-
-	{#snippet body()}
-		{#if open}
-			<ResourceBoundary resource={selection({
-					sources: [Source.MoneroDaemonRpc_JsonRpc],
-					limit: 16,
-				})} placeholderText="Loading network snapshots…">
-				{#snippet children(timestamps)}
-					<EntitiesList
-						collapsible={false}
-						showSummary={false}
-						entityType={EntityType.MoneroNetwork_Timestamp}
-						id={`${id}-items`}
-						href={href}
-						getKey={(timestamp) => stringify(timestamp.entitySelector)}
-						getSortValue={(timestamp) => -timestamp.entitySelector.timestampMs}
-						open={true}
-						items={timestamps.values}
-						{title}
-						UnorderedListProps={{ orientation: ListOrientation.Column }}
-					>
-						{#snippet Empty()}
-							<p data-text="muted">No network snapshots yet.</p>
-						{/snippet}
-						{#snippet Item({ item })}
-							<MoneroNetwork_TimestampView
-								selection={select(EntityType.MoneroNetwork_Timestamp, item.entitySelector)}
-								layout={EntityLayout.Summary}
-
-							/>
-						{/snippet}
-					</EntitiesList>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+<EntitiesList
+	entityType={listView.entityType}
+	{title}
+	bind:open
+	{id}
+	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
+	{...EntitiesListProps}
+>
+	{#snippet Item({ item })}
+		<MoneroNetwork_TimestampView
+			selection={select(EntityType.MoneroNetwork_Timestamp, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

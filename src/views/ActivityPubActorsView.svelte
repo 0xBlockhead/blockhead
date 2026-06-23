@@ -1,127 +1,66 @@
 <script lang="ts">
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { resolve } from '$app/paths'
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
+	const listView = {
+		entityType: EntityType.ActivityPubActor,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
 		selection,
-		id,
+		title,
 		open = $bindable(true),
-		collapsible = true,
-		title = 'Federated actors',
+		id = 'ActivityPubActors',
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			selection: EntityProxyEntitiesResource<typeof schema, EntityType.ActivityPubActor>
-			id: string
-			open?: boolean
-			collapsible?: boolean
 			title?: string
+			open?: boolean
+			id?: string
+			href?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ActivityPubActorView from '$/views/ActivityPubActorView.svelte'
 </script>
 
 
 <EntitiesList
-	entityType={EntityType.ActivityPubActor}
-	{id}
-	bind:open
+	entityType={listView.entityType}
 	{title}
+	bind:open
+	{id}
+	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			ActivityPub actors federate across instances; each id pairs an origin host with a local account id (Mastodon-style).
-		</p>
-		<p>
-			Actor activityPubActors are discovery records—handles, inbox/outbox, and public keys live behind WebFinger and collection endpoints on the home instance.
-		</p>
-		<p>
-			Rows merge catalog seeds with authors discovered from public timelines on configured instances; sorted by origin then local account id.
-		</p>
-	{/snippet}
-
-	{#snippet body({ open: _bodyOpen })}
-		{#if open}
-			<ResourceBoundary resource={selection({
-					sources: [
-						Source.Constants_Internal,
-						Source.Mastodon_Rest,
-						Source.Fedi_Rest,
-					],
-				})} placeholderText="Loading Mastodon actor directory…">
-				{#snippet children(actors)}
-					<EntitiesList
-						collapsible={false}
-						showSummary={false}
-						entityType={EntityType.ActivityPubActor}
-						id={`${id}-items`}
-						{title}
-						open={true}
-						items={actors.entities}
-						getKey={(activityPubActor) => stringify(activityPubActor.entitySelector)}
-						getSortValue={(activityPubActor) => ('localAccountId' in activityPubActor.entitySelector ?
-								`${activityPubActor.entitySelector.instanceOrigin}\0${activityPubActor.entitySelector.localAccountId}`
-							: 'acct' in activityPubActor.entitySelector ?
-								`${activityPubActor.entitySelector.instanceOrigin}\0${activityPubActor.entitySelector.acct}`
-							:
-								activityPubActor.entitySelector.activityStreamsUri)}
-					>
-						{#snippet Empty()}
-							<p data-text="muted">
-								No actors yet.
-							</p>
-						{/snippet}
-
-						{#snippet Item({ item })}
-							{@const activityPubActorLabel = 'localAccountId' in item.entitySelector ?
-								`${item.entitySelector.instanceOrigin}/${item.entitySelector.localAccountId}`
-							: 'acct' in item.entitySelector ?
-								`${item.entitySelector.instanceOrigin}/@${item.entitySelector.acct}`
-							:
-								item.entitySelector.activityStreamsUri}
-							{#if 'localAccountId' in item.entitySelector && String(item.entitySelector.localAccountId) !== '-1'}
-								<a
-									href={resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
-										instanceOrigin: encodeURIComponent(item.entitySelector.instanceOrigin),
-										localAccountId: item.entitySelector.localAccountId,
-									})}
-								>
-									<TruncatedValue
-										value={activityPubActorLabel}
-										format={TruncatedValueFormat.Visual}
-									/>
-								</a>
-							{:else}
-								<TruncatedValue
-									value={activityPubActorLabel}
-									format={TruncatedValueFormat.Visual}
-								/>
-							{/if}
-						{/snippet}
-					</EntitiesList>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+	{#snippet Item({ item })}
+		<ActivityPubActorView
+			selection={select(EntityType.ActivityPubActor, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

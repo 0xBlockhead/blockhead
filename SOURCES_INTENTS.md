@@ -1,5 +1,7 @@
 # Blockhead Intents Mock Sources
 
+Archive note: the canonical intent/session source notes have been merged into `SOURCES.md`. Keep this file as research history only; update `SCHEMA.md`, `SOURCES.md`, and `SCHEMA-PLAN.md` for future passes.
+
 ## Purpose
 
 This file lists the source bindings and prior-art inputs used by `SCHEMA_INTENTS.md`. It is intentionally focused on local sessions, product intents, drag/drop invocation, quote/order protocols, wallet requests, and simulation.
@@ -185,3 +187,66 @@ export enum SourceBinding {
 - TEVM fork/run envelope fields are local/runtime evidence; call nodes and simulated logs are `Tevm_Runtime` replay artifacts and must not become public transaction/log facts without public chain resolver evidence.
 - `source! p:str` on `BlockheadIntentQuote` and `BlockheadIntentOrder` names the provider/source binding the local artifact is correlated with. It is not the row's local identity and does not make provider handles primary selectors.
 - `source! p:str` on timestamp rows names the observing source for that timestamp row. It does not change the parent row's identity or imply the source can resolve every sibling field.
+
+## High-Risk Field Placement
+
+Use this table during schema and resolver review. It catches fields that are valid in the model but wrong if placed on the wrong row family.
+
+| Field family | Allowed placement | Must not appear on |
+| --- | --- | --- |
+| `selectedProtocol` / selected backend | `BlockheadSessionAction` | Typed intent rows, provider quote/order timestamp rows |
+| `intentDefinitionKey`, `intentDefinitionHash`, `selectedOptionHash` | `BlockheadIntentInvocation` | Catalog entities, typed intent identity, provider payload rows |
+| CAIP-2 / CAIP-10 / CAIP-19 and EVM shortcut selectors | Typed intent rows, readiness request rows, wallet request rows when request-shaped | Provider quote/order identity, canonical account/network/asset replacement rows inside this slice |
+| `quoteId`, `solverId`, `validUntil`, quote previews, quote checksums | `BlockheadIntentQuote_Timestamp` | `BlockheadIntentQuote`, typed intent rows, session action rows |
+| `source`, `quoteRequestHash`, `orderId` as correlation handles | `BlockheadIntentQuote` / `BlockheadIntentOrder` fields | Local selectors for quote/order parent rows |
+| Provider order `status`, fill/claim transaction hashes, gas used, provider error | `BlockheadIntentOrder_Timestamp` | `BlockheadIntentOrder`, `BlockheadSessionAction`, typed intent rows |
+| Wallet `status`, numeric status code, signatures, transaction hashes/ids, bundle ids, observed atomicity, receipt count, wallet error | `BlockheadWalletRequest_Timestamp` | `BlockheadWalletRequest`, `BlockheadSessionAction`, `BlockheadIntentOrder` |
+| Requested wallet method, requested atomicity, requested call count, requested value | `BlockheadWalletRequest` | Wallet timestamp rows as source-observed truth, provider order rows |
+| Readiness `status`, observed amount, deficit amount, observed capability status | `BlockheadActionReadinessCheck_Timestamp` | `BlockheadActionReadinessCheck`, account/asset identity rows |
+| Readiness `checkKind`, requested capability key, required amount | `BlockheadActionReadinessCheck` | Timestamp rows as canonical balance/allowance/capability truth |
+| Outcome `status` and local `finality` label | `BlockheadActionOutcome_Timestamp` | Public transaction/receipt/bridge transfer rows as canonical finality |
+| Transaction hash/id and bridge transfer id as evidence handles | `BlockheadActionOutcome` / `BlockheadActionOutcome_Timestamp`, wallet timestamp rows when wallet-reported | Canonical public evidence unless resolved by external chain/protocol rows |
+| Simulation `resultSummary`, `resultPayloadHash`, fork metadata, gas summary | `BlockheadSessionSimulation` | Public transaction, receipt, log, trace, or finality rows |
+| Simulated call/log data hashes and addresses | `BlockheadSessionSimulationCall` / `BlockheadSessionSimulationLog` | Canonical `EvmTrace`, `EvmLog`, `EvmTransaction`, or receipt rows |
+| Raw provider, wallet, runtime, or drag payloads | Retained out of band with hash/summary fields on the owning artifact or timestamp row | Primary schema fields, selectors, or generic JSON roots |
+
+## Resolver Proof Checklist
+
+Use this checklist when porting the intent model into the current schema/resolver format. It is a proof target, not an instruction to revive older schema-row syntax.
+
+- Every resolver facet states selector input, source binding, transport/client, required auth/env, browser CORS/proxy behavior, returned fields, unavailable fields, freshness clock, pagination/count/list support, live/subscription behavior, and source-specific error vocabulary.
+- Every source-specific timestamp row that can diverge by observer includes `source` in its selector. If two sources can observe different quote status, wallet status, readiness status, or simulation/runtime state at the same time, the selector must preserve that divergence.
+- Resolver facet absence represents unsupported facts. Do not encode source support as `EntityFieldCardinality.Zero`, optional scalar fallbacks, or generic empty lists.
+- `Local_Internal` can create session, action, accepted invocation, typed intent, readiness envelope, local outcome, quote/order link, wallet request, simulation envelope, retained call, and retained log rows. It cannot assert provider support, wallet authority, public chain finality, canonical balances, canonical allowances, public receipts, public logs, or settlement truth.
+- `Browser_DragAndDrop` owns no durable rows. A test may prove drag payload behavior, but persistence begins only when `Local_Internal` records an accepted or replayable invocation.
+- Signed-order/filler-market sources own quote/order observations, provider handles, provider payload hashes, status payload hashes, checksums, solver metadata, and provider errors. They do not own local action identity, ordered session membership, typed product-intent identity, or route-display quote identity.
+- Ordinary route quote providers stay on existing route quote timestamp families such as `SwapQuote_Timestamp` and `BridgeRouteQuote_Timestamp`. Do not lift them into `BlockheadIntentQuote` unless the source exposes a signed-order, filler-market, or order-server lifecycle.
+- Wallet sources own wallet-reported signatures, transaction ids/hashes, bundle ids, status codes, observed atomicity, receipt counts, and wallet errors. Wallet success is not public chain finality, and a submitted transaction hash is not a receipt.
+- `Tevm_Runtime` owns fork/run metadata, local execution summaries, runtime payload hashes, simulated call nodes, and simulated logs. It is replay/runtime evidence only; public transaction/log truth must resolve through public chain sources.
+- `Voltaire_JsonRpc` can supply fork block context and chain-state evidence for simulation setup. It should not be treated as the source of product-local action/session identity.
+- Provider handles such as quote ids, order ids, solver ids, bundle ids, and transaction hashes are correlation fields unless the target domain already defines them as selectors. Local quote/order rows keep local `id` selectors.
+- Fixtures must include negative evidence cases: drag hover with no durable row, route quote that does not create `BlockheadIntentQuote`, wallet rejection with no chain finality, provider status error without local action mutation, TEVM simulated log without public log evidence, and unsupported resolver facet represented by absence rather than `Zero`.
+
+Source proof classification:
+
+- `source-supported`: primary docs, a concrete payload, or current local code proves the source can return the field/list/status with the selector and freshness clock stated by the resolver facet.
+- `source-derived-local`: the value is computed from local saved rows, catalog definitions, or retained payload hashes without claiming provider, wallet, runtime, or public-chain truth.
+- `source-observed-not-canonical`: the source reports an observation such as wallet status, provider order status, simulation result, or readiness evidence that must live on a timestamp row and must not replace public evidence.
+- `source-unavailable`: the source does not expose the fact, count, pagination, live update, or status vocabulary needed. Keep the resolver facet absent or mark the fixture unavailable; do not add placeholder fields.
+- `source-ambiguous`: docs or payload examples conflict. Keep raw/source-specific vocabulary behind payload hashes or source-specific timestamp fields until a normal form is justified.
+- `source-out-of-scope`: the fact belongs to an existing external anchor such as account, network, route quote, transaction, receipt, bridge transfer, or public log. Reference or resolve that external row instead of duplicating it in the intent slice.
+
+## Source Fixture Outline
+
+Use these fixtures with the ported drift gate so source ownership is executable instead of only described in prose.
+
+- `local-internal-session-action`: creates one session, two ordered actions, one accepted invocation, one typed intent, one readiness check parent, one local outcome parent, one wallet request parent, and one simulation parent. Assert all local ids, scoped ids, links, ordering, selected protocol, requested timestamps, and retained list membership come from `Local_Internal`.
+- `drag-hover-no-persistence`: simulates browser drag hover, drag preview, and `DataTransfer` payload with no accepted drop. Assert no session action, invocation, typed intent, quote, wallet request, or outcome row is created.
+- `constants-only-labels`: resolves enum/catalog keys for action type, protocol, invocation modality, readiness status, wallet status, order status, outcome/finality labels, and reproducibility hashes. Assert `Constants_Internal` does not create provider observations, wallet observations, runtime observations, chain facts, or local artifact ids.
+- `provider-quote-observation`: records two `BlockheadIntentQuote_Timestamp` rows for one local quote request with the same `timestampMs` and different provider `source` values. Assert provider fields such as `quoteId`, `solverId`, `validUntil`, `estimatedFillSeconds`, `quotePayloadHash`, and integrity checksums live only on timestamp rows.
+- `route-quote-not-intent-quote`: records an executable router/aggregator quote for swap or bridge routing. Assert it maps to `SwapQuote_Timestamp` or `BridgeRouteQuote_Timestamp`, not `BlockheadIntentQuote`, unless the source exposes signed-order/filler-market order lifecycle evidence.
+- `provider-order-status-observation`: records two local `BlockheadIntentOrder` parents that share a provider `source+orderId` but have different local `id` or session/action linkage. Assert provider status, fill/claim hashes, gas, status payload hash, and provider error live on `BlockheadIntentOrder_Timestamp`, not the parent or session action.
+- `wallet-rejection-and-success`: records a requested-only wallet prompt rejection and a later submitted wallet observation with signature, transaction hash/id, bundle id/status, observed atomicity, receipt count, or wallet numeric status. Assert wallet observations stay on `BlockheadWalletRequest_Timestamp`, `submittedAt` remains optional, and wallet success never implies chain finality.
+- `wallet-capability-readiness`: records EIP-5792 or protocol wallet capability evidence as a readiness timestamp observation. Assert capability support is not account identity, wallet authority, or a stable parent action field.
+- `simulation-runtime-only`: records TEVM fork/run metadata, call nodes, simulated logs, gas/error summaries, and runtime payload hashes. Assert simulated calls/logs are not public `EvmTrace`, `EvmLog`, `EvmTransaction`, receipt, or settlement evidence.
+- `unsupported-facet-absence`: requests a field/list/count/live facet not supported by a source. Assert the resolver facet is absent or reported unavailable; do not encode unsupported source capability as `EntityFieldCardinality.Zero`, placeholder primitive fields, or empty global lists.

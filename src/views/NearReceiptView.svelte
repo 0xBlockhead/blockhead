@@ -2,16 +2,80 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'receipt id',
+			},
+			{
+				label: 'predecessor account',
+			},
+			{
+				label: 'receiver account',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'receipt id',
+					},
+					{
+						label: 'predecessor account',
+					},
+					{
+						label: 'receiver account',
+					},
+					{
+						label: 'linked outcome when available',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Predecessor',
+					items: [
+						{
+							label: 'predecessor NEAR account',
+						},
+					],
+				},
+				{
+					label: 'Receiver',
+					items: [
+						{
+							label: 'receiver NEAR account',
+						},
+					],
+				},
+				{
+					label: 'Execution outcome',
+					items: [
+						{
+							label: 'linked execution outcome',
+						},
+					],
+				},
+				{
+					label: 'Spawned receipts',
+					items: [
+						{
+							label: 'child receipts when available from tx/status',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -22,7 +86,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -30,64 +94,15 @@
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NearAccountView from '$/views/NearAccountView.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.NearReceipt}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.receiptId}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		<TruncatedValue
-			value={selection.entitySelector.receiptId}
-			format={TruncatedValueFormat.Abbr}
-		/>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection( { fields: { $predecessor: true, $receiver: true } })}
-			placeholderText="Loading NEAR Receipt..."
-		>
-			{#snippet children(nearReceipt)}
-				<dl>
-					{#if nearReceipt.$predecessor != null}
-						<div>
-							<dt>Predecessor</dt>
-							<dd>
-								<NearAccountView
-									selection={select(EntityType.NearAccount, nearReceipt.$predecessor[EntityMetaKey.Selector])}
-									layout={EntityLayout.Value}
-
-									showTypeAnnotation={false}
-								/>
-							</dd>
-						</div>
-					{/if}
-
-					{#if nearReceipt.$receiver != null}
-						<div>
-							<dt>Receiver</dt>
-							<dd>
-								<NearAccountView
-									selection={select(EntityType.NearAccount, nearReceipt.$receiver[EntityMetaKey.Selector])}
-									layout={EntityLayout.Value}
-
-									showTypeAnnotation={false}
-								/>
-							</dd>
-						</div>
-					{/if}
-				</dl>
-	{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

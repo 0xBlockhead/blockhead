@@ -13,7 +13,7 @@
 
 
 <ParentPageCollapsible
-	title={'Feed'}
+	title="Feed"
 	href={resolve('/farcaster/feed')}
 >
 	{@render children()}

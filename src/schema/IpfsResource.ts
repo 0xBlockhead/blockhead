@@ -1,33 +1,18 @@
 import { type } from 'arktype'
-
-import { canonicalIpfsCidString } from '$/lib/multiformats.ts'
-import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import {
 	EntityFieldCardinality,
 	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
-	type EntityFieldValueNormalizer,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { UrlString } from '$/schema/UrlString.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum IpfsResourceSelector {
 	ResourceAddress = 'resourceAddress',
+	NamespaceTargetContentPath = 'namespace+target+contentPath',
 }
-
-
-const canonicalIpfsIdentityValue: EntityFieldValueNormalizer = (value) => (
-	canonicalIpfsCidString(String(value)) ?? value
-)
-
 export default {
 	entityType: EntityType.IpfsResource,
-
-	label: 'IPFS Resource',
-	labelPlural: 'IPFS Resources',
-
+	label: 'IPFS resource',
+	labelPlural: 'IPFS resources',
 	selectors: [
 		{
 			name: IpfsResourceSelector.ResourceAddress,
@@ -38,187 +23,147 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: 'namespace',
+			label: 'Namespace',
+			description: 'The namespace that qualifies the identifier.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('"ipfs" | "ipns"'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Ipfs_Rest,
-			],
 		},
 		{
 			name: 'target',
+			label: 'target',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Ipfs_Rest,
-			],
 		},
 		{
 			name: 'contentPath',
+			label: 'content path',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Ipfs_Rest,
-			],
 		},
 		{
 			name: 'canonicalUri',
+			label: 'canonical URI',
 			type: EntityFieldType.Primitive,
-			primitiveType: UrlString,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Ipfs_Rest,
-			],
 		},
 		{
 			name: 'gatewayOrigin',
+			label: 'gateway origin',
 			type: EntityFieldType.Primitive,
-			primitiveType: UrlString,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Ipfs_Rest,
-			],
 		},
 		{
 			name: 'gatewayUrl',
+			label: 'gateway URL',
 			type: EntityFieldType.Primitive,
-			primitiveType: UrlString,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Ipfs_Rest,
-			],
 		},
 		{
 			name: 'fileName',
+			label: 'file name',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Ipfs_Rest,
-			],
 		},
 		{
 			name: 'extension',
+			label: 'extension',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Ipfs_Rest,
-			],
 		},
 		{
 			name: 'contentType',
+			label: 'content type',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Ipfs_Rest,
-			],
 		},
 		{
 			name: 'contentLength',
+			label: 'content length',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Ipfs_Rest,
-			],
 		},
 		{
 			name: 'displayType',
+			label: 'display type',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('"text" | "image" | "video" | "audio" | "json" | "xml" | "pdf" | "iframe" | "binary"'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Ipfs_Rest,
-			],
 		},
 		{
 			name: 'isContentTypeInferred',
+			label: 'is content type inferred',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
+			primitiveType: type("boolean"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Ipfs_Rest,
-			],
 		},
 		{
 			name: 'text',
+			label: 'text',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Ipfs_Rest,
-			],
-		},
-		{
-			name: 'cidVersion',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Ipfs_Rest,
-			],
-		},
-		{
-			name: 'cidMultibase',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Ipfs_Rest,
-			],
-		},
-		{
-			name: 'cidMulticodecCode',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Ipfs_Rest,
-			],
-		},
-		{
-			name: 'cidMultihashCode',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Ipfs_Rest,
-			],
-		},
-		{
-			name: 'cidMultihashDigestHex',
-			type: EntityFieldType.Primitive,
-			primitiveType: ZeroExHex,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Ipfs_Rest,
-			],
-		},
-		{
-			name: 'isCidSubdomainSafe',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Ipfs_Rest,
-			],
 		},
 		{
 			name: '$media',
+			label: 'media',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Media,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Ipfs_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: 'cidVersion',
+			label: 'CID version',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'cidMultibase',
+			label: 'CID multibase',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'cidMulticodecCode',
+			label: 'CID multicodec code',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'cidMultihashCode',
+			label: 'CID multihash code',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'cidMultihashDigestHex',
+			label: 'CID multihash digest hex',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'isCidSubdomainSafe',
+			label: 'is CID subdomain safe',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("boolean"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+	],
 } as const satisfies EntityDefinition

@@ -1,314 +1,138 @@
 <script lang="ts">
 	// Types/constants
+	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
-
-
-	// Context
-	import { select } from '$/routes/+layout.svelte'
-	import { resolve } from '$app/paths'
 
 
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'slot number',
+			},
+			'epoch',
+			{
+				label: 'block root',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'slot number',
+					},
+					'epoch',
+					{
+						label: 'proposer index',
+					},
+					{
+						label: 'canonical flag',
+					},
+				],
+				[
+					{
+						label: 'block root',
+					},
+					{
+						label: 'parent root',
+					},
+					{
+						label: 'state root',
+					},
+					{
+						label: 'body root',
+					},
+					'signature',
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Committees',
+					items: [
+						{
+							label: 'committee assignments for this slot',
+						},
+					],
+				},
+				{
+					label: 'Attestations',
+					items: [
+						{
+							label: 'attestations included in this slot',
+						},
+					],
+				},
+				{
+					label: 'Withdrawals',
+					items: [
+						{
+							label: 'withdrawals included in this slot',
+						},
+					],
+				},
+				{
+					label: 'Slashings',
+					items: [
+						{
+							label: 'attester/proposer slashings included in this slot',
+						},
+					],
+				},
+				{
+					label: 'Network',
+					items: [
+						{
+							label: 'parent EVM network consensus context',
+						},
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: '/eth/v1/beacon/headers/{block_id}',
+						},
+						{
+							label: '/eth/v2/beacon/blocks/{block_id}',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
-				href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(beacon-slots)/slot/[slotNumber=beaconSlotNumber]', {
-				caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
-				slotNumber: String(selection.entitySelector.slot),
-			}),
-		layout = EntityLayout.Summary,
-		title: titleProp,
-		open = $bindable(layout === EntityLayout.SummaryDetails),
+		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.BeaconSlot>
-			href?: string
-			layout?: EntityLayout
-			title?: string
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
+			| 'layout'
 			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
-	const slot = $derived(selection(
-		({ sources: [
-				Source.Beacon_Rest,
-			], fields: { proposerIndex: true, ...(open && ({ epoch: true, root: true, parentRoot: true, stateRoot: true, bodyRoot: true, canonical: true, signature: true })) } }),
-	))
-
-
-	// (Derived)
-	const title = $derived(
-		titleProp ?? `Slot #${selection.entitySelector.slot.toLocaleString()}`,
-	)
-
-
 	// Components
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import BeaconAttestationsView from '$/views/BeaconAttestationsView.svelte'
-	import BeaconCommitteesView from '$/views/BeaconCommitteesView.svelte'
-	import BeaconEpochView from '$/views/BeaconEpochView.svelte'
-	import BeaconSlashingsView from '$/views/BeaconSlashingsView.svelte'
-	import BeaconWithdrawalsView from '$/views/BeaconWithdrawalsView.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.BeaconSlot}
 	entitySelector={selection.entitySelector}
-	href={href}
-	{title}
-	{layout}
 	bind:open
-	idDragPlainText={String(selection.entitySelector.slot)}
 	{...EntityViewProps}
->
-	{#snippet Value()}
-		<span data-badge="small">
-			#{String(selection.entitySelector.slot)}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>Slot </span>
-		<span data-badge="small">
-			#{String(selection.entitySelector.slot)}
-		</span>
-		</span>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Beacon consensus slot: one timestep for the proposer duty and attestations; slot length is defined by the chain’s consensus spec.
-		</p>
-	{/snippet}
-
-	{#snippet Content({})}
-		<dl data-column-item="center">
-			<div>
-				<dt>Proposer index</dt>
-				<dd>
-					<ResourceBoundary
-						resource={slot}
-						placeholderText="Loading slot…"
-						>
-							{#snippet children(slot)}
-								{#if slot.proposerIndex !== undefined}
-									<NumberValue value={slot.proposerIndex} />
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-				</dd>
-			</div>
-			{#if open}
-				<div>
-					<dt>Epoch</dt>
-					<dd>
-						<ResourceBoundary
-							resource={slot}
-							placeholderText="Loading slot…"
-						>
-							{#snippet children(slot)}
-								{#if slot.epoch !== undefined}
-									<BeaconEpochView
-										selection={select(EntityType.BeaconEpoch, {
-											$network: selection.entitySelector.$network,
-											epoch: slot.epoch,
-										})}
-										layout={EntityLayout.Value}
-
-										open={false}
-										/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-
-				<div>
-					<dt>Block root</dt>
-					<dd>
-						<ResourceBoundary
-							resource={slot}
-							placeholderText="Loading slot…"
-							>
-								{#snippet children(slot)}
-									{#if slot.root !== undefined}
-										<TruncatedValue
-											value={slot.root}
-											format={TruncatedValueFormat.Abbr}
-									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-
-				<div>
-					<dt>Canonical</dt>
-					<dd>
-						<ResourceBoundary
-							resource={slot}
-							placeholderText="Loading slot…"
-						>
-							{#snippet children(slot)}
-								{#if slot.canonical !== undefined}
-									{slot.canonical ? 'Yes' : 'No'}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-
-				<div>
-					<dt>Parent root</dt>
-					<dd>
-						<ResourceBoundary
-							resource={slot}
-							placeholderText="Loading slot…"
-							>
-								{#snippet children(slot)}
-									{#if slot.parentRoot !== undefined}
-										<TruncatedValue
-											value={slot.parentRoot}
-											format={TruncatedValueFormat.Abbr}
-									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-
-				<div>
-					<dt>State root</dt>
-					<dd>
-						<ResourceBoundary
-							resource={slot}
-							placeholderText="Loading slot…"
-							>
-								{#snippet children(slot)}
-									{#if slot.stateRoot !== undefined}
-										<TruncatedValue
-											value={slot.stateRoot}
-											format={TruncatedValueFormat.Abbr}
-									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-
-				<div>
-					<dt>Body root</dt>
-					<dd>
-						<ResourceBoundary
-							resource={slot}
-							placeholderText="Loading slot…"
-							>
-								{#snippet children(slot)}
-									{#if slot.bodyRoot !== undefined}
-										<TruncatedValue
-											value={slot.bodyRoot}
-											format={TruncatedValueFormat.Abbr}
-									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-
-				<div>
-					<dt>Signature</dt>
-					<dd>
-						<ResourceBoundary
-							resource={slot}
-							placeholderText="Loading slot…"
-							>
-								{#snippet children(slot)}
-									{#if slot.signature !== undefined}
-										<TruncatedValue
-											value={slot.signature}
-											format={TruncatedValueFormat.Abbr}
-									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-		</dl>
-	{/snippet}
-
-	{#snippet Details({
-		open: _open,
-	})}
-		<CollapsibleTabs
-			id={`beacon-slot:${String(selection.entitySelector.slot)}:contents`}
-			sectionIdPrefix={`beacon-slot:${String(selection.entitySelector.slot)}`}
-			sections={[
-				{ id: 'slot-committees', label: 'Committees' },
-				{ id: 'slot-attestations', label: 'Attestations' },
-				{ id: 'slot-withdrawals', label: 'Withdrawals' },
-				{ id: 'slot-slashings', label: 'Slashings' },
-			]}
-			data-card
-		>
-			{#snippet Summary({})}
-				<header data-row-item="flexible" data-row="wrap gap-4">
-					<h3>Slot contents</h3>
-				</header>
-			{/snippet}
-
-			{#snippet SectionSlotCommittees({ id, label })}
-				<BeaconCommitteesView
-					CollapsibleProps={{ canToggle: false }}
-					selection={selection.$$beaconCommittees}
-					id={`${id}-list`}
-					title={label}
-				/>
-			{/snippet}
-
-			{#snippet SectionSlotAttestations({ id, label })}
-				<BeaconAttestationsView
-					CollapsibleProps={{ canToggle: false }}
-					selection={selection.$$beaconAttestations}
-					id={`${id}-list`}
-					title={label}
-				/>
-			{/snippet}
-
-			{#snippet SectionSlotWithdrawals({ id, label })}
-				<BeaconWithdrawalsView
-					CollapsibleProps={{ canToggle: false }}
-					selection={selection.$$beaconWithdrawals}
-					id={`${id}-list`}
-					title={label}
-				/>
-			{/snippet}
-
-			{#snippet SectionSlotSlashings({ id, label })}
-				<BeaconSlashingsView
-					CollapsibleProps={{ canToggle: false }}
-					selection={selection.$$beaconSlashings}
-					id={`${id}-list`}
-					title={label}
-				/>
-			{/snippet}
-		</CollapsibleTabs>
-	{/snippet}
-</EntityView>
+	{view}
+/>

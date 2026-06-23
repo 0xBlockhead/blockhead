@@ -5,13 +5,12 @@ import {
 } from 'gql.tada'
 
 import { getJson } from '$/lib/http.ts'
-import { Source } from '$/sources/Source.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import {
 	lensGraphqlUrl,
 	lensHeyGraphqlUrl,
 } from '$/sources/Lens/Graphql/constants.ts'
-import Lens from '$/sources/Lens/index.ts'
+import { lensOrigins } from '$/sources/Lens/index.ts'
 
 import type { introspection } from './graphql-env.d.ts'
 
@@ -42,7 +41,7 @@ export const queryLens = async <
 	_Result extends object,
 	_Variables extends object,
 >(
-	publicEnv: SourcePublicEnvFor<Source.Lens_Graphql>,
+	publicEnv: SourcePublicEnv,
 	document: TadaDocumentNode<_Result, _Variables>,
 	variables?: _Variables
 ): Promise<_Result> => {
@@ -57,7 +56,7 @@ export const queryLens = async <
 	for (const url of lensGraphqlUrls) {
 		try {
 			const out = await getJson<LensGqlResponse<_Result>>(url, {
-				origins: Lens.origins,
+				origins: lensOrigins,
 				init: {
 					method: 'POST',
 					headers: {

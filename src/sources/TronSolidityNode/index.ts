@@ -1,29 +1,48 @@
-import { type as arktype } from 'arktype'
-
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
-import TronSolidityNodeRest from '$/sources/TronSolidityNode/Rest/index.ts'
+import { Source } from '$/sources/Source.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import {
+	tronSolidityNodeBindings,
+	tronSolidityNodePublicEnv,
+} from '$/sources/TronSolidityNode/bindings.ts'
 
 export const tronSolidityNodeRestEndpoints = [
 	{
 		slug: 'solidity_node_local',
-		restBaseUrl: 'http://127.0.0.1:8091',
+		restBaseUrl: tronSolidityNodeBindings[0].endpoints[0].locator,
 	},
 ] as const satisfies readonly {
 	slug: 'solidity_node_local'
 	restBaseUrl: string
 }[]
 
+export const tronSolidityNodeOrigins = [
+	...new Map(
+		tronSolidityNodeBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
+
 export default {
 	provider: SourceProvider.TronSolidityNode,
 	label: 'TRON SolidityNode',
-	env: arktype({
-		PUBLIC_TRON_SOLIDITY_NODE_REST_BASE_URL: 'string',
-	}),
-	origins: tronSolidityNodeRestEndpoints.map((endpoint) => ({
-		origin: endpoint.restBaseUrl,
-		corsEnabled: false,
-	})),
+	env: tronSolidityNodePublicEnv,
 	sources: [
-		TronSolidityNodeRest,
+		{
+			provider: SourceProvider.TronSolidityNode,
+			source: Source.TronSolidityNode_Rest,
+			label: 'TRON SolidityNode REST',
+			env: tronSolidityNodePublicEnv,
+		},
 	],
-} as const satisfies SourceProviderDefinition
+	bindings: tronSolidityNodeBindings,
+} satisfies SourceProviderDefinition

@@ -1,24 +1,18 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import ZeroGDataBlob from '$/schema/ZeroGDataBlob.ts'
-
 export enum ZeroGDataChunkSelector {
 	ZeroGDataBlobChunkIndex = 'zeroGDataBlobChunkIndex',
+	DataBlobChunkIndex = '$dataBlob+chunkIndex',
 }
-
 export default {
 	entityType: EntityType.ZeroGDataChunk,
-
-	label: '0G data chunk',
-	labelPlural: '0G data chunks',
-
+	label: 'zero g data chunk',
+	labelPlural: 'zero g data chunks',
 	selectors: [
 		{
 			name: ZeroGDataChunkSelector.ZeroGDataBlobChunkIndex,
@@ -28,37 +22,41 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$dataBlob',
+			label: 'data blob',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.ZeroGDataBlob,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'chunkIndex',
+			label: 'chunk index',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$storageNode',
+			label: 'storage node',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.ZeroGStorageNode,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'chunkRoot',
+			label: 'chunk root',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'sizeBytes',
+			label: 'size bytes',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

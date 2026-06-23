@@ -1,20 +1,43 @@
-import { type as arktype } from 'arktype'
-
+import { Source } from '$/sources/Source.ts'
 import {
-	type SourceProviderDefinition,
 	SourceProvider,
+	type SourceProviderDefinition,
 } from '$/sources/SourceProvider.ts'
-import BeaconchaInRestSource from '$/sources/BeaconchaIn/Rest/index.ts'
-import { beaconchaInOrigins } from '$/sources/BeaconchaIn/Rest/constants.ts'
+import {
+	beaconchaInBindings,
+	beaconchaInPublicEnv,
+} from '$/sources/BeaconchaIn/bindings.ts'
+
+export const beaconchaInOrigins = [
+	...new Map(
+		beaconchaInBindings
+			.flatMap((binding) => binding.endpoints)
+			.flatMap((endpoint) => (
+				endpoint.origin == null ?
+					[]
+				:
+					[[
+						endpoint.origin,
+						{
+							origin: endpoint.origin,
+							corsEnabled: endpoint.corsEnabled === true,
+						},
+					]]
+			))
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.BeaconchaIn,
 	label: 'Beaconcha.in',
-	env: arktype({
-		PUBLIC_BEACONCHAIN_API_KEY: 'string > 0',
-	}),
-	origins: beaconchaInOrigins,
+	env: beaconchaInPublicEnv,
 	sources: [
-		BeaconchaInRestSource,
+		{
+			provider: SourceProvider.BeaconchaIn,
+			source: Source.BeaconchaIn_Rest,
+			label: 'Beaconcha.in REST',
+			env: beaconchaInPublicEnv,
+		},
 	],
+	bindings: beaconchaInBindings,
 } satisfies SourceProviderDefinition

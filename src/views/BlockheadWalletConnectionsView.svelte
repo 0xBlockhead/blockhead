@@ -1,106 +1,66 @@
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
+	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { schema } from '$/schema/index.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
-	import { getWalletConnectionRuntime } from '$/state/wallets/walletConnectionRuntime.svelte.ts'
-	import { resolve } from '$app/paths'
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
+	const listView = {
+		entityType: EntityType.BlockheadWalletConnection,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
-		id,
-		title = 'Wallet connections',
+		selection,
+		title,
 		open = $bindable(true),
-	}: {
-		id: string
-		title?: string
-		open?: boolean
-	} = $props()
+		id = 'BlockheadWalletConnections',
+		href = '',
+		...EntitiesListProps
+	}: WithRest<
+		{
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.BlockheadWalletConnection>
+			title?: string
+			open?: boolean
+			id?: string
+			href?: string
+		},
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
+	> = $props()
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import Icon from '$/components/Icon.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadWalletConnectionView from '$/views/BlockheadWalletConnectionView.svelte'
 </script>
 
 
 <EntitiesList
-	entityType={EntityType.BlockheadWalletConnection}
-	{id}
-	href={resolve('/~/accounts')}
+	entityType={listView.entityType}
 	{title}
 	bind:open
-	placeholderText="Resolving wallet connections…"
+	{id}
+	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
+	{...EntitiesListProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Wallet connections normalize injected providers, registry wallets, QR sessions, postMessage signers, P2P bridges, and hardware bridges into CAIP-scoped accounts.
-		</p>
-		<p>
-			Discovery is separate from authorization: a wallet candidate can be visible before any account or signing scope is granted.
-		</p>
-		<p>
-			Always confirm account, scope, and protocol before signing bridges or contract calls.
-		</p>
-	{/snippet}
-
-	{#snippet body({ open: _bodyOpen })}
-		{@const walletRuntime = getWalletConnectionRuntime()}
-		<div data-column="gap-3">
-			{#if walletRuntime?.connections.length}
-				<div data-column="gap-2">
-					{#each walletRuntime.connections.toSorted((connectionA, connectionB) => (
-						connectionA.walletId.localeCompare(connectionB.walletId)
-					)) as connection (connection.walletId)}
-						<BlockheadWalletConnectionView
-							selection={select(EntityType.BlockheadWalletConnection, {
-								$wallet: {
-									id: connection.walletId,
-								},
-							})}
-							onRemove={() => walletRuntime.disconnect(connection.walletId)}
-							href={resolve('/~/accounts')}
-
-						/>
-					{/each}
-				</div>
-			{:else}
-				<p data-text="muted">
-					No wallet connections yet.
-				</p>
-			{/if}
-
-			{#if walletRuntime}
-				{@const availableCandidates = walletRuntime.candidates.filter((candidate) => (
-					!walletRuntime.connections.some((connection) => connection.walletId === candidate.id)
-				))}
-				{#if availableCandidates.length}
-					<div data-row="start">
-						{#each availableCandidates as candidate (candidate.id)}
-						<button
-							type="button"
-							data-row="align-center"
-							onclick={() => walletRuntime?.connect(candidate.id)}
-						>
-							{#if candidate.icon}
-								<Icon
-									src={candidate.icon}
-									alt={candidate.name}
-								/>
-							{/if}
-
-							<span>
-								Connect {candidate.name}
-							</span>
-						</button>
-						{/each}
-					</div>
-				{/if}
-			{/if}
-		</div>
+	{#snippet Item({ item })}
+		<BlockheadWalletConnectionView
+			selection={select(EntityType.BlockheadWalletConnection, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

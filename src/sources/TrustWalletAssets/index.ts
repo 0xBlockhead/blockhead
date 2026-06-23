@@ -1,20 +1,19 @@
+import { Source } from '$/sources/Source.ts'
 import {
-	type SourceProviderDefinition,
 	SourceProvider,
+	type SourceProviderDefinition,
 } from '$/sources/SourceProvider.ts'
-import { rawOrigin } from '$/sources/TrustWalletAssets/Github/constants.ts'
-import TrustWalletAssetsGithubSource from '$/sources/TrustWalletAssets/Github/index.ts'
+import { trustWalletAssetsBindings } from '$/sources/TrustWalletAssets/bindings.ts'
 
 export default {
 	provider: SourceProvider.TrustWalletAssets,
-	label: 'TrustWallet Assets',
-	origins: [
+	label: 'Trust Wallet Assets',
+	sources: [
 		{
-			origin: rawOrigin,
-			corsEnabled: false,
+			provider: SourceProvider.TrustWalletAssets,
+			source: Source.TrustWalletAssets_Github,
+			label: 'Trust Wallet Assets GitHub',
 		},
 	],
-	sources: [
-		TrustWalletAssetsGithubSource,
-	],
+	bindings: trustWalletAssetsBindings,
 } satisfies SourceProviderDefinition

@@ -17,16 +17,22 @@ import type {
 } from '$/sources/TronScan/Rest/types.ts'
 import { TronBlockSelector } from '$/schema/TronBlock.ts'
 import { TronAccountSelector } from '$/schema/TronAccount.ts'
+import { TronAccount_TimestampSelector } from '$/schema/TronAccount_Timestamp.ts'
 import { TronTransactionSelector } from '$/schema/TronTransaction.ts'
 import { TronContractSelector } from '$/schema/TronContract.ts'
+import { TronContract_TimestampSelector } from '$/schema/TronContract_Timestamp.ts'
 import { TronTokenSelector } from '$/schema/TronToken.ts'
+import { TronToken_TimestampSelector } from '$/schema/TronToken_Timestamp.ts'
 import { TronTokenTransferSelector } from '$/schema/TronTokenTransfer.ts'
-import { tronScanRestEndpoints } from '$/sources/TronScan/index.ts'
 
 type NetworkId = { caip2: {
 	namespace: string
 	reference: string
 } } | { slug: string }
+
+const tronScanRestBaseUrl = async () => (
+	(await import('$/sources/TronScan/Rest/queries.ts')).tronScanRestEndpoints[0].restBaseUrl
+)
 
 const assertTronMainnet = (network: NetworkId) => {
 	if (!('slug' in network) || network.slug !== 'tron')
@@ -163,10 +169,6 @@ const tokenFieldsFromTronScanToken = (
 		...(standard != null && {
 			standard,
 		}),
-		name: token.name ?? token.tokenName,
-		symbol: token.symbol ?? token.abbr ?? token.tokenAbbr,
-		decimals: token.decimals ?? token.precision,
-		totalSupply: bigintFromWire(token.totalSupply ?? token.total_supply),
 		...(ownerAddress != null && {
 			$owner: accountReference(network, ownerAddress),
 		}),
@@ -179,7 +181,20 @@ const tokenFieldsFromTronScanToken = (
 			},
 		}),
 		createdTimestampMs: token.dateCreated ?? token.createTime,
-		holderCount: token.holderCount,
+		...(tokenId != null && {
+			$$timestamps: [
+				{
+					[EntityMetaKey.Selector]: {
+						$token: {
+							$network: network,
+							tokenId,
+						},
+						timestampMs: Date.now(),
+						source: Source.TronScan_Rest,
+					},
+				},
+			],
+		}),
 	}
 }
 
@@ -195,17 +210,6 @@ const contractFieldsFromTronScanContract = (
 		},
 	},
 	name: contract.name ?? contract.contractName,
-	compiler: contract.compiler,
-	verifyStatus: contract.verifyStatus ?? contract.verify_status?.toString(),
-	isProxy: contract.is_proxy,
-	...(contract.proxy_implementation != null && {
-		$implementation: {
-			[EntityMetaKey.Selector]: {
-				$network: network,
-				address: contract.proxy_implementation,
-			},
-		},
-	}),
 	...(contract.creator != null && {
 		$creator: accountReference(network, contract.creator),
 	}),
@@ -220,6 +224,18 @@ const contractFieldsFromTronScanContract = (
 			},
 		},
 	}),
+	$$timestamps: [
+		{
+			[EntityMetaKey.Selector]: {
+				$contract: {
+					$network: network,
+					address: contractAddress,
+				},
+				timestampMs: Date.now(),
+				source: Source.TronScan_Rest,
+			},
+		},
+	],
 	$$tokens: [
 		contract.trc20token,
 		contract.trc10token,
@@ -305,7 +321,7 @@ export default {
 					assertTronMainnet($network)
 					const { getBlock } = await import('$/sources/TronScan/Rest/queries.ts')
 					const block = (await getBlock({
-						restBaseUrl: tronScanRestEndpoints[0].restBaseUrl,
+						restBaseUrl: await tronScanRestBaseUrl(),
 						height: height,
 					})).data.at(0)
 					if (block == null) throw new Error(`TronScan_Rest: block not found for ${height.toString()}`)
@@ -332,20 +348,11 @@ export default {
 					assertTronMainnet($network)
 					const { getAccount } = await import('$/sources/TronScan/Rest/queries.ts')
 					const account = await getAccount({
-						restBaseUrl: tronScanRestEndpoints[0].restBaseUrl,
+						restBaseUrl: await tronScanRestBaseUrl(),
 						address: address,
 					})
 					return {
 						name: account.name,
-						balanceSun: bigintFromWire(account.balanceStr ?? account.balance),
-						createdTimestampMs: account.date_created,
-						latestOperationTimestampMs: account.latest_operation_time,
-						totalTransactionCount: account.totalTransactionCount ?? account.transactions,
-						bandwidthRemaining: bigintFromWire(
-							account.bandwidth?.netRemaining ?? account.bandwidth?.freeNetRemaining
-					),
-						energyRemaining: bigintFromWire(account.accountResource?.energyRemaining),
-						isContract: account.contractMap?.[address],
 						...(account.contractMap?.[address] === true && {
 							$contract: {
 								[EntityMetaKey.Selector]: {
@@ -354,20 +361,59 @@ export default {
 								},
 							},
 						}),
+						$$timestamps: [
+							{
+								[EntityMetaKey.Selector]: {
+									$account: {
+										$network,
+										address,
+									},
+									timestampMs: Date.now(),
+									source: Source.TronScan_Rest,
+								},
+							},
+						],
 					}
 				}
 			},
 		})({
 			fields: {
 				name: (account) => account.name,
+				$contract: (account) => account.$contract,
+				$$timestamps: (account) => account.$$timestamps,
+			},
+		}),
+
+		defineResolver(Source.TronScan_Rest, {
+			entityType: EntityType.TronAccount_Timestamp,
+			resolve: {
+				[TronAccount_TimestampSelector.AccountTimestampMsSource]: async ({ $account }) => {
+					assertTronMainnet($account.$network)
+					const { getAccount } = await import('$/sources/TronScan/Rest/queries.ts')
+					const account = await getAccount({
+						restBaseUrl: await tronScanRestBaseUrl(),
+						address: $account.address,
+					})
+					return {
+						balanceSun: bigintFromWire(account.balanceStr ?? account.balance),
+						createdTimestampMs: account.date_created,
+						latestOperationTimestampMs: account.latest_operation_time,
+						totalTransactionCount: account.totalTransactionCount ?? account.transactions,
+						netLimit: bigintFromWire(account.bandwidth?.netRemaining ?? account.bandwidth?.freeNetRemaining),
+						energyLimit: bigintFromWire(account.accountResource?.energyRemaining),
+						isContract: account.contractMap?.[$account.address],
+					}
+				}
+			},
+		})({
+			fields: {
 				balanceSun: (account) => account.balanceSun,
 				createdTimestampMs: (account) => account.createdTimestampMs,
 				latestOperationTimestampMs: (account) => account.latestOperationTimestampMs,
 				totalTransactionCount: (account) => account.totalTransactionCount,
-				bandwidthRemaining: (account) => account.bandwidthRemaining,
-				energyRemaining: (account) => account.energyRemaining,
+				netLimit: (account) => account.netLimit,
+				energyLimit: (account) => account.energyLimit,
 				isContract: (account) => account.isContract,
-				$contract: (account) => account.$contract,
 			},
 		}),
 
@@ -378,7 +424,7 @@ export default {
 					assertTronMainnet($network)
 					const { getTransaction } = await import('$/sources/TronScan/Rest/queries.ts')
 					const detail = await getTransaction({
-						restBaseUrl: tronScanRestEndpoints[0].restBaseUrl,
+						restBaseUrl: await tronScanRestBaseUrl(),
 						transactionId: transactionId,
 					})
 					return transactionFieldsFromTronScanTransaction(
@@ -410,7 +456,7 @@ export default {
 					assertTronMainnet($network)
 					const { getContract } = await import('$/sources/TronScan/Rest/queries.ts')
 					const contract = (await getContract({
-						restBaseUrl: tronScanRestEndpoints[0].restBaseUrl,
+						restBaseUrl: await tronScanRestBaseUrl(),
 						address: address,
 					})).data.at(0)
 					if (contract == null) throw new Error(`TronScan_Rest: contract not found for ${address}`)
@@ -421,13 +467,45 @@ export default {
 			fields: {
 				$account: (contract) => contract.$account,
 				name: (contract) => contract.name,
+				$creator: (contract) => contract.$creator,
+				$creationTransaction: (contract) => contract.$creationTransaction,
+				$$timestamps: (contract) => contract.$$timestamps,
+				$$tokens: (contract) => contract.$$tokens,
+			},
+		}),
+
+		defineResolver(Source.TronScan_Rest, {
+			entityType: EntityType.TronContract_Timestamp,
+			resolve: {
+				[TronContract_TimestampSelector.ContractTimestampMsSource]: async ({ $contract }) => {
+					assertTronMainnet($contract.$network)
+					const { getContract } = await import('$/sources/TronScan/Rest/queries.ts')
+					const contract = (await getContract({
+						restBaseUrl: await tronScanRestBaseUrl(),
+						address: $contract.address,
+					})).data.at(0)
+					if (contract == null) throw new Error(`TronScan_Rest: contract not found for ${$contract.address}`)
+					return {
+						compiler: contract.compiler,
+						verifyStatus: contract.verifyStatus ?? contract.verify_status?.toString(),
+						isProxy: contract.is_proxy,
+						...(contract.proxy_implementation != null && {
+							$implementation: {
+								[EntityMetaKey.Selector]: {
+									$network: $contract.$network,
+									address: contract.proxy_implementation,
+								},
+							},
+						}),
+					}
+				}
+			},
+		})({
+			fields: {
 				compiler: (contract) => contract.compiler,
 				verifyStatus: (contract) => contract.verifyStatus,
 				isProxy: (contract) => contract.isProxy,
 				$implementation: (contract) => contract.$implementation,
-				$creator: (contract) => contract.$creator,
-				$creationTransaction: (contract) => contract.$creationTransaction,
-				$$tokens: (contract) => contract.$$tokens,
 			},
 		}),
 
@@ -442,11 +520,11 @@ export default {
 					} = await import('$/sources/TronScan/Rest/queries.ts')
 					const token = (
 						(await getTokenOverview({
-							restBaseUrl: tronScanRestEndpoints[0].restBaseUrl,
+							restBaseUrl: await tronScanRestBaseUrl(),
 							tokenId: tokenId,
 						})).tokens[0]
 					?? (await getTrc10Token({
-						restBaseUrl: tronScanRestEndpoints[0].restBaseUrl,
+						restBaseUrl: await tronScanRestBaseUrl(),
 						tokenId: tokenId,
 					})).data.at(0)
 					)
@@ -456,13 +534,47 @@ export default {
 		})({
 			fields: {
 				standard: (token) => token.standard,
+				$owner: (token) => token.$owner,
+				$contract: (token) => token.$contract,
+				createdTimestampMs: (token) => token.createdTimestampMs,
+				$$timestamps: (token) => token.$$timestamps ?? [],
+			},
+		}),
+
+		defineResolver(Source.TronScan_Rest, {
+			entityType: EntityType.TronToken_Timestamp,
+			resolve: {
+				[TronToken_TimestampSelector.TokenTimestampMsSource]: async ({ $token }) => {
+					assertTronMainnet($token.$network)
+					const {
+						getTokenOverview,
+						getTrc10Token,
+					} = await import('$/sources/TronScan/Rest/queries.ts')
+					const token = (
+						(await getTokenOverview({
+							restBaseUrl: await tronScanRestBaseUrl(),
+							tokenId: $token.tokenId,
+						})).tokens[0]
+					?? (await getTrc10Token({
+						restBaseUrl: await tronScanRestBaseUrl(),
+						tokenId: $token.tokenId,
+					})).data.at(0)
+					)
+					return {
+						name: token.name ?? token.tokenName,
+						symbol: token.symbol ?? token.abbr ?? token.tokenAbbr,
+						decimals: token.decimals ?? token.precision,
+						totalSupply: bigintFromWire(token.totalSupply ?? token.total_supply),
+						holderCount: token.holderCount,
+					}
+				}
+			},
+		})({
+			fields: {
 				name: (token) => token.name,
 				symbol: (token) => token.symbol,
 				decimals: (token) => token.decimals,
 				totalSupply: (token) => token.totalSupply,
-				$owner: (token) => token.$owner,
-				$contract: (token) => token.$contract,
-				createdTimestampMs: (token) => token.createdTimestampMs,
 				holderCount: (token) => token.holderCount,
 			},
 		}),
@@ -475,7 +587,7 @@ export default {
 					const { getTrc20Transfers } = await import('$/sources/TronScan/Rest/queries.ts')
 					const transfer = (
 						(await getTrc20Transfers({
-							restBaseUrl: tronScanRestEndpoints[0].restBaseUrl,
+							restBaseUrl: await tronScanRestBaseUrl(),
 							transactionId: transactionId,
 							limit: transferIndex + 1,
 						})).token_transfers
@@ -507,34 +619,55 @@ export default {
 				[TronAccountSelector.NetworkAddress]: async ({ $network, address }, context) => {
 					assertTronMainnet($network)
 					const { getAccountTokens } = await import('$/sources/TronScan/Rest/queries.ts')
-					return (await getAccountTokens({
-						restBaseUrl: tronScanRestEndpoints[0].restBaseUrl,
-						address: address,
-						limit: resolverContextRowLimit(context),
-					})).data.flatMap((token) => {
-						const tokenId = tokenIdFromTronScanToken(token)
-						return (
-							tokenId == null ?
-								[]
-							:
-								[
-									{
-										[EntityMetaKey.Selector]: {
-											$network,
+						return (await getAccountTokens({
+							restBaseUrl: await tronScanRestBaseUrl(),
+							address: address,
+							limit: resolverContextRowLimit(context),
+						})).data.flatMap((token) => {
+							const tokenId = tokenIdFromTronScanToken(token)
+							const standard = tokenStandardFromWire(token.tokenType ?? token.type)
+							return (
+								tokenId == null ?
+									[]
+								:
+									[
+										{
+											[EntityMetaKey.Selector]: {
+												$account: {
+													$network,
+													address,
+												},
+												$token: {
+													$network,
+													tokenId,
+												},
+												timestampMs: Date.now(),
+												source: Source.TronScan_Rest,
+											},
+											$token: {
+												[EntityMetaKey.Selector]: {
+													$network,
+													tokenId,
+												},
+											},
+											...(standard != null && {
+												standard,
+											}),
+											balance: bigintFromWire(token.balance ?? token.balanceStr),
 											tokenId,
+											tokenName: token.name ?? token.tokenName,
+											tokenSymbol: token.symbol ?? token.abbr ?? token.tokenAbbr,
 										},
-										...tokenFieldsFromTronScanToken($network, token),
-									},
-								]
-						)
+									]
+							)
 					})
 				}
 			},
-		})({
-			fields: {
-				$$tokens: (tokens) => tokens,
-			},
-		}),
+			})({
+				fields: {
+					$$tokenBalanceTimestamps: (timestamps) => timestamps,
+				},
+			}),
 
 		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronContract,
@@ -543,7 +676,7 @@ export default {
 					assertTronMainnet($network)
 					const { getContract } = await import('$/sources/TronScan/Rest/queries.ts')
 					const contract = (await getContract({
-						restBaseUrl: tronScanRestEndpoints[0].restBaseUrl,
+						restBaseUrl: await tronScanRestBaseUrl(),
 						address: address,
 					})).data.at(0)
 					if (contract == null) throw new Error(`TronScan_Rest: contract not found for ${address}`)
@@ -564,7 +697,7 @@ export default {
 					const { getTrc20Transfers } = await import('$/sources/TronScan/Rest/queries.ts')
 					return (
 						(await getTrc20Transfers({
-							restBaseUrl: tronScanRestEndpoints[0].restBaseUrl,
+							restBaseUrl: await tronScanRestBaseUrl(),
 							transactionId: transactionId,
 							limit: resolverContextRowLimit(context),
 						})).token_transfers

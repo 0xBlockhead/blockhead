@@ -1,91 +1,66 @@
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 
-	type SolanaBlocksResource = EntityProxyFieldResource<
-		typeof schema,
-		EntityType.SolanaNetwork,
-		'$$blocks'
-	>
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
+	const listView = {
+		entityType: EntityType.SolanaBlock,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
 		selection,
-		title = 'Blocks',
+		title,
 		open = $bindable(true),
-		id,
+		id = 'SolanaBlocks',
 		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: SolanaBlocksResource
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.SolanaBlock>
 			title?: string
 			open?: boolean
-			id: string
+			id?: string
 			href?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'CollapsibleProps'
-		>
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import SolanaBlockView from '$/views/SolanaBlockView.svelte'
 </script>
 
 
 <EntitiesList
-	entityType={EntityType.SolanaBlock}
+	entityType={listView.entityType}
 	{title}
 	bind:open
 	{id}
 	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Solana blocks are produced for slots and contain transactions executed by the SVM runtime.
-		</p>
-	{/snippet}
-
-	{#snippet body()}
-		{#if open}
-			<ResourceBoundary resource={selection} placeholderText="Loading blocks…">
-				{#snippet children(blocks)}
-					<EntitiesList
-						collapsible={false}
-						showSummary={false}
-						entityType={EntityType.SolanaBlock}
-						id={`${id}-items`}
-						href={href}
-						getKey={(block) => stringify(block.entitySelector)}
-						open={true}
-						items={blocks.entities}
-						{title}
-						UnorderedListProps={{ orientation: ListOrientation.Column }}
-					>
-						{#snippet Empty()}<p data-text="muted">No recent blocks yet.</p>{/snippet}
-						{#snippet Item({ item })}
-							<SolanaBlockView
-								selection={select(EntityType.SolanaBlock, item.entitySelector)}
-								layout={EntityLayout.Summary}
-
-							/>
-						{/snippet}
-					</EntitiesList>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+	{#snippet Item({ item })}
+		<SolanaBlockView
+			selection={select(EntityType.SolanaBlock, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

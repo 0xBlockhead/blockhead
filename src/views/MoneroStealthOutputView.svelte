@@ -2,15 +2,73 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'transaction',
+			},
+			{
+				label: 'output index',
+			},
+			{
+				label: 'one-time public key',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'transaction',
+					},
+					{
+						label: 'output index',
+					},
+					{
+						label: 'one-time public key',
+					},
+					'commitment',
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Transaction',
+					items: [
+						{
+							label: 'parent Monero transaction',
+						},
+					],
+				},
+				{
+					label: 'Output data',
+					items: [
+						{
+							label: 'public key',
+						},
+						{
+							label: 'RingCT commitment',
+						},
+					],
+				},
+				{
+					label: 'Wallet match',
+					items: [
+						{
+							label: 'BlockheadMoneroTransferState only when local wallet scanning identifies ownership',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +79,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,66 +87,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.MoneroStealthOutput}
 	entitySelector={selection.entitySelector}
-	title={`Stealth output #${selection.entitySelector.outputIndex.toString()}`}
-	idDragPlainText={selection.entitySelector.outputIndex.toString()}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Value()}
-		<span data-badge="small">
-			#{selection.entitySelector.outputIndex.toString()}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>Stealth output </span>
-			{#if Value}
-			{@render Value()}
-					{/if}
-		</span>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection( { fields: { publicKey: true, commitment: true } })}
-			placeholderText={`Loading Monero Stealth Output...`}
-		>
-			{#snippet children(moneroStealthOutput)}
-				<dl>
-					{#if moneroStealthOutput.publicKey != null}
-						<div>
-							<dt>Public Key</dt>
-							<dd>
-								<TruncatedValue
-									value={moneroStealthOutput.publicKey}
-									format={TruncatedValueFormat.Abbr}
-								/></dd>
-						</div>
-					{/if}
-
-					{#if moneroStealthOutput.commitment != null}
-						<div>
-							<dt>Commitment</dt>
-							<dd>
-								<TruncatedValue
-									value={moneroStealthOutput.commitment}
-									format={TruncatedValueFormat.Abbr}
-								/></dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

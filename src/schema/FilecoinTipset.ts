@@ -1,23 +1,17 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum FilecoinTipsetSelector {
 	NetworkHeightTipsetKey = 'networkHeightTipsetKey',
 }
-
 export default {
 	entityType: EntityType.FilecoinTipset,
-
-	label: 'Filecoin Tipset',
-	labelPlural: 'Filecoin Tipsets',
-
+	label: 'filecoin tipset',
+	labelPlural: 'filecoin tipsets',
 	selectors: [
 		{
 			name: FilecoinTipsetSelector.NetworkHeightTipsetKey,
@@ -28,49 +22,57 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'height',
+			label: 'Height',
+			description: 'The block or ledger height in its network.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'tipsetKey',
+			label: 'tipset key',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$parent',
+			label: 'parent',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.FilecoinTipset,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'parentWeight',
+			label: 'parent weight',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$$blocks',
+			label: 'blocks',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.FilecoinBlock,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
+			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

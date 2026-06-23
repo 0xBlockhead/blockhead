@@ -1,24 +1,43 @@
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
-import TronGridRest from '$/sources/TronGrid/Rest/index.ts'
+import { Source } from '$/sources/Source.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import { tronGridBindings } from '$/sources/TronGrid/bindings.ts'
 
 export const tronGridRestEndpoints = [
 	{
 		slug: 'trongrid',
-		restBaseUrl: 'https://api.trongrid.io',
+		restBaseUrl: tronGridBindings[0].endpoints[0].locator,
 	},
 ] as const satisfies readonly {
 	slug: 'trongrid'
 	restBaseUrl: string
 }[]
 
+export const tronGridOrigins = [
+	...new Map(
+		tronGridBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
+
 export default {
 	provider: SourceProvider.TronGrid,
 	label: 'TronGrid',
-	origins: tronGridRestEndpoints.map((endpoint) => ({
-		origin: endpoint.restBaseUrl,
-		corsEnabled: false,
-	})),
 	sources: [
-		TronGridRest,
+		{
+			provider: SourceProvider.TronGrid,
+			source: Source.TronGrid_Rest,
+			label: 'TronGrid REST',
+		},
 	],
-} as const satisfies SourceProviderDefinition
+	bindings: tronGridBindings,
+} satisfies SourceProviderDefinition

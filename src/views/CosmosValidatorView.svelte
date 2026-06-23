@@ -2,15 +2,98 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			{
+				label: 'operator address',
+			},
+			'moniker',
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					{
+						label: 'operator address',
+					},
+					{
+						label: 'consensus pubkey',
+					},
+					'moniker',
+				],
+				[
+					{
+						label: 'latest jailed/status/tokens snapshot',
+					},
+					{
+						label: 'delegation count',
+					},
+					{
+						label: 'description links',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Validator snapshots',
+					items: [
+						{
+							label: 'timestamped validator stake/status observations',
+						},
+					],
+				},
+				{
+					label: 'Delegations',
+					items: [
+						{
+							label: 'delegations to this validator',
+						},
+					],
+				},
+				{
+					label: 'Network',
+					items: [
+						{
+							label: 'parent Cosmos network',
+						},
+					],
+				},
+				{
+					label: 'Consensus identity',
+					items: [
+						{
+							label: 'consensus pubkey',
+						},
+						{
+							label: 'proposer mapping when source-backed',
+						},
+					],
+				},
+				{
+					label: 'Description',
+					items: [
+						{
+							label: 'identity/website/security-contact/details',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +104,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,75 +112,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.CosmosValidator}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.operatorAddress}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		<TruncatedValue
-			value={selection.entitySelector.operatorAddress}
-			format={TruncatedValueFormat.Abbr}
-		/>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection( { fields: { consensusPubkey: true, moniker: true, jailed: true, status: true, tokens: true } })}
-			placeholderText={`Loading Cosmos Validator...`}
-		>
-			{#snippet children(cosmosValidator)}
-				<dl>
-					{#if cosmosValidator.consensusPubkey != null}
-						<div>
-							<dt>Consensus Pubkey</dt>
-							<dd>
-								<TruncatedValue
-									value={cosmosValidator.consensusPubkey}
-									format={TruncatedValueFormat.Abbr}
-								/></dd>
-						</div>
-					{/if}
-
-					{#if cosmosValidator.moniker != null}
-						<div>
-							<dt>Moniker</dt>
-							<dd>{cosmosValidator.moniker}</dd>
-						</div>
-					{/if}
-
-					{#if cosmosValidator.jailed != null}
-						<div>
-							<dt>Jailed</dt>
-							<dd>{cosmosValidator.jailed ? 'Yes' : 'No'}</dd>
-						</div>
-					{/if}
-
-					{#if cosmosValidator.status != null}
-						<div>
-							<dt>Status</dt>
-							<dd>{cosmosValidator.status}</dd>
-						</div>
-					{/if}
-
-					{#if cosmosValidator.tokens != null}
-						<div>
-							<dt>Tokens</dt>
-							<dd><NumberValue value={cosmosValidator.tokens} /></dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

@@ -225,64 +225,6 @@ export default {
 		}),
 
 		defineResolver(Source.X_Rest, {
-			entityType: EntityType.XNetwork,
-			resolve: {
-				[XNetworkSelector.Scope]: async (_entitySelector, context) => {
-					const { searchRecentTweets } = await import('$/sources/X/Rest/queries.ts')
-					const limit = resolverContextRowLimit(context)
-					const tweetSearchResponse = await searchRecentTweets(context.publicEnv, limit)
-					return [
-						...(tweetSearchResponse.includes?.users ?? [])
-							.flatMap((user) => {
-							const userId = optionalNonemptyString(user.id)
-							if (userId == null) return []
-							return [{
-								[EntityMetaKey.Selector]: { id: userId },
-							}]
-							}),
-						...(tweetSearchResponse.data ?? [])
-							.flatMap((tweet) => {
-							const authorId = optionalNonemptyString(tweet.author_id)
-							if (authorId == null) return []
-							return [{
-								[EntityMetaKey.Selector]: { id: authorId },
-							}]
-							}),
-					]
-				}
-			},
-		})({
-			fields: {
-				$$xUsers: (users) => users,
-			},
-		}),
-
-		defineResolver(Source.X_Rest, {
-			entityType: EntityType.XNetwork,
-			resolve: {
-				[XNetworkSelector.Scope]: async (_entitySelector, context) => {
-					const { searchRecentTweets } = await import('$/sources/X/Rest/queries.ts')
-					const limit = resolverContextRowLimit(context)
-					return (
-						((await searchRecentTweets(context.publicEnv, limit)).data ?? [])
-							.flatMap((wirePost) => (
-							wirePost.id == null ?
-								[]
-							:
-								[{
-									[EntityMetaKey.Selector]: { id: wirePost.id },
-								}]
-							))
-					)
-				}
-			},
-		})({
-			fields: {
-				$$xPosts: (posts) => posts,
-			},
-		}),
-
-		defineResolver(Source.X_Rest, {
 			entityType: EntityType.XPost,
 			resolve: {
 				[XPostSelector.Id]: async ({ id }, context) => {

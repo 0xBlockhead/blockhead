@@ -1,24 +1,17 @@
 import { type } from 'arktype'
-
-import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum EvmCalldataSelector {
 	Hex = 'hex',
 }
-
 export default {
 	entityType: EntityType.EvmCalldata,
-
-	label: 'EVM Calldata',
-	labelPlural: 'EVM Calldata',
-
+	label: 'EVM calldata',
+	labelPlural: 'EVM calldatas',
 	selectors: [
 		{
 			name: EvmCalldataSelector.Hex,
@@ -27,13 +20,13 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: 'hex',
+			label: 'hex',
 			type: EntityFieldType.Primitive,
-			primitiveType: ZeroExHex,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

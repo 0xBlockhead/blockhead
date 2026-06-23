@@ -13,9 +13,9 @@
 
 
 <ParentPageCollapsible
-	title={'Currencies'}
+	title="Currencies"
 	href={resolve('/currencies')}
-	id={'currencies'}
+	id="currencies"
 >
 	{@render children()}
 </ParentPageCollapsible>

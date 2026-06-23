@@ -16,7 +16,6 @@ import { LensAccountSelector } from '$/schema/LensAccount.ts'
 import { LensPostSelector } from '$/schema/LensPost.ts'
 import { LensAccount_TimestampSelector } from '$/schema/LensAccount_Timestamp.ts'
 import { LensPost_TimestampSelector } from '$/schema/LensPost_Timestamp.ts'
-import { LensNetworkSelector } from '$/schema/LensNetwork.ts'
 
 
 /** Lens / subgraph wire — may omit `0x` or use mixed case. */
@@ -117,19 +116,15 @@ const lensGraphqlResolvers = {
 					const displayName = optionalNonemptyString(a.metadata?.name)
 					const bio = optionalNonemptyString(a.metadata?.bio)
 					const pictureUrl = optionalNonemptyString(a.metadata?.picture != null ? String(a.metadata.picture) : null)
+					const iconMedia = mediaFromUrl(pictureUrl, MediaType.Image)
 					return {
 						address: lensEvmAddressFromWire(a.address),
 						...(localName != null && { localName }),
 						...(displayName != null && { displayName }),
 						...(bio != null && { bio }),
 						...(createdAt != null && { createdAt }),
-						...((
-							iconMedia
-					) => (
-						iconMedia != null && {
-							$icon: iconMedia,
-						}
-					))(mediaFromUrl(pictureUrl, MediaType.Image)),
+						...(pictureUrl != null && { iconUrl: pictureUrl }),
+						...(iconMedia != null && { $icon: iconMedia }),
 					}
 				},
 				[LensAccountSelector.LocalName]: async ({ localName: selectedLocalName }, context) => {
@@ -147,19 +142,15 @@ const lensGraphqlResolvers = {
 					const displayName = optionalNonemptyString(a.metadata?.name)
 					const bio = optionalNonemptyString(a.metadata?.bio)
 					const pictureUrl = optionalNonemptyString(a.metadata?.picture != null ? String(a.metadata.picture) : null)
+					const iconMedia = mediaFromUrl(pictureUrl, MediaType.Image)
 					return {
 						address: lensEvmAddressFromWire(a.address),
 						localName: localName ?? selectedLocalName,
 						...(displayName != null && { displayName }),
 						...(bio != null && { bio }),
 						...(createdAt != null && { createdAt }),
-						...((
-							iconMedia
-					) => (
-						iconMedia != null && {
-							$icon: iconMedia,
-						}
-					))(mediaFromUrl(pictureUrl, MediaType.Image)),
+						...(pictureUrl != null && { iconUrl: pictureUrl }),
+						...(iconMedia != null && { $icon: iconMedia }),
 					}
 				},
 				[LensAccountSelector.LegacyProfileId]: async ({ legacyProfileId }, context) => {
@@ -177,6 +168,7 @@ const lensGraphqlResolvers = {
 					const displayName = optionalNonemptyString(a.metadata?.name)
 					const bio = optionalNonemptyString(a.metadata?.bio)
 					const pictureUrl = optionalNonemptyString(a.metadata?.picture != null ? String(a.metadata.picture) : null)
+					const iconMedia = mediaFromUrl(pictureUrl, MediaType.Image)
 					return {
 						address: lensEvmAddressFromWire(a.address),
 						legacyProfileId,
@@ -184,13 +176,8 @@ const lensGraphqlResolvers = {
 						...(displayName != null && { displayName }),
 						...(bio != null && { bio }),
 						...(createdAt != null && { createdAt }),
-						...((
-							iconMedia
-					) => (
-						iconMedia != null && {
-							$icon: iconMedia,
-						}
-					))(mediaFromUrl(pictureUrl, MediaType.Image)),
+						...(pictureUrl != null && { iconUrl: pictureUrl }),
+						...(iconMedia != null && { $icon: iconMedia }),
 					}
 				},
 			},
@@ -200,6 +187,7 @@ const lensGraphqlResolvers = {
 				displayName: (account) => account.displayName,
 				bio: (account) => account.bio,
 				createdAt: (account) => account.createdAt,
+				iconUrl: (account) => account.iconUrl,
 				$icon: (account) => account.$icon,
 			},
 		}),
@@ -329,62 +317,6 @@ const lensGraphqlResolvers = {
 				bookmarkCount: (timestamp) => timestamp.bookmarkCount,
 				collectCount: (timestamp) => timestamp.collectCount,
 				reactionCount: (timestamp) => timestamp.reactionCount,
-			},
-		}),
-
-		defineResolver(Source.Lens_Graphql, {
-			entityType: EntityType.LensNetwork,
-			resolve: {
-				[LensNetworkSelector.Scope]: async (_entitySelector, context) => {
-					const { queryLatestPosts } = await import('$/sources/Lens/Graphql/queries.ts')
-					const limit = resolverContextRowLimit(context)
-					const pageSize: 'TEN' | 'FIFTY' = limit > 10 ? 'FIFTY' : 'TEN'
-					return (
-						((await queryLatestPosts(context.publicEnv, pageSize)).posts.items )
-							.flatMap((lensPost) => {
-							const address = lensPost.author.address
-							if (!/^0x[a-fA-F0-9]{40}$/.test(String(address))) return []
-							const normalizedAddress = lensEvmAddressFromWire(address)
-							return [{
-								[EntityMetaKey.Selector]: { address: normalizedAddress },
-							}]
-							})
-					)
-				}
-			},
-		})({
-			fields: {
-				$$lensAccounts: (accounts) => accounts,
-			},
-		}),
-
-		defineResolver(Source.Lens_Graphql, {
-			entityType: EntityType.LensNetwork,
-			resolve: {
-				[LensNetworkSelector.Scope]: async (_entitySelector, context) => {
-					const { queryLatestPosts } = await import('$/sources/Lens/Graphql/queries.ts')
-					const limit = resolverContextRowLimit(context)
-					const pageSize: 'TEN' | 'FIFTY' = limit > 10 ? 'FIFTY' : 'TEN'
-					return (
-						((await queryLatestPosts(context.publicEnv, pageSize)).posts.items )
-							.flatMap((lensPost) => (
-							((postSlug) => (
-								postSlug != null ?
-									[
-										{
-											[EntityMetaKey.Selector]: { id: postSlug },
-										},
-									]
-								:
-									[]
-							))(lensAnyPostSlugFromWire(lensPost))
-							))
-					)
-				}
-			},
-		})({
-			fields: {
-				$$lensPosts: (posts) => posts,
 			},
 		}),
 

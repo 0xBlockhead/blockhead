@@ -1,23 +1,17 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum UtxoAddressSelector {
 	NetworkAddress = 'networkAddress',
 }
-
 export default {
 	entityType: EntityType.UtxoAddress,
-
-	label: 'UTXO Address',
-	labelPlural: 'UTXO Addresses',
-
+	label: 'UTXO address',
+	labelPlural: 'UTXO addresses',
 	selectors: [
 		{
 			name: UtxoAddressSelector.NetworkAddress,
@@ -27,49 +21,42 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'address',
+			label: 'Address',
+			description: 'The address or account identifier used by the source protocol.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'balanceSats',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			name: '$$timestamps',
+			label: 'timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.UtxoAddress_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: 'transactionCount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			name: '$$outputs',
+			label: 'outputs',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.UtxoOutput,
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: 'unspentOutputCount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			name: '$$transactions',
+			label: 'transactions',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.UtxoTransaction,
+			cardinality: EntityFieldCardinality.Many,
 		},
-		{
-			name: 'totalReceivedSats',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'totalSpentSats',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

@@ -1,25 +1,38 @@
-import { type as arktype } from 'arktype'
-
+import { Source } from '$/sources/Source.ts'
 import {
-	type SourceProviderDefinition,
 	SourceProvider,
+	type SourceProviderDefinition,
 } from '$/sources/SourceProvider.ts'
-import { origin } from '$/sources/Neynar/Rest/constants.ts'
-import NeynarRestSource from '$/sources/Neynar/Rest/index.ts'
+import {
+	neynarBindings,
+	neynarPublicEnv,
+} from '$/sources/Neynar/bindings.ts'
+
+export const neynarOrigins = [
+	...new Map(
+		neynarBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.Neynar,
 	label: 'Neynar',
-	env: arktype({
-		PUBLIC_NEYNAR_API_KEY: 'string > 0?',
-	}),
-	origins: [
+	env: neynarPublicEnv,
+	sources: [
 		{
-			origin,
-			corsEnabled: false,
+			provider: SourceProvider.Neynar,
+			source: Source.Neynar_Rest,
+			label: 'Neynar REST',
+			env: neynarPublicEnv,
 		},
 	],
-	sources: [
-		NeynarRestSource,
-	],
+	bindings: neynarBindings,
 } satisfies SourceProviderDefinition

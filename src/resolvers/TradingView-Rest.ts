@@ -94,43 +94,6 @@ export default {
 		}),
 
 		defineResolver(Source.TradingView_Rest, {
-			entityType: EntityType._Global,
-			resolve: {
-				[_GlobalSelector.Scope]: async () => {
-					const { tradingViewMarketByCoinId } = await import('$/sources/TradingView/Rest/constants.ts')
-					return Object.entries(tradingViewMarketByCoinId)
-						.flatMap(([coinId, market]) => (
-						market == null ?
-							[]
-						:
-							[{
-								[EntityMetaKey.Selector]: {
-									$market: {
-										$base: {
-											kind: MarketAssetKind.Coin,
-											$coin: { coinId },
-										},
-										$quote: {
-											kind: MarketAssetKind.Currency,
-											$currency: { iso4217: Iso4217.USD },
-										},
-										$marketVenue: {
-											marketVenueId: market.marketVenueId,
-										},
-										marketKind: MarketKind.Spot,
-									} as const,
-								},
-							}]
-						))
-				}
-			},
-		})({
-			fields: {
-				$$marketPrices: (snapshot) => snapshot,
-			},
-		}),
-
-		defineResolver(Source.TradingView_Rest, {
 			entityType: EntityType.Coin,
 			resolve: {
 				[CoinSelector.CoinId]: async ({ coinId }) => {

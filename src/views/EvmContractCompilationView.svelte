@@ -1,216 +1,127 @@
 <script lang="ts">
 	// Types/constants
+	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntitySelector } from '$/schema/$schema.ts'
-	import { schema } from '$/schema/index.ts'
-	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Context
-	import { select } from '$/routes/+layout.svelte'
-	import { resolve } from '$app/paths'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 
 
 	// State
+	const view = {
+		closed: [
+			'language',
+			'compiler',
+			{
+				label: 'compiler version',
+			},
+		],
+		content: {
+			dl: [
+				[
+					'language',
+					'compiler',
+					{
+						label: 'compiler version',
+					},
+					{
+						label: 'fully qualified name',
+					},
+					{
+						label: 'truncated compiler settings JSON',
+					},
+					{
+						label: 'truncated storage layout JSON',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Contract',
+					items: [
+						{
+							label: 'EvmContract',
+						},
+					],
+				},
+				{
+					label: 'Compiler',
+					items: [
+						'language',
+						'compiler',
+						{
+							label: 'version',
+						},
+						{
+							label: 'fully qualified name',
+						},
+					],
+				},
+				{
+					label: 'Settings',
+					items: [
+						{
+							label: 'compiler settings JSON',
+						},
+					],
+				},
+				{
+					label: 'Storage layout',
+					items: [
+						{
+							label: 'storage layout JSON',
+						},
+					],
+				},
+				{
+					label: 'Verification',
+					items: [
+						{
+							label: 'Sourcify-backed EvmContractVerification',
+						},
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'Sourcify contract lookup compilation/metadata payload',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
-		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
-			caip2: `${selection.entitySelector.$contract.$network.caip2.namespace}:${selection.entitySelector.$contract.$network.caip2.reference}`,
-			address: selection.entitySelector.$contract.address,
-		}),
-		layout = EntityLayout.SummaryDetails,
-		summaryUsesHeading = (
-			layout === EntityLayout.SummaryDetails
-		),
-		open = $bindable(
-			layout === EntityLayout.SummaryDetails,
-		),
-		collapsible = true,
+		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.EvmContractCompilation>
-			href?: string
-			layout?: EntityLayout
-			summaryUsesHeading?: boolean
 			open?: boolean
-			collapsible?: boolean
 		},
-		never
+		Pick<
+			ComponentProps<typeof EntityView2>,
+			| 'layout'
+			| 'showTypeAnnotation'
+		>
 	> = $props()
 
 
-	const compilation = $derived(selection( {
-		sources: [Source.Sourcify_Rest],
-	}))
-	const language = $derived(compilation.language)
-	const name = $derived(compilation.name)
-	const fullyQualifiedName = $derived(compilation.fullyQualifiedName)
-
-
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.EvmContractCompilation}
 	entitySelector={selection.entitySelector}
-	href={href}
-	{layout}
 	bind:open
-	{collapsible}
 	{...EntityViewProps}
->
-	{#snippet Value()}
-		<ResourceBoundary
-			resource={fullyQualifiedName}
-			placeholderText="Loading compilation…"
-		>
-			{#snippet children(fullyQualifiedName)}
-				{#if fullyQualifiedName}
-					{fullyQualifiedName}
-				{:else}
-					<ResourceBoundary
-						resource={name}
-						placeholderText="Loading compilation name…"
-					>
-						{#snippet children(name)}
-							{#if name}
-								{name}
-							{:else}
-								<ResourceBoundary
-									resource={language}
-									placeholderText="Loading compilation language…"
-								>
-									{#snippet children(language)}
-										{language ?? 'Compilation'}
-									{/snippet}
-								</ResourceBoundary>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			One compiler invocation that produced bytecode matching on-chain creation or runtime code.
-		</p>
-		<p>
-			Language, compiler id/version, and settings come from the verification record—not from execution-layer receipts.
-		</p>
-	{/snippet}
-
-	{#snippet Content({
-		open: contentOpen,
-	})}
-		{#if contentOpen}
-			<dl data-column-item="center">
-				<div>
-					<dt>Language</dt>
-					<dd>
-						<ResourceBoundary
-							resource={language}
-							placeholderText="Loading compilation metadata…"
-						>
-							{#snippet children(language)}
-								{#if language}
-									{language}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-				<div>
-					<dt>Compiler</dt>
-					<dd>
-						<ResourceBoundary
-							resource={compilation.compiler}
-							placeholderText="Loading compilation metadata…"
-						>
-							{#snippet children(compiler)}
-								{#if compiler}
-									{compiler}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-				<div>
-					<dt>Compiler version</dt>
-					<dd>
-						<ResourceBoundary
-							resource={compilation.compilerVersion}
-							placeholderText="Loading compilation metadata…"
-						>
-							{#snippet children(compilerVersion)}
-								{#if compilerVersion}
-									{compilerVersion}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-				<div>
-					<dt>Fully qualified name</dt>
-					<dd>
-						<ResourceBoundary
-							resource={fullyQualifiedName}
-							placeholderText="Loading compilation metadata…"
-						>
-							{#snippet children(fullyQualifiedName)}
-								{#if fullyQualifiedName}
-									<code>{fullyQualifiedName}</code>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-				<div>
-					<dt>Compiler settings</dt>
-					<dd>
-						<ResourceBoundary
-							resource={compilation.compilerSettingsJson}
-							placeholderText="Loading compilation metadata…"
-						>
-							{#snippet children(compilerSettingsJson)}
-								{#if compilerSettingsJson}
-									<TruncatedValue
-										value={compilerSettingsJson}
-										format={TruncatedValueFormat.Visual}
-									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-				<div>
-					<dt>Storage layout</dt>
-					<dd>
-						<ResourceBoundary
-							resource={compilation.storageLayoutJson}
-							placeholderText="Loading compilation metadata…"
-						>
-							{#snippet children(storageLayoutJson)}
-								{#if storageLayoutJson}
-									<TruncatedValue
-										value={storageLayoutJson}
-										format={TruncatedValueFormat.Visual}
-									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			</dl>
-		{/if}
-	{/snippet}
-</EntityView>
+	{view}
+/>

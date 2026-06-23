@@ -29,9 +29,10 @@ import type {
 	EntitySelector,
 	EntityType as SchemaEntityType,
 } from '$/schema/$schema.ts'
-import { env as publicEnv } from '$env/dynamic/public'
-import { indexSourceProviders } from '$/sources/$sources.ts'
-import { sourceProviders } from '$/sources/index.ts'
+import {
+	enabledSources,
+	resolverPublicEnvBySource,
+} from '$/sources/index.ts'
 
 import {
 	assertLoadedResolverProbeCategories,
@@ -45,11 +46,6 @@ import {
 	type AssertLoadedResolverProbeCategoryBucket,
 	type AssertLoadedResolverProbeCategorySummary,
 } from './_fixtures.ts'
-
-const {
-	enabledSources,
-	resolverPublicEnvBySource,
-} = indexSourceProviders(sourceProviders, publicEnv)
 
 const {
 	resolverDefinitions,
@@ -318,12 +314,9 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 			continue
 		}
 
-		const entityDef = entityDefinitionByType[resolver.entityType]
-		if (entityDef == null) {
-			throw new Error(`No entityDefinitionByType[${resolver.entityType}]`)
-		}
+			const entityDef = entityDefinitionByType[resolver.entityType]
 
-		const key = `entity:${resolver.index}:${resolver.entityType}:${resolver.source}`
+			const key = `entity:${resolver.index}:${resolver.entityType}:${resolver.source}`
 
 		let fields: ResolverValue
 		try {
@@ -402,13 +395,10 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 
 	const fieldCases: AssertLoadedResolverProbeCase[] = []
 	for (const fieldResolver of resolverValuePartProbes) {
-			const parentEntitySelector = parentEntitySelectorForResolverValuePart(fieldResolver.entityType)
-			const entityDef = entityDefinitionByType[fieldResolver.entityType]
-			if (entityDef == null) {
-				throw new Error(`No entityDefinitionByType[${fieldResolver.entityType}]`)
-			}
+				const parentEntitySelector = parentEntitySelectorForResolverValuePart(fieldResolver.entityType)
+				const entityDef = entityDefinitionByType[fieldResolver.entityType]
 
-			const fieldDef = entityFieldDefinitions(entityDef).find((field: EntityFieldDefinition) => (
+				const fieldDef = entityFieldDefinitions(entityDef).find((field: EntityFieldDefinition) => (
 				field.name === fieldResolver.fieldName
 			))
 			if (fieldDef == null) {

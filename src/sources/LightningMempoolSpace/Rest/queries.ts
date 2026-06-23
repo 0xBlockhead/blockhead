@@ -1,5 +1,5 @@
 import { getJson } from '$/lib/http.ts'
-import LightningMempoolSpace from '$/sources/LightningMempoolSpace/index.ts'
+import { lightningMempoolSpaceOrigins } from '$/sources/LightningMempoolSpace/index.ts'
 import type {
 	MempoolSpaceLightningChannel,
 	MempoolSpaceLightningChannelSummary,
@@ -20,7 +20,7 @@ export const getLightningStatistics = ({
 }) => (
 	getJson<MempoolSpaceLightningStatisticsResponse>(
 		`${base(restBaseUrl)}/statistics/${encodeURIComponent(interval)}`,
-		{ origins: LightningMempoolSpace.origins  }
+		{ origins: lightningMempoolSpaceOrigins }
 	)
 )
 
@@ -33,7 +33,7 @@ export const getLightningNode = ({
 }) => (
 	getJson<MempoolSpaceLightningNode>(
 		`${base(restBaseUrl)}/nodes/${encodeURIComponent(publicKey)}`,
-		{ origins: LightningMempoolSpace.origins  }
+		{ origins: lightningMempoolSpaceOrigins }
 	)
 )
 
@@ -50,7 +50,7 @@ export const getLightningNodeChannels = ({
 }) => (
 	getJson<MempoolSpaceLightningChannelSummary[]>(
 		`${base(restBaseUrl)}/channels?public_key=${encodeURIComponent(publicKey)}&status=${status}&index=${index}`,
-		{ origins: LightningMempoolSpace.origins  }
+		{ origins: lightningMempoolSpaceOrigins }
 	)
 )
 
@@ -63,7 +63,7 @@ export const getLightningChannel = ({
 }) => (
 	getJson<MempoolSpaceLightningChannel>(
 		`${base(restBaseUrl)}/channels/${encodeURIComponent(channelId)}`,
-		{ origins: LightningMempoolSpace.origins  }
+		{ origins: lightningMempoolSpaceOrigins }
 	)
 )
 
@@ -74,7 +74,7 @@ export const getTopLightningNodesByConnectivity = ({
 }) => (
 	getJson<MempoolSpaceLightningRankedNode[]>(
 		`${base(restBaseUrl)}/nodes/rankings/connectivity`,
-		{ origins: LightningMempoolSpace.origins  }
+		{ origins: lightningMempoolSpaceOrigins }
 	)
 )
 
@@ -87,6 +87,6 @@ export const searchLightning = ({
 }) => (
 	getJson<MempoolSpaceLightningSearchResult>(
 		`${base(restBaseUrl)}/search?searchText=${encodeURIComponent(searchText)}`,
-		{ origins: LightningMempoolSpace.origins  }
+		{ origins: lightningMempoolSpaceOrigins }
 	)
 )

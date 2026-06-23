@@ -1,24 +1,18 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { SpecificationRealm } from '$/constants/SpecificationProposal.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum SpecificationRealmSelector {
 	Realm = 'realm',
 }
-
 export default {
 	entityType: EntityType.SpecificationRealm,
-
-	label: 'Specification realm',
-	labelPlural: 'Specification realms',
-
+	label: 'specification realm',
+	labelPlural: 'specification realms',
+	description: 'A standards or proposal namespace, such as Ethereum, Bitcoin, or Chain Agnostic.',
 	selectors: [
 		{
 			name: SpecificationRealmSelector.Realm,
@@ -27,60 +21,50 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: 'realm',
+			label: 'realm',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(SpecificationRealm),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'label',
+			label: 'Label',
+			description: 'A human-readable name for the subject.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'labelPlural',
+			label: 'label plural',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'slug',
+			label: 'Slug',
+			description: 'A stable short name used by catalogs and URLs.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$$proposalKinds',
+			label: 'proposal kinds',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.SpecificationProposalKind,
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$proposals',
+			label: 'proposals',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.SpecificationProposal,
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.BitcoinBips_Github,
-				Source.BitcoinCashChips_Gitlab,
-				Source.Caips_Github,
-				Source.CosmosAdrs_Github,
-				Source.DogecoinDips_Github,
-				Source.Ensips_Github,
-				Source.EthereumEips_Github,
-				Source.FilecoinFips_Github,
-				Source.HyperliquidDocs_Rest,
-				Source.LitecoinLips_Github,
-				Source.NearNeps_Github,
-				Source.PolkadotRfcs_Github,
-				Source.QuilibriumDocs_Rest,
-				Source.SolanaSimds_Github,
-				Source.ZcashZips_Github,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

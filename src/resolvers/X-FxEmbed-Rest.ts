@@ -16,7 +16,7 @@ import { XUserSelector } from '$/schema/XUser.ts'
 import { XPostSelector } from '$/schema/XPost.ts'
 import { XUser_TimestampSelector } from '$/schema/XUser_Timestamp.ts'
 import { XPost_TimestampSelector } from '$/schema/XPost_Timestamp.ts'
-import { XNetworkSelector } from '$/schema/XNetwork.ts'
+import { _GlobalXNetworkSelector } from '$/schema/_GlobalXNetwork.ts'
 
 export default {
 	source: Source.X_FxEmbed_Rest,
@@ -235,10 +235,10 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.X_FxEmbed_Rest, {
-			entityType: EntityType.XNetwork,
-			resolve: {
-				[XNetworkSelector.Scope]: async (_entitySelector, context) => {
+			defineResolver(Source.X_FxEmbed_Rest, {
+				entityType: EntityType._GlobalXNetwork,
+				resolve: {
+					[_GlobalXNetworkSelector.Scope]: async (_entitySelector, context) => {
 					const { searchStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
 					const limit = resolverContextRowLimit(context)
 					const statusSearchResponse = await searchStatuses(limit)
@@ -254,16 +254,16 @@ export default {
 					)
 				}
 			},
-		})({
-			fields: {
-				$$xUsers: (snapshot) => snapshot,
-			},
-		}),
+			})({
+				fields: {
+					$$sourceWindowUsers: (snapshot) => snapshot,
+				},
+			}),
 
-		defineResolver(Source.X_FxEmbed_Rest, {
-			entityType: EntityType.XNetwork,
-			resolve: {
-				[XNetworkSelector.Scope]: async (_entitySelector, context) => {
+			defineResolver(Source.X_FxEmbed_Rest, {
+				entityType: EntityType._GlobalXNetwork,
+				resolve: {
+					[_GlobalXNetworkSelector.Scope]: async (_entitySelector, context) => {
 					const { searchStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
 					const limit = resolverContextRowLimit(context)
 					return (
@@ -279,11 +279,11 @@ export default {
 					)
 				}
 			},
-		})({
-			fields: {
-				$$xPosts: (snapshot) => snapshot,
-			},
-		}),
+			})({
+				fields: {
+					$$sourceWindowPosts: (snapshot) => snapshot,
+				},
+			}),
 
 		defineResolver(Source.X_FxEmbed_Rest, {
 			entityType: EntityType.XPost,

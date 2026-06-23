@@ -1,24 +1,18 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import YouTubePlaylist from '$/schema/YouTubePlaylist.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum YouTubePlaylist_TimestampSelector {
 	YouTubePlaylistTimestampMs = 'youTubePlaylistTimestampMs',
+	PlaylistTimestampMs = '$playlist+timestampMs',
 }
-
 export default {
 	entityType: EntityType.YouTubePlaylist_Timestamp,
-
-	label: 'YouTube playlist snapshot',
-	labelPlural: 'YouTube playlist snapshots',
-
+	label: 'you tube playlist timestamp',
+	labelPlural: 'you tube playlist observations',
 	selectors: [
 		{
 			name: YouTubePlaylist_TimestampSelector.YouTubePlaylistTimestampMs,
@@ -28,29 +22,28 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$playlist',
+			label: 'playlist',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.YouTubePlaylist,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'itemCount',
+			label: 'item count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Youtube_Rest,
-				Source.Piped_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

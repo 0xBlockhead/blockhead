@@ -1,394 +1,194 @@
 <script lang="ts">
 	// Types/constants
+	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntitySelector } from '$/schema/$schema.ts'
-	import { schema } from '$/schema/index.ts'
-	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
+	import { EntityLayout } from '$/components/EntityView.svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { stringify } from 'devalue'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 
 
 	// State
+	const view = {
+		query: {
+			sources: [
+				'Ipfs_Rest',
+			],
+			fields: [
+				'canonicalUri',
+				'gatewayOrigin',
+				'gatewayUrl',
+				'fileName',
+				'extension',
+				'contentType',
+				'contentLength',
+				'displayType',
+				'isContentTypeInferred',
+			],
+			openFields: [
+				'text',
+				'$media',
+				'cidVersion',
+				'cidMultibase',
+				'cidMulticodecCode',
+				'cidMultihashCode',
+				'cidMultihashDigestHex',
+				'isCidSubdomainSafe',
+			],
+			defer: 'open',
+			slot: 'IpfsResourceQueryPolicy',
+		},
+		media: {
+			src: 'gatewayUrl',
+			title: 'fileName',
+			extension: 'extension',
+			contentType: 'contentType',
+			contentSize: 'contentLength',
+			displayType: 'displayType',
+			text: 'text',
+			preview: 'file',
+			slot: 'IpfsResourcePreview',
+		},
+		panels: [
+			{
+				id: 'preview',
+				label: 'Preview',
+				kind: 'media',
+				defer: 'open',
+				slot: 'IpfsResourcePreview',
+			},
+			{
+				id: 'encodings',
+				label: 'CID encodings',
+				kind: 'transform',
+				slot: 'CidEncodings',
+			},
+		],
+		actions: [
+			{
+				id: 'copy-canonical-uri',
+				label: 'Copy canonical URI',
+				kind: 'copy',
+				field: 'canonicalUri',
+			},
+			{
+				id: 'copy-gateway-url',
+				label: 'Copy gateway URL',
+				kind: 'copy',
+				field: 'gatewayUrl',
+			},
+			{
+				id: 'open-gateway',
+				label: 'Open gateway',
+				kind: 'externalLink',
+				field: 'gatewayUrl',
+			},
+		],
+		transforms: [
+			{
+				id: 'cid-encodings',
+				label: 'CID encodings',
+				field: 'target',
+				kind: 'alternateEncodings',
+				slot: 'CidEncodings',
+			},
+		],
+		renderers: [
+			{
+				slot: 'CidEncodings',
+				component: 'IpfsCidAlternateEncodings',
+				label: 'CID alternate encodings renderer',
+				for: 'transform',
+			},
+			{
+				slot: 'IpfsResourcePreview',
+				component: 'FileDetails',
+				label: 'IPFS file preview renderer',
+				for: 'media',
+			},
+		],
+		closed: [
+			'canonicalUri',
+			'gatewayOrigin',
+			'contentType',
+		],
+		content: {
+			dl: [
+				[
+					'canonicalUri',
+					'gatewayOrigin',
+					'gatewayUrl',
+					'contentType',
+					'contentLength',
+					'fileName',
+					'extension',
+					'displayType',
+					'isContentTypeInferred',
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Address',
+					items: [
+						'namespace',
+						'target',
+						'contentPath',
+					],
+				},
+				{
+					label: 'CID',
+					items: [
+						'cidVersion',
+						'cidMultibase',
+						'cidMulticodecCode',
+						'cidMultihashCode',
+						'cidMultihashDigestHex',
+						'isCidSubdomainSafe',
+					],
+				},
+				{
+					label: 'Preview',
+					items: [
+						'text',
+						'$media',
+						'displayType',
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
-		href = ipfsResourceHref(selection.entitySelector),
-		open = $bindable(true),
-		collapsible = true,
+		layout = view.layout === undefined ? undefined : EntityLayout[view.layout],
+		open = $bindable(view.defaultOpen ?? true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.IpfsResource>
-			href?: string
+			layout?: EntityLayout
 			open?: boolean
-			collapsible?: boolean
 		},
-		never
+		Pick<
+			ComponentProps<typeof EntityView2>,
+			| 'showTypeAnnotation'
+		>
 	> = $props()
 
 
-	import { ipfsResourceCanonicalUri, ipfsResourceHref } from '$/lib/ipfs.ts'
-	import { select } from '$/routes/+layout.svelte'
-
-	const ipfs = $derived(selection( { sources: [Source.Ipfs_Rest], fields: { canonicalUri: true, gatewayOrigin: true, gatewayUrl: true, fileName: true, extension: true, contentType: true, contentLength: true, displayType: true, isContentTypeInferred: true, ...(open && { text: true, cidVersion: true, cidMultibase: true, cidMulticodecCode: true, cidMultihashCode: true, cidMultihashDigestHex: true, isCidSubdomainSafe: true }) } }))
-
-
 	// Components
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import FileDetails from '$/components/FileDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
-	import IpfsCidAlternateEncodings from '$/views/IpfsCidAlternateEncodings.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.IpfsResource}
 	entitySelector={selection.entitySelector}
-	href={href}
+	{layout}
 	bind:open
 	{...EntityViewProps}
->
-	{#snippet Value()}
-		<span data-text="font-monospace">
-			{selection.entitySelector.target}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		{#if href}
-			<a
-				{href}
-			>
-				<TruncatedValue
-					value={ipfsResourceCanonicalUri(selection.entitySelector)}
-					format={TruncatedValueFormat.Visual}
-				/>
-			</a>
-		{:else}
-			<TruncatedValue
-				value={ipfsResourceCanonicalUri(selection.entitySelector)}
-				format={TruncatedValueFormat.Visual}
-			/>
-		{/if}
-	{/snippet}
-
-	{#snippet Content({})}
-		<dl data-column-item="center">
-				<div>
-					<dt>Content type</dt>
-					<dd>
-						{#if open}
-							<ResourceBoundary resource={ipfs}>
-								{#snippet children(ipfs)}
-									{#if ipfs.contentType !== undefined}
-										<TruncatedValue
-											value={ipfs.contentType}
-											format={TruncatedValueFormat.Visual}
-										/>
-										{#if ipfs.isContentTypeInferred}
-											{' '}<span data-text="muted">(inferred)</span>
-										{/if}
-									{/if}
-								{/snippet}
-							</ResourceBoundary>
-						{:else}
-							<span data-text="muted">Open to load content metadata.</span>
-						{/if}
-					</dd>
-				</div>
-
-			{#if open}
-				<div>
-					<dt>Canonical URI</dt>
-					<dd>
-						<ResourceBoundary resource={ipfs}>
-							{#snippet children(ipfs)}
-								<TruncatedValue
-									value={ipfs.canonicalUri}
-									format={TruncatedValueFormat.Visual}
-								/>
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-
-			{#if open}
-				<div>
-					<dt>Gateway</dt>
-					<dd>
-						<ResourceBoundary resource={ipfs}>
-							{#snippet children(ipfs)}
-								<TruncatedValue
-									value={ipfs.gatewayOrigin}
-									format={TruncatedValueFormat.Visual}
-								/>
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-
-			{#if open}
-				<div>
-					<dt>Gateway URL</dt>
-					<dd>
-						<ResourceBoundary resource={ipfs}>
-							{#snippet children(ipfs)}
-								<a
-									href={ipfs.gatewayUrl}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue
-										value={ipfs.gatewayUrl}
-										format={TruncatedValueFormat.Visual}
-									/>
-								</a>
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-
-			{#if open}
-				<div>
-					<dt>Content length</dt>
-					<dd>
-						<ResourceBoundary resource={ipfs}>
-							{#snippet children(ipfs)}
-								{#if ipfs.contentLength !== undefined}
-									<NumberValue
-										value={ipfs.contentLength}
-										options={{ maximumFractionDigits: 0 }}
-									/>
-									{' '}
-									bytes
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-
-			{#if open}
-				<div>
-					<dt>File name</dt>
-					<dd>
-						<ResourceBoundary resource={ipfs}>
-							{#snippet children(ipfs)}
-								{#if ipfs.fileName !== undefined}
-									<TruncatedValue
-										value={ipfs.fileName}
-										format={TruncatedValueFormat.Visual}
-									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-
-			{#if open}
-				<div>
-					<dt>Extension</dt>
-					<dd>
-						<ResourceBoundary resource={ipfs}>
-							{#snippet children(ipfs)}
-								{#if ipfs.extension !== undefined}
-									.{ipfs.extension}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-
-			{#if open}
-				<div>
-					<dt>Display type</dt>
-					<dd>
-						<ResourceBoundary resource={ipfs}>
-							{#snippet children(ipfs)}
-								{ipfs.displayType}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-
-			{#if open && selection.entitySelector.namespace === 'ipfs'}
-				<div>
-					<dt>Content identifier version</dt>
-					<dd>
-						<ResourceBoundary resource={ipfs}>
-							{#snippet children(ipfs)}
-								{#if ipfs.cidVersion !== undefined}
-									{String(ipfs.cidVersion)}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-
-			{#if open && selection.entitySelector.namespace === 'ipfs'}
-				<div>
-					<dt>Multibase</dt>
-					<dd>
-						<ResourceBoundary resource={ipfs}>
-							{#snippet children(ipfs)}
-								{#if ipfs.cidMultibase !== undefined}
-									<TruncatedValue
-										value={ipfs.cidMultibase}
-										format={TruncatedValueFormat.Visual}
-									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-
-			{#if open && selection.entitySelector.namespace === 'ipfs'}
-				<div>
-					<dt>Multicodec code</dt>
-					<dd>
-						<ResourceBoundary resource={ipfs}>
-							{#snippet children(ipfs)}
-								{#if ipfs.cidMulticodecCode !== undefined}
-									{String(ipfs.cidMulticodecCode)}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-
-			{#if open && selection.entitySelector.namespace === 'ipfs'}
-				<div>
-					<dt>Multihash code</dt>
-					<dd>
-						<ResourceBoundary resource={ipfs}>
-							{#snippet children(ipfs)}
-								{#if ipfs.cidMultihashCode !== undefined}
-									{String(ipfs.cidMultihashCode)}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-
-			{#if open && selection.entitySelector.namespace === 'ipfs'}
-				<div>
-					<dt>Multihash digest</dt>
-					<dd>
-						<ResourceBoundary resource={ipfs}>
-							{#snippet children(ipfs)}
-								{#if ipfs.cidMultihashDigestHex !== undefined}
-									<TruncatedValue
-										value={ipfs.cidMultihashDigestHex}
-										format={TruncatedValueFormat.Visual}
-									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-
-			{#if open && selection.entitySelector.namespace === 'ipfs'}
-				<div>
-					<dt>Subdomain-safe</dt>
-					<dd>
-						<ResourceBoundary resource={ipfs}>
-							{#snippet children(ipfs)}
-								{#if ipfs.isCidSubdomainSafe !== undefined}
-									{ipfs.isCidSubdomainSafe ? 'Yes' : 'No'}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-		</dl>
-	{/snippet}
-
-	{#snippet Details({
-		open: _open,
-	})}
-		{@const detailKey = stringify(selection.entitySelector)}
-		<CollapsibleTabs
-			id={`${detailKey}:carousel-ipfs-resource`}
-			sectionIdPrefix={detailKey}
-			sections={[
-				{ id: 'ipfs-record', label: 'Record' },
-				...(_open && selection.entitySelector.namespace === 'ipfs' ? [{ id: 'ipfs-cid', label: 'Encodings' }] : []),
-				...(_open ? [{ id: 'ipfs-preview', label: 'Preview' }] : []),
-			]}
-			data-card
-		>
-			{#snippet Summary({
-				open: _summaryOpen,
-			})}
-				<header
-					data-row-item="flexible"
-					data-row="wrap gap-4"
-				>
-					<HeadingComponent>
-						Resource
-					</HeadingComponent>
-					<Tooltip contentProps={{ side: 'top' }}>
-						{#snippet Content()}
-							<p>
-								IPFS names content by content identifiers (CIDs); browsers usually load bytes through an HTTP gateway.
-							</p>
-							<p>
-								The alternate CID encodings below are the same logical content in forms other tools expect.
-							</p>
-						{/snippet}
-						<abbr
-							class="entity-heading-tip"
-							aria-label="IPFS resource notes"
-						>ⓘ</abbr>
-					</Tooltip>
-				</header>
-			{/snippet}
-
-			{#snippet SectionIpfsCid()}
-				<IpfsCidAlternateEncodings
-					contentPath={selection.entitySelector.contentPath}
-					target={selection.entitySelector.target}
-				/>
-			{/snippet}
-
-			{#snippet SectionIpfsPreview()}
-				<ResourceBoundary
-					resource={ipfs}
-				>
-					{#snippet children(ipfs)}
-						{#if ipfs.displayType !== undefined}
-							<FileDetails
-								contentSize={ipfs.contentLength}
-								contentType={ipfs.contentType}
-								displayType={ipfs.displayType}
-								extension={ipfs.extension}
-								fileName={ipfs.fileName}
-								src={ipfs.gatewayUrl}
-								text={ipfs.text}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-	</CollapsibleTabs>
-
-	{/snippet}
-</EntityView>
+	{view}
+/>

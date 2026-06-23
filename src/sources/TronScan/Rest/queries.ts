@@ -1,5 +1,5 @@
 import { getJson } from '$/lib/http.ts'
-import TronScan from '$/sources/TronScan/index.ts'
+import { tronScanBindings } from '$/sources/TronScan/bindings.ts'
 import type {
 	TronScanAccount,
 	TronScanAccountTokens,
@@ -10,6 +10,27 @@ import type {
 	TronScanTrc10Tokens,
 	TronScanTrc20Transfers,
 } from '$/sources/TronScan/Rest/types.ts'
+
+export const tronScanRestEndpoints = [
+	{
+		slug: 'tronscan',
+		restBaseUrl: tronScanBindings[0].endpoints[0].locator,
+	},
+] as const
+
+export const tronScanOrigins = [
+	...new Map(
+		tronScanBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 const base = (restBaseUrl: string) => restBaseUrl.replace(/\/$/, '')
 
@@ -22,7 +43,7 @@ export const getBlock = ({
 }) => (
 	getJson<TronScanBlocks>(
 		`${base(restBaseUrl)}/api/block?number=${height.toString()}&limit=1`,
-		{ origins: TronScan.origins  }
+		{ origins: tronScanOrigins }
 	)
 )
 
@@ -35,7 +56,7 @@ export const getAccount = ({
 }) => (
 	getJson<TronScanAccount>(
 		`${base(restBaseUrl)}/api/accountv2?address=${address}`,
-		{ origins: TronScan.origins  }
+		{ origins: tronScanOrigins }
 	)
 )
 
@@ -50,7 +71,7 @@ export const getAccountTokens = ({
 }) => (
 	getJson<TronScanAccountTokens>(
 		`${base(restBaseUrl)}/api/account/tokens?address=${address}&start=0&limit=${limit.toString()}&hidden=1&show=3`,
-		{ origins: TronScan.origins  }
+		{ origins: tronScanOrigins }
 	)
 )
 
@@ -63,7 +84,7 @@ export const getTransaction = ({
 }) => (
 	getJson<TronScanTransactionDetail>(
 		`${base(restBaseUrl)}/api/transaction-info?hash=${transactionId}`,
-		{ origins: TronScan.origins  }
+		{ origins: tronScanOrigins }
 	)
 )
 
@@ -76,7 +97,7 @@ export const getContract = ({
 }) => (
 	getJson<TronScanContractDetail>(
 		`${base(restBaseUrl)}/api/contract?contract=${address}`,
-		{ origins: TronScan.origins  }
+		{ origins: tronScanOrigins }
 	)
 )
 
@@ -89,7 +110,7 @@ export const getTokenOverview = ({
 }) => (
 	getJson<TronScanTokenOverview>(
 		`${base(restBaseUrl)}/api/tokens/overview?start=0&limit=1&verifier=all&showAll=1&field=&token=${tokenId}`,
-		{ origins: TronScan.origins  }
+		{ origins: tronScanOrigins }
 	)
 )
 
@@ -102,7 +123,7 @@ export const getTrc10Token = ({
 }) => (
 	getJson<TronScanTrc10Tokens>(
 		`${base(restBaseUrl)}/api/token?id=${tokenId}&showAll=1&limit=1`,
-		{ origins: TronScan.origins  }
+		{ origins: tronScanOrigins }
 	)
 )
 
@@ -117,6 +138,6 @@ export const getTrc20Transfers = ({
 }) => (
 	getJson<TronScanTrc20Transfers>(
 		`${base(restBaseUrl)}/api/token_trc20/transfers?hash=${transactionId}&limit=${limit.toString()}&start=0`,
-		{ origins: TronScan.origins  }
+		{ origins: tronScanOrigins }
 	)
 )

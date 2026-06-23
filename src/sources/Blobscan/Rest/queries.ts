@@ -1,6 +1,6 @@
 import { getJson } from '$/lib/http.ts'
-import Blobscan from '$/sources/Blobscan/index.ts'
-import { blobscanRestApiOriginForChainId } from '$/sources/Blobscan/Rest/constants.ts'
+import { blobscanOrigins } from '$/sources/Blobscan/index.ts'
+import { blobscanRestApiOriginByChainId } from '$/sources/Blobscan/Rest/constants.ts'
 
 
 import type {
@@ -18,7 +18,7 @@ export const getBlobDetail = async ({
 	txHash: string
 	blobIndex: number
 }): Promise<BlobscanBlobDetail | undefined> => {
-	const apiOrigin = blobscanRestApiOriginForChainId(chainId)
+	const apiOrigin = blobscanRestApiOriginByChainId[chainId]
 	if (apiOrigin == null) return undefined
 
 	const txUrl = `${apiOrigin}/transactions/${encodeURIComponent(txHash)}`
@@ -26,7 +26,7 @@ export const getBlobDetail = async ({
 	try {
 		tx = await getJson<BlobscanTransaction>(
 			txUrl,
-			{ origins: Blobscan.origins  }
+			{ origins: blobscanOrigins }
 		)
 	}
 	catch {
@@ -44,7 +44,7 @@ export const getBlobDetail = async ({
 	try {
 		detail = await getJson<BlobscanBlobDetail>(
 			blobUrl,
-			{ origins: Blobscan.origins  }
+			{ origins: blobscanOrigins }
 		)
 	}
 	catch {

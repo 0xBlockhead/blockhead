@@ -98,11 +98,12 @@ export type EntityProxyResource<
 
 const mergeSelection = <
 	const _Schema extends Schema,
-	const _EntityType extends EntityType<_Schema>
+	const _EntityType extends EntityType<_Schema>,
+	const _FieldRow extends object = object
 >(
-	base: SubscribeSelection<_Schema, _EntityType>,
-	override: SubscribeSelection<_Schema, _EntityType> | undefined
-): SubscribeSelection<_Schema, _EntityType> => ({
+	base: SubscribeSelection<_Schema, _EntityType, _FieldRow>,
+	override: SubscribeSelection<_Schema, _EntityType, _FieldRow> | undefined
+): SubscribeSelection<_Schema, _EntityType, _FieldRow> => ({
 	...base,
 	...override,
 	fields: {
@@ -210,14 +211,14 @@ export function createEntityFieldProxy<
 	entityType: _EntityType,
 	entitySelector: EntitySelector<_Schema, _EntityType>,
 	fieldName: _FieldName,
-	selection?: SubscribeSelection<_Schema, _EntityType>
+	selection?: SubscribeSelection<_Schema, _EntityType, object>
 ): EntityProxyFieldResource<_Schema, _EntityType, _FieldName>
 export function createEntityFieldProxy(
 	context: ClientContext,
 	entityType: EntityType<Schema>,
 	entitySelector: EntitySelector<Schema, EntityType<Schema>>,
 	fieldName: string,
-	selection: SubscribeSelection<Schema, EntityType<Schema>> = {}
+	selection: SubscribeSelection<Schema, EntityType<Schema>, object> = {}
 ): object {
 	let resource: SvelteKitResource<EntityFieldResourceData<Schema, EntityType<Schema>, EntityFieldName<Schema, EntityType<Schema>>>> | undefined
 	const getResource = (): SvelteKitResource<EntityFieldResourceData<Schema, EntityType<Schema>, EntityFieldName<Schema, EntityType<Schema>>>> => {
@@ -261,9 +262,9 @@ export function createEntityFieldProxy(
 				:
 					data === null ? undefined : data
 			)
-		)
+	)
 	return new Proxy((
-		selectionOverride?: SubscribeSelection<Schema, EntityType<Schema>>
+		selectionOverride?: SubscribeSelection<Schema, EntityType<Schema>, object>
 	) => createEntityFieldProxy(
 		context,
 		entityType,
@@ -310,19 +311,19 @@ export function createEntityProxy<
 	context: ClientContext<_Schema>,
 	entityType: _EntityType,
 	entitySelector: EntitySelector<_Schema, _EntityType>,
-	selection?: SubscribeSelection<_Schema, _EntityType>
+	selection?: SubscribeSelection<_Schema, _EntityType, object>
 ): EntityProxyResource<_Schema, _EntityType>
 export function createEntityProxy(
 	context: ClientContext,
 	entityType: EntityType<Schema>,
 	entitySelector: EntitySelector<Schema, EntityType<Schema>>,
-	selection?: SubscribeSelection<Schema, EntityType<Schema>>
+	selection?: SubscribeSelection<Schema, EntityType<Schema>, object>
 ): object
 export function createEntityProxy(
 	context: ClientContext,
 	entityType: EntityType<Schema>,
 	entitySelector: EntitySelector<Schema, EntityType<Schema>>,
-	selection: SubscribeSelection<Schema, EntityType<Schema>> = {}
+	selection: SubscribeSelection<Schema, EntityType<Schema>, object> = {}
 ): object {
 	let resource: SvelteKitResource<EntityProxyData<Schema, EntityType<Schema>>> | undefined
 	const getResource = (): SvelteKitResource<EntityProxyData<Schema, EntityType<Schema>>> => {
@@ -342,7 +343,7 @@ export function createEntityProxy(
 	const fieldProxyByName = new Map<string, EntityProxyFieldResource<Schema, EntityType<Schema>, EntityFieldName<Schema, EntityType<Schema>>>>()
 
 	return new Proxy((
-		selectionOverride?: SubscribeSelection<Schema, EntityType<Schema>>
+		selectionOverride?: SubscribeSelection<Schema, EntityType<Schema>, object>
 	) => createEntityProxy(
 		context,
 		entityType,
@@ -378,10 +379,10 @@ export function createEntityProxy(
 			if (property === 'entity')
 				return getResource().current
 			if (property === EntityProxyField)
-				return (
-					fieldName: string,
-					fieldSelection?: SubscribeSelection<Schema, EntityType<Schema>>
-				) => createEntityFieldProxy(
+					return (
+						fieldName: string,
+						fieldSelection?: SubscribeSelection<Schema, EntityType<Schema>, object>
+					) => createEntityFieldProxy(
 					context,
 					entityType,
 					entitySelector,

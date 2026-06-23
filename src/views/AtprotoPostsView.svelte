@@ -1,141 +1,66 @@
 <script lang="ts">
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
-	type AtprotoPostOrderFieldRow = {
-		createdAt?: number
-		[EntityMetaKey.SelectorKey]: string
-	}
-
 
 	// Context
-	import { resolve } from '$app/paths'
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
+	const listView = {
+		entityType: EntityType.AtprotoPost,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
 		selection,
-		id,
-		limit = 25,
+		title,
 		open = $bindable(true),
-		collapsible = true,
-		fieldOpen = true,
-		title = 'Posts',
+		id = 'AtprotoPosts',
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			selection: EntityProxyEntitiesResource<typeof schema, EntityType.AtprotoPost>
-			id: string
-			limit?: number
-			open?: boolean
-			collapsible?: boolean
-			fieldOpen?: boolean
 			title?: string
+			open?: boolean
+			id?: string
+			href?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
-
-
-	const atprotoPostOrderBy = [
-		[
-			({ fieldRow }: { fieldRow: AtprotoPostOrderFieldRow }) => fieldRow.createdAt,
-			{
-				direction: 'desc',
-			},
-		],
-		[
-			({ fieldRow }: { fieldRow: AtprotoPostOrderFieldRow }) => fieldRow[EntityMetaKey.SelectorKey],
-			'asc',
-		],
-	] as const
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import AtprotoPostView from '$/views/AtprotoPostView.svelte'
 </script>
 
 
 <EntitiesList
-	entityType={EntityType.AtprotoPost}
-	{id}
-	bind:open
-	placeholderText={`Loading ${title.toLowerCase()}…`}
+	entityType={listView.entityType}
 	{title}
+	bind:open
+	{id}
+	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			ATProto app.bsky.feed.post records addressed by at-URI inside a given DID’s repo.
-		</p>
-		<p>
-			Collection scope follows the repo or atprotoPosts you navigated from; URIs are stable handles for the same bytes across relays.
-		</p>
-		<p>
-			The atprotoPosts keeps a capped newest-first slice; navigating a post resolves text, reply parent/root links, and engagement counts from the AppView API.
-		</p>
-	{/snippet}
-
-	{#snippet body({ open: _bodyOpen })}
-		{#if open}
-			{#if fieldOpen}
-					<ResourceBoundary
-						resource={selection({
-							sources: [
-								Source.Constants_Internal,
-							],
-							limit,
-						})}
-						placeholderText={`Loading ${title.toLowerCase()}…`}
-					>
-					{#snippet children(posts)}
-						<EntitiesList
-							collapsible={false}
-							showSummary={false}
-							entityType={EntityType.AtprotoPost}
-							id={`${id}-items`}
-							{title}
-							open={true}
-							getKey={(atprotoPost) => atprotoPost.entitySelector.uri}
-							placeholderText={`Loading ${title.toLowerCase()}…`}
-							items={posts.entities}
-						>
-							{#snippet Empty()}
-								<p data-text="muted">
-									No posts yet.
-								</p>
-							{/snippet}
-
-							{#snippet Item({ item })}
-								<a
-									href={resolve('/(social)/(atproto)/atproto/post/[...uri]', {
-										uri: encodeURIComponent(item.entitySelector.uri),
-									})}
-								>
-									<TruncatedValue
-										value={item.entitySelector.uri}
-										format={TruncatedValueFormat.Visual}
-									/>
-								</a>
-							{/snippet}
-						</EntitiesList>
-					{/snippet}
-				</ResourceBoundary>
-			{:else}
-				<p data-text="muted">
-					Facet idle—no posts request.
-				</p>
-			{/if}
-		{/if}
+	{#snippet Item({ item })}
+		<AtprotoPostView
+			selection={select(EntityType.AtprotoPost, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

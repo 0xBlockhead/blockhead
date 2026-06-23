@@ -1,18 +1,19 @@
-import { ipfsPublicGateways } from '$/constants/IpfsProtocol.ts'
+import { Source } from '$/sources/Source.ts'
 import {
-	type SourceProviderDefinition,
 	SourceProvider,
+	type SourceProviderDefinition,
 } from '$/sources/SourceProvider.ts'
-import IpfsRestSource from '$/sources/Ipfs/Rest/index.ts'
+import { ipfsBindings } from '$/sources/Ipfs/bindings.ts'
 
 export default {
 	provider: SourceProvider.Ipfs,
-	label: 'Ipfs',
-	origins: ipfsPublicGateways.map((gateway) => ({
-		origin: gateway.origin,
-		corsEnabled: false,
-	})),
+	label: 'IPFS',
 	sources: [
-		IpfsRestSource,
+		{
+			provider: SourceProvider.Ipfs,
+			source: Source.Ipfs_Rest,
+			label: 'IPFS Gateway',
+		},
 	],
+	bindings: ipfsBindings,
 } satisfies SourceProviderDefinition

@@ -1,163 +1,150 @@
 <script lang="ts">
 	// Types/constants
+	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'observation time',
+			},
+			'source',
+			{
+				label: 'latest block height/hash/time',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'observation time',
+					},
+					'source',
+					{
+						label: 'latest block height/hash/time/transaction count',
+					},
+				],
+				[
+					{
+						label: 'witness counts',
+					},
+					{
+						label: 'node/solidity heights',
+					},
+					{
+						label: 'peer count',
+					},
+					{
+						label: 'maintenance interval',
+					},
+					{
+						label: 'transaction fee',
+					},
+					{
+						label: 'create-account fee',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Network',
+					items: [
+						{
+							label: 'TronNetwork',
+						},
+					],
+				},
+				{
+					label: 'Head',
+					items: [
+						{
+							label: 'latest block height/hash/time/transaction count',
+						},
+						{
+							label: 'node/solidity heights',
+						},
+					],
+				},
+				{
+					label: 'Witnesses',
+					items: [
+						{
+							label: 'witness count',
+						},
+						{
+							label: 'active witness count',
+						},
+					],
+				},
+				{
+					label: 'Fees/maintenance',
+					items: [
+						{
+							label: 'maintenance interval',
+						},
+						{
+							label: 'transaction fee',
+						},
+						{
+							label: 'create-account fee',
+						},
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'TronGrid wallet/getnowblock',
+						},
+						{
+							label: 'wallet/listwitnesses',
+						},
+						{
+							label: 'wallet/getnodeinfo',
+						},
+						{
+							label: 'wallet/getchainparameters',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
-		layout = EntityLayout.SummaryDetails,
-		open = $bindable(layout === EntityLayout.SummaryDetails),
-	}: {
-		selection: EntityProxyResource<typeof schema, EntityType.TronNetwork_Timestamp>
-		layout?: EntityLayout
-		open?: boolean
-	} = $props()
-
-
-	const snapshot = $derived(selection(
-		({ sources: [
-				Source.TronGrid_Rest,
-			], fields: { latestBlockHeight: true, latestBlockHash: true, latestBlockTimeMs: true, latestBlockTransactionCount: true, witnessCount: true, activeWitnessCount: true, nodeBlockHeight: true, solidityBlockHeight: true, currentPeerCount: true, maintenanceIntervalMs: true, transactionFeeSun: true, createAccountFeeSun: true } }),
-	))
+		open = $bindable(true),
+		...EntityViewProps
+	}: WithRest<
+		{
+			selection: EntityProxyResource<typeof schema, EntityType.TronNetwork_Timestamp>
+			open?: boolean
+		},
+		Pick<
+			ComponentProps<typeof EntityView2>,
+			| 'layout'
+			| 'showTypeAnnotation'
+		>
+	> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.TronNetwork_Timestamp}
 	entitySelector={selection.entitySelector}
 	bind:open
-	{layout}
->
-	{#snippet Value()}
-		<ResourceBoundary
-			resource={snapshot}
-			placeholderText="Loading TRON network snapshot..."
-		>
-			{#snippet children(snapshot)}
-				{#if snapshot.latestBlockHeight !== undefined}
-					<NumberValue value={snapshot.latestBlockHeight} />
-				{:else if snapshot.activeWitnessCount !== undefined}
-					<NumberValue value={snapshot.activeWitnessCount} />
-					witnesses
-				{:else}
-					<Timestamp timestamp={selection.entitySelector.timestampMs} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={snapshot}
-			placeholderText="Loading TRON network snapshot..."
-		>
-			{#snippet children(snapshot)}
-				<dl data-column-item="center">
-					{#if snapshot.latestBlockHeight !== undefined}
-						<div>
-							<dt>Latest block</dt>
-							<dd><NumberValue value={snapshot.latestBlockHeight} /></dd>
-						</div>
-					{/if}
-
-					{#if snapshot.activeWitnessCount !== undefined}
-						<div>
-							<dt>Active witnesses</dt>
-							<dd><NumberValue value={snapshot.activeWitnessCount} /></dd>
-						</div>
-					{/if}
-
-					{#if snapshot.currentPeerCount !== undefined}
-						<div>
-							<dt>Peers</dt>
-							<dd><NumberValue value={snapshot.currentPeerCount} /></dd>
-						</div>
-					{/if}
-
-					{#if snapshot.latestBlockTransactionCount !== undefined}
-						<div>
-							<dt>Transactions</dt>
-							<dd><NumberValue value={snapshot.latestBlockTransactionCount} /></dd>
-						</div>
-					{/if}
-
-					{#if open && snapshot.latestBlockHash != null}
-						<div>
-							<dt>Latest hash</dt>
-							<dd>
-								<TruncatedValue
-									value={snapshot.latestBlockHash}
-									format={TruncatedValueFormat.Abbr}
-								/>
-							</dd>
-						</div>
-					{/if}
-
-					{#if open && snapshot.latestBlockTimeMs !== undefined}
-						<div>
-							<dt>Block time</dt>
-							<dd><Timestamp timestamp={snapshot.latestBlockTimeMs} /></dd>
-						</div>
-					{/if}
-
-					{#if open && snapshot.witnessCount !== undefined}
-						<div>
-							<dt>Witnesses</dt>
-							<dd><NumberValue value={snapshot.witnessCount} /></dd>
-						</div>
-					{/if}
-
-					{#if open && snapshot.nodeBlockHeight !== undefined}
-						<div>
-							<dt>Node block</dt>
-							<dd><NumberValue value={snapshot.nodeBlockHeight} /></dd>
-						</div>
-					{/if}
-
-					{#if open && snapshot.solidityBlockHeight !== undefined}
-						<div>
-							<dt>Solidity block</dt>
-							<dd><NumberValue value={snapshot.solidityBlockHeight} /></dd>
-						</div>
-					{/if}
-
-					{#if open && snapshot.maintenanceIntervalMs !== undefined}
-						<div>
-							<dt>Maintenance interval</dt>
-							<dd><NumberValue value={snapshot.maintenanceIntervalMs} /> ms</dd>
-						</div>
-					{/if}
-
-					{#if open && snapshot.transactionFeeSun !== undefined}
-						<div>
-							<dt>Transaction fee</dt>
-							<dd><NumberValue value={snapshot.transactionFeeSun} /> sun</dd>
-						</div>
-					{/if}
-
-					{#if open && snapshot.createAccountFeeSun !== undefined}
-						<div>
-							<dt>Create account fee</dt>
-							<dd><NumberValue value={snapshot.createAccountFeeSun} /> sun</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{...EntityViewProps}
+	{view}
+/>

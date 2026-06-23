@@ -2,16 +2,79 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			'coin',
+			{
+				label: 'latest max leverage',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					'coin',
+					{
+						label: 'latest max leverage',
+					},
+					{
+						label: 'latest isolated-only flag',
+					},
+					{
+						label: 'timestamp count',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Latest state',
+					items: [
+						{
+							label: 'latest perp universe observation',
+						},
+					],
+				},
+				{
+					label: 'State history',
+					items: [
+						{
+							label: 'timestamped perp universe observations',
+						},
+					],
+				},
+				{
+					label: 'Network',
+					items: [
+						{
+							label: 'parent Hyperliquid network',
+						},
+					],
+				},
+				{
+					label: 'Related market',
+					items: [
+						{
+							label: 'generic market row only when a separate selector maps this coin to venue/base/quote identity',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -22,7 +85,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -30,56 +93,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.HyperliquidPerpMarket}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.coin}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		{selection.entitySelector.coin}
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Hyperliquid perp markets are exchange-layer markets, distinct from HyperEVM contracts.
-		</p>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection(
-					({ sources: [
-							Source.Hyperliquid_Rest,
-						], fields: { maxLeverage: true, onlyIsolated: true } }),
-				)}
-			placeholderText="Loading Hyperliquid market…"
-		>
-			{#snippet children(market)}
-				<dl>
-					{#if market.maxLeverage != null}
-						<div>
-							<dt>Max leverage</dt>
-							<dd><NumberValue value={market.maxLeverage} />x</dd>
-						</div>
-					{/if}
-
-					{#if market.onlyIsolated != null}
-						<div>
-							<dt>Only isolated</dt>
-							<dd>{market.onlyIsolated ? 'Yes' : 'No'}</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

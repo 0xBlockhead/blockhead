@@ -511,14 +511,14 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 	},
 	[EntityType.BlockheadRoomPeer]: { id: 'e2e-probe-room-peer' },
 	[EntityType.BlockheadSharedAddress]: { id: 'e2e-probe-shared-address' },
-	[EntityType.StateChannel]: { id: 'e2e-probe-state-channel' },
-	[EntityType.StateChannelDeposit]: { id: 'e2e-probe-state-channel-deposit-0' },
-	[EntityType.StateChannelState]: { id: 'e2e-probe-state-channel-state-1' },
-	[EntityType.StateChannelTransfer]: { id: 'e2e-probe-state-channel-transfer-1' },
+	[EntityType.BlockheadStateChannel]: { id: 'e2e-probe-state-channel' },
+	[EntityType.BlockheadStateChannelDeposit]: { id: 'e2e-probe-state-channel-deposit-0' },
+	[EntityType.BlockheadStateChannelState]: { id: 'e2e-probe-state-channel-state-1' },
+	[EntityType.BlockheadStateChannelTransfer]: { id: 'e2e-probe-state-channel-transfer-1' },
 	[EntityType.BlockheadAgentConversation]: { id: 'e2e-probe-agent-conversation' },
 	[EntityType.BlockheadAgentConversationTurn]: { id: 'e2e-probe-agent-conversation-turn' },
 
-	[EntityType.BridgeTransaction]: {
+	[EntityType.BlockheadBridgeTransaction]: {
 		$account: actorMainnetVitalik,
 		$sourceTx: {
 			$network: mainnet,
@@ -559,7 +559,9 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 
 	[EntityType.EnsName]: { name: 'vitalik.eth' },
 
-	[EntityType.EnsProtocol]: { scope: 'EnsProtocol' },
+	[EntityType.BlockheadEnsNameSearch]: { query: 'vitalik' },
+
+	[EntityType._GlobalEnsNetwork]: { scope: '_GlobalEnsNetwork' },
 
 	[EntityType.EvmBlob]: {
 		$network: mainnet,
@@ -711,11 +713,6 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 			address: '0x8004a169fb4a3325136eb29fa0ceb6d2e539a432',
 		},
 		tokenId: '104776',
-	},
-
-	[EntityType.Vault]: {
-		$network: mainnet,
-		id: '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
 	},
 
 	[EntityType.Market]: ethUsdCatalogMarket,
@@ -1089,19 +1086,6 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 		$network: hyperliquidNetwork,
 		coin: 'BTC',
 	},
-	[EntityType.LogosZone]: {
-		$network: logos,
-		zoneId: 'logos-chain',
-	},
-	[EntityType.LogosAccount]: {
-		$network: logos,
-		accountAddress: 'logos1e2eprobeaccount',
-	},
-	[EntityType.LogosTransaction]: {
-		$network: logos,
-		transactionHash: 'e2e-probe-logos-transaction',
-	},
-	[EntityType.QuilibriumNetwork]: quilibrium,
 	[EntityType.QuilibriumFrame]: {
 		$network: quilibriumNetwork,
 		frameNumber: 1n,
@@ -1119,7 +1103,7 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 		$network: quilibriumNetwork,
 		accountAddress: 'e2e-probe-account',
 	},
-	[EntityType.QuilibriumPendingTransaction]: {
+	[EntityType.BlockheadQuilibriumPendingTransaction]: {
 		$network: quilibriumNetwork,
 		transactionHash: 'e2e-probe-quilibrium-transaction',
 	},
@@ -1296,15 +1280,15 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 		$network: lightningNetwork,
 		channelId: '852861482917888001',
 	},
-	[EntityType.LightningInvoice]: {
+	[EntityType.BlockheadLightningInvoice]: {
 		$network: lightningNetwork,
 		paymentHash: 'e2e-probe-lightning-invoice',
 	},
-	[EntityType.LightningPayment]: {
+	[EntityType.BlockheadLightningPayment]: {
 		$network: lightningNetwork,
 		paymentHash: 'e2e-probe-lightning-payment',
 	},
-	[EntityType.LightningHtlc]: {
+	[EntityType.BlockheadLightningHtlc]: {
 		$channel: {
 			$network: lightningNetwork,
 			channelId: 'e2e-probe-lightning-channel',
@@ -1823,8 +1807,8 @@ export const parentEntitySelectorForResolverValuePart = (
 				entityType === EntityType.XmtpNetwork ?
 				{ scope: 'XmtpNetwork' }
 			:
-				entityType === EntityType.EnsProtocol ?
-				{ scope: 'EnsProtocol' }
+				entityType === EntityType._GlobalEnsNetwork ?
+				{ scope: '_GlobalEnsNetwork' }
 			:
 				entityType === EntityType.EvmProtocol ?
 				{ scope: 'EvmProtocol' }

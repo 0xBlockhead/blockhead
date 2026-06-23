@@ -1,5 +1,5 @@
 import { getJson } from '$/lib/http.ts'
-import Cashu from '$/sources/Cashu/index.ts'
+import { cashuOrigins } from '$/sources/Cashu/index.ts'
 import type {
 	CashuMintInfoWire,
 	CashuMintKeysWire,
@@ -15,7 +15,7 @@ export const getMintInfo = ({
 }) => (
 	getJson<CashuMintInfoWire>(
 		`${base(mintUrl)}/v1/info`,
-		{ origins: Cashu.origins }
+		{ origins: cashuOrigins }
 	)
 )
 
@@ -26,7 +26,7 @@ export const getMintKeysets = ({
 }) => (
 	getJson<CashuMintKeysetsWire>(
 		`${base(mintUrl)}/v1/keysets`,
-		{ origins: Cashu.origins }
+		{ origins: cashuOrigins }
 	)
 )
 
@@ -37,7 +37,7 @@ export const getMintKeys = ({
 }) => (
 	getJson<CashuMintKeysWire>(
 		`${base(mintUrl)}/v1/keys`,
-		{ origins: Cashu.origins }
+		{ origins: cashuOrigins }
 	)
 )
 
@@ -50,6 +50,6 @@ export const getMintKeysForKeyset = ({
 }) => (
 	getJson<CashuMintKeysWire>(
 		`${base(mintUrl)}/v1/keys/${encodeURIComponent(keysetId)}`,
-		{ origins: Cashu.origins }
+		{ origins: cashuOrigins }
 	)
 )

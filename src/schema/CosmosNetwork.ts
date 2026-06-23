@@ -1,34 +1,17 @@
 import { type } from 'arktype'
-
-import { TransportType } from '$/constants/TransportType.ts'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { UrlString } from '$/schema/UrlString.ts'
-import Network from '$/schema/Network.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum CosmosNetworkSelector {
 	Network = 'network',
 }
-
-
-const cosmosRestEndpointField = type({
-	url: UrlString,
-	transportType: type.valueOf(TransportType),
-	providerName: 'string',
-})
-
 export default {
 	entityType: EntityType.CosmosNetwork,
-
 	label: 'Cosmos network',
 	labelPlural: 'Cosmos networks',
-
 	selectors: [
 		{
 			name: CosmosNetworkSelector.Network,
@@ -37,61 +20,76 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: 'restEndpoints',
+			label: 'REST endpoints',
 			type: EntityFieldType.Primitive,
-			primitiveType: cosmosRestEndpointField,
+			primitiveType: type({"url": "string", "transportType": "string", "providerName": "string"}),
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.CosmosSdk_Rest,
-			],
 		},
 		{
 			name: '$$timestamps',
+			label: 'timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.CosmosNetwork_Timestamp,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.CosmosSdk_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$blocks',
+			label: 'blocks',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.CosmosBlock,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.CosmosSdk_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$validators',
+			label: 'validators',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.CosmosValidator,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.CosmosSdk_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$governanceProposals',
+			label: 'governance proposals',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.CosmosGovernanceProposal,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.CosmosSdk_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: '$$denoms',
+			label: 'denoms',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.CosmosDenom,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: '$$accounts',
+			label: 'accounts',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.CosmosAccount,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: '$$contracts',
+			label: 'contracts',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.CosmosContract,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: '$$modules',
+			label: 'modules',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.CosmosModule,
+			cardinality: EntityFieldCardinality.Many,
+		},
+	],
 } as const satisfies EntityDefinition

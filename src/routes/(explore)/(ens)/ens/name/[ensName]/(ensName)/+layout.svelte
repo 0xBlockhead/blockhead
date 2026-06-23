@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { EntityType } from '$/schema/EntityType.ts'
-	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 
 
@@ -16,13 +15,14 @@
 	} = $props()
 
 
-	// Components
-	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
-	import EnsView from '$/views/EnsView.svelte'
+	// Functions
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
+	import EnsView from '$/views/EnsView.svelte'
 </script>
 
 
@@ -33,7 +33,12 @@
 	>
 		{#snippet Summary({ open: _open })}
 			<EnsView
-				selection={select(EntityType.EnsName, { name: params.ensName })}
+				selection={
+					select(
+						EntityType.EnsName,
+						{ name: params.ensName }
+					)
+				}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

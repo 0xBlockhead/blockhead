@@ -1,36 +1,24 @@
 import { type } from 'arktype'
-import BlockheadWallet from '$/schema/BlockheadWallet.ts'
-import BlockheadWalletAccount from '$/schema/BlockheadWalletAccount.ts'
 import {
-	WalletProtocol,
-	WalletTransportKind,
-} from '$/constants/Wallet.ts'
-import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
-export enum BlockheadWalletConnectionSelector {
-	BlockheadWallet = 'blockheadWallet',
-}
-
-
 export enum BlockheadConnectionStatus {
 	Disconnected = 'disconnected',
 	Connecting = 'connecting',
 	Connected = 'connected',
 	Error = 'error',
 }
-
+export enum BlockheadWalletConnectionSelector {
+	BlockheadWallet = 'blockheadWallet',
+	Wallet = '$wallet',
+}
 export default {
 	entityType: EntityType.BlockheadWalletConnection,
-
-	label: 'Wallet Connection',
-	labelPlural: 'Wallet Connections',
-
+	label: 'blockhead wallet connection',
+	labelPlural: 'blockhead wallet connections',
 	selectors: [
 		{
 			name: BlockheadWalletConnectionSelector.BlockheadWallet,
@@ -39,90 +27,175 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$wallet',
+			label: 'wallet',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.BlockheadWallet,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'status',
+			label: 'status',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(BlockheadConnectionStatus),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'protocol',
+			label: 'protocol',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(WalletProtocol),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'transportKind',
+			label: 'transport kind',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(WalletTransportKind),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'scopes',
+			label: 'scopes',
 			type: EntityFieldType.Primitive,
-			primitiveType: type({
-				namespace: 'string',
-				reference: 'string',
-				methods: 'string[]',
-				events: 'string[]',
-			}).array(),
+			primitiveType: type({"namespace": "string", "reference": "string", "methods": "string[]", "events": "string[]"}).array(),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$$connectedAccounts',
+			label: 'connected accounts',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.BlockheadWalletAccount,
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$activeAccount',
+			label: 'active account',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.BlockheadWalletAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'selected',
+			label: 'selected',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
+			primitiveType: type("boolean"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'connectedAt',
+			label: 'connected AT',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'disconnectedAt',
+			label: 'disconnected AT',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'sessionId',
+			label: 'session ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'sessionTopic',
+			label: 'session topic',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'error',
+			label: 'error',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: 'connectionKey',
+			label: 'connection key',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$connectionMethod',
+			label: 'connection method',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.WalletConnectionMethod,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'apiSurfaceKind',
+			label: 'API surface kind',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'sessionKind',
+			label: 'session kind',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'authorizationKind',
+			label: 'authorization kind',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'updatedAt',
+			label: 'Updated',
+			description: 'The time when the subject was last updated according to the source.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'expiresAt',
+			label: 'expires AT',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'pairingId',
+			label: 'pairing ID',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'transportSessionId',
+			label: 'transport session ID',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'manifestUrl',
+			label: 'manifest URL',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'pairingUri',
+			label: 'pairing URI',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+	],
 } as const satisfies EntityDefinition

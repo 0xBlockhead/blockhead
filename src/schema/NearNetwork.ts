@@ -1,35 +1,17 @@
 import { type } from 'arktype'
-
-import { NetworkEnvironment } from '$/constants/Network.ts'
-import { TransportType } from '$/constants/TransportType.ts'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { UrlString } from '$/schema/UrlString.ts'
-import { networkFields } from '$/schema/Network.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum NearNetworkSelector {
 	Slug = 'slug',
 }
-
-
-const nearRpcEndpointField = type({
-	url: UrlString,
-	transportType: type.valueOf(TransportType),
-	providerName: 'string',
-})
-
 export default {
 	entityType: EntityType.NearNetwork,
-
-	label: 'NEAR network',
-	labelPlural: 'NEAR networks',
-
+	label: 'near network',
+	labelPlural: 'near networks',
 	selectors: [
 		{
 			name: NearNetworkSelector.Slug,
@@ -38,60 +20,65 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: 'slug',
+			label: 'Slug',
+			description: 'A stable short name used by catalogs and URLs.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.unit('near'),
+			primitiveType: type("'near'"),
 			cardinality: EntityFieldCardinality.One,
 		},
-		networkFields[1],
-		networkFields[3],
+		{
+			name: 'name',
+			label: 'Name',
+			description: 'The human-readable name of the subject.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'namespace',
+			label: 'Namespace',
+			description: 'The namespace that qualifies the identifier.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
 		{
 			name: 'environment',
+			label: 'environment',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(NetworkEnvironment),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: 'rpcEndpoints',
+			label: 'RPC endpoints',
 			type: EntityFieldType.Primitive,
-			primitiveType: nearRpcEndpointField,
+			primitiveType: type({"url": "string", "transportType": "string", "providerName": "string"}),
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: '$$timestamps',
+			label: 'timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.NearNetwork_Timestamp,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.NearRpc_JsonRpc,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$blocks',
+			label: 'blocks',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.NearBlock,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.NearRpc_JsonRpc,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$validators',
+			label: 'validators',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.NearValidator,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.NearRpc_JsonRpc,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

@@ -1,23 +1,18 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum DogecoinAuxPowMerkleBranchSelector {
 	DogecoinBlockAuxPowBranchKind = 'dogecoinBlockAuxPowBranchKind',
+	AuxPowBranchKind = '$auxPow+branchKind',
 }
-
 export default {
 	entityType: EntityType.DogecoinAuxPowMerkleBranch,
-
-	label: 'Dogecoin AuxPoW Merkle Branch',
-	labelPlural: 'Dogecoin AuxPoW Merkle Branches',
-
+	label: 'dogecoin aux pow merkle branch',
+	labelPlural: 'dogecoin aux pow merkle branches',
 	selectors: [
 		{
 			name: DogecoinAuxPowMerkleBranchSelector.DogecoinBlockAuxPowBranchKind,
@@ -27,31 +22,34 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$auxPow',
+			label: 'aux pow',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.DogecoinBlockAuxPow,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'branchKind',
+			label: 'branch kind',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'branchHashes',
+			label: 'branch hashes',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrMany,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: 'index',
+			label: 'index',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

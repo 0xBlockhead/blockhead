@@ -1,23 +1,17 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum PolkadotAccountSelector {
 	NetworkAccountId = 'networkAccountId',
 }
-
 export default {
 	entityType: EntityType.PolkadotAccount,
-
-	label: 'Polkadot Account',
-	labelPlural: 'Polkadot Accounts',
-
+	label: 'polkadot account',
+	labelPlural: 'polkadot accounts',
 	selectors: [
 		{
 			name: PolkadotAccountSelector.NetworkAccountId,
@@ -27,31 +21,34 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'accountId',
+			label: 'account ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'nonce',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			name: '$$assetBalanceTimestamps',
+			label: 'asset balance timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.PolkadotAssetBalance_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: 'freeBalancePlancks',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			name: '$$timestamps',
+			label: 'timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.PolkadotAccount_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

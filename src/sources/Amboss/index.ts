@@ -1,16 +1,19 @@
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
-import AmbossGraphql from '$/sources/Amboss/Graphql/index.ts'
+import { Source } from '$/sources/Source.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import { ambossBindings } from '$/sources/Amboss/bindings.ts'
 
 export default {
 	provider: SourceProvider.Amboss,
-	label: 'Amboss Space',
-	origins: [
+	label: 'Amboss',
+	sources: [
 		{
-			origin: 'https://api.amboss.space',
-			corsEnabled: true,
+			provider: SourceProvider.Amboss,
+			source: Source.Amboss_Graphql,
+			label: 'Amboss Space GraphQL',
 		},
 	],
-	sources: [
-		AmbossGraphql,
-	],
-} as const satisfies SourceProviderDefinition
+	bindings: ambossBindings,
+} satisfies SourceProviderDefinition

@@ -7,9 +7,8 @@ import { getJson } from '$/lib/http.ts'
 import {
 	optionalPublicEnvString,
 } from '$/sources/$sources.ts'
-import { Source } from '$/sources/Source.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import TheGraph from '$/sources/TheGraph/index.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
+import { theGraphOrigins } from '$/sources/TheGraph/index.ts'
 
 export const queryTheGraph = async <
 	_Result extends object,
@@ -22,7 +21,7 @@ export const queryTheGraph = async <
 }: {
 	document: TadaDocumentNode<_Result, _Variables>
 	endpointUrl: string
-	publicEnv: SourcePublicEnvFor<Source.TheGraph_Graphql>
+	publicEnv: SourcePublicEnv
 	variables?: _Variables
 }): Promise<_Result> => {
 	const apiKey = optionalPublicEnvString(publicEnv, 'PUBLIC_THEGRAPH_API_KEY')
@@ -42,7 +41,7 @@ export const queryTheGraph = async <
 	}
 
 	const payload = await getJson<TheGraphPayloadWire>(endpointUrl, {
-		origins: TheGraph.origins,
+		origins: theGraphOrigins,
 		init: {
 			method: 'POST',
 			headers: {

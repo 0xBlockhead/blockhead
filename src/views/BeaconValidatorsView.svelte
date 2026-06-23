@@ -1,23 +1,30 @@
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
+	const listView = {
+		entityType: EntityType.BeaconValidator,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
 		selection,
-		title = 'Validators',
+		title,
 		open = $bindable(true),
-		id,
+		id = 'BeaconValidators',
 		href = '',
 		...EntitiesListProps
 	}: WithRest<
@@ -25,75 +32,35 @@
 			selection: EntityProxyEntitiesResource<typeof schema, EntityType.BeaconValidator>
 			title?: string
 			open?: boolean
-			id: string
+			id?: string
 			href?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'collapsible'
-			| 'CollapsibleProps'
-		>
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
+
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BeaconValidatorView from '$/views/BeaconValidatorView.svelte'
 </script>
 
 
 <EntitiesList
-	entityType={EntityType.BeaconValidator}
+	entityType={listView.entityType}
 	{title}
 	bind:open
 	{id}
 	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
-	{#snippet body()}
-		{#if open}
-				<ResourceBoundary
-					resource={selection({
-						sources: [
-							Source.Beacon_Rest,
-						],
-						limit: 16,
-					})}
-				placeholderText="Loading validators…"
-			>
-				{#snippet children(validators)}
-			{#key stringify(selection.entitySelector)}
-				<EntitiesList
-					collapsible={false}
-					showSummary={false}
-					entityType={EntityType.BeaconValidator}
-					id={`${id}-items`}
-					href={href}
-					getKey={(validator) => String(validator.entitySelector.validatorIndex)}
-					placeholderText="Loading validators…"
-					items={validators.entities}
-					{title}
-					UnorderedListProps={{ orientation: ListOrientation.Column }}
-					open={true}
-				>
-					{#snippet Empty()}
-						<p data-text="muted">
-							No validators yet.
-						</p>
-					{/snippet}
-
-					{#snippet Item({ item: validator })}
-						<BeaconValidatorView
-							selection={select(EntityType.BeaconValidator, validator.entitySelector)}
-							layout={EntityLayout.Summary}
-
-						/>
-					{/snippet}
-				</EntitiesList>
-			{/key}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+	{#snippet Item({ item })}
+		<BeaconValidatorView
+			selection={select(EntityType.BeaconValidator, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

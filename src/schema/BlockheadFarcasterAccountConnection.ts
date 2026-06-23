@@ -1,29 +1,21 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
-
-export enum BlockheadFarcasterAccountConnectionSelector {
-	Fid = 'fid',
-}
-
-
 export enum BlockheadFarcasterConnectionAuthMethod {
 	Custody = 'custody',
 	AuthAddress = 'authAddress',
 }
-
+export enum BlockheadFarcasterAccountConnectionSelector {
+	Fid = 'fid',
+}
 export default {
 	entityType: EntityType.BlockheadFarcasterAccountConnection,
-
-	label: 'Farcaster Account Connection',
-	labelPlural: 'Farcaster Account Connections',
-
+	label: 'blockhead Farcaster account connection',
+	labelPlural: 'blockhead Farcaster account connections',
 	selectors: [
 		{
 			name: BlockheadFarcasterAccountConnectionSelector.Fid,
@@ -32,65 +24,76 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: 'fid',
+			label: 'FID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'username',
+			label: 'username',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'displayName',
+			label: 'display name',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'iconUrl',
+			label: 'icon URL',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$icon',
+			label: 'icon',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Media,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Neynar_Rest,
-				Source.Snapchain_Rest,
-			],
 		},
 		{
 			name: 'bio',
+			label: 'bio',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'verifications',
+			label: 'verifications',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string[]'),
+			primitiveType: type("string[]"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'custody',
+			label: 'custody',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'authMethod',
+			label: 'auth method',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(BlockheadFarcasterConnectionAuthMethod),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'signedAt',
+			label: 'signed AT',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

@@ -1,24 +1,18 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import XUser from '$/schema/XUser.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum XUser_TimestampSelector {
 	XUserTimestampMs = 'xUserTimestampMs',
+	UserTimestampMs = '$user+timestampMs',
 }
-
 export default {
 	entityType: EntityType.XUser_Timestamp,
-
-	label: 'X user snapshot',
-	labelPlural: 'X user snapshots',
-
+	label: 'X user timestamp',
+	labelPlural: 'X user observations',
 	selectors: [
 		{
 			name: XUser_TimestampSelector.XUserTimestampMs,
@@ -28,59 +22,49 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$user',
+			label: 'user',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.XUser,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'followerCount',
+			label: 'follower count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.X_Rest,
-				Source.X_FxEmbed_Rest,
-			],
 		},
 		{
 			name: 'followingCount',
+			label: 'following count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.X_Rest,
-				Source.X_FxEmbed_Rest,
-			],
 		},
 		{
 			name: 'tweetCount',
+			label: 'tweet count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.X_Rest,
-				Source.X_FxEmbed_Rest,
-			],
 		},
 		{
 			name: 'listedCount',
+			label: 'listed count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.X_Rest,
-				Source.X_FxEmbed_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

@@ -2,102 +2,102 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Context
-	import { select } from '$/routes/+layout.svelte'
-	import { resolve } from '$app/paths'
 
 
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'channel',
+			},
+			{
+				label: 'observation time',
+			},
+			{
+				label: 'subscriber count',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'channel',
+					},
+					{
+						label: 'observation time',
+					},
+					{
+						label: 'subscriber count',
+					},
+					{
+						label: 'video count',
+					},
+					{
+						label: 'view count',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Channel',
+					items: [
+						{
+							label: 'parent channel identity',
+						},
+					],
+				},
+				{
+					label: 'Statistics',
+					items: [
+						{
+							label: 'subscriber/video/view counts',
+						},
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'YouTube Data API channels.list statistics payload',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
-		href = resolve('/(social)/(youtube)/youtube/channel/[channelId]', {
-			channelId: selection.entitySelector.$channel.channelId,
-		}),
-		layout = EntityLayout.Summary,
-		open = $bindable(false),
+		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.YouTubeChannel_Timestamp>
-			href?: string
-			layout?: EntityLayout
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
+			| 'layout'
 			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import SocialMetricSnapshotRows from '$/views/SocialMetricSnapshotRows.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.YouTubeChannel_Timestamp}
 	entitySelector={selection.entitySelector}
-	href={href}
-	{layout}
 	bind:open
-	title="YouTube channel snapshot"
 	{...EntityViewProps}
->
-	{#snippet Value()}
-		<Timestamp timestamp={selection.entitySelector.timestampMs} />
-	{/snippet}
-
-	{#snippet Title()}
-		<Timestamp timestamp={selection.entitySelector.timestampMs} />
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Timestamped YouTube channel counters resolved from YouTube Data API and Piped channel metadata.
-		</p>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection(
-					({ sources: [
-							Source.Youtube_Rest,
-							Source.Piped_Rest,
-						], fields: { subscriberCount: true, videoCount: true, viewCount: true } }),
-				)}
-			placeholderText="Loading YouTube channel snapshot..."
-		>
-			{#snippet children(youTubeChannelTimestamp)}
-				<dl data-column-item="center">
-					<SocialMetricSnapshotRows
-						metrics={[
-							{
-								label: 'Subscribers',
-								value: youTubeChannelTimestamp.subscriberCount,
-							},
-							{
-								label: 'Videos',
-								value: youTubeChannelTimestamp.videoCount,
-							},
-							{
-								label: 'Views',
-								value: youTubeChannelTimestamp.viewCount,
-							},
-						]}
-					/>
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

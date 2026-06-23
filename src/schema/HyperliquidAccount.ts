@@ -1,23 +1,17 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum HyperliquidAccountSelector {
 	NetworkAddress = 'networkAddress',
 }
-
 export default {
 	entityType: EntityType.HyperliquidAccount,
-
-	label: 'Hyperliquid Account',
-	labelPlural: 'Hyperliquid Accounts',
-
+	label: 'hyperliquid account',
+	labelPlural: 'hyperliquid accounts',
 	selectors: [
 		{
 			name: HyperliquidAccountSelector.NetworkAddress,
@@ -27,37 +21,70 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'address',
+			label: 'Address',
+			description: 'The address or account identifier used by the source protocol.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'accountRole',
+			label: 'account role',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$masterAccount',
+			label: 'master account',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.HyperliquidAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$agentAccount',
+			label: 'agent account',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.HyperliquidAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: '$$timestamps',
+			label: 'timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.HyperliquidAccount_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: '$$orders',
+			label: 'orders',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.HyperliquidOrder,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: '$$fills',
+			label: 'fills',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.HyperliquidFill,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: '$$vaultEquities',
+			label: 'vault equities',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.HyperliquidVaultEquity_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
+		},
+	],
 } as const satisfies EntityDefinition

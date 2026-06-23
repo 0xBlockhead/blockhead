@@ -1,29 +1,17 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum TronAccountSelector {
 	NetworkAddress = 'networkAddress',
 }
-import { Source } from '$/sources/Source.ts'
-
-const tronPublicAccountSources = [
-	Source.TronScan_Rest,
-	Source.TronGrid_Rest,
-]
-
 export default {
 	entityType: EntityType.TronAccount,
-
-	label: 'TRON Account',
-	labelPlural: 'TRON Accounts',
-
+	label: 'tron account',
+	labelPlural: 'tron accounts',
 	selectors: [
 		{
 			name: TronAccountSelector.NetworkAddress,
@@ -33,111 +21,57 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'address',
+			label: 'Address',
+			description: 'The address or account identifier used by the source protocol.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'name',
+			label: 'Name',
+			description: 'The human-readable name of the subject.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: tronPublicAccountSources,
-		},
-		{
-			name: 'balanceSun',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: tronPublicAccountSources,
-		},
-		{
-			name: 'createdTimestampMs',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: tronPublicAccountSources,
-		},
-		{
-			name: 'latestOperationTimestampMs',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: tronPublicAccountSources,
-		},
-		{
-			name: 'totalTransactionCount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.TronScan_Rest,
-			],
-		},
-		{
-			name: 'bandwidthRemaining',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.TronScan_Rest,
-			],
-		},
-		{
-			name: 'energyRemaining',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.TronScan_Rest,
-			],
-		},
-		{
-			name: 'isContract',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.TronScan_Rest,
-			],
 		},
 		{
 			name: '$contract',
+			label: 'contract',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.TronContract,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.TronScan_Rest,
-			],
 		},
 		{
-			name: '$$tokens',
+			name: '$$timestamps',
+			label: 'timestamps',
 			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.TronToken,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.TronScan_Rest,
-				Source.TronGrid_Rest,
-			],
+			entityType: EntityType.TronAccount_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: '$$tokenBalanceTimestamps',
+			label: 'token balance timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.TronAccountTokenBalance_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$transactions',
+			label: 'transactions',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.TronTransaction,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.TronGrid_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

@@ -2,7 +2,6 @@ import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	slotsPerEpoch,
 } from '$/constants/BeaconConsensus.ts'
-import { beaconRestEndpointByExecutionChainId } from '$/sources/Beacon/index.ts'
 import { with0xHex } from '$/lib/hexLowerOfByteSize.ts'
 import {
 	defineResolver,
@@ -29,8 +28,11 @@ import { BeaconWithdrawalSelector } from '$/schema/BeaconWithdrawal.ts'
 import { EthereumBeaconFinality_TimestampSelector } from '$/schema/EthereumBeaconFinality_Timestamp.ts'
 import { EthereumConsensusUpgradeSelector } from '$/schema/EthereumConsensusUpgrade.ts'
 
-const requireBeaconRestBaseUrl = (chainId: number) => {
-	const base = beaconRestEndpointByExecutionChainId[chainId]?.restBaseUrl
+const beaconRestBaseUrl = async (chainId: number) =>
+	(await import('$/sources/Beacon/Rest/queries.ts')).beaconRestBaseUrlForChain(chainId)
+
+const requireBeaconRestBaseUrl = async (chainId: number) => {
+	const base = await beaconRestBaseUrl(chainId)
 	if (base == null) {
 		throw new Error(`Beacon_Rest: no beacon REST base for chain ${String(chainId)}`)
 	}
@@ -40,7 +42,7 @@ const requireBeaconRestBaseUrl = (chainId: number) => {
 const beaconFinalityCheckpointsForChain = async (
 	chainId: number
 ): Promise<BeaconFinalityCheckpoints | undefined> => {
-	const base = requireBeaconRestBaseUrl(chainId)
+	const base = await requireBeaconRestBaseUrl(chainId)
 	const { getFinalityCheckpoints } = await import('$/sources/Beacon/Rest/queries.ts')
 	return getFinalityCheckpoints(base)
 }
@@ -57,7 +59,7 @@ const beaconForkScheduleEntryForNetworkConsensusUpgrade = async (
 	if (activationEpoch == null) {
 		return undefined
 	}
-	const base = requireBeaconRestBaseUrl(chainId)
+	const base = await requireBeaconRestBaseUrl(chainId)
 	const { getForkSchedule } = await import('$/sources/Beacon/Rest/queries.ts')
 	const schedule = await getForkSchedule(base)
 	return schedule.find((forkScheduleEntry) => forkScheduleEntry.epoch === activationEpoch)
@@ -90,7 +92,7 @@ export default {
 				[BeaconSlotSelector.EvmNetworkSlot]: async ({ $network, slot }) => {
 					const { getHeader } = await import('$/sources/Beacon/Rest/queries.ts')
 					const header = await getHeader(
-						requireBeaconRestBaseUrl(Number($network.caip2.reference)),
+						await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
 						slot
 					)
 					return {
@@ -124,7 +126,7 @@ export default {
 				[BeaconValidatorSelector.EvmNetworkValidatorIndex]: async ({ $network, validatorIndex }) => {
 					const { getValidatorSummaryAtHead } = await import('$/sources/Beacon/Rest/queries.ts')
 					const summary = await getValidatorSummaryAtHead(
-						requireBeaconRestBaseUrl(Number($network.caip2.reference)),
+						await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
 						validatorIndex
 					)
 					if (summary == null) {
@@ -133,21 +135,13 @@ export default {
 						)
 					}
 					return {
-						balanceGwei: summary.balanceGwei,
-						effectiveBalanceGwei: summary.effectiveBalanceGwei,
 						pubkey: summary.pubkey,
-						slashed: summary.slashed,
-						status: summary.status,
 					}
 				},
 			},
 		})({
 			fields: {
-				balanceGwei: (validator) => validator.balanceGwei,
-				effectiveBalanceGwei: (validator) => validator.effectiveBalanceGwei,
 				pubkey: (validator) => validator.pubkey,
-				slashed: (validator) => validator.slashed,
-				status: (validator) => validator.status,
 			},
 		}),
 
@@ -158,7 +152,7 @@ export default {
 					const { getCommittees } = await import('$/sources/Beacon/Rest/queries.ts')
 					const committee = (
 						await getCommittees(
-							requireBeaconRestBaseUrl(Number($network.caip2.reference)),
+							await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
 							String(slot)
 						)
 					).find((committee) => committee.index === index)
@@ -180,7 +174,7 @@ export default {
 				[BeaconSyncCommitteeSelector.EvmNetworkPeriod]: async ({ $network }) => {
 					const { getSyncCommittee } = await import('$/sources/Beacon/Rest/queries.ts')
 					const committee = await getSyncCommittee(
-						requireBeaconRestBaseUrl(Number($network.caip2.reference)),
+						await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
 						'head'
 					)
 					if (committee == null) throw new Error('Beacon_Rest: sync committee not found')
@@ -202,7 +196,7 @@ export default {
 					const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
 					const attestation = (
 						await getBlockDutySummary(
-							requireBeaconRestBaseUrl(Number($network.caip2.reference)),
+							await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
 							slot
 						)
 					).attestations.find((committee) => committee.index === index)
@@ -227,7 +221,7 @@ export default {
 					const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
 					const withdrawal = (
 						await getBlockDutySummary(
-							requireBeaconRestBaseUrl(Number($network.caip2.reference)),
+							await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
 							slot
 						)
 					).withdrawals.find((committee) => committee.index === index)
@@ -322,7 +316,7 @@ export default {
 				[EvmNetworkSelector.Caip2]: async ({ caip2 }, context) => {
 					const { getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 					const chainId = Number(caip2.reference)
-					const base = beaconRestEndpointByExecutionChainId[chainId]?.restBaseUrl
+					const base = await beaconRestBaseUrl(chainId)
 					if (base == null)
 						return []
 					const headEpoch = Math.floor(await getHeadSlot(base) / slotsPerEpoch)
@@ -359,7 +353,7 @@ export default {
 				[EvmNetworkSelector.Caip2]: async ({ caip2 }, context) => {
 					const { getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 					const chainId = Number(caip2.reference)
-					const base = beaconRestEndpointByExecutionChainId[chainId]?.restBaseUrl
+					const base = await beaconRestBaseUrl(chainId)
 					if (base == null)
 						return []
 					const headSlot = await getHeadSlot(base)
@@ -397,7 +391,7 @@ export default {
 					const { getRecentProposerValidatorIndices } = await import('$/sources/Beacon/Rest/queries.ts')
 					const limit = resolverContextRowLimit(context)
 					const chainId = Number(caip2.reference)
-					const base = beaconRestEndpointByExecutionChainId[chainId]?.restBaseUrl
+					const base = await beaconRestBaseUrl(chainId)
 					if (base == null)
 						return []
 					return (
@@ -428,7 +422,7 @@ export default {
 					const { getCommittees } = await import('$/sources/Beacon/Rest/queries.ts')
 					return (
 						(await getCommittees(
-							requireBeaconRestBaseUrl(Number($network.caip2.reference)),
+							await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
 							String(slot)
 						))
 							.slice(0, resolverContextRowLimit(context))
@@ -455,7 +449,7 @@ export default {
 					const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
 					return (
 						(await getBlockDutySummary(
-							requireBeaconRestBaseUrl(Number($network.caip2.reference)),
+							await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
 							slot
 						)).attestations
 							.slice(0, resolverContextRowLimit(context))
@@ -482,7 +476,7 @@ export default {
 					const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
 					return (
 						(await getBlockDutySummary(
-							requireBeaconRestBaseUrl(Number($network.caip2.reference)),
+							await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
 							slot
 						)).withdrawals
 							.slice(0, resolverContextRowLimit(context))
@@ -509,7 +503,7 @@ export default {
 					const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
 					return (
 						(await getBlockDutySummary(
-							requireBeaconRestBaseUrl(Number($network.caip2.reference)),
+							await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
 							slot
 						)).slashings
 							.slice(0, resolverContextRowLimit(context))
@@ -536,7 +530,7 @@ export default {
 				[EvmNetworkSelector.Caip2]: async ({ caip2 }, context) => {
 					const { getCommittees } = await import('$/sources/Beacon/Rest/queries.ts')
 					const chainId = Number(caip2.reference)
-					const base = beaconRestEndpointByExecutionChainId[chainId]?.restBaseUrl
+					const base = await beaconRestBaseUrl(chainId)
 					if (base == null)
 						return []
 					return (
@@ -564,7 +558,7 @@ export default {
 				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
 					const { getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 					const chainId = Number(caip2.reference)
-					const base = beaconRestEndpointByExecutionChainId[chainId]?.restBaseUrl
+					const base = await beaconRestBaseUrl(chainId)
 					if (base == null)
 						return []
 					return [
@@ -589,7 +583,7 @@ export default {
 				[EvmNetworkSelector.Caip2]: async ({ caip2 }, context) => {
 					const { getBlockDutySummary, getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 					const chainId = Number(caip2.reference)
-					const base = beaconRestEndpointByExecutionChainId[chainId]?.restBaseUrl
+					const base = await beaconRestBaseUrl(chainId)
 					if (base == null)
 						return []
 					const slot = await getHeadSlot(base)
@@ -618,7 +612,7 @@ export default {
 				[EvmNetworkSelector.Caip2]: async ({ caip2 }, context) => {
 					const { getBlockDutySummary, getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 					const chainId = Number(caip2.reference)
-					const base = beaconRestEndpointByExecutionChainId[chainId]?.restBaseUrl
+					const base = await beaconRestBaseUrl(chainId)
 					if (base == null)
 						return []
 					const slot = await getHeadSlot(base)
@@ -647,7 +641,7 @@ export default {
 				[EvmNetworkSelector.Caip2]: async ({ caip2 }, context) => {
 					const { getBlockDutySummary, getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 					const chainId = Number(caip2.reference)
-					const base = beaconRestEndpointByExecutionChainId[chainId]?.restBaseUrl
+					const base = await beaconRestBaseUrl(chainId)
 					if (base == null)
 						return []
 					const slot = await getHeadSlot(base)

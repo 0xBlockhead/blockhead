@@ -57,11 +57,6 @@
 	{id}
 	{title}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Vault vaults are reserved for actual vault-like asset containers, not DEX trading pairs.
-		</p>
-	{/snippet}
 
 	{#snippet Empty()}
 		<div data-row="wrap align-center gap-2">

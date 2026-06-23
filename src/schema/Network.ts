@@ -1,243 +1,142 @@
 import { type } from 'arktype'
 import {
-	NetworkEnvironment,
-	NetworkNamespace,
-} from '$/constants/Network.ts'
-import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
-} from '$/schema/$schema.ts'
-import {
-	conditionalOn,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum NetworkSelector {
 	Caip2 = 'caip2',
 	Slug = 'slug',
 }
-
-const networkBaseFields = [
-	{
-		name: 'slug',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.One,
-		defaultSources: [
-			Source.Constants_Internal,
-		],
-	},
-	{
-		name: 'name',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.One,
-		defaultSources: [
-			Source.Constants_Internal,
-		],
-	},
-	{
-		name: 'caip2',
-		type: EntityFieldType.Primitive,
-		primitiveType: type({
-			namespace: 'string',
-			reference: 'string',
-		}),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Constants_Internal,
-		],
-	},
-	{
-		name: 'namespace',
-		type: EntityFieldType.Primitive,
-		primitiveType: type.valueOf(NetworkNamespace),
-		cardinality: EntityFieldCardinality.One,
-		defaultSources: [
-			Source.Constants_Internal,
-		],
-	},
-	{
-		name: 'environment',
-		type: EntityFieldType.Primitive,
-		primitiveType: type.valueOf(NetworkEnvironment),
-		cardinality: EntityFieldCardinality.One,
-		defaultSources: [
-			Source.Constants_Internal,
-		],
-	},
-] as const satisfies readonly EntityFieldDefinition[]
-
-const evmNetworkCondition = conditionalOn(
-	networkBaseFields,
-	'namespace',
-	[
-		NetworkNamespace.Evm,
-	]
-)
-
-export const networkFields = [
-	...networkBaseFields,
-	{
-		name: '$parent',
-		type: EntityFieldType.EntityReference,
-		entityType: EntityType.Network,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		when: evmNetworkCondition,
-		defaultSources: [
-			Source.Constants_Internal,
-			Source.Chainlist_Rest,
-			Source.EthereumLists_Rest,
-			Source.Superchain_Github,
-			Source.L2Beat_Rest,
-		],
-	},
-	{
-		name: 'layerNumber',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.One,
-		when: evmNetworkCondition,
-		defaultSources: [
-			Source.Constants_Internal,
-			Source.Chainlist_Rest,
-			Source.EthereumLists_Rest,
-		],
-	},
-	{
-		name: '$mainnet',
-		type: EntityFieldType.EntityReference,
-		entityType: EntityType.Network,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		when: evmNetworkCondition,
-		defaultSources: [
-			Source.Constants_Internal,
-			Source.Chainlist_Rest,
-			Source.Superchain_Github,
-		],
-	},
-	{
-		name: '$$testnets',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.Network,
-		cardinality: EntityFieldCardinality.ZeroOrMany,
-		when: evmNetworkCondition,
-		defaultSources: [
-			Source.Constants_Internal,
-			Source.Chainlist_Rest,
-			Source.Superchain_Github,
-		],
-	},
-	{
-		name: '$$childLayers',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.Network,
-		cardinality: EntityFieldCardinality.ZeroOrMany,
-		when: evmNetworkCondition,
-		defaultSources: [
-			Source.Constants_Internal,
-			Source.Chainlist_Rest,
-			Source.EthereumLists_Rest,
-			Source.Superchain_Github,
-			Source.L2Beat_Rest,
-		],
-	},
-	{
-		name: '$icon',
-		type: EntityFieldType.EntityReference,
-		entityType: EntityType.Media,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Chainlist_Rest,
-			Source.EthereumLists_Rest,
-			Source.Lifi_Rest,
-			Source.TrustWalletAssets_Github,
-		],
-	},
-	{
-		name: '$$executionEnvironments',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.ExecutionEnvironment,
-		cardinality: EntityFieldCardinality.ZeroOrMany,
-		defaultSources: [
-			Source.Constants_Internal,
-		],
-	},
-	{
-		name: '$$consensusMechanisms',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.ConsensusMechanism,
-		cardinality: EntityFieldCardinality.ZeroOrMany,
-		defaultSources: [
-			Source.Constants_Internal,
-		],
-	},
-	{
-		name: '$networkStack',
-		type: EntityFieldType.EntityReference,
-		entityType: EntityType.NetworkStack,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Constants_Internal,
-		],
-	},
-	{
-		name: '$$nativeAssets',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.AssetInstance,
-		cardinality: EntityFieldCardinality.ZeroOrMany,
-		defaultSources: [
-			Source.Constants_Internal,
-			Source.CosmosChainRegistry_Github,
-		],
-	},
-	{
-		name: '$$faucetUrls',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.Url,
-		cardinality: EntityFieldCardinality.ZeroOrMany,
-		defaultSources: [
-			Source.Constants_Internal,
-		],
-	},
-	{
-		name: '$$blockExplorerUrls',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.Url,
-		cardinality: EntityFieldCardinality.ZeroOrMany,
-		defaultSources: [
-			Source.Constants_Internal,
-			Source.CosmosChainRegistry_Github,
-		],
-	},
-] as const satisfies readonly EntityFieldDefinition[]
-
-export const networkFieldByName = Object.fromEntries(
-	networkFields.map((field) => [
-		field.name,
-		field,
-	])
-)
-
 export default {
 	entityType: EntityType.Network,
-
-	label: 'Network',
-	labelPlural: 'Networks',
-
+	label: 'network',
+	labelPlural: 'networks',
+	description: 'A blockchain, ledger, or protocol network with its own identity and supporting metadata.',
 	selectors: [
 		{
 			name: NetworkSelector.Caip2,
-			fields: ['caip2'],
+			fields: [
+				'caip2',
+			],
 		},
 		{
 			name: NetworkSelector.Slug,
-			fields: ['slug'],
+			fields: [
+				'slug',
+			],
 		},
 	],
-
-	fields: networkFields,
+	fields: [
+		{
+			name: 'caip2',
+			label: 'CAIP-2',
+			description: 'The chain identifier in CAIP-2 namespace and reference form.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type({"namespace": "string", "reference": "string"}),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'slug',
+			label: 'Slug',
+			description: 'A stable short name used by catalogs and URLs.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'name',
+			label: 'Name',
+			description: 'The human-readable name of the subject.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'namespace',
+			label: 'Namespace',
+			description: 'The namespace that qualifies the identifier.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'environment',
+			label: 'environment',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'stack',
+			label: 'stack',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$networkStack',
+			label: 'network stack',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.NetworkStack,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'executionEnvironments',
+			label: 'execution environments',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: 'consensusMechanisms',
+			label: 'consensus mechanisms',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: 'iconUrl',
+			label: 'icon URL',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$icon',
+			label: 'icon',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Media,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$$nativeAssets',
+			label: 'native assets',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.AssetInstance,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: '$$blockExplorerUrls',
+			label: 'block explorer urls',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.Url,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: '$$faucetUrls',
+			label: 'faucet urls',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.Url,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: '$$timestamps',
+			label: 'timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.Network_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
+		},
+	],
 } as const satisfies EntityDefinition

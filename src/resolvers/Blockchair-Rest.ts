@@ -22,6 +22,7 @@ import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
 import { UtxoInputSelector } from '$/schema/UtxoInput.ts'
 import { UtxoOutputSelector } from '$/schema/UtxoOutput.ts'
 import { UtxoAddressSelector } from '$/schema/UtxoAddress.ts'
+import { UtxoAddress_TimestampSelector } from '$/schema/UtxoAddress_Timestamp.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
@@ -229,15 +230,41 @@ export default {
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoAddress,
 			resolve: {
-				[UtxoAddressSelector.NetworkAddress]: getAddressDashboard,
+				[UtxoAddressSelector.NetworkAddress]: async ({ $network, address }) => ({
+					address,
+					$$timestamps: [
+						{
+							[EntityMetaKey.Selector]: {
+								$address: {
+									$network,
+									address,
+								},
+								timestampMs: Date.now(),
+								source: Source.Blockchair_Rest,
+							},
+						},
+					],
+				}),
+			},
+		})({
+			fields: {
+				address: (address) => address.address,
+				$$timestamps: (address) => address.$$timestamps,
+			},
+		}),
+
+		defineResolver(Source.Blockchair_Rest, {
+			entityType: EntityType.UtxoAddress_Timestamp,
+			resolve: {
+				[UtxoAddress_TimestampSelector.AddressTimestampMsSource]: async ({ $address }) => getAddressDashboard($address),
 			},
 		})({
 			fields: {
 				balanceSats: (address) => bigintFromNumber(address.balance),
 				transactionCount: (address) => address.transaction_count,
 				unspentOutputCount: (address) => address.unspent_output_count,
-				totalReceivedSats: (address) => bigintFromNumber(address.received),
-				totalSpentSats: (address) => bigintFromNumber(address.spent),
+				fundedValueSats: (address) => bigintFromNumber(address.received),
+				spentValueSats: (address) => bigintFromNumber(address.spent),
 			},
 		}),
 
@@ -363,6 +390,7 @@ export default {
 							[EntityMetaKey.Selector]: {
 								$network: $network,
 								timestampMs: bestBlockTimeMs ?? Date.now(),
+								source: Source.Blockchair_Rest,
 							},
 							...(bestBlockHeight != null && { bestBlockHeight }),
 							...(stats.best_block_hash != null && { bestBlockHash: stats.best_block_hash }),

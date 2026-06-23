@@ -453,34 +453,56 @@ Market graph notes: `$/constants/Market.ts`. Quote / OHLC UI: Entity views — L
 
 ## Sources (`src/sources/**`)
 
-The repo uses `src/sources/**` for external I/O and source metadata registration.
+The repo uses `src/sources/**` for external I/O, source metadata registration, generated wire artifacts, proxy/live delivery metadata, and provider transport code. During the sources-v2 migration, the previous implementation has been moved to `src/sources_/**` as a reference copy.
 
-Source ownership:
+Source binding model:
 
-- A `SourceProvider` is the vendor, host family, protocol project, or local subsystem that owns shared source metadata, environment gating, transport origins, and concrete source rows.
-- A `Source` is one concrete executable wire contract under a provider: transport plus endpoint family/protocol shape, such as REST/OpenAPI, GraphQL schema, EVM JSON-RPC, XRPC lexicon, GitHub raw files, or internal constants.
-- Provider roots (`$/sources/<Provider>/index.ts`) own provider metadata, provider-level env, and executable origins. Transport folders (`$/sources/<Provider>/<Transport>/`) own source definitions and network code (`queries.ts`, optional `client.ts`, `constants.ts`, `types.ts`, and generated schema files). Resolvers own source-to-schema mapping.
-- `src/constants/**` may hold protocol/catalog/reference rows. Executable base URLs, RPC URLs, REST API origins, gateway origins, and endpoint rows used by source clients must live in `src/sources/**` or be projected into provider origins there. Do not export primitive endpoint URL maps from constants for source clients.
+- `SourceProvider` is the owner/operator/project/local subsystem.
+- `Source` is resolver-visible provenance and source-priority identity. It is not an endpoint, API family, generated client, or browser delivery mode.
+- `SourceBinding` is the executable join across independent axes: `source`, `target`, `endpoints`, `wireProtocol`, `apiFamily`, `operationGroups`, `delivery`, `credentials`, and generated/checked-in `artifacts`.
+- Do not add `SourceSurface`, `SourceContract`, or endpoint-family enums that combine independent axes.
+- A `Source` can have multiple bindings; a binding can have multiple endpoint candidates; one endpoint can support multiple bindings.
+- CORS belongs only to HTTP endpoint reality. Proxy behavior belongs only to `SourceDelivery`.
+- WebSocket proxying is modeled as `SourceDelivery.RemoteLive` through SvelteKit `query.live`, not `/api-proxy` and not CORS.
+- OpenAPI and GraphQL schemas/types are binding artifacts, not source identities.
+- GitHub/GitLab are shared hosts unless the product explicitly models them as providers.
+- EVM JSON-RPC, Git object, BitTorrent DHT, content gateways, Nostr relays, and common REST envelopes are shared interfaces/protocols, not providers.
 
-Registry contract:
+File ownership:
 
-- `$/sources/$SourceProvider.ts` exports `SourceProvider` enum and `SourceProviderDefinition`
-- `$/sources/$Source.ts` exports `Source` enum, `SourceDefinition`, and `SourcePublicEnvWire` (`Record<string, string>` — the wire shape for public env passed into ArkType)
-- `$/sources/*/index.ts` default-exports provider definitions (`SourceProviderDefinition`)
-- `$/sources/*/**/index.ts` default-exports transport/source definitions (`SourceDefinition` rows listed on the provider’s `sources` array)
-- `$/sources/index.ts` exports `Source`, `sourceProviders`, `sources`, `enabledSources`, `resolverPublicEnv`, and `resolverPublicEnvBySource` (`sourceProviders` is annotated `readonly SourceProviderDefinition[]` so the list is not inferred as a union of literal provider shapes, which would break `flatMap` / `filter` typing)
+- `src/sources/Source.ts` exports the `Source` enum.
+- `src/sources/SourceProvider.ts` exports the `SourceProvider` enum and `SourceProviderDefinition`.
+- `src/sources/SourceBinding.ts` exports source binding axes and `SourceBinding`.
+- `src/sources/$sources.ts` holds source env compatibility helpers and lightweight source/provider definition helpers.
+- `src/sources/index.ts` is browser-safe and must not import `queries.ts`, heavy runtime clients, generated runtime clients, private env, or server-only modules.
+- `src/sources/index.server.ts` owns server/local binding indexes, private env gating, HTTP proxy allow-list data, and remote live binding indexes.
+- `src/sources/_runtime/**` owns source-runtime delivery bridges such as HTTP proxying and `query.live`.
+- `src/sources/_shared/hosts/**` owns reusable host clients such as GitHub/GitLab HTTP.
+- `src/sources/_shared/wire/**` owns reusable envelope/serialization mechanics such as JSON-RPC 2.0, GraphQL HTTP, REST JSON, and bencode.
+- `src/sources/_shared/interfaces/**` owns reusable API/protocol families such as EVM execution JSON-RPC, Etherscan module/action, Blockscout REST v2, content gateways, Git object, BitTorrent, and Nostr relay.
+- Provider roots (`src/sources/<Provider>/index.ts`) must stay lightweight: provider label, source rows, and binding rows only.
+- Provider runtime code lives under `src/sources/<Provider>/<EndpointKind>/<ApiFamily>/` when the channel/interface distinction matters.
+- `src/constants/**` may hold protocol/catalog/reference rows, but executable endpoint candidates, API origins, gateway origins, RPC URLs, and source-client base URLs live in `src/sources/**`.
 
-Env typing: optional `env` on a provider or source is an ArkType `Type<SourcePublicEnvWire>`. Narrower object schemas are built with `import { type as arktype } from 'arktype'` and `arktype({ PUBLIC_*: 'string', … })`.
+Env and credentials:
 
-Gating (`$/sources/index.ts`):
+- `SourceCredentialScope.PublicConfig` is the only browser-safe env scope and uses `PUBLIC_*`.
+- `SourceCredentialScope.RuntimeSecret` is server/private env only.
+- `SourceCredentialScope.LocalSecret` is local node/app credential-store material.
+- `SourceCredentialScope.UserDelegated` is wallet/session/user-granted capability, never source env.
+- Browser-delivered bindings (`BrowserDirect`, `HttpProxy`) must not require runtime or local secrets.
+- `BlockheadSource` schema rows record saved endpoint/config state and auth kind/key references, not compile-time source ontology and never secret values.
 
-1. Build `resolverPublicEnv` from `$env/dynamic/public`: every entry uses `value ?? ''` so values are strings; `satisfies SourcePublicEnvWire`.
-2. For each optional `env` schema, call the schema as a function with `resolverPublicEnv`. Reject if the result is `instanceof arktype.errors`, or if any validated string value is empty/whitespace (plain `.allows()` is insufficient because `''` still satisfies `'string'`).
-3. Keep providers and transports using `'env' in … ? ….env : undefined` for narrowing, same predicate as step 2.
-4. `resolverPublicEnvBySource` maps each enabled `Source` to either the full `resolverPublicEnv` (no `env` on that definition) or an object containing only the keys from that source’s validated env output.
-5. `enabledSources` is a `Set<Source>` of the `source` field on the filtered `SourceDefinition` list.
+Registry and delivery:
 
-If a provider’s `env` fails, none of its transports are included. If a transport’s own `env` fails, that row is dropped even when the provider passed.
+- `enabledSources` means at least one binding for that source is enabled.
+- Browser and server resolver enablement must be derived from enabled `SourceBinding` rows, not from `SourceDefinition` rows alone.
+- Provider-level env failure disables every binding for that provider.
+- Binding-level env failure disables only that binding.
+- `/api-proxy` allow-list derives only from enabled `SourceDelivery.HttpProxy` HTTP endpoints.
+- `SourceDelivery.BrowserDirect` endpoints are fetched directly by browser source clients.
+- `SourceDelivery.RemoteQuery` and `SourceDelivery.RemoteLive` are same-origin SvelteKit remote-function delivery paths.
+- `SourceDelivery.RemoteLive` server code owns the upstream live subscription/WebSocket and must close it when the remote stream aborts or unsubscribes.
 
 Provider definition shape:
 
@@ -490,6 +512,7 @@ Provider definition shape:
 	label: string
 	env?: Type<SourcePublicEnvWire>
 	sources: readonly SourceDefinition[]
+	bindings: readonly SourceBinding[]
 }
 ```
 
@@ -506,7 +529,7 @@ Source definition shape:
 
 `$/resolvers/index.ts` imports `enabledSources` and keeps only resolver modules whose exported `source` is in that set; it then attaches `source` onto each resolver entry when flattening `resolvers`.
 
-Transport folders continue to hold network code (`queries.ts`, optional `client.ts`, `constants.ts`, `types.ts`, generated schema files). In resolvers, load `queries.ts` / `constants.ts` via inline `await import(...)` inside each `resolve(...)` instead of top-level imports. Stable wire shapes or resolver-facing types live in `types.ts` (not `queries.ts`). Use `context.publicEnv` inside `resolve` when a source query needs public environment values.
+Provider runtime folders hold network code (`queries.ts`, optional `client.ts`, `constants.ts`, `types.ts`, generated schema files). In resolvers, load `queries.ts` / `constants.ts` via inline `await import(...)` inside each `resolve(...)` instead of top-level imports. Stable wire shapes or resolver-facing types live in `types.ts` (not `queries.ts`). Use binding/credential-scoped env instead of importing env directly in query code.
 
 - **`queries.ts` export naming:** Exports must start with a verb (usually `get`, `fetch`, `list`, `search`, `query`, `collect`, `stream`, `normalize`, `parse`, `iterate`, `lookup`, `count`, `narrow`, `debug`, `subscribe`). Do **not** include the source or transport name as a namespace-style prefix — the import path already provides that context (e.g. write `getProfile`, not `bskyGetProfile`; write `getCoin`, not `getCoingeckoCoin`; write `getBlockByNumber`, not `getBlockByNumberBlockscout` or `ethGetBlockByNumber`).
 
@@ -667,7 +690,7 @@ Resolvers are the bridge between `sources/` and the TanStack DB collections.
 	- Count facets:
 		- `resolveCount` is authoritative only when the source exposes a count endpoint/value or the resolver has a complete unwindowed result set. Do not use a paginated/windowed page length as an authoritative count.
 		- `partial: true` means the list facet result is intentionally incomplete for count fallback purposes; it is not a support declaration. Set it when a many-field facet returns a window/preview and no authoritative count exists, so the client does not infer a count from list length.
-	- Source support metadata: source/provider constants should own statically known network, chain, transport, and feature coverage where practical. Resolver predicates should consume that metadata so unsupported surfaces are filtered before they look like runtime resolver failures.
+	- Source support metadata: source/provider constants or binding modules should own statically known network, chain, transport, API-family, operation-group, and feature coverage. Export row-derived O(1) lookup maps such as `*ByChainId` / `*ByNetworkKey`; do not export per-call support functions or scan binding arrays in resolver hot paths. Resolver predicates should consume those maps so unsupported surfaces are filtered before they look like runtime resolver failures.
 - Live resolvers:
 		- Optional `resolveLive` on a `defineResolver` field facet (see `ResolveLiveContext` in `$/resolvers/$resolvers.ts`) handles push-driven refresh from WebSockets or streams.
 	- Keep `resolve` as the snapshot implementation.
@@ -678,17 +701,19 @@ Resolvers are the bridge between `sources/` and the TanStack DB collections.
 
 ## Adding new Sources / Providers
 
-Mirror an existing neighbor such as `$/sources/Coingecko/Rest/` + `$/resolvers/Coingecko-Rest.ts`:
+During the sources-v2 migration, mirror an existing binding-based provider such as `$/sources/Blockscout/` or `$/sources/Voltaire/`:
 
-1. Create `$/sources/<Provider>/<Transport>/` with `queries.ts` and any `client.ts`, `constants.ts`, generated types, and `index.ts` default export. For OpenAPI or GraphQL transports, follow OpenAPI schema codegen / GraphQL schema codegen under Sources for manifests, runners, and `package.json` scripts before registering the source.
-2. Create/update `$/sources/<Provider>/index.ts` default export and include its transport definitions
-3. Ensure `SourceProvider.<Provider>` exists in `$/sources/$SourceProvider.ts`
-4. Ensure `Source.<Provider>_<Transport>` exists in `$/sources/$Source.ts`
-5. Add the provider’s default export to the `sourceProviders` array in `$/sources/index.ts` (filtered `sources` and `enabledSources` are derived from that list and env `.allows` checks)
-6. Add `$/resolvers/<Provider>-<Transport>.ts` that maps wire data into schema fields
-7. Register that resolver module in `$/resolvers/index.ts`
-8. Extend or add schema definitions in `$/schema/*.ts`, and register new entities in `$/schema/index.ts` if needed
-9. Verify with `pnpm run check` and exercise a route or view that hits the new resolver
+1. Add or reuse `SourceProvider.<Provider>` in `$/sources/SourceProvider.ts`.
+2. Add or reuse `Source.<Provider>_<SourceKind>` in `$/sources/Source.ts`.
+3. Create `$/sources/<Provider>/bindings.ts` with one or more `SourceBinding` rows. Keep target, endpoint, wire protocol, API family, operation groups, delivery, credentials, and artifacts separate.
+4. Create/update `$/sources/<Provider>/index.ts` with provider label, source rows, and binding rows only. Do not import `queries.ts`, generated runtime clients, private env, or heavy SDKs here.
+5. Put reusable host/wire/interface behavior under `$/sources/_shared/**` when it is not provider-specific.
+6. Put provider runtime code under `$/sources/<Provider>/<EndpointKind>/<ApiFamily>/` when channel/interface distinction matters.
+7. For OpenAPI or GraphQL bindings, add binding-local `schema-source.ts`, generated artifacts, `types.ts`, `client.ts`, and `queries.ts`; update the shared codegen scripts instead of adding per-provider aliases.
+8. Add the provider’s default export to the registry in `$/sources/index.ts` and `$/sources/index.server.ts`.
+9. Add or update resolver modules that lazy-import the source runtime query module and map wire data into schema-shaped fields.
+10. Do not edit schema files unless this task explicitly owns schema work; coordinate with any parallel schema rewrite and keep source code keyed by stable `Source` enum values.
+11. Verify with focused source-binding tests, source/provider unit tests, and route probes for the migrated source.
 
 
 ## Collections and data flow

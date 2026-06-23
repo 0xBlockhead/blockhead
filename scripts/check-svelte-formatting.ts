@@ -98,6 +98,8 @@ const collectSvelteFiles = async (path: string): Promise<string[]> => {
 	for (const entry of entries) {
 		if (entry.name === 'node_modules' || entry.name === '.svelte-kit')
 			continue
+		if (entry.name.endsWith('_') || entry.name.endsWith('__'))
+			continue
 
 		const childPath = join(path, entry.name)
 		if (entry.isDirectory())

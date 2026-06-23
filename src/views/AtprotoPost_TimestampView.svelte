@@ -2,104 +2,145 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Context
-	import { select } from '$/routes/+layout.svelte'
-	import { resolve } from '$app/paths'
 
 
 	// State
+	const view = {
+		layout: 'Summary',
+		defaultOpen: false,
+		query: {
+			sources: [
+				'Atproto_Xrpc',
+			],
+			fields: [
+				'$post',
+				'timestampMs',
+				'likeCount',
+				'repostCount',
+				'replyCount',
+				'quoteCount',
+			],
+		},
+		metrics: [
+			{
+				group: 'engagement',
+				field: 'likeCount',
+				label: 'Likes',
+			},
+			{
+				group: 'engagement',
+				field: 'replyCount',
+				label: 'Replies',
+			},
+			{
+				group: 'engagement',
+				field: 'repostCount',
+				label: 'Reposts',
+			},
+			{
+				group: 'engagement',
+				field: 'quoteCount',
+				label: 'Quotes',
+			},
+		],
+		panels: [
+			{
+				id: 'metrics',
+				label: 'Metrics',
+				kind: 'metricRows',
+				slot: 'SocialMetricSnapshotRows',
+			},
+		],
+		renderers: [
+			{
+				slot: 'SocialMetricSnapshotRows',
+				component: 'SocialMetricSnapshotRows',
+				label: 'social metric rows renderer',
+				for: 'metricRows',
+			},
+		],
+		closed: [
+			'$post',
+			'timestampMs',
+			'likeCount',
+		],
+		content: {
+			dl: [
+				[
+					'$post',
+					'timestampMs',
+					'likeCount',
+					'repostCount',
+					'replyCount',
+					'quoteCount',
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Post',
+					items: [
+						'$post',
+					],
+				},
+				{
+					label: 'Engagement',
+					items: [
+						'likeCount',
+						'repostCount',
+						'replyCount',
+						'quoteCount',
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'app.bsky.feed.getPostThread',
+						},
+						{
+							label: 'app.bsky.feed.getPosts AppView stats',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
-		href = resolve('/(social)/(atproto)/atproto/post/[...uri]', {
-			uri: encodeURIComponent(selection.entitySelector.$post.uri),
-		}),
-		layout = EntityLayout.Summary,
-		open = $bindable(false),
+		layout = view.layout === undefined ? undefined : EntityLayout[view.layout],
+		open = $bindable(view.defaultOpen ?? true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.AtprotoPost_Timestamp>
-			href?: string
 			layout?: EntityLayout
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import SocialMetricSnapshotRows from '$/views/SocialMetricSnapshotRows.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.AtprotoPost_Timestamp}
 	entitySelector={selection.entitySelector}
-	href={href}
 	{layout}
 	bind:open
-	title="AT Protocol post snapshot"
 	{...EntityViewProps}
->
-	{#snippet Value()}
-		<Timestamp timestamp={selection.entitySelector.timestampMs} />
-	{/snippet}
-
-	{#snippet Title()}
-		<Timestamp timestamp={selection.entitySelector.timestampMs} />
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Timestamped AT Protocol post engagement counters resolved from app-view and XRPC post data.
-		</p>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection(
-					({ sources: [
-							Source.Atproto_Xrpc,						], fields: { likeCount: true, repostCount: true, replyCount: true, quoteCount: true } }),
-				)}
-			placeholderText="Loading AT Protocol post snapshot..."
-		>
-			{#snippet children(atprotoPostTimestamp)}
-				<dl data-column-item="center">
-					<SocialMetricSnapshotRows
-						metrics={[
-							{
-								label: 'Replies',
-								value: atprotoPostTimestamp.replyCount,
-							},
-							{
-								label: 'Reposts',
-								value: atprotoPostTimestamp.repostCount,
-							},
-							{
-								label: 'Likes',
-								value: atprotoPostTimestamp.likeCount,
-							},
-							{
-								label: 'Quotes',
-								value: atprotoPostTimestamp.quoteCount,
-							},
-						]}
-					/>
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

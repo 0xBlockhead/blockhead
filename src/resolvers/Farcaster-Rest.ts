@@ -11,7 +11,6 @@ import {
 } from '$/schema/$schema.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import type { Entity } from '$/schema/$schema.ts'
-import type { CastHash } from '$/schema/FarcasterCast.ts'
 import { schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -19,10 +18,12 @@ import { Source } from '$/sources/Source.ts'
 import { FarcasterUserSelector } from '$/schema/FarcasterUser.ts'
 import { FarcasterChannelSelector } from '$/schema/FarcasterChannel.ts'
 import { FarcasterChannel_TimestampSelector } from '$/schema/FarcasterChannel_Timestamp.ts'
-import { FarcasterNetworkSelector } from '$/schema/FarcasterNetwork.ts'
 import { FarcasterFeedSelector } from '$/schema/FarcasterFeed.ts'
 import { FarcasterCastSelector } from '$/schema/FarcasterCast.ts'
+import { _GlobalFarcasterNetworkSelector } from '$/schema/_GlobalFarcasterNetwork.ts'
 
+
+type CastHash = `0x${string}`
 
 const normalizeMediaUrl = (value: string | null | undefined): string | undefined => {
 	const raw = value ?? ''
@@ -176,20 +177,10 @@ export default {
 						name,
 						...(url != null && { url }),
 						...(description != null && { description }),
-						...((
-							iconMedia
-					) => (
-						iconMedia != null && {
-							$icon: iconMedia,
-						}
-					))(mediaFromUrl(imageUrl, MediaType.Image)),
-						...((
-							headerMedia
-					) => (
-						headerMedia != null && {
-							$headerImage: headerMedia,
-						}
-					))(mediaFromUrl(headerImageUrl, MediaType.Image)),
+						...(imageUrl != null && { iconUrl: imageUrl }),
+						...((iconMedia) => iconMedia != null && { $icon: iconMedia })(mediaFromUrl(imageUrl, MediaType.Image)),
+						...(headerImageUrl != null && { headerImageUrl }),
+						...((headerImageMedia) => headerImageMedia != null && { $headerImage: headerImageMedia })(mediaFromUrl(headerImageUrl, MediaType.Image)),
 						$lead: (
 							channel.leadFid == null ?
 								undefined
@@ -225,7 +216,9 @@ export default {
 				name: (channel) => channel.name,
 				url: (channel) => channel.url,
 				description: (channel) => channel.description,
+				iconUrl: (channel) => channel.iconUrl,
 				$icon: (channel) => channel.$icon,
+				headerImageUrl: (channel) => channel.headerImageUrl,
 				$headerImage: (channel) => channel.$headerImage,
 				$lead: (channel) => channel.$lead,
 				$moderator: (channel) => channel.$moderator,
@@ -327,8 +320,8 @@ export default {
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterFeed,
 			resolve: {
-				[FarcasterFeedSelector.Trending]: async () => ({
-					label: 'Trending',
+				[FarcasterFeedSelector.Variant]: async ({ variant }) => ({
+					label: variant === 'trending' ? 'Trending' : variant,
 				}),
 				[FarcasterFeedSelector.ByUser]: async ({ fid }) => ({
 					label: `FID ${String(fid)}`,
@@ -381,9 +374,9 @@ export default {
 		}),
 
 		defineResolver(Source.Farcaster_Rest, {
-			entityType: EntityType.FarcasterNetwork,
+			entityType: EntityType._GlobalFarcasterNetwork,
 			resolve: {
-				[FarcasterNetworkSelector.Scope]: async () => (
+				[_GlobalFarcasterNetworkSelector.Scope]: async () => (
 					[
 						{
 							[EntityMetaKey.Selector]: {
@@ -395,14 +388,14 @@ export default {
 			},
 		})({
 			fields: {
-				$$feeds: (feeds) => feeds,
+				$$sourceWindowFeeds: (feeds) => feeds,
 			},
 		}),
 
 		defineResolver(Source.Farcaster_Rest, {
-			entityType: EntityType.FarcasterNetwork,
+			entityType: EntityType._GlobalFarcasterNetwork,
 			resolve: {
-				[FarcasterNetworkSelector.Scope]: async (_selector, context) => {
+				[_GlobalFarcasterNetworkSelector.Scope]: async (_selector, context) => {
 					const { getAllChannels } = await import('$/sources/Farcaster/Rest/queries.ts')
 					return (await getAllChannels())
 						.slice(0, resolverContextRowLimit(context))
@@ -415,7 +408,7 @@ export default {
 			},
 		})({
 			fields: {
-				$$channels: (channels) => channels,
+				$$sourceWindowChannels: (channels) => channels,
 			},
 		}),
 	],

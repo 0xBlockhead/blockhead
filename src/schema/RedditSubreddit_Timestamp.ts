@@ -1,66 +1,64 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import RedditSubreddit from '$/schema/RedditSubreddit.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum RedditSubreddit_TimestampSelector {
-	RedditSubredditTimestampMs = 'redditSubredditTimestampMs',
+	SubredditTimestampMsSource = '$subreddit+timestampMs+source',
 }
-
 export default {
 	entityType: EntityType.RedditSubreddit_Timestamp,
-
-	label: 'Reddit subreddit snapshot',
-	labelPlural: 'Reddit subreddit snapshots',
-
+	label: 'Reddit subreddit timestamp',
+	labelPlural: 'Reddit subreddit observations',
 	selectors: [
 		{
-			name: RedditSubreddit_TimestampSelector.RedditSubredditTimestampMs,
+			name: RedditSubreddit_TimestampSelector.SubredditTimestampMsSource,
 			fields: [
 				'$subreddit',
 				'timestampMs',
+				'source',
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$subreddit',
+			label: 'subreddit',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.RedditSubreddit,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'source',
+			label: 'Source',
+			description: 'The source that produced this observation.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'subscriberCount',
+			label: 'subscriber count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Reddit_Rest,
-				Source.Reddit_PublicJson,
-			],
 		},
 		{
 			name: 'activeUserCount',
+			label: 'active user count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Reddit_Rest,
-				Source.Reddit_PublicJson,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

@@ -1,25 +1,17 @@
 import { type } from 'arktype'
-import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import OracleFeed from '$/schema/OracleFeed.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum OracleFeed_RoundSelector {
 	OracleFeedRoundId = 'oracleFeedRoundId',
 }
-
 export default {
 	entityType: EntityType.OracleFeed_Round,
-
-	label: 'Oracle feed round',
-	labelPlural: 'Oracle feed rounds',
-
+	label: 'oracle feed round',
+	labelPlural: 'oracle feed rounds',
 	selectors: [
 		{
 			name: OracleFeed_RoundSelector.OracleFeedRoundId,
@@ -29,88 +21,84 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$oracleFeed',
+			label: 'oracle feed',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.OracleFeed,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'roundId',
+			label: 'round ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$parentOracleFeed',
+			label: 'parent oracle feed',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.OracleFeed,
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-			],
 		},
 		{
 			name: 'answer',
+			label: 'answer',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-			],
 		},
 		{
 			name: 'startedAtMs',
+			label: 'started AT ms',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-			],
 		},
 		{
 			name: 'updatedAtMs',
+			label: 'updated AT ms',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-			],
 		},
 		{
 			name: 'answeredInRound',
+			label: 'answered in round',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-			],
 		},
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'blockNumber',
+			label: 'Block number',
+			description: 'The block height or number in its network.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'transactionHash',
+			label: 'transaction hash',
 			type: EntityFieldType.Primitive,
-			primitiveType: ZeroExHex,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'logIndex',
+			label: 'log index',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

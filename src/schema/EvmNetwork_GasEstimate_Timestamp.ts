@@ -1,81 +1,78 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum EvmNetwork_GasEstimate_TimestampSelector {
-	EvmNetworkTimestampMs = 'evmNetworkTimestampMs',
+	NetworkTimestampMsSource = '$network+timestampMs+source',
 }
-
 export default {
 	entityType: EntityType.EvmNetwork_GasEstimate_Timestamp,
-
-	label: 'Gas oracle snapshot',
-	labelPlural: 'Gas oracle snapshots',
-
+	label: 'EVM network gas estimate timestamp',
+	labelPlural: 'EVM network gas estimate observations',
 	selectors: [
 		{
-			name: EvmNetwork_GasEstimate_TimestampSelector.EvmNetworkTimestampMs,
+			name: EvmNetwork_GasEstimate_TimestampSelector.NetworkTimestampMsSource,
 			fields: [
 				'$network',
 				'timestampMs',
+				'source',
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'source',
+			label: 'Source',
+			description: 'The source that produced this observation.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'slowGwei',
+			label: 'slow gwei',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-				Source.Etherscan_Rest,
-			],
 		},
 		{
 			name: 'averageGwei',
+			label: 'average gwei',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-				Source.Etherscan_Rest,
-			],
 		},
 		{
 			name: 'fastGwei',
+			label: 'fast gwei',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-				Source.Etherscan_Rest,
-			],
 		},
 		{
 			name: 'transport',
+			label: 'transport',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

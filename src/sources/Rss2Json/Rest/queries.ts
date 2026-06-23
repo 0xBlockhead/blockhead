@@ -1,12 +1,11 @@
 import { normalizeRssFeedUrl } from '$/sources/Rss/Rest/constants.ts'
 import { rss2JsonGet } from '$/sources/Rss2Json/Rest/client.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import { Source } from '$/sources/Source.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 
 export const getFeed = async (
 	feedUrl: string,
 	limit: number,
-	_publicEnv: SourcePublicEnvFor<Source.Rss2Json_Rest>
+	_publicEnv: SourcePublicEnv
 ) => {
 	const params = new URLSearchParams({
 		rss_url: normalizeRssFeedUrl(feedUrl),

@@ -17,9 +17,12 @@ import { CosmosNetwork_TimestampSelector } from '$/schema/CosmosNetwork_Timestam
 import { CosmosBlockSelector } from '$/schema/CosmosBlock.ts'
 import { CosmosTransactionSelector } from '$/schema/CosmosTransaction.ts'
 import { CosmosAccountSelector } from '$/schema/CosmosAccount.ts'
+import { CosmosAccount_TimestampSelector } from '$/schema/CosmosAccount_Timestamp.ts'
 import { CosmosValidatorSelector } from '$/schema/CosmosValidator.ts'
+import { CosmosValidator_TimestampSelector } from '$/schema/CosmosValidator_Timestamp.ts'
 import { CosmosMessageSelector } from '$/schema/CosmosMessage.ts'
 import { CosmosGovernanceProposalSelector } from '$/schema/CosmosGovernanceProposal.ts'
+import { CosmosGovernanceProposal_TimestampSelector } from '$/schema/CosmosGovernanceProposal_Timestamp.ts'
 import { CosmosDenomSelector } from '$/schema/CosmosDenom.ts'
 import { CosmosModuleSelector } from '$/schema/CosmosModule.ts'
 import { CosmosContractSelector } from '$/schema/CosmosContract.ts'
@@ -59,9 +62,6 @@ const cosmosValidatorFields = (validator: {
 		consensusPubkey: JSON.stringify(validator.consensus_pubkey),
 	}),
 	moniker: validator.description?.moniker,
-	jailed: validator.jailed,
-	status: validator.status,
-	tokens: BigInt(validator.tokens),
 })
 
 const cosmosValidatorRows = (
@@ -78,6 +78,12 @@ const cosmosValidatorRows = (
 					operatorAddress: validator.operator_address,
 				},
 				...cosmosValidatorFields(validator),
+				$$timestamps: [
+					cosmosValidatorTimestampFields({
+						$network: network,
+						operatorAddress: validator.operator_address,
+					}, validator, Date.now()),
+				],
 			}]
 	))
 )
@@ -101,9 +107,93 @@ const cosmosProposalRows = (
 			proposalId: proposal.id,
 		},
 		title: proposal.title ?? proposal.messages?.[0]?.content?.title,
-		status: proposal.status,
+		$$timestamps: [
+			cosmosProposalTimestampFields({
+				$network: network,
+				proposalId: proposal.id,
+			}, proposal, Date.now()),
+		],
 	}))
 )
+
+const cosmosAccountTimestampFields = (
+	accountId: {
+		$network: NetworkId
+		address: string
+	},
+	account: {
+		account_number?: string
+		sequence?: string
+		base_account?: {
+			account_number?: string
+			sequence?: string
+		}
+	} | undefined,
+	timestampMs: number
+) => ({
+	[EntityMetaKey.Selector]: {
+		$account: accountId,
+		timestampMs,
+		source: Source.CosmosSdk_Rest,
+	},
+	$account: {
+		[EntityMetaKey.Selector]: accountId,
+	},
+	timestampMs,
+	source: Source.CosmosSdk_Rest,
+	...((account?.base_account?.account_number ?? account?.account_number) != null && {
+		accountNumber: BigInt((account?.base_account?.account_number ?? account?.account_number) ?? '0'),
+	}),
+	...((account?.base_account?.sequence ?? account?.sequence) != null && {
+		sequence: BigInt((account?.base_account?.sequence ?? account?.sequence) ?? '0'),
+	}),
+})
+
+const cosmosValidatorTimestampFields = (
+	validatorId: {
+		$network: NetworkId
+		operatorAddress: string
+	},
+	validator: Parameters<typeof cosmosValidatorFields>[0],
+	timestampMs: number
+) => ({
+	[EntityMetaKey.Selector]: {
+		$validator: validatorId,
+		timestampMs,
+		source: Source.CosmosSdk_Rest,
+	},
+	$validator: {
+		[EntityMetaKey.Selector]: validatorId,
+	},
+	timestampMs,
+	source: Source.CosmosSdk_Rest,
+	jailed: validator.jailed,
+	status: validator.status,
+	tokens: BigInt(validator.tokens),
+})
+
+const cosmosProposalTimestampFields = (
+	proposalId: {
+		$network: NetworkId
+		proposalId: string
+	},
+	proposal: {
+		status: string
+	},
+	timestampMs: number
+) => ({
+	[EntityMetaKey.Selector]: {
+		$proposal: proposalId,
+		timestampMs,
+		source: Source.CosmosSdk_Rest,
+	},
+	$proposal: {
+		[EntityMetaKey.Selector]: proposalId,
+	},
+	timestampMs,
+	source: Source.CosmosSdk_Rest,
+	status: proposal.status,
+})
 
 const cosmosMessageRows = (
 	entitySelector: {
@@ -150,13 +240,13 @@ export default {
 						$network: {
 							[EntityMetaKey.Selector]: $network,
 						},
-						restEndpoints: [
-							{
-								url: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
-								transportType: TransportType.Http,
-								providerName: 'PublicNode',
-							},
-						],
+							restEndpoints: [
+								{
+									url: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+									transportType: TransportType.Http,
+									providerName: 'PublicNode',
+								},
+							],
 					}
 				}
 			},
@@ -170,7 +260,13 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosNetwork_Timestamp,
 			resolve: {
-				[CosmosNetwork_TimestampSelector.NetworkTimestampMs]: async ({ $network }) => {
+				[CosmosNetwork_TimestampSelector.NetworkTimestampMsSource]: async ({
+					$network,
+					timestampMs,
+					source,
+				}) => {
+					if (source !== Source.CosmosSdk_Rest)
+						throw new Error('CosmosSdk_Rest: unsupported network timestamp source')
 					assertCosmosHub($network)
 					const {
 						getLatestBlock,
@@ -196,6 +292,11 @@ export default {
 						getProposals({ restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl }),
 					])
 					return {
+						$network: {
+							[EntityMetaKey.Selector]: $network,
+						},
+						timestampMs,
+						source,
 						latestBlockHeight: BigInt(latestBlock.block.header.height),
 						latestBlockHash: latestBlock.block_id.hash,
 						latestBlockTimeMs: Date.parse(latestBlock.block.header.time),
@@ -216,6 +317,9 @@ export default {
 			},
 		})({
 			fields: {
+				$network: (timestamp) => timestamp.$network,
+				timestampMs: (timestamp) => timestamp.timestampMs,
+				source: (timestamp) => timestamp.source,
 				latestBlockHeight: (timestamp) => timestamp.latestBlockHeight,
 				latestBlockHash: (timestamp) => timestamp.latestBlockHash,
 				latestBlockTimeMs: (timestamp) => timestamp.latestBlockTimeMs,
@@ -304,7 +408,8 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosAccount,
 			resolve: {
-				[CosmosAccountSelector.NetworkAddress]: async ({ $network, address }) => {
+				[CosmosAccountSelector.NetworkAddress]: async (entitySelector) => {
+					const { $network, address } = entitySelector
 					assertCosmosHub($network)
 					const { getAccount } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 					const account = (await getAccount({
@@ -312,17 +417,45 @@ export default {
 						address: address,
 					})).account
 					return {
-						...((account?.base_account?.account_number ?? account?.account_number) != null && {
-							accountNumber: BigInt((account?.base_account?.account_number ?? account?.account_number) ?? '0'),
-						}),
-						...((account?.base_account?.sequence ?? account?.sequence) != null && {
-							sequence: BigInt((account?.base_account?.sequence ?? account?.sequence) ?? '0'),
-						}),
+						$$timestamps: [
+							cosmosAccountTimestampFields(entitySelector, account, Date.now()),
+						],
 					}
 				}
 			},
 		})({
 			fields: {
+				$$timestamps: (account) => account.$$timestamps,
+			},
+		}),
+
+		defineResolver(Source.CosmosSdk_Rest, {
+			entityType: EntityType.CosmosAccount_Timestamp,
+			resolve: {
+				[CosmosAccount_TimestampSelector.AccountTimestampMsSource]: async ({
+					$account,
+					timestampMs,
+					source,
+				}) => {
+					if (source !== Source.CosmosSdk_Rest)
+						throw new Error('CosmosSdk_Rest: unsupported account timestamp source')
+					assertCosmosHub($account.$network)
+					const { getAccount } = await import('$/sources/CosmosSdk/Rest/queries.ts')
+					return cosmosAccountTimestampFields(
+						$account,
+						(await getAccount({
+							restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+							address: $account.address,
+						})).account,
+						timestampMs
+					)
+				},
+			},
+		})({
+			fields: {
+				$account: (account) => account.$account,
+				timestampMs: (account) => account.timestampMs,
+				source: (account) => account.source,
 				accountNumber: (account) => account.accountNumber,
 				sequence: (account) => account.sequence,
 			},
@@ -331,19 +464,57 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosValidator,
 			resolve: {
-				[CosmosValidatorSelector.NetworkOperatorAddress]: async ({ $network, operatorAddress }) => {
+				[CosmosValidatorSelector.NetworkOperatorAddress]: async (entitySelector) => {
+					const { $network, operatorAddress } = entitySelector
 					assertCosmosHub($network)
 					const { getValidator } = await import('$/sources/CosmosSdk/Rest/queries.ts')
-					return cosmosValidatorFields((await getValidator({
+					const validator = (await getValidator({
 						restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
 						operatorAddress: operatorAddress,
-					})).validator)
+					})).validator
+					return {
+						...cosmosValidatorFields(validator),
+						$$timestamps: [
+							cosmosValidatorTimestampFields(entitySelector, validator, Date.now()),
+						],
+					}
 				}
 			},
 		})({
 			fields: {
 				consensusPubkey: (validator) => validator.consensusPubkey,
 				moniker: (validator) => validator.moniker,
+				$$timestamps: (validator) => validator.$$timestamps,
+			},
+		}),
+
+		defineResolver(Source.CosmosSdk_Rest, {
+			entityType: EntityType.CosmosValidator_Timestamp,
+			resolve: {
+				[CosmosValidator_TimestampSelector.ValidatorTimestampMsSource]: async ({
+					$validator,
+					timestampMs,
+					source,
+				}) => {
+					if (source !== Source.CosmosSdk_Rest)
+						throw new Error('CosmosSdk_Rest: unsupported validator timestamp source')
+					assertCosmosHub($validator.$network)
+					const { getValidator } = await import('$/sources/CosmosSdk/Rest/queries.ts')
+					return cosmosValidatorTimestampFields(
+						$validator,
+						(await getValidator({
+							restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+							operatorAddress: $validator.operatorAddress,
+						})).validator,
+						timestampMs
+					)
+				},
+			},
+		})({
+			fields: {
+				$validator: (validator) => validator.$validator,
+				timestampMs: (validator) => validator.timestampMs,
+				source: (validator) => validator.source,
 				jailed: (validator) => validator.jailed,
 				status: (validator) => validator.status,
 				tokens: (validator) => validator.tokens,
@@ -378,7 +549,8 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosGovernanceProposal,
 			resolve: {
-				[CosmosGovernanceProposalSelector.NetworkProposalId]: async ({ $network, proposalId }) => {
+				[CosmosGovernanceProposalSelector.NetworkProposalId]: async (entitySelector) => {
+					const { $network, proposalId } = entitySelector
 					assertCosmosHub($network)
 					const { getProposal } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 					const proposal = (await getProposal({
@@ -387,13 +559,48 @@ export default {
 					})).proposal
 					return {
 						title: proposal.title ?? proposal.messages?.[0]?.content?.title,
-						status: proposal.status,
+						summary: proposal.summary ?? proposal.messages?.[0]?.content?.description,
+						$$timestamps: [
+							cosmosProposalTimestampFields(entitySelector, proposal, Date.now()),
+						],
 					}
 				}
 			},
 		})({
 			fields: {
 				title: (proposal) => proposal.title,
+				summary: (proposal) => proposal.summary,
+				$$timestamps: (proposal) => proposal.$$timestamps,
+			},
+		}),
+
+		defineResolver(Source.CosmosSdk_Rest, {
+			entityType: EntityType.CosmosGovernanceProposal_Timestamp,
+			resolve: {
+				[CosmosGovernanceProposal_TimestampSelector.ProposalTimestampMsSource]: async ({
+					$proposal,
+					timestampMs,
+					source,
+				}) => {
+					if (source !== Source.CosmosSdk_Rest)
+						throw new Error('CosmosSdk_Rest: unsupported governance proposal timestamp source')
+					assertCosmosHub($proposal.$network)
+					const { getProposal } = await import('$/sources/CosmosSdk/Rest/queries.ts')
+					return cosmosProposalTimestampFields(
+						$proposal,
+						(await getProposal({
+							restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+							proposalId: $proposal.proposalId,
+						})).proposal,
+						timestampMs
+					)
+				},
+			},
+		})({
+			fields: {
+				$proposal: (proposal) => proposal.$proposal,
+				timestampMs: (proposal) => proposal.timestampMs,
+				source: (proposal) => proposal.source,
 				status: (proposal) => proposal.status,
 			},
 		}),
@@ -495,29 +702,10 @@ export default {
 					assertCosmosHub($network)
 					return [
 						{
-							url: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
-							transportType: TransportType.Http,
-							providerName: 'PublicNode',
-						},
-					]
-				}
-			},
-		})({
-			fields: {
-				restEndpoints: (endpoints) => endpoints,
-			},
-		}),
-
-		defineResolver(Source.CosmosSdk_Rest, {
-			entityType: EntityType.CosmosNetwork,
-			resolve: {
-				[CosmosNetworkSelector.Network]: async ({ $network }) => {
-					assertCosmosHub($network)
-					return [
-						{
 							[EntityMetaKey.Selector]: {
 								$network: $network,
 								timestampMs: Date.now(),
+								source: Source.CosmosSdk_Rest,
 							},
 						},
 					]

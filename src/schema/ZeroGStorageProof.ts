@@ -1,24 +1,18 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import ZeroGStorageNode from '$/schema/ZeroGStorageNode.ts'
-
 export enum ZeroGStorageProofSelector {
 	ZeroGStorageNodeProofId = 'zeroGStorageNodeProofId',
+	StorageNodeProofId = '$storageNode+proofId',
 }
-
 export default {
 	entityType: EntityType.ZeroGStorageProof,
-
-	label: '0G storage proof',
-	labelPlural: '0G storage proofs',
-
+	label: 'zero g storage proof',
+	labelPlural: 'zero g storage proofs',
 	selectors: [
 		{
 			name: ZeroGStorageProofSelector.ZeroGStorageNodeProofId,
@@ -28,43 +22,48 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$storageNode',
+			label: 'storage node',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.ZeroGStorageNode,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'proofId',
+			label: 'proof ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$dataBlob',
+			label: 'data blob',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.ZeroGDataBlob,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$consensusNetwork',
+			label: 'consensus network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.ZeroGConsensusNetwork,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'proofKind',
+			label: 'proof kind',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'verifiedAtBlock',
+			label: 'verified AT block',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

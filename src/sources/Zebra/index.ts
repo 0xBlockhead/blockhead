@@ -1,15 +1,13 @@
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import { zebraBindings } from '$/sources/Zebra/bindings.ts'
 
 export default {
 	provider: SourceProvider.Zebra,
 	label: 'Zebra',
-	origins: [
-		{
-			origin: 'http://127.0.0.1:8232',
-			corsEnabled: false,
-		},
-	],
 	sources: [
 		{
 			provider: SourceProvider.Zebra,
@@ -17,4 +15,5 @@ export default {
 			label: 'Zebra JSON-RPC',
 		},
 	],
-} as const satisfies SourceProviderDefinition
+	bindings: zebraBindings,
+} satisfies SourceProviderDefinition

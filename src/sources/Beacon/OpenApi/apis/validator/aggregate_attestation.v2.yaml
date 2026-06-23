@@ -1,0 +1,64 @@
+get:
+  operationId: "getAggregatedAttestationV2"
+  summary: "Get aggregated attestation"
+  description: |
+    Aggregates all attestations matching given attestation data root, slot and committee index.
+
+    A 503 error must be returned if the block identified by the response
+    `beacon_block_root` is optimistic (i.e. the aggregated attestation attests
+    to a block that has not been fully verified by an execution engine).
+
+    A 404 error must be returned if no attestation is available for the requested
+    `attestation_data_root`.
+  tags:
+    - ValidatorRequiredApi
+    - Validator
+  parameters:
+    - name: attestation_data_root
+      in: query
+      required: true
+      description: "HashTreeRoot of AttestationData that validator wants aggregated"
+      schema:
+        $ref: '../../beacon-node-oapi.yaml#/components/schemas/Root'
+    - name: slot
+      in: query
+      required: true
+      schema:
+        $ref: '../../beacon-node-oapi.yaml#/components/schemas/Uint64'
+    - name: committee_index
+      in: query
+      required: true
+      schema:
+        $ref: '../../beacon-node-oapi.yaml#/components/schemas/Uint64'
+  responses:
+    "200":
+      description: "Returns aggregated `Attestation` object with same `AttestationData` root, slot and committee index."
+      headers:
+        Eth-Consensus-Version:
+          $ref: '../../beacon-node-oapi.yaml#/components/headers/Eth-Consensus-Version'
+      content:
+        application/json:
+          schema:
+            title: GetAggregatedAttestationV2Response
+            type: object
+            required: [version, data]
+            properties:
+              version:
+                type: string
+                enum: [phase0, altair, bellatrix, capella, deneb, electra, fulu]
+                example: "fulu"
+              data:
+                anyOf:
+                  - $ref: '../../beacon-node-oapi.yaml#/components/schemas/Electra.Attestation'
+                  - $ref: '../../beacon-node-oapi.yaml#/components/schemas/Phase0.Attestation'
+        application/octet-stream:
+          schema:
+            description: "SSZ serialized `Attestation` bytes. Use Accept header to choose this response type"
+    "400":
+      $ref: '../../beacon-node-oapi.yaml#/components/responses/InvalidRequest'
+    "404":
+      $ref: '../../beacon-node-oapi.yaml#/components/responses/NotFound'
+    "406":
+      $ref: "../../beacon-node-oapi.yaml#/components/responses/NotAcceptable"
+    "500":
+      $ref: '../../beacon-node-oapi.yaml#/components/responses/InternalError'

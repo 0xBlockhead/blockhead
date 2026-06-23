@@ -4,7 +4,7 @@
  */
 
 import { getJson } from '$/lib/http.ts'
-import Snapchain from '$/sources/Snapchain/index.ts'
+import { snapchainOrigins } from '$/sources/Snapchain/index.ts'
 import { nodeEndpoints } from '$/sources/Snapchain/Rest/constants.ts'
 
 const toQueryString = (params?: Record<string, string | number | boolean | undefined>) => {
@@ -27,7 +27,7 @@ export async function snapchainGet<T>(
 	for (const endpoint of nodeEndpoints) {
 		try {
 			return await getJson<T>(`${endpoint.url}${path}${toQueryString(params)}`, {
-				origins: Snapchain.origins,
+				origins: snapchainOrigins,
 			})
 		} catch (error) {
 			lastError = (

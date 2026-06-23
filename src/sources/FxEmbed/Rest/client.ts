@@ -1,5 +1,5 @@
 import { getJson } from '$/lib/http.ts'
-import FxEmbed from '$/sources/FxEmbed/index.ts'
+import { fxEmbedOrigins } from '$/sources/FxEmbed/index.ts'
 import { fxEmbedApiV2Base } from '$/sources/FxEmbed/Rest/constants.ts'
 
 const toQuery = (params: Record<string, string | number | undefined>) => {
@@ -18,6 +18,6 @@ export const fxEmbedGet = async <T>(
 ): Promise<T> => (
 	getJson<T>(
 		`${fxEmbedApiV2Base}${path}${toQuery(params ?? {})}`,
-		{ origins: FxEmbed.origins  }
+		{ origins: fxEmbedOrigins }
 	)
 )

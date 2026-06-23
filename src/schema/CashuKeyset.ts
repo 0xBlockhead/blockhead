@@ -1,25 +1,18 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import CashuMint from '$/schema/CashuMint.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum CashuKeysetSelector {
 	CashuMintKeysetId = 'cashuMintKeysetId',
+	MintKeysetId = '$mint+keysetId',
 }
-
 export default {
 	entityType: EntityType.CashuKeyset,
-
 	label: 'Cashu keyset',
 	labelPlural: 'Cashu keysets',
-
 	selectors: [
 		{
 			name: CashuKeysetSelector.CashuMintKeysetId,
@@ -29,55 +22,48 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$mint',
+			label: 'mint',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.CashuMint,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'keysetId',
+			label: 'keyset ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'unit',
+			label: 'unit',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.CashuMint_Rest,
-			],
 		},
 		{
 			name: 'active',
+			label: 'active',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
+			primitiveType: type("boolean"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.CashuMint_Rest,
-			],
 		},
 		{
 			name: 'inputFeePpk',
+			label: 'input fee ppk',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.CashuMint_Rest,
-			],
 		},
 		{
 			name: 'keysByAmountJson',
+			label: 'keys by amount JSON',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.CashuMint_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

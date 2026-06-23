@@ -182,7 +182,6 @@ export default {
 									slot: BigInt(wireTransaction.data.transaction.block),
 								},
 							},
-							slot: BigInt(wireTransaction.data.transaction.block),
 						}),
 					}
 				}
@@ -190,7 +189,6 @@ export default {
 		})({
 			fields: {
 				$block: (transaction) => transaction.$block,
-				slot: (transaction) => transaction.slot,
 			},
 		}),
 

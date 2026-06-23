@@ -2,15 +2,82 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'transaction',
+			},
+			{
+				label: 'output index',
+			},
+			'commitment',
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'transaction',
+					},
+					{
+						label: 'output index',
+					},
+					'commitment',
+					{
+						label: 'sender pubkey',
+					},
+					{
+						label: 'local wallet match when available',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Transaction',
+					items: [
+						{
+							label: 'parent MWEB transaction',
+						},
+					],
+				},
+				{
+					label: 'Commitment',
+					items: [
+						{
+							label: 'public output commitment',
+						},
+						{
+							label: 'sender pubkey fields',
+						},
+					],
+				},
+				{
+					label: 'Local wallet match',
+					items: [
+						{
+							label: 'BlockheadLitecoinMwebOutputState when a connected wallet can identify ownership',
+						},
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'Litecoin Core MWEB output payload',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +88,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,68 +96,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.LitecoinMwebOutput}
 	entitySelector={selection.entitySelector}
-	title={`MWEB Output #${selection.entitySelector.outputIndex.toString()}`}
-	idDragPlainText={selection.entitySelector.outputIndex.toString()}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Value()}
-		<span data-badge="small">
-			#{selection.entitySelector.outputIndex.toString()}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>MWEB Output </span>
-			{#if Value}
-			{@render Value()}
-					{/if}
-		</span>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection(
-					({ fields: { commitment: true, senderPubkey: true } }),
-				)}
-			placeholderText={`Loading Litecoin MWEB Output...`}
-		>
-			{#snippet children(litecoinMwebOutput)}
-				<dl>
-					{#if litecoinMwebOutput.commitment != null}
-						<div>
-							<dt>Commitment</dt>
-							<dd>
-								<TruncatedValue
-									value={litecoinMwebOutput.commitment}
-									format={TruncatedValueFormat.Abbr}
-								/></dd>
-						</div>
-					{/if}
-
-					{#if litecoinMwebOutput.senderPubkey != null}
-						<div>
-							<dt>Sender Pubkey</dt>
-							<dd>
-								<TruncatedValue
-									value={litecoinMwebOutput.senderPubkey}
-									format={TruncatedValueFormat.Abbr}
-								/></dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

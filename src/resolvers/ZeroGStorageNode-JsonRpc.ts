@@ -1,5 +1,4 @@
 import { networkBySlug } from '$/constants/Network.ts'
-import { zeroGStorageNodeRpcEndpoints } from '$/sources/ZeroG/StorageNode/JsonRpc/index.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -22,9 +21,12 @@ const assertZeroGMainnet = (network: NetworkId) => {
 		throw new Error('ZeroGStorageNode_JsonRpc: unsupported network')
 }
 
+const zeroGStorageNodeRpcUrl = async () =>
+	(await import('$/sources/ZeroG/StorageNode/JsonRpc/endpoints.ts')).zeroGStorageNodeRpcEndpoints[0].url
+
 const localStorageNodeId = async () => {
 	const { getStatus } = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
-	return (await getStatus({ rpcUrl: zeroGStorageNodeRpcEndpoints[0].url })).networkIdentity.flowAddress
+	return (await getStatus({ rpcUrl: await zeroGStorageNodeRpcUrl() })).networkIdentity.flowAddress
 }
 
 const fileInfoForDataBlob = async ({ $network, dataRoot }: {
@@ -34,7 +36,7 @@ const fileInfoForDataBlob = async ({ $network, dataRoot }: {
 	assertZeroGMainnet($network)
 	const { getFileInfo } = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
 	const fileInfo = await getFileInfo({
-		rpcUrl: zeroGStorageNodeRpcEndpoints[0].url,
+		rpcUrl: await zeroGStorageNodeRpcUrl(),
 		root: dataRoot,
 		needAvailable: true,
 	})
@@ -52,7 +54,8 @@ export default {
 				[ZeroGStorageNodeSelector.NetworkNodeId]: async ({ $network, nodeId }) => {
 					assertZeroGMainnet($network)
 					const { getStatus } = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
-					const status = await getStatus({ rpcUrl: zeroGStorageNodeRpcEndpoints[0].url })
+					const rpcUrl = await zeroGStorageNodeRpcUrl()
+					const status = await getStatus({ rpcUrl })
 					if (status.networkIdentity.flowAddress !== nodeId)
 						throw new Error(`ZeroGStorageNode_JsonRpc: local node ${status.networkIdentity.flowAddress} does not match ${nodeId}`)
 					return {
@@ -61,7 +64,7 @@ export default {
 								address: status.networkIdentity.flowAddress,
 							},
 						},
-						endpoint: zeroGStorageNodeRpcEndpoints[0].url,
+						endpoint: rpcUrl,
 					}
 				}
 			},

@@ -1,100 +1,20 @@
 import { type } from 'arktype'
-
-import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
-	conditionalOn,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
-
+import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 export enum EvmLogSelector {
 	EvmNetworkTxHashLogIndex = 'evmNetworkTxHashLogIndex',
+	NetworkTxHashLogIndex = '$network+txHash+logIndex',
 }
-
-
-const evmLogBaseFields = [
-	{
-		name: 'topics',
-		type: EntityFieldType.Primitive,
-		primitiveType: ZeroExHex.array(),
-		cardinality: EntityFieldCardinality.One,
-		defaultSources: [
-			Source.Voltaire_JsonRpc,
-			Source.Blockscout_Rest,
-		],
-	},
-	{
-		name: 'data',
-		type: EntityFieldType.Primitive,
-		primitiveType: ZeroExHex,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Voltaire_JsonRpc,
-			Source.Blockscout_Rest,
-		],
-	},
-	{
-		name: 'blockNumber',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Voltaire_JsonRpc,
-			Source.Blockscout_Rest,
-		],
-	},
-	{
-		name: 'blockHash',
-		type: EntityFieldType.Primitive,
-		primitiveType: ZeroExHex,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Voltaire_JsonRpc,
-			Source.Blockscout_Rest,
-		],
-	},
-	{
-		name: 'transactionIndex',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Voltaire_JsonRpc,
-			Source.Blockscout_Rest,
-		],
-	},
-	{
-		name: 'removed',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('boolean'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Voltaire_JsonRpc,
-			Source.Blockscout_Rest,
-		],
-	},
-	{
-		name: '$emitter',
-		type: EntityFieldType.EntityReference,
-		entityType: EntityType.EvmContract,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Voltaire_JsonRpc,
-			Source.Blockscout_Rest,
-		],
-	},
-] as const satisfies readonly EntityFieldDefinition[]
-
 export default {
 	entityType: EntityType.EvmLog,
-
 	label: 'EVM log',
 	labelPlural: 'EVM logs',
-
+	description: 'An event log emitted by an EVM transaction receipt.',
 	selectors: [
 		{
 			name: EvmLogSelector.EvmNetworkTxHashLogIndex,
@@ -105,76 +25,100 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'txHash',
+			label: 'Transaction hash',
+			description: 'The transaction hash in its network.',
 			type: EntityFieldType.Primitive,
 			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-				Source.Blockscout_Rest,
-			],
 		},
 		{
 			name: 'logIndex',
+			label: 'log index',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-				Source.Blockscout_Rest,
-			],
 		},
 		{
 			name: '$transaction',
+			label: 'transaction',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmTransaction,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-				Source.Blockscout_Rest,
-			],
 		},
 		{
 			name: '$block',
+			label: 'block',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmBlock,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-				Source.Blockscout_Rest,
-			],
 		},
-		...evmLogBaseFields,
+		{
+			name: 'topics',
+			label: 'topics',
+			type: EntityFieldType.Primitive,
+			primitiveType: ZeroExHex.array(),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'data',
+			label: 'data',
+			type: EntityFieldType.Primitive,
+			primitiveType: ZeroExHex,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'blockNumber',
+			label: 'Block number',
+			description: 'The block height or number in its network.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("bigint"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'blockHash',
+			label: 'Block hash',
+			description: 'The hash that identifies the block in its network.',
+			type: EntityFieldType.Primitive,
+			primitiveType: ZeroExHex,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'transactionIndex',
+			label: 'transaction index',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'removed',
+			label: 'removed',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("boolean"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$emitter',
+			label: 'emitter',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmContract,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
 		{
 			name: '$$tokenTransfers',
+			label: 'token transfers',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.EvmTokenTransfer,
 			cardinality: EntityFieldCardinality.Many,
-			when: conditionalOn(
-				evmLogBaseFields,
-				'topics',
-				[
-					'0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
-					'0xc3d58168c5ae7397731d063d5bbf3d89e2dc00c66cb903c17f4a2cd2d1f5f0f0',
-					'0x4a39dc06d4c0dbc64b70f1d4d6757603d1ef3e8d6935b7f0b4c97fe61e099437',
-				],
-				{
-					itemIndex: 0,
-				}
-			),
-			defaultSources: [
-				Source.Blockscout_Rest,
-				Source.Etherscan_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

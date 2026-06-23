@@ -1,24 +1,19 @@
 import { type } from 'arktype'
-
-import { ZeroExHex } from '$/schema/ZeroExHex.ts'
-import type { EntityDefinition, EntityFieldDefinition } from '$/schema/$schema.ts'
 import {
 	EntityFieldCardinality,
 	EntityFieldType,
+	type EntityDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum BeaconValidatorSelector {
 	EvmNetworkValidatorIndex = 'evmNetworkValidatorIndex',
+	NetworkValidatorIndex = '$network+validatorIndex',
+	NetworkPubkey = '$network+pubkey',
 }
-
 export default {
 	entityType: EntityType.BeaconValidator,
-
-	label: 'Beacon validator',
-	labelPlural: 'Beacon validators',
-
+	label: 'beacon validator',
+	labelPlural: 'beacon validators',
 	selectors: [
 		{
 			name: BeaconValidatorSelector.EvmNetworkValidatorIndex,
@@ -27,65 +22,42 @@ export default {
 				'validatorIndex',
 			],
 		},
+		{
+			name: BeaconValidatorSelector.NetworkPubkey,
+			fields: [
+				'$network',
+				'pubkey',
+			],
+		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'validatorIndex',
+			label: 'validator index',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'balanceGwei',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
-		},
-		{
-			name: 'effectiveBalanceGwei',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
-		},
-		{
-			name: 'status',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
-		},
-		{
 			name: 'pubkey',
+			label: 'public key',
 			type: EntityFieldType.Primitive,
-			primitiveType: ZeroExHex,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
 		},
 		{
-			name: 'slashed',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
+			name: '$$timestamps',
+			label: 'timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.BeaconValidator_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

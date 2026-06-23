@@ -2,101 +2,108 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Context
-	import { select } from '$/routes/+layout.svelte'
-	import { resolve } from '$app/paths'
 
 
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'actor',
+			},
+			{
+				label: 'observation time',
+			},
+			{
+				label: 'followers',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'actor',
+					},
+					{
+						label: 'observation time',
+					},
+					{
+						label: 'followers',
+					},
+					{
+						label: 'follows',
+					},
+					{
+						label: 'posts count',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Actor',
+					items: [
+						{
+							label: 'parent AT Protocol actor identity',
+						},
+					],
+				},
+				{
+					label: 'Social counters',
+					items: [
+						{
+							label: 'followers',
+						},
+						{
+							label: 'follows',
+						},
+						{
+							label: 'posts count',
+						},
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'app.bsky.actor.getProfile AppView stats payload',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
-		href = resolve('/(social)/(atproto)/atproto/actor/[did]', {
-			did: 'did' in selection.entitySelector.$actor ?
-				selection.entitySelector.$actor.did
-			:
-				selection.entitySelector.$actor.handle,
-		}),
-		layout = EntityLayout.Summary,
-		open = $bindable(false),
+		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.AtprotoActor_Timestamp>
-			href?: string
-			layout?: EntityLayout
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
+			| 'layout'
 			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import SocialMetricSnapshotRows from '$/views/SocialMetricSnapshotRows.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.AtprotoActor_Timestamp}
 	entitySelector={selection.entitySelector}
-	href={href}
-	{layout}
 	bind:open
-	title="AT Protocol actor snapshot"
 	{...EntityViewProps}
->
-	{#snippet Value()}
-		<Timestamp timestamp={selection.entitySelector.timestampMs} />
-	{/snippet}
-
-	{#snippet Title()}
-		<Timestamp timestamp={selection.entitySelector.timestampMs} />
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Timestamped AT Protocol profile counters resolved from app-view and XRPC profile data.
-		</p>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection( { sources: [
-				Source.Atproto_Xrpc,			], fields: { followersCount: true, followsCount: true, postsCount: true } })}
-			placeholderText="Loading AT Protocol actor snapshot..."
-		>
-			{#snippet children(atprotoActorTimestamp)}
-				<dl data-column-item="center">
-					<SocialMetricSnapshotRows
-						metrics={[
-							{
-								label: 'Followers',
-								value: atprotoActorTimestamp.followersCount,
-							},
-							{
-								label: 'Following',
-								value: atprotoActorTimestamp.followsCount,
-							},
-							{
-								label: 'Posts',
-								value: atprotoActorTimestamp.postsCount,
-							},
-						]}
-					/>
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

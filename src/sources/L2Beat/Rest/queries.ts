@@ -4,7 +4,7 @@
  */
 
 import { getJson } from '$/lib/http.ts'
-import L2Beat from '$/sources/L2Beat/index.ts'
+import { l2BeatOrigins } from '$/sources/L2Beat/index.ts'
 import {
 	origin,
 	scalingSummaryPath,
@@ -14,6 +14,6 @@ import type { L2BeatScalingSummaryResponse } from '$/sources/L2Beat/Rest/types.t
 export const fetchScalingSummary = async (): Promise<L2BeatScalingSummaryResponse> => (
 	getJson<L2BeatScalingSummaryResponse>(
 		`${origin}${scalingSummaryPath}`,
-		{ origins: L2Beat.origins }
+		{ origins: l2BeatOrigins }
 	)
 )

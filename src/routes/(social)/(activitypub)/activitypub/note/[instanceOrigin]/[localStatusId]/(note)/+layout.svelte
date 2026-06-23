@@ -1,6 +1,8 @@
 <script lang="ts">
+	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { select } from '$/routes/+layout.svelte'
+
+
 	// Context
 	import { resolve } from '$app/paths'
 	import { page } from '$app/state'
@@ -18,10 +20,14 @@
 	)
 
 
+	// Functions
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ActivityPubNoteView from '$/views/ActivityPubNoteView.svelte'
 	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
+	import ActivityPubNoteView from '$/views/ActivityPubNoteView.svelte'
 </script>
 
 
@@ -34,10 +40,15 @@
 >
 	{#snippet Summary({ open: _open })}
 		<ActivityPubNoteView
-			selection={select(EntityType.ActivityPubNote, {
-				instanceOrigin: decodeURIComponent(instanceOrigin),
-				localStatusId: decodeURIComponent(localStatusId),
-			})}
+			selection={
+				select(
+					EntityType.ActivityPubNote,
+					{
+						instanceOrigin: decodeURIComponent(instanceOrigin),
+						localStatusId: decodeURIComponent(localStatusId),
+					}
+				)
+			}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

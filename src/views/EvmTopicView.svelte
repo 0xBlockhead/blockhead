@@ -1,150 +1,117 @@
 <script lang="ts">
 	// Types/constants
+	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntitySelector } from '$/schema/$schema.ts'
-	import { schema } from '$/schema/index.ts'
-	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { resolve } from '$app/paths'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 
 
 	// State
+	const view = {
+		actions: [
+			{
+				id: 'copy-topic',
+				label: 'Copy topic',
+				kind: 'copy',
+				field: 'hex',
+			},
+		],
+		transforms: [
+			{
+				id: 'topic-hash',
+				label: 'Topic hash',
+				field: 'hex',
+				kind: 'hash',
+				slot: 'TopicHashEncodings',
+			},
+		],
+		closed: [
+			{
+				label: 'topic hash',
+			},
+			{
+				label: 'latest candidate signature',
+			},
+			{
+				label: 'candidate count',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'topic hash',
+					},
+					{
+						label: 'latest candidate signature',
+					},
+					{
+						label: 'latest source',
+					},
+					{
+						label: 'candidate count',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Catalog observations',
+					items: [
+						{
+							label: 'timestamped candidate-signature lookups',
+						},
+					],
+				},
+				{
+					label: 'Log context',
+					items: [
+						{
+							label: 'EvmLog rows that use this topic',
+						},
+					],
+				},
+				{
+					label: 'ABI context',
+					items: [
+						{
+							label: 'verified emitter ABI requirement before authoritative decode',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
-		href: hrefProp,
-		layout = EntityLayout.SummaryDetails,
-		summaryUsesHeading = (
-			layout === EntityLayout.SummaryDetails
-		),
-		open = $bindable(
-			layout === EntityLayout.SummaryDetails,
-		),
-		collapsible = true,
+		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.EvmTopic>
-			href?: string
-			layout?: EntityLayout
-			summaryUsesHeading?: boolean
 			open?: boolean
-			collapsible?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
+			| 'layout'
 			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
-	import { select } from '$/routes/+layout.svelte'
-
-
-	const href = $derived(
-		hrefProp ?? resolve('/(explore)/(evm)/evm/(topics)/topic/[hex]', {
-			hex: selection.entitySelector.hex,
-		})
-	)
-
-	const signatures = $derived(selection({
-			sources: [
-				Source.Openchain_Rest,
-			],
-		},
-	).signatures)
-
-
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.EvmTopic}
 	entitySelector={selection.entitySelector}
-	{href}
-	{layout}
 	bind:open
-	{collapsible}
 	{...EntityViewProps}
->
-	{#snippet Value()}
-		<span data-text="font-monospace">
-			{selection.entitySelector.hex}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		<ResourceBoundary
-			resource={signatures}
-			placeholderText="Loading log topic…"
-		>
-			{#snippet children(signatures)}
-				{signatures?.[0] ?? selection.entitySelector.hex}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Receipt logs publish a small ordered evmTopics of 32-byte <strong>topics</strong>; topic 0 often fingerprints an ABI log declaration when one exists.
-		</p>
-		<p>
-			Additional topics carry indexed arguments, while remaining fields encode in the log’s data. This differs from four-byte prefixes used on calldata or revert payloads.
-		</p>
-	{/snippet}
-
-	{#snippet Content({
-		title: _title,
-		href: _href,
-		open: contentOpen,
-	})}
-		<div data-column="gap-1">
-			<dl data-column-item="center">
-				{#if !summaryUsesHeading}
-					<div>
-						<dt>Topic</dt>
-						<dd>
-							<TruncatedValue
-								value={selection.entitySelector.hex}
-								format={TruncatedValueFormat.Visual}
-							/>
-						</dd>
-					</div>
-				{/if}
-				{#if contentOpen}
-					<ResourceBoundary
-						resource={signatures}
-						placeholderText="Loading topic catalog signatures…"
-					>
-						{#snippet children(signatures)}
-							{#if signatures?.length}
-								<div>
-									<dt>Signatures</dt>
-									<dd>
-										<ul>
-											{#each signatures as signature (signature)}
-												<li><code>{signature}</code></li>
-											{/each}
-										</ul>
-									</dd>
-								</div>
-							{:else}
-								<div>
-									<dt>Signatures</dt>
-									<dd>
-										<p data-text="muted">No catalog signatures matched this log topic hash.</p>
-									</dd>
-								</div>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/if}
-			</dl>
-		</div>
-	{/snippet}
-</EntityView>
+	{view}
+/>

@@ -1,13 +1,14 @@
 import { TransportType } from '$/constants/TransportType.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
-import NearRpcJsonRpc from '$/sources/NearRpc/JsonRpc/index.ts'
-
-
-// Constants
+import { Source } from '$/sources/Source.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import { nearRpcBindings } from '$/sources/NearRpc/bindings.ts'
 
 export const nearMainnetRpcEndpoints = [
 	{
-		url: 'https://rpc.mainnet.near.org',
+		url: nearRpcBindings[0].endpoints[0].locator,
 		transportType: TransportType.Http,
 		providerName: 'NEAR',
 	},
@@ -17,17 +18,29 @@ export const nearMainnetRpcEndpoints = [
 	providerName: string
 }[]
 
-
-// Provider
+export const nearRpcOrigins = [
+	...new Map(
+		nearRpcBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.NearRpc,
 	label: 'NEAR RPC',
-	origins: nearMainnetRpcEndpoints.map((endpoint) => ({
-		origin: new URL(endpoint.url).origin,
-		corsEnabled: false,
-	})),
 	sources: [
-		NearRpcJsonRpc,
+		{
+			provider: SourceProvider.NearRpc,
+			source: Source.NearRpc_JsonRpc,
+			label: 'NEAR JSON-RPC',
+		},
 	],
-} as const satisfies SourceProviderDefinition
+	bindings: nearRpcBindings,
+} satisfies SourceProviderDefinition

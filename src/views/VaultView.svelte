@@ -31,7 +31,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 		>
 	> = $props()
@@ -41,12 +41,13 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.Vault}
 	entitySelector={selection.entitySelector}
 	href={href}
@@ -59,4 +60,4 @@
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
-</EntityView>
+</EntityView2>

@@ -17,6 +17,7 @@ import type { RpcBlockHeader } from '$/sources/Evm/JsonRpc/types.ts'
 import { ZeroGNetworkSelector } from '$/schema/ZeroGNetwork.ts'
 import { EvmBlockSelector } from '$/schema/EvmBlock.ts'
 import { EvmNetworkAccountSelector } from '$/schema/EvmNetworkAccount.ts'
+import { EvmNetworkAccount_TimestampSelector } from '$/schema/EvmNetworkAccount_Timestamp.ts'
 import { EvmTransactionSelector } from '$/schema/EvmTransaction.ts'
 
 const zeroGChainId = 16661
@@ -112,7 +113,7 @@ export default {
 					const minerAddress = hexLowerOfByteSize(block.miner ?? '', 20)
 					const parentHash = hexLowerOfByteSize(block.parentHash ?? '', 32)
 					return {
-						number: quantityToBigInt(block.number) ?? blockNumber,
+						blockNumber: quantityToBigInt(block.number) ?? blockNumber,
 						...(parentHash != null && {
 							$parent: {
 								[EntityMetaKey.Selector]: {
@@ -142,7 +143,7 @@ export default {
 			},
 		})({
 			fields: {
-				number: (block) => block.number,
+				blockNumber: (block) => block.blockNumber,
 				$parent: (block) => block.$parent,
 				timestamp: (block) => block.timestamp,
 			$miner: (block) => block.$miner,
@@ -160,8 +161,35 @@ export default {
 			resolve: {
 				[EvmNetworkAccountSelector.EvmNetworkEvmAccount]: async ({ $actor, $network }) => {
 					assertZeroGMainnetChain($network)
+					return {
+						$$timestamps: [
+							{
+								[EntityMetaKey.Selector]: {
+									$account: {
+										$network,
+										$actor,
+									},
+									timestampMs: Date.now(),
+									source: Source.ZeroGChain_JsonRpc,
+								},
+							},
+						],
+					}
+				},
+			},
+		})({
+			fields: {
+				$$timestamps: (account) => account.$$timestamps,
+			},
+		}),
+
+		defineResolver(Source.ZeroGChain_JsonRpc, {
+			entityType: EntityType.EvmNetworkAccount_Timestamp,
+			resolve: {
+				[EvmNetworkAccount_TimestampSelector.AccountTimestampMsSource]: async ({ $account }) => {
+					assertZeroGMainnetChain($account.$network)
 					const { getCode } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
-					const address = hexLowerOfByteSize($actor.address, 20)
+					const address = hexLowerOfByteSize($account.$actor.address, 20)
 					if (address == null)
 						throw new Error('ZeroGChain_JsonRpc: EvmNetworkAccount wallet address not normalized')
 
@@ -311,7 +339,9 @@ export default {
 						[EntityMetaKey.Selector]: {
 							$network: entitySelector,
 							timestampMs: headTimestamp == null ? Date.now() : headTimestamp * 1000,
+							source: Source.ZeroGChain_JsonRpc,
 						},
+						source: Source.ZeroGChain_JsonRpc,
 						...(headBlockNumber != null && { headBlockNumber }),
 						...(block.hash != null && { headBlockHash: block.hash }),
 						...(headTimestamp != null && { headTimestampMs: headTimestamp * 1000 }),

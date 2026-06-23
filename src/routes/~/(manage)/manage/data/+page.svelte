@@ -3,14 +3,10 @@
 	import { EntityMetaKey, entityFieldDefinitions } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
-	import { indexSourceProviders } from '$/sources/$sources.ts'
-	import { sourceProviders } from '$/sources/index.ts'
-	import { env as publicEnv } from '$env/dynamic/public'
+	import { enabledSources } from '$/sources/index.ts'
 	import { appClient } from '$/routes/+layout.svelte'
 	import { useCollectionCache } from './collectionCache.svelte.ts'
 
-
-	const { enabledSources } = indexSourceProviders(sourceProviders, publicEnv)
 
 	const collectionEntityDefinitions = schema.map((entityDefinition) => ({
 		entityType: entityDefinition.entityType,

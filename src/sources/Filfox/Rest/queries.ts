@@ -1,5 +1,5 @@
 import { getJson } from '$/lib/http.ts'
-import Filfox from '$/sources/Filfox/index.ts'
+import { filfoxOrigins } from '$/sources/Filfox/index.ts'
 import type {
 	FilfoxAddress,
 	FilfoxBlock,
@@ -20,7 +20,7 @@ export const getTipset = ({
 }) => (
 	getJson<FilfoxTipset>(
 		`${base(restBaseUrl)}/tipset/${height.toString()}`,
-		{ origins: Filfox.origins  }
+		{ origins: filfoxOrigins }
 	)
 )
 
@@ -33,7 +33,7 @@ export const getMessage = ({
 }) => (
 	getJson<FilfoxMessage>(
 		`${base(restBaseUrl)}/message/${messageCid}`,
-		{ origins: Filfox.origins  }
+		{ origins: filfoxOrigins }
 	)
 )
 
@@ -46,7 +46,7 @@ export const getBlock = ({
 }) => (
 	getJson<FilfoxBlock>(
 		`${base(restBaseUrl)}/block/${blockCid}`,
-		{ origins: Filfox.origins  }
+		{ origins: filfoxOrigins }
 	)
 )
 
@@ -61,7 +61,7 @@ export const getBlockMessages = ({
 }) => (
 	getJson<FilfoxMessagesPage>(
 		`${base(restBaseUrl)}/block/${blockCid}/messages?pageSize=${pageSize.toString()}`,
-		{ origins: Filfox.origins  }
+		{ origins: filfoxOrigins }
 	)
 )
 
@@ -74,7 +74,7 @@ export const getAddress = ({
 }) => (
 	getJson<FilfoxAddress>(
 		`${base(restBaseUrl)}/address/${address}`,
-		{ origins: Filfox.origins  }
+		{ origins: filfoxOrigins }
 	)
 )
 
@@ -85,6 +85,6 @@ export const getOverview = ({
 }) => (
 	getJson<FilfoxOverview>(
 		`${base(restBaseUrl)}/overview`,
-		{ origins: Filfox.origins  }
+		{ origins: filfoxOrigins }
 	)
 )

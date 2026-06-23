@@ -1,40 +1,53 @@
 import { TransportType } from '$/constants/TransportType.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
-import SolanaJsonRpc from '$/sources/Solana/JsonRpc/index.ts'
+import { Source } from '$/sources/Source.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import { SourceEndpointKind } from '$/sources/SourceBinding.ts'
+import { solanaBindings } from '$/sources/Solana/bindings.ts'
 
-/** Official Solana Labs shared mainnet RPC endpoints; rate-limited and not intended as production-dedicated infrastructure. */
-export const solanaMainnetRpcEndpoints = [
-	{
-		url: 'https://api.mainnet.solana.com',
-		transportType: TransportType.Http,
+export const solanaOrigins = [
+	...new Map(
+		solanaBindings
+			.flatMap((binding) => binding.endpoints)
+			.flatMap((endpoint) => (
+				endpoint.origin == null ?
+					[]
+				:
+					[[
+						endpoint.origin,
+						{
+							origin: endpoint.origin,
+							corsEnabled: endpoint.corsEnabled === true,
+						},
+					]]
+			))
+	).values(),
+]
+
+export const solanaMainnetRpcEndpoints = solanaBindings
+	.flatMap((binding) => binding.endpoints)
+	.map((endpoint) => ({
+		url: endpoint.locator,
+		transportType: (
+			endpoint.endpointKind === SourceEndpointKind.WebSocketUrl ?
+				TransportType.WebSocket
+			:
+				TransportType.Http
+		),
 		providerName: 'Solana Labs',
-	},
-	{
-		url: 'wss://api.mainnet.solana.com',
-		transportType: TransportType.WebSocket,
-		providerName: 'Solana Labs',
-	},
-] as const satisfies readonly {
-	url: string
-	transportType: TransportType
-	providerName: string
-}[]
+	}))
 
 export default {
 	provider: SourceProvider.Solana,
 	label: 'Solana',
-	origins: [
-		...new Set(
-			solanaMainnetRpcEndpoints
-				.filter((endpoint) => endpoint.transportType === TransportType.Http)
-				.map((endpoint) => new URL(endpoint.url).origin)
-		),
-	]
-		.map((origin) => ({
-			origin,
-			corsEnabled: false,
-		})),
 	sources: [
-		SolanaJsonRpc,
+		{
+			provider: SourceProvider.Solana,
+			source: Source.Solana_JsonRpc,
+			label: 'Solana JSON-RPC',
+		},
 	],
-} as const satisfies SourceProviderDefinition
+	bindings: solanaBindings,
+} satisfies SourceProviderDefinition

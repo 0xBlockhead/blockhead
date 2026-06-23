@@ -1,10 +1,17 @@
 <script lang="ts">
+	// Types/constants
+	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+
+
+	// Context
 	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
-		params,
-	} = $props()
+		data,
+	}: PageProps = $props()
 
 
 	// Components
@@ -15,6 +22,6 @@
 
 <Page>
 	<YouTubePlaylistView
-		selection={select(EntityType.YouTubePlaylist, { playlistId: decodeURIComponent(params.playlistId) })}
+		selection={select(EntityType.YouTubePlaylist, data.selector)}
 	/>
 </Page>

@@ -1,6 +1,7 @@
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
+import { ipfsNamespaceFromString } from '$/lib/ipfs.ts'
 import { canonicalIpfsCidString, decodeIpfsCid } from '$/lib/multiformats.ts'
 import { ipfsResourceCanonicalUri } from '$/lib/ipfs.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
@@ -20,12 +21,12 @@ export default {
 			entityType: EntityType.IpfsResource,
 			resolve: {
 				[IpfsResourceSelector.ResourceAddress]: async ({ contentPath, namespace, target }) => {
-					const { fetchBrowseResult } = await import('$/sources/Ipfs/Rest/queries.ts')
-					const browseResult = await fetchBrowseResult({
-						namespace: namespace,
-						target: target,
-						contentPath: contentPath,
-					})
+						const { fetchBrowseResult } = await import('$/sources/Ipfs/Rest/queries.ts')
+						const browseResult = await fetchBrowseResult({
+							namespace: ipfsNamespaceFromString(namespace) ?? undefined,
+							target: target,
+							contentPath: contentPath,
+						})
 					const decodedCid = (
 						browseResult.namespace === 'ipfs' ?
 							decodeIpfsCid(browseResult.target)

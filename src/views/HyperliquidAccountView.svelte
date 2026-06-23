@@ -2,15 +2,106 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// State
-	import { select } from '$/routes/+layout.svelte'
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			'address',
+			{
+				label: 'account role',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					'address',
+					{
+						label: 'account role',
+					},
+					{
+						label: 'master account',
+					},
+					{
+						label: 'agent account',
+					},
+					{
+						label: 'latest account value',
+					},
+					{
+						label: 'latest withdrawable amount',
+					},
+					{
+						label: 'latest spot balance count',
+					},
+					{
+						label: 'latest open order count',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Account state',
+					items: [
+						{
+							label: 'timestamped clearinghouse/user-state observations',
+						},
+					],
+				},
+				{
+					label: 'Orders',
+					items: [
+						{
+							label: 'Hyperliquid order rows',
+						},
+					],
+				},
+				{
+					label: 'Fills',
+					items: [
+						{
+							label: 'Hyperliquid fill rows',
+						},
+					],
+				},
+				{
+					label: 'Vault equities',
+					items: [
+						{
+							label: 'timestamped vault equity observations',
+						},
+					],
+				},
+				{
+					label: 'Master/agent',
+					items: [
+						{
+							label: 'Hyperliquid account role links',
+						},
+					],
+				},
+				{
+					label: 'Transactions',
+					items: [
+						{
+							label: 'HyperEVM transactions when source context provides activity',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,
@@ -21,73 +112,24 @@
 			selection: EntityProxyResource<typeof schema, EntityType.HyperliquidAccount>
 			open?: boolean
 		},
-		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
+		Pick<
+			ComponentProps<typeof EntityView2>,
+			| 'layout'
+			| 'showTypeAnnotation'
+		>
 	> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import Self from '$/views/HyperliquidAccountView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.HyperliquidAccount}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.address}
 	bind:open
 	{...EntityViewProps}
->
-	{#snippet Title()}
-		<TruncatedValue
-			value={selection.entitySelector.address}
-			format={TruncatedValueFormat.Abbr}
-		/>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection( { fields: { accountRole: true, $masterAccount: true, $agentAccount: true } })}
-			placeholderText={`Loading Hyperliquid Account...`}
-		>
-			{#snippet children(hyperliquidAccount)}
-				<dl>
-					{#if hyperliquidAccount.accountRole != null}
-						<div>
-							<dt>Role</dt>
-							<dd>{hyperliquidAccount.accountRole}</dd>
-						</div>
-					{/if}
-
-					{#if hyperliquidAccount.$masterAccount != null}
-						<div>
-							<dt>Master account</dt>
-							<dd>
-								<Self
-									selection={select(EntityType.HyperliquidAccount, hyperliquidAccount.$masterAccount[EntityMetaKey.Selector])}
-									layout={EntityLayout.Title}
-
-								/>
-							</dd>
-						</div>
-					{/if}
-
-					{#if hyperliquidAccount.$agentAccount != null}
-						<div>
-							<dt>Agent account</dt>
-							<dd>
-								<Self
-									selection={select(EntityType.HyperliquidAccount, hyperliquidAccount.$agentAccount[EntityMetaKey.Selector])}
-									layout={EntityLayout.Title}
-
-								/>
-							</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

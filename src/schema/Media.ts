@@ -1,22 +1,10 @@
 import { type } from 'arktype'
-
-import { UrlString } from '$/schema/UrlString.ts'
-import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
-import type { Entity } from '$/schema/$schema.ts'
-import type { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
-export enum MediaSelector {
-	Url = 'url',
-}
-
-
 export enum MediaType {
 	Image = 'Image',
 	Video = 'Video',
@@ -30,13 +18,13 @@ export enum MediaTransport {
 	Ipfs = 'Ipfs',
 	Arweave = 'Arweave',
 }
-
+export enum MediaSelector {
+	Url = 'url',
+}
 export default {
 	entityType: EntityType.Media,
-
-	label: 'Media',
-	labelPlural: 'Media',
-
+	label: 'media',
+	labelPlural: 'medias',
 	selectors: [
 		{
 			name: MediaSelector.Url,
@@ -45,66 +33,72 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: 'url',
+			label: 'URL',
+			description: 'The URL for the source-domain resource.',
 			type: EntityFieldType.Primitive,
-			primitiveType: UrlString,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'type',
+			label: 'Type',
+			description: 'The source-domain type or category.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(MediaType),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'transport',
+			label: 'transport',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(MediaTransport),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'hash',
+			label: 'Hash',
+			description: 'The hash that identifies this object in its protocol.',
 			type: EntityFieldType.Primitive,
-			primitiveType: ZeroExHex,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$original',
+			label: 'original',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.MediaObject,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$thumbnail',
+			label: 'thumbnail',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.MediaObject,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$low',
+			label: 'low',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.MediaObject,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$medium',
+			label: 'medium',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.MediaObject,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$high',
+			label: 'high',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.MediaObject,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition
-
-export type Media<_MediaType extends MediaType = MediaType> = (
-	Entity<typeof schema, EntityType.Media> &
-	{ type: _MediaType, transport: MediaTransport }
-)

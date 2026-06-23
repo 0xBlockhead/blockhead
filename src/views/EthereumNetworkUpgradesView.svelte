@@ -1,102 +1,66 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { select } from '$/routes/+layout.svelte'
-	import type { EntityProxyEntitiesData } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 
-	type EthereumNetworkUpgradesResource = SvelteKitResource<EntityProxyEntitiesData<typeof schema, EntityType.EthereumNetworkUpgrade>>
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
 
 	// State
+	const listView = {
+		entityType: EntityType.EthereumNetworkUpgrade,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
 		selection,
-		title = 'Upgrades',
+		title,
 		open = $bindable(true),
-		id,
+		id = 'EthereumNetworkUpgrades',
 		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EthereumNetworkUpgradesResource
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EthereumNetworkUpgrade>
 			title?: string
 			open?: boolean
-			id: string
+			id?: string
 			href?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'collapsible'
-			| 'CollapsibleProps'
-		>
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import NetworkUpgradeView from '$/views/EthereumNetworkUpgradeView.svelte'
+	import EthereumNetworkUpgradeView from '$/views/EthereumNetworkUpgradeView.svelte'
 </script>
 
 
 <EntitiesList
-	entityType={EntityType.EthereumNetworkUpgrade}
+	entityType={listView.entityType}
 	{title}
 	bind:open
 	{id}
 	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Each network upgrade references a <strong>network execution upgrade</strong>; when both layers shipped together it also references a <strong>network consensus upgrade</strong>.
-		</p>
-		<p>
-			Cards link to the paired execution and consensus fork views when present.
-		</p>
-	{/snippet}
-
-	{#snippet body()}
-		{#if open}
-			<ResourceBoundary
-				resource={selection}
-				placeholderText="Loading upgrades…"
-			>
-				{#snippet children(upgrades)}
-					<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.EthereumNetworkUpgrade}
-				id={`${id}-items`}
-				href={href}
-				getKey={(upgrade) => stringify(upgrade.entitySelector)}
-				items={upgrades.entities}
-				{title}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-				open={true}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No upgrades yet.
-					</p>
-				{/snippet}
-
-				{#snippet Item({ item: upgrade })}
-					<NetworkUpgradeView
-						selection={select(EntityType.EthereumNetworkUpgrade, upgrade.entitySelector)}
-						layout={EntityLayout.Summary}
-						open={false}
-
-					/>
-				{/snippet}
-			</EntitiesList>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+	{#snippet Item({ item })}
+		<EthereumNetworkUpgradeView
+			selection={select(EntityType.EthereumNetworkUpgrade, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

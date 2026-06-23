@@ -1,24 +1,30 @@
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
-import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
+	const listView = {
+		entityType: EntityType.BittensorMetagraph_Timestamp,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
 		selection,
-		title = 'Metagraph snapshots',
+		title,
 		open = $bindable(true),
-		id,
+		id = 'BittensorMetagraph_Timestamps',
 		href = '',
 		...EntitiesListProps
 	}: WithRest<
@@ -26,13 +32,10 @@ import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 			selection: EntityProxyEntitiesResource<typeof schema, EntityType.BittensorMetagraph_Timestamp>
 			title?: string
 			open?: boolean
-			id: string
+			id?: string
 			href?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'CollapsibleProps'
-		>
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
 
 
@@ -44,50 +47,20 @@ import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 
 
 <EntitiesList
-	entityType={EntityType.BittensorMetagraph_Timestamp}
+	entityType={listView.entityType}
 	{title}
 	bind:open
 	{id}
 	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Metagraph snapshots are as-of observations for a subnet's neuron graph payload and neuron count.
-		</p>
-	{/snippet}
-
-	{#snippet body()}
-		{#if open}
-			<ResourceBoundary
-				resource={selection({
-						sources: [Source.Bittensor_JsonRpc],
-						limit: 16,
-					})}
-				placeholderText="Loading metric snapshots…"
-			>
-				{#snippet children(timestamps)}
-					<EntitiesList
-						collapsible={false}
-						showSummary={false}
-						entityType={EntityType.BittensorMetagraph_Timestamp}
-						id={`${id}-items`}
-						href={href}
-						open={true}
-						items={timestamps.values}
-						getKey={(timestamp) => stringify(timestamp.entitySelector)}
-						getSortValue={(timestamp) => -timestamp.entitySelector.timestampMs}
-						UnorderedListProps={{ orientation: ListOrientation.Column }}
-					>
-						{#snippet Item({ item })}
-							<BittensorMetagraph_TimestampView
-								selection={select(EntityType.BittensorMetagraph_Timestamp, item.entitySelector)}
-								layout={EntityLayout.Summary}
-							/>
-						{/snippet}
-					</EntitiesList>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+	{#snippet Item({ item })}
+		<BittensorMetagraph_TimestampView
+			selection={select(EntityType.BittensorMetagraph_Timestamp, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

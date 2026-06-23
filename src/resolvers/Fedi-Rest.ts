@@ -21,7 +21,6 @@ import { ActivityPubActorSelector } from '$/schema/ActivityPubActor.ts'
 import { ActivityPubNoteSelector } from '$/schema/ActivityPubNote.ts'
 import { ActivityPubActor_TimestampSelector } from '$/schema/ActivityPubActor_Timestamp.ts'
 import { ActivityPubNote_TimestampSelector } from '$/schema/ActivityPubNote_Timestamp.ts'
-import { ActivityPubNetworkSelector } from '$/schema/ActivityPubNetwork.ts'
 
 
 const mastodonLocalAccountId = (
@@ -379,116 +378,6 @@ export default {
 				replyCount: (timestamp) => timestamp.replyCount,
 			},
 		}),
-		defineResolver(Source.Fedi_Rest, {
-			entityType: EntityType.ActivityPubNetwork,
-			resolve: {
-				[ActivityPubNetworkSelector.Scope]: async (_entitySelector, context) => {
-					const publicEnv = context.publicEnv
-					const { getInstance } = await import('$/sources/Fedi/Rest/queries.ts')
-					const instance = await getInstance(publicEnv)
-					return optionalNonemptyString(instance.title)
-				}
-			},
-		})({
-			fields: {
-				fediInstanceTitle: (network) => network,
-			},
-		}),
-
-		defineResolver(Source.Fedi_Rest, {
-			entityType: EntityType.ActivityPubNetwork,
-			resolve: {
-				[ActivityPubNetworkSelector.Scope]: async (_entitySelector, context) => {
-					const publicEnv = context.publicEnv
-					const { getInstance } = await import('$/sources/Fedi/Rest/queries.ts')
-					const instance = await getInstance(publicEnv)
-					return (
-						optionalNonemptyString(instance.description)
-					?? optionalNonemptyString(instance.short_description)
-					)
-				}
-			},
-		})({
-			fields: {
-				fediInstanceDescription: (network) => network,
-			},
-		}),
-
-		defineResolver(Source.Fedi_Rest, {
-			entityType: EntityType.ActivityPubNetwork,
-			resolve: {
-				[ActivityPubNetworkSelector.Scope]: async (_entitySelector, context) => {
-					const publicEnv = context.publicEnv
-					const { getInstance } = await import('$/sources/Fedi/Rest/queries.ts')
-					const instance = await getInstance(publicEnv)
-					return optionalNonemptyString(instance.version)
-				}
-			},
-		})({
-			fields: {
-				fediInstanceVersion: (network) => network,
-			},
-		}),
-
-		defineResolver(Source.Fedi_Rest, {
-			entityType: EntityType.ActivityPubNetwork,
-			resolve: {
-				[ActivityPubNetworkSelector.Scope]: async (_entitySelector, context) => {
-					const publicEnv = context.publicEnv
-					const { listPublicTimeline } = await import('$/sources/Fedi/Rest/queries.ts')
-					const limit = resolverContextRowLimit(context)
-					return (
-						(await listPublicTimeline(publicEnv, limit))
-							.flatMap((status) => {
-							const localAccountId = mastodonLocalAccountId(status.account)
-							if (localAccountId == null) return []
-							return [{
-								[EntityMetaKey.Selector]: {
-									instanceOrigin: fediInstanceBySlug.fosstodon.origin,
-									localAccountId,
-								},
-							}]
-							})
-					)
-				}
-			},
-		})({
-			fields: {
-				$$activityPubActors: (network) => network,
-			},
-		}),
-
-		defineResolver(Source.Fedi_Rest, {
-			entityType: EntityType.ActivityPubNetwork,
-			resolve: {
-				[ActivityPubNetworkSelector.Scope]: async (_entitySelector, context) => {
-					const publicEnv = context.publicEnv
-					const { listPublicTimeline } = await import('$/sources/Fedi/Rest/queries.ts')
-					const limit = resolverContextRowLimit(context)
-					return (
-						(await listPublicTimeline(publicEnv, limit))
-							.flatMap((status) => (
-							status.id == null ?
-								[]
-							:
-								[
-									{
-										[EntityMetaKey.Selector]: {
-											instanceOrigin: fediInstanceBySlug.fosstodon.origin,
-											localStatusId: String(status.id),
-										},
-									},
-								]
-							))
-					)
-				}
-			},
-		})({
-			fields: {
-				$$activityPubNotes: (network) => network,
-			},
-		}),
-
 		defineResolver(Source.Fedi_Rest, {
 			entityType: EntityType.ActivityPubActor,
 			resolve: {

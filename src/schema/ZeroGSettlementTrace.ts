@@ -1,24 +1,18 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import ZeroGServiceRequest from '$/schema/ZeroGServiceRequest.ts'
-
 export enum ZeroGSettlementTraceSelector {
 	ZeroGServiceRequestTraceId = 'zeroGServiceRequestTraceId',
+	ServiceRequestTraceId = '$serviceRequest+traceId',
 }
-
 export default {
 	entityType: EntityType.ZeroGSettlementTrace,
-
-	label: '0G settlement trace',
-	labelPlural: '0G settlement traces',
-
+	label: 'zero g settlement trace',
+	labelPlural: 'zero g settlement traces',
 	selectors: [
 		{
 			name: ZeroGSettlementTraceSelector.ZeroGServiceRequestTraceId,
@@ -28,37 +22,41 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$serviceRequest',
+			label: 'service request',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.ZeroGServiceRequest,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'traceId',
+			label: 'trace ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'settlementTransactionHash',
+			label: 'settlement transaction hash',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'acknowledgementSignature',
+			label: 'acknowledgement signature',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'rewardAmount',
+			label: 'reward amount',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

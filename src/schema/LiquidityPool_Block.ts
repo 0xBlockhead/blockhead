@@ -1,24 +1,17 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import LiquidityPool from '$/schema/LiquidityPool.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum LiquidityPool_BlockSelector {
 	LiquidityPoolBlockNumber = 'liquidityPoolBlockNumber',
 }
-
 export default {
 	entityType: EntityType.LiquidityPool_Block,
-
-	label: 'Liquidity pool block snapshot',
-	labelPlural: 'Liquidity pool block snapshots',
-
+	label: 'liquidity pool block',
+	labelPlural: 'liquidity pool blocks',
 	selectors: [
 		{
 			name: LiquidityPool_BlockSelector.LiquidityPoolBlockNumber,
@@ -28,85 +21,84 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$liquidityPool',
+			label: 'liquidity pool',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.LiquidityPool,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'blockNumber',
+			label: 'Block number',
+			description: 'The block height or number in its network.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$parentLiquidityPool',
+			label: 'parent liquidity pool',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.LiquidityPool,
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-			],
 		},
 		{
 			name: 'sqrtPriceX96',
+			label: 'sqrt price x96',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-			],
 		},
 		{
 			name: 'liquidity',
+			label: 'liquidity',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-			],
 		},
 		{
 			name: 'tick',
+			label: 'tick',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-			],
 		},
 		{
 			name: 'observationIndex',
+			label: 'observation index',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'observationCardinality',
+			label: 'observation cardinality',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'observationCardinalityNext',
+			label: 'observation cardinality next',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'feeProtocol',
+			label: 'fee protocol',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'unlocked',
+			label: 'unlocked',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
+			primitiveType: type("boolean"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

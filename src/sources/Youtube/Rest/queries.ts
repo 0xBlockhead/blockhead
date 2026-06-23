@@ -8,8 +8,7 @@ import type {
 	YoutubeApiSearchListResponse,
 	YoutubeApiVideosListResponse,
 } from '$/sources/Youtube/Rest/types.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import { Source } from '$/sources/Source.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 
 const channelParts = 'snippet,statistics'
 const videoParts = 'snippet,statistics,contentDetails'
@@ -23,7 +22,7 @@ const clampYoutubeMaxResults = (limit: number) => (
 )
 
 export const getChannel = async (
-	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
+	publicEnv: SourcePublicEnv,
 	channelId: string
 ) => (
 	youtubeApiV3Get<YoutubeApiChannelsListResponse>(
@@ -37,7 +36,7 @@ export const getChannel = async (
 )
 
 export const getVideo = async (
-	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
+	publicEnv: SourcePublicEnv,
 	videoId: string
 ) => (
 	youtubeApiV3Get<YoutubeApiVideosListResponse>(
@@ -51,7 +50,7 @@ export const getVideo = async (
 )
 
 export const getComment = async (
-	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
+	publicEnv: SourcePublicEnv,
 	commentId: string
 ) => (
 	youtubeApiV3Get<YoutubeApiCommentsListResponse>(
@@ -65,7 +64,7 @@ export const getComment = async (
 )
 
 export const getCommentThread = async (
-	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
+	publicEnv: SourcePublicEnv,
 	commentThreadId: string
 ) => (
 	youtubeApiV3Get<YoutubeApiCommentThreadsListResponse>(
@@ -79,7 +78,7 @@ export const getCommentThread = async (
 )
 
 export const getPlaylist = async (
-	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
+	publicEnv: SourcePublicEnv,
 	playlistId: string
 ) => (
 	youtubeApiV3Get<YoutubeApiPlaylistsListResponse>(
@@ -93,7 +92,7 @@ export const getPlaylist = async (
 )
 
 export const listChannelPlaylists = async (
-	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
+	publicEnv: SourcePublicEnv,
 	channelId: string,
 	limit: number
 ) => (
@@ -109,7 +108,7 @@ export const listChannelPlaylists = async (
 )
 
 export const listPlaylistItems = async (
-	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
+	publicEnv: SourcePublicEnv,
 	playlistId: string,
 	limit: number
 ) => (
@@ -125,7 +124,7 @@ export const listPlaylistItems = async (
 )
 
 export const listCommentThreads = async (
-	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
+	publicEnv: SourcePublicEnv,
 	videoId: string,
 	limit: number,
 	pageToken?: string
@@ -143,7 +142,7 @@ export const listCommentThreads = async (
 )
 
 export const listCommentReplies = async (
-	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
+	publicEnv: SourcePublicEnv,
 	parentId: string,
 	limit: number,
 	pageToken?: string
@@ -161,7 +160,7 @@ export const listCommentReplies = async (
 )
 
 export const listPopularVideos = async (
-	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
+	publicEnv: SourcePublicEnv,
 	limit: number
 ) => (
 	youtubeApiV3Get<YoutubeApiVideosListResponse>(
@@ -176,7 +175,7 @@ export const listPopularVideos = async (
 )
 
 export const searchChannels = async (
-	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
+	publicEnv: SourcePublicEnv,
 	query: string,
 	limit: number
 ) => (
@@ -193,7 +192,7 @@ export const searchChannels = async (
 )
 
 export const searchChannelVideos = async (
-	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
+	publicEnv: SourcePublicEnv,
 	channelId: string,
 	limit: number
 ) => (

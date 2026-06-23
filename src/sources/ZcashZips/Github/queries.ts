@@ -1,44 +1,32 @@
-import { getText, githubHttp } from '$/sources/Github/Rest/client.ts'
-import { throwHttpError } from '$/lib/http.ts'
-import {
-	getRawUserContentUrl,
-	getRestRepoContentsUrl,
-} from '$/sources/Github/Rest/queries.ts'
-import ZcashZips from '$/sources/ZcashZips/index.ts'
-
-import { zcashZipsGithubRepo } from './constants.ts'
-import type { ZcashZipsGithubContents } from './types.ts'
+import { getGithubContents, getGithubRawText, githubContentsUrl, githubRawUrl } from '$/sources/_shared/hosts/Github/Http/client.ts'
+import { zcashZipsGithubRepo } from '$/sources/ZcashZips/Github/constants.ts'
+import { zcashZipsBindings } from '$/sources/ZcashZips/bindings.ts'
+import type { ZcashZipsGithubContents } from '$/sources/ZcashZips/Github/types.ts'
 
 export const getContentsUrl = () => (
-	getRestRepoContentsUrl({
-		owner: zcashZipsGithubRepo.owner,
-		repo: zcashZipsGithubRepo.repo,
-		pathInRepo: zcashZipsGithubRepo.path,
-		ref: zcashZipsGithubRepo.ref,
-	})
+	githubContentsUrl(zcashZipsGithubRepo)
 )
 
 export const getProposalRstUrl = ({ number }: { number: number }) => (
-	getRawUserContentUrl({
-		owner: zcashZipsGithubRepo.owner,
-		repo: zcashZipsGithubRepo.repo,
-		ref: zcashZipsGithubRepo.ref,
-		pathInRepo: `${zcashZipsGithubRepo.path}/zip-${number.toString().padStart(4, '0')}.rst`,
+	githubRawUrl({
+		...zcashZipsGithubRepo,
+		path: `${zcashZipsGithubRepo.path}/zip-${number.toString().padStart(4, '0')}.rst`,
 	})
 )
 
-export const getContents = async (): Promise<ZcashZipsGithubContents> => {
-	const response = await githubHttp({
-		url: getContentsUrl(),
-		origins: ZcashZips.origins,
-	})
-	if (!response.ok) await throwHttpError('ZcashZips GitHub contents', response)
-	return response.json<ZcashZipsGithubContents>()
-}
+export const getContents = (): Promise<ZcashZipsGithubContents> => (
+	getGithubContents({
+		endpoints: zcashZipsBindings[0].endpoints,
+		target: zcashZipsGithubRepo,
+	}) as Promise<ZcashZipsGithubContents>
+)
 
 export const getProposalRstText = ({ number }: { number: number }) => (
-	getText({
-		url: getProposalRstUrl({ number }),
-		origins: ZcashZips.origins,
+	getGithubRawText({
+		endpoints: zcashZipsBindings[0].endpoints,
+		target: {
+			...zcashZipsGithubRepo,
+			path: `${zcashZipsGithubRepo.path}/zip-${number.toString().padStart(4, '0')}.rst`,
+		},
 	})
 )

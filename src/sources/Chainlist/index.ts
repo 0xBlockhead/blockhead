@@ -1,21 +1,33 @@
-
+import { Source } from '$/sources/Source.ts'
 import {
-	type SourceProviderDefinition,
 	SourceProvider,
+	type SourceProviderDefinition,
 } from '$/sources/SourceProvider.ts'
-import { origin } from '$/sources/Chainlist/Rest/constants.ts'
-import ChainlistRestSource from '$/sources/Chainlist/Rest/index.ts'
+import { chainlistBindings } from '$/sources/Chainlist/bindings.ts'
+
+export const chainlistOrigins = [
+	...new Map(
+		chainlistBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.Chainlist,
 	label: 'Chainlist',
-	origins: [
+	sources: [
 		{
-			origin,
-			corsEnabled: false,
+			provider: SourceProvider.Chainlist,
+			source: Source.Chainlist_Rest,
+			label: 'Chainlist REST',
 		},
 	],
-	sources: [
-		ChainlistRestSource,
-	],
+	bindings: chainlistBindings,
 } satisfies SourceProviderDefinition

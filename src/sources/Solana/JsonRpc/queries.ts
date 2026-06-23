@@ -1,6 +1,8 @@
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
+import { TransportType } from '$/constants/TransportType.ts'
 import { jsonRpcVersion } from '$/sources/Evm/JsonRpc/constants.ts'
-import Solana from '$/sources/Solana/index.ts'
+import { solanaBindings } from '$/sources/Solana/bindings.ts'
+import { SourceEndpointKind } from '$/sources/SourceBinding.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	SolanaRpcAccountInfo,
@@ -12,6 +14,38 @@ import type {
 	SolanaRpcVersion,
 	SolanaRpcVoteAccounts,
 } from '$/sources/Solana/JsonRpc/types.ts'
+
+export const solanaOrigins = [
+	...new Map(
+		solanaBindings
+			.flatMap((binding) => binding.endpoints)
+			.flatMap((endpoint) => (
+				endpoint.origin == null ?
+					[]
+				:
+					[[
+						endpoint.origin,
+						{
+							origin: endpoint.origin,
+							corsEnabled: endpoint.corsEnabled === true,
+						},
+					]]
+			))
+	).values(),
+]
+
+export const solanaMainnetRpcEndpoints = solanaBindings
+	.flatMap((binding) => binding.endpoints)
+	.map((endpoint) => ({
+		url: endpoint.locator,
+		transportType: (
+			endpoint.endpointKind === SourceEndpointKind.WebSocketUrl ?
+				TransportType.WebSocket
+			:
+				TransportType.Http
+		),
+		providerName: 'Solana Labs',
+	}))
 
 type JsonRpcResponse<_Result> = {
 	jsonrpc: typeof jsonRpcVersion
@@ -34,7 +68,7 @@ const solanaJsonRpc = async <_Result>({
 	params: JsonValue[]
 }) => {
 	const response = await corsFetch(rpcUrl, {
-		origins: Solana.origins,
+		origins: solanaOrigins,
 		init: {
 			method: 'POST',
 			headers: {

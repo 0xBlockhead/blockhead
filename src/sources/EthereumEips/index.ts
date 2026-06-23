@@ -1,13 +1,19 @@
-
-import { type SourceProviderDefinition, SourceProvider } from '$/sources/SourceProvider.ts'
-import EthereumEipsGithubSource from '$/sources/EthereumEips/Github/index.ts'
-import { githubHttpAllowedOrigins } from '$/sources/Github/githubHttpOrigins.ts'
+import { Source } from '$/sources/Source.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import { ethereumEipsBindings } from '$/sources/EthereumEips/bindings.ts'
 
 export default {
 	provider: SourceProvider.EthereumEips,
-	label: 'Ethereum Eips',
-	origins: githubHttpAllowedOrigins,
+	label: 'Ethereum EIPs',
 	sources: [
-		EthereumEipsGithubSource,
+		{
+			provider: SourceProvider.EthereumEips,
+			source: Source.EthereumEips_Github,
+			label: 'Ethereum EIPs GitHub',
+		},
 	],
+	bindings: ethereumEipsBindings,
 } satisfies SourceProviderDefinition

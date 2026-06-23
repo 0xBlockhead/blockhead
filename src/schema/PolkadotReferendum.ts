@@ -1,22 +1,17 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum PolkadotReferendumSelector {
 	NetworkReferendumId = 'networkReferendumId',
 }
-
 export default {
 	entityType: EntityType.PolkadotReferendum,
-
-	label: 'Polkadot referendum',
-	labelPlural: 'Polkadot referenda',
-
+	label: 'polkadot referendum',
+	labelPlural: 'polkadot referendums',
 	selectors: [
 		{
 			name: PolkadotReferendumSelector.NetworkReferendumId,
@@ -26,31 +21,41 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'referendumId',
+			label: 'referendum ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'track',
+			label: 'track',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'status',
+			name: 'submittedAtBlockNumber',
+			label: 'submitted AT block number',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: '$$timestamps',
+			label: 'timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.PolkadotReferendum_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
+		},
+	],
 } as const satisfies EntityDefinition

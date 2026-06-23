@@ -5,13 +5,12 @@
 
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
 import { requiredPublicEnvString } from '$/sources/$sources.ts'
-import { Source } from '$/sources/Source.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import Dune from '$/sources/Dune/index.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
+import { duneOrigins } from '$/sources/Dune/index.ts'
 import { baseUrl } from '$/sources/Dune/Rest/constants.ts'
 
 export const duneRequestHeaders = (
-	publicEnv: SourcePublicEnvFor<Source.Dune_Rest>
+	publicEnv: SourcePublicEnv
 ): Record<string, string> => ({
 	'Content-Type': 'application/json',
 	Accept: 'application/json',
@@ -19,13 +18,13 @@ export const duneRequestHeaders = (
 })
 
 export async function duneFetch<T>(
-	publicEnv: SourcePublicEnvFor<Source.Dune_Rest>,
+	publicEnv: SourcePublicEnv,
 	path: string,
 	init?: RequestInit
 ): Promise<T> {
 	const url = `${baseUrl}${path}`
 	const res = await corsFetch(url, {
-		origins: Dune.origins,
+		origins: duneOrigins,
 		init: {
 			...init,
 			headers: {

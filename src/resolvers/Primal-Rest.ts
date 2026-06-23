@@ -27,7 +27,7 @@ import { NostrRelaySelector } from '$/schema/NostrRelay.ts'
 import { NostrRepostSelector } from '$/schema/NostrRepost.ts'
 import { NostrReactionSelector } from '$/schema/NostrReaction.ts'
 import { NostrArticleSelector } from '$/schema/NostrArticle.ts'
-import { NostrNetworkSelector } from '$/schema/NostrNetwork.ts'
+import { _GlobalNostrNetworkSelector } from '$/schema/_GlobalNostrNetwork.ts'
 
 
 const normalizePubkey = (value: string | undefined | null) => {
@@ -675,9 +675,9 @@ export default {
 			},
 		}),
 		defineResolver(Source.Primal_Rest, {
-			entityType: EntityType.NostrNetwork,
+			entityType: EntityType._GlobalNostrNetwork,
 			resolve: {
-				[NostrNetworkSelector.Scope]: async () => (
+				[_GlobalNostrNetworkSelector.Scope]: async () => (
 					nostrNetworkSeedProfiles.map((seedProfile) => ({
 						[EntityMetaKey.Selector]: seedProfile,
 					}))
@@ -685,7 +685,7 @@ export default {
 			},
 		})({
 			fields: {
-				$$nostrProfiles: (network) => network,
+				$$sourceWindowProfiles: (network) => network,
 			},
 		}),
 

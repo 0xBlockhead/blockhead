@@ -1,24 +1,17 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum LightningNodeSelector {
 	NetworkPublicKey = 'networkPublicKey',
 }
-import { Source } from '$/sources/Source.ts'
-
 export default {
 	entityType: EntityType.LightningNode,
-
 	label: 'Lightning node',
 	labelPlural: 'Lightning nodes',
-
 	selectors: [
 		{
 			name: LightningNodeSelector.NetworkPublicKey,
@@ -28,122 +21,41 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'publicKey',
+			label: 'public key',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'alias',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.LightningMempoolSpace_Rest,
-				Source.Amboss_Graphql,
-				Source.LightningLnd_Rest,
-			],
-		},
-		{
-			name: 'color',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Amboss_Graphql,
-				Source.LightningLnd_Rest,
-			],
-		},
-		{
-			name: 'capacitySats',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.LightningMempoolSpace_Rest,
-				Source.Amboss_Graphql,
-			],
-		},
-		{
-			name: 'channelCount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.LightningMempoolSpace_Rest,
-				Source.Amboss_Graphql,
-				Source.LightningLnd_Rest,
-			],
-		},
-		{
-			name: 'firstSeenMs',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.LightningMempoolSpace_Rest,
-				Source.Amboss_Graphql,
-			],
-		},
-		{
-			name: 'updatedAtMs',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.LightningMempoolSpace_Rest,
-				Source.Amboss_Graphql,
-			],
-		},
-		{
-			name: 'countryCode',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.LightningMempoolSpace_Rest,
-				Source.Amboss_Graphql,
-			],
-		},
-		{
-			name: 'city',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.LightningMempoolSpace_Rest,
-				Source.Amboss_Graphql,
-			],
-		},
-		{
-			name: 'networkAddresses',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			name: '$$timestamps',
+			label: 'timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.LightningNode_Timestamp,
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.LightningMempoolSpace_Rest,
-				Source.Amboss_Graphql,
-				Source.LightningLnd_Rest,
-			],
 		},
 		{
 			name: '$$channels',
+			label: 'channels',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.LightningChannel,
-			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.LightningMempoolSpace_Rest,
-				Source.LightningLnd_Rest,
-			],
+			cardinality: EntityFieldCardinality.ZeroOrMany,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: '$$localNodeStates',
+			label: 'local node states',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.BlockheadLightningNodeState,
+			cardinality: EntityFieldCardinality.Many,
+		},
+	],
 } as const satisfies EntityDefinition

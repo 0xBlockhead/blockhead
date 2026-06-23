@@ -1,131 +1,66 @@
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { CoinInstanceRepresentation } from '$/constants/Bridge.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
+
 
 	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
+	const listView = {
+		entityType: EntityType.EvmCoinInstance,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
-		title = 'Deployments',
-		open = $bindable(true),
-		collapsible = true,
-		id,
 		selection,
-		representationFilter,
+		title,
+		open = $bindable(true),
+		id = 'EvmCoinInstances',
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EvmCoinInstance>
 			title?: string
 			open?: boolean
-			collapsible?: boolean
-			id: string
-			representationFilter?: CoinInstanceRepresentation
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EvmCoinInstance>
+			id?: string
+			href?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmCoinInstanceView from '$/views/EvmCoinInstanceView.svelte'
 </script>
 
 
-<div data-column="gap-2">
-	<EntitiesList
-		{...EntitiesListProps}
-		bind:open
-	{collapsible}
-		entityType={EntityType.EvmCoinInstance}
-		{id}
-		{title}
-	>
-		{#snippet TypeAnnotationTooltip()}
-			<p>
-				Deployments are concrete representations of this asset on a chain: native currency or a token contract.
-			</p>
-			<p>
-				The same logical coin can exist on many networks; each row is one chain-specific instance.
-			</p>
-		{/snippet}
-
-		{#snippet Empty()}
-			<p data-text="muted">
-				{representationFilter === CoinInstanceRepresentation.BridgeWrapped ?
-					'No bridge-wrapped deployments classified for this coin yet.'
-				:
-					'No deployments yet.'}
-			</p>
-		{/snippet}
-
-		{#snippet body({ open: _bodyOpen })}
-			{#if open}
-				<ResourceBoundary
-					resource={selection({
-							sources: [
-								Source.Constants_Internal,
-								Source.Coingecko_Rest,
-							],
-							fields: {
-								representation: true,
-							},
-							limit: 8192,
-						})}
-					placeholderText="Loading deployments…"
-				>
-					{#snippet children(coinInstances)}
-				<EntitiesList
-					collapsible={false}
-					showSummary={false}
-					entityType={EntityType.EvmCoinInstance}
-					id={`${id}-items`}
-					{title}
-					open={true}
-					getKey={(coinInstance) => stringify(coinInstance.entitySelector)}
-					getSortValue={(coinInstance) => stringify(coinInstance.entitySelector)}
-					placeholderText="Loading deployments…"
-					items={coinInstances.entities.filter((coinInstance) => (
-						representationFilter == null
-						|| coinInstance.representation === representationFilter
-					))}
-					UnorderedListProps={{ orientation: ListOrientation.Column }}
-				>
-					{#snippet Empty()}
-						<p data-text="muted">
-							{representationFilter === CoinInstanceRepresentation.BridgeWrapped ?
-								'No bridge-wrapped deployments classified for this coin yet.'
-							:
-								'No deployments yet.'}
-						</p>
-					{/snippet}
-
-					{#snippet Item({ item })}
-						{@const coinInstanceId = item.entitySelector}
-						<EvmCoinInstanceView
-							selection={select(EntityType.EvmCoinInstance, coinInstanceId)}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/snippet}
-				</EntitiesList>
-					{/snippet}
-				</ResourceBoundary>
-			{/if}
-		{/snippet}
-	</EntitiesList>
-</div>
+<EntitiesList
+	entityType={listView.entityType}
+	{title}
+	bind:open
+	{id}
+	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
+	{...EntitiesListProps}
+>
+	{#snippet Item({ item })}
+		<EvmCoinInstanceView
+			selection={select(EntityType.EvmCoinInstance, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
+	{/snippet}
+</EntitiesList>

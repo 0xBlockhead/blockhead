@@ -1,5 +1,5 @@
 import { corsFetch, throwIfHttpNotOk } from '$/lib/http.ts'
-import Payjoin from '$/sources/Payjoin/index.ts'
+import { payjoinOrigins } from '$/sources/Payjoin/index.ts'
 
 const base = (directoryUrl: string) => directoryUrl.replace(/\/$/, '')
 
@@ -16,7 +16,7 @@ export const getOhttpKeyConfigBase64 = async ({
 	const response = await corsFetch(
 		url,
 		{
-			origins: Payjoin.origins,
+			origins: payjoinOrigins,
 			init: {
 				headers: {
 					accept: 'application/ohttp-keys',

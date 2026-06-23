@@ -1,23 +1,17 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum BittensorBlockSelector {
 	NetworkBlockNumberHash = 'networkBlockNumberHash',
 }
-import { Source } from '$/sources/Source.ts'
-
 export default {
 	entityType: EntityType.BittensorBlock,
-
-	label: 'Bittensor block',
-	labelPlural: 'Bittensor blocks',
-
+	label: 'bittensor block',
+	labelPlural: 'bittensor blocks',
 	selectors: [
 		{
 			name: BittensorBlockSelector.NetworkBlockNumberHash,
@@ -28,64 +22,57 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'blockNumber',
+			label: 'Block number',
+			description: 'The block height or number in its network.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'hash',
+			label: 'Hash',
+			description: 'The hash that identifies this object in its protocol.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Bittensor_JsonRpc,
-			],
 		},
 		{
 			name: '$parent',
+			label: 'parent',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.BittensorBlock,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Bittensor_JsonRpc,
-			],
 		},
 		{
 			name: 'stateRoot',
+			label: 'state root',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Bittensor_JsonRpc,
-			],
 		},
 		{
 			name: 'extrinsicsRoot',
+			label: 'extrinsics root',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Bittensor_JsonRpc,
-			],
 		},
 		{
 			name: 'extrinsicCount',
+			label: 'extrinsic count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Bittensor_JsonRpc,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

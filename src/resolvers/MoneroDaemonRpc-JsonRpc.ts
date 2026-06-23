@@ -3,9 +3,6 @@ import { stringify } from 'devalue'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
-import {
-	moneroMainnetRpcEndpoints,
-} from '$/sources/MoneroDaemonRpc/index.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
@@ -36,6 +33,14 @@ const assertMoneroMainnet = (network: NetworkId) => {
 	if (stringify(network) !== stringify({ caip2: moneroMainnetCaip2 }))
 		throw new Error('MoneroDaemonRpc_JsonRpc: unsupported network')
 }
+
+const moneroMainnetRpcUrl = async (): Promise<string> => (
+	(await moneroMainnetRpcEndpointRows())[0].url
+)
+
+const moneroMainnetRpcEndpointRows = async () => (
+	(await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')).moneroMainnetRpcEndpoints
+)
 
 const moneroTransactionOutputFields = (
 	transaction: MoneroRpcTransaction,
@@ -153,7 +158,7 @@ const getMoneroTransaction = async ({ $network, txHash }: {
 	assertMoneroMainnet($network)
 	const { getTransactions } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
 	const transaction = (await getTransactions({
-		rpcUrl: moneroMainnetRpcEndpoints[0].url,
+		rpcUrl: await moneroMainnetRpcUrl(),
 		txHashes: [txHash],
 	})).txs.at(0)
 	if (transaction == null)
@@ -174,7 +179,7 @@ export default {
 						$network: {
 							[EntityMetaKey.Selector]: $network,
 						},
-						rpcEndpoints: [...moneroMainnetRpcEndpoints],
+						rpcEndpoints: [...await moneroMainnetRpcEndpointRows()],
 					}
 				}
 			},
@@ -192,7 +197,7 @@ export default {
 						assertMoneroMainnet($network)
 						const { getBlock } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
 						const block = await getBlock({
-							rpcUrl: moneroMainnetRpcEndpoints[0].url,
+							rpcUrl: await moneroMainnetRpcUrl(),
 							height: height,
 						})
 						return {
@@ -231,7 +236,7 @@ export default {
 						assertMoneroMainnet($network)
 						const { getBlock } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
 					const block = await getBlock({
-						rpcUrl: moneroMainnetRpcEndpoints[0].url,
+						rpcUrl: await moneroMainnetRpcUrl(),
 						height: height,
 					})
 					return {
@@ -399,13 +404,14 @@ export default {
 					assertMoneroMainnet($network)
 					const { getInfo } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
 					const info = await getInfo({
-						rpcUrl: moneroMainnetRpcEndpoints[0].url,
+						rpcUrl: await moneroMainnetRpcUrl(),
 					})
 					return [
 						{
 							[EntityMetaKey.Selector]: {
 								$network: $network,
 								timestampMs: Date.now(),
+								source: Source.MoneroDaemonRpc_JsonRpc,
 							},
 							height: BigInt(info.height),
 							targetHeight: BigInt(info.target_height),
@@ -471,7 +477,7 @@ export default {
 					assertMoneroMainnet($network)
 					const { getInfo } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
 					const info = await getInfo({
-						rpcUrl: moneroMainnetRpcEndpoints[0].url,
+						rpcUrl: await moneroMainnetRpcUrl(),
 					})
 					const headBlockHeight = BigInt(info.height - 1)
 					return Array.from({

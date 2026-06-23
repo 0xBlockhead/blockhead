@@ -2,15 +2,88 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'transaction',
+			},
+			{
+				label: 'peg-out index',
+			},
+			{
+				label: 'transparent output',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'transaction',
+					},
+					{
+						label: 'peg-out index',
+					},
+					{
+						label: 'transparent output',
+					},
+					{
+						label: 'amount in litoshis',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Transaction',
+					items: [
+						{
+							label: 'parent MWEB transaction',
+						},
+					],
+				},
+				{
+					label: 'Transparent output',
+					items: [
+						{
+							label: 'linked transparent UTXO output',
+						},
+					],
+				},
+				{
+					label: 'Wallet context',
+					items: [
+						{
+							label: 'connected wallet ownership only through BlockheadLitecoinMwebWalletState',
+						},
+					],
+				},
+				{
+					label: 'Amount',
+					items: [
+						{
+							label: 'peg-out accounting context',
+						},
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'Litecoin Core MWEB peg-out payload',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +94,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,51 +102,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.LitecoinMwebPegOut}
 	entitySelector={selection.entitySelector}
-	title={`MWEB Peg-out #${selection.entitySelector.pegOutIndex.toString()}`}
-	idDragPlainText={selection.entitySelector.pegOutIndex.toString()}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Value()}
-		<span data-badge="small">
-			#{selection.entitySelector.pegOutIndex.toString()}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>MWEB Peg-out </span>
-			{#if Value}
-			{@render Value()}
-					{/if}
-		</span>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection( { fields: { amountLitoshis: true } })}
-			placeholderText={`Loading Litecoin MWEB Peg-out...`}
-		>
-			{#snippet children(litecoinMwebPegOut)}
-				<dl>
-					{#if litecoinMwebPegOut.amountLitoshis != null}
-						<div>
-							<dt>Amount Litoshis</dt>
-							<dd><NumberValue value={litecoinMwebPegOut.amountLitoshis} /> litoshis</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

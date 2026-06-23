@@ -1,32 +1,18 @@
 import { type } from 'arktype'
-import { lowercaseHexIdentityValue } from '$/schema/ZeroExHex.ts'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum NostrRepostSelector {
 	CanonicalEventId = 'canonicalEventId',
+	EventId = 'eventId',
 }
-
-
-const NostrEventId = type(
-	'/^[0-9a-f]{64}$/' as type.cast<string>
-)
-
-const NostrPubkey = type(
-	'/^[0-9a-f]{64}$/' as type.cast<string>
-)
-
 export default {
 	entityType: EntityType.NostrRepost,
-
 	label: 'Nostr repost',
 	labelPlural: 'Nostr reposts',
-
 	selectors: [
 		{
 			name: NostrRepostSelector.CanonicalEventId,
@@ -35,61 +21,70 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: 'eventId',
+			label: 'event ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: NostrEventId,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'kind',
+			label: 'kind',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'pubkey',
+			label: 'public key',
 			type: EntityFieldType.Primitive,
-			primitiveType: NostrPubkey,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'createdAt',
+			label: 'Created',
+			description: 'The time when the subject was created according to the source.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'tags',
+			label: 'tags',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string[][]'),
+			primitiveType: type("string[][]"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'repostedEventId',
+			label: 'reposted event ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: NostrEventId,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$author',
+			label: 'author',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.NostrProfile,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$repostedNote',
+			label: 'reposted note',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.NostrNote,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$repostedArticle',
+			label: 'reposted article',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.NostrArticle,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

@@ -1,112 +1,66 @@
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
+	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import type { ComponentProps } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
+	const listView = {
+		entityType: EntityType.EvmActorCoinAllowance,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
 		selection,
-		title = 'Allowances',
+		title,
 		open = $bindable(true),
-		collapsible = true,
+		id = 'EvmActorCoinAllowances',
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EvmActorCoinAllowance>
 			title?: string
 			open?: boolean
-			collapsible?: boolean
+			id?: string
+			href?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'id'
-			| 'CollapsibleProps'
-		>
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmActorCoinAllowanceView from '$/views/EvmActorCoinAllowanceView.svelte'
 </script>
 
 
 <EntitiesList
-	entityType={EntityType.EvmActorCoinAllowance}
+	entityType={listView.entityType}
 	{title}
 	bind:open
-	{collapsible}
+	{id}
+	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			ERC-20 token approvals (allowances) give a spender permission to transfer up to a
-			specified amount of a token on the owner's behalf.
-		</p>
-		<p>
-			Explorers do not index every historical <code>Approval</code> event, so allowances
-			must be checked on-chain per token-spender pair when the spender address is known.
-		</p>
-	{/snippet}
-
-	{#snippet Empty()}
-		<p data-text="muted">
-			No allowances indexed for this wallet yet. Check individual token-spender pairs via an execution RPC.
-		</p>
-	{/snippet}
-
-	{#snippet body({ open: _bodyOpen })}
-		{#if open}
-			<ResourceBoundary
-				resource={selection}
-				placeholderText={`Loading ${title.toLowerCase()}…`}
-			>
-				{#snippet children(allowances)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.EvmActorCoinAllowance}
-				{title}
-				open={true}
-				data-entity-field-name={selection.fieldName}
-				data-entity-field-type={selection.entityType}
-				data-entity-field-parent={stringify(selection.entitySelector)}
-				getKey={(allowance) => stringify(allowance.entitySelector)}
-				getSortValue={(allowance) => stringify(allowance.entitySelector)}
-				placeholderKeys={new SvelteSet<string>()}
-				placeholderText={`Loading ${title.toLowerCase()}…`}
-				items={allowances.entities}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No allowances for this wallet yet.
-					</p>
-				{/snippet}
-
-				{#snippet Item({ item })}
-					{@const id = item.entitySelector}
-					<EvmActorCoinAllowanceView
-						selection={select(EntityType.EvmActorCoinAllowance, id)}
-						layout={EntityLayout.Summary}
-
-					/>
-				{/snippet}
-			</EntitiesList>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+	{#snippet Item({ item })}
+		<EvmActorCoinAllowanceView
+			selection={select(EntityType.EvmActorCoinAllowance, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

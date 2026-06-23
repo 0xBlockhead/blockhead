@@ -1,49 +1,79 @@
 <script lang="ts">
 	// Types/constants
+	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'stack id',
+			},
+			'label',
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'stack id',
+					},
+					'label',
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Networks',
+					items: [
+						{
+							label: 'Network rows classified with this stack',
+						},
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'checked-in stack catalog',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
-		layout = EntityLayout.SummaryDetails,
-		open = $bindable(layout === EntityLayout.SummaryDetails),
-	}: {
-		selection: EntityProxyResource<typeof schema, EntityType.NetworkStack>
-		layout?: EntityLayout
-		open?: boolean
-	} = $props()
+		open = $bindable(true),
+		...EntityViewProps
+	}: WithRest<
+		{
+			selection: EntityProxyResource<typeof schema, EntityType.NetworkStack>
+			open?: boolean
+		},
+		Pick<
+			ComponentProps<typeof EntityView2>,
+			| 'layout'
+			| 'showTypeAnnotation'
+		>
+	> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.NetworkStack}
 	entitySelector={selection.entitySelector}
 	bind:open
-	{layout}
->
-
-	{#snippet Title()}
-		<ResourceBoundary
-			resource={selection( { sources: [
-				Source.Constants_Internal,
-			], fields: { label: true } })}
-		>
-			{#snippet children(stack)}
-				{stack.label}
-			{/snippet}
-		</ResourceBoundary>
-
-	{/snippet}
-</EntityView>
+	{...EntityViewProps}
+	{view}
+/>

@@ -1,24 +1,18 @@
 import { type } from 'arktype'
-import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum MevRelay_ProposerPayloadDeliveredSelector {
 	EvmNetworkRelayHostSlotBlockHash = 'evmNetworkRelayHostSlotBlockHash',
+	NetworkRelayHostSlotBlockHash = '$network+relayHost+slot+blockHash',
 }
-
 export default {
 	entityType: EntityType.MevRelay_ProposerPayloadDelivered,
-
-	label: 'MEV relay proposer payload delivered',
-	labelPlural: 'MEV relay proposer payloads delivered',
-
+	label: 'mev relay proposer payload delivered',
+	labelPlural: 'mev relay proposer payload delivereds',
 	selectors: [
 		{
 			name: MevRelay_ProposerPayloadDeliveredSelector.EvmNetworkRelayHostSlotBlockHash,
@@ -30,67 +24,72 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'relayHost',
+			label: 'relay host',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'slot',
+			label: 'slot',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'blockHash',
+			label: 'Block hash',
+			description: 'The hash that identifies the block in its network.',
 			type: EntityFieldType.Primitive,
-			primitiveType: ZeroExHex,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'builderPubkey',
+			label: 'builder public key',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MevRelay_Rest,
-			],
+		},
+		{
+			name: '$builder',
+			label: 'builder',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.MevBuilder,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'value',
+			label: 'Value',
+			description: 'The source-domain value.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MevRelay_Rest,
-			],
 		},
 		{
 			name: 'blockNumber',
+			label: 'Block number',
+			description: 'The block height or number in its network.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MevRelay_Rest,
-			],
 		},
 		{
 			name: '$executionBlock',
+			label: 'execution block',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmBlock,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MevRelay_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

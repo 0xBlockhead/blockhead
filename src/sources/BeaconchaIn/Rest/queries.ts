@@ -1,14 +1,13 @@
 import { getJson } from '$/lib/http.ts'
-import { Source } from '$/sources/Source.ts'
-import BeaconchaIn from '$/sources/BeaconchaIn/index.ts'
+import { beaconchaInOrigins } from '$/sources/BeaconchaIn/index.ts'
 import type {
 	BeaconchaInEpoch,
 	BeaconchaInResponse,
 } from '$/sources/BeaconchaIn/Rest/types.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 
 export const getEpoch = async (
-	publicEnv: SourcePublicEnvFor<Source.BeaconchaIn_Rest>,
+	publicEnv: SourcePublicEnv,
 	{
 		apiBase,
 		epoch,
@@ -20,7 +19,7 @@ export const getEpoch = async (
 	const wire = await getJson<BeaconchaInResponse<BeaconchaInEpoch>>(
 		`${apiBase.replace(/\/$/, '')}/epoch/${String(epoch)}`,
 		{
-			origins: BeaconchaIn.origins,
+			origins: beaconchaInOrigins,
 			init: {
 				headers: {
 					Authorization: `Bearer ${publicEnv.PUBLIC_BEACONCHAIN_API_KEY}`,

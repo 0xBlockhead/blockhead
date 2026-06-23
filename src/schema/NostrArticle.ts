@@ -1,29 +1,18 @@
 import { type } from 'arktype'
-import { lowercaseHexIdentityValue } from '$/schema/ZeroExHex.ts'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { UrlString } from '$/schema/UrlString.ts'
-
 export enum NostrArticleSelector {
 	CanonicalCoordinate = 'canonicalCoordinate',
+	KindPubkeyIdentifier = 'kind+pubkey+identifier',
 }
-
-
-const NostrPubkey = type(
-	'/^[0-9a-f]{64}$/' as type.cast<string>
-)
-
 export default {
 	entityType: EntityType.NostrArticle,
-
 	label: 'Nostr article',
 	labelPlural: 'Nostr articles',
-
 	selectors: [
 		{
 			name: NostrArticleSelector.CanonicalCoordinate,
@@ -34,67 +23,76 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: 'pubkey',
+			label: 'public key',
 			type: EntityFieldType.Primitive,
-			primitiveType: NostrPubkey,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'identifier',
+			label: 'identifier',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'kind',
+			label: 'kind',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'title',
+			label: 'title',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'summary',
+			label: 'summary',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'imageUrl',
+			label: 'image URL',
 			type: EntityFieldType.Primitive,
-			primitiveType: UrlString,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'content',
+			label: 'content',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'publishedAt',
+			label: 'published AT',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'tags',
+			label: 'tags',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string[][]'),
+			primitiveType: type("string[][]"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$author',
+			label: 'author',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.NostrProfile,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

@@ -33,7 +33,6 @@ import { _GlobalSelector } from '$/schema/_Global.ts'
 import { CoinSelector } from '$/schema/Coin.ts'
 import { Market_TimestampSelector } from '$/schema/Market_Timestamp.ts'
 import { Market_TimeInterval_TimestampSelector } from '$/schema/Market_TimeInterval_Timestamp.ts'
-import { MarketVenueSelector } from '$/schema/MarketVenue.ts'
 import { CurrencySelector } from '$/schema/Currency.ts'
 import { MarketSelector } from '$/schema/Market.ts'
 import { MarketPriceSelector } from '$/schema/MarketPrice.ts'
@@ -285,12 +284,12 @@ export default {
 			entityType: EntityType._Global,
 			resolve: {
 				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => {
-					const { coinById } = await import('$/constants/Coin.ts')
+					const { CoinId, coinById } = await import('$/constants/Coin.ts')
 					const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
 					return (
-						Object.entries(idByCoinId)
-							.filter(([coinId]) => coinId in coinById)
-							.map(([coinId]) => (
+						Object.values(CoinId)
+							.filter((coinId) => idByCoinId[coinId] != null && coinId in coinById)
+							.map((coinId) => (
 							{
 								[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[coinId]),
 							}
@@ -307,62 +306,58 @@ export default {
 		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => {
-					const { coinById } = await import('$/constants/Coin.ts')
+				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => {
+					const { CoinId, coinById } = await import('$/constants/Coin.ts')
 					const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
+					const { getTickerById } = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
+					const lim = resolverContextRowLimit(context)
 					return (
-						Object.entries(idByCoinId)
-							.filter(([coinId]) => coinId in coinById)
-							.map(([coinId]) => (
-							{
-								[EntityMetaKey.Selector]: {
-									$market: marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[coinId]),
-								},
-							}
-							))
+						(await Promise.all(
+							Object.values(CoinId)
+								.filter((coinId) => idByCoinId[coinId] != null && coinId in coinById)
+								.slice(0, lim)
+								.map(async (coinId) => {
+									const coinpaprikaId = idByCoinId[coinId]
+									if (coinpaprikaId == null)
+										return []
+									const ticker = await getTickerById({
+										publicEnv: context.publicEnv,
+										coinpaprikaId,
+									})
+									const updatedAtMs = (
+										ticker.last_updated == null || ticker.last_updated === '' ?
+											NaN
+										:
+											Date.parse(ticker.last_updated)
+									)
+									if (!Number.isFinite(updatedAtMs))
+										return []
+									return [
+										{
+											[EntityMetaKey.Selector]: {
+												$market: marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[coinId]),
+												timestampMs: updatedAtMs,
+												feedKey: coinpaprikaId,
+											},
+										},
+									]
+								})
+						)).flat()
 					)
 				}
 			},
 		})({
 			fields: {
-				$$marketPrices: (globalScope) => globalScope,
+				$$marketQuotes: (globalScope) => globalScope,
 			},
 		}),
 
-		defineResolver(Source.Coinpaprika_OpenApi, {
-			entityType: EntityType.MarketVenue,
-			resolve: {
-				[MarketVenueSelector.MarketVenueId]: async ({ marketVenueId }, context) => {
-					const { collectMarketEntitySelectorsForExchange } = await import(
-						'$/sources/Coinpaprika/OpenApi/queries.ts'
-					)
-					const lim = resolverContextRowLimit(context)
-					const marketIds = await collectMarketEntitySelectorsForExchange({
-						publicEnv: context.publicEnv,
-						marketVenueId: marketVenueId,
-					})
-					return (
-						marketIds
-							.slice(0, lim)
-							.map((marketId) => (
-							{
-								[EntityMetaKey.Selector]: marketId,
-							}
-							))
-					)
-				}
-			},
-		})({
-			fields: {
-				$$markets: (marketVenue) => marketVenue,
-			},
-		}),
 
 		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType.Coin,
-			resolve: {
-				[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>, context) => {
-					const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
+				resolve: {
+					[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>, context) => {
+						const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
 					const { collectMarketEntitySelectorsForCoin } = await import(
 						'$/sources/Coinpaprika/OpenApi/queries.ts'
 					)
@@ -395,13 +390,11 @@ export default {
 
 		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType.Coin,
-			resolve: {
-				[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>, context) => {
-					const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
-					if (idByCoinId[coinId] == null)
-						return []
-					const lim = resolverContextRowLimit(context)
-					return (
+				resolve: {
+					[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>, context) => {
+						const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
+						const lim = resolverContextRowLimit(context)
+						return (
 						catalogSpotMarketsWithCoinAsQuote
 							.filter((catalogMarket) => catalogMarket.quoteCoinId === coinId)
 							.map(marketSelectorFromCatalogCoinCoinMarket)
@@ -590,7 +583,7 @@ export default {
 		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: {
-				[Market_TimeInterval_TimestampSelector.MarketTimeIntervalTimestampMs]: async ({ $market }: EntitySelector<typeof schema, EntityType.Market_TimeInterval_Timestamp>) => (
+				[Market_TimeInterval_TimestampSelector.MarketTimeIntervalTimestampMs]: async ({ $market }) => (
 					{
 						[EntityMetaKey.Selector]: $market,
 					}

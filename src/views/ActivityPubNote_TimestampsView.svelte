@@ -1,86 +1,66 @@
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
+	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
+	const listView = {
+		entityType: EntityType.ActivityPubNote_Timestamp,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
 		selection,
-		href,
-		id,
-		title = 'Metric snapshots',
-		open = $bindable(false),
-		sources = [
-			Source.Mastodon_Rest,
-			Source.Fedi_Rest,
-		],
-	}: {
-		selection: EntityProxyEntitiesResource<typeof schema, EntityType.ActivityPubNote_Timestamp>
-		href: string
-		id: string
-		title?: string
-		open?: boolean
-		sources?: readonly Source[]
-	} = $props()
+		title,
+		open = $bindable(true),
+		id = 'ActivityPubNote_Timestamps',
+		href = '',
+		...EntitiesListProps
+	}: WithRest<
+		{
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.ActivityPubNote_Timestamp>
+			title?: string
+			open?: boolean
+			id?: string
+			href?: string
+		},
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
+	> = $props()
 
 
 	// Components
-	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ActivityPubNote_TimestampView from '$/views/ActivityPubNote_TimestampView.svelte'
 </script>
 
 
 <EntitiesList
-	entityType={EntityType.ActivityPubNote_Timestamp}
-	{href}
-	{id}
-	bind:open
+	entityType={listView.entityType}
 	{title}
+	bind:open
+	{id}
+	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
+	{...EntitiesListProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Timestamped social metric snapshots captured from provider-visible counters.
-		</p>
-	{/snippet}
-
-	{#snippet body()}
-		{#if open}
-			<ResourceBoundary
-				resource={selection({
-						sources: sources,
-						limit: 64,
-					})}
-				placeholderText="Loading metric snapshots…"
-			>
-				{#snippet children(activityPubNoteTimestamps)}
-					<EntitiesList
-						collapsible={false}
-						showSummary={false}
-						entityType={EntityType.ActivityPubNote_Timestamp}
-						id={`${id}-items`}
-						href={href}
-						open={true}
-						items={activityPubNoteTimestamps.entities}
-					>
-						{#snippet Item({ item })}
-							<ActivityPubNote_TimestampView
-								selection={select(EntityType.ActivityPubNote_Timestamp, item.entitySelector)}
-								{href}
-								layout={EntityLayout.Summary}
-
-								showTypeAnnotation={false}
-							/>
-						{/snippet}
-					</EntitiesList>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+	{#snippet Item({ item })}
+		<ActivityPubNote_TimestampView
+			selection={select(EntityType.ActivityPubNote_Timestamp, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

@@ -1,23 +1,30 @@
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
+	const listView = {
+		entityType: EntityType.SolanaNetwork_Timestamp,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
 		selection,
-		title = 'Network snapshots',
+		title,
 		open = $bindable(true),
-		id,
+		id = 'SolanaNetwork_Timestamps',
 		href = '',
 		...EntitiesListProps
 	}: WithRest<
@@ -25,71 +32,35 @@
 			selection: EntityProxyEntitiesResource<typeof schema, EntityType.SolanaNetwork_Timestamp>
 			title?: string
 			open?: boolean
-			id: string
+			id?: string
 			href?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'CollapsibleProps'
-		>
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import SolanaNetwork_TimestampView from '$/views/SolanaNetwork_TimestampView.svelte'
 </script>
 
 
 <EntitiesList
-	entityType={EntityType.SolanaNetwork_Timestamp}
+	entityType={listView.entityType}
 	{title}
 	bind:open
 	{id}
 	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Network snapshots capture observed Solana state such as absolute slot, epoch, block height, transaction count, stake, and node health at a resolver timestamp.
-		</p>
-	{/snippet}
-
-	{#snippet body()}
-		{#if open}
-			<ResourceBoundary resource={selection({
-					sources: [Source.Solana_JsonRpc],
-					limit: 16,
-				})} placeholderText="Loading network snapshots…">
-				{#snippet children(timestamps)}
-					<EntitiesList
-						collapsible={false}
-						showSummary={false}
-						entityType={EntityType.SolanaNetwork_Timestamp}
-						id={`${id}-items`}
-						href={href}
-						getKey={(timestamp) => stringify(timestamp.entitySelector)}
-						getSortValue={(timestamp) => -timestamp.entitySelector.timestampMs}
-						open={true}
-						items={timestamps.values}
-						{title}
-						UnorderedListProps={{ orientation: ListOrientation.Column }}
-					>
-						{#snippet Empty()}
-							<p data-text="muted">No network snapshots yet.</p>
-						{/snippet}
-						{#snippet Item({ item })}
-							<SolanaNetwork_TimestampView
-								selection={select(EntityType.SolanaNetwork_Timestamp, item.entitySelector)}
-								layout={EntityLayout.Summary}
-
-							/>
-						{/snippet}
-					</EntitiesList>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+	{#snippet Item({ item })}
+		<SolanaNetwork_TimestampView
+			selection={select(EntityType.SolanaNetwork_Timestamp, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

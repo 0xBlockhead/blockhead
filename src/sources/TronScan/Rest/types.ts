@@ -95,6 +95,8 @@ export type TronScanToken = {
 	symbol?: string
 	precision?: number
 	decimals?: number
+	balance?: number | string
+	balanceStr?: string
 	totalSupply?: number | string
 	total_supply?: number | string
 	ownerAddress?: string

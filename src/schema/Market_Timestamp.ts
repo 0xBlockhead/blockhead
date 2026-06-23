@@ -1,24 +1,18 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Market from '$/schema/Market.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum Market_TimestampSelector {
 	MarketTimestampMsFeedKey = 'marketTimestampMsFeedKey',
 }
-
 export default {
 	entityType: EntityType.Market_Timestamp,
-
-	label: 'Market quote',
-	labelPlural: 'Market quotes',
-
+	label: 'market timestamp',
+	labelPlural: 'market observations',
+	description: 'A point-in-time market quote or metric observation.',
 	selectors: [
 		{
 			name: Market_TimestampSelector.MarketTimestampMsFeedKey,
@@ -29,71 +23,70 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$market',
+			label: 'market',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Market,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'feedKey',
+			label: 'feed key',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'price',
+			label: 'price',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Blockscout_Rest,
-				Source.Coingecko_Rest,
-				Source.Coingecko_OpenApi,
-				Source.CoinMarketCap_Rest,
-				Source.Coinpaprika_OpenApi,
-				Source.Defillama_OpenApi,
-				Source.Defillama_Rest,
-				Source.TradingView_Rest,
-			],
 		},
 		{
 			name: 'transport',
+			label: 'transport',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'providerAssetId',
+			label: 'provider asset ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string | null'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'marketCap',
+			label: 'market cap',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'volume24h',
+			label: 'volume24h',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'caip19',
+			label: 'caip19',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

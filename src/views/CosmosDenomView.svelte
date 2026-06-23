@@ -2,15 +2,66 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			'denom',
+			'display',
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					'denom',
+					'display',
+					'base',
+					'symbol',
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Network',
+					items: [
+						{
+							label: 'parent Cosmos network',
+						},
+					],
+				},
+				{
+					label: 'Asset metadata',
+					items: [
+						{
+							label: 'asset instance/class link when Cosmos Chain Registry asset metadata resolves',
+						},
+					],
+				},
+				{
+					label: 'Bank state',
+					items: [
+						{
+							label: 'account balance snapshots',
+						},
+						{
+							label: 'supply observations when modeled',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +72,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,54 +80,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.CosmosDenom}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.denom}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		{selection.entitySelector.denom.toString()}
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection(
-					({ fields: { display: true, base: true, symbol: true } }),
-				)}
-			placeholderText={`Loading Cosmos Denom...`}
-		>
-			{#snippet children(cosmosDenom)}
-				<dl>
-					{#if cosmosDenom.display != null}
-						<div>
-							<dt>Display</dt>
-							<dd>{cosmosDenom.display}</dd>
-						</div>
-					{/if}
-
-					{#if cosmosDenom.base != null}
-						<div>
-							<dt>Base</dt>
-							<dd>{cosmosDenom.base}</dd>
-						</div>
-					{/if}
-
-					{#if cosmosDenom.symbol != null}
-						<div>
-							<dt>Symbol</dt>
-							<dd>{cosmosDenom.symbol}</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

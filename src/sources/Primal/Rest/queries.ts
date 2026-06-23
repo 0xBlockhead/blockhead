@@ -6,8 +6,7 @@ import type {
 	PrimalSearchUsers,
 	PrimalTimelineEvents,
 } from '$/sources/Primal/Rest/types.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import { Source } from '$/sources/Source.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 
 const clampPrimalLimit = (limit: number) => (
 	Math.min(1000, Math.max(1, limit))
@@ -40,7 +39,7 @@ const profileTimelinePost = (
  * GET /v1/profile/{id}
  */
 export const getProfile = async (
-	_publicEnv: SourcePublicEnvFor<Source.Primal_Rest>,
+	_publicEnv: SourcePublicEnv,
 	pubkeyOrNpub: string
 ) => (
 	primalGet<PrimalProfile>(`/profile/${encodeProfileId(pubkeyOrNpub)}`)
@@ -50,7 +49,7 @@ export const getProfile = async (
  * POST /v1/timeline/profile/notes
  */
 export const getProfileNotes = async (
-	_publicEnv: SourcePublicEnvFor<Source.Primal_Rest>,
+	_publicEnv: SourcePublicEnv,
 	pubkey: string,
 	limit: number
 ) => (
@@ -61,7 +60,7 @@ export const getProfileNotes = async (
  * POST /v1/timeline/profile/reposts
  */
 export const getProfileReposts = async (
-	_publicEnv: SourcePublicEnvFor<Source.Primal_Rest>,
+	_publicEnv: SourcePublicEnv,
 	pubkey: string,
 	limit: number
 ) => (
@@ -72,7 +71,7 @@ export const getProfileReposts = async (
  * POST /v1/timeline/profile/articles
  */
 export const getProfileArticles = async (
-	_publicEnv: SourcePublicEnvFor<Source.Primal_Rest>,
+	_publicEnv: SourcePublicEnv,
 	pubkey: string,
 	limit: number
 ) => (
@@ -83,7 +82,7 @@ export const getProfileArticles = async (
  * POST /v1/timeline/thread
  */
 export const getNoteThread = async (
-	_publicEnv: SourcePublicEnvFor<Source.Primal_Rest>,
+	_publicEnv: SourcePublicEnv,
 	eventId: string,
 	limit: number
 ) => (
@@ -95,7 +94,7 @@ export const getNoteThread = async (
 
 /** POST /v1/timeline/event/actions — kind-1 direct replies for a note. */
 export const getNoteReplies = async (
-	_publicEnv: SourcePublicEnvFor<Source.Primal_Rest>,
+	_publicEnv: SourcePublicEnv,
 	eventId: string,
 	limit: number
 ) => (
@@ -110,7 +109,7 @@ export const getNoteReplies = async (
  * POST /v1/timeline/event/actions — kind-7 reactions for a note.
  */
 export const getNoteReactions = async (
-	_publicEnv: SourcePublicEnvFor<Source.Primal_Rest>,
+	_publicEnv: SourcePublicEnv,
 	eventId: string,
 	limit: number
 ) => (
@@ -125,7 +124,7 @@ export const getNoteReactions = async (
  * POST /v1/search/events
  */
 export const searchEvents = async (
-	_publicEnv: SourcePublicEnvFor<Source.Primal_Rest>,
+	_publicEnv: SourcePublicEnv,
 	query: string,
 	limit: number,
 	kinds?: readonly number[]
@@ -141,7 +140,7 @@ export const searchEvents = async (
  * POST /v1/search/events — kind-7 reactions referencing an event (NIP-50-style `#e`).
  */
 export const searchEventReactions = async (
-	_publicEnv: SourcePublicEnvFor<Source.Primal_Rest>,
+	_publicEnv: SourcePublicEnv,
 	eventId: string,
 	limit: number
 ) => (
@@ -156,7 +155,7 @@ export const searchEventReactions = async (
  * POST /v1/search/users
  */
 export const searchUsers = async (
-	_publicEnv: SourcePublicEnvFor<Source.Primal_Rest>,
+	_publicEnv: SourcePublicEnv,
 	query: string,
 	limit: number
 ) => (
@@ -170,7 +169,7 @@ export const searchUsers = async (
  * GET /v1/events/{id}
  */
 export const getEventById = async (
-	_publicEnv: SourcePublicEnvFor<Source.Primal_Rest>,
+	_publicEnv: SourcePublicEnv,
 	eventId: string
 ) => (
 	primalGet<PrimalEventById>(`/events/${encodeURIComponent(normalizeEventId(eventId))}`)

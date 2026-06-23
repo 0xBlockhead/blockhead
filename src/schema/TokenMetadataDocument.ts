@@ -1,0 +1,145 @@
+import { type } from 'arktype'
+import {
+	EntityFieldCardinality,
+	EntityFieldType,
+	type EntityDefinition,
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+export enum TokenMetadataDocumentSelector {
+	MetadataSubjectKeyMetadataKeyTimestampMsSource = 'metadataSubjectKey+metadataKey+timestampMs+source',
+}
+export default {
+	entityType: EntityType.TokenMetadataDocument,
+	label: 'token metadata document',
+	labelPlural: 'token metadata documents',
+	selectors: [
+		{
+			name: TokenMetadataDocumentSelector.MetadataSubjectKeyMetadataKeyTimestampMsSource,
+			fields: [
+				'metadataSubjectKey',
+				'metadataKey',
+				'timestampMs',
+				'source',
+			],
+		},
+	],
+	fields: [
+		{
+			name: 'metadataSubjectKey',
+			label: 'metadata subject key',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: '$assetInstance',
+			label: 'asset instance',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.AssetInstance,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: '$object',
+			label: 'object',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.AssetObject,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'metadataKey',
+			label: 'metadata key',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'source',
+			label: 'Source',
+			description: 'The source that produced this observation.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'uri',
+			label: 'URI',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'contentHash',
+			label: 'content hash',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'name',
+			label: 'Name',
+			description: 'The human-readable name of the subject.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'symbol',
+			label: 'Symbol',
+			description: 'The short ticker or symbol used for display.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'description',
+			label: 'Description',
+			description: 'A human-readable description from the source domain.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'attributes',
+			label: 'attributes',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("unknown"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'mutable',
+			label: 'mutable',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("boolean"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'metadataStandard',
+			label: 'metadata standard',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'mediaUrl',
+			label: 'media URL',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$media',
+			label: 'media',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Media,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+	],
+} as const satisfies EntityDefinition

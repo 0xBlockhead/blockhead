@@ -2,16 +2,71 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			{
+				label: 'program id',
+			},
+			'name',
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					{
+						label: 'program id',
+					},
+					'name',
+					{
+						label: 'program account',
+					},
+					{
+						label: 'upgrade authority',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Program account',
+					items: [
+						{
+							label: 'executable Solana account',
+						},
+					],
+				},
+				{
+					label: 'Upgrade authority',
+					items: [
+						{
+							label: 'upgrade authority account',
+						},
+					],
+				},
+				{
+					label: 'Instructions',
+					items: [
+						{
+							label: 'instructions when reached from transactions',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -22,7 +77,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -30,71 +85,15 @@
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import SolanaAccountView from '$/views/SolanaAccountView.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.SolanaProgram}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.programId}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		<TruncatedValue
-			value={selection.entitySelector.programId}
-			format={TruncatedValueFormat.Abbr}
-		/>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection( { fields: { name: true, $programAccount: true, $upgradeAuthority: true } })}
-			placeholderText={`Loading Solana Program...`}
-		>
-			{#snippet children(solanaProgram)}
-				<dl>
-					{#if solanaProgram.name != null}
-						<div>
-							<dt>Name</dt>
-							<dd>{solanaProgram.name}</dd>
-						</div>
-					{/if}
-
-					{#if solanaProgram.$programAccount}
-						<div>
-							<dt>Program account</dt>
-							<dd>
-								<SolanaAccountView
-									selection={select(EntityType.SolanaAccount, solanaProgram.$programAccount[EntityMetaKey.Selector])}
-									layout={EntityLayout.Title}
-
-									open={false}
-									/>
-							</dd>
-						</div>
-					{/if}
-
-					{#if solanaProgram.$upgradeAuthority}
-						<div>
-							<dt>Upgrade authority</dt>
-							<dd>
-								<SolanaAccountView
-									selection={select(EntityType.SolanaAccount, solanaProgram.$upgradeAuthority[EntityMetaKey.Selector])}
-									layout={EntityLayout.Title}
-
-									open={false}
-									/>
-							</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

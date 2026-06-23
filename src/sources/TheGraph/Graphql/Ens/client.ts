@@ -3,8 +3,7 @@ import {
 	type TadaDocumentNode,
 } from 'gql.tada'
 
-import { Source } from '$/sources/Source.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import { queryTheGraph } from '$/sources/TheGraph/Graphql/client.ts'
 
 import type { introspection } from './graphql-env.d.ts'
@@ -19,7 +18,7 @@ export const queryEns = async <
 	_Result extends object,
 	_Variables extends object,
 >(
-	publicEnv: SourcePublicEnvFor<Source.TheGraph_Graphql>,
+	publicEnv: SourcePublicEnv,
 	document: TadaDocumentNode<_Result, _Variables>,
 	variables?: _Variables
 ) => (

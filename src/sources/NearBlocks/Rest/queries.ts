@@ -1,10 +1,33 @@
 import { getJson } from '$/lib/http.ts'
-import NearBlocks from '$/sources/NearBlocks/index.ts'
+import { TransportType } from '$/constants/TransportType.ts'
+import { nearBlocksBindings } from '$/sources/NearBlocks/bindings.ts'
 import type {
 	NearBlocksAccountResponse,
 	NearBlocksBlockResponse,
 	NearBlocksTransactionResponse,
 } from '$/sources/NearBlocks/Rest/types.ts'
+
+export const nearBlocksMainnetRestEndpoints = [
+	{
+		url: nearBlocksBindings[0].endpoints[0].locator,
+		transportType: TransportType.Http,
+		providerName: 'NearBlocks',
+	},
+] as const
+
+export const nearBlocksOrigins = [
+	...new Map(
+		nearBlocksBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 const base = (restBaseUrl: string) => restBaseUrl.replace(/\/$/, '')
 
@@ -17,7 +40,7 @@ export const getAccount = ({
 }) => (
 	getJson<NearBlocksAccountResponse>(
 		`${base(restBaseUrl)}/v1/account/${encodeURIComponent(accountId)}`,
-		{ origins: NearBlocks.origins  }
+		{ origins: nearBlocksOrigins }
 	)
 )
 
@@ -30,7 +53,7 @@ export const getBlock = ({
 }) => (
 	getJson<NearBlocksBlockResponse>(
 		`${base(restBaseUrl)}/v1/blocks/${encodeURIComponent(String(block))}`,
-		{ origins: NearBlocks.origins  }
+		{ origins: nearBlocksOrigins }
 	)
 )
 
@@ -43,6 +66,6 @@ export const getTransaction = ({
 }) => (
 	getJson<NearBlocksTransactionResponse>(
 		`${base(restBaseUrl)}/v1/txns/${encodeURIComponent(transactionHash)}`,
-		{ origins: NearBlocks.origins  }
+		{ origins: nearBlocksOrigins }
 	)
 )

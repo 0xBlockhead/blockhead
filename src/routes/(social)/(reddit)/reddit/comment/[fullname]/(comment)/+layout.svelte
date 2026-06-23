@@ -1,6 +1,8 @@
 <script lang="ts">
+	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { select } from '$/routes/+layout.svelte'
+
+
 	// Context
 	import { resolve } from '$app/paths'
 	import { page } from '$app/state'
@@ -12,6 +14,10 @@
 	const fullname = $derived(
 		page.params.fullname ?? '',
 	)
+
+
+	// Functions
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// Components
@@ -29,7 +35,14 @@
 >
 	{#snippet Summary({ open: _open })}
 		<RedditCommentView
-			selection={select(EntityType.RedditComment, { fullname: decodeURIComponent(fullname) })}
+			selection={
+				select(
+					EntityType.RedditComment,
+					{
+						fullname: decodeURIComponent(fullname),
+					}
+				)
+			}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

@@ -1,98 +1,66 @@
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyEntitiesData } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 
-	type BeaconSlotsResource = SvelteKitResource<EntityProxyEntitiesData<typeof schema, EntityType.BeaconSlot>>
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
 
 	// State
+	const listView = {
+		entityType: EntityType.BeaconSlot,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
 		selection,
-		title = 'Slots',
+		title,
 		open = $bindable(true),
-		id,
+		id = 'BeaconSlots',
 		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: BeaconSlotsResource
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.BeaconSlot>
 			title?: string
 			open?: boolean
-			id: string
+			id?: string
 			href?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'CollapsibleProps'
-		>
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import BeaconSlotView from '$/views/BeaconSlotView.svelte'
 </script>
 
 
 <EntitiesList
-	entityType={EntityType.BeaconSlot}
+	entityType={listView.entityType}
 	{title}
 	bind:open
 	{id}
 	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Beacon consensus slots ordered in time; proposer duties and attestations are scheduled per slot.
-		</p>
-	{/snippet}
-
-	{#snippet body()}
-		{#if open}
-			<ResourceBoundary
-				resource={selection}
-				placeholderText="Loading slots…"
-			>
-				{#snippet children(slots)}
-					<EntitiesList
-						collapsible={false}
-						showSummary={false}
-						entityType={EntityType.BeaconSlot}
-						id={`${id}-items`}
-						href={href}
-						getKey={(slot) => stringify(slot.entitySelector)}
-						getSortValue={(slot) => -slot.entitySelector.slot}
-						items={slots.entities}
-						{title}
-						UnorderedListProps={{ orientation: ListOrientation.Column }}
-						open={true}
-					>
-						{#snippet Empty()}
-							<p data-text="muted">
-								No slots yet.
-							</p>
-						{/snippet}
-
-						{#snippet Item({ item: slot })}
-							<BeaconSlotView
-								selection={select(EntityType.BeaconSlot, slot.entitySelector)}
-								layout={EntityLayout.Summary}
-
-							/>
-						{/snippet}
-					</EntitiesList>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+	{#snippet Item({ item })}
+		<BeaconSlotView
+			selection={select(EntityType.BeaconSlot, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

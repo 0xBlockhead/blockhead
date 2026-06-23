@@ -1,23 +1,17 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum NearChunkSelector {
 	NetworkChunkHash = 'networkChunkHash',
 }
-
 export default {
 	entityType: EntityType.NearChunk,
-
-	label: 'NEAR Chunk',
-	labelPlural: 'NEAR Chunks',
-
+	label: 'near chunk',
+	labelPlural: 'near chunks',
 	selectors: [
 		{
 			name: NearChunkSelector.NetworkChunkHash,
@@ -27,43 +21,48 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'chunkHash',
+			label: 'chunk hash',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$block',
+			label: 'block',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.NearBlock,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'shardId',
+			label: 'shard ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'gasUsed',
+			label: 'gas used',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$$transactions',
+			label: 'transactions',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.NearTransaction,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
+			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

@@ -1,24 +1,17 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum LightningNetworkSelector {
 	Network = 'network',
 }
-import { Source } from '$/sources/Source.ts'
-
 export default {
 	entityType: EntityType.LightningNetwork,
-
-	label: 'Lightning Network',
-	labelPlural: 'Lightning Networks',
-
+	label: 'Lightning network',
+	labelPlural: 'Lightning networks',
 	selectors: [
 		{
 			name: LightningNetworkSelector.Network,
@@ -27,81 +20,70 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'name',
+			label: 'Name',
+			description: 'The human-readable name of the subject.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.LightningMempoolSpace_Rest,
-				Source.LightningLnd_Rest,
-			],
 		},
 		{
 			name: '$settlementNetwork',
+			label: 'settlement network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.LightningMempoolSpace_Rest,
-				Source.LightningLnd_Rest,
-			],
 		},
 		{
 			name: '$$timestamps',
+			label: 'timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.LightningNetwork_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.LightningMempoolSpace_Rest,
-			],
+			cardinality: EntityFieldCardinality.ZeroOrMany,
 		},
 		{
 			name: '$$nodes',
+			label: 'nodes',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.LightningNode,
-			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.LightningMempoolSpace_Rest,
-				Source.Amboss_Graphql,
-				Source.LightningLnd_Rest,
-			],
+			cardinality: EntityFieldCardinality.ZeroOrMany,
 		},
 		{
 			name: '$$channels',
+			label: 'channels',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.LightningChannel,
-			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.LightningMempoolSpace_Rest,
-				Source.LightningLnd_Rest,
-			],
+			cardinality: EntityFieldCardinality.ZeroOrMany,
 		},
 		{
 			name: '$$invoices',
+			label: 'invoices',
 			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.LightningInvoice,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.LightningLnd_Rest,
-			],
+			entityType: EntityType.BlockheadLightningInvoice,
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$payments',
+			label: 'payments',
 			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.LightningPayment,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.LightningLnd_Rest,
-			],
+			entityType: EntityType.BlockheadLightningPayment,
+			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: '$$localNodeStates',
+			label: 'local node states',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.BlockheadLightningNodeState,
+			cardinality: EntityFieldCardinality.Many,
+		},
+	],
 } as const satisfies EntityDefinition

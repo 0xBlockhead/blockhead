@@ -1,24 +1,17 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
-import Currency from '$/schema/Currency.ts'
-
 export enum Currency_TimestampSelector {
 	CurrencyTimestampMs = 'currencyTimestampMs',
 }
-
 export default {
 	entityType: EntityType.Currency_Timestamp,
-
-	label: 'Currency snapshot',
-	labelPlural: 'Currency snapshots',
-
+	label: 'currency timestamp',
+	labelPlural: 'currency observations',
 	selectors: [
 		{
 			name: Currency_TimestampSelector.CurrencyTimestampMs,
@@ -28,26 +21,28 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$currency',
+			label: 'currency',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Currency,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'marketCap',
+			label: 'market cap',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [Source.Constants_Internal],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

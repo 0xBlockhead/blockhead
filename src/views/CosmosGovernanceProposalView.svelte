@@ -2,15 +2,112 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'proposal id',
+			},
+			'title',
+			{
+				label: 'latest lifecycle status',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'proposal id',
+					},
+					'title',
+					'summary',
+					{
+						label: 'metadata presence',
+					},
+				],
+				[
+					{
+						label: 'latest lifecycle status',
+					},
+					{
+						label: 'latest tally summary',
+					},
+					{
+						label: 'deposit count',
+					},
+					{
+						label: 'vote count',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Lifecycle snapshots',
+					items: [
+						{
+							label: 'timestamped proposal lifecycle observations',
+						},
+					],
+				},
+				{
+					label: 'Messages',
+					items: [
+						{
+							label: 'executable SDK messages',
+						},
+					],
+				},
+				{
+					label: 'Deposits',
+					items: [
+						{
+							label: 'proposal depositor/denom records with timestamped amounts',
+						},
+					],
+				},
+				{
+					label: 'Votes',
+					items: [
+						{
+							label: 'proposal voter records with timestamped choices',
+						},
+					],
+				},
+				{
+					label: 'Tally snapshots',
+					items: [
+						{
+							label: 'timestamped live/final tally observations',
+						},
+					],
+				},
+				{
+					label: 'Metadata',
+					items: [
+						{
+							label: 'rendered/raw metadata',
+						},
+					],
+				},
+				{
+					label: 'Network',
+					items: [
+						{
+							label: 'parent Cosmos network',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +118,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,59 +126,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.CosmosGovernanceProposal}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.proposalId}
-	idDragPlainText={selection.entitySelector.proposalId}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Value()}
-		<TruncatedValue
-			value={selection.entitySelector.proposalId}
-			format={TruncatedValueFormat.Abbr}
-		/>
-	{/snippet}
-
-	{#snippet Title()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>Proposal </span>
-			{#if Value}
-			{@render Value()}
-					{/if}
-		</span>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection( { fields: { title: true, status: true } })}
-			placeholderText={`Loading Cosmos governance proposal...`}
-		>
-			{#snippet children(cosmosGovernanceProposal)}
-				<dl>
-					{#if cosmosGovernanceProposal.title != null}
-						<div>
-							<dt>Title</dt>
-							<dd>{cosmosGovernanceProposal.title}</dd>
-						</div>
-					{/if}
-
-					{#if cosmosGovernanceProposal.status != null}
-						<div>
-							<dt>Status</dt>
-							<dd>{cosmosGovernanceProposal.status}</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

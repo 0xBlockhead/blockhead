@@ -1,21 +1,33 @@
-import { type as arktype } from 'arktype'
-
+import { Source } from '$/sources/Source.ts'
 import {
-	type SourceProviderDefinition,
 	SourceProvider,
+	type SourceProviderDefinition,
 } from '$/sources/SourceProvider.ts'
-import { lensApiOrigins } from '$/sources/Lens/Graphql/constants.ts'
-import LensGraphqlSource from '$/sources/Lens/Graphql/index.ts'
+import { lensBindings } from '$/sources/Lens/bindings.ts'
+
+export const lensOrigins = [
+	...new Map(
+		lensBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.Lens,
 	label: 'Lens Protocol',
-	origins: lensApiOrigins,
-	env: arktype({
-		/** Server API key; optional for public reads, increases rate limits (never expose in untrusted client builds). */
-		PUBLIC_LENS_API_KEY: 'string > 0?',
-	}),
 	sources: [
-		LensGraphqlSource,
+		{
+			provider: SourceProvider.Lens,
+			source: Source.Lens_Graphql,
+			label: 'Lens Protocol GraphQL',
+		},
 	],
+	bindings: lensBindings,
 } satisfies SourceProviderDefinition

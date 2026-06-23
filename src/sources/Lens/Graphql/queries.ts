@@ -1,5 +1,4 @@
-import { Source } from '$/sources/Source.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import {
 	graphql,
 	queryLens,
@@ -332,7 +331,7 @@ const LensLatestPostsDocument = graphql(`
 ])
 
 export const queryAccount = async (
-	publicEnv: SourcePublicEnvFor<Source.Lens_Graphql>,
+	publicEnv: SourcePublicEnv,
 	entitySelector: (
 		| { address: `0x${string}` }
 		| { localName: string }
@@ -384,7 +383,7 @@ export const queryAccount = async (
 }
 
 export const queryPost = async (
-	publicEnv: SourcePublicEnvFor<Source.Lens_Graphql>,
+	publicEnv: SourcePublicEnv,
 	postId: string
 ) => (
 	queryLens(
@@ -397,7 +396,7 @@ export const queryPost = async (
 )
 
 export const queryPostsByAuthor = async (
-	publicEnv: SourcePublicEnvFor<Source.Lens_Graphql>,
+	publicEnv: SourcePublicEnv,
 	address: `0x${string}`,
 	pageSize: 'TEN' | 'FIFTY' = 'TEN'
 ) => (
@@ -412,7 +411,7 @@ export const queryPostsByAuthor = async (
 )
 
 export const queryLatestPosts = async (
-	publicEnv: SourcePublicEnvFor<Source.Lens_Graphql>,
+	publicEnv: SourcePublicEnv,
 	pageSize: 'TEN' | 'FIFTY' = 'TEN'
 ) => (
 	queryLens(
@@ -425,7 +424,7 @@ export const queryLatestPosts = async (
 )
 
 export const queryPostComments = async (
-	publicEnv: SourcePublicEnvFor<Source.Lens_Graphql>,
+	publicEnv: SourcePublicEnv,
 	postId: string,
 	pageSize: 'TEN' | 'FIFTY' = 'TEN'
 ) => (

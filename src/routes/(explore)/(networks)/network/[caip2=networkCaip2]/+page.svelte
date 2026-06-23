@@ -1,8 +1,7 @@
 <script lang="ts">
 	// Types/constants
-	import { networkSelectorFromCaip2 } from '$/lib/caip2.ts'
+	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -11,8 +10,8 @@
 
 	// State
 	let {
-		params,
-	} = $props()
+		data,
+	}: PageProps = $props()
 
 
 	// Components
@@ -23,21 +22,6 @@
 
 <Page>
 	<NetworkView
-		selection={select(
-			EntityType.Network,
-			networkSelectorFromCaip2(params.caip2),
-			{
-				sources: [
-					Source.Constants_Internal,
-				],
-				fields: {
-					name: true,
-					slug: true,
-					caip2: true,
-					namespace: true,
-					environment: true,
-				},
-			}
-		)}
+		selection={select(EntityType.Network, data.selector)}
 	/>
 </Page>

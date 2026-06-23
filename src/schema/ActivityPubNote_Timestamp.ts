@@ -1,24 +1,18 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import ActivityPubNote from '$/schema/ActivityPubNote.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum ActivityPubNote_TimestampSelector {
 	ActivityPubNoteTimestampMs = 'activityPubNoteTimestampMs',
+	NoteTimestampMs = '$note+timestampMs',
 }
-
 export default {
 	entityType: EntityType.ActivityPubNote_Timestamp,
-
-	label: 'ActivityPub note snapshot',
-	labelPlural: 'ActivityPub note snapshots',
-
+	label: 'activity pub note timestamp',
+	labelPlural: 'activity pub note observations',
 	selectors: [
 		{
 			name: ActivityPubNote_TimestampSelector.ActivityPubNoteTimestampMs,
@@ -28,49 +22,42 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$note',
+			label: 'note',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.ActivityPubNote,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'favouriteCount',
+			label: 'favourite count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Mastodon_Rest,
-				Source.Fedi_Rest,
-			],
 		},
 		{
 			name: 'reblogCount',
+			label: 'reblog count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Mastodon_Rest,
-				Source.Fedi_Rest,
-			],
 		},
 		{
 			name: 'replyCount',
+			label: 'reply count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Mastodon_Rest,
-				Source.Fedi_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

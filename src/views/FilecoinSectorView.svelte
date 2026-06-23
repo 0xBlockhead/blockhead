@@ -2,15 +2,102 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'miner',
+			},
+			{
+				label: 'sector number',
+			},
+			{
+				label: 'sealed CID',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'miner',
+					},
+					{
+						label: 'sector number',
+					},
+					{
+						label: 'sealed CID',
+					},
+					{
+						label: 'activation epoch',
+					},
+				],
+				[
+					{
+						label: 'expiration epoch',
+					},
+					{
+						label: 'deal count',
+					},
+					{
+						label: 'latest observation time',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Miner',
+					items: [
+						{
+							label: 'parent Filecoin miner',
+						},
+					],
+				},
+				{
+					label: 'State observations',
+					items: [
+						{
+							label: 'timestamped sector lifecycle observations',
+						},
+					],
+				},
+				{
+					label: 'Deals',
+					items: [
+						{
+							label: 'Filecoin deals from sector deal ids when available',
+						},
+					],
+				},
+				{
+					label: 'Proof/deadline state',
+					items: [
+						{
+							label: 'sector proof/deadline/partition fields only when a source provides concrete selectors',
+						},
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'StateMinerSectors',
+						},
+						{
+							label: 'indexer sector payloads',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +108,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,70 +116,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.FilecoinSector}
 	entitySelector={selection.entitySelector}
-	title={`Sector #${selection.entitySelector.sectorNumber.toString()}`}
-	idDragPlainText={selection.entitySelector.sectorNumber.toString()}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Value()}
-		<span data-badge="small">
-			#{selection.entitySelector.sectorNumber.toString()}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>Sector </span>
-			{#if Value}
-			{@render Value()}
-					{/if}
-		</span>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection( { fields: { sealedCid: true, activationEpoch: true, expirationEpoch: true } })}
-			placeholderText={`Loading Filecoin Sector...`}
-		>
-			{#snippet children(filecoinSector)}
-				<dl>
-					{#if filecoinSector.sealedCid != null}
-						<div>
-							<dt>Sealed CID</dt>
-							<dd>
-								<TruncatedValue
-									value={filecoinSector.sealedCid}
-									format={TruncatedValueFormat.Abbr}
-								/></dd>
-						</div>
-					{/if}
-
-					{#if filecoinSector.activationEpoch != null}
-						<div>
-							<dt>Activation Epoch</dt>
-							<dd><NumberValue value={filecoinSector.activationEpoch} /></dd>
-						</div>
-					{/if}
-
-					{#if filecoinSector.expirationEpoch != null}
-						<div>
-							<dt>Expiration Epoch</dt>
-							<dd><NumberValue value={filecoinSector.expirationEpoch} /></dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

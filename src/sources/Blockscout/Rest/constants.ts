@@ -149,23 +149,25 @@ export const blockscoutAccountAbstractionRegistryListPaths = [
  * Hosted Blockscout chains where AA operations + smart-account registry routes are expected to respond.
  * Aligned with `blockscoutHostedNetworks` entries that expose account-abstraction indexing.
  */
-export const blockscoutErc4337OperationsSupportedChainIds = [
-	1,
-	10,
-	56,
-	100,
-	137,
-	8453,
-	42161,
-	11155111,
-	84532,
-] as const satisfies readonly (typeof blockscoutHostedNetworks)[number]['chainId'][]
+export const blockscoutErc4337OperationSupport = [
+	{ chainId: 1 },
+	{ chainId: 10 },
+	{ chainId: 56 },
+	{ chainId: 100 },
+	{ chainId: 137 },
+	{ chainId: 8453 },
+	{ chainId: 42161 },
+	{ chainId: 11155111 },
+	{ chainId: 84532 },
+] as const satisfies readonly {
+	chainId: (typeof blockscoutHostedNetworks)[number]['chainId']
+}[]
 
-export const blockscoutErc4337OperationsSupportedByChainId = Object.fromEntries(
-	blockscoutErc4337OperationsSupportedChainIds
-		.map((chainId) => [
-			chainId,
-			true,
+export const blockscoutErc4337OperationSupportByChainId = Object.fromEntries(
+	blockscoutErc4337OperationSupport
+		.map((support) => [
+			support.chainId,
+			support,
 		])
 )
 
@@ -173,4 +175,4 @@ export const blockscoutErc4337OperationsSupportedByChainId = Object.fromEntries(
  * Registry leaderboard lists (`bundlers`, `paymasters`, `factories` under `blockscoutAccountAbstractionRegistryListPaths`).
  * Same hosted chains as operations; UI treats resolver failures as section-local (no fallback sources).
  */
-export const blockscoutErc4337RegistryListsSupportedByChainId = blockscoutErc4337OperationsSupportedByChainId
+export const blockscoutErc4337RegistryListSupportByChainId = blockscoutErc4337OperationSupportByChainId

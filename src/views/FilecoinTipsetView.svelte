@@ -2,17 +2,88 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			'height',
+			{
+				label: 'tipset key',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					'height',
+					{
+						label: 'tipset key',
+					},
+					{
+						label: 'parent',
+					},
+					{
+						label: 'parent weight',
+					},
+					{
+						label: 'timestamp',
+					},
+					{
+						label: 'block count',
+					},
+					{
+						label: 'receipt count',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Blocks',
+					items: [
+						{
+							label: 'Filecoin blocks in this tipset',
+						},
+					],
+				},
+				{
+					label: 'Message receipts',
+					items: [
+						{
+							label: 'message receipts when sourced from parent receipts/search context',
+						},
+					],
+				},
+				{
+					label: 'Parent',
+					items: [
+						{
+							label: 'parent Filecoin tipset',
+						},
+					],
+				},
+				{
+					label: 'Network',
+					items: [
+						{
+							label: 'parent Filecoin network',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -23,7 +94,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -31,93 +102,15 @@
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.FilecoinTipset}
 	entitySelector={selection.entitySelector}
-	title={`Tipset #${selection.entitySelector.height.toString()}`}
-	idDragPlainText={selection.entitySelector.height.toString()}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Value()}
-		<span data-badge="small">
-			#{selection.entitySelector.height.toString()}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>Tipset </span>
-			{#if Value}
-			{@render Value()}
-					{/if}
-		</span>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A Filecoin tipset is a set of blocks at one height under Expected Consensus, not a single canonical block.
-		</p>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection( { sources: [
-					Source.Filfox_Rest,
-				], fields: { timestampMs: true, $$blocks: true, ...(open && ({ $parent: true, parentWeight: true })) } })}
-			placeholderText="Loading tipset…"
-		>
-			{#snippet children(tipset)}
-				<dl data-column-item="center">
-					<div>
-						<dt>Key</dt>
-						<dd>{selection.entitySelector.tipsetKey}</dd>
-					</div>
-
-						{#if (tipset.$$blocks?.values.length ?? 0) > 0}
-							<div>
-								<dt>Blocks</dt>
-								<dd><NumberValue value={tipset.$$blocks?.values.length ?? 0} /></dd>
-							</div>
-						{/if}
-
-					{#if open && tipset.$parent != null}
-						<div>
-							<dt>Parent</dt>
-							<dd>
-								<EntityView
-									entityType={EntityType.FilecoinTipset}
-								entitySelector={tipset.$parent[EntityMetaKey.Selector]}
-									layout={EntityLayout.Title}
-
-								/>
-							</dd>
-						</div>
-					{/if}
-
-					{#if open && tipset.parentWeight != null}
-						<div>
-							<dt>Parent weight</dt>
-							<dd><NumberValue value={tipset.parentWeight} /></dd>
-						</div>
-					{/if}
-
-					{#if tipset.timestampMs != null}
-						<div>
-							<dt>Timestamp</dt>
-							<dd><Timestamp timestamp={tipset.timestampMs} /></dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

@@ -13,7 +13,7 @@
 
 
 <ParentPageCollapsible
-	title={'Conversations'}
+	title="Conversations"
 	href={resolve('/~/agents/conversations')}
 >
 	{@render children()}

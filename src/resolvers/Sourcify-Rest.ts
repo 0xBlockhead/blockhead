@@ -2,6 +2,7 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { evmAbiFromJsonValue } from '$/lib/evmAbi.ts'
+import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
@@ -241,10 +242,12 @@ export default {
 				[EvmContractSelector.EvmNetworkAddress]: async (entitySelector) => {
 					const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector)
 					const deployer = contractLookup?.deployment?.deployer
-					if (deployer == null || !deployer.startsWith('0x')) return undefined
+					if (deployer == null) return undefined
+					const normalized = hexLowerOfByteSize(deployer, 20)
+					if (normalized == null) return undefined
 					return {
 						[EntityMetaKey.Selector]: {
-							address: deployer.toLowerCase() as `0x${string}`,
+							address: normalized,
 						},
 					}
 				},
@@ -262,9 +265,7 @@ export default {
 					const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector)
 					const txHash = contractLookup?.deployment?.transactionHash
 					if (txHash == null) return undefined
-					const normalized = (
-						await import('$/lib/hexLowerOfByteSize.ts')
-					).hexLowerOfByteSize(txHash, 32)
+					const normalized = hexLowerOfByteSize(txHash, 32)
 					if (normalized == null) return undefined
 					return {
 						[EntityMetaKey.Selector]: {
@@ -287,9 +288,7 @@ export default {
 					const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector)
 					const implementationAddress = contractLookup?.proxyResolution?.implementations?.[0]?.address
 					if (implementationAddress == null || !implementationAddress.startsWith('0x')) return undefined
-					const normalized = (
-						await import('$/lib/hexLowerOfByteSize.ts')
-					).hexLowerOfByteSize(implementationAddress, 20)
+					const normalized = hexLowerOfByteSize(implementationAddress, 20)
 					if (normalized == null) return undefined
 					return {
 						[EntityMetaKey.Selector]: {

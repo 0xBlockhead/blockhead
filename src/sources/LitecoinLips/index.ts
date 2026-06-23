@@ -1,11 +1,13 @@
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
-import { githubHttpAllowedOrigins } from '$/sources/Github/githubHttpOrigins.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import { litecoinLipsBindings } from '$/sources/LitecoinLips/bindings.ts'
 
 export default {
 	provider: SourceProvider.LitecoinLips,
 	label: 'Litecoin LIPs',
-	origins: githubHttpAllowedOrigins,
 	sources: [
 		{
 			provider: SourceProvider.LitecoinLips,
@@ -13,4 +15,5 @@ export default {
 			label: 'Litecoin LIPs GitHub',
 		},
 	],
-} as const satisfies SourceProviderDefinition
+	bindings: litecoinLipsBindings,
+} satisfies SourceProviderDefinition

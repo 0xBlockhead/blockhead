@@ -1,282 +1,108 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import {
-		EntityProxyField,
-		type EntityProxyData,
-		type EntityProxyResource,
-	} from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { blockheadAgentConversationTurnStatusByStatus } from '$/constants/Blockhead.ts'
-	import { Source } from '$/sources/Source.ts'
-
-	type TurnResourceData = EntityProxyData<typeof schema, EntityType.BlockheadAgentConversationTurn>
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			'status',
+			'createdAt',
+			'providerId',
+		],
+		content: {
+			dl: [
+				[
+					'status',
+					'createdAt',
+					'providerId',
+					'promptVersion',
+					'parentId',
+					'$acpPromptTurn',
+					'$a2aTaskEvent',
+					'$$providerCalls',
+					'error',
+				],
+			],
+			blocks: [
+				[
+					'userPrompt',
+					'assistantText',
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Prompt',
+					items: [
+						'userPrompt',
+					],
+				},
+				{
+					label: 'Response',
+					items: [
+						'assistantText',
+					],
+				},
+				{
+					label: 'Provider calls',
+					items: [
+						'$$providerCalls',
+					],
+				},
+				{
+					label: 'Protocol refs',
+					items: [
+						'$acpPromptTurn',
+						'$a2aTaskEvent',
+					],
+				},
+				{
+					label: 'Branching',
+					items: [
+						'parentId',
+						{
+							slot: 'BranchContext',
+							label: 'Parent/child transcript context',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
-		href,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.BlockheadAgentConversationTurn>
-			href?: string
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
-	const turn = $derived.by(() => (
-		selection(
-			({ sources: [
-				Source.Local_Internal,
-			], fields: { userPrompt: true, assistantText: true, status: true, createdAt: true, ...(open ? ({ providerId: true, promptVersion: true, parentId: true, error: true }) : ({  })) } }),
-		)
-	))
-	const turnError = $derived(turn[EntityProxyField]('error'))
-
-
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import BlockheadAgentConversationTurnView from '$/views/BlockheadAgentConversationTurnView.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.BlockheadAgentConversationTurn}
 	entitySelector={selection.entitySelector}
-	href={href}
 	bind:open
 	{...EntityViewProps}
->
-	{#snippet Value()}
-		<TruncatedValue
-			value={selection.entitySelector.id}
-			format={TruncatedValueFormat.Visual}
-		/>
-	{/snippet}
-
-	{#snippet Title()}
-		{#if true}
-			{#snippet TurnPromptHeading(turn: TurnResourceData)}
-				<TruncatedValue
-					value={turn.userPrompt}
-					format={TruncatedValueFormat.Visual}
-				/>
-			{/snippet}
-
-			<ResourceBoundary
-				children={TurnPromptHeading}
-				placeholderText="Loading turn…"
-				resource={turn}
-			/>
-		{/if}
-	{/snippet}
-
-	{#snippet HeadingAfter()}
-		<ResourceBoundary
-			resource={turn}
-		>
-			{#snippet children(turn: TurnResourceData)}
-				<span data-text="muted">
-					<Timestamp
-						timestamp={turn.createdAt}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			One prompt–response pair in a persisted agent chat tree; parent links form a branching transcript, not on-chain events.
-		</p>
-	{/snippet}
-
-	{#snippet Content({})}
-		<ResourceBoundary
-			resource={turn}
-			placeholderText="Loading turn…"
-		>
-			{#snippet children(turn: TurnResourceData)}
-				{#if turn.userPrompt !== ''}
-					<p>{turn.userPrompt}</p>
-				{:else}
-					<p data-text="muted">Empty prompt.</p>
-				{/if}
-
-				{#if open && turn.assistantText != null && turn.assistantText !== ''}
-					<p>{turn.assistantText}</p>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-
-		<dl data-column-item="center">
-				<div>
-					<dt>Status</dt>
-					<dd>
-						{#if true}
-							{#snippet TurnStatusRow(turn: TurnResourceData)}
-								{#if turn.status !== undefined}
-									{blockheadAgentConversationTurnStatusByStatus[turn.status].label}
-								{/if}
-							{/snippet}
-
-							<ResourceBoundary
-								children={TurnStatusRow}
-							placeholderText="Loading turn…"
-							resource={turn}
-						/>
-					{/if}
-				</dd>
-			</div>
-
-			{#if open}
-					<div>
-						<dt>Created</dt>
-						<dd>
-							{#if true}
-								{#snippet TurnCreatedRow(turn: TurnResourceData)}
-								<Timestamp
-									timestamp={turn.createdAt}
-								/>
-							{/snippet}
-
-								<ResourceBoundary
-									children={TurnCreatedRow}
-								placeholderText="Loading turn…"
-								resource={turn}
-							/>
-						{/if}
-					</dd>
-				</div>
-			{/if}
-
-			{#if open}
-				<div>
-					<dt>Provider</dt>
-					<dd>
-						{#if true}
-							{#snippet TurnProviderRow(turn: TurnResourceData)}
-								{#if turn.providerId != null && turn.providerId !== ''}
-									<TruncatedValue
-										value={turn.providerId}
-										format={TruncatedValueFormat.Visual}
-									/>
-								{:else}
-									<span data-text="muted">
-										Not recorded.
-									</span>
-								{/if}
-							{/snippet}
-
-							<ResourceBoundary
-								children={TurnProviderRow}
-								placeholderText="Loading turn…"
-								resource={turn}
-							/>
-						{/if}
-					</dd>
-				</div>
-			{/if}
-
-			{#if open}
-				<div>
-					<dt>Prompt version</dt>
-					<dd>
-						{#if true}
-							{#snippet TurnPromptVersionRow(turn: TurnResourceData)}
-								{#if turn.promptVersion !== ''}
-									{turn.promptVersion}
-								{:else}
-									<span data-text="muted">
-										Not recorded.
-									</span>
-								{/if}
-							{/snippet}
-
-							<ResourceBoundary
-								children={TurnPromptVersionRow}
-								placeholderText="Loading turn…"
-								resource={turn}
-							/>
-						{/if}
-					</dd>
-				</div>
-			{/if}
-
-			{#if open}
-				<div>
-					<dt>Parent turn</dt>
-					<dd>
-						{#if true}
-							{#snippet TurnParentRow(turn: TurnResourceData)}
-								{#if turn.parentId != null && turn.parentId !== ''}
-									<BlockheadAgentConversationTurnView
-										selection={select(EntityType.BlockheadAgentConversationTurn, { id: turn.parentId })}
-										layout={EntityLayout.Title}
-
-
-										open={false}
-
-
-										/>
-								{:else}
-									<span data-text="muted">
-										Root turn.
-									</span>
-								{/if}
-							{/snippet}
-
-							<ResourceBoundary
-								children={TurnParentRow}
-								placeholderText="Loading turn…"
-								resource={turn}
-							/>
-						{/if}
-					</dd>
-				</div>
-				{/if}
-
-				{#if open}
-					<div>
-						<dt>Error</dt>
-						<dd>
-							{#if true}
-								{#snippet TurnErrorRow(error?: string)}
-								{#if error !== undefined && error !== ''}
-									{error}
-								{:else}
-									<span data-text="muted">
-										None.
-									</span>
-								{/if}
-						{/snippet}
-
-							<ResourceBoundary
-								children={TurnErrorRow}
-								placeholderText="Loading turn…"
-								resource={turnError}
-							/>
-						{/if}
-					</dd>
-				</div>
-				{/if}
-		</dl>
-	{/snippet}
-</EntityView>
+	{view}
+/>

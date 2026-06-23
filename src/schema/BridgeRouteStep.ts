@@ -1,31 +1,18 @@
 import { type } from 'arktype'
 import {
-	BridgeAssetOutcome,
-	BridgeRailId,
-	BridgeSettlementModel,
-	BridgeVerificationModel,
-} from '$/constants/Bridge.ts'
-import BridgeRoute from '$/schema/BridgeRoute.ts'
-import {
-	EntityFieldType,
 	EntityFieldCardinality,
-	NonNegativeInteger,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum BridgeRouteStepSelector {
 	BridgeRouteIndex = 'bridgeRouteIndex',
+	RouteIndex = '$route+index',
 }
-
 export default {
 	entityType: EntityType.BridgeRouteStep,
-
-	label: 'Bridge Route Step',
-	labelPlural: 'Bridge Route Steps',
-
+	label: 'bridge route step',
+	labelPlural: 'bridge route steps',
 	selectors: [
 		{
 			name: BridgeRouteStepSelector.BridgeRouteIndex,
@@ -35,103 +22,90 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$route',
+			label: 'route',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.BridgeRoute,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'index',
+			label: 'index',
 			type: EntityFieldType.Primitive,
-			primitiveType: NonNegativeInteger,
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'stepType',
+			label: 'step type',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'tool',
+			label: 'tool',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$fromNetwork',
+			label: 'from network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Lifi_Rest,
-			],
 		},
 		{
 			name: '$toNetwork',
+			label: 'to network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Lifi_Rest,
-			],
 		},
 		{
 			name: '$fromToken',
+			label: 'from token',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmCoinInstance,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Lifi_Rest,
-			],
 		},
 		{
 			name: '$toToken',
+			label: 'to token',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmCoinInstance,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Lifi_Rest,
-			],
 		},
 		{
 			name: 'railId',
+			label: 'rail ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(BridgeRailId),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Lifi_Rest,
-			],
 		},
 		{
 			name: 'settlementModel',
+			label: 'settlement model',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(BridgeSettlementModel),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Lifi_Rest,
-			],
 		},
 		{
 			name: 'verificationModel',
+			label: 'verification model',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(BridgeVerificationModel),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Lifi_Rest,
-			],
 		},
 		{
 			name: 'assetOutcome',
+			label: 'asset outcome',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(BridgeAssetOutcome),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Lifi_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

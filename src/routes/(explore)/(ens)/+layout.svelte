@@ -13,9 +13,9 @@
 
 
 <ParentPageCollapsible
-	title={'ENS'}
+	title="ENS"
 	href={resolve('/ens')}
-	id={'ens'}
+	id="ens"
 >
 	{@render children()}
 </ParentPageCollapsible>

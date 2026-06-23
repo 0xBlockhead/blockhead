@@ -1,25 +1,38 @@
-import { type as arktype } from 'arktype'
-
+import { Source } from '$/sources/Source.ts'
 import {
-	type SourceProviderDefinition,
 	SourceProvider,
+	type SourceProviderDefinition,
 } from '$/sources/SourceProvider.ts'
-import { origin } from '$/sources/Allium/Rest/constants.ts'
-import AlliumRestSource from '$/sources/Allium/Rest/index.ts'
+import {
+	alliumBindings,
+	alliumPublicEnv,
+} from '$/sources/Allium/bindings.ts'
+
+export const alliumOrigins = [
+	...new Map(
+		alliumBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.Allium,
 	label: 'Allium',
-	env: arktype({
-		PUBLIC_ALLIUM_API_KEY: 'string > 0',
-	}),
-	origins: [
+	env: alliumPublicEnv,
+	sources: [
 		{
-			origin,
-			corsEnabled: false,
+			provider: SourceProvider.Allium,
+			source: Source.Allium_Rest,
+			label: 'Allium REST',
+			env: alliumPublicEnv,
 		},
 	],
-	sources: [
-		AlliumRestSource,
-	],
+	bindings: alliumBindings,
 } satisfies SourceProviderDefinition

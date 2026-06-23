@@ -1,29 +1,17 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { UrlString } from '$/schema/UrlString.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum XPostSelector {
 	Id = 'id',
 }
-
-
-const XId = type(
-	'/^\\d+$/' as type.cast<string>
-)
-
 export default {
 	entityType: EntityType.XPost,
-
 	label: 'X post',
 	labelPlural: 'X posts',
-
 	selectors: [
 		{
 			name: XPostSelector.Id,
@@ -32,74 +20,79 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: 'id',
+			label: 'ID',
+			description: 'The identifier assigned by the source domain.',
 			type: EntityFieldType.Primitive,
-			primitiveType: XId,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$author',
+			label: 'author',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.XUser,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'text',
+			label: 'text',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'createdAt',
+			label: 'Created',
+			description: 'The time when the subject was created according to the source.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$$timestamps',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.XPost_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.X_Rest,
-				Source.X_FxEmbed_Rest,
-			],
-		},
-		{
 			name: 'conversationId',
+			label: 'conversation ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$replyToPost',
+			label: 'reply to post',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.XPost,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$quotedPost',
+			label: 'quoted post',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.XPost,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'postUrl',
+			label: 'post URL',
 			type: EntityFieldType.Primitive,
-			primitiveType: UrlString,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$$media',
+			label: 'media',
+			labelPlural: 'mediases',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.Media,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.X_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: '$$timestamps',
+			label: 'timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.XPost_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
+		},
+	],
 } as const satisfies EntityDefinition

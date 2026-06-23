@@ -1,24 +1,18 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import AtprotoPost from '$/schema/AtprotoPost.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum AtprotoPost_TimestampSelector {
 	AtprotoPostTimestampMs = 'atprotoPostTimestampMs',
+	PostTimestampMs = '$post+timestampMs',
 }
-
 export default {
 	entityType: EntityType.AtprotoPost_Timestamp,
-
-	label: 'AT Protocol post snapshot',
-	labelPlural: 'AT Protocol post snapshots',
-
+	label: 'atproto post timestamp',
+	labelPlural: 'atproto post observations',
 	selectors: [
 		{
 			name: AtprotoPost_TimestampSelector.AtprotoPostTimestampMs,
@@ -28,59 +22,49 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$post',
+			label: 'post',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.AtprotoPost,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'likeCount',
+			label: 'like count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Atproto_Xrpc,
-				Source.Atproto_BskySocial_Xrpc,
-			],
 		},
 		{
 			name: 'repostCount',
+			label: 'repost count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Atproto_Xrpc,
-				Source.Atproto_BskySocial_Xrpc,
-			],
 		},
 		{
 			name: 'replyCount',
+			label: 'reply count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Atproto_Xrpc,
-				Source.Atproto_BskySocial_Xrpc,
-			],
 		},
 		{
 			name: 'quoteCount',
+			label: 'quote count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Atproto_Xrpc,
-				Source.Atproto_BskySocial_Xrpc,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

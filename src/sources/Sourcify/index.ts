@@ -1,21 +1,33 @@
-
+import { Source } from '$/sources/Source.ts'
 import {
-	type SourceProviderDefinition,
 	SourceProvider,
+	type SourceProviderDefinition,
 } from '$/sources/SourceProvider.ts'
-import { origin } from '$/sources/Sourcify/Rest/constants.ts'
-import SourcifyRestSource from '$/sources/Sourcify/Rest/index.ts'
+import { sourcifyBindings } from '$/sources/Sourcify/bindings.ts'
+
+export const sourcifyOrigins = [
+	...new Map(
+		sourcifyBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.Sourcify,
 	label: 'Sourcify',
-	origins: [
+	sources: [
 		{
-			origin,
-			corsEnabled: false,
+			provider: SourceProvider.Sourcify,
+			source: Source.Sourcify_Rest,
+			label: 'Sourcify REST',
 		},
 	],
-	sources: [
-		SourcifyRestSource,
-	],
+	bindings: sourcifyBindings,
 } satisfies SourceProviderDefinition

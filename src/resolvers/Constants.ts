@@ -55,14 +55,19 @@ import {
 	consensusMechanismById,
 } from '$/constants/ConsensusMechanism.ts'
 import { AssetInstanceKind } from '$/schema/AssetInstance.ts'
-import { MarketVenueId } from '$/constants/MarketVenue.ts'
+import {
+	MarketVenueId,
+	marketVenueById,
+	marketVenues,
+} from '$/constants/MarketVenue.ts'
 import {
 	proposalCategoryById,
 	ProposalCategory,
-	proposalKinds,
 	proposalKindAllowedInRealmByKey,
+	proposalKinds,
 	SpecificationRealm,
 	specificationRealmById,
+	specificationRealms,
 } from '$/constants/SpecificationProposal.ts'
 import { activityPubNetworkSeedActors } from '$/constants/Social/ActivityPub.ts'
 import {
@@ -117,11 +122,12 @@ import { _GlobalSelector } from '$/schema/_Global.ts'
 import { EthereumNetworkUpgradeSelector } from '$/schema/EthereumNetworkUpgrade.ts'
 import { EthereumExecutionUpgradeSelector } from '$/schema/EthereumExecutionUpgrade.ts'
 import { EthereumConsensusUpgradeSelector } from '$/schema/EthereumConsensusUpgrade.ts'
-import { MarketVenueSelector } from '$/schema/MarketVenue.ts'
 import { CurrencySelector } from '$/schema/Currency.ts'
 import { Currency_TimestampSelector } from '$/schema/Currency_Timestamp.ts'
 import { MarketSelector } from '$/schema/Market.ts'
+import { MarketVenueSelector } from '$/schema/MarketVenue.ts'
 import { EvmContractSelector } from '$/schema/EvmContract.ts'
+import { EvmProtocolSelector } from '$/schema/EvmProtocol.ts'
 import { CoinSelector } from '$/schema/Coin.ts'
 import { EvmCoinInstanceSelector } from '$/schema/EvmCoinInstance.ts'
 import { CoinBridgeCapabilitySelector } from '$/schema/CoinBridgeCapability.ts'
@@ -130,27 +136,20 @@ import { Market_TimeInterval_TimestampSelector } from '$/schema/Market_TimeInter
 import { UrlSelector } from '$/schema/Url.ts'
 import { MevRelaySelector } from '$/schema/MevRelay.ts'
 import { NetworkSelector } from '$/schema/Network.ts'
+import { NetworkStackSelector } from '$/schema/NetworkStack.ts'
 import { NearNetworkSelector } from '$/schema/NearNetwork.ts'
 import { ZeroGNetworkSelector } from '$/schema/ZeroGNetwork.ts'
-import { QuilibriumNetworkSelector } from '$/schema/QuilibriumNetwork.ts'
 import { SolanaNetworkSelector } from '$/schema/SolanaNetwork.ts'
-import { NetworkStackSelector } from '$/schema/NetworkStack.ts'
 import { ElementsNetworkSelector } from '$/schema/ElementsNetwork.ts'
-import { ExecutionEnvironmentSelector } from '$/schema/ExecutionEnvironment.ts'
-import { ConsensusMechanismSelector } from '$/schema/ConsensusMechanism.ts'
 import { AssetInstanceSelector } from '$/schema/AssetInstance.ts'
 import { BittensorSubnetSelector } from '$/schema/BittensorSubnet.ts'
 import { NetworkUpgradeSelector } from '$/schema/NetworkUpgrade.ts'
 import { CosmosGovernanceProposalSelector } from '$/schema/CosmosGovernanceProposal.ts'
 import { PolkadotReferendumSelector } from '$/schema/PolkadotReferendum.ts'
-import { SpecificationRealmSelector } from '$/schema/SpecificationRealm.ts'
-import { SpecificationProposalKindSelector } from '$/schema/SpecificationProposalKind.ts'
 import { ActivityPubNetworkSelector } from '$/schema/ActivityPubNetwork.ts'
 import { AtprotoNetworkSelector } from '$/schema/AtprotoNetwork.ts'
 import { AtprotoPostSelector } from '$/schema/AtprotoPost.ts'
 import { FarcasterNetworkSelector } from '$/schema/FarcasterNetwork.ts'
-import { EnsProtocolSelector } from '$/schema/EnsProtocol.ts'
-import { EvmProtocolSelector } from '$/schema/EvmProtocol.ts'
 import { IpfsProtocolSelector } from '$/schema/IpfsProtocol.ts'
 import { SwarmProtocolSelector } from '$/schema/SwarmProtocol.ts'
 import { LensNetworkSelector } from '$/schema/LensNetwork.ts'
@@ -170,6 +169,9 @@ import { YouTubeChannelSelector } from '$/schema/YouTubeChannel.ts'
 import { YouTubeNetworkSelector } from '$/schema/YouTubeNetwork.ts'
 import { YouTubePlaylistSelector } from '$/schema/YouTubePlaylist.ts'
 import { YouTubeVideoSelector } from '$/schema/YouTubeVideo.ts'
+import { _GlobalEnsNetworkSelector } from '$/schema/_GlobalEnsNetwork.ts'
+import { SpecificationProposalKindSelector } from '$/schema/SpecificationProposalKind.ts'
+import { SpecificationRealmSelector } from '$/schema/SpecificationRealm.ts'
 
 const networkStackIdByNamespace = {
 	[NetworkNamespace.Bittensor]: NetworkStackId.Bittensor,
@@ -692,21 +694,6 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.MarketVenue,
-			resolve: {
-				[MarketVenueSelector.MarketVenueId]: async ({ marketVenueId }) => {
-					const { marketVenueById } = await import('$/constants/MarketVenue.ts')
-					return {
-						label: marketVenueById[marketVenueId].label,
-					}
-				}
-			},
-		})({
-			fields: {
-				label: (marketVenue) => marketVenue.label,
-			},
-		}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Currency,
@@ -934,45 +921,143 @@ export default {
 		}),
 
 		defineResolver(Source.Constants_Internal, {
+			entityType: EntityType.EvmProtocol,
+			resolve: {
+				[EvmProtocolSelector.Scope]: async ({ scope }) => evmProtocolByScope[scope],
+			},
+		})({
+			fields: {
+				protocolName: (protocol) => protocol.protocolName,
+				homeUrl: (protocol) => protocol.homeUrl,
+				docsUrl: (protocol) => protocol.docsUrl,
+				registryLabel: (protocol) => protocol.registryLabel,
+				topology: (protocol) => protocol.topology,
+			},
+		}),
+
+		defineResolver(Source.Constants_Internal, {
+			entityType: EntityType.MarketVenue,
+			resolve: {
+				[MarketVenueSelector.MarketVenueId]: async ({ marketVenueId }) => marketVenueById[marketVenueId],
+			},
+		})({
+			fields: {
+				label: (marketVenue) => marketVenue.label,
+			},
+		}),
+
+		defineResolver(Source.Constants_Internal, {
+			entityType: EntityType.NetworkStack,
+			resolve: {
+				[NetworkStackSelector.NetworkStackId]: async ({ networkStackId }) => networkStackByNetworkStackId[networkStackId],
+			},
+		})({
+			fields: {
+				label: (networkStack) => networkStack.label,
+			},
+		}),
+
+		defineResolver(Source.Constants_Internal, {
+			entityType: EntityType.SpecificationRealm,
+			resolve: {
+				[SpecificationRealmSelector.Realm]: async ({ realm }) => specificationRealmById[realm],
+			},
+		})({
+			fields: {
+				label: (realm) => realm.label,
+				labelPlural: (realm) => realm.labelPlural ?? undefined,
+				slug: (realm) => realm.slug,
+				$$proposalKinds: (realm) => proposalKinds
+					.filter((proposalKind) => proposalKind.realm === realm.id)
+					.map((proposalKind) => ({
+						[EntityMetaKey.Selector]: {
+							realm: proposalKind.realm,
+							category: proposalKind.category,
+						},
+					})),
+			},
+		}),
+
+		defineResolver(Source.Constants_Internal, {
+			entityType: EntityType.SpecificationProposalKind,
+			resolve: {
+				[SpecificationProposalKindSelector.RealmCategory]: async ({ realm, category }) => proposalKindAllowedInRealmByKey[`${realm}:${category}`],
+			},
+		})({
+			fields: {
+				label: (proposalKind) => proposalCategoryById[proposalKind.category].label,
+				labelPlural: (proposalKind) => proposalCategoryById[proposalKind.category].labelPlural,
+				slug: (proposalKind) => proposalCategoryById[proposalKind.category].slug,
+				$specificationRealm: (proposalKind) => ({
+					[EntityMetaKey.Selector]: {
+						realm: proposalKind.realm,
+					},
+				}),
+			},
+		}),
+
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
 			resolve: {
 				[NetworkSelector.Caip2]: async ({ caip2 }) => {
 					const network = networkByCaip2[`${caip2.namespace}:${caip2.reference}`]
+					const namespace = network.namespace as NetworkNamespace
 					return {
 						slug: network.slug,
 						name: network.name,
 						...('caip2' in network && {
 							caip2: network.caip2,
-						}),
-						namespace: network.namespace,
-						environment: network.environment,
-					}
-				},
+							}),
+							namespace,
+							environment: network.environment,
+							stack: networkStackIdByNamespace[namespace],
+							$networkStack: {
+								[EntityMetaKey.Selector]: {
+									networkStackId: networkStackIdByNamespace[namespace],
+								},
+							},
+							executionEnvironments: [...executionEnvironmentIdsByNamespace[namespace]],
+							consensusMechanisms: [...consensusMechanismIdsByNamespace[namespace]],
+						}
+					},
 				[NetworkSelector.Slug]: async ({ slug }) => {
 					const network = networkBySlug[slug]
 					if (network == null)
 							throw new Error(`Constants_Internal: Network not found`)
+					const namespace = network.namespace as NetworkNamespace
 
 					return {
 						slug: network.slug,
 						name: network.name,
 						...('caip2' in network && {
 							caip2: network.caip2,
-						}),
-						namespace: network.namespace,
-						environment: network.environment,
-					}
-				},
+							}),
+							namespace,
+							environment: network.environment,
+							stack: networkStackIdByNamespace[namespace],
+							$networkStack: {
+								[EntityMetaKey.Selector]: {
+									networkStackId: networkStackIdByNamespace[namespace],
+								},
+							},
+							executionEnvironments: [...executionEnvironmentIdsByNamespace[namespace]],
+							consensusMechanisms: [...consensusMechanismIdsByNamespace[namespace]],
+						}
+					},
 			},
 		})({
 			fields: {
 				slug: (network) => network.slug,
 				name: (network) => network.name,
-				caip2: (network) => network.caip2,
-				namespace: (network) => network.namespace,
-				environment: (network) => network.environment,
-			},
-		}),
+					caip2: (network) => network.caip2,
+					namespace: (network) => network.namespace,
+					environment: (network) => network.environment,
+					stack: (network) => network.stack,
+					$networkStack: (network) => network.$networkStack,
+					executionEnvironments: (network) => network.executionEnvironments,
+					consensusMechanisms: (network) => network.consensusMechanisms,
+				},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.NearNetwork,
@@ -1058,40 +1143,22 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.QuilibriumNetwork,
-			resolve: {
-				[QuilibriumNetworkSelector.Slug]: async ({ slug }) => {
-					const network = networkBySlug[slug]
-					if (network == null) throw new Error('Constants_Internal: QuilibriumNetwork not found')
-					return {
-						slug: network.slug,
-						name: network.name,
-						namespace: network.namespace,
-						environment: network.environment,
-					}
-				}
-			},
-		})({
-			fields: {
-				slug: (network) => network.slug,
-				name: (network) => network.name,
-				namespace: (network) => network.namespace,
-				environment: (network) => network.environment,
-			},
-		}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.SolanaNetwork,
 			resolve: {
 				[SolanaNetworkSelector.Caip2]: async ({ caip2 }) => {
-					const network = networkByCaip2[`${caip2.namespace}:${caip2.reference}`]
-					if (!('caip2' in network)) throw new Error('Constants_Internal: SolanaNetwork missing CAIP-2')
+					const network = networkBySlug.solana
+					if (caip2.reference !== network.caip2.reference)
+						throw new Error('Constants_Internal: SolanaNetwork not found')
+
 					return {
-						slug: network.slug,
-						name: network.name,
 						caip2: network.caip2,
-						namespace: network.namespace,
+						$network: {
+							[EntityMetaKey.Selector]: {
+								slug: network.slug,
+							},
+						},
 						environment: network.environment,
 						rpcEndpoints: [
 							{
@@ -1106,31 +1173,17 @@ export default {
 							},
 						],
 					}
-				}
+				},
 			},
 		})({
 			fields: {
-				slug: (network) => network.slug,
-				name: (network) => network.name,
 				caip2: (network) => network.caip2,
-				namespace: (network) => network.namespace,
+				$network: (network) => network.$network,
 				environment: (network) => network.environment,
 				rpcEndpoints: (network) => network.rpcEndpoints,
 			},
 		}),
 
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.NetworkStack,
-			resolve: {
-				[NetworkStackSelector.NetworkStackId]: async ({ networkStackId }) => ({
-					label: networkStackByNetworkStackId[networkStackId].label,
-				})
-			},
-		})({
-			fields: {
-				label: (networkStack) => networkStack.label,
-			},
-		}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ElementsNetwork,
@@ -1170,32 +1223,6 @@ export default {
 				federationName: (network) => network.federationName,
 				blockTimeSeconds: (network) => network.blockTimeSeconds,
 				confidentialTransactionsDefault: (network) => network.confidentialTransactionsDefault,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.ExecutionEnvironment,
-			resolve: {
-				[ExecutionEnvironmentSelector.ExecutionEnvironmentId]: async ({ executionEnvironmentId }) => ({
-					label: executionEnvironmentByExecutionEnvironmentId[executionEnvironmentId].label,
-				})
-			},
-		})({
-			fields: {
-				label: (executionEnvironment) => executionEnvironment.label,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.ConsensusMechanism,
-			resolve: {
-				[ConsensusMechanismSelector.ConsensusMechanismId]: async ({ consensusMechanismId }) => ({
-					label: consensusMechanismById[consensusMechanismId].label,
-				})
-			},
-		})({
-			fields: {
-				label: (consensusMechanism) => consensusMechanism.label,
 			},
 		}),
 
@@ -1245,43 +1272,6 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.SpecificationRealm,
-			resolve: {
-				[SpecificationRealmSelector.Realm]: async ({ realm }) => ({
-					label: specificationRealmById[realm].label,
-					...(specificationRealmById[realm].labelPlural != null && {
-						labelPlural: specificationRealmById[realm].labelPlural,
-					}),
-					slug: specificationRealmById[realm].slug,
-				}),
-			},
-		})({
-			fields: {
-				label: (specificationRealm) => specificationRealm.label,
-				labelPlural: (specificationRealm) => specificationRealm.labelPlural,
-				slug: (specificationRealm) => specificationRealm.slug,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.SpecificationProposalKind,
-			resolve: {
-				[SpecificationProposalKindSelector.RealmCategory]: async ({ category }) => (
-					{
-						label: proposalCategoryById[category].label,
-						labelPlural: proposalCategoryById[category].labelPlural,
-						slug: proposalCategoryById[category].slug,
-					}
-				)
-			},
-		})({
-			fields: {
-				label: (proposalKind) => proposalKind.label,
-				labelPlural: (proposalKind) => proposalKind.labelPlural,
-				slug: (proposalKind) => proposalKind.slug,
-			},
-		}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ActivityPubNetwork,
@@ -1325,33 +1315,49 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.EnsProtocol,
-			resolve: {
-				[EnsProtocolSelector.Scope]: async ({ scope }) => ensProtocolByScope[scope]
-			},
-		})({
-			fields: {
-				protocolName: (entity) => entity.protocolName,
-				homeUrl: (entity) => entity.homeUrl,
-				docsUrl: (entity) => entity.docsUrl,
-				registryLabel: (entity) => entity.registryLabel,
-				topology: (entity) => entity.topology,
-			},
-		}),
 
 		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.EvmProtocol,
+			entityType: EntityType._GlobalEnsNetwork,
 			resolve: {
-				[EvmProtocolSelector.Scope]: async ({ scope }) => evmProtocolByScope[scope]
+				[_GlobalEnsNetworkSelector.Scope]: async ({ scope }) => {
+					const protocol = ensProtocolByScope[scope]
+					if (protocol == null)
+						throw new Error(`Constants_Internal: _GlobalEnsNetwork scope ${scope} not found`)
+
+					const mainnetCaip2 = {
+						namespace: 'eip155',
+						reference: String(protocol.mainnetChainId),
+					} as const
+
+					const evmContractRef = (address: string) => {
+						const normalizedAddress = hexLowerOfByteSize(address, 20)
+						if (normalizedAddress == null)
+							throw new Error(`Constants_Internal: invalid ENS deployment address ${address}`)
+
+						return {
+							[EntityMetaKey.Selector]: {
+								$network: { caip2: mainnetCaip2 },
+								address: normalizedAddress,
+							},
+						}
+					}
+
+					return {
+						scope: protocol.scope,
+						$registryContract: evmContractRef(protocol.registryContractAddress),
+						$ethRegistrarController: evmContractRef(protocol.ethRegistrarControllerAddress),
+						$reverseRegistrar: evmContractRef(protocol.reverseRegistrarAddress),
+						$nameWrapper: evmContractRef(protocol.nameWrapperAddress),
+					}
+				},
 			},
 		})({
 			fields: {
-				protocolName: (entity) => entity.protocolName,
-				homeUrl: (entity) => entity.homeUrl,
-				docsUrl: (entity) => entity.docsUrl,
-				registryLabel: (entity) => entity.registryLabel,
-				topology: (entity) => entity.topology,
+				scope: (entity) => entity.scope,
+				$registryContract: (entity) => entity.$registryContract,
+				$ethRegistrarController: (entity) => entity.$ethRegistrarController,
+				$reverseRegistrar: (entity) => entity.$reverseRegistrar,
+				$nameWrapper: (entity) => entity.$nameWrapper,
 			},
 		}),
 
@@ -1742,17 +1748,6 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => []
-			},
-		})({
-			fields: {
-				$$vaults: (entity) => entity,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType._Global,
-			resolve: {
 				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => {
 					const {
 						networkUpgrades,
@@ -1774,211 +1769,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.Network,
-			resolve: {
-				[NetworkSelector.Caip2]: async ({ caip2 }) => {
-					const network = networkByCaip2[`${caip2.namespace}:${caip2.reference}`]
-					const namespace: NetworkNamespace = network.namespace
-					return {
-						[EntityMetaKey.Selector]: {
-							networkStackId: networkStackIdByNamespace[namespace],
-						},
-					}
-				},
-				[NetworkSelector.Slug]: async ({ slug }) => {
-					const network = networkBySlug[slug]
-					if (network == null) return undefined
-					const namespace: NetworkNamespace = network.namespace
-					return {
-						[EntityMetaKey.Selector]: {
-							networkStackId: networkStackIdByNamespace[namespace],
-						},
-					}
-				},
-			},
-		})({
-			fields: {
-				$networkStack: (entity) => entity,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.ZeroGNetwork,
-			resolve: {
-				[ZeroGNetworkSelector.Slug]: async ({ slug }) => {
-					const network = networkBySlug[slug]
-					if (network == null) return undefined
-					const namespace: NetworkNamespace = network.namespace
-					return {
-						[EntityMetaKey.Selector]: {
-							networkStackId: networkStackIdByNamespace[namespace],
-						},
-					}
-				}
-			},
-		})({
-			fields: {
-				$networkStack: (entity) => entity,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.QuilibriumNetwork,
-			resolve: {
-				[QuilibriumNetworkSelector.Slug]: async ({ slug }) => {
-					const network = networkBySlug[slug]
-					if (network == null) return undefined
-					const namespace: NetworkNamespace = network.namespace
-					return {
-						[EntityMetaKey.Selector]: {
-							networkStackId: networkStackIdByNamespace[namespace],
-						},
-					}
-				}
-			},
-		})({
-			fields: {
-				$networkStack: (entity) => entity,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.Network,
-			resolve: {
-				[NetworkSelector.Caip2]: async ({ caip2 }) => {
-					const network = networkByCaip2[`${caip2.namespace}:${caip2.reference}`]
-					const namespace: NetworkNamespace = network.namespace
-					return [...executionEnvironmentIdsByNamespace[namespace]].map((executionEnvironmentId) => ({
-						[EntityMetaKey.Selector]: {
-							executionEnvironmentId,
-						},
-					}))
-				},
-				[NetworkSelector.Slug]: async ({ slug }) => {
-					const network = networkBySlug[slug]
-					const namespace: NetworkNamespace = network.namespace
-					return [...executionEnvironmentIdsByNamespace[namespace]].map((executionEnvironmentId) => ({
-						[EntityMetaKey.Selector]: {
-							executionEnvironmentId,
-						},
-					}))
-				},
-			},
-		})({
-			fields: {
-				$$executionEnvironments: (entity) => entity,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.ZeroGNetwork,
-			resolve: {
-				[ZeroGNetworkSelector.Slug]: async ({ slug }) => {
-					const network = networkBySlug[slug]
-					const namespace: NetworkNamespace = network.namespace
-					return [...executionEnvironmentIdsByNamespace[namespace]].map((executionEnvironmentId) => ({
-						[EntityMetaKey.Selector]: {
-							executionEnvironmentId,
-						},
-					}))
-				}
-			},
-		})({
-			fields: {
-				$$executionEnvironments: (entity) => entity,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.QuilibriumNetwork,
-			resolve: {
-				[QuilibriumNetworkSelector.Slug]: async ({ slug }) => {
-					const network = networkBySlug[slug]
-					const namespace: NetworkNamespace = network.namespace
-					return [...executionEnvironmentIdsByNamespace[namespace]].map((executionEnvironmentId) => ({
-						[EntityMetaKey.Selector]: {
-							executionEnvironmentId,
-						},
-					}))
-				}
-			},
-		})({
-			fields: {
-				$$executionEnvironments: (entity) => entity,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.Network,
-			resolve: {
-				[NetworkSelector.Caip2]: async ({ caip2 }) => {
-					const network = networkByCaip2[`${caip2.namespace}:${caip2.reference}`]
-					const namespace: NetworkNamespace = network.namespace
-					return [...consensusMechanismIdsByNamespace[namespace]].map((consensusMechanismId) => ({
-						[EntityMetaKey.Selector]: {
-							consensusMechanismId,
-						},
-					}))
-				},
-				[NetworkSelector.Slug]: async ({ slug }) => {
-					const network = networkBySlug[slug]
-					if (network == null) return []
-					const namespace: NetworkNamespace = network.namespace
-					return [...consensusMechanismIdsByNamespace[namespace]].map((consensusMechanismId) => ({
-						[EntityMetaKey.Selector]: {
-							consensusMechanismId,
-						},
-					}))
-				},
-			},
-		})({
-			fields: {
-				$$consensusMechanisms: (entity) => entity,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.ZeroGNetwork,
-			resolve: {
-				[ZeroGNetworkSelector.Slug]: async ({ slug }) => {
-					const network = networkBySlug[slug]
-					if (network == null) return []
-					const namespace: NetworkNamespace = network.namespace
-					return [...consensusMechanismIdsByNamespace[namespace]].map((consensusMechanismId) => ({
-						[EntityMetaKey.Selector]: {
-							consensusMechanismId,
-						},
-					}))
-				}
-			},
-		})({
-			fields: {
-				$$consensusMechanisms: (entity) => entity,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.QuilibriumNetwork,
-			resolve: {
-				[QuilibriumNetworkSelector.Slug]: async ({ slug }) => {
-					const network = networkBySlug[slug]
-					if (network == null) return []
-					const namespace: NetworkNamespace = network.namespace
-					return [...consensusMechanismIdsByNamespace[namespace]].map((consensusMechanismId) => ({
-						[EntityMetaKey.Selector]: {
-							consensusMechanismId,
-						},
-					}))
-				}
-			},
-		})({
-			fields: {
-				$$consensusMechanisms: (entity) => entity,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
+			defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
 			resolve: {
 				[NetworkSelector.Caip2]: async ({ caip2 }) => {
@@ -2077,15 +1868,27 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
+				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => ({
+					proposalRealms: Object.keys(specificationRealmById).map(String),
+					proposalCategories: Object.keys(proposalCategoryById).map(String),
+				})
+			},
+		})({
+			fields: {
+				proposalRealms: (entity) => entity.proposalRealms,
+				proposalCategories: (entity) => entity.proposalCategories,
+			},
+		}),
+
+		defineResolver(Source.Constants_Internal, {
+			entityType: EntityType._Global,
+			resolve: {
 				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => (
-					specificationRealmById == null ?
-						[]
-					:
-						Object.values(specificationRealmById).map((realmRow) => ({
-							[EntityMetaKey.Selector]: {
-								realm: realmRow.id,
-							},
-						}))
+					specificationRealms.map((realm) => ({
+						[EntityMetaKey.Selector]: {
+							realm: realm.id,
+						},
+					}))
 				)
 			},
 		})({
@@ -2099,7 +1902,10 @@ export default {
 			resolve: {
 				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => (
 					proposalKinds.map((proposalKind) => ({
-						[EntityMetaKey.Selector]: proposalKind,
+						[EntityMetaKey.Selector]: {
+							realm: proposalKind.realm,
+							category: proposalKind.category,
+						},
 					}))
 				)
 			},
@@ -2109,41 +1915,6 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.SpecificationRealm,
-			resolve: {
-				[SpecificationRealmSelector.Realm]: async (entitySelector: EntitySelector<typeof schema, EntityType.SpecificationRealm>) => (
-					proposalKinds
-						.filter((proposalKind) => (
-						proposalKind.realm === entitySelector.realm
-						))
-						.map((proposalKind) => ({
-							[EntityMetaKey.Selector]: proposalKind,
-						}))
-				)
-			},
-		})({
-			fields: {
-				$$proposalKinds: (entity) => entity,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.SpecificationProposalKind,
-			resolve: {
-				[SpecificationProposalKindSelector.RealmCategory]: async ({ realm }: EntitySelector<typeof schema, EntityType.SpecificationProposalKind>) => (
-					{
-						[EntityMetaKey.Selector]: {
-							realm: realm,
-						},
-					}
-				)
-			},
-		})({
-			fields: {
-				$specificationRealm: (entity) => entity,
-			},
-		}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
@@ -2170,48 +1941,17 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => {
-					const { marketVenues } = await import('$/constants/MarketVenue.ts')
-					return [...marketVenues].map((marketVenue) => (
-						{
-							[EntityMetaKey.Selector]: {
-								marketVenueId: marketVenue.id,
-							},
-						}
-					))
-				}
+				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => (
+					marketVenues.map((marketVenue) => ({
+						[EntityMetaKey.Selector]: {
+							marketVenueId: marketVenue.id,
+						},
+					}))
+				)
 			},
 		})({
 			fields: {
 				$$marketVenues: (entity) => entity,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.MarketVenue,
-			resolve: {
-				[MarketVenueSelector.MarketVenueId]: async (entitySelector: EntitySelector<typeof schema, EntityType.MarketVenue>) => {
-					const { coins } = await import('$/constants/Coin.ts')
-					return (
-						coins.flatMap((coin) => {
-						const marketSelector = marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[coin.id])
-						return (
-							marketSelector.$marketVenue.marketVenueId === entitySelector.marketVenueId ?
-								[
-									{
-										[EntityMetaKey.Selector]: marketSelector,
-									},
-								]
-							:
-								[]
-						)
-						})
-					)
-				}
-			},
-		})({
-			fields: {
-				$$markets: (entity) => entity,
 			},
 		}),
 
@@ -2245,6 +1985,7 @@ export default {
 							[EntityMetaKey.Selector]: {
 								$currency: entitySelector,
 								timestampMs: currencyCatalogSnapshotTimestampMs,
+								source: Source.Constants_Internal,
 							},
 							marketCap: BigInt(currency.marketCapUsd),
 						},
@@ -2280,28 +2021,6 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => {
-					const { coins } = await import('$/constants/Coin.ts')
-					return (
-						coins.map((coin) => (
-						{
-							[EntityMetaKey.Selector]: {
-								$market: marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[coin.id]),
-							},
-						}
-						))
-					)
-				}
-			},
-		})({
-			fields: {
-				$$marketPrices: (entity) => entity,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType._Global,
-			resolve: {
 				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
 					catalogCoinSpotUsdMarkets.slice(0, resolverContextRowLimit(context)).map((catalogMarket) => (
 						{
@@ -2309,6 +2028,7 @@ export default {
 								$market: marketSelectorFromCatalogCoinCurrencyMarket(catalogMarket),
 								timeInterval: marketOhlcDailyTimeInterval,
 								timestampMs: currencyCatalogSnapshotTimestampMs,
+								source: Source.Constants_Internal,
 							},
 						}
 					))
@@ -2395,27 +2115,24 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Coin,
 			resolve: {
-				[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>) => {
-						if (coinId !== CoinId.ETH) return []
-						const ethNativeCoinInstance: Entity<typeof schema, EntityType.EvmCoinInstance> = {
+				[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>) => (
+					coinId !== CoinId.ETH ?
+						[]
+					:
+						[
+							{
 							[EntityMetaKey.Selector]: {
 								$network: {
 									caip2: {
-										namespace: 'eip155',
+										namespace: 'eip155' as const,
 										reference: '1',
 									},
 								},
-								type: CoinInstanceType.NativeCurrency,
+								type: CoinInstanceType.NativeCurrency as const,
 							},
-							coinId: CoinId.ETH,
-							symbol: 'ETH',
-							decimals: 18,
-							representation: CoinInstanceRepresentation.IssuerNative,
-						}
-						return [
-							ethNativeCoinInstance,
+							},
 						]
-				}
+				)
 			},
 		})({
 			fields: {
@@ -2514,7 +2231,7 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: {
-				[Market_TimeInterval_TimestampSelector.MarketTimeIntervalTimestampMs]: async ({ $market }: EntitySelector<typeof schema, EntityType.Market_TimeInterval_Timestamp>) => (
+				[Market_TimeInterval_TimestampSelector.MarketTimeIntervalTimestampMs]: async ({ $market }) => (
 					{
 						[EntityMetaKey.Selector]: $market,
 					}
@@ -2523,25 +2240,6 @@ export default {
 		})({
 			fields: {
 				$parentMarket: (entity) => entity,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.EvmNetwork,
-			resolve: {
-				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
-					const { networkExecutionUpgrades } = await import('$/constants/EthereumNetworkUpgrades.ts')
-					return (
-						networkExecutionUpgrades.some((executionUpgrade) => (
-						String(executionUpgrade.chainId) === caip2.reference
-						&& executionUpgrade.layer === NetworkExecutionUpgradeLayer.Blob
-						))
-					)
-				}
-			},
-		})({
-			fields: {
-				hasBlobParameterExecutionUpgrade: (entity) => entity,
 			},
 		}),
 
@@ -2795,130 +2493,6 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.LensNetwork,
-			resolve: {
-				[LensNetworkSelector.Scope]: async () => (
-					lensNetworkSeedAccounts.map((account) => ({
-						[EntityMetaKey.Selector]: {
-							address: account.address,
-						},
-					}))
-				)
-			},
-		})({
-			fields: {
-				$$lensAccounts: (entity) => entity,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.NostrNetwork,
-			resolve: {
-				[NostrNetworkSelector.Scope]: async () => (
-					nostrNetworkSeedProfiles.map((profile) => ({
-						[EntityMetaKey.Selector]: {
-							pubkey: profile.pubkey,
-						},
-					}))
-				)
-			},
-		})({
-			fields: {
-				$$nostrProfiles: (entity) => entity,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.NostrNetwork,
-			resolve: {
-				[NostrNetworkSelector.Scope]: async () => (
-					nostrNetworkSeedNotes.map((note) => ({
-						[EntityMetaKey.Selector]: {
-							eventId: note.eventId,
-						},
-					}))
-				)
-			},
-		})({
-			fields: {
-				$$nostrNotes: (entity) => entity,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.NostrNetwork,
-			resolve: {
-				[NostrNetworkSelector.Scope]: async () => []
-			},
-		})({
-			fields: {
-				$$nostrReposts: (entity) => entity,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.NostrNetwork,
-			resolve: {
-				[NostrNetworkSelector.Scope]: async () => []
-			},
-		})({
-			fields: {
-				$$nostrArticles: (entity) => entity,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.NostrNetwork,
-			resolve: {
-				[NostrNetworkSelector.Scope]: async () => (
-					nostrNetworkSeedRelays.map((relay) => ({
-						[EntityMetaKey.Selector]: {
-							relayUrl: relay.relayUrl,
-						},
-					}))
-				)
-			},
-		})({
-			fields: {
-				$$nostrRelays: (entity) => entity,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.AtprotoNetwork,
-			resolve: {
-				[AtprotoNetworkSelector.Scope]: async () => (
-					atprotoNetworkSeedActors.map((actor) => ({
-						[EntityMetaKey.Selector]: {
-							did: actor.did,
-						},
-					}))
-				)
-			},
-			})({
-				fields: {
-					$$atprotoActors: (entity) => entity,
-				},
-			}),
-
-			defineResolver(Source.Constants_Internal, {
-				entityType: EntityType.AtprotoNetwork,
-				resolve: {
-					[AtprotoNetworkSelector.Scope]: async () => (
-						atprotoNetworkSeedPosts.map((post) => ({
-							[EntityMetaKey.Selector]: {
-								uri: post.uri,
-							},
-						}))
-					)
-				},
-				})({
-					fields: {
-						$$atprotoPosts: (entity) => entity,
-					},
-				}),
-
 				defineResolver(Source.Constants_Internal, {
 					entityType: EntityType.AtprotoPost,
 					resolve: {
@@ -2939,42 +2513,6 @@ export default {
 						}),
 					},
 				}),
-
-				defineResolver(Source.Constants_Internal, {
-					entityType: EntityType.ActivityPubNetwork,
-					resolve: {
-				[ActivityPubNetworkSelector.Scope]: async () => (
-					activityPubNetworkSeedActors.map((actor) => ({
-						[EntityMetaKey.Selector]: {
-							instanceOrigin: actor.instanceOrigin,
-							acct: actor.acct,
-						},
-					}))
-				)
-			},
-		})({
-			fields: {
-				$$activityPubActors: (entity) => entity,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.RedditNetwork,
-			resolve: {
-				[RedditNetworkSelector.Scope]: async () => (
-					redditNetworkSeedSubreddits.map((subreddit) => ({
-						[EntityMetaKey.Selector]: {
-							name: subreddit.name,
-						},
-					}))
-				)
-			},
-		})({
-			fields: {
-				$$redditSubreddits: (entity) => entity,
-			},
-		}),
-
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.RedditSubreddit,
 			resolve: {
@@ -3116,40 +2654,6 @@ export default {
 		}),
 
 		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.RssNetwork,
-			resolve: {
-				[RssNetworkSelector.Scope]: async () => (
-					rssNetworkSeedFeeds.map((feed) => ({
-						[EntityMetaKey.Selector]: {
-							feedUrl: feed.feedUrl,
-						},
-					}))
-				)
-			},
-		})({
-			fields: {
-				$$rssFeeds: (entity) => entity,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.XNetwork,
-			resolve: {
-				[XNetworkSelector.Scope]: async () => (
-					xNetworkSeedUsers.map((user) => ({
-						[EntityMetaKey.Selector]: {
-							id: user.id,
-						},
-					}))
-				)
-			},
-		})({
-			fields: {
-				$$xUsers: (entity) => entity,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.XPost,
 			resolve: {
 				[XPostSelector.Id]: async ({ id }) => {
@@ -3163,57 +2667,6 @@ export default {
 			fields: {
 				id: (entity) => entity.id,
 				postUrl: (entity) => `https://x.com/i/web/status/${entity.id}`,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.YouTubeNetwork,
-			resolve: {
-				[YouTubeNetworkSelector.Scope]: async () => (
-					[...youtubeNetworkSeedChannels].map((channel) => ({
-						[EntityMetaKey.Selector]: {
-							channelId: channel.channelId,
-						},
-					}))
-				)
-			},
-		})({
-			fields: {
-				$$youtubeChannels: (entity) => entity,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.YouTubeNetwork,
-			resolve: {
-				[YouTubeNetworkSelector.Scope]: async () => (
-					[...youtubeNetworkSeedVideos].map((video) => ({
-						[EntityMetaKey.Selector]: {
-							videoId: video.videoId,
-						},
-					}))
-				)
-			},
-		})({
-			fields: {
-				$$youtubeVideos: (entity) => entity,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.YouTubeNetwork,
-			resolve: {
-				[YouTubeNetworkSelector.Scope]: async () => (
-					[...youtubeNetworkSeedPlaylists].map((playlist) => ({
-						[EntityMetaKey.Selector]: {
-							playlistId: playlist.playlistId,
-						},
-					}))
-				)
-			},
-		})({
-			fields: {
-				$$youtubePlaylists: (entity) => entity,
 			},
 		}),
 
@@ -3266,65 +2719,6 @@ export default {
 		})({
 			fields: {
 				$$precompiles: (entity) => entity,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.ZeroGNetwork,
-			resolve: {
-				[ZeroGNetworkSelector.Slug]: async ({ slug }) => {
-					const network = networkBySlug[slug]
-					if (network == null) return []
-					const namespace: NetworkNamespace = network.namespace
-					const coinId = nativeAssetCoinIdByNamespace[namespace]
-					if (coinId == null) return []
-					return [
-						{
-							[EntityMetaKey.Selector]: {
-								$network: {
-									slug: slug,
-								},
-								kind: AssetInstanceKind.Native,
-								assetKey: coinId,
-							},
-							coinId,
-							symbol: coinId,
-						},
-					]
-				}
-			},
-		})({
-			fields: {
-				$$nativeAssets: (entity) => entity,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.QuilibriumNetwork,
-			resolve: {
-				[QuilibriumNetworkSelector.Slug]: async ({ slug }) => {
-					const network = networkBySlug[slug]
-					if (network == null) return []
-					const namespace: NetworkNamespace = network.namespace
-					const coinId = nativeAssetCoinIdByNamespace[namespace]
-					if (coinId == null) return []
-					return [
-						{
-							[EntityMetaKey.Selector]: {
-								$network: {
-									slug: slug,
-								},
-								kind: AssetInstanceKind.Native,
-								assetKey: coinId,
-							},
-							coinId,
-						},
-					]
-				}
-			},
-		})({
-			fields: {
-				$$nativeAssets: (entity) => entity,
 			},
 		}),
 	],

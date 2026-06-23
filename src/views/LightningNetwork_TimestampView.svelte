@@ -2,16 +2,108 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'lightning network',
+			},
+			{
+				label: 'timestamp/source',
+			},
+			{
+				label: 'node count',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'lightning network',
+					},
+					{
+						label: 'timestamp/source',
+					},
+					{
+						label: 'node count',
+					},
+					{
+						label: 'channel count',
+					},
+					{
+						label: 'total capacity',
+					},
+					{
+						label: 'Tor/clearnet/unannounced counts',
+					},
+					{
+						label: 'average/median capacity',
+					},
+					{
+						label: 'average/median fee rate',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Network',
+					items: [
+						{
+							label: 'parent Lightning network',
+						},
+					],
+				},
+				{
+					label: 'Graph size',
+					items: [
+						{
+							label: 'node/channel counts',
+						},
+					],
+				},
+				{
+					label: 'Capacity',
+					items: [
+						{
+							label: 'total/average/median capacity',
+						},
+					],
+				},
+				{
+					label: 'Connectivity',
+					items: [
+						{
+							label: 'Tor/clearnet/unannounced counts',
+						},
+					],
+				},
+				{
+					label: 'Fees',
+					items: [
+						{
+							label: 'average/median fee rate',
+						},
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'mempool.space/Amboss/LND graph snapshot payload',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -22,131 +114,23 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
-	const snapshot = $derived(selection(
-		({ sources: [
-				Source.LightningMempoolSpace_Rest,
-			], fields: { nodeCount: true, channelCount: true, totalCapacitySats: true, averageFeeRatePpm: true, medianFeeRatePpm: true, ...(open && ({ torNodeCount: true, clearnetNodeCount: true, unannouncedNodeCount: true, averageCapacitySats: true, medianCapacitySats: true })) } }),
-	))
-
-
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.LightningNetwork_Timestamp}
 	entitySelector={selection.entitySelector}
-	title="Lightning Network snapshot"
 	bind:open
 	{...EntityViewProps}
->
-	{#snippet Value()}
-		<ResourceBoundary
-			resource={snapshot}
-			placeholderText="Loading snapshot…"
-		>
-			{#snippet children(lightningNetworkTimestamp)}
-				{#if lightningNetworkTimestamp.nodeCount != null}
-					<NumberValue value={lightningNetworkTimestamp.nodeCount} />
-					nodes
-				{:else if lightningNetworkTimestamp.channelCount != null}
-					<NumberValue value={lightningNetworkTimestamp.channelCount} />
-					channels
-				{:else}
-					Snapshot
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={snapshot}
-			placeholderText="Loading snapshot…"
-		>
-			{#snippet children(lightningNetworkTimestamp)}
-				<dl>
-					{#if lightningNetworkTimestamp.nodeCount != null}
-						<div>
-							<dt>Nodes</dt>
-							<dd><NumberValue value={lightningNetworkTimestamp.nodeCount} /></dd>
-						</div>
-					{/if}
-
-					{#if lightningNetworkTimestamp.channelCount != null}
-						<div>
-							<dt>Channels</dt>
-							<dd><NumberValue value={lightningNetworkTimestamp.channelCount} /></dd>
-						</div>
-					{/if}
-
-					{#if lightningNetworkTimestamp.totalCapacitySats != null}
-						<div>
-							<dt>Capacity</dt>
-							<dd>{lightningNetworkTimestamp.totalCapacitySats.toString()} sats</dd>
-						</div>
-					{/if}
-
-					{#if lightningNetworkTimestamp.averageFeeRatePpm != null}
-						<div>
-							<dt>Average fee rate</dt>
-							<dd><NumberValue value={lightningNetworkTimestamp.averageFeeRatePpm} /> ppm</dd>
-						</div>
-					{/if}
-
-					{#if lightningNetworkTimestamp.medianFeeRatePpm != null}
-						<div>
-							<dt>Median fee rate</dt>
-							<dd><NumberValue value={lightningNetworkTimestamp.medianFeeRatePpm} /> ppm</dd>
-						</div>
-					{/if}
-
-					{#if open && lightningNetworkTimestamp.torNodeCount != null}
-						<div>
-							<dt>Tor nodes</dt>
-							<dd><NumberValue value={lightningNetworkTimestamp.torNodeCount} /></dd>
-						</div>
-					{/if}
-
-					{#if open && lightningNetworkTimestamp.clearnetNodeCount != null}
-						<div>
-							<dt>Clearnet nodes</dt>
-							<dd><NumberValue value={lightningNetworkTimestamp.clearnetNodeCount} /></dd>
-						</div>
-					{/if}
-
-					{#if open && lightningNetworkTimestamp.unannouncedNodeCount != null}
-						<div>
-							<dt>Unannounced nodes</dt>
-							<dd><NumberValue value={lightningNetworkTimestamp.unannouncedNodeCount} /></dd>
-						</div>
-					{/if}
-
-					{#if open && lightningNetworkTimestamp.averageCapacitySats != null}
-						<div>
-							<dt>Average capacity</dt>
-							<dd>{lightningNetworkTimestamp.averageCapacitySats.toString()} sats</dd>
-						</div>
-					{/if}
-
-					{#if open && lightningNetworkTimestamp.medianCapacitySats != null}
-						<div>
-							<dt>Median capacity</dt>
-							<dd>{lightningNetworkTimestamp.medianCapacitySats.toString()} sats</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

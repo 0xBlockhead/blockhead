@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import {
 		NetworkNamespace,
@@ -13,6 +12,9 @@
 
 	type NetworkResource = EntityProxyResource<typeof schema, EntityType.Network>
 
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -31,7 +33,8 @@
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BittensorNetworkView from '$/views/BittensorNetworkView.svelte'
 	import CosmosNetworkView from '$/views/CosmosNetworkView.svelte'
 	import EvmNetworkView from '$/views/EvmNetworkView.svelte'
@@ -56,17 +59,17 @@
 >
 	{#snippet children(row)}
 		{@const networkCaip2 = row.caip2 ?? (
-		'caip2' in selection.entitySelector ?
-			selection.entitySelector.caip2
-		:
-			undefined
-	)}
+			'caip2' in selection.entitySelector ?
+				selection.entitySelector.caip2
+			:
+				undefined
+		)}
 		{@const networkSlug = row.slug ?? (
-		'slug' in selection.entitySelector ?
-			selection.entitySelector.slug
-		:
-			undefined
-	)}
+			'slug' in selection.entitySelector ?
+				selection.entitySelector.slug
+			:
+				undefined
+		)}
 		{@const networkHref = href ?? (
 			networkCaip2 == null ?
 				networkSlug == null ?
@@ -205,14 +208,123 @@
 				{layout}
 			/>
 		{:else}
-			<EntityView
+			<EntityView2
+				{selection}
 				entityType={EntityType.Network}
 				entitySelector={networkSelector}
 				href={networkHref}
 				bind:open
 				{layout}
+				view={{
+					closed: [
+						'caip2',
+						'environment',
+					],
+					content: {
+						dl: [
+							[
+								'caip2',
+								'environment',
+								{
+									label: 'stack classification',
+								},
+								'executionEnvironments',
+								'consensusMechanisms',
+							],
+							[
+								{
+									label: 'native asset count',
+								},
+								{
+									label: 'explorer/faucet URL counts',
+								},
+							],
+						],
+					},
+					details: {
+						tabs: [
+							{
+								label: 'Namespace-specific state',
+								items: [
+									{
+										label: 'EVM',
+									},
+									{
+										label: 'UTXO',
+									},
+									{
+										label: 'Solana',
+									},
+									{
+										label: 'Cosmos',
+									},
+									{
+										label: 'Celestia',
+									},
+									{
+										label: 'Avail',
+									},
+									{
+										label: 'Filecoin',
+									},
+									{
+										label: 'Polkadot',
+									},
+									{
+										label: 'Monero',
+									},
+									{
+										label: 'NEAR',
+									},
+									{
+										label: 'TRON',
+									},
+									{
+										label: 'Hyperliquid',
+									},
+									{
+										label: 'Bittensor',
+									},
+									{
+										label: 'Lightning',
+									},
+									{
+										label: 'Arweave',
+									},
+									{
+										label: '0G',
+									},
+									{
+										label: 'Quilibrium',
+									},
+								],
+							},
+							{
+								label: 'Catalog refs',
+								items: [
+									'$$nativeAssets',
+									'$$blockExplorerUrls',
+									'$$faucetUrls',
+									{
+										label: 'secondary identifiers',
+									},
+								],
+							},
+							{
+								label: 'Observations',
+								items: [
+									{
+										label: 'Network_Timestamp fallback rows',
+									},
+									{
+										label: 'endpoint observations',
+									},
+								],
+							},
+						],
+					},
+				}}
 			>
-
 				{#snippet Title()}
 					{row.name}
 				{/snippet}
@@ -236,7 +348,7 @@
 						{/if}
 					</dl>
 				{/snippet}
-			</EntityView>
+			</EntityView2>
 		{/if}
 	{/snippet}
 </ResourceBoundary>

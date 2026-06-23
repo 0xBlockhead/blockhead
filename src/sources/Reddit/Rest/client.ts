@@ -5,10 +5,9 @@ import {
 	redditUserAgent,
 	redditWwwOrigin,
 } from '$/sources/Reddit/Rest/constants.ts'
-import Reddit from '$/sources/Reddit/index.ts'
+import { redditOrigins } from '$/sources/Reddit/index.ts'
 import type { RedditOAuthTokenResponse } from '$/sources/Reddit/Rest/types.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import { Source } from '$/sources/Source.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 
 const basicAuthB64 = (id: string, sec: string) => globalThis.btoa(`${id}:${sec}`)
 
@@ -17,7 +16,7 @@ let tokenCache: {
 	expMs: number
 } | null = null
 
-const getAccessToken = async (publicEnv: SourcePublicEnvFor<Source.Reddit_Rest>) => {
+const getAccessToken = async (publicEnv: SourcePublicEnv) => {
 	const id = requiredPublicEnvString(publicEnv, 'PUBLIC_REDDIT_CLIENT_ID')
 	const sec = requiredPublicEnvString(publicEnv, 'PUBLIC_REDDIT_CLIENT_SECRET')
 	if (tokenCache != null && tokenCache.expMs > Date.now() + 5_000)
@@ -25,7 +24,7 @@ const getAccessToken = async (publicEnv: SourcePublicEnvFor<Source.Reddit_Rest>)
 	const j = await getJson<RedditOAuthTokenResponse>(
 		`${redditWwwOrigin}/api/v1/access_token`,
 		{
-			origins: Reddit.origins,
+			origins: redditOrigins,
 			init: {
 				method: 'POST',
 				headers: {
@@ -47,9 +46,9 @@ const getAccessToken = async (publicEnv: SourcePublicEnvFor<Source.Reddit_Rest>)
 	return t
 }
 
-const oauthGetJson = async <T>(publicEnv: SourcePublicEnvFor<Source.Reddit_Rest>, path: string) => (
+const oauthGetJson = async <T>(publicEnv: SourcePublicEnv, path: string) => (
 	getJson<T>(`${redditOauthOrigin}${path.startsWith('/') ? path : `/${path}`}`, {
-		origins: Reddit.origins,
+		origins: redditOrigins,
 		init: {
 			headers: {
 				Authorization: `Bearer ${await getAccessToken(publicEnv)}`,

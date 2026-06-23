@@ -1,5 +1,5 @@
 import { corsFetch } from '$/lib/http.ts'
-import Lifi from '$/sources/Lifi/index.ts'
+import { lifiOrigins } from '$/sources/Lifi/index.ts'
 import { baseUrl } from '$/sources/Lifi/Rest/constants.ts'
 
 
@@ -11,7 +11,7 @@ export const lifiRestFetch = (
 	const root = options?.baseUrl ?? baseUrl
 	const url = path.startsWith('http') ? path : `${root}${path}`
 	return corsFetch(url, {
-		origins: Lifi.origins,
+		origins: lifiOrigins,
 		init: {
 			...init,
 			headers: {

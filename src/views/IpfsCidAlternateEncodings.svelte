@@ -7,10 +7,10 @@
 
 	// State
 	let {
-		contentPath,
+		contentPath = '',
 		target,
 	}: {
-		contentPath: string
+		contentPath?: string
 		target: string
 	} = $props()
 

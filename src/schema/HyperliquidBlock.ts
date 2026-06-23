@@ -1,24 +1,18 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
-
 export enum HyperliquidBlockSelector {
 	Height = 'height',
-	Hash = 'hash',
+	NetworkHeight = '$network+height',
 }
-
 export default {
 	entityType: EntityType.HyperliquidBlock,
-
-	label: 'Hyperliquid Block',
-	labelPlural: 'Hyperliquid Blocks',
-
+	label: 'hyperliquid block',
+	labelPlural: 'hyperliquid blocks',
 	selectors: [
 		{
 			name: HyperliquidBlockSelector.Height,
@@ -27,45 +21,45 @@ export default {
 				'height',
 			],
 		},
-		{
-			name: HyperliquidBlockSelector.Hash,
-			fields: [
-				'$network',
-				'hash',
-			],
-		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'height',
+			label: 'Height',
+			description: 'The block or ledger height in its network.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'hash',
+			label: 'Hash',
+			description: 'The hash that identifies this object in its protocol.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$$transactions',
+			label: 'transactions',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.HyperliquidTransaction,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
+			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

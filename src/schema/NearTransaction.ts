@@ -1,24 +1,18 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum NearTransactionSelector {
 	NetworkHash = 'networkHash',
 	NetworkHashSignerAccountId = 'networkHashSignerAccountId',
 }
-
 export default {
 	entityType: EntityType.NearTransaction,
-
-	label: 'NEAR Transaction',
-	labelPlural: 'NEAR Transactions',
-
+	label: 'near transaction',
+	labelPlural: 'near transactions',
 	selectors: [
 		{
 			name: NearTransactionSelector.NetworkHash,
@@ -36,55 +30,63 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'hash',
+			label: 'Hash',
+			description: 'The hash that identifies this object in its protocol.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'signerAccountId',
+			label: 'signer account ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$signer',
+			label: 'signer',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.NearAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$receiver',
+			label: 'receiver',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.NearAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'nonce',
+			label: 'nonce',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$$actions',
+			label: 'actions',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.NearAction,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$executionOutcomes',
+			label: 'execution outcomes',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.NearExecutionOutcome,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
+			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

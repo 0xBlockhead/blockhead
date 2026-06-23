@@ -1,24 +1,18 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { UrlString } from '$/schema/UrlString.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum EvmProtocolSelector {
 	Scope = 'scope',
 }
-
 export default {
 	entityType: EntityType.EvmProtocol,
-
 	label: 'EVM protocol',
 	labelPlural: 'EVM protocols',
-
+	description: 'Catalog surface for EVM signature, topic, and error registries.',
 	selectors: [
 		{
 			name: EvmProtocolSelector.Scope,
@@ -27,79 +21,70 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: 'scope',
+			label: 'Scope',
+			description: 'The fixed scope value that identifies this hub row.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.unit('EvmProtocol'),
+			primitiveType: type("'EvmProtocol'"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'protocolName',
+			label: 'protocol name',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: 'homeUrl',
+			label: 'home URL',
 			type: EntityFieldType.Primitive,
-			primitiveType: UrlString,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: 'docsUrl',
+			label: 'docs URL',
 			type: EntityFieldType.Primitive,
-			primitiveType: UrlString,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: 'registryLabel',
+			label: 'registry label',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: 'topology',
+			label: 'topology',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: '$$evmTopics',
+			label: 'EVM topics',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.EvmTopic,
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [Source.Local_Internal],
 		},
 		{
 			name: '$$evmSelectors',
+			label: 'EVM selectors',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.EvmSelector,
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [Source.Local_Internal],
 		},
 		{
 			name: '$$evmErrors',
+			label: 'EVM errors',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.EvmError,
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [Source.Local_Internal],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

@@ -2,15 +2,66 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'AuxPoW ref',
+			},
+			{
+				label: 'parent header hash',
+			},
+			{
+				label: 'merkle root',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'AuxPoW ref',
+					},
+					{
+						label: 'parent header hash',
+					},
+					{
+						label: 'merkle root',
+					},
+					'nonce',
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'AuxPoW',
+					items: [
+						{
+							label: 'parent Dogecoin AuxPoW proof',
+						},
+					],
+				},
+				{
+					label: 'Header evidence',
+					items: [
+						{
+							label: 'parent hash',
+						},
+						{
+							label: 'merkle root',
+						},
+						'nonce',
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +72,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,64 +80,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.DogecoinAuxPowParentBlockHeader}
 	entitySelector={selection.entitySelector}
-	title={'Dogecoin AuxPoW Parent Header'}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		Dogecoin AuxPoW Parent Header
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection(
-					({ fields: { hash: true, merkleRoot: true, nonce: true } }),
-				)}
-			placeholderText={`Loading Dogecoin AuxPoW Parent Header...`}
-		>
-			{#snippet children(dogecoinAuxPowParentBlockHeader)}
-				<dl>
-					{#if dogecoinAuxPowParentBlockHeader.hash != null}
-						<div>
-							<dt>Hash</dt>
-							<dd>
-								<TruncatedValue
-									value={dogecoinAuxPowParentBlockHeader.hash}
-									format={TruncatedValueFormat.Abbr}
-								/></dd>
-						</div>
-					{/if}
-
-					{#if dogecoinAuxPowParentBlockHeader.merkleRoot != null}
-						<div>
-							<dt>Merkle Root</dt>
-							<dd>
-								<TruncatedValue
-									value={dogecoinAuxPowParentBlockHeader.merkleRoot}
-									format={TruncatedValueFormat.Abbr}
-								/></dd>
-						</div>
-					{/if}
-
-					{#if dogecoinAuxPowParentBlockHeader.nonce != null}
-						<div>
-							<dt>Nonce</dt>
-							<dd><NumberValue value={dogecoinAuxPowParentBlockHeader.nonce} /></dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

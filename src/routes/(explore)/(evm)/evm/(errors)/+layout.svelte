@@ -13,9 +13,9 @@
 
 
 <ParentPageCollapsible
-	title={'Errors'}
+	title="Errors"
 	href={resolve('/evm/errors')}
-	id={'evm-errors'}
+	id="evm-errors"
 >
 	{@render children()}
 </ParentPageCollapsible>

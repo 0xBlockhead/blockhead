@@ -267,7 +267,7 @@ export type NormalizedLocalInternal = {
 }
 
 
-/** Mirrors `probeEntitySelectorByType[EntityType.BridgeTransaction]` in assert-loaded-resolvers fixtures. */
+/** Mirrors `probeEntitySelectorByType[EntityType.BlockheadBridgeTransaction]` in assert-loaded-resolvers fixtures. */
 const probeBridgeTransaction = {
 	accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
 	chainId: 1,
@@ -654,7 +654,7 @@ export const readNormalizedLocalInternal = (): NormalizedLocalInternal => (
 
 export const findNormalizedBridgeTransactionRow = (
 	catalog: NormalizedLocalInternal,
-	entitySelector: EntitySelector<typeof schema, EntityType.BridgeTransaction>
+	entitySelector: EntitySelector<typeof schema, EntityType.BlockheadBridgeTransaction>
 ): NormalizedBridgeTransaction | undefined => (
 	catalog.bridgeTransactions.find((row) => (
 		row.accountAddress === entitySelector.$account.address

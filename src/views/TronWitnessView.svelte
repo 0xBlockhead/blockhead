@@ -2,16 +2,71 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			'address',
+			{
+				label: 'latest URL/vote/production summary',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					'address',
+					{
+						label: 'latest URL/vote/production summary',
+					},
+					{
+						label: 'active state',
+					},
+					{
+						label: 'latest observation time',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Witness observations',
+					items: [
+						{
+							label: 'witness vote/production observations',
+						},
+					],
+				},
+				{
+					label: 'Produced blocks',
+					items: [
+						{
+							label: 'produced blocks when source supports witness filtering',
+						},
+					],
+				},
+				{
+					label: 'Network',
+					items: [
+						{
+							label: 'parent TRON network',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -22,7 +77,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -30,79 +85,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.TronWitness}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.address}
 	bind:open
 	{...EntityViewProps}
->
-	{#snippet Title()}
-		<TruncatedValue
-			value={selection.entitySelector.address}
-			format={TruncatedValueFormat.Abbr}
-		/>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection( { sources: [
-					Source.TronGrid_Rest,
-				], fields: { url: true, voteCount: true, totalProduced: true, totalMissed: true, latestBlockHeight: true, active: true } })}
-			placeholderText="Loading TRON witness..."
-		>
-			{#snippet children(witness)}
-				<dl>
-					{#if witness.active !== undefined}
-						<div>
-							<dt>Active</dt>
-							<dd>{witness.active ? 'Yes' : 'No'}</dd>
-						</div>
-					{/if}
-
-					{#if witness.voteCount !== undefined}
-						<div>
-							<dt>Votes</dt>
-							<dd><NumberValue value={witness.voteCount} /></dd>
-						</div>
-					{/if}
-
-					{#if open && witness.latestBlockHeight !== undefined}
-						<div>
-							<dt>Latest block</dt>
-							<dd><NumberValue value={witness.latestBlockHeight} /></dd>
-						</div>
-					{/if}
-
-					{#if open && witness.totalProduced !== undefined}
-						<div>
-							<dt>Produced</dt>
-							<dd><NumberValue value={witness.totalProduced} /></dd>
-						</div>
-					{/if}
-
-					{#if open && witness.totalMissed !== undefined}
-						<div>
-							<dt>Missed</dt>
-							<dd><NumberValue value={witness.totalMissed} /></dd>
-						</div>
-					{/if}
-
-					{#if open && witness.url != null}
-						<div>
-							<dt>URL</dt>
-							<dd>{witness.url}</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

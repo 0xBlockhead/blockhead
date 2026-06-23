@@ -1,23 +1,18 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum BeaconSyncCommitteeSelector {
 	EvmNetworkPeriod = 'evmNetworkPeriod',
+	NetworkPeriod = '$network+period',
 }
-
 export default {
 	entityType: EntityType.BeaconSyncCommittee,
-
-	label: 'Beacon sync committee',
-	labelPlural: 'Beacon sync committees',
-
+	label: 'beacon sync committee',
+	labelPlural: 'beacon sync committees',
 	selectors: [
 		{
 			name: BeaconSyncCommitteeSelector.EvmNetworkPeriod,
@@ -27,28 +22,27 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'period',
+			label: 'period',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'validatorIndices',
+			label: 'validator indices',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number[]'),
+			primitiveType: type("number[]"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

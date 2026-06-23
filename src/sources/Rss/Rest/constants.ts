@@ -1,8 +1,6 @@
-import type { SourceOrigin } from '$/sources/SourceProvider.ts'
-
 import { rssNetworkSeedFeeds } from '$/constants/Social/Rss.ts'
 
-export const rssFeedOrigins: readonly SourceOrigin[] = [
+export const rssFeedOrigins = [
 	...new Set(
 		rssNetworkSeedFeeds.map((feed) => (
 			new URL(feed.feedUrl).origin

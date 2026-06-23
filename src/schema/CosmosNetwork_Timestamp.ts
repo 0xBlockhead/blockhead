@@ -1,181 +1,156 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum CosmosNetwork_TimestampSelector {
-	NetworkTimestampMs = 'networkTimestampMs',
+	NetworkTimestampMsSource = '$network+timestampMs+source',
 }
-import { Source } from '$/sources/Source.ts'
-
 export default {
 	entityType: EntityType.CosmosNetwork_Timestamp,
-
-	label: 'Cosmos network snapshot',
-	labelPlural: 'Cosmos network snapshots',
-
+	label: 'Cosmos network timestamp',
+	labelPlural: 'Cosmos network observations',
 	selectors: [
 		{
-			name: CosmosNetwork_TimestampSelector.NetworkTimestampMs,
+			name: CosmosNetwork_TimestampSelector.NetworkTimestampMsSource,
 			fields: [
 				'$network',
 				'timestampMs',
+				'source',
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'source',
+			label: 'Source',
+			description: 'The source that produced this observation.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'latestBlockHeight',
+			label: 'latest block height',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.CosmosSdk_Rest,
-			],
 		},
 		{
 			name: 'latestBlockHash',
+			label: 'latest block hash',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.CosmosSdk_Rest,
-			],
 		},
 		{
 			name: 'latestBlockTimeMs',
+			label: 'latest block time ms',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.CosmosSdk_Rest,
-			],
 		},
 		{
 			name: 'latestBlockTransactionCount',
+			label: 'latest block transaction count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.CosmosSdk_Rest,
-			],
 		},
 		{
 			name: 'chainId',
+			label: 'Chain ID',
+			description: 'The chain identifier used by the network family.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.CosmosSdk_Rest,
-			],
 		},
 		{
 			name: 'nodeNetwork',
+			label: 'node network',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.CosmosSdk_Rest,
-			],
 		},
 		{
 			name: 'applicationName',
+			label: 'application name',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.CosmosSdk_Rest,
-			],
 		},
 		{
 			name: 'applicationVersion',
+			label: 'application version',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.CosmosSdk_Rest,
-			],
 		},
 		{
 			name: 'cosmosSdkVersion',
+			label: 'Cosmos SDK version',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.CosmosSdk_Rest,
-			],
 		},
 		{
 			name: 'isSyncing',
+			label: 'is syncing',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
+			primitiveType: type("boolean"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.CosmosSdk_Rest,
-			],
 		},
 		{
 			name: 'validatorCount',
+			label: 'validator count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.CosmosSdk_Rest,
-			],
 		},
 		{
 			name: 'bondedValidatorCount',
+			label: 'bonded validator count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.CosmosSdk_Rest,
-			],
 		},
 		{
 			name: 'bondedTokens',
+			label: 'bonded tokens',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.CosmosSdk_Rest,
-			],
 		},
 		{
 			name: 'notBondedTokens',
+			label: 'not bonded tokens',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.CosmosSdk_Rest,
-			],
 		},
 		{
 			name: 'governanceProposalCount',
+			label: 'governance proposal count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.CosmosSdk_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

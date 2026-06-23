@@ -12,11 +12,7 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { _GlobalSelector } from '$/schema/_Global.ts'
-import { QuilibriumNetworkSelector } from '$/schema/QuilibriumNetwork.ts'
 import { SpecificationProposalSelector } from '$/schema/SpecificationProposal.ts'
-import { SpecificationRealmSelector } from '$/schema/SpecificationRealm.ts'
-import { SpecificationProposalKindSelector } from '$/schema/SpecificationProposalKind.ts'
-import { quilibriumDocsEndpoints } from '$/sources/QuilibriumDocs/index.ts'
 
 const quilibriumDocumentRows = async () => {
 	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
@@ -39,43 +35,6 @@ export default {
 	source: Source.QuilibriumDocs_Rest,
 
 	resolvers: [
-		defineResolver(Source.QuilibriumDocs_Rest, {
-			entityType: EntityType.QuilibriumNetwork,
-			resolve: {
-				[QuilibriumNetworkSelector.Slug]: async (entitySelector) => {
-					const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-					return {
-						docsEndpoints: [
-							...quilibriumDocsEndpoints,
-						],
-						nodeInterfaces: [
-							...quilibriumNodeInterfaces,
-						],
-						protocolFacts: [
-							...quilibriumProtocolFacts,
-						],
-						serviceLayers: [
-							...quilibriumServiceLayers,
-						],
-						$protocolDocument: {
-							[EntityMetaKey.Selector]: {
-								realm: SpecificationRealm.Quilibrium,
-								category: ProposalCategory.ProtocolDocument,
-								number: 1,
-							},
-						},
-					}
-				}
-			},
-		})({
-			fields: {
-				docsEndpoints: (snapshot) => snapshot.docsEndpoints,
-				nodeInterfaces: (snapshot) => snapshot.nodeInterfaces,
-				protocolFacts: (snapshot) => snapshot.protocolFacts,
-				serviceLayers: (snapshot) => snapshot.serviceLayers,
-				$protocolDocument: (snapshot) => snapshot.$protocolDocument,
-			},
-		}),
 
 		defineResolver(Source.QuilibriumDocs_Rest, {
 			entityType: EntityType.SpecificationProposal,
@@ -98,25 +57,6 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.QuilibriumDocs_Rest, {
-			entityType: EntityType.QuilibriumNetwork,
-			resolve: {
-				[QuilibriumNetworkSelector.Slug]: async (entitySelector) => {
-					const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-					return {
-						[EntityMetaKey.Selector]: {
-							realm: SpecificationRealm.Quilibrium,
-							category: ProposalCategory.ProtocolDocument,
-							number: 1,
-						},
-					}
-				}
-			},
-		})({
-			fields: {
-				$protocolDocument: (snapshot) => snapshot,
-			},
-		}),
 
 		defineResolver(Source.QuilibriumDocs_Rest, {
 			entityType: EntityType._Global,
@@ -129,34 +69,6 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.QuilibriumDocs_Rest, {
-			entityType: EntityType.SpecificationRealm,
-			resolve: {
-				[SpecificationRealmSelector.Realm]: async ({ realm }) => {
-					const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-					if (realm !== SpecificationRealm.Quilibrium) throw new Error('QuilibriumDocs_Rest: $$proposals only supports Quilibrium')
-					return quilibriumDocumentRows()
-				}
-			},
-		})({
-			fields: {
-				$$proposals: (snapshot) => snapshot,
-			},
-		}),
 
-		defineResolver(Source.QuilibriumDocs_Rest, {
-			entityType: EntityType.SpecificationProposalKind,
-			resolve: {
-				[SpecificationProposalKindSelector.RealmCategory]: async ({ category, realm }) => {
-					const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-					if (realm !== SpecificationRealm.Quilibrium || category !== ProposalCategory.ProtocolDocument) throw new Error('QuilibriumDocs_Rest: $$proposals only supports Quilibrium protocol documents')
-					return quilibriumDocumentRows()
-				}
-			},
-		})({
-			fields: {
-				$$proposals: (snapshot) => snapshot,
-			},
-		}),
 	],
 }

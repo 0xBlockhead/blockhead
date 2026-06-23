@@ -1,24 +1,18 @@
 import { type } from 'arktype'
-
-// On-chain concentrated-liquidity LP position (Uniswap v3 NonfungiblePositionManager-style). Requires an execution RPC or subgraph resolver; Dexscreener pool rows do not populate this entity.
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum LiquidityPositionSelector {
 	EvmNetworkId = 'evmNetworkId',
+	NetworkId = '$network+id',
 }
-
 export default {
 	entityType: EntityType.LiquidityPosition,
-
-	label: 'Liquidity Position',
-	labelPlural: 'Liquidity Positions',
-
+	label: 'liquidity position',
+	labelPlural: 'liquidity positions',
 	selectors: [
 		{
 			name: LiquidityPositionSelector.EvmNetworkId,
@@ -28,79 +22,71 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'id',
+			label: 'ID',
+			description: 'The identifier assigned by the source domain.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$pool',
+			label: 'pool',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.LiquidityPool,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$owner',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmAccount,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
 			name: 'tickLower',
+			label: 'tick lower',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.One,
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'tickUpper',
+			label: 'tick upper',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'liquidity',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'token0Owed',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'token1Owed',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.One,
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'tokenId',
+			label: 'Token ID',
+			description: 'The token identifier within its collection or contract.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'origin',
+			label: 'origin',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'createdAtTimestamp',
+			label: 'created AT timestamp',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: '$$blocks',
+			label: 'blocks',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.LiquidityPosition_Block,
+			cardinality: EntityFieldCardinality.Many,
+		},
+	],
 } as const satisfies EntityDefinition

@@ -7,11 +7,11 @@ import { EvmBlobSelector } from '$/schema/EvmBlob.ts'
 
 
 const blobscanChainId = async (network: { caip2: { reference: string } }) => {
-	const { blobscanRestApiOriginForChainId } = await import(
+	const { blobscanRestApiOriginByChainId } = await import(
 		'$/sources/Blobscan/Rest/constants.ts'
 	)
 	const chainId = Number(network.caip2.reference)
-	if (blobscanRestApiOriginForChainId(chainId) == null) {
+	if (blobscanRestApiOriginByChainId[chainId] == null) {
 		throw new Error(
 			`Blobscan_Rest: unsupported chain ${String(chainId)}`
 		)

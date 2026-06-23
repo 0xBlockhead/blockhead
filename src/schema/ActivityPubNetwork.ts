@@ -1,24 +1,17 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { UrlString } from '$/schema/UrlString.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum ActivityPubNetworkSelector {
 	Scope = 'scope',
 }
-
 export default {
 	entityType: EntityType.ActivityPubNetwork,
-
-	label: 'ActivityPub network',
-	labelPlural: 'ActivityPub networks',
-
+	label: 'activity pub network',
+	labelPlural: 'activity pub networks',
 	selectors: [
 		{
 			name: ActivityPubNetworkSelector.Scope,
@@ -27,133 +20,49 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: 'scope',
+			label: 'Scope',
+			description: 'The fixed scope value that identifies this hub row.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.unit('ActivityPubNetwork'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'protocolName',
+			label: 'protocol name',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: 'homeUrl',
+			label: 'home URL',
 			type: EntityFieldType.Primitive,
-			primitiveType: UrlString,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: 'docsUrl',
+			label: 'docs URL',
 			type: EntityFieldType.Primitive,
-			primitiveType: UrlString,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: 'registryLabel',
+			label: 'registry label',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: 'topology',
+			label: 'topology',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
-		{
-			name: 'instanceTitle',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Mastodon_Rest,
-			],
-		},
-		{
-			name: 'instanceDescription',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Mastodon_Rest,
-			],
-		},
-		{
-			name: 'instanceVersion',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Mastodon_Rest,
-			],
-		},
-		{
-			name: 'fediInstanceTitle',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Fedi_Rest,
-			],
-		},
-		{
-			name: 'fediInstanceDescription',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Fedi_Rest,
-			],
-		},
-		{
-			name: 'fediInstanceVersion',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Fedi_Rest,
-			],
-		},
-		{
-			name: '$$activityPubActors',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.ActivityPubActor,
-			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Constants_Internal,
-				Source.Mastodon_Rest,
-				Source.Fedi_Rest,
-			],
-		},
-		{
-			name: '$$activityPubNotes',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.ActivityPubNote,
-			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Mastodon_Rest,
-				Source.Fedi_Rest,
-			],
-		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

@@ -2,270 +2,129 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
-	import { schema } from '$/schema/index.ts'
-	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
-
-	import {
-		EvmTokenStandard,
-		evmTokenStandardByStandard,
-	} from '$/constants/Evm.ts'
-
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Context
-	import { select } from '$/routes/+layout.svelte'
-	import { resolve } from '$app/paths'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 
 
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'log index',
+			},
+			{
+				label: 'transfer index',
+			},
+			{
+				label: 'parent transaction link from selector txHash',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'log index',
+					},
+					{
+						label: 'transfer index',
+					},
+					{
+						label: 'parent transaction link from selector txHash',
+					},
+					{
+						label: 'standard label',
+					},
+					'amount',
+					{
+						label: 'token id for ERC-721/ERC-1155',
+					},
+					{
+						label: 'from/to EVM network accounts',
+					},
+					{
+						label: 'token contract',
+					},
+					{
+						label: 'coin instance',
+					},
+					{
+						label: 'token metadata',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Transaction',
+					items: [
+						{
+							label: 'parent EVM transaction derived from network/txHash',
+						},
+					],
+				},
+				{
+					label: 'Accounts',
+					items: [
+						{
+							label: 'from/to EVM network accounts',
+						},
+					],
+				},
+				{
+					label: 'Token',
+					items: [
+						{
+							label: 'token contract',
+						},
+						{
+							label: 'EVM coin instance',
+						},
+					],
+				},
+				{
+					label: 'Log evidence',
+					items: [
+						{
+							label: 'Transfer/TransferSingle/TransferBatch log payload',
+						},
+						{
+							label: 'expanded batch item index',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
-		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]/log/[logIndex=nonNegativeInteger]', {
-			caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
-			transactionId: selection.entitySelector.txHash,
-			logIndex: String(selection.entitySelector.logIndex),
-		}),
-		layout = EntityLayout.SummaryDetails,
-		open = $bindable(
-			layout === EntityLayout.SummaryDetails,
-		),
-		collapsible = true,
-		showParentTransaction = true,
+		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.EvmTokenTransfer>
-			href?: string
-			layout?: EntityLayout
 			open?: boolean
-			collapsible?: boolean
-			showParentTransaction?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
+			| 'layout'
 			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
-	const transfer = $derived(selection( {
-		sources: [Source.Blockscout_Rest],
-	}))
-	const standard = $derived(transfer.standard)
-
-
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
-	import EvmCoinInstanceView from '$/views/EvmCoinInstanceView.svelte'
-	import EvmContractView from '$/views/EvmContractView.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.EvmTokenTransfer}
 	entitySelector={selection.entitySelector}
-	href={href}
-	{layout}
 	bind:open
-	{collapsible}
 	{...EntityViewProps}
->
-	{#snippet Value()}
-		<span>
-			log #{selection.entitySelector.logIndex}.{selection.entitySelector.transferIndex}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>Token transfer </span>
-			<span>
-				log #{selection.entitySelector.logIndex}.{selection.entitySelector.transferIndex}
-			</span>
-		</span>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Token movement parsed from a receipt log (<code>Transfer</code>, <code>TransferSingle</code>, or indexer-classified ERC-20/721/1155 row).
-		</p>
-	{/snippet}
-
-	{#snippet Content()}
-		<dl data-column-item="center">
-			{#if showParentTransaction}
-				<div>
-					<dt>Transaction</dt>
-					<dd>
-						<a
-							href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-								caip2: `${selection.entitySelector.$network.caip2.namespace}:${selection.entitySelector.$network.caip2.reference}`,
-								transactionId: selection.entitySelector.txHash,
-							})}
-						>
-							<TruncatedValue
-								value={selection.entitySelector.txHash}
-								format={TruncatedValueFormat.Abbr}
-							/>
-						</a>
-					</dd>
-				</div>
-			{/if}
-
-			<ResourceBoundary
-				resource={standard}
-				placeholderText="Loading token standard…"
-			>
-				{#snippet children(standard)}
-					{#if standard !== undefined}
-						<div>
-							<dt>Standard</dt>
-							<dd>{evmTokenStandardByStandard[standard].label}</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={transfer.amount}
-				placeholderText="Loading token amount…"
-			>
-				{#snippet children(amount)}
-					<div>
-						<dt>Amount</dt>
-						<dd>
-							<NumberValue value={amount} />
-						</dd>
-					</div>
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={standard}
-				placeholderText="Loading token ID…"
-			>
-				{#snippet children(standard)}
-					{#if (
-						standard === EvmTokenStandard.Erc721
-						|| standard === EvmTokenStandard.Erc1155
-					)}
-						<ResourceBoundary
-							resource={transfer.tokenId}
-							placeholderText="Loading token ID…"
-						>
-							{#snippet children(tokenId)}
-								{#if tokenId !== undefined}
-									<div>
-										<dt>Token ID</dt>
-										<dd>
-											<NumberValue value={tokenId} />
-										</dd>
-									</div>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={transfer.$from}
-				placeholderText="Loading sender…"
-			>
-				{#snippet children(from)}
-					{#if from}
-						<div>
-							<dt>From</dt>
-							<dd>
-								<EvmNetworkAccountView
-									selection={select(EntityType.EvmNetworkAccount, {
-										$network: selection.entitySelector.$network,
-										$actor: from.entitySelector,
-									})}
-									layout={EntityLayout.Title}
-
-									open={false}
-									/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={transfer.$to}
-				placeholderText="Loading recipient…"
-			>
-				{#snippet children(to)}
-					{#if to}
-						<div>
-							<dt>To</dt>
-							<dd>
-								<EvmNetworkAccountView
-									selection={select(EntityType.EvmNetworkAccount, {
-										$network: selection.entitySelector.$network,
-										$actor: to.entitySelector,
-									})}
-									layout={EntityLayout.Title}
-
-									open={false}
-									/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={transfer.$coinInstance}
-				placeholderText="Loading token…"
-			>
-				{#snippet children(coinInstance)}
-					{#if coinInstance}
-						<div>
-							<dt>Token</dt>
-							<dd>
-								<EvmCoinInstanceView
-									selection={select(EntityType.EvmCoinInstance, coinInstance.entitySelector)}
-									layout={EntityLayout.Value}
-
-									showTypeAnnotation={false}
-									open={false}
-									/>
-							</dd>
-						</div>
-					{:else}
-						<ResourceBoundary
-							resource={transfer.$tokenContract}
-							placeholderText="Loading token contract…"
-						>
-							{#snippet children(tokenContract)}
-								{#if tokenContract}
-									<div>
-										<dt>Token contract</dt>
-										<dd>
-											<EvmContractView
-												selection={select(EntityType.EvmContract, tokenContract.entitySelector)}
-												layout={EntityLayout.Value}
-
-												showTypeAnnotation={false}
-												open={false}
-												/>
-										</dd>
-									</div>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
-	{/snippet}
-</EntityView>
+	{view}
+/>

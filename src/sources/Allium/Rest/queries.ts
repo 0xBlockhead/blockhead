@@ -4,8 +4,7 @@
  * @see https://docs.allium.so/api/developer/tokens/get-tokens-by-chain-address.md
  */
 
-import { Source } from '$/sources/Source.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import { alliumFetch } from '$/sources/Allium/Rest/client.ts'
 import type {
 	AlliumLatestWalletBalancesEnvelope,
@@ -18,7 +17,7 @@ export const getLatestWalletBalances = async ({
 	apiChain,
 	withLiquidityInfo = false,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Allium_Rest>
+	publicEnv: SourcePublicEnv
 	address: string
 	apiChain: string
 	withLiquidityInfo?: boolean
@@ -43,7 +42,7 @@ export const getTokensByChainAddress = async ({
 	apiChain,
 	tokenAddress,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Allium_Rest>
+	publicEnv: SourcePublicEnv
 	apiChain: string
 	tokenAddress: string
 }) => (

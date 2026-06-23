@@ -1,9 +1,8 @@
 import { getJson } from '$/lib/http.ts'
 import { fediInstanceBySlug } from '$/constants/Fedi.ts'
 import { optionalPublicEnvString } from '$/sources/$sources.ts'
-import { Source } from '$/sources/Source.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import Fedi from '$/sources/Fedi/index.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
+import { fediOrigins } from '$/sources/Fedi/index.ts'
 
 const qs = (o: Record<string, string | undefined>) => {
 	const s = new URLSearchParams()
@@ -15,7 +14,7 @@ const qs = (o: Record<string, string | undefined>) => {
 	return t ? `?${t}` : ''
 }
 
-const authHeaders = (publicEnv: SourcePublicEnvFor<Source.Fedi_Rest>): Record<string, string> => {
+const authHeaders = (publicEnv: SourcePublicEnv): Record<string, string> => {
 	const token = optionalPublicEnvString(publicEnv, 'PUBLIC_FEDI_ACCESS_TOKEN')
 	return (
 		token != null ?
@@ -26,13 +25,13 @@ const authHeaders = (publicEnv: SourcePublicEnvFor<Source.Fedi_Rest>): Record<st
 }
 
 export const fediGet = async <T>(
-	publicEnv: SourcePublicEnvFor<Source.Fedi_Rest>,
+	publicEnv: SourcePublicEnv,
 	path: string,
 	search?: Record<string, string | undefined>,
 	apiVersion = 'v1'
 ) => (
 	getJson<T>(`${fediInstanceBySlug.fosstodon.origin}/api/${apiVersion}${path}${qs(search ?? {})}`, {
-		origins: Fedi.origins,
+		origins: fediOrigins,
 		init: { headers: authHeaders(publicEnv) },
 	})
 )

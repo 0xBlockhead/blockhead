@@ -31,6 +31,7 @@ export type EntityDefinition<
 	readonly entityType: _EntityType
 	readonly label: string
 	readonly labelPlural: string
+	readonly description?: string
 	readonly selectors: readonly EntitySelectorDefinition[]
 	readonly fields: readonly EntityFieldDefinition<_Source>[]
 }
@@ -97,6 +98,9 @@ export const NonNegativeInteger = arktype('number.integer >= 0')
 
 export type EntityFieldDefinition<_Source extends string = string> = (
 	& {
+		label?: string
+		labelPlural?: string
+		description?: string
 		defaultSources?: readonly _Source[]
 		when?: EntityFieldCondition
 		normalize?: EntityFieldValueNormalizer
@@ -106,7 +110,7 @@ export type EntityFieldDefinition<_Source extends string = string> = (
 			name: string
 			type: EntityFieldType.Primitive
 			primitiveType: SchemaType
-			cardinality: EntityFieldCardinality.One | EntityFieldCardinality.ZeroOrOne | EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany
+			cardinality: EntityFieldCardinality.Zero | EntityFieldCardinality.One | EntityFieldCardinality.ZeroOrOne | EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany
 		}
 		| {
 			name: `$${string}`

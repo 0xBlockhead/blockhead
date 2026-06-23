@@ -1,39 +1,23 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
-	conditionalOn,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
-
-export enum ZcashShieldedActionSelector {
-	UtxoTransactionPoolActionKindActionIndex = 'utxoTransactionPoolActionKindActionIndex',
-}
-
-
 export enum ZcashShieldedActionKind {
 	Spend = 'spend',
 	Output = 'output',
 	Action = 'action',
 }
-
-const zcashShieldedActionKindField = {
-	name: 'actionKind',
-	type: EntityFieldType.Primitive,
-	primitiveType: type.valueOf(ZcashShieldedActionKind),
-	cardinality: EntityFieldCardinality.One,
-} as const satisfies EntityFieldDefinition
-
+export enum ZcashShieldedActionSelector {
+	UtxoTransactionPoolActionKindActionIndex = 'utxoTransactionPoolActionKindActionIndex',
+	TransactionPoolActionKindActionIndex = '$transaction+pool+actionKind+actionIndex',
+}
 export default {
 	entityType: EntityType.ZcashShieldedAction,
-
-	label: 'Zcash Sapling/Orchard Action',
-	labelPlural: 'Zcash Sapling/Orchard Actions',
-
+	label: 'zcash shielded action',
+	labelPlural: 'zcash shielded actions',
 	selectors: [
 		{
 			name: ZcashShieldedActionSelector.UtxoTransactionPoolActionKindActionIndex,
@@ -45,66 +29,62 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$transaction',
+			label: 'transaction',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.UtxoTransaction,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'pool',
+			label: 'pool',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(ZcashShieldedPoolKind),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
-		zcashShieldedActionKindField,
+		{
+			name: 'actionKind',
+			label: 'action kind',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'actionIndex',
+			label: 'action index',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$pool',
+			label: 'pool',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.ZcashShieldedPool,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'nullifier',
+			label: 'nullifier',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			when: conditionalOn(
-				[zcashShieldedActionKindField],
-				'actionKind',
-				[
-					ZcashShieldedActionKind.Spend,
-					ZcashShieldedActionKind.Action,
-				]
-			),
 		},
 		{
 			name: 'noteCommitment',
+			label: 'note commitment',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			when: conditionalOn(
-				[zcashShieldedActionKindField],
-				'actionKind',
-				[
-					ZcashShieldedActionKind.Output,
-					ZcashShieldedActionKind.Action,
-				]
-			),
 		},
 		{
 			name: 'valueCommitment',
+			label: 'value commitment',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

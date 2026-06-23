@@ -1,28 +1,28 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { UrlString } from '$/schema/UrlString.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum ActivityPubActorSelector {
-	LocalAccountId = 'localAccountId',
-	Acct = 'acct',
 	ActivityStreamsUri = 'activityStreamsUri',
+	LocalAccountId = 'localAccountId',
+	InstanceOriginLocalAccountId = 'instanceOrigin+localAccountId',
+	Acct = 'acct',
+	InstanceOriginAcct = 'instanceOrigin+acct',
 }
-
-
 export default {
 	entityType: EntityType.ActivityPubActor,
-
-	label: 'ActivityPub actor',
-	labelPlural: 'ActivityPub actors',
-
+	label: 'activity pub actor',
+	labelPlural: 'activity pub actors',
 	selectors: [
+		{
+			name: ActivityPubActorSelector.ActivityStreamsUri,
+			fields: [
+				'activityStreamsUri',
+			],
+		},
 		{
 			name: ActivityPubActorSelector.LocalAccountId,
 			fields: [
@@ -37,122 +37,120 @@ export default {
 				'acct',
 			],
 		},
-		{
-			name: ActivityPubActorSelector.ActivityStreamsUri,
-			fields: [
-				'activityStreamsUri',
-			],
-		},
 	],
-
 	fields: [
 		{
 			name: 'instanceOrigin',
+			label: 'instance origin',
 			type: EntityFieldType.Primitive,
-			primitiveType: UrlString,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'localAccountId',
+			label: 'local account ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'username',
+			label: 'username',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'acct',
+			label: 'acct',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'displayName',
+			label: 'display name',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'note',
+			label: 'note',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$icon',
+			label: 'icon',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Media,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Mastodon_Rest,
-				Source.Fedi_Rest,
-			],
 		},
 		{
 			name: '$headerImage',
+			label: 'header image',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Media,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Mastodon_Rest,
-				Source.Fedi_Rest,
-			],
 		},
 		{
 			name: 'profileUrl',
+			label: 'profile URL',
 			type: EntityFieldType.Primitive,
-			primitiveType: UrlString,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'activityStreamsUri',
+			label: 'activity streams URI',
 			type: EntityFieldType.Primitive,
-			primitiveType: UrlString,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'website',
+			label: 'website',
 			type: EntityFieldType.Primitive,
-			primitiveType: UrlString,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$$timestamps',
+			label: 'timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.ActivityPubActor_Timestamp,
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Mastodon_Rest,
-				Source.Fedi_Rest,
-			],
 		},
 		{
 			name: 'bot',
+			label: 'bot',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
+			primitiveType: type("boolean"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'locked',
+			label: 'locked',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
+			primitiveType: type("boolean"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'createdAt',
+			label: 'Created',
+			description: 'The time when the subject was created according to the source.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$$notes',
+			label: 'notes',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.ActivityPubNote,
 			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

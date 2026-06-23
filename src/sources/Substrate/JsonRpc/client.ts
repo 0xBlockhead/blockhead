@@ -1,16 +1,10 @@
-import { jsonRpcVersion } from '$/sources/Evm/JsonRpc/constants.ts'
-import { corsFetch, throwHttpError } from '$/lib/http.ts'
 import type { SourceOrigin } from '$/sources/SourceProvider.ts'
-import type { JsonValue } from '$/typescript/JsonValue.ts'
+import { getJson } from '$/lib/http.ts'
 
-type JsonRpcResponse<_Result> = {
-	jsonrpc: typeof jsonRpcVersion
-	id: number | string | null
+type SubstrateJsonRpcResponse<_Result> = {
 	result?: _Result
 	error?: {
-		code: number
 		message: string
-		data?: JsonValue
 	}
 }
 
@@ -23,11 +17,11 @@ export const substrateJsonRpc = async <_Result>({
 }: {
 	rpcUrl: string
 	method: string
-	params: JsonValue[]
+	params?: readonly unknown[]
 	origins: readonly SourceOrigin[]
 	label: string
-}) => {
-	const response = await corsFetch(rpcUrl, {
+}): Promise<_Result> => {
+	const response = await getJson<SubstrateJsonRpcResponse<_Result>>(rpcUrl, {
 		origins,
 		init: {
 			method: 'POST',
@@ -35,16 +29,17 @@ export const substrateJsonRpc = async <_Result>({
 				'content-type': 'application/json',
 			},
 			body: JSON.stringify({
-				jsonrpc: jsonRpcVersion,
+				jsonrpc: '2.0',
 				id: 1,
 				method,
-				params,
+				params: params ?? [],
 			}),
 		},
 	})
-	if (!response.ok) await throwHttpError(`${label} ${method}`, response)
-	const json = await response.json<JsonRpcResponse<_Result>>()
-	if (json.error != null) throw new Error(`${label} ${method}: ${json.error.message}`)
-	if (json.result === undefined) throw new Error(`${label} ${method}: missing result`)
-	return json.result
+	if (response.error != null)
+		throw new Error(`${label} Substrate JSON-RPC ${method}: ${response.error.message}`)
+	if (response.result === undefined)
+		throw new Error(`${label} Substrate JSON-RPC ${method}: missing result`)
+
+	return response.result
 }

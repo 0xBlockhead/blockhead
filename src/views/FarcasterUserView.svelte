@@ -1,341 +1,105 @@
 <script lang="ts">
 	// Types/constants
+	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
-	import { stringify } from 'devalue'
-
-
-	// Context
-	import { select } from '$/routes/+layout.svelte'
-	import { resolve } from '$app/paths'
 
 
 	// State
+	const view = {
+		closed: [
+			'fid',
+			'username',
+			{
+				label: 'display name',
+			},
+		],
+		content: {
+			dl: [
+				[
+					'fid',
+					'username',
+					{
+						label: 'display name',
+					},
+					{
+						label: 'icon URL/media',
+					},
+					'bio',
+					{
+						label: 'URL',
+					},
+					{
+						label: 'primary EVM account',
+					},
+					{
+						label: 'verified address count',
+					},
+					{
+						label: 'latest follower/following snapshot',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Casts',
+					items: [
+						{
+							label: 'casts authored by this FID',
+						},
+					],
+				},
+				{
+					label: 'Verified addresses',
+					items: [
+						{
+							label: 'verified-address rows',
+						},
+					],
+				},
+				{
+					label: 'Metric snapshots',
+					items: [
+						{
+							label: 'timestamped follower/following observations',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
-		href = resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId=farcasterFid]', {
-			userId: String(selection.entitySelector.fid),
-		}),
 		open = $bindable(true),
-			...EntityViewProps
+		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.FarcasterUser>
-			href?: string
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'CollapsibleProps'
-			| 'idDragPlainText'
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
-			| 'ontoggle'
 			| 'showTypeAnnotation'
-			| 'Title'
-			| 'TypeAnnotationTooltip'
-			| 'Value'
 		>
 	> = $props()
 
 
-	const farcasterUserResource = $derived(
-		selection(
-			{
-				sources: [
-					Source.Snapchain_Rest,
-				],
-				fields: {
-					displayName: true,
-					username: true,
-					$icon: {
-						sources: [
-							Source.Snapchain_Rest,
-						],
-					},
-					...(open && {
-						bio: true,
-						url: true,
-						$primaryEvmAccount: true,
-						$$verifiedAddresses: true,
-					}),
-				},
-			},
-		)
-	)
-
-
 	// Components
-	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
-	import IconComponent, { IconShape } from '$/components/Icon.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import FarcasterCastView from '$/views/FarcasterCastView.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.FarcasterUser}
 	entitySelector={selection.entitySelector}
-	href={href}
 	bind:open
 	{...EntityViewProps}
->
-	{#snippet Icon()}
-		<ResourceBoundary
-			resource={farcasterUserResource}
-			placeholderText="Loading Farcaster profile (FID)…"
-		>
-			{#snippet children(farcasterUser)}
-				{#if (
-					farcasterUser.$icon
-					&& farcasterUser.$icon[EntityMetaKey.Selector].url
-				)}
-					<IconComponent
-						shape={IconShape.Circle}
-						src={farcasterUser.$icon[EntityMetaKey.Selector].url}
-						alt=""
-					/>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Value()}
-		<span>
-			FID {String(selection.entitySelector.fid)}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		<ResourceBoundary
-			resource={farcasterUserResource}
-			placeholderText="Loading Farcaster profile (FID)…"
-		>
-			{#snippet children(farcasterUser)}
-				{farcasterUser.displayName
-					?? farcasterUser.username
-					?? `FID ${String(selection.entitySelector.fid)}`}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet HeadingAfter()}
-		<ResourceBoundary
-			resource={farcasterUserResource}
-			placeholderText="Loading Farcaster profile (FID)…"
-		>
-			{#snippet children(farcasterUser)}
-				{#if (
-					farcasterUser.username !== undefined
-					&& farcasterUser.username !== (
-						farcasterUser.displayName
-						?? farcasterUser.username
-						?? `FID ${String(selection.entitySelector.fid)}`
-					)
-				)}
-					<span data-text="muted">
-						@{farcasterUser.username}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Farcaster profile keyed by FID: fname, display name, bio, and verified addresses from Neynar, Snapchain, or Farcaster client APIs.
-		</p>
-		<p>
-			Casts on the profile are hub snapshots—not a complete archival export of every client.
-		</p>
-	{/snippet}
-
-		{#snippet Content()}
-		<ResourceBoundary
-			resource={farcasterUserResource}
-			placeholderText="Loading Farcaster profile (FID)…"
-		>
-			{#snippet children(farcasterUser)}
-				{#if farcasterUser.bio != null && farcasterUser.bio !== ''}
-					<p>
-						<TruncatedValue
-							value={farcasterUser.bio}
-							format={TruncatedValueFormat.Visual}
-						/>
-					</p>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-
-		<dl data-column-item="center">
-			<div>
-				<dt>URL</dt>
-				<dd>
-					<ResourceBoundary
-						resource={farcasterUserResource}
-						placeholderText="Loading Farcaster profile (FID)…"
-					>
-						{#snippet children(farcasterUser)}
-							{#if farcasterUser.url}
-								<a href={farcasterUser.url}>
-									{farcasterUser.url}
-								</a>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-
-			{#if open}
-				<div>
-					<dt>Verified addresses</dt>
-					<dd>
-						<ResourceBoundary
-							resource={farcasterUserResource}
-							placeholderText="Loading Farcaster profile (FID)…"
-						>
-							{#snippet children(farcasterUser)}
-									{#if farcasterUser.$$verifiedAddresses?.values.length}
-										<ul data-column="gap-2">
-											{#each farcasterUser.$$verifiedAddresses.values as verification (stringify(verification[EntityMetaKey.Selector]))}
-												<li>
-													<span data-text="mono muted">
-														{verification[EntityMetaKey.Selector].protocol}:{verification[EntityMetaKey.Selector].address}
-													</span>
-												</li>
-										{/each}
-									</ul>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-
-			{#if open}
-				<div>
-					<dt>Username</dt>
-					<dd>
-						<ResourceBoundary
-							resource={farcasterUserResource}
-							placeholderText="Loading Farcaster profile (FID)…"
-						>
-							{#snippet children(farcasterUser)}
-								{#if farcasterUser.username}
-									@{farcasterUser.username}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-		</dl>
-	{/snippet}
-
-	{#snippet Details({
-		open: _open,
-	})}
-		<CollapsibleTabs
-			id={`farcaster-user:${String(selection.entitySelector.fid)}:carousel`}
-			sectionIdPrefix={`farcaster-user:${String(selection.entitySelector.fid)}`}
-			sections={collapsibleTabsSections([
-				{ id: 'overview', label: 'Profile' },
-				{ id: 'casts', label: 'Casts' },
-			])}
-			data-card
-		>
-			{#snippet Summary({
-				open: _summaryOpen,
-			})}
-				<header
-					data-row-item="flexible"
-					data-row="wrap gap-4"
-				>
-					<HeadingComponent>
-						Profile
-					</HeadingComponent>
-				</header>
-			{/snippet}
-
-			{#snippet SectionOverview()}
-				<ResourceBoundary
-					resource={farcasterUserResource}
-					placeholderText="Loading Farcaster profile (FID)…"
-				>
-					{#snippet children(farcasterUser)}
-						<section data-column>
-							<h3>Farcaster profile</h3>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionCasts()}
-				<EntitiesList
-					entityType={EntityType.FarcasterCast}
-					href={resolve('/farcaster/feed')}
-					id={`farcaster-user:${String(selection.entitySelector.fid)}:casts-farcasterUsers`}
-					title="Casts"
-					bind:open
-					collapsible={false}
-				>
-					{#snippet body()}
-						{#if open}
-								{@const casts = selection({
-									sources: [
-										Source.Snapchain_Rest,
-									],
-								}).$$casts}
-							<ResourceBoundary resource={casts} placeholderText="Loading casts (Farcaster FID + cast hash)…">
-								{#snippet children(casts)}
-									<EntitiesList
-										collapsible={false}
-										showSummary={false}
-										entityType={EntityType.FarcasterCast}
-										href={resolve('/farcaster/feed')}
-										id={`farcaster-user:${String(selection.entitySelector.fid)}:casts-farcasterUsers-items`}
-										placeholderText="Loading casts (Farcaster FID + cast hash)…"
-										items={casts.entities}
-										title="Casts"
-										getKey={(cast) => stringify(cast.entitySelector)}
-										getSortValue={(cast) => (
-											[...stringify(cast.entitySelector)].map((character) => (
-												String.fromCharCode(0xffff - character.charCodeAt(0))
-											)).join('')
-										)}
-										open={true}
-									>
-										{#snippet Empty()}
-											<p data-text="muted">
-												No casts yet.
-											</p>
-										{/snippet}
-
-										{#snippet Item({ item })}
-											<FarcasterCastView
-												selection={select(EntityType.FarcasterCast, item.entitySelector)}
-												layout={EntityLayout.Summary}
-												open={false}
-												variant="feed"
-											/>
-										{/snippet}
-									</EntitiesList>
-								{/snippet}
-							</ResourceBoundary>
-						{/if}
-					{/snippet}
-				</EntitiesList>
-			{/snippet}
-
-			</CollapsibleTabs>
-		{/snippet}
-	</EntityView>
+	{view}
+/>

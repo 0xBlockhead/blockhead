@@ -2,98 +2,104 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Context
-	import { select } from '$/routes/+layout.svelte'
-	import { resolve } from '$app/paths'
 
 
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'link',
+			},
+			{
+				label: 'observation time/source',
+			},
+			'score',
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'link',
+					},
+					{
+						label: 'observation time/source',
+					},
+					'score',
+					{
+						label: 'comment count',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Link',
+					items: [
+						{
+							label: 'RedditLink',
+						},
+					],
+				},
+				{
+					label: 'Ranking/thread counters',
+					items: [
+						'score',
+						{
+							label: 'comment count',
+						},
+					],
+				},
+				{
+					label: 'History',
+					items: [
+						{
+							label: 'RedditLink_Timestamp list',
+						},
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'Reddit listing/submission payload',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
-		href = resolve('/(social)/(reddit)/reddit/link/[fullname]', {
-			fullname: selection.entitySelector.$link.fullname,
-		}),
-		layout = EntityLayout.Summary,
-		open = $bindable(false),
+		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.RedditLink_Timestamp>
-			href?: string
-			layout?: EntityLayout
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
+			| 'layout'
 			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import SocialMetricSnapshotRows from '$/views/SocialMetricSnapshotRows.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.RedditLink_Timestamp}
 	entitySelector={selection.entitySelector}
-	href={href}
-	{layout}
 	bind:open
-	title="Reddit post snapshot"
 	{...EntityViewProps}
->
-	{#snippet Value()}
-		<Timestamp timestamp={selection.entitySelector.timestampMs} />
-	{/snippet}
-
-	{#snippet Title()}
-		<Timestamp timestamp={selection.entitySelector.timestampMs} />
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Timestamped Reddit post counters resolved from Reddit API and public JSON listing data.
-		</p>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection(
-					({ sources: [
-							Source.Reddit_Rest,
-							Source.Reddit_PublicJson,
-						], fields: { score: true, commentCount: true } }),
-				)}
-			placeholderText="Loading Reddit post snapshot..."
-		>
-			{#snippet children(redditLinkTimestamp)}
-				<dl data-column-item="center">
-					<SocialMetricSnapshotRows
-						metrics={[
-							{
-								label: 'Score',
-								value: redditLinkTimestamp.score,
-							},
-							{
-								label: 'Comments',
-								value: redditLinkTimestamp.commentCount,
-							},
-						]}
-					/>
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

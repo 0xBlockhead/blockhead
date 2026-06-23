@@ -1,20 +1,33 @@
+import { Source } from '$/sources/Source.ts'
 import {
-	type SourceProviderDefinition,
 	SourceProvider,
+	type SourceProviderDefinition,
 } from '$/sources/SourceProvider.ts'
-import { metadataVisionOrigin } from '$/sources/MetadataVision/Rest/constants.ts'
-import MetadataVisionRestSource from '$/sources/MetadataVision/Rest/index.ts'
+import { metadataVisionBindings } from '$/sources/MetadataVision/bindings.ts'
+
+export const metadataVisionOrigins = [
+	...new Map(
+		metadataVisionBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.MetadataVision,
 	label: 'Metadata Vision',
-	origins: [
+	sources: [
 		{
-			origin: new URL(metadataVisionOrigin).origin,
-			corsEnabled: false,
+			provider: SourceProvider.MetadataVision,
+			source: Source.MetadataVision_Rest,
+			label: 'Metadata Vision Open Graph',
 		},
 	],
-	sources: [
-		MetadataVisionRestSource,
-	],
+	bindings: metadataVisionBindings,
 } satisfies SourceProviderDefinition

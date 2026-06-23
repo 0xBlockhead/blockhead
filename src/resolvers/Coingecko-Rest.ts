@@ -28,6 +28,7 @@ import {
 } from '$/schema/$schema.ts'
 import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 import { MediaType } from '$/schema/Media.ts'
+import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -142,7 +143,7 @@ export default {
 		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Coin_Timestamp,
 			resolve: {
-				[Coin_TimestampSelector.CoinTimestampMs]: async ({ $coin, timestampMs: timestampMsSelector }, context) => {
+				[Coin_TimestampSelector.CoinTimestampMsSource]: async ({ $coin, timestampMs: timestampMsSelector }, context) => {
 					const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 					const { getCoin } = await import('$/sources/Coingecko/Rest/queries.ts')
 					const coingeckoId = idByCoinId[$coin.coinId]
@@ -194,7 +195,8 @@ export default {
 						getCoinByAssetPlatformContract,
 					} = await import('$/sources/Coingecko/Rest/queries.ts')
 					const publicEnv = context.publicEnv
-					const caip19 = `eip155:${Number($network.caip2.reference)}/erc20:${$contract.address.toLowerCase()}`
+					const contractAddress = EvmAddress.assert($contract.address.toLowerCase())
+					const caip19 = `eip155:${Number($network.caip2.reference)}/erc20:${contractAddress}`
 					const assetPlatform = await findAssetPlatformByChainId(
 						publicEnv,
 						Number($network.caip2.reference)
@@ -205,7 +207,7 @@ export default {
 					const coin = await getCoinByAssetPlatformContract({
 						publicEnv,
 						assetPlatformId: assetPlatform.id,
-						contractAddress: $contract.address,
+						contractAddress,
 					})
 
 					if (coin == null)
@@ -222,13 +224,16 @@ export default {
 					const iconUrl = coin.image?.large ?? coin.image?.small ?? coin.image?.thumb
 					const iconMedia = mediaFromUrl(iconUrl, MediaType.Image)
 					const coinName = coin.name
+					if (decimals == null)
+						throw new Error('Coingecko_Rest: ERC-20 decimals not mapped')
 
 					return {
 						coinId,
 						symbol: coin.symbol.toUpperCase(),
 						...(coinName !== '' && { name: coinName }),
-						...(decimals != null && { decimals }),
+						decimals,
 						caip19,
+						...(iconUrl != null && { iconUrl }),
 						...(iconMedia != null && { $icon: iconMedia }),
 					}
 				},
@@ -238,7 +243,9 @@ export default {
 				coinId: (coinInstance) => coinInstance.coinId,
 				name: (coinInstance) => coinInstance.name,
 				symbol: (coinInstance) => coinInstance.symbol,
+				decimals: (coinInstance) => coinInstance.decimals,
 				caip19: (coinInstance) => coinInstance.caip19,
+				iconUrl: (coinInstance) => coinInstance.iconUrl,
 				$icon: (coinInstance) => coinInstance.$icon,
 			},
 		}),
@@ -414,6 +421,7 @@ export default {
 									coinId,
 								},
 								timestampMs,
+								source: Source.Coingecko_Rest,
 							},
 							...(coin.market_data?.market_cap_rank != null
 							&& Number.isFinite(coin.market_data.market_cap_rank) && {
@@ -439,12 +447,12 @@ export default {
 			entityType: EntityType._Global,
 			resolve: {
 				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => {
-					const { coinById } = await import('$/constants/Coin.ts')
+					const { CoinId, coinById } = await import('$/constants/Coin.ts')
 					const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 					return (
-						Object.entries(idByCoinId)
-							.filter(([coinId]) => coinId in coinById)
-							.map(([coinId]) => ({
+						Object.values(CoinId)
+							.filter((coinId) => idByCoinId[coinId] != null && coinId in coinById)
+							.map((coinId) => ({
 								[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[coinId]),
 							}))
 					)
@@ -459,23 +467,40 @@ export default {
 		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => {
-					const { coinById } = await import('$/constants/Coin.ts')
+				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => {
+					const { CoinId, coinById } = await import('$/constants/Coin.ts')
 					const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
+					const { getCoinMarketSpot } = await import('$/sources/Coingecko/Rest/queries.ts')
+					const lim = resolverContextRowLimit(context)
 					return (
-						Object.entries(idByCoinId)
-							.filter(([coinId]) => coinId in coinById)
-							.map(([coinId]) => ({
-								[EntityMetaKey.Selector]: {
-									$market: marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[coinId]),
-								},
-							}))
+						(await Promise.all(
+							Object.values(CoinId)
+								.filter((coinId) => idByCoinId[coinId] != null && coinId in coinById)
+								.slice(0, lim)
+								.map(async (coinId) => {
+									const coingeckoId = idByCoinId[coinId]
+									if (coingeckoId == null)
+										return []
+									const spot = await getCoinMarketSpot(context.publicEnv, coingeckoId)
+									if (spot == null)
+										return []
+									return [
+										{
+											[EntityMetaKey.Selector]: {
+												$market: marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[coinId]),
+												timestampMs: spot.lastUpdatedAtSec * 1000,
+												feedKey: coingeckoId,
+											},
+										},
+									]
+								})
+						)).flat()
 					)
 				}
 			},
 		})({
 			fields: {
-				$$marketPrices: (globalScope) => globalScope,
+				$$marketQuotes: (globalScope) => globalScope,
 			},
 		}),
 
@@ -588,31 +613,21 @@ export default {
 					const { resolveCanonicalCoinInstanceEntitySelector } = await import(
 						'$/sources/Coingecko/Rest/coinInstances.ts'
 					)
-					const canonicalId = await resolveCanonicalCoinInstanceEntitySelector(
-						entitySelector,
-						context.publicEnv
-					)
-					return (
-						canonicalId == null ?
-							undefined
-						:
-							{ [EntityMetaKey.Selector]: canonicalId }
-					)
+						const canonicalId = await resolveCanonicalCoinInstanceEntitySelector(
+							entitySelector,
+							context.publicEnv
+						)
+						return canonicalId == null ? undefined : { [EntityMetaKey.Selector]: canonicalId }
 				},
 				[EvmCoinInstanceSelector.NetworkTypeContract]: async (entitySelector, context) => {
 					const { resolveCanonicalCoinInstanceEntitySelector } = await import(
 						'$/sources/Coingecko/Rest/coinInstances.ts'
 					)
-					const canonicalId = await resolveCanonicalCoinInstanceEntitySelector(
-						entitySelector,
-						context.publicEnv
-					)
-					return (
-						canonicalId == null ?
-							undefined
-						:
-							{ [EntityMetaKey.Selector]: canonicalId }
-					)
+						const canonicalId = await resolveCanonicalCoinInstanceEntitySelector(
+							entitySelector,
+							context.publicEnv
+						)
+						return canonicalId == null ? undefined : { [EntityMetaKey.Selector]: canonicalId }
 				},
 			},
 		})({
@@ -623,14 +638,11 @@ export default {
 
 		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Coin,
-			resolve: {
-				[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>) => {
-					const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
-					if (idByCoinId[coinId] == null)
-						return []
-					return (
-						[
-							{
+				resolve: {
+					[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>) => {
+						return (
+							[
+								{
 								[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[coinId]),
 							},
 						]
@@ -645,13 +657,11 @@ export default {
 
 		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Coin,
-			resolve: {
-				[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>) => {
-					const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
-					if (idByCoinId[coinId] == null)
-						return []
-					return (
-						(catalogSpotMarketsWithCoinAsQuote
+				resolve: {
+					[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>) => {
+						const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
+						return (
+							(catalogSpotMarketsWithCoinAsQuote
 							.filter((catalogMarket) => catalogMarket.quoteCoinId === coinId)
 							.map(marketSelectorFromCatalogCoinCoinMarket))
 							.filter((marketId) => (
@@ -859,7 +869,7 @@ export default {
 		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: {
-				[Market_TimeInterval_TimestampSelector.MarketTimeIntervalTimestampMs]: async ({ $market }: EntitySelector<typeof schema, EntityType.Market_TimeInterval_Timestamp>) => (
+				[Market_TimeInterval_TimestampSelector.MarketTimeIntervalTimestampMs]: async ({ $market }) => (
 					{
 						[EntityMetaKey.Selector]: $market,
 					}

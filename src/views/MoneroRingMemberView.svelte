@@ -2,15 +2,98 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'ring',
+			},
+			{
+				label: 'member index',
+			},
+			{
+				label: 'global output index',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'ring',
+					},
+					{
+						label: 'member index',
+					},
+					{
+						label: 'global output index',
+					},
+					{
+						label: 'transaction hash',
+					},
+					{
+						label: 'output index',
+					},
+					{
+						label: 'public key',
+					},
+					{
+						label: 'commitment',
+					},
+					{
+						label: 'height',
+					},
+					{
+						label: 'unlocked state',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Ring',
+					items: [
+						{
+							label: 'parent Monero ring',
+						},
+					],
+				},
+				{
+					label: 'Output',
+					items: [
+						{
+							label: 'stealth output when tx/output is known',
+						},
+					],
+				},
+				{
+					label: 'Decoy context',
+					items: [
+						{
+							label: 'global output index',
+						},
+						{
+							label: 'get_outs/source payload',
+						},
+					],
+				},
+				{
+					label: 'Wallet interpretation',
+					items: [
+						{
+							label: 'BlockheadMoneroOutputState only when a connected wallet identifies ownership',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +104,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,53 +112,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.MoneroRingMember}
 	entitySelector={selection.entitySelector}
-	title={`Ring member #${selection.entitySelector.memberIndex.toString()}`}
-	idDragPlainText={selection.entitySelector.memberIndex.toString()}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Value()}
-		<span data-badge="small">
-			#{selection.entitySelector.memberIndex.toString()}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>Ring member </span>
-			{#if Value}
-			{@render Value()}
-					{/if}
-		</span>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection(
-					({ fields: { globalOutputIndex: true } }),
-				)}
-			placeholderText={`Loading Monero Ring Member...`}
-		>
-			{#snippet children(moneroRingMember)}
-				<dl>
-					{#if moneroRingMember.globalOutputIndex != null}
-						<div>
-							<dt>Global Output Index</dt>
-							<dd><NumberValue value={moneroRingMember.globalOutputIndex} /></dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

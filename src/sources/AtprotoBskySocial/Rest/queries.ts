@@ -1,6 +1,6 @@
 import { getJson } from '$/lib/http.ts'
 import { bskySocialXrpcGet } from '$/sources/AtprotoBskySocial/Rest/client.ts'
-import AtprotoBskySocial from '$/sources/AtprotoBskySocial/index.ts'
+import { atprotoBskySocialOrigins } from '$/sources/AtprotoBskySocial/index.ts'
 import { bskySocialXrpcBase } from '$/sources/AtprotoBskySocial/Rest/constants.ts'
 import type {
 	BskyAppViewGetAuthorFeedResponse,
@@ -25,11 +25,11 @@ export const getPosts = async (uris: string[]) => (
 		{ posts: [] } satisfies BskyAppViewGetPostsResponse
 	:
 		getJson<BskyAppViewGetPostsResponse>(
-		`${bskySocialXrpcBase}/app.bsky.feed.getPosts?${(
-			new URLSearchParams(uris.map((u) => ['uris', u])).toString()
-		)}`,
-		{ origins: AtprotoBskySocial.origins  }
-	)
+			`${bskySocialXrpcBase}/app.bsky.feed.getPosts?${(
+				new URLSearchParams(uris.map((u) => ['uris', u])).toString()
+			)}`,
+			{ origins: atprotoBskySocialOrigins }
+		)
 )
 
 export const getPostThread = async (
@@ -66,11 +66,11 @@ export const getAuthorFeed = async ({
 	bskySocialXrpcGet<BskyAppViewGetAuthorFeedResponse>(
 		'/app.bsky.feed.getAuthorFeed',
 		{
-				actor,
-				limit,
-				includePins: String(includePins),
-				cursor: cursor == null || cursor === '' ? undefined : cursor,
-			}
+			actor,
+			limit,
+			includePins: String(includePins),
+			cursor: cursor == null || cursor === '' ? undefined : cursor,
+		}
 	)
 )
 

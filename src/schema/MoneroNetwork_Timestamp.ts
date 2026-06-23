@@ -1,307 +1,254 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum MoneroNetwork_TimestampSelector {
-	NetworkTimestampMs = 'networkTimestampMs',
+	NetworkTimestampMsSource = '$network+timestampMs+source',
 }
-import { Source } from '$/sources/Source.ts'
-
 export default {
 	entityType: EntityType.MoneroNetwork_Timestamp,
-
-	label: 'Monero network snapshot',
-	labelPlural: 'Monero network snapshots',
-
+	label: 'monero network timestamp',
+	labelPlural: 'monero network observations',
 	selectors: [
 		{
-			name: MoneroNetwork_TimestampSelector.NetworkTimestampMs,
+			name: MoneroNetwork_TimestampSelector.NetworkTimestampMsSource,
 			fields: [
 				'$network',
 				'timestampMs',
+				'source',
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'source',
+			label: 'Source',
+			description: 'The source that produced this observation.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'height',
+			label: 'Height',
+			description: 'The block or ledger height in its network.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
 		},
 		{
 			name: 'targetHeight',
+			label: 'target height',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
 		},
 		{
 			name: 'topBlockHash',
+			label: 'top block hash',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
 		},
 		{
 			name: 'difficulty',
+			label: 'difficulty',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
 		},
 		{
 			name: 'wideDifficulty',
+			label: 'wide difficulty',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
 		},
 		{
 			name: 'cumulativeDifficulty',
+			label: 'cumulative difficulty',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
 		},
 		{
 			name: 'wideCumulativeDifficulty',
+			label: 'wide cumulative difficulty',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
 		},
 		{
 			name: 'blockSizeLimit',
+			label: 'block size limit',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
 		},
 		{
 			name: 'blockSizeMedian',
+			label: 'block size median',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
 		},
 		{
 			name: 'blockWeightLimit',
+			label: 'block weight limit',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
 		},
 		{
 			name: 'blockWeightMedian',
+			label: 'block weight median',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
 		},
 		{
 			name: 'databaseSize',
+			label: 'database size',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
 		},
 		{
 			name: 'freeSpace',
+			label: 'free space',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
 		},
 		{
 			name: 'greyPeerlistSize',
+			label: 'grey peerlist size',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
 		},
 		{
 			name: 'whitePeerlistSize',
+			label: 'white peerlist size',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
 		},
 		{
 			name: 'incomingConnections',
+			label: 'incoming connections',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
 		},
 		{
 			name: 'outgoingConnections',
+			label: 'outgoing connections',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
 		},
 		{
 			name: 'txCount',
+			label: 'transaction count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
 		},
 		{
 			name: 'txPoolSize',
+			label: 'transaction pool size',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
 		},
 		{
 			name: 'altBlocksCount',
+			label: 'alt blocks count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
 		},
 		{
 			name: 'targetSeconds',
+			label: 'target seconds',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
 		},
 		{
 			name: 'rpcConnections',
+			label: 'RPC connections',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
 		},
 		{
 			name: 'mainnet',
+			label: 'mainnet',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
+			primitiveType: type("boolean"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
 		},
 		{
 			name: 'nettype',
+			label: 'nettype',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
 		},
 		{
 			name: 'offline',
+			label: 'offline',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
+			primitiveType: type("boolean"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
 		},
 		{
 			name: 'synchronized',
+			label: 'synchronized',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
+			primitiveType: type("boolean"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
 		},
 		{
 			name: 'wasBootstrapEverUsed',
+			label: 'was bootstrap ever used',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
+			primitiveType: type("boolean"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
 		},
 		{
 			name: 'version',
+			label: 'version',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
 		},
 		{
 			name: 'status',
+			label: 'status',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

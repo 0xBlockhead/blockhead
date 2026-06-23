@@ -1,12 +1,22 @@
 <script lang="ts">
+	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { select } from '$/routes/+layout.svelte'
+	import { stringify } from 'devalue'
+
+
 	// Context
 	import { resolve } from '$app/paths'
 
 
 	// State
-	let { children, params } = $props()
+	let {
+		children,
+		params,
+	} = $props()
+
+
+	// Functions
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// Components
@@ -22,7 +32,12 @@
 >
 	{#snippet Summary({ open: _open })}
 		<FarcasterChannelView
-			selection={select(EntityType.FarcasterChannel, { id: params.channelId })}
+			selection={
+				select(
+					EntityType.FarcasterChannel,
+					{ id: params.channelId }
+				)
+			}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

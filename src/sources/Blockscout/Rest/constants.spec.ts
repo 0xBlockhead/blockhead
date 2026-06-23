@@ -1,32 +1,32 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-	blockscoutErc4337OperationsSupportedByChainId,
-	blockscoutErc4337RegistryListsSupportedByChainId,
+	blockscoutErc4337OperationSupportByChainId,
+	blockscoutErc4337RegistryListSupportByChainId,
 	blockscoutExplorerRestV2OriginByChainId,
 	blockscoutHostedNetworks,
 } from '$/sources/Blockscout/Rest/constants.ts'
 
-describe('blockscoutErc4337OperationsSupportedByChainId', () => {
-	it('is true for hosted chains with AA proxy indexing', () => {
-		expect(blockscoutErc4337OperationsSupportedByChainId[1]).toBe(true)
-		expect(blockscoutErc4337OperationsSupportedByChainId[8453]).toBe(true)
-		expect(blockscoutErc4337OperationsSupportedByChainId[11155111]).toBe(true)
+describe('blockscoutErc4337OperationSupportByChainId', () => {
+	it('returns support rows for hosted chains with AA proxy indexing', () => {
+		expect(blockscoutErc4337OperationSupportByChainId[1]).toEqual({ chainId: 1 })
+		expect(blockscoutErc4337OperationSupportByChainId[8453]).toEqual({ chainId: 8453 })
+		expect(blockscoutErc4337OperationSupportByChainId[11155111]).toEqual({ chainId: 11155111 })
 	})
 
-	it('is false for hosted chains without AA proxy indexing', () => {
+	it('returns undefined for hosted chains without AA proxy indexing', () => {
 		for (const chainId of [5, 17000]) {
 			expect(
 				blockscoutHostedNetworks.some((network) => network.chainId === chainId),
 				`fixture chain ${chainId}`
 			).toBe(true)
-			expect(blockscoutErc4337OperationsSupportedByChainId[chainId]).toBeUndefined()
+			expect(blockscoutErc4337OperationSupportByChainId[chainId]).toBeUndefined()
 		}
 	})
 
 	it('matches registry list helper on supported chains', () => {
-		expect(blockscoutErc4337RegistryListsSupportedByChainId[42161]).toBe(true)
-		expect(blockscoutErc4337RegistryListsSupportedByChainId[5]).toBeUndefined()
+		expect(blockscoutErc4337RegistryListSupportByChainId[42161]).toEqual({ chainId: 42161 })
+		expect(blockscoutErc4337RegistryListSupportByChainId[5]).toBeUndefined()
 	})
 })
 

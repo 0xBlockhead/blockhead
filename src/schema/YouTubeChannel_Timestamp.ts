@@ -1,24 +1,18 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import YouTubeChannel from '$/schema/YouTubeChannel.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum YouTubeChannel_TimestampSelector {
 	YouTubeChannelTimestampMs = 'youTubeChannelTimestampMs',
+	ChannelTimestampMs = '$channel+timestampMs',
 }
-
 export default {
 	entityType: EntityType.YouTubeChannel_Timestamp,
-
-	label: 'YouTube channel snapshot',
-	labelPlural: 'YouTube channel snapshots',
-
+	label: 'you tube channel timestamp',
+	labelPlural: 'you tube channel observations',
 	selectors: [
 		{
 			name: YouTubeChannel_TimestampSelector.YouTubeChannelTimestampMs,
@@ -28,49 +22,42 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$channel',
+			label: 'channel',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.YouTubeChannel,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'subscriberCount',
+			label: 'subscriber count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Youtube_Rest,
-				Source.Piped_Rest,
-			],
 		},
 		{
 			name: 'videoCount',
+			label: 'video count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Youtube_Rest,
-				Source.Piped_Rest,
-			],
 		},
 		{
 			name: 'viewCount',
+			label: 'view count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Youtube_Rest,
-				Source.Piped_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

@@ -9,14 +9,14 @@ export const ethereumEipSpecGithubRepoByLedger = {
 		repo: 'EIPs',
 		path: 'EIPS',
 		ref: 'master',
-		entryLedger: 'eip' as const,
+		entryLedger: 'eip',
 	},
 	erc: {
 		owner: 'ethereum',
 		repo: 'ercs',
 		path: 'ERCS',
 		ref: 'master',
-		entryLedger: 'erc' as const,
+		entryLedger: 'erc',
 	},
 } as const
 

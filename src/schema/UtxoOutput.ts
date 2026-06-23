@@ -1,24 +1,18 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum UtxoOutputSelector {
 	UtxoTransactionOutputIndex = 'utxoTransactionOutputIndex',
+	TransactionOutputIndex = '$transaction+outputIndex',
 }
-
 export default {
 	entityType: EntityType.UtxoOutput,
-
-	label: 'UTXO Output',
-	labelPlural: 'UTXO Outputs',
-
+	label: 'UTXO output',
+	labelPlural: 'UTXO outputs',
 	selectors: [
 		{
 			name: UtxoOutputSelector.UtxoTransactionOutputIndex,
@@ -28,130 +22,126 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$transaction',
+			label: 'transaction',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.UtxoTransaction,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'outputIndex',
+			label: 'output index',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'valueSats',
+			label: 'value sats',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'scriptPubKeyAsm',
+			label: 'script pub key asm',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'scriptPubKeyHex',
+			label: 'script pub key hex',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'scriptPubKeyType',
+			label: 'script pub key type',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$address',
+			label: 'Address',
+			description: 'The address or account identifier used by the source protocol.',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.UtxoAddress,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$elementsAsset',
+			label: 'elements asset',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.ElementsAsset,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Esplora_Rest,
-			],
 		},
 		{
 			name: 'assetCommitment',
+			label: 'asset commitment',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Esplora_Rest,
-			],
 		},
 		{
 			name: 'valueCommitment',
+			label: 'value commitment',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Esplora_Rest,
-			],
 		},
 		{
 			name: 'nonceCommitment',
+			label: 'nonce commitment',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Esplora_Rest,
-			],
 		},
 		{
 			name: 'surjectionProof',
+			label: 'surjection proof',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Esplora_Rest,
-			],
 		},
 		{
 			name: 'rangeProof',
+			label: 'range proof',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Esplora_Rest,
-			],
 		},
 		{
 			name: 'isConfidential',
+			label: 'is confidential',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
+			primitiveType: type("boolean"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Esplora_Rest,
-			],
 		},
 		{
 			name: 'isSpent',
+			label: 'is spent',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
+			primitiveType: type("boolean"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$bitcoinCashCashTokenFungibleAmount',
+			label: 'Bitcoin cash cash token fungible amount',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.BitcoinCashCashTokenFungibleAmount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$bitcoinCashCashTokenNft',
+			label: 'Bitcoin cash cash token NFT',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.BitcoinCashCashTokenNft,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

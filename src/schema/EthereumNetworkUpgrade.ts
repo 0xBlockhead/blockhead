@@ -1,26 +1,18 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/EvmNetwork.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum EthereumNetworkUpgradeSelector {
 	EvmNetworkUpgradeId = 'evmNetworkUpgradeId',
+	NetworkUpgradeId = '$network+upgradeId',
 }
-
-
-/** Combined or single-layer upgrade label: references `NetworkExecutionUpgrade`; may also reference `NetworkConsensusUpgrade`. */
 export default {
 	entityType: EntityType.EthereumNetworkUpgrade,
-
-	label: 'Network upgrade',
-	labelPlural: 'Network upgrades',
-
+	label: 'ethereum network upgrade',
+	labelPlural: 'ethereum network upgrades',
 	selectors: [
 		{
 			name: EthereumNetworkUpgradeSelector.EvmNetworkUpgradeId,
@@ -30,68 +22,78 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'upgradeId',
+			label: 'upgrade ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'name',
+			label: 'Name',
+			description: 'The human-readable name of the subject.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'slug',
+			label: 'Slug',
+			description: 'A stable short name used by catalogs and URLs.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'activationBlock',
+			label: 'activation block',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'activationTimestampMs',
+			label: 'activation timestamp ms',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'activationEpoch',
+			label: 'activation epoch',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$networkExecutionUpgrade',
+			label: 'network execution upgrade',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EthereumExecutionUpgrade,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$networkConsensusUpgrade',
+			label: 'network consensus upgrade',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EthereumConsensusUpgrade,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$$proposals',
+			label: 'proposals',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.SpecificationProposal,
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [Source.Constants_Internal],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

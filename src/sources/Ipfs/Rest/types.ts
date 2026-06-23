@@ -1,4 +1,5 @@
 import type { IpfsNamespace } from '$/lib/ipfs.ts'
+import type { ContentDisplayType } from '$/sources/contentResponse.ts'
 
 export type { IpfsNamespace }
 
@@ -12,7 +13,7 @@ export type IpfsBrowseResult = {
 	extension?: string
 	contentType?: string
 	contentLength?: number
-	displayType: 'text' | 'image' | 'video' | 'audio' | 'json' | 'xml' | 'pdf' | 'iframe' | 'binary'
+	displayType: ContentDisplayType
 	isContentTypeInferred: boolean
 	text?: string
 }

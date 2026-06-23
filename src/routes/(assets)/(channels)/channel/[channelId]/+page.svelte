@@ -8,12 +8,12 @@
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import StateChannelView from '$/views/StateChannelView.svelte'
+	import BlockheadStateChannelView from '$/views/BlockheadStateChannelView.svelte'
 </script>
 
 
 <Page>
-	<StateChannelView
-		selection={select(EntityType.StateChannel, { id: params.channelId })}
+	<BlockheadStateChannelView
+		selection={select(EntityType.BlockheadStateChannel, { id: params.channelId })}
 	/>
 </Page>

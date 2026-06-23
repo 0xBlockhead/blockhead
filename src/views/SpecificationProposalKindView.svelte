@@ -1,145 +1,95 @@
 <script lang="ts">
 	// Types/constants
+	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntitySelector } from '$/schema/$schema.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { stringify } from 'devalue'
-
-
-	// Context
-	import { select } from '$/routes/+layout.svelte'
-	import { resolve } from '$app/paths'
 
 
 	// State
+	const view = {
+		closed: [
+			'realm',
+			'category',
+			'label',
+		],
+		content: {
+			dl: [
+				[
+					'realm',
+					'category',
+					'label',
+					{
+						label: 'plural label',
+					},
+					'slug',
+					{
+						label: 'proposal count',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Realm',
+					items: [
+						{
+							label: 'parent specification realm',
+						},
+					],
+				},
+				{
+					label: 'Proposals',
+					items: [
+						{
+							label: 'SpecificationProposal rows in this family',
+						},
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'checked-in proposal category catalog',
+						},
+						{
+							label: 'source repositories for proposals',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
-		href: hrefProp,
-		layout = EntityLayout.SummaryDetails,
-		open = $bindable(layout === EntityLayout.SummaryDetails),
+		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-
 			selection: EntityProxyResource<typeof schema, EntityType.SpecificationProposalKind>
-			href?: string
-			layout?: EntityLayout
 			open?: boolean
 		},
-		never
+		Pick<
+			ComponentProps<typeof EntityView2>,
+			| 'layout'
+			| 'showTypeAnnotation'
+		>
 	> = $props()
 
 
-	const kind = $derived(selection(
-		({ sources: [
-				Source.Constants_Internal,
-			], fields: { label: true, labelPlural: true, slug: true } }),
-	))
-
-	const specificationRealm = $derived(select(EntityType.SpecificationRealm,
-		{
-			realm: selection.entitySelector.realm,
-		},
-		({ sources: [
-				Source.Constants_Internal,
-			], fields: { slug: true } }),
-	))
-
-	const href = $derived(
-		hrefProp ?? resolve('/proposals'),
-	)
-
-
 	// Components
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import ProposalsView from '$/views/SpecificationProposalsView.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.SpecificationProposalKind}
 	entitySelector={selection.entitySelector}
-	{href}
-	title={`${selection.entitySelector.category}`}
-	{layout}
 	bind:open
 	{...EntityViewProps}
->
-	{#snippet Value()}
-		<ResourceBoundary
-			resource={kind}
-			placeholderText="Loading proposal kind…"
-		>
-			{#snippet children(kind)}
-				<span>
-					{kind.label ?? selection.entitySelector.category}
-				</span>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Title()}
-		<ResourceBoundary
-			resource={kind}
-			placeholderText="Loading proposal kind…"
-		>
-			{#snippet children(kind)}
-				<span>
-					{kind.labelPlural ?? kind.label ?? selection.entitySelector.category}
-				</span>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Content({})}
-		<dl data-column-item="center">
-			{#if open}
-				<div>
-					<dt>Label plural</dt>
-					<dd>
-						<ResourceBoundary
-							resource={kind}
-							placeholderText="Loading proposal kind…"
-						>
-							{#snippet children(kind)}
-								{#if kind.labelPlural !== undefined}
-									{kind.labelPlural}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-		</dl>
-	{/snippet}
-
-	{#snippet Details({ open })}
-		<ResourceBoundary
-			resource={kind}
-			placeholderText="Loading proposals…"
-		>
-			{#snippet children(kind)}
-				<ProposalsView
-					href={resolve('/proposals')}
-					selection={selection.$$proposals}
-					filterCategory={selection.entitySelector.category}
-					filterRealm={selection.entitySelector.realm}
-					id={`${stringify(selection.entitySelector)}:proposals`}
-					open
-					title={
-						kind.labelPlural
-						?? kind.label
-						?? 'Proposals'
-					}
-				/>
-			{/snippet}
-		</ResourceBoundary>
-
-	{/snippet}
-</EntityView>
+	{view}
+/>

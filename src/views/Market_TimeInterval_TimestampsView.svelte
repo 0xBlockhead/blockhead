@@ -1,133 +1,66 @@
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import type { MarketTimeInterval } from '$/constants/Market.ts'
-	import { Source } from '$/sources/Source.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
+
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
+	const listView = {
+		entityType: EntityType.Market_TimeInterval_Timestamp,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
-		title = 'OHLC',
-		open = $bindable(true),
-		collapsible = true,
-		limit = 4096,
-		timeInterval,
-		sources = [
-			Source.Coingecko_Rest,
-			Source.Coingecko_OpenApi,
-			Source.Coinpaprika_OpenApi,
-			Source.CoinMarketCap_Rest,
-		],
 		selection,
+		title,
+		open = $bindable(true),
+		id = 'Market_TimeInterval_Timestamps',
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.Market_TimeInterval_Timestamp>
 			title?: string
 			open?: boolean
-			collapsible?: boolean
-			limit?: number
-			timeInterval?: MarketTimeInterval
-			sources?: readonly Source[]
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.Market_TimeInterval_Timestamp>
+			id?: string
+			href?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'id'
-			| 'CollapsibleProps'
-		>
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
 
 
 	// Components
-	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
 	import Market_TimeInterval_TimestampView from '$/views/Market_TimeInterval_TimestampView.svelte'
 </script>
 
 
 <EntitiesList
-	{...EntitiesListProps}
-	bind:open
-	{collapsible}
-	entityType={EntityType.Market_TimeInterval_Timestamp}
+	entityType={listView.entityType}
 	{title}
+	bind:open
+	{id}
+	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
+	{...EntitiesListProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Candle marketTimeIntervalTimestamps sit on interval boundaries: open, high, low, close for each bucket start.
-		</p>
-		<p>
-			Candles load from every configured OHLC provider on the parent market row (Coingecko, Coinpaprika, CoinMarketCap, …).
-		</p>
-	{/snippet}
-
-	{#snippet Empty()}
-		<p data-text="muted">
-			No OHLC candles yet.
-		</p>
-	{/snippet}
-
-	{#snippet body({ open: _bodyOpen })}
-		{#if open}
-			<ResourceBoundary
-				resource={selection({
-						sources,
-						limit,
-					})}
-				placeholderText="Loading OHLC candles…"
-			>
-				{#snippet children(points)}
-					<EntitiesList
-						collapsible={false}
-						showSummary={false}
-						entityType={EntityType.Market_TimeInterval_Timestamp}
-						getKey={(marketTimeIntervalTimestamp) => stringify(marketTimeIntervalTimestamp.entitySelector)}
-						getSortValue={(marketTimeIntervalTimestamp) => -marketTimeIntervalTimestamp.entitySelector.timestampMs}
-						placeholderKeys={new SvelteSet<string>()}
-						open={true}
-						items={Object.values(
-							Object.groupBy(
-								points.entities.filter((point) => (
-									timeInterval == null
-									|| (
-										point.entitySelector.timeInterval.unit === timeInterval.unit
-										&& point.entitySelector.timeInterval.value === timeInterval.value
-									)
-								)),
-								(point) => stringify(point.entitySelector),
-							),
-						)
-							.flatMap((group) => group == null ? [] : [group[0]])}
-						{title}
-						UnorderedListProps={{ orientation: ListOrientation.Column }}
-					>
-						{#snippet Empty()}
-							<p data-text="muted">
-								No OHLC candles yet.
-							</p>
-						{/snippet}
-
-						{#snippet Item({ item })}
-							<Market_TimeInterval_TimestampView
-								selection={select(EntityType.Market_TimeInterval_Timestamp, item.entitySelector)}
-								id={stringify(item.entitySelector)}
-								layout={EntityLayout.Summary}
-								open={false}
-							/>
-						{/snippet}
-					</EntitiesList>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+	{#snippet Item({ item })}
+		<Market_TimeInterval_TimestampView
+			selection={select(EntityType.Market_TimeInterval_Timestamp, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

@@ -1,25 +1,38 @@
-import { type as arktype } from 'arktype'
-
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import {
+	heliusBindings,
+	heliusPublicEnv,
+} from '$/sources/Helius/bindings.ts'
+
+export const heliusOrigins = [
+	...new Map(
+		heliusBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.Helius,
 	label: 'Helius',
-	env: arktype({
-		PUBLIC_HELIUS_API_KEY: 'string',
-	}),
-	origins: [
-		{
-			origin: 'https://api-mainnet.helius-rpc.com',
-			corsEnabled: true,
-		},
-	],
+	env: heliusPublicEnv,
 	sources: [
 		{
 			provider: SourceProvider.Helius,
 			source: Source.Helius_Rest,
 			label: 'Helius REST',
+			env: heliusPublicEnv,
 		},
 	],
-} as const satisfies SourceProviderDefinition
+	bindings: heliusBindings,
+} satisfies SourceProviderDefinition

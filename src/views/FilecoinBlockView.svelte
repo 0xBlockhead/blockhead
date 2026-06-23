@@ -2,15 +2,86 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			{
+				label: 'CID',
+			},
+			{
+				label: 'tipset',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					{
+						label: 'CID',
+					},
+					{
+						label: 'tipset',
+					},
+					{
+						label: 'miner',
+					},
+					{
+						label: 'ticket VRF proof',
+					},
+					{
+						label: 'win count',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Messages',
+					items: [
+						{
+							label: 'Filecoin messages included in the block',
+						},
+					],
+				},
+				{
+					label: 'Tipset',
+					items: [
+						{
+							label: 'parent Filecoin tipset',
+						},
+					],
+				},
+				{
+					label: 'Miner',
+					items: [
+						{
+							label: 'producing Filecoin miner',
+						},
+					],
+				},
+				{
+					label: 'Network',
+					items: [
+						{
+							label: 'parent Filecoin network',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +92,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,64 +100,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.FilecoinBlock}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.cid}
-	idDragPlainText={selection.entitySelector.cid}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Value()}
-		<TruncatedValue
-			value={selection.entitySelector.cid}
-			format={TruncatedValueFormat.Abbr}
-		/>
-	{/snippet}
-
-	{#snippet Title()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>Block </span>
-			{#if Value}
-			{@render Value()}
-					{/if}
-		</span>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection( { fields: { ticketVrFProof: true, winCount: true } })}
-			placeholderText={`Loading Filecoin Block...`}
-		>
-			{#snippet children(filecoinBlock)}
-				<dl>
-					{#if filecoinBlock.ticketVrFProof != null}
-						<div>
-							<dt>Ticket Vr F Proof</dt>
-							<dd>
-								<TruncatedValue
-									value={filecoinBlock.ticketVrFProof}
-									format={TruncatedValueFormat.Abbr}
-								/></dd>
-						</div>
-					{/if}
-
-					{#if filecoinBlock.winCount != null}
-						<div>
-							<dt>Win Count</dt>
-							<dd><NumberValue value={filecoinBlock.winCount} /></dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

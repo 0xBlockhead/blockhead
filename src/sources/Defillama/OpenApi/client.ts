@@ -1,5 +1,5 @@
 import { corsFetch, fetchFailedMessage } from '$/lib/http.ts'
-import Defillama from '$/sources/Defillama/index.ts'
+import { defillamaOrigins } from '$/sources/Defillama/index.ts'
 import { coinsBaseUrl } from '$/sources/Defillama/Rest/constants.ts'
 import type {
 	DefillamaOpenApiChartResponse,
@@ -35,7 +35,7 @@ export const getChartJson = async ({
 	if (period != null) reqUrl.searchParams.set('period', period)
 	if (span != null) reqUrl.searchParams.set('span', String(span))
 
-	const response = await corsFetch(reqUrl.href, { origins: Defillama.origins  })
+	const response = await corsFetch(reqUrl.href, { origins: defillamaOrigins })
 
 	if (!response.ok) throw new Error(await fetchFailedMessage(reqUrl.href, response))
 
@@ -56,7 +56,7 @@ export const getCurrentPricesJson = async ({
 		),
 		searchWidth
 	)
-	const response = await corsFetch(reqUrl.href, { origins: Defillama.origins  })
+	const response = await corsFetch(reqUrl.href, { origins: defillamaOrigins })
 
 	if (!response.ok) throw new Error(await fetchFailedMessage(reqUrl.href, response))
 

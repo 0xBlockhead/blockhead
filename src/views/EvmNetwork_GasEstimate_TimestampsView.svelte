@@ -1,101 +1,66 @@
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-		import type { WithRest } from '$/typescript/WithRest.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
-		import { resolve } from '$app/paths'
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
+	const listView = {
+		entityType: EntityType.EvmNetwork_GasEstimate_Timestamp,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
-		title = 'Gas estimates',
-		open = $bindable(true),
 		selection,
-		id,
+		title,
+		open = $bindable(true),
+		id = 'EvmNetwork_GasEstimate_Timestamps',
 		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EvmNetwork_GasEstimate_Timestamp>
 			title?: string
 			open?: boolean
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EvmNetwork_GasEstimate_Timestamp>
-			id: string
+			id?: string
 			href?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'collapsible'
-			| 'CollapsibleProps'
-		>
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
 
 
 	// Components
-	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmNetwork_GasEstimate_TimestampView from '$/views/EvmNetwork_GasEstimate_TimestampView.svelte'
 </script>
 
 
 <EntitiesList
-	entityType={EntityType.EvmNetwork_GasEstimate_Timestamp}
+	entityType={listView.entityType}
 	{title}
 	bind:open
 	{id}
 	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Each row is a timestamped explorer-oracle gas snapshot with suggested slow, average, and fast tiers in gwei.
-		</p>
-		<p>
-			Rows may come from Blockscout stats or Etherscan <code>gasoracle</code>.
-		</p>
-	{/snippet}
-
-	{#snippet body()}
-		{#if open}
-			<ResourceBoundary
-				resource={selection({
-						sources: [Source.Blockscout_Rest, Source.Etherscan_Rest],
-						limit: 64,
-					})}
-				placeholderText="Loading gasEstimateTimestamps…"
-			>
-				{#snippet children(gasEstimateTimestamps)}
-					<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.EvmNetwork_GasEstimate_Timestamp}
-				id={`${id}-items`}
-				href={href}
-				open={true}
-				items={gasEstimateTimestamps.entities}
-			>
-				{#snippet Item({ item })}
-					{@const row = item}
-					{@const rowId = row.entitySelector}
-					<EvmNetwork_GasEstimate_TimestampView
-							selection={select(EntityType.EvmNetwork_GasEstimate_Timestamp, rowId)}
-							href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-								caip2: `eip155:${rowId.$network.caip2.reference}`,
-							})}
-						layout={EntityLayout.Summary}
-
-					/>
-				{/snippet}
-			</EntitiesList>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+	{#snippet Item({ item })}
+		<EvmNetwork_GasEstimate_TimestampView
+			selection={select(EntityType.EvmNetwork_GasEstimate_Timestamp, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

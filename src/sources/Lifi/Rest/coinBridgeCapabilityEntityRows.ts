@@ -1,5 +1,4 @@
 import { bridgeToolByKey, bridgeTools } from '$/constants/Bridge.ts'
-import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
 import type { schema } from '$/schema/index.ts'
@@ -23,19 +22,9 @@ export const coinBridgeCapabilityEntityRowsFromInstancesAndTools = (
 	const instanceByChainId: Partial<Record<number, CoinInstanceEntitySelector>> = {}
 
 	for (const row of instanceIds) {
-		const instanceId = row[EntityMetaKey.Selector]
-		const chainId = Number(instanceId.$network.caip2.reference)
-		const current = instanceByChainId[chainId]
-		instanceByChainId[chainId] = (
-			current == null
-			|| (
-				current.type === CoinInstanceType.NativeCurrency
-				&& instanceId.type === CoinInstanceType.Erc20Token
-			) ?
-				instanceId
-			:
-				current
-		)
+			const instanceId = row[EntityMetaKey.Selector]
+			const chainId = Number(instanceId.$network.caip2.reference)
+			instanceByChainId[chainId] = instanceId
 	}
 
 	const seenKeys = new Set<string>()
@@ -57,8 +46,11 @@ export const coinBridgeCapabilityEntityRowsFromInstancesAndTools = (
 		for (const { fromChainId, toChainId } of tool.supportedChains) {
 			const fromInstance = instanceByChainId[fromChainId]
 			const toInstance = instanceByChainId[toChainId]
-			if (fromInstance == null || toInstance == null) continue
-			if (fromChainId === toChainId) continue
+			if (
+				fromChainId === toChainId
+				|| fromInstance == null
+				|| toInstance == null
+			) continue
 
 			const capabilityId = {
 				$fromInstance: fromInstance,

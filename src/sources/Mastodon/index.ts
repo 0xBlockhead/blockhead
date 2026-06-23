@@ -1,20 +1,38 @@
-import { type as arktype } from 'arktype'
-
+import { Source } from '$/sources/Source.ts'
 import {
-	type SourceProviderDefinition,
 	SourceProvider,
+	type SourceProviderDefinition,
 } from '$/sources/SourceProvider.ts'
-import { mastodonOrigins } from '$/sources/Mastodon/Rest/constants.ts'
-import MastodonRestSource from '$/sources/Mastodon/Rest/index.ts'
+import {
+	mastodonBindings,
+	mastodonPublicEnv,
+} from '$/sources/Mastodon/bindings.ts'
+
+export const mastodonOrigins = [
+	...new Map(
+		mastodonBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.Mastodon,
 	label: 'Mastodon',
-	env: arktype({
-		PUBLIC_MASTODON_ACCESS_TOKEN: 'string > 0?',
-	}),
-	origins: mastodonOrigins,
+	env: mastodonPublicEnv,
 	sources: [
-		MastodonRestSource,
+		{
+			provider: SourceProvider.Mastodon,
+			source: Source.Mastodon_Rest,
+			label: 'Mastodon REST',
+			env: mastodonPublicEnv,
+		},
 	],
+	bindings: mastodonBindings,
 } satisfies SourceProviderDefinition

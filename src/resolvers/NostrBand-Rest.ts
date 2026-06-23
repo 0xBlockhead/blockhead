@@ -27,7 +27,7 @@ import { NostrRelaySelector } from '$/schema/NostrRelay.ts'
 import { NostrRepostSelector } from '$/schema/NostrRepost.ts'
 import { NostrReactionSelector } from '$/schema/NostrReaction.ts'
 import { NostrArticleSelector } from '$/schema/NostrArticle.ts'
-import { NostrNetworkSelector } from '$/schema/NostrNetwork.ts'
+import { _GlobalNostrNetworkSelector } from '$/schema/_GlobalNostrNetwork.ts'
 
 
 const normalizePubkey = (value: string | undefined | null) => {
@@ -235,20 +235,20 @@ const profileFieldValuesFromMetadata = (
 		...(timestampMsFromUnixSeconds(profileEvent?.created_at) != null && {
 			metadataUpdatedAt: timestampMsFromUnixSeconds(profileEvent?.created_at),
 		}),
-		...((
-			iconMedia
-		) => (
-			iconMedia != null && {
-				$icon: iconMedia,
-			}
-		))(mediaFromUrl(optionalNonemptyString(metadata?.picture), MediaType.Image)),
-		...((
-			bannerMedia
-		) => (
-			bannerMedia != null && {
-				$banner: bannerMedia,
-			}
-		))(mediaFromUrl(optionalNonemptyString(metadata?.banner), MediaType.Image)),
+			...((
+				iconMedia
+			) => (
+				iconMedia != null && {
+					$icon: iconMedia,
+				}
+			))(mediaFromUrl(optionalNonemptyString(metadata?.picture), MediaType.Image)),
+			...((
+				bannerMedia
+			) => (
+				bannerMedia != null && {
+					$banner: bannerMedia,
+				}
+			))(mediaFromUrl(optionalNonemptyString(metadata?.banner), MediaType.Image)),
 	}
 }
 
@@ -590,12 +590,12 @@ export default {
 				nip05: (profile) => profile.nip05,
 				lud16: (profile) => profile.lud16,
 				lud06: (profile) => profile.lud06,
-				website: (profile) => profile.website,
-				metadataUpdatedAt: (profile) => profile.metadataUpdatedAt,
-				$icon: (profile) => profile.$icon,
-				$banner: (profile) => profile.$banner,
-			},
-		}),
+					website: (profile) => profile.website,
+					metadataUpdatedAt: (profile) => profile.metadataUpdatedAt,
+					$icon: (profile) => profile.$icon,
+					$banner: (profile) => profile.$banner,
+				},
+			}),
 
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrNote,
@@ -774,10 +774,10 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.NostrBand_Rest, {
-			entityType: EntityType.NostrNetwork,
-			resolve: {
-				[NostrNetworkSelector.Scope]: async (_entitySelector, context) => {
+			defineResolver(Source.NostrBand_Rest, {
+				entityType: EntityType._GlobalNostrNetwork,
+				resolve: {
+					[_GlobalNostrNetworkSelector.Scope]: async (_entitySelector, context) => {
 					const { listTopProfiles } = await import('$/sources/NostrBand/Rest/queries.ts')
 					const limit = resolverContextRowLimit(context)
 					return (
@@ -797,16 +797,16 @@ export default {
 					)
 				}
 			},
-		})({
-			fields: {
-				$$nostrProfiles: (profiles) => profiles,
-			},
-		}),
+			})({
+				fields: {
+					$$sourceWindowProfiles: (profiles) => profiles,
+				},
+			}),
 
-		defineResolver(Source.NostrBand_Rest, {
-			entityType: EntityType.NostrNetwork,
-			resolve: {
-				[NostrNetworkSelector.Scope]: async (_entitySelector, context) => {
+			defineResolver(Source.NostrBand_Rest, {
+				entityType: EntityType._GlobalNostrNetwork,
+				resolve: {
+					[_GlobalNostrNetworkSelector.Scope]: async (_entitySelector, context) => {
 					const { listRecentTextNotes } = await import('$/sources/NostrBand/Rest/queries.ts')
 					const limit = resolverContextRowLimit(context)
 					return (
@@ -824,16 +824,16 @@ export default {
 					)
 				}
 			},
-		})({
-			fields: {
-				$$nostrNotes: (notes) => notes,
-			},
-		}),
+			})({
+				fields: {
+					$$sourceWindowNotes: (notes) => notes,
+				},
+			}),
 
-		defineResolver(Source.NostrBand_Rest, {
-			entityType: EntityType.NostrNetwork,
-			resolve: {
-				[NostrNetworkSelector.Scope]: async (_entitySelector, context) => {
+			defineResolver(Source.NostrBand_Rest, {
+				entityType: EntityType._GlobalNostrNetwork,
+				resolve: {
+					[_GlobalNostrNetworkSelector.Scope]: async (_entitySelector, context) => {
 					const { listTopRelays } = await import('$/sources/NostrBand/Rest/queries.ts')
 					const limit = resolverContextRowLimit(context)
 					return (
@@ -848,16 +848,16 @@ export default {
 					)
 				}
 			},
-		})({
-			fields: {
-				$$nostrRelays: (relays) => relays,
-			},
-		}),
+			})({
+				fields: {
+					$$sourceWindowRelays: (relays) => relays,
+				},
+			}),
 
-		defineResolver(Source.NostrBand_Rest, {
-			entityType: EntityType.NostrNetwork,
-			resolve: {
-				[NostrNetworkSelector.Scope]: async (_entitySelector, context) => {
+			defineResolver(Source.NostrBand_Rest, {
+				entityType: EntityType._GlobalNostrNetwork,
+				resolve: {
+					[_GlobalNostrNetworkSelector.Scope]: async (_entitySelector, context) => {
 					const { listRecentReposts } = await import('$/sources/NostrBand/Rest/queries.ts')
 					const limit = resolverContextRowLimit(context)
 					return (
@@ -875,16 +875,16 @@ export default {
 					)
 				}
 			},
-		})({
-			fields: {
-				$$nostrReposts: (reposts) => reposts,
-			},
-		}),
+			})({
+				fields: {
+					$$sourceWindowReposts: (reposts) => reposts,
+				},
+			}),
 
-		defineResolver(Source.NostrBand_Rest, {
-			entityType: EntityType.NostrNetwork,
-			resolve: {
-				[NostrNetworkSelector.Scope]: async (_entitySelector, context) => {
+			defineResolver(Source.NostrBand_Rest, {
+				entityType: EntityType._GlobalNostrNetwork,
+				resolve: {
+					[_GlobalNostrNetworkSelector.Scope]: async (_entitySelector, context) => {
 					const { listRecentArticles } = await import('$/sources/NostrBand/Rest/queries.ts')
 					const limit = resolverContextRowLimit(context)
 					return (
@@ -893,11 +893,11 @@ export default {
 					)
 				}
 			},
-		})({
-			fields: {
-				$$nostrArticles: (articles) => articles,
-			},
-		}),
+			})({
+				fields: {
+					$$sourceWindowArticles: (articles) => articles,
+				},
+			}),
 
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrProfile,
@@ -1006,11 +1006,11 @@ export default {
 					)
 				}
 			},
-		})({
-			fields: {
-				$banner: (banner) => banner,
-			},
-		}),
+			})({
+				fields: {
+					$banner: (banner) => banner,
+				},
+			}),
 
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrNote,

@@ -1,5 +1,5 @@
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
-import TronFullNode from '$/sources/TronFullNode/index.ts'
+import { tronFullNodeBindings } from '$/sources/TronFullNode/bindings.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	TronNodeAccount,
@@ -7,6 +7,27 @@ import type {
 	TronNodeTransaction,
 	TronNodeTransactionInfo,
 } from '$/sources/TronGrid/Rest/types.ts'
+
+export const tronFullNodeRestEndpoints = [
+	{
+		slug: 'full_node_local',
+		restBaseUrl: tronFullNodeBindings[0].endpoints[0].locator,
+	},
+] as const
+
+export const tronFullNodeOrigins = [
+	...new Map(
+		tronFullNodeBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 const base = (restBaseUrl: string) => restBaseUrl.replace(/\/$/, '')
 
@@ -20,7 +41,7 @@ const tronFullNodePost = async <_Result>({
 	body: JsonValue
 }) => {
 	const response = await corsFetch(`${base(restBaseUrl)}/${path}`, {
-		origins: TronFullNode.origins,
+		origins: tronFullNodeOrigins,
 		init: {
 			method: 'POST',
 			headers: {

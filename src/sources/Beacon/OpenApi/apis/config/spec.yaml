@@ -1,0 +1,42 @@
+get:
+  operationId: getSpec
+  summary: Get spec params.
+  description: |
+    Retrieve specification configuration used on this node.  The configuration should include:
+      - Constants for all hard forks known by the beacon node, for example the [phase 0](https://github.com/ethereum/consensus-specs/blob/v1.3.0/specs/phase0/beacon-chain.md#constants) and [altair](https://github.com/ethereum/consensus-specs/blob/v1.3.0/specs/altair/beacon-chain.md#constants) values
+      - Presets for all hard forks supplied to the beacon node, for example the [phase 0](https://github.com/ethereum/consensus-specs/blob/v1.3.0/presets/mainnet/phase0.yaml) and [altair](https://github.com/ethereum/consensus-specs/blob/v1.3.0/presets/mainnet/altair.yaml) values
+      - Configuration for the beacon node, for example the [mainnet](https://github.com/ethereum/consensus-specs/blob/v1.3.0/configs/mainnet.yaml) values
+
+    Values are returned with following format:
+      - any value starting with 0x in the spec is returned as a hex string
+      - numeric values are returned as a quoted integer
+      - array values are returned as a JSON array
+  tags:
+    - Config
+    - ValidatorRequiredApi
+  responses:
+    "200":
+      description: Success
+      content:
+        application/json:
+          schema:
+            title: GetSpecResponse
+            type: object
+            required: [data]
+            properties:
+              data:
+                description: |
+                  Key value mapping of all constants, presets and configuration values for all known hard forks
+                  Values are returned with following format:
+                    - any value starting with 0x in the spec is returned as a hex string
+                    - numeric values are returned as a quoted integer
+                type: object
+                example:
+                  'DEPOSIT_CONTRACT_ADDRESS': '0x00000000219ab540356cBB839Cbe05303d7705Fa'
+                  'DEPOSIT_NETWORK_ID': '1'
+                  'DOMAIN_AGGREGATE_AND_PROOF': '0x06000000'
+                  'INACTIVITY_PENALTY_QUOTIENT': '67108864'
+                  'INACTIVITY_PENALTY_QUOTIENT_ALTAIR': '50331648'
+                  'BLOB_SCHEDULE': [{"EPOCH": "269568", "MAX_BLOBS_PER_BLOCK": "6"}, {"EPOCH": "364032", "MAX_BLOBS_PER_BLOCK": "9"}]
+    "500":
+      $ref: ../../beacon-node-oapi.yaml#/components/responses/InternalError

@@ -4,6 +4,8 @@ import {
 	eq,
 	inArray,
 	type CollectionStatus,
+	type Ref,
+	type WithVirtualProps,
 } from '@tanstack/db'
 import { stringify } from 'devalue'
 
@@ -27,6 +29,7 @@ import {
 } from '$/lib/db/queryResource.svelte.ts'
 import type {
 	ClientContext,
+	DeclarativeOrderBy,
 	EntityFieldCollectionItem,
 	EntityFieldCountCollectionItem,
 	SubscribeFieldResult,
@@ -326,6 +329,25 @@ const fieldCanCompleteEmpty = <
 	)
 }
 
+const fieldRowParentPredicate = <
+	_Row extends {
+		[EntityMetaKey.ParentSelectorKey]: string
+		[EntityMetaKey.Source]: string
+	}
+>(
+	row: _Row,
+	parentSelectorKey: string,
+	querySources: readonly string[] | undefined
+) => (
+	querySources == null ?
+		eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey)
+	:
+		and(
+			eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+			inArray(row[EntityMetaKey.Source], [...querySources])
+		)
+)
+
 const enabledSelectionSources = <
 	const _Schema extends Schema
 >(
@@ -468,37 +490,81 @@ const fieldResourceQueries = <
 	context: ClientContext<_Schema>,
 	entityType: _EntityType,
 	entitySelector: EntitySelector<_Schema, _EntityType>,
-	fieldName: EntityFieldName<_Schema, _EntityType>,
+	fieldName: string,
 	definition: EntityFieldDefinition,
-	sources: readonly string[] | undefined,
-	count: boolean
+	selection: SubscribeSelection<
+		_Schema,
+		_EntityType,
+		Ref<WithVirtualProps<EntityFieldCollectionItem<_Schema>>>
+	>
 ) => {
-	const querySources = enabledSelectionSources(context, sources)
+	const querySources = enabledSelectionSources(context, selection.sources)
 	const parentSelectorKey = entitySelectorKey(
 		context.schema,
 		context.entityDefinitionByType[entityType],
 		entitySelector
 	)
+	const fieldCollection = context.entityFieldCollections[entityType][fieldName]
 	const rowsCollection = createLiveQueryCollection({
 		startSync: true,
-		query: (query) => (
-			query
+		query: (query) => {
+			let built = query
 				.from({
-					row: context.entityFieldCollections[entityType][fieldName],
+					row: fieldCollection,
 				})
 				.where(({ row }) => (
-					querySources == null ?
-						eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey)
+					selection.where == null ?
+						querySources == null ?
+							eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey)
+						:
+							and(
+								eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+								inArray(row[EntityMetaKey.Source], [...querySources])
+							)
 					:
 						and(
-							eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
-							inArray(row[EntityMetaKey.Source], [...querySources])
+							querySources == null ?
+								eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey)
+							:
+								and(
+									eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+									inArray(row[EntityMetaKey.Source], [...querySources])
+								),
+							selection.where
 						)
 				))
-		),
+				if (selection.orderBy != null)
+					for (const [
+						accessor,
+						direction,
+					] of selection.orderBy)
+						built = built.orderBy(
+							({ row }) => accessor({ fieldRow: row }),
+							typeof direction === 'string' ?
+								direction
+							:
+								direction.direction
+						)
+				else if (
+					selection.limit != null
+					|| selection.offset != null
+					|| selection.cursor != null
+				)
+					built = built
+						.orderBy(({ row }) => row.valueIndex, 'asc')
+						.orderBy(({ row }) => row.valueKey, 'asc')
+
+			if (selection.offset != null)
+				built = built.offset(selection.offset)
+
+			if (selection.limit != null)
+				built = built.limit(selection.limit)
+
+			return built
+		},
 	})
 	const countCollection = (
-		count ?
+		selection.count === true ?
 			context.entityFieldCountCollections[entityType][fieldName]
 		:
 			undefined
@@ -516,16 +582,28 @@ const fieldResourceQueries = <
 							row: countCollection,
 						})
 						.where(({ row }) => (
-							querySources == null ?
+							selection.where == null ?
 								and(
-									eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+									querySources == null ?
+										eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey)
+									:
+										and(
+											eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+											inArray(row[EntityMetaKey.Source], [...querySources])
+										),
 									eq(row.filterKey, stringify({}))
 								)
 							:
 								and(
-									eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+									querySources == null ?
+										eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey)
+									:
+										and(
+											eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+											inArray(row[EntityMetaKey.Source], [...querySources])
+										),
 									eq(row.filterKey, stringify({})),
-									inArray(row[EntityMetaKey.Source], [...querySources])
+									selection.where
 								)
 						))
 				),
@@ -554,7 +632,7 @@ const fieldResourceQueries = <
 			parentSelectorKey,
 			querySources
 		),
-		rowsCollection: context.entityFieldCollections[entityType][fieldName],
+		rowsCollection: fieldCollection,
 		counts: counts === undefined ? undefined : liveQuerySnapshot(counts),
 		conditionRows: conditionRows === undefined ? undefined : liveQuerySnapshot(conditionRows),
 		countsFailure: () => collectionLoadFailure(
@@ -564,7 +642,7 @@ const fieldResourceQueries = <
 			querySources
 		),
 		countCollection,
-		sourceDisabled: selectedSourcesDisabled(context, sources),
+		sourceDisabled: selectedSourcesDisabled(context, selection.sources),
 		sources: querySources,
 	}
 }
@@ -578,7 +656,11 @@ export const subscribeEntityField = <
 	entityType: _EntityType,
 	entitySelector: EntitySelector<_Schema, _EntityType>,
 	fieldName: _FieldName,
-	selection: SubscribeSelection<_Schema, _EntityType> = {}
+	selection: SubscribeSelection<
+		_Schema,
+		_EntityType,
+		Ref<WithVirtualProps<EntityFieldCollectionItem<_Schema>>>
+	> = {}
 ) => {
 	const definition = entityFieldDefinitions(context.entityDefinitionByType[entityType])
 		.find((candidate) => candidate.name === fieldName)
@@ -591,8 +673,7 @@ export const subscribeEntityField = <
 		entitySelector,
 		fieldName,
 		definition,
-		selection.sources,
-		selection.count === true
+		selection
 	)
 
 	const liveQueries = (
@@ -692,26 +773,30 @@ export const subscribeEntity = <
 		selectorKey,
 		querySources
 	)
-	const selectedFields: {
-		fieldName: EntityFieldName<_Schema, _EntityType>
-		definition: EntityFieldDefinition
-		fieldSelection: true | SubscribeSelection<_Schema, _EntityType> | undefined
-	}[] = (
+		const selectedFields: {
+			fieldName: string
+			definition: EntityFieldDefinition
+			fieldSelection: true | SubscribeSelection<
+				_Schema,
+				_EntityType,
+				Ref<WithVirtualProps<EntityFieldCollectionItem<_Schema>>>
+			> | undefined
+		}[] = (
 		selection.fields === undefined ?
 			entityFieldDefinitions(context.entityDefinitionByType[entityType])
-				.map((definition) => ({
-					fieldName: definition.name,
-					definition,
-					fieldSelection: undefined,
-				}))
+					.map((definition) => ({
+						fieldName: definition.name,
+						definition,
+						fieldSelection: undefined,
+					}))
 		:
 			entityFieldDefinitions(context.entityDefinitionByType[entityType])
 				.filter((definition) => selection.fields?.[definition.name] !== undefined)
-				.map((definition) => ({
-					fieldName: definition.name,
-					definition,
-					fieldSelection: selection.fields?.[definition.name],
-				}))
+					.map((definition) => ({
+						fieldName: definition.name,
+						definition,
+						fieldSelection: selection.fields?.[definition.name],
+					}))
 	)
 	const fields = selectedFields.map(({
 		fieldName,
@@ -728,12 +813,14 @@ export const subscribeEntity = <
 			fieldName,
 			definition,
 			fieldSelection === true || fieldSelection === undefined ?
-				selection.sources
+				{
+					sources: selection.sources,
+				}
 			:
-				fieldSelection.sources ?? selection.sources,
-			fieldSelection !== true
-			&& fieldSelection !== undefined
-			&& fieldSelection.count === true
+				{
+					...fieldSelection,
+					sources: fieldSelection.sources ?? selection.sources,
+				}
 		),
 	}))
 

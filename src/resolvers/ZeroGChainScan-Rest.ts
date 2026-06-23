@@ -8,6 +8,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { ZeroGNetworkSelector } from '$/schema/ZeroGNetwork.ts'
 import { ZeroGConsensusNetworkSelector } from '$/schema/ZeroGConsensusNetwork.ts'
+import { ZeroGConsensusNetwork_TimestampSelector } from '$/schema/ZeroGConsensusNetwork_Timestamp.ts'
 
 type NetworkId = { caip2: { namespace: string; reference: string } } | { slug: string }
 
@@ -52,13 +53,61 @@ export default {
 				}
 				const { getInfo } = await import('$/sources/ZeroG/ChainScan/Rest/queries.ts')
 				return {
-					sharedStakingStatusSource: getInfo().url,
+					$$timestamps: [
+						{
+							[EntityMetaKey.Selector]: {
+								$consensusNetwork: {
+									$network,
+									consensusNetworkId,
+								},
+								timestampMs: Date.now(),
+								source: Source.ZeroGChainScan_Rest,
+							},
+							$consensusNetwork: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									consensusNetworkId,
+								},
+							},
+							timestampMs: Date.now(),
+							source: Source.ZeroGChainScan_Rest,
+							sharedStakingStatusSource: getInfo().url,
+						},
+					],
 				}
 			}
 			}
 		})({
 				fields: {
-			sharedStakingStatusSource: (snapshot) => snapshot.sharedStakingStatusSource,
+			$$timestamps: (snapshot) => snapshot.$$timestamps.map((timestamp) => ({
+				[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
+			})),
+		},
+			}),
+
+		defineResolver(Source.ZeroGChainScan_Rest, {
+			entityType: EntityType.ZeroGConsensusNetwork_Timestamp,
+			resolve: {
+				[ZeroGConsensusNetwork_TimestampSelector.ConsensusNetworkTimestampMsSource]: async ({ $consensusNetwork, timestampMs, source }) => {
+				if (source !== Source.ZeroGChainScan_Rest) throw new Error(`ZeroGChainScan_Rest: unsupported source ${source}`)
+				assertZeroGMainnet($consensusNetwork.$network)
+				const { getInfo } = await import('$/sources/ZeroG/ChainScan/Rest/queries.ts')
+				return {
+					$consensusNetwork: {
+						[EntityMetaKey.Selector]: $consensusNetwork,
+					},
+					timestampMs,
+					source: Source.ZeroGChainScan_Rest,
+					sharedStakingStatusSource: getInfo().url,
+				}
+			},
+			}
+		})({
+				fields: {
+			$consensusNetwork: (timestamp) => timestamp.$consensusNetwork,
+			timestampMs: (timestamp) => timestamp.timestampMs,
+			source: (timestamp) => timestamp.source,
+			sharedStakingStatusSource: (timestamp) => timestamp.sharedStakingStatusSource,
 		},
 			}),
 	],

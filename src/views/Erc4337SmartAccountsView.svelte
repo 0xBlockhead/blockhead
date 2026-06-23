@@ -1,14 +1,12 @@
 <script lang="ts">
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-		import { EntityMetaKey } from '$/schema/$schema.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Context
@@ -16,11 +14,17 @@
 
 
 	// State
+	const listView = {
+		entityType: EntityType.Erc4337SmartAccount,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
 		selection,
-		title = 'ERC-4337 smart accounts',
+		title,
 		open = $bindable(true),
-		id,
+		id = 'Erc4337SmartAccounts',
 		href = '',
 		...EntitiesListProps
 	}: WithRest<
@@ -28,77 +32,35 @@
 			selection: EntityProxyEntitiesResource<typeof schema, EntityType.Erc4337SmartAccount>
 			title?: string
 			open?: boolean
-			id: string
+			id?: string
 			href?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'CollapsibleProps'
-		>
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
+
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import Erc4337SmartAccountView from '$/views/Erc4337SmartAccountView.svelte'
 </script>
 
 
 <EntitiesList
-	entityType={EntityType.Erc4337SmartAccount}
-	{id}
+	entityType={listView.entityType}
 	{title}
 	bind:open
+	{id}
 	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Smart accounts are ERC-4337 contract wallets Blockscout indexes separately from generic actors and verified contract catalogs.
-		</p>
-	{/snippet}
-
-	{#snippet body()}
-		{#if open}
-				<ResourceBoundary
-					resource={selection({
-						sources: [
-							Source.Blockscout_Rest,
-						],
-						limit: 16,
-					})}
-				placeholderText="Loading smart accounts…"
-			>
-				{#snippet children(smartAccounts)}
-					<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.Erc4337SmartAccount}
-				id={`${id}-items`}
-				href={href}
-				getKey={(smartAccount) => stringify(smartAccount.entitySelector)}
-				getSortValue={(smartAccount) => smartAccount.entitySelector.address}
-				placeholderText="Loading smart accounts…"
-				items={smartAccounts.entities}
-				{title}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-				open={true}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">No indexed smart accounts yet.</p>
-				{/snippet}
-
-				{#snippet Item({ item: smartAccount })}
-					<Erc4337SmartAccountView
-						selection={select(EntityType.Erc4337SmartAccount, smartAccount[EntityMetaKey.Selector])}
-						layout={EntityLayout.Summary}
-
-					/>
-				{/snippet}
-					</EntitiesList>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+	{#snippet Item({ item })}
+		<Erc4337SmartAccountView
+			selection={select(EntityType.Erc4337SmartAccount, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

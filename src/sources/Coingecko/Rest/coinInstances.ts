@@ -12,8 +12,7 @@ import type { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { getCoinWithAssetPlatforms } from '$/sources/Coingecko/Rest/queries.ts'
 import type { CoingeckoCoin } from '$/sources/Coingecko/Rest/types.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import { Source } from '$/sources/Source.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import { stringify } from 'devalue'
 
 
@@ -114,11 +113,12 @@ const coinInstanceStubRowsFromCoingeckoCoin = (
 
 export const fetchCoinInstanceStubsForCoin = async (
 	coinId: EntitySelector<typeof schema, EntityType.Coin>['coinId'],
-	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>
+	publicEnv: SourcePublicEnv
 ) => {
 	const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 	const coingeckoId = idByCoinId[coinId]
-	if (coingeckoId == null) return []
+	if (coingeckoId == null)
+		return []
 
 	const { coin, assetPlatforms } = await getCoinWithAssetPlatforms(publicEnv, coingeckoId)
 	if (coin == null) return []
@@ -150,7 +150,7 @@ export const fetchCoinInstanceStubsForCoin = async (
 }
 
 const coinIdByInstanceKeyForEnv = async (
-	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>
+	publicEnv: SourcePublicEnv
 ) => {
 	const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 	const map = new Map<string, CoinId>()
@@ -170,7 +170,7 @@ const coinIdByInstanceKeyForEnv = async (
 
 export const resolveCoinIdForCoinInstanceEntitySelector = async (
 	instanceId: CoinInstanceEntitySelector,
-	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>
+	publicEnv: SourcePublicEnv
 ) => {
 	const map = await coinIdByInstanceKeyForEnv(publicEnv)
 	return map.get(stringify(instanceId)) ?? null
@@ -178,7 +178,7 @@ export const resolveCoinIdForCoinInstanceEntitySelector = async (
 
 export const resolveCoinInstanceRepresentation = async (
 	instanceId: CoinInstanceEntitySelector,
-	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>
+	publicEnv: SourcePublicEnv
 ) => {
 	const coinId = await resolveCoinIdForCoinInstanceEntitySelector(instanceId, publicEnv)
 	if (coinId == null) return undefined
@@ -192,7 +192,7 @@ export const resolveCoinInstanceRepresentation = async (
 
 export const resolveCanonicalCoinInstanceEntitySelector = async (
 	instanceId: CoinInstanceEntitySelector,
-	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>
+	publicEnv: SourcePublicEnv
 ) => {
 	const coinId = await resolveCoinIdForCoinInstanceEntitySelector(instanceId, publicEnv)
 	if (coinId == null) return undefined

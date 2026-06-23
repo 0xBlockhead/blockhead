@@ -1,9 +1,8 @@
 <script lang="ts">
-	import { EntityType } from '$/schema/EntityType.ts'
-	import { select } from '$/routes/+layout.svelte'
-	import { eip155NetworkSelectorFromCaip2 } from '$/lib/caip2.ts'
 	// Types/constants
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
+	import { eip155NetworkSelectorFromCaip2 } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -15,6 +14,10 @@
 		children,
 		params,
 	} = $props()
+
+
+	// Functions
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// Components
@@ -31,7 +34,12 @@
 	>
 		{#snippet Summary({ open: _open })}
 			<EvmNetworkView
-				selection={select(EntityType.EvmNetwork, eip155NetworkSelectorFromCaip2(params.caip2))}
+				selection={
+					select(
+						EntityType.EvmNetwork,
+						eip155NetworkSelectorFromCaip2(params.caip2)
+					)
+				}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

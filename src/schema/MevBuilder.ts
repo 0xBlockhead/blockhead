@@ -1,23 +1,18 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum MevBuilderSelector {
 	EvmNetworkBuilderPubkey = 'evmNetworkBuilderPubkey',
+	NetworkBuilderPubkey = '$network+builderPubkey',
 }
-
 export default {
 	entityType: EntityType.MevBuilder,
-
-	label: 'MEV builder',
-	labelPlural: 'MEV builders',
-
+	label: 'mev builder',
+	labelPlural: 'mev builders',
 	selectors: [
 		{
 			name: MevBuilderSelector.EvmNetworkBuilderPubkey,
@@ -27,28 +22,34 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'builderPubkey',
+			label: 'builder public key',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'deliveredPayloadCount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MevRelay_Rest,
-			],
+			name: '$$timestamps',
+			label: 'timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.MevBuilder_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: '$$deliveredPayloads',
+			label: 'delivered payloads',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.MevRelay_ProposerPayloadDelivered,
+			cardinality: EntityFieldCardinality.Many,
+		},
+	],
 } as const satisfies EntityDefinition

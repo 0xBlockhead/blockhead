@@ -9,8 +9,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { _GlobalSelector } from '$/schema/_Global.ts'
 import { SpecificationProposalSelector } from '$/schema/SpecificationProposal.ts'
-import { SpecificationRealmSelector } from '$/schema/SpecificationRealm.ts'
-import { SpecificationProposalKindSelector } from '$/schema/SpecificationProposalKind.ts'
 
 const markdownTitle = (text: string) => text.match(/^#\s*(.+)$/m)?.[1]?.trim()
 
@@ -71,38 +69,6 @@ export default {
 			entityType: EntityType._Global,
 			resolve: {
 				[_GlobalSelector.Scope]: async () => {
-				const { getContents } = await import('$/sources/CosmosAdrs/Github/queries.ts')
-				return cosmosAdrRows(await getContents())
-			}
-			}
-		})({
-				fields: {
-			$$proposals: (snapshot) => snapshot,
-		},
-			}),
-
-		defineResolver(Source.CosmosAdrs_Github, {
-			entityType: EntityType.SpecificationRealm,
-			resolve: {
-				[SpecificationRealmSelector.Realm]: async ({ realm }) => {
-				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (realm !== SpecificationRealm.Cosmos) throw new Error('CosmosAdrs_Github: $$proposals only supports Cosmos')
-				const { getContents } = await import('$/sources/CosmosAdrs/Github/queries.ts')
-				return cosmosAdrRows(await getContents())
-			}
-			}
-		})({
-				fields: {
-			$$proposals: (snapshot) => snapshot,
-		},
-			}),
-
-		defineResolver(Source.CosmosAdrs_Github, {
-			entityType: EntityType.SpecificationProposalKind,
-			resolve: {
-				[SpecificationProposalKindSelector.RealmCategory]: async ({ category, realm }) => {
-				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (realm !== SpecificationRealm.Cosmos || category !== ProposalCategory.Adr) throw new Error('CosmosAdrs_Github: $$proposals only supports Cosmos ADRs')
 				const { getContents } = await import('$/sources/CosmosAdrs/Github/queries.ts')
 				return cosmosAdrRows(await getContents())
 			}

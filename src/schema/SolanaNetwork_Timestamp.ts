@@ -1,155 +1,134 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import SolanaNetwork from '$/schema/SolanaNetwork.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum SolanaNetwork_TimestampSelector {
-	SolanaNetworkTimestampMs = 'solanaNetworkTimestampMs',
+	NetworkTimestampMsSource = '$network+timestampMs+source',
 }
-
 export default {
 	entityType: EntityType.SolanaNetwork_Timestamp,
-
-	label: 'Solana network snapshot',
-	labelPlural: 'Solana network snapshots',
-
+	label: 'solana network timestamp',
+	labelPlural: 'solana network observations',
 	selectors: [
 		{
-			name: SolanaNetwork_TimestampSelector.SolanaNetworkTimestampMs,
+			name: SolanaNetwork_TimestampSelector.NetworkTimestampMsSource,
 			fields: [
 				'$network',
 				'timestampMs',
+				'source',
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.SolanaNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'source',
+			label: 'Source',
+			description: 'The source that produced this observation.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'absoluteSlot',
+			label: 'absolute slot',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Solana_JsonRpc,
-			],
 		},
 		{
 			name: 'blockHeight',
+			label: 'block height',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Solana_JsonRpc,
-			],
 		},
 		{
 			name: 'epoch',
+			label: 'epoch',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Solana_JsonRpc,
-			],
 		},
 		{
 			name: 'slotIndex',
+			label: 'slot index',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Solana_JsonRpc,
-			],
 		},
 		{
 			name: 'slotsInEpoch',
+			label: 'slots in epoch',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Solana_JsonRpc,
-			],
 		},
 		{
 			name: 'transactionCount',
+			label: 'transaction count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Solana_JsonRpc,
-			],
 		},
 		{
 			name: 'currentValidatorCount',
+			label: 'current validator count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Solana_JsonRpc,
-			],
 		},
 		{
 			name: 'delinquentValidatorCount',
+			label: 'delinquent validator count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Solana_JsonRpc,
-			],
 		},
 		{
 			name: 'totalActivatedStakeLamports',
+			label: 'total activated stake lamports',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Solana_JsonRpc,
-			],
 		},
 		{
 			name: 'solanaCoreVersion',
+			label: 'solana core version',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Solana_JsonRpc,
-			],
 		},
 		{
 			name: 'featureSet',
+			label: 'feature set',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Solana_JsonRpc,
-			],
 		},
 		{
 			name: 'health',
+			label: 'health',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Solana_JsonRpc,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

@@ -1,339 +1,177 @@
 <script lang="ts">
 	// Types/constants
+	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityResourceData } from '$/client/$subscribe.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
-	import { schema } from '$/schema/index.ts'
-	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
+	import { EntityLayout } from '$/components/EntityView.svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { stringify } from 'devalue'
-
-	type SwarmResource = EntityResourceData<typeof schema, EntityType.SwarmResource>
-
-
-	// Context
-	import { select } from '$/routes/+layout.svelte'
-	import { resolve } from '$app/paths'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 
 
 	// State
+	const view = {
+		query: {
+			sources: [
+				'Swarm_Rest',
+			],
+			fields: [
+				'canonicalUri',
+				'gatewayOrigin',
+				'gatewayUrl',
+				'fileName',
+				'extension',
+				'contentType',
+				'contentLength',
+				'displayType',
+				'isContentTypeInferred',
+			],
+			openFields: [
+				'text',
+				'$media',
+			],
+			defer: 'open',
+			slot: 'SwarmResourceQueryPolicy',
+		},
+		media: {
+			src: 'gatewayUrl',
+			title: 'fileName',
+			extension: 'extension',
+			contentType: 'contentType',
+			contentSize: 'contentLength',
+			displayType: 'displayType',
+			text: 'text',
+			preview: 'file',
+			slot: 'SwarmResourcePreview',
+		},
+		panels: [
+			{
+				id: 'preview',
+				label: 'Preview',
+				kind: 'media',
+				defer: 'open',
+				slot: 'SwarmResourcePreview',
+			},
+			{
+				id: 'encodings',
+				label: 'Reference encodings',
+				kind: 'transform',
+				slot: 'SwarmReferenceEncodings',
+			},
+		],
+		actions: [
+			{
+				id: 'copy-canonical-uri',
+				label: 'Copy canonical URI',
+				kind: 'copy',
+				field: 'canonicalUri',
+			},
+			{
+				id: 'copy-gateway-url',
+				label: 'Copy gateway URL',
+				kind: 'copy',
+				field: 'gatewayUrl',
+			},
+			{
+				id: 'open-gateway',
+				label: 'Open gateway',
+				kind: 'externalLink',
+				field: 'gatewayUrl',
+			},
+		],
+		transforms: [
+			{
+				id: 'reference-encodings',
+				label: 'Reference encodings',
+				field: 'reference',
+				kind: 'alternateEncodings',
+				slot: 'SwarmReferenceEncodings',
+			},
+		],
+		renderers: [
+			{
+				slot: 'SwarmReferenceEncodings',
+				component: 'SwarmBrowseForm',
+				label: 'Swarm browse form renderer',
+				for: 'transform',
+			},
+		],
+		closed: [
+			'canonicalUri',
+			'gatewayOrigin',
+			'contentType',
+		],
+		content: {
+			dl: [
+				[
+					'canonicalUri',
+					'gatewayOrigin',
+					'gatewayUrl',
+					'contentType',
+					'contentLength',
+					'fileName',
+					'extension',
+					'displayType',
+					'isContentTypeInferred',
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Address',
+					items: [
+						'reference',
+						'contentPath',
+					],
+				},
+				{
+					label: 'Preview',
+					items: [
+						'text',
+						'$media',
+						'displayType',
+					],
+				},
+				{
+					label: 'Access',
+					items: [
+						'gatewayOrigin',
+						'gatewayUrl',
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
-		href = (
-			selection.entitySelector.contentPath.replace(/^\/+|\/+$/g, '') === '' ?
-				resolve('/(explore)/(swarm)/swarm/[reference]', {
-					reference: selection.entitySelector.reference.trim().toLowerCase().replace(/^0x/, '').replace(/^\/+|\/+$/g, ''),
-				})
-			:
-				resolve('/(explore)/(swarm)/swarm/[reference]/(swarmResource)/path/[...contentPath]', {
-					reference: selection.entitySelector.reference.trim().toLowerCase().replace(/^0x/, '').replace(/^\/+|\/+$/g, ''),
-					contentPath: selection.entitySelector.contentPath.replace(/^\/+|\/+$/g, ''),
-				})
-		),
-		open = $bindable(true),
-		collapsible = true,
+		layout = view.layout === undefined ? undefined : EntityLayout[view.layout],
+		open = $bindable(view.defaultOpen ?? true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.SwarmResource>
-			href?: string
+			layout?: EntityLayout
 			open?: boolean
-			collapsible?: boolean
 		},
-		never
+		Pick<
+			ComponentProps<typeof EntityView2>,
+			| 'showTypeAnnotation'
+		>
 	> = $props()
 
 
-	const swarm = $derived(
-		selection(
-			({ sources: [Source.Swarm_Rest], fields: { canonicalUri: true, fileName: true, extension: true, gatewayOrigin: true, gatewayUrl: true, contentType: true, contentLength: true, displayType: true, isContentTypeInferred: true, text: true, ...(open && ({ $media: true })) } }),
-		),
-	)
-
-
 	// Components
-	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
-	import FileDetails from '$/components/FileDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
-	import SwarmBrowseForm from '$/views/SwarmBrowseForm.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.SwarmResource}
 	entitySelector={selection.entitySelector}
-	href={href}
+	{layout}
 	bind:open
 	{...EntityViewProps}
->
-	{#snippet Value()}
-		<span data-text="font-monospace">
-			{selection.entitySelector.reference}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		{#if href}
-			<a
-				{href}>
-				<TruncatedValue
-					value={`bzz://${selection.entitySelector.reference}${selection.entitySelector.contentPath === '' ? '' : `/${selection.entitySelector.contentPath}`}`}
-					format={TruncatedValueFormat.Visual}
-				/>
-			</a>
-		{:else}
-			<TruncatedValue
-				value={`bzz://${selection.entitySelector.reference}${selection.entitySelector.contentPath === '' ? '' : `/${selection.entitySelector.contentPath}`}`}
-				format={TruncatedValueFormat.Visual}
-			/>
-		{/if}
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Swarm stores content in a distributed chunk network addressed by <code>bzz</code> URIs.
-		</p>
-		<p>
-			What you see here is the object behind that reference, often fetched via an HTTP gateway for display.
-		</p>
-	{/snippet}
-
-	{#snippet Content({ open })}
-		<dl data-column-item="center">
-			<div>
-				<dt>Content type</dt>
-				<dd>
-					{#if true}
-						{#snippet SwarmContentTypeRow(swarm: SwarmResource)}
-							{#if swarm.contentType !== undefined}
-								<TruncatedValue
-									value={swarm.contentType}
-									format={TruncatedValueFormat.Visual}
-								/>
-								{#if swarm.isContentTypeInferred}
-									{' '}<span data-text="muted">(inferred)</span>
-								{/if}
-							{:else if !open}
-								<span data-text="muted">Content type unavailable.</span>
-							{/if}
-						{/snippet}
-
-						<ResourceBoundary
-							children={SwarmContentTypeRow}
-							resource={swarm}
-						/>
-					{/if}
-				</dd>
-			</div>
-
-			{#if open}
-				<div>
-					<dt>Canonical URI</dt>
-					<dd>
-						{#if true}
-							{#snippet SwarmCanonicalUriRow(swarm: SwarmResource)}
-								<TruncatedValue
-									value={swarm.canonicalUri}
-									format={TruncatedValueFormat.Visual}
-								/>
-							{/snippet}
-
-							<ResourceBoundary
-								children={SwarmCanonicalUriRow}
-								resource={swarm}
-							/>
-						{/if}
-					</dd>
-				</div>
-
-				<div>
-					<dt>Gateway</dt>
-					<dd>
-						{#if true}
-							{#snippet SwarmGatewayOriginRow(swarm: SwarmResource)}
-								<TruncatedValue
-									value={swarm.gatewayOrigin}
-									format={TruncatedValueFormat.Visual}
-								/>
-							{/snippet}
-
-							<ResourceBoundary
-								children={SwarmGatewayOriginRow}
-								resource={swarm}
-							/>
-						{/if}
-					</dd>
-				</div>
-
-				<div>
-					<dt>Gateway URL</dt>
-					<dd>
-						{#if true}
-							{#snippet SwarmGatewayUrlRow(swarm: SwarmResource)}
-								<a
-									href={swarm.gatewayUrl}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue
-										value={swarm.gatewayUrl}
-										format={TruncatedValueFormat.Visual}
-									/>
-								</a>
-							{/snippet}
-
-							<ResourceBoundary
-								children={SwarmGatewayUrlRow}
-								resource={swarm}
-							/>
-						{/if}
-					</dd>
-				</div>
-
-				<div>
-					<dt>Content length</dt>
-					<dd>
-						{#if true}
-							{#snippet SwarmContentLengthRow(swarm: SwarmResource)}
-								{#if swarm.contentLength !== undefined}
-									<NumberValue
-										value={swarm.contentLength}
-										options={{ maximumFractionDigits: 0 }}
-									/>
-									{' '}
-									bytes
-								{/if}
-							{/snippet}
-
-							<ResourceBoundary
-								children={SwarmContentLengthRow}
-								resource={swarm}
-							/>
-						{/if}
-					</dd>
-				</div>
-
-				<div>
-					<dt>File name</dt>
-					<dd>
-						{#if true}
-							{#snippet SwarmFileNameRow(swarm: SwarmResource)}
-								{#if swarm.fileName !== undefined}
-									<TruncatedValue
-										value={swarm.fileName}
-										format={TruncatedValueFormat.Visual}
-									/>
-								{/if}
-							{/snippet}
-
-							<ResourceBoundary
-								children={SwarmFileNameRow}
-								resource={swarm}
-							/>
-						{/if}
-					</dd>
-				</div>
-
-				<div>
-					<dt>Extension</dt>
-					<dd>
-						{#if true}
-							{#snippet SwarmExtensionRow(swarm: SwarmResource)}
-								{#if swarm.extension !== undefined}
-									.{swarm.extension}
-								{/if}
-							{/snippet}
-
-							<ResourceBoundary
-								children={SwarmExtensionRow}
-								resource={swarm}
-							/>
-						{/if}
-					</dd>
-				</div>
-
-				<div>
-					<dt>Display type</dt>
-					<dd>
-						{#if true}
-							{#snippet SwarmDisplayTypeRow(swarm: SwarmResource)}
-								{swarm.displayType}
-							{/snippet}
-
-							<ResourceBoundary
-								children={SwarmDisplayTypeRow}
-								resource={swarm}
-							/>
-						{/if}
-					</dd>
-				</div>
-			{/if}
-		</dl>
-	{/snippet}
-
-	{#snippet Details({
-		open: _open,
-	})}
-		{@const detailKey = stringify(selection.entitySelector)}
-		<CollapsibleTabs
-			id={`${detailKey}:carousel-swarm-resource`}
-			sectionIdPrefix={detailKey}
-			sections={collapsibleTabsSections(
-				_open ?
-					[
-						{ id: 'swarm-browse', label: 'Browse' },
-						{ id: 'swarm-preview', label: 'Preview' },
-					]
-				:
-					[
-						{ id: 'swarm-browse', label: 'Browse' },
-					],
-			)}
-			data-card
-		>
-			{#snippet Summary({
-				open: _summaryOpen,
-			})}
-				<header
-					data-row-item="flexible"
-					data-row="wrap gap-4"
-				>
-					<HeadingComponent>
-						Resource
-					</HeadingComponent>
-				</header>
-			{/snippet}
-
-			{#snippet SectionSwarmBrowse()}
-				<SwarmBrowseForm selector={selection.entitySelector} />
-			{/snippet}
-
-			{#snippet SectionSwarmPreview()}
-				{#snippet SwarmPreviewBody(swarm: SwarmResource)}
-					{#if swarm.displayType !== undefined}
-						<FileDetails
-							contentSize={swarm.contentLength}
-							contentType={swarm.contentType}
-							displayType={swarm.displayType}
-							extension={swarm.extension}
-							fileName={swarm.fileName}
-							src={swarm.gatewayUrl}
-							text={swarm.text}
-						/>
-					{/if}
-				{/snippet}
-
-				<ResourceBoundary
-					children={SwarmPreviewBody}
-					resource={swarm}
-				/>
-			{/snippet}
-		</CollapsibleTabs>
-	{/snippet}
-</EntityView>
+	{view}
+/>

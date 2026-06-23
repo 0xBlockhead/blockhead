@@ -1,23 +1,17 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum CosmosContractSelector {
 	NetworkAddress = 'networkAddress',
 }
-
 export default {
 	entityType: EntityType.CosmosContract,
-
-	label: 'CosmWasm Contract',
-	labelPlural: 'CosmWasm Contracts',
-
+	label: 'Cosmos contract',
+	labelPlural: 'Cosmos contracts',
 	selectors: [
 		{
 			name: CosmosContractSelector.NetworkAddress,
@@ -27,37 +21,42 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'address',
+			label: 'Address',
+			description: 'The address or account identifier used by the source protocol.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'codeId',
+			label: 'code ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$creator',
+			label: 'creator',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.CosmosAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$admin',
+			label: 'admin',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.CosmosAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

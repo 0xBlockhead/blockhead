@@ -1,6 +1,5 @@
 import { throwHttpError } from '$/lib/http.ts'
-import { Source } from '$/sources/Source.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import { coingeckoRestFetch } from '$/sources/Coingecko/Rest/client.ts'
 import type {
 	CoingeckoAssetPlatform,
@@ -36,7 +35,7 @@ const coingeckoCoinMarketSpotQuery = (
 )
 
 export const getCoin = async (
-	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
+	publicEnv: SourcePublicEnv,
 	coingeckoId: string
 ): Promise<CoingeckoCoin | undefined> => {
 	if (coingeckoId === '') return undefined
@@ -58,7 +57,7 @@ export const getCoin = async (
 	* @see https://docs.coingecko.com/reference/coins-id
 	*/
 export const getCoinMarketSpot = async (
-	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
+	publicEnv: SourcePublicEnv,
 	coingeckoId: string
 ): Promise<{
 	coin: CoingeckoCoinWithMarketData
@@ -100,7 +99,7 @@ export const getCoinByAssetPlatformContract = async ({
 	assetPlatformId,
 	contractAddress,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>
+	publicEnv: SourcePublicEnv
 	assetPlatformId: string
 	contractAddress: `0x${string}`
 }): Promise<CoingeckoCoin | undefined> => {
@@ -122,7 +121,7 @@ export const getCoinByAssetPlatformContract = async ({
 }
 
 export const getAssetPlatformById = async (
-	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
+	publicEnv: SourcePublicEnv,
 	platformId: string
 ): Promise<CoingeckoAssetPlatform | undefined> => {
 	const platforms = await fetchAssetPlatforms(publicEnv)
@@ -130,7 +129,7 @@ export const getAssetPlatformById = async (
 }
 
 export const fetchAssetPlatforms = async (
-	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>
+	publicEnv: SourcePublicEnv
 ): Promise<CoingeckoAssetPlatform[]> => {
 	const res = await coingeckoRestFetch(publicEnv, '/asset_platforms')
 
@@ -141,7 +140,7 @@ export const fetchAssetPlatforms = async (
 
 
 export const getCoinWithAssetPlatforms = async (
-	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
+	publicEnv: SourcePublicEnv,
 	coingeckoId: string
 ): Promise<{
 	coin: CoingeckoCoin | undefined
@@ -158,7 +157,7 @@ export const getCoinWithAssetPlatforms = async (
 }
 
 export const findAssetPlatformByChainId = async (
-	_publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
+	_publicEnv: SourcePublicEnv,
 	chainId: number
 ): Promise<CoingeckoAssetPlatform | undefined> => {
 	const { coingeckoAssetPlatformIdByChainId } = await import('$/sources/Coingecko/Rest/constants.ts')
@@ -176,7 +175,7 @@ export const getSimplePriceUsd = async ({
 	publicEnv,
 	coingeckoId,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>
+	publicEnv: SourcePublicEnv
 	coingeckoId: string
 }) => {
 	if (coingeckoId === '') return undefined
@@ -213,7 +212,7 @@ export const getCoinsMarketsPage = async ({
 	perPage,
 	page,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>
+	publicEnv: SourcePublicEnv
 	vsCurrency: string
 	order: 'market_cap_desc'
 	perPage: number
@@ -242,7 +241,7 @@ export const getCoinOhlc = async ({
 	vs,
 	lookbackDayCount,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>
+	publicEnv: SourcePublicEnv
 	coingeckoId: string
 	vs: string
 	lookbackDayCount: number

@@ -1,13 +1,35 @@
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
-import Subscan from '$/sources/Subscan/index.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import { Source } from '$/sources/Source.ts'
+import { TransportType } from '$/constants/TransportType.ts'
+import { subscanBindings } from '$/sources/Subscan/bindings.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import type {
 	SubscanBlock,
 	SubscanExtrinsic,
 	SubscanResponse,
 } from '$/sources/Subscan/Rest/types.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
+
+export const subscanPolkadotRestEndpoints = [
+	{
+		url: subscanBindings[0].endpoints[0].locator,
+		transportType: TransportType.Http,
+		providerName: 'Subscan',
+	},
+] as const
+
+export const subscanOrigins = [
+	...new Map(
+		subscanBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 const post = async <_Result>({
 	restBaseUrl,
@@ -18,10 +40,10 @@ const post = async <_Result>({
 	restBaseUrl: string
 	path: string
 	body: JsonValue
-	publicEnv: SourcePublicEnvFor<Source.Subscan_Rest>
+	publicEnv: SourcePublicEnv
 }) => {
 	const response = await corsFetch(`${restBaseUrl.replace(/\/$/, '')}${path}`, {
-		origins: Subscan.origins,
+		origins: subscanOrigins,
 		init: {
 			method: 'POST',
 			headers: {
@@ -42,7 +64,7 @@ export const getBlock = ({
 }: {
 	restBaseUrl: string
 	height: bigint
-	publicEnv: SourcePublicEnvFor<Source.Subscan_Rest>
+	publicEnv: SourcePublicEnv
 }) => (
 	post<SubscanBlock>({
 		restBaseUrl,
@@ -61,7 +83,7 @@ export const getExtrinsic = ({
 }: {
 	restBaseUrl: string
 	extrinsicIndex: string
-	publicEnv: SourcePublicEnvFor<Source.Subscan_Rest>
+	publicEnv: SourcePublicEnv
 }) => (
 	post<SubscanExtrinsic>({
 		restBaseUrl,

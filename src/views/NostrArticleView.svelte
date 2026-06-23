@@ -2,254 +2,123 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
-	import { stringify } from 'devalue'
-
-
-	// Context
-	import { select } from '$/routes/+layout.svelte'
-	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
-	import { resolve } from '$app/paths'
 
 
 	// State
+	const view = {
+		display: [
+			{
+				field: 'content',
+				kind: 'markdown',
+				slot: 'NostrArticleMarkdown',
+			},
+		],
+		panels: [
+			{
+				id: 'article',
+				label: 'Article',
+				kind: 'media',
+				defer: 'open',
+				slot: 'NostrArticleContent',
+			},
+		],
+		closed: [
+			{
+				label: 'coordinate kind/pubkey/identifier',
+			},
+			'title',
+			{
+				label: 'author',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'coordinate kind/pubkey/identifier',
+					},
+					'title',
+					{
+						label: 'author',
+					},
+					'publishedAt',
+					{
+						label: 'image URL',
+					},
+					{
+						label: 'tag count',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Content',
+					items: [
+						{
+							label: 'rendered content/summary',
+						},
+					],
+				},
+				{
+					label: 'Author',
+					items: [
+						{
+							label: 'author Nostr profile',
+						},
+					],
+				},
+				{
+					label: 'Raw event',
+					items: [
+						{
+							label: 'kind/pubkey/tags/signature/source relays',
+						},
+					],
+				},
+				{
+					label: 'Relay evidence',
+					items: [
+						{
+							label: 'relay URLs or indexer payloads that returned the current addressable event',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
-		href = resolve(
-			'/(social)/(nostr)/nostr/article/[pubkey]/[identifier]',
-			{
-				pubkey: selection.entitySelector.pubkey,
-				identifier: selection.entitySelector.identifier,
-			},
-		),
-		open = $bindable(
-			!(getIsInsideEntityList() ?? false),
-		),
-		collapsible = true,
+		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.NostrArticle>
-			href?: string
 			open?: boolean
-			collapsible?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
-	const article = $derived(
-		selection(
-			({ sources: [
-				Source.NostrBand_Rest,
-			], fields: {
-				kind: true,
-				pubkey: true,
-				identifier: true,
-				title: true,
-				summary: true,
-				imageUrl: true,
-				publishedAt: true,
-				$author: true,
-				...(open && {
-					content: true,
-				}),
-			} }),
-		),
-	)
-
-
 	// Components
-	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
-	import Markdown from '$/components/Markdown.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
-	import IconComponent from '$/components/Icon.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NostrProfileView from '$/views/NostrProfileView.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.NostrArticle}
 	entitySelector={selection.entitySelector}
-	href={href}
 	bind:open
 	{...EntityViewProps}
->
-	{#snippet Icon()}
-		<ResourceBoundary resource={article}>
-			{#snippet children(article)}
-				{#if article.imageUrl}
-					<IconComponent
-						src={article.imageUrl}
-						alt={article.title ?? selection.entitySelector.identifier}
-					/>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Value()}
-		<TruncatedValue
-			value={selection.entitySelector.identifier}
-			format={TruncatedValueFormat.Visual}
-		/>
-	{/snippet}
-
-	{#snippet Title()}
-		<ResourceBoundary
-			resource={article}
-			placeholderText="Loading article…"
-		>
-			{#snippet children(article)}
-				{article.title ?? selection.entitySelector.identifier}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet HeadingAfter()}
-		<ResourceBoundary
-			resource={article}
-		>
-			{#snippet children(article)}
-				{#if article.publishedAt}
-					<span data-text="muted">
-						<Timestamp
-							timestamp={article.publishedAt}
-						/>
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			NIP-23 kind-30023 articles bundle title, summary, hero image, and markdown body in a parameterized replaceable event.
-		</p>
-		<p>
-			Stable ids combine the author pubkey (64 lowercase hex) with the replaceable <code>d</code>-tag—not a kind-1 note event hash.
-		</p>
-	{/snippet}
-
-	{#snippet Content({})}
-		<ResourceBoundary
-			resource={article}
-			placeholderText="Loading article…"
-		>
-			{#snippet children(article)}
-				{#if article.summary}
-					<p>
-						<TruncatedValue
-							value={article.summary}
-							format={TruncatedValueFormat.Visual}
-						/>
-					</p>
-				{/if}
-
-				<dl data-column-item="center">
-					{#if open && article.$author}
-						<div>
-							<dt>Author</dt>
-							<dd>
-								<NostrProfileView
-									selection={select(EntityType.NostrProfile, article.$author[EntityMetaKey.Selector])}
-									layout={EntityLayout.Value}
-
-									open={false}
-									/>
-							</dd>
-						</div>
-					{/if}
-
-					{#if open && article.pubkey}
-						<div>
-							<dt>Author pubkey</dt>
-							<dd>
-								<TruncatedValue
-									value={article.pubkey}
-									format={TruncatedValueFormat.Visual}
-								/>
-							</dd>
-						</div>
-					{/if}
-
-					{#if open && article.identifier}
-						<div>
-							<dt>Identifier</dt>
-							<dd>
-								<TruncatedValue
-									value={article.identifier}
-									format={TruncatedValueFormat.Visual}
-								/>
-							</dd>
-						</div>
-					{/if}
-
-					{#if open && article.kind}
-						<div>
-							<dt>Kind</dt>
-							<dd>{article.kind}</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Details({
-		open: _open,
-	})}
-		{@const idKey = stringify(selection.entitySelector)}
-		<CollapsibleTabs
-			id={`${idKey}:carousel-article`}
-			sectionIdPrefix={idKey}
-			sections={collapsibleTabsSections([
-				{ id: 'body', label: 'Article body' },
-			])}
-			data-card
-		>
-			{#snippet Summary({ open: _summaryOpen })}
-				<header
-					data-row-item="flexible"
-					data-row="wrap gap-4"
-				>
-					<HeadingComponent>
-						Article body
-					</HeadingComponent>
-				</header>
-			{/snippet}
-
-			{#snippet SectionBody({ id: _id, label: _label })}
-				<section data-scroll-marker-label="Article body">
-					<ResourceBoundary
-						resource={article}
-						placeholderText="Loading article…"
-					>
-						{#snippet children(article)}
-							{#if article.content}
-								<Markdown content={article.content} />
-							{:else}
-								<p data-text="muted">
-									No article body yet.
-								</p>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</section>
-			{/snippet}
-	</CollapsibleTabs>
-	{/snippet}
-</EntityView>
+	{view}
+/>

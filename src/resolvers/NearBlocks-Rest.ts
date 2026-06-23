@@ -1,7 +1,6 @@
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
-import { nearBlocksMainnetRestEndpoints } from '$/sources/NearBlocks/index.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
@@ -20,6 +19,9 @@ const assertNearMainnet = (network: { caip2: {
 		throw new Error('NearBlocks_Rest: unsupported network')
 }
 
+const nearBlocksMainnetRestBaseUrl = async () =>
+	(await import('$/sources/NearBlocks/Rest/queries.ts')).nearBlocksMainnetRestEndpoints[0].url
+
 export default {
 	source: Source.NearBlocks_Rest,
 
@@ -31,7 +33,7 @@ export default {
 					assertNearMainnet($network)
 					const { getAccount } = await import('$/sources/NearBlocks/Rest/queries.ts')
 					const account = (await getAccount({
-						restBaseUrl: nearBlocksMainnetRestEndpoints[0].url,
+						restBaseUrl: await nearBlocksMainnetRestBaseUrl(),
 						accountId: accountId,
 					})).account?.[0]
 					if (account == null) throw new Error(`NearBlocks_Rest: account ${accountId} not found`)
@@ -59,7 +61,7 @@ export default {
 					assertNearMainnet($network)
 					const { getBlock } = await import('$/sources/NearBlocks/Rest/queries.ts')
 					const block = (await getBlock({
-						restBaseUrl: nearBlocksMainnetRestEndpoints[0].url,
+						restBaseUrl: await nearBlocksMainnetRestBaseUrl(),
 						block: hash,
 					})).blocks?.[0]
 					if (block == null) throw new Error(`NearBlocks_Rest: block ${hash} not found`)
@@ -98,7 +100,7 @@ export default {
 					assertNearMainnet($network)
 					const { getTransaction } = await import('$/sources/NearBlocks/Rest/queries.ts')
 					const transaction = (await getTransaction({
-						restBaseUrl: nearBlocksMainnetRestEndpoints[0].url,
+						restBaseUrl: await nearBlocksMainnetRestBaseUrl(),
 						transactionHash: hash,
 					})).txns?.[0]
 					if (transaction == null) throw new Error(`NearBlocks_Rest: transaction ${hash} not found`)

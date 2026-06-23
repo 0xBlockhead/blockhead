@@ -44,6 +44,7 @@ import { Erc4337PaymasterSelector } from '$/schema/Erc4337Paymaster.ts'
 import { Erc4337AccountFactorySelector } from '$/schema/Erc4337AccountFactory.ts'
 import { EvmUserOperationSelector } from '$/schema/EvmUserOperation.ts'
 import { EvmNetworkAccountSelector } from '$/schema/EvmNetworkAccount.ts'
+import { EvmNetworkAccount_TimestampSelector } from '$/schema/EvmNetworkAccount_Timestamp.ts'
 import { Market_TimestampSelector } from '$/schema/Market_Timestamp.ts'
 import { EvmNetwork_GasEstimate_TimestampSelector } from '$/schema/EvmNetwork_GasEstimate_Timestamp.ts'
 import { Coin_TimestampSelector } from '$/schema/Coin_Timestamp.ts'
@@ -199,8 +200,6 @@ const evmLogEntityFromIdAndWire = (
 					$network: entitySelector.$network,
 					hash: blockHash,
 				},
-				blockNumber,
-				number: blockNumber,
 			} satisfies Entity<typeof schema, EntityType.EvmBlock>,
 		}),
 		topics,
@@ -759,36 +758,6 @@ const requireBlockscoutV2ExplorerOrigin = async (chainId: number) => {
 	return origin
 }
 
-const erc4337RegistryCountFromBlockscoutWire = (
-	wire: BlockscoutErc4337RegistryEntry
-) => {
-	if (
-		wire.total_ops != null
-		&& Number.isFinite(wire.total_ops)
-		&& wire.total_ops >= 0
-	) {
-		return Math.floor(wire.total_ops)
-	}
-	if (
-		wire.total_accounts != null
-		&& Number.isFinite(wire.total_accounts)
-		&& wire.total_accounts >= 0
-	) {
-		return Math.floor(wire.total_accounts)
-	}
-	return undefined
-}
-
-const erc4337RegistryFieldsFromBlockscoutWire = (
-	entityType: string,
-	wire: BlockscoutErc4337RegistryEntry
-) => {
-	const userOperationsCount = erc4337RegistryCountFromBlockscoutWire(wire)
-	if (userOperationsCount == null)
-		throw new Error(`Blockscout_Rest: ${entityType} detail missing total_ops/total_accounts`)
-	return { userOperationsCount }
-}
-
 const erc4337ContractField = (
 	{ $network, address }:
 		| EntitySelector<typeof schema, EntityType.Erc4337SmartAccount>
@@ -972,7 +941,7 @@ export default {
 						},
 						hash: blockHash,
 						...(parentBlockHash != null && { parentHash: parentBlockHash }),
-						number: blockNumber,
+						blockNumber,
 						timestamp: ((timestampSeconds) => (
 							Number.isFinite(timestampSeconds) ? timestampSeconds * 1000 : undefined
 						))(timestampSeconds),
@@ -992,7 +961,7 @@ export default {
 									blockNumber: parentBlockNumber,
 								},
 								hash: parentBlockHash,
-								number: parentBlockNumber,
+								blockNumber: parentBlockNumber,
 							} satisfies Entity<typeof schema, EntityType.EvmBlock>,
 						}),
 						...(miner != null && {
@@ -1009,7 +978,7 @@ export default {
 			fields: {
 				hash: (block) => block.hash,
 				parentHash: (block) => block.parentHash,
-				number: (block) => block.number,
+				blockNumber: (block) => block.blockNumber,
 				$parent: (block) => block.$parent,
 				timestamp: (block) => block.timestamp,
 				$miner: (block) => block.$miner,
@@ -1099,7 +1068,6 @@ export default {
 									$network: evmNetworkIdFromChainId(networkChainId),
 									blockNumber: containingBlockNumber,
 								},
-								number: containingBlockNumber,
 							} satisfies Entity<typeof schema, EntityType.EvmBlock>,
 						}),
 						...(from != null && {
@@ -1479,12 +1447,8 @@ export default {
 						:
 							undefined
 					)
-					return {
-						...erc4337RegistryFieldsFromBlockscoutWire(
-							EntityType.Erc4337SmartAccount,
-							wire
-					),
-						...erc4337ContractField(entitySelector),
+						return {
+							...erc4337ContractField(entitySelector),
 						...(factoryAddress != null && {
 							$factory: {
 								[EntityMetaKey.Selector]: {
@@ -1498,36 +1462,8 @@ export default {
 			},
 		})({
 			fields: {
-				userOperationsCount: (account) => account.userOperationsCount,
 				$contract: (account) => account.$contract,
 				$factory: (account) => account.$factory,
-			},
-		}),
-
-		defineResolver(Source.Blockscout_Rest, {
-			entityType: EntityType.Erc4337Bundler,
-			resolve: {
-				[Erc4337BundlerSelector.EvmNetworkAddress]: async ({ $network, address }) => {
-					const {
-						blockscoutExplorerRestV2OriginByChainId,
-					} = await import('$/sources/Blockscout/Rest/constants.ts')
-					const { getErc4337BundlerDetail } = await import('$/sources/Blockscout/Rest/queries.ts')
-					const origin = blockscoutExplorerRestV2OriginByChainId[chainIdFromEvmNetworkId($network)]
-					if (origin == null)
-						throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId($network)}`)
-					const wire = await getErc4337BundlerDetail({
-						explorerOrigin: origin,
-						address: address,
-					})
-					return erc4337RegistryFieldsFromBlockscoutWire(
-						EntityType.Erc4337Bundler,
-						wire
-					)
-				}
-			},
-		})({
-			fields: {
-				userOperationsCount: (bundler) => bundler.userOperationsCount,
 			},
 		}),
 
@@ -1546,18 +1482,13 @@ export default {
 						explorerOrigin: origin,
 						address: entitySelector.address,
 					})
-					return {
-						...erc4337RegistryFieldsFromBlockscoutWire(
-							EntityType.Erc4337Paymaster,
-							wire
-					),
-						...erc4337ContractField(entitySelector),
+						return {
+							...erc4337ContractField(entitySelector),
 					}
 				}
 			},
 		})({
 			fields: {
-				userOperationsCount: (paymaster) => paymaster.userOperationsCount,
 				$contract: (paymaster) => paymaster.$contract,
 			},
 		}),
@@ -1577,18 +1508,13 @@ export default {
 						explorerOrigin: origin,
 						address: entitySelector.address,
 					})
-					return {
-						...erc4337RegistryFieldsFromBlockscoutWire(
-							EntityType.Erc4337AccountFactory,
-							wire
-					),
-						...erc4337ContractField(entitySelector),
+						return {
+							...erc4337ContractField(entitySelector),
 					}
 				}
 			},
 		})({
 			fields: {
-				userOperationsCount: (factory) => factory.userOperationsCount,
 				$contract: (factory) => factory.$contract,
 			},
 		}),
@@ -1819,70 +1745,9 @@ export default {
 		}),
 
 		defineResolver(Source.Blockscout_Rest, {
-			entityType: EntityType.EvmNetworkAccount,
-			resolve: {
-				[EvmNetworkAccountSelector.EvmNetworkEvmAccount]: async ({ $actor, $network }) => {
-					const {
-						blockscoutExplorerRestV2OriginByChainId,
-					} = await import('$/sources/Blockscout/Rest/constants.ts')
-					const {
-						getAddressCounters,
-						getAddressDetails,
-					} = await import('$/sources/Blockscout/Rest/queries.ts')
-					const origin = blockscoutExplorerRestV2OriginByChainId[chainIdFromEvmNetworkId($network)]
-					if (origin == null)
-						throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId($network)}`)
-					const address = hexLowerOfByteSize($actor.address, 20)
-					if (address == null)
-						throw new Error('Blockscout_Rest: EvmNetworkAccount wallet address not normalized')
-					const details = await getAddressDetails({
-						explorerOrigin: origin,
-						address,
-					})
-					const counters = await getAddressCounters({
-						explorerOrigin: origin,
-						address,
-					})
-					const transactionCount = (
-						counters.transactions_count == null ?
-							undefined
-						:
-							BigInt(counters.transactions_count)
-					)
-					const tokenTransferCount = (
-						counters.token_transfers_count == null ?
-							undefined
-						:
-							Number(counters.token_transfers_count)
-					)
-					return {
-						...(
-							details.is_contract === true || details.is_contract === false ?
-								{ isContract: details.is_contract === true }
-							:
-								{}
-						),
-						...transactionCount != null && {
-							transactionCount,
-						},
-						...tokenTransferCount != null && {
-							tokenTransferCount: Number(tokenTransferCount),
-						},
-					}
-				}
-			},
-		})({
-			fields: {
-				transactionCount: (account) => account.transactionCount,
-				tokenTransferCount: (account) => account.tokenTransferCount,
-				isContract: (account) => account.isContract,
-			},
-		}),
-
-		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Market_Timestamp,
 			resolve: {
-				[Market_TimestampSelector.MarketTimestampMsFeedKey]: async ({ $market, feedKey, timestampMs: timestampMsSelector }) => {
+				marketTimestampMsFeedKey: async ({ $market, feedKey, timestampMs: timestampMsSelector }) => {
 					if ($market.marketKind !== MarketKind.Spot)
 						throw new Error('Blockscout_Rest: Market_Timestamp is spot-only')
 					const coinId = (
@@ -1925,7 +1790,7 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetwork_GasEstimate_Timestamp,
 			resolve: {
-				[EvmNetwork_GasEstimate_TimestampSelector.EvmNetworkTimestampMs]: async ({ $network, timestampMs }) => {
+				'$network+timestampMs+source': async ({ $network, timestampMs }) => {
 					const stats = await blockscoutStatsForChain(chainIdFromEvmNetworkId($network))
 					if (stats == null)
 						throw new Error(
@@ -1956,7 +1821,7 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Coin_Timestamp,
 			resolve: {
-				[Coin_TimestampSelector.CoinTimestampMs]: async ({ $coin, timestampMs: timestampMsSelector }) => {
+				'$coin+timestampMs+source': async ({ $coin, timestampMs: timestampMsSelector }) => {
 					const stats = await blockscoutStatsForNativeCoinId($coin.coinId)
 					if (stats == null)
 						throw new Error(`Blockscout_Rest: Coin_Timestamp unsupported for coin ${$coin.coinId}`)
@@ -2722,6 +2587,7 @@ export default {
 							[EntityMetaKey.Selector]: {
 								$network: entitySelector,
 								timestampMs: observation.timestampMs,
+								source: Source.Blockscout_Rest,
 							},
 						},
 					]
@@ -2753,6 +2619,7 @@ export default {
 							[EntityMetaKey.Selector]: {
 								$coin: { coinId: coinId },
 								timestampMs: updatedAtMs,
+								source: Source.Blockscout_Rest,
 							},
 						},
 					]
@@ -2892,9 +2759,9 @@ export default {
 					const {
 						blockscoutExplorerRestV2OriginByChainId,
 						blockscoutV2ItemsCountMax,
-						blockscoutErc4337OperationsSupportedByChainId,
+						blockscoutErc4337OperationSupportByChainId,
 					} = await import('$/sources/Blockscout/Rest/constants.ts')
-					if (blockscoutErc4337OperationsSupportedByChainId[chainIdFromEvmNetworkId($network)] !== true)
+					if (blockscoutErc4337OperationSupportByChainId[chainIdFromEvmNetworkId($network)] == null)
 						return []
 					const limit = Math.min(
 						resolverContextRowLimit(context),

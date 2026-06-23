@@ -1,24 +1,17 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { UrlString } from '$/schema/UrlString.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum FarcasterChannelSelector {
 	Id = 'id',
 }
-
 export default {
 	entityType: EntityType.FarcasterChannel,
-
-	label: 'Farcaster Channel',
-	labelPlural: 'Farcaster Channels',
-
+	label: 'Farcaster channel',
+	labelPlural: 'Farcaster channels',
 	selectors: [
 		{
 			name: FarcasterChannelSelector.Id,
@@ -27,119 +20,144 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: 'id',
+			label: 'ID',
+			description: 'The identifier assigned by the source domain.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'name',
+			label: 'Name',
+			description: 'The human-readable name of the subject.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'url',
+			label: 'URL',
+			description: 'The URL for the source-domain resource.',
 			type: EntityFieldType.Primitive,
-			primitiveType: UrlString,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'description',
+			label: 'Description',
+			description: 'A human-readable description from the source domain.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'iconUrl',
+			label: 'icon URL',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$icon',
+			label: 'icon',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Media,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Farcaster_Rest,
-			],
+		},
+		{
+			name: 'headerImageUrl',
+			label: 'header image URL',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$headerImage',
+			label: 'header image',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Media,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Farcaster_Rest,
-			],
 		},
 		{
 			name: '$lead',
+			label: 'lead',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.FarcasterUser,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$moderator',
+			label: 'moderator',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.FarcasterUser,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$$moderators',
+			label: 'moderators',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.FarcasterUser,
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: 'createdAt',
+			label: 'Created',
+			description: 'The time when the subject was created according to the source.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$$timestamps',
+			label: 'timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.FarcasterChannel_Timestamp,
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Farcaster_Rest,
-			],
 		},
 		{
 			name: 'pinnedCastHash',
+			label: 'pinned cast hash',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'publicCasting',
+			label: 'public casting',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
+			primitiveType: type("boolean"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'externalLinkTitle',
+			label: 'external link title',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'externalLinkUrl',
+			label: 'external link URL',
 			type: EntityFieldType.Primitive,
-			primitiveType: UrlString,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'followedAt',
+			label: 'followed AT',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$$casts',
+			label: 'casts',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.FarcasterCast,
 			cardinality: EntityFieldCardinality.Many,
-			// Channel routes load casts via FarcasterFeed $$entries (byChannel); this field is Snapchain channel-scoped lists elsewhere.
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

@@ -274,15 +274,15 @@ export default {
 			entityType: EntityType._Global,
 			resolve: {
 				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => {
-					const { coinById } = await import('$/constants/Coin.ts')
+					const { CoinId, coinById } = await import('$/constants/Coin.ts')
 					const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
 					return (
-						Object.entries(idByCoinId)
-							.filter(([coinId]) => coinId in coinById)
-							.map(([coinId]) => (
+						Object.values(CoinId)
+							.filter((coinId) => idByCoinId[coinId] != null && coinId in coinById)
+							.map((coinId) => (
 							{
 								[EntityMetaKey.Selector]: {
-									coinId: coinId as CoinId,
+									coinId,
 								},
 							}
 							))
@@ -299,12 +299,12 @@ export default {
 			entityType: EntityType._Global,
 			resolve: {
 				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => {
-					const { coinById } = await import('$/constants/Coin.ts')
+					const { CoinId, coinById } = await import('$/constants/Coin.ts')
 					const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
 					return (
-						Object.entries(idByCoinId)
-							.filter(([coinId]) => coinId in coinById)
-							.map(([coinId]) => (
+						Object.values(CoinId)
+							.filter((coinId) => idByCoinId[coinId] != null && coinId in coinById)
+							.map((coinId) => (
 							{
 								[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[coinId]),
 							}
@@ -321,38 +321,62 @@ export default {
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => {
-					const { coinById } = await import('$/constants/Coin.ts')
+				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => {
+					const { CoinId, coinById } = await import('$/constants/Coin.ts')
 					const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
+					const { getQuotesLatest } = await import(
+						'$/sources/CoinMarketCap/Rest/queries.ts'
+					)
+					const lim = resolverContextRowLimit(context)
 					return (
-						Object.entries(idByCoinId)
-							.filter(([coinId]) => coinId in coinById)
-							.map(([coinId]) => (
-							{
-								[EntityMetaKey.Selector]: {
-									$market: marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[coinId]),
-								},
-							}
-							))
+						(await Promise.all(
+							Object.values(CoinId)
+								.filter((coinId) => idByCoinId[coinId] != null && coinId in coinById)
+								.slice(0, lim)
+								.map(async (coinId) => {
+									const coinMarketCapId = idByCoinId[coinId]
+									if (coinMarketCapId == null)
+										return []
+									const quoteResponse = await getQuotesLatest({
+										publicEnv: context.publicEnv,
+										id: coinMarketCapId,
+									})
+									const quote = (
+										quoteResponse.data == null ?
+											undefined
+										:
+											Object.values(quoteResponse.data)[0]
+									)
+									const updatedAt = Date.parse(quote?.quote?.USD?.last_updated ?? '')
+									if (!Number.isFinite(updatedAt))
+										return []
+									return [
+										{
+											[EntityMetaKey.Selector]: {
+												$market: marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[coinId]),
+												timestampMs: Math.floor(updatedAt),
+												feedKey: String(coinMarketCapId),
+											},
+										},
+									]
+								})
+						)).flat()
 					)
 				}
 			},
 		})({
 			fields: {
-				$$marketPrices: (marketPrices) => marketPrices,
+				$$marketQuotes: (marketPrices) => marketPrices,
 			},
 		}),
 
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType.Coin,
-			resolve: {
-				[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>) => {
-					const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
-					if (idByCoinId[coinId] == null)
-						return []
-					return (
-						[
-							{
+				resolve: {
+					[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>) => {
+						return (
+							[
+								{
 								[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[coinId]),
 							},
 						]
@@ -367,13 +391,11 @@ export default {
 
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType.Coin,
-			resolve: {
-				[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>) => {
-					const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
-					if (idByCoinId[coinId] == null)
-						return []
-					return (
-						catalogSpotMarketsWithCoinAsQuote
+				resolve: {
+					[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>) => {
+						const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
+						return (
+							catalogSpotMarketsWithCoinAsQuote
 							.filter((catalogMarket) => catalogMarket.quoteCoinId === coinId)
 							.map(marketSelectorFromCatalogCoinCoinMarket)
 							.filter((marketId) => (
@@ -553,7 +575,7 @@ export default {
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: {
-				[Market_TimeInterval_TimestampSelector.MarketTimeIntervalTimestampMs]: async ({ $market }: EntitySelector<typeof schema, EntityType.Market_TimeInterval_Timestamp>) => (
+				[Market_TimeInterval_TimestampSelector.MarketTimeIntervalTimestampMs]: async ({ $market }) => (
 					{
 						[EntityMetaKey.Selector]: $market,
 					}

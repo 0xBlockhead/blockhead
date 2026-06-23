@@ -1,29 +1,17 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum TronTransactionSelector {
 	NetworkTransactionId = 'networkTransactionId',
 }
-import { Source } from '$/sources/Source.ts'
-
-const tronPublicTransactionSources = [
-	Source.TronScan_Rest,
-	Source.TronGrid_Rest,
-]
-
 export default {
 	entityType: EntityType.TronTransaction,
-
-	label: 'TRON Transaction',
-	labelPlural: 'TRON Transactions',
-
+	label: 'tron transaction',
+	labelPlural: 'tron transactions',
 	selectors: [
 		{
 			name: TronTransactionSelector.NetworkTransactionId,
@@ -33,132 +21,133 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'transactionId',
+			label: 'transaction ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$block',
+			label: 'block',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.TronBlock,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: tronPublicTransactionSources,
 		},
 		{
 			name: 'blockHeight',
+			label: 'block height',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: tronPublicTransactionSources,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: tronPublicTransactionSources,
 		},
 		{
 			name: 'expirationTimestampMs',
+			label: 'expiration timestamp ms',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.TronGrid_Rest,
-			],
 		},
 		{
 			name: 'contractType',
+			label: 'contract type',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: tronPublicTransactionSources,
 		},
 		{
 			name: 'result',
+			label: 'result',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: tronPublicTransactionSources,
 		},
 		{
 			name: 'feeSun',
+			label: 'fee sun',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: tronPublicTransactionSources,
 		},
 		{
 			name: '$owner',
+			label: 'owner',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.TronAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: tronPublicTransactionSources,
 		},
 		{
 			name: '$to',
+			label: 'to',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.TronAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: tronPublicTransactionSources,
 		},
 		{
 			name: '$contract',
+			label: 'contract',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.TronContract,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: tronPublicTransactionSources,
 		},
 		{
 			name: 'amountSun',
+			label: 'amount sun',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: tronPublicTransactionSources,
 		},
 		{
 			name: 'assetName',
+			label: 'asset name',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: tronPublicTransactionSources,
 		},
 		{
 			name: 'rawDataHex',
+			label: 'raw data hex',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.TronGrid_Rest,
-			],
 		},
 		{
 			name: 'signatures',
+			label: 'signatures',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.TronGrid_Rest,
-			],
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: '$receipt',
+			label: 'receipt',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.TronTransactionReceipt,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$$tokenTransfers',
+			label: 'token transfers',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.TronTokenTransfer,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.TronScan_Rest,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

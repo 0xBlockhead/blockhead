@@ -1,105 +1,66 @@
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
+	const listView = {
+		entityType: EntityType.EvmNetworkBridge,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
 		selection,
-		title = 'Bridges',
+		title,
 		open = $bindable(true),
-		collapsible = true,
+		id = 'EvmNetworkBridges',
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EvmNetworkBridge>
 			title?: string
 			open?: boolean
-			collapsible?: boolean
+			id?: string
+			href?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'id'
-			| 'CollapsibleProps'
-		>
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmNetworkBridgeView from '$/views/EvmNetworkBridgeView.svelte'
 </script>
 
 
 <EntitiesList
-	entityType={EntityType.EvmNetworkBridge}
+	entityType={listView.entityType}
 	{title}
 	bind:open
-	{collapsible}
+	{id}
+	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Registered routes between this chain and others: official or community bridge endpoints from network catalogs.
-		</p>
-		<p>
-			Use them to pick an exit before moving funds; always verify destination support separately.
-		</p>
-	{/snippet}
-
-	{#snippet Empty()}
-		<p data-text="muted">
-			No bridges yet.
-		</p>
-	{/snippet}
-
-	{#snippet body({ open: _bodyOpen })}
-		{#if open}
-			<ResourceBoundary
-				resource={selection({
-						sources: [Source.Chainlist_Rest, Source.EthereumLists_Rest],
-					})}
-				placeholderText="Loading bridges…"
-			>
-				{#snippet children(bridges)}
-					<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.EvmNetworkBridge}
-				{title}
-				open={true}
-				getKey={(envelope) => envelope.entitySelector.url}
-				getSortValue={(envelope) => envelope.entitySelector.url}
-				items={bridges.entities}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No bridges yet.
-					</p>
-				{/snippet}
-
-				{#snippet Item({ item: envelope })}
-					<EvmNetworkBridgeView
-						selection={select(EntityType.EvmNetworkBridge, envelope.entitySelector)}
-						layout={EntityLayout.Summary}
-
-					/>
-				{/snippet}
-			</EntitiesList>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+	{#snippet Item({ item })}
+		<EvmNetworkBridgeView
+			selection={select(EntityType.EvmNetworkBridge, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

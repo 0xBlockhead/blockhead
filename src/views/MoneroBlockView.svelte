@@ -2,16 +2,95 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			'height',
+			'hash',
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					'height',
+					'hash',
+					{
+						label: 'parent',
+					},
+					{
+						label: 'timestamp',
+					},
+					'difficulty',
+					{
+						label: 'weight',
+					},
+					{
+						label: 'transaction count',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Header',
+					items: [
+						{
+							label: 'parent',
+						},
+						'difficulty',
+						{
+							label: 'weight',
+						},
+						{
+							label: 'timestamp',
+						},
+					],
+				},
+				{
+					label: 'Transactions',
+					items: [
+						{
+							label: 'Monero transactions in this block',
+						},
+					],
+				},
+				{
+					label: 'Lookup evidence',
+					items: [
+						{
+							label: 'get_block height lookup',
+						},
+						{
+							label: 'get_block hash lookup',
+						},
+						{
+							label: 'block header height/hash tuple',
+						},
+					],
+				},
+				{
+					label: 'Network',
+					items: [
+						{
+							label: 'parent Monero network',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -22,7 +101,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -30,96 +109,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.MoneroBlock}
 	entitySelector={selection.entitySelector}
-	title={`Block #${selection.entitySelector.height.toString()}`}
-	idDragPlainText={selection.entitySelector.height.toString()}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Value()}
-		<span data-badge="small">
-			#{selection.entitySelector.height.toString()}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>Block </span>
-			{#if Value}
-			{@render Value()}
-					{/if}
-		</span>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Monero blocks reveal public transaction structure, but not transparent sender, recipient, or account balances.
-		</p>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection(
-					({ sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						], fields: { hash: true, timestampMs: true, $$transactions: true, ...(open && ({ difficulty: true, weightBytes: true })) } }),
-				)}
-			placeholderText="Loading Monero block…"
-		>
-			{#snippet children(block)}
-				<dl data-column-item="center">
-					{#if ('hash' in selection.entitySelector && selection.entitySelector.hash != null) || block.hash != null}
-						<div>
-							<dt>Hash</dt>
-							<dd>
-								<TruncatedValue
-									value={'hash' in selection.entitySelector ? selection.entitySelector.hash : block.hash}
-									format={TruncatedValueFormat.Abbr}
-								/>
-							</dd>
-						</div>
-					{/if}
-
-						{#if (block.$$transactions?.values.length ?? 0) > 0}
-							<div>
-								<dt>Transactions</dt>
-								<dd><NumberValue value={block.$$transactions?.values.length ?? 0} /></dd>
-							</div>
-						{/if}
-
-					{#if block.timestampMs != null}
-						<div>
-							<dt>Timestamp</dt>
-							<dd><Timestamp timestamp={block.timestampMs} /></dd>
-						</div>
-					{/if}
-
-					{#if open && block.weightBytes != null}
-						<div>
-							<dt>Weight</dt>
-							<dd><NumberValue value={block.weightBytes} /> bytes</dd>
-						</div>
-					{/if}
-
-					{#if open && block.difficulty != null}
-						<div>
-							<dt>Difficulty</dt>
-							<dd><NumberValue value={block.difficulty} /></dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

@@ -1,5 +1,5 @@
 import { getJson } from '$/lib/http.ts'
-import Openchain from '$/sources/Openchain/index.ts'
+import { openchainOrigins } from '$/sources/Openchain/index.ts'
 import { openchainGetJson } from '$/sources/Openchain/Rest/client.ts'
 import { directoryBaseUrl } from '$/sources/Openchain/Rest/constants.ts'
 import {
@@ -41,7 +41,7 @@ const fourbyteFunctionEntries = async (hex: `0x${string}`): Promise<OpenchainSig
 	const searchParams = new URLSearchParams({ hex_signature: fourbyteHex4Query(hex) })
 	const json = await getJson<FourbyteSignaturesList>(
 		`${directoryBaseUrl}/signatures/?${searchParams}`,
-		{ origins: Openchain.origins }
+		{ origins: openchainOrigins }
 	)
 	return (json.results ?? []).map((row) => ({ name: row.text_signature }))
 }
@@ -50,7 +50,7 @@ const fourbyteEventEntries = async (hex: `0x${string}`): Promise<OpenchainSignat
 	const searchParams = new URLSearchParams({ hex_signature: fourbyteHex32Query(hex) })
 	const json = await getJson<FourbyteSignaturesList>(
 		`${directoryBaseUrl}/event-signatures/?${searchParams}`,
-		{ origins: Openchain.origins }
+		{ origins: openchainOrigins }
 	)
 	return (json.results ?? []).map((row) => ({ name: row.text_signature }))
 }

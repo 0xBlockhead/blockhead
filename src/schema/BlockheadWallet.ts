@@ -1,28 +1,17 @@
 import { type } from 'arktype'
 import {
-	WalletCapability,
-	WalletDiscoveryKind,
-	WalletProtocol,
-	WalletTransportKind,
-} from '$/constants/Wallet.ts'
-import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum BlockheadWalletSelector {
 	Id = 'id',
 }
-
 export default {
 	entityType: EntityType.BlockheadWallet,
-
-	label: 'Wallet',
-	labelPlural: 'Wallets',
-
+	label: 'blockhead wallet',
+	labelPlural: 'blockhead wallets',
 	selectors: [
 		{
 			name: BlockheadWalletSelector.Id,
@@ -31,61 +20,99 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: 'id',
+			label: 'ID',
+			description: 'The identifier assigned by the source domain.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'name',
+			label: 'Name',
+			description: 'The human-readable name of the subject.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'icon',
+			label: 'icon',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'protocol',
+			label: 'protocol',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(WalletProtocol),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'discoveryKind',
+			label: 'discovery kind',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(WalletDiscoveryKind),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'transportKind',
+			label: 'transport kind',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(WalletTransportKind),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'rdns',
+			label: 'rdns',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'websiteUrl',
+			label: 'website URL',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'capabilities',
+			label: 'capabilities',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(WalletCapability).array(),
+			primitiveType: type("string[]"),
 			cardinality: EntityFieldCardinality.One,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: '$connectionMethod',
+			label: 'connection method',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.WalletConnectionMethod,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'adapterId',
+			label: 'adapter ID',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'sourceWalletKey',
+			label: 'source wallet key',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'detectedAt',
+			label: 'detected AT',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+	],
 } as const satisfies EntityDefinition

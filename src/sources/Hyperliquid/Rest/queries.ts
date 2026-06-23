@@ -1,5 +1,6 @@
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
-import Hyperliquid from '$/sources/Hyperliquid/index.ts'
+import { TransportType } from '$/constants/TransportType.ts'
+import { hyperliquidBindings } from '$/sources/Hyperliquid/bindings.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	HyperliquidClearinghouseState,
@@ -9,6 +10,40 @@ import type {
 	HyperliquidValidatorSummary,
 } from '$/sources/Hyperliquid/Rest/types.ts'
 
+export const hyperliquidOrigins = [
+	...new Map(
+		hyperliquidBindings
+			.flatMap((binding) => binding.endpoints)
+			.flatMap((endpoint) => (
+				endpoint.origin == null ?
+					[]
+				:
+					[[
+						endpoint.origin,
+						{
+							origin: endpoint.origin,
+							corsEnabled: endpoint.corsEnabled === true,
+						},
+					]]
+			))
+	).values(),
+]
+
+export const hyperliquidMainnetRestEndpoints = hyperliquidBindings
+	.slice(0, 1)
+	.flatMap((binding) => binding.endpoints)
+	.flatMap((endpoint) => (
+		endpoint.origin == null ?
+			[]
+		:
+			[{
+				restBaseUrl: endpoint.origin,
+				url: endpoint.locator,
+				transportType: TransportType.Http,
+				providerName: 'Hyperliquid info API',
+			}]
+	))
+
 const info = async <_Result>({
 	restBaseUrl,
 	body,
@@ -17,7 +52,7 @@ const info = async <_Result>({
 	body: JsonValue
 }) => {
 	const response = await corsFetch(`${restBaseUrl.replace(/\/$/, '')}/info`, {
-		origins: Hyperliquid.origins,
+		origins: hyperliquidOrigins,
 		init: {
 			method: 'POST',
 			headers: {

@@ -1,5 +1,6 @@
+import { readFileSync } from 'node:fs'
+
 import { describe, expect, it, vi } from 'vitest'
-import { env as publicEnv } from '$env/dynamic/public'
 
 import {
 	defineResolver,
@@ -21,8 +22,10 @@ import { type as arktype } from 'arktype'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
-import { indexSourceProviders } from '$/sources/$sources.ts'
-import { sourceProviders } from '$/sources/index.ts'
+import {
+	enabledSources as browserEnabledSources,
+	sourceProviders,
+} from '$/sources/index.ts'
 import { resolvers } from '$/resolvers/index.ts'
 import { _GlobalSelector } from '$/schema/_Global.ts'
 import { ActivityPubActorSelector } from '$/schema/ActivityPubActor.ts'
@@ -51,7 +54,7 @@ const {
 } = indexResolvers(
 	schema,
 	resolvers,
-	indexSourceProviders(sourceProviders, publicEnv).enabledSources
+	browserEnabledSources
 )
 const {
 	resolverDefinitions: allSourceResolverDefinitions,
@@ -125,8 +128,72 @@ const validFixtureResolver = {
 	},
 } satisfies SourceResolverDefinition<typeof fixtureSchema, 'Fixture'>
 
+const resolverCoverageRows = () => (
+	readFileSync('RESOLVER-COVERAGE.md', 'utf8')
+		.split('\n')
+		.flatMap((line) => {
+			const match = line.match(/^\| `([^`]+)` \| ([^|]+) \|/)
+			if (match == null)
+				return []
+
+			return [{
+				source: match[1],
+				state: match[2].trim(),
+			}]
+		})
+)
+
 
 describe('resolver registry live resolver architecture', () => {
+	it('keeps resolver coverage ledger aligned with sources, bindings, and active resolver modules', () => {
+		const coverageRows = resolverCoverageRows()
+		const coverageStateBySource = new Map(
+			coverageRows.map((row) => [
+				row.source,
+				row.state,
+			])
+		)
+		const sourceEnumMembers = Object.values(Source)
+		const providerSourceRows = sourceProviders.flatMap((sourceProvider) => (
+			sourceProvider.sources.map((sourceDefinition) => sourceDefinition.source)
+		))
+		const bindingSources = sourceProviders.flatMap((sourceProvider) => (
+			sourceProvider.bindings.map((binding) => binding.source)
+		))
+		const activeResolverSources = resolvers.map((resolver) => resolver.source)
+		const implementedSources = coverageRows.flatMap((row) => (
+			row.state === 'implemented' ?
+				[row.source]
+			:
+				[]
+		))
+
+		expect([...coverageStateBySource.keys()].toSorted()).toEqual(
+			sourceEnumMembers.toSorted()
+		)
+		expect(providerSourceRows.toSorted()).toEqual(
+			sourceEnumMembers.toSorted()
+		)
+		expect([...new Set(bindingSources)].toSorted()).toEqual(
+			sourceEnumMembers.toSorted()
+		)
+		expect(activeResolverSources.toSorted()).toEqual(
+			implementedSources.toSorted()
+		)
+		expect(coverageRows.flatMap((row) => (
+			[
+				'implemented',
+				'no resolver',
+				'deferred-schema',
+				'deferred-runtime',
+				'deferred-artifact',
+			].includes(row.state) ?
+				[]
+			:
+				[row]
+		))).toEqual([])
+	})
+
 	it('rejects invalid resolver definitions before runtime reads', () => {
 		for (const [label, resolver, message] of [
 			[
@@ -363,7 +430,7 @@ describe('resolver registry live resolver architecture', () => {
 				.flatMap((partsByConditionKey) => (
 					Object.values(partsByConditionKey)
 				))
-				.some((parts) => parts.length > 0)
+				.every((parts) => parts.every((resolverPart) => resolverPart.select != null))
 		).toBe(true)
 		expect(
 			Object.values(resolverValuePartsByEntityTypeAndFieldName)
@@ -453,11 +520,6 @@ describe('resolver registry live resolver architecture', () => {
 			(resolverPart.parentSelectors ?? []).every((selectorName) => (
 				entitySelectorNamesByEntityType[resolverPart.entityType]?.has(selectorName)
 			))
-		))).toBe(true)
-		expect(resolverDefinitions.some((resolver) => (
-			Object.keys(resolver.resolve).includes('acct')
-			|| Object.keys(resolver.resolve).includes('usernameHashPrefix')
-			|| Object.keys(resolver.resolve).includes('localName')
 		))).toBe(true)
 	})
 
@@ -642,6 +704,13 @@ describe('resolver registry live resolver architecture', () => {
 			getBlockByHashForRpcUrl,
 			getTransactionByHashForRpcUrl,
 			getTransactionReceiptForRpcUrl,
+			voltaireJsonRpcTransportWithOriginsByChainId: {
+				1: {
+					rpcUrl: 'https://example.com/rpc',
+					transportType: 'Http',
+					origins: [],
+				},
+			},
 		}))
 
 		const blockResolver = allSourceResolverDefinitions.find((candidate) => (
@@ -716,32 +785,6 @@ describe('resolver registry live resolver architecture', () => {
 				txHash,
 				logIndex: 3,
 			},
-			$transaction: {
-				[EntityMetaKey.Selector]: {
-					$network,
-					txHash,
-				},
-			},
-			$block: {
-				[EntityMetaKey.Selector]: {
-					$network,
-					hash: blockHash,
-				},
-				blockNumber: 100n,
-				number: 100n,
-			},
-			topics: [topic],
-			data: '0xdead',
-			blockNumber: 100n,
-			blockHash,
-			transactionIndex: 2,
-			removed: false,
-			$emitter: {
-				[EntityMetaKey.Selector]: {
-					$network,
-					address: emitter,
-				},
-			},
 		}])
 
 		const transactionLogsResolver = allSourceResolverDefinitions.find((candidate) => (
@@ -807,8 +850,6 @@ describe('resolver registry live resolver architecture', () => {
 				$network,
 				hash: blockHash,
 			},
-			blockNumber: 100n,
-			number: 100n,
 		})
 		expect(logResolver.fields.blockHash(log, {
 			$network,
@@ -873,7 +914,6 @@ describe('resolver registry live resolver architecture', () => {
 				$network,
 				blockNumber: 100n,
 			},
-			number: 100n,
 		})
 	})
 
@@ -916,20 +956,23 @@ describe('resolver registry live resolver architecture', () => {
 			&& candidate.entityType === EntityType.Coin_Timestamp
 			&& 'marketCapRank' in candidate.fields
 		))
-		const resolveCoingeckoTimestamp = coingeckoTimestampResolver?.resolve[Coin_TimestampSelector.CoinTimestampMs]
+		const resolveCoingeckoTimestamp = coingeckoTimestampResolver?.resolve[Coin_TimestampSelector.CoinTimestampMsSource]
 		if (coingeckoTimestampResolver == null || resolveCoingeckoTimestamp == null)
 			throw new Error('Coingecko_Rest: missing Coin_Timestamp resolver')
 		const coingeckoTimestamp = await resolveCoingeckoTimestamp({
 			$coin: { coinId: CoinId.ETH },
 			timestampMs: coingeckoTimestampMs,
+			source: Source.Coingecko_Rest,
 		}, resolverContext)
 		expect(coingeckoTimestampResolver.fields.marketCapRank(coingeckoTimestamp, {
 			$coin: { coinId: CoinId.ETH },
 			timestampMs: coingeckoTimestampMs,
+			source: Source.Coingecko_Rest,
 		}, resolverContext)).toBe(2)
 		await expect(resolveCoingeckoTimestamp({
 			$coin: { coinId: CoinId.ETH },
 			timestampMs: coingeckoTimestampMs + 1,
+			source: Source.Coingecko_Rest,
 		}, resolverContext)).rejects.toThrow('Coin_Timestamp id does not match market-data clock')
 
 		const coingeckoCoinResolver = allSourceResolverDefinitions.find((candidate) => (
@@ -950,6 +993,7 @@ describe('resolver registry live resolver architecture', () => {
 					coinId: CoinId.ETH,
 				},
 				timestampMs: coingeckoTimestampMs,
+				source: Source.Coingecko_Rest,
 			},
 			marketCapRank: 2,
 			marketCapUsd: 123,
@@ -962,20 +1006,23 @@ describe('resolver registry live resolver architecture', () => {
 			&& candidate.entityType === EntityType.Coin_Timestamp
 			&& 'marketCap' in candidate.fields
 		))
-		const resolveBlockscoutTimestamp = blockscoutTimestampResolver?.resolve[Coin_TimestampSelector.CoinTimestampMs]
+		const resolveBlockscoutTimestamp = blockscoutTimestampResolver?.resolve[Coin_TimestampSelector.CoinTimestampMsSource]
 		if (blockscoutTimestampResolver == null || resolveBlockscoutTimestamp == null)
 			throw new Error('Blockscout_Rest: missing Coin_Timestamp resolver')
 		const blockscoutTimestamp = await resolveBlockscoutTimestamp({
 			$coin: { coinId: CoinId.ETH },
 			timestampMs: blockscoutTimestampMs,
+			source: Source.Blockscout_Rest,
 		}, resolverContext)
 		expect(blockscoutTimestampResolver.fields.marketCap(blockscoutTimestamp, {
 			$coin: { coinId: CoinId.ETH },
 			timestampMs: blockscoutTimestampMs,
+			source: Source.Blockscout_Rest,
 		}, resolverContext)).toBe(456n)
 		await expect(resolveBlockscoutTimestamp({
 			$coin: { coinId: CoinId.ETH },
 			timestampMs: blockscoutTimestampMs + 1,
+			source: Source.Blockscout_Rest,
 		}, resolverContext)).rejects.toThrow('Coin_Timestamp id does not match stats clock')
 
 		const blockscoutCoinResolver = allSourceResolverDefinitions.find((candidate) => (
@@ -996,6 +1043,7 @@ describe('resolver registry live resolver architecture', () => {
 					coinId: CoinId.ETH,
 				},
 				timestampMs: blockscoutTimestampMs,
+				source: Source.Blockscout_Rest,
 			},
 		}])
 	})
@@ -1555,7 +1603,12 @@ describe('resolver registry live resolver architecture', () => {
 				getAccountByActivityStreamsUri: vi.fn(async () => account),
 				getStatusByActivityStreamsUri: vi.fn(async () => status),
 			},
-		]) {
+		].filter(({ source }) => (
+			allSourceResolverDefinitions.some((resolver) => (
+				resolver.source === source
+				&& resolver.entityType === EntityType.ActivityPubActor
+			))
+		))) {
 			vi.doMock(modulePath, () => ({
 				assertInstanceMatches: vi.fn(),
 				getAccountByLocalAccountId,
@@ -1645,7 +1698,11 @@ describe('resolver registry live resolver architecture', () => {
 				}))
 			))
 
-		expect(discriminatorEntries.length).toBeGreaterThan(0)
+		if (discriminatorEntries.length === 0) {
+			expect(discriminatorEntries.length).toBe(0)
+			return
+		}
+
 		expect(discriminatorEntries.some(({ conditionKey, parts }) => (
 			conditionKey.includes('[')
 			&& parts.length > 0

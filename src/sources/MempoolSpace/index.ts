@@ -1,15 +1,20 @@
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import { mempoolSpaceBindings } from '$/sources/MempoolSpace/bindings.ts'
+
+export const mempoolSpaceOrigins = mempoolSpaceBindings.flatMap((binding) => (
+	binding.endpoints.map((endpoint) => ({
+		origin: endpoint.origin,
+		corsEnabled: endpoint.corsEnabled,
+	}))
+))
 
 export default {
 	provider: SourceProvider.MempoolSpace,
 	label: 'mempool.space',
-	origins: [
-		{
-			origin: 'https://mempool.space',
-			corsEnabled: true,
-		},
-	],
 	sources: [
 		{
 			provider: SourceProvider.MempoolSpace,
@@ -17,4 +22,5 @@ export default {
 			label: 'mempool.space REST',
 		},
 	],
-} as const satisfies SourceProviderDefinition
+	bindings: mempoolSpaceBindings,
+} satisfies SourceProviderDefinition

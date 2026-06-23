@@ -13,13 +13,13 @@
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import BridgeTransactionView from '$/views/BridgeTransactionView.svelte'
+	import BlockheadBridgeTransactionView from '$/views/BlockheadBridgeTransactionView.svelte'
 </script>
 
 
 <Page>
-	<BridgeTransactionView
-		selection={select(EntityType.BridgeTransaction, {
+	<BlockheadBridgeTransactionView
+		selection={select(EntityType.BlockheadBridgeTransaction, {
 			$account: {
 				address: EvmAddress.assert(params.address),
 			},

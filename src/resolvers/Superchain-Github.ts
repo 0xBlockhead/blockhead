@@ -44,18 +44,6 @@ export default {
 							},
 						},
 					}),
-					layerNumber: (() => {
-						let layerNumber = 1
-						let parentChainId = network.parentChainId
-						const visitedChainIds = new Set<number>()
-						for (let hop = 0; hop < 256 && parentChainId != null; hop += 1) {
-							if (visitedChainIds.has(parentChainId)) return layerNumber
-							visitedChainIds.add(parentChainId)
-							layerNumber += 1
-							parentChainId = networks.find((candidate) => candidate.chainId === parentChainId)?.parentChainId
-						}
-						return layerNumber
-					})(),
 				}
 			}
 			}
@@ -64,7 +52,6 @@ export default {
 			name: (snapshot) => snapshot.name,
 			namespace: () => NetworkNamespace.Evm,
 			environment: (snapshot) => snapshot.environment,
-			layerNumber: (snapshot) => snapshot.layerNumber,
 		},
 			}),
 
@@ -122,49 +109,6 @@ export default {
 				fields: {
 			$parent: (snapshot) => snapshot.$parent,
 			$mainnet: (snapshot) => snapshot.$mainnet,
-		},
-			}),
-
-		defineResolver(Source.Superchain_Github, {
-			entityType: EntityType.EvmNetwork,
-			resolve: {
-				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
-				const {
-					superchainMainnetIdentifier,
-					superchainSepoliaIdentifier,
-				} = await import('$/sources/Superchain/Github/constants.ts')
-				const { fetchNetworks } = await import('$/sources/Superchain/Github/queries.ts')
-				const networks = await fetchNetworks()
-				const namespaceFilter = (
-					Number(caip2.reference) === 1 ?
-						superchainMainnetIdentifier
-					: Number(caip2.reference) === 11155111 ?
-						superchainSepoliaIdentifier
-					:
-						undefined
-				)
-				return networks.flatMap((network) => (
-					network.parentChainId !== Number(caip2.reference)
-					|| (
-						namespaceFilter != null
-						&& network.namespace !== namespaceFilter
-					) ?
-						[]
-					:
-						[{
-							[EntityMetaKey.Selector]: {
-								caip2: {
-									namespace: 'eip155',
-									reference: String(network.chainId),
-								},
-							},
-						}]
-				))
-			}
-			}
-		})({
-				fields: {
-			$$childLayers: (snapshot) => snapshot,
 		},
 			}),
 

@@ -1,24 +1,18 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import YouTubeComment from '$/schema/YouTubeComment.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum YouTubeComment_TimestampSelector {
 	YouTubeCommentTimestampMs = 'youTubeCommentTimestampMs',
+	CommentTimestampMs = '$comment+timestampMs',
 }
-
 export default {
 	entityType: EntityType.YouTubeComment_Timestamp,
-
-	label: 'YouTube comment snapshot',
-	labelPlural: 'YouTube comment snapshots',
-
+	label: 'you tube comment timestamp',
+	labelPlural: 'you tube comment observations',
 	selectors: [
 		{
 			name: YouTubeComment_TimestampSelector.YouTubeCommentTimestampMs,
@@ -28,39 +22,35 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$comment',
+			label: 'comment',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.YouTubeComment,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'likeCount',
+			label: 'like count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Youtube_Rest,
-				Source.Piped_Rest,
-			],
 		},
 		{
 			name: 'replyCount',
+			label: 'reply count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Youtube_Rest,
-				Source.Piped_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

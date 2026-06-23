@@ -1,29 +1,18 @@
 import { type } from 'arktype'
 import {
-	BridgeAssetOutcome,
-	BridgeRailId,
-	BridgeSettlementModel,
-	BridgeVerificationModel,
-} from '$/constants/Bridge.ts'
-import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum CoinBridgeCapabilitySelector {
 	EvmCoinInstanceEvmCoinInstanceToolKey = 'evmCoinInstanceEvmCoinInstanceToolKey',
+	FromInstanceToInstanceToolKey = '$fromInstance+$toInstance+toolKey',
 }
-
 export default {
 	entityType: EntityType.CoinBridgeCapability,
-
-	label: 'Coin bridge capability',
-	labelPlural: 'Coin bridge capabilities',
-
+	label: 'coin bridge capability',
+	labelPlural: 'coin bridge capabilities',
 	selectors: [
 		{
 			name: CoinBridgeCapabilitySelector.EvmCoinInstanceEvmCoinInstanceToolKey,
@@ -34,69 +23,55 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$fromInstance',
+			label: 'from instance',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmCoinInstance,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$toInstance',
+			label: 'to instance',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmCoinInstance,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'toolKey',
+			label: 'tool key',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Constants_Internal,
-				Source.Lifi_Rest,
-			],
 		},
 		{
 			name: 'railId',
+			label: 'rail ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(BridgeRailId),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Constants_Internal,
-				Source.Lifi_Rest,
-			],
 		},
 		{
 			name: 'settlementModel',
+			label: 'settlement model',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(BridgeSettlementModel),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Constants_Internal,
-				Source.Lifi_Rest,
-			],
 		},
 		{
 			name: 'verificationModel',
+			label: 'verification model',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(BridgeVerificationModel),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Constants_Internal,
-				Source.Lifi_Rest,
-			],
 		},
 		{
 			name: 'assetOutcome',
+			label: 'asset outcome',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(BridgeAssetOutcome),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Constants_Internal,
-				Source.Lifi_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

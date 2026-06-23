@@ -2,15 +2,70 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			'height',
+			'hash',
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					'height',
+					'hash',
+					{
+						label: 'timestamp',
+					},
+					{
+						label: 'transaction count',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Transactions',
+					items: [
+						{
+							label: 'Hyperliquid transactions in this block',
+						},
+					],
+				},
+				{
+					label: 'Network',
+					items: [
+						{
+							label: 'parent Hyperliquid network',
+						},
+					],
+				},
+				{
+					label: 'Lookup evidence',
+					items: [
+						{
+							label: 'eth_getBlockByNumber height lookup',
+						},
+						{
+							label: 'returned block hash',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +76,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,65 +84,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
-		entityType={EntityType.HyperliquidBlock}
+<EntityView2
+	{selection}
+	entityType={EntityType.HyperliquidBlock}
 	entitySelector={selection.entitySelector}
-		title={'height' in selection.entitySelector ? `Block #${selection.entitySelector.height.toString()}` : `Block ${selection.entitySelector.hash}`}
-		idDragPlainText={'height' in selection.entitySelector ? selection.entitySelector.height.toString() : selection.entitySelector.hash}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Value()}
-		<span data-badge="small">
-			{'height' in selection.entitySelector ? `#${selection.entitySelector.height.toString()}` : selection.entitySelector.hash}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>Block </span>
-			{#if Value}
-			{@render Value()}
-					{/if}
-		</span>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection(
-					({ fields: { hash: true, timestampMs: true } }),
-				)}
-			placeholderText="Loading Hyperliquid block…"
-		>
-			{#snippet children(hyperliquidBlock)}
-				<dl>
-					{#if hyperliquidBlock.hash != null}
-						<div>
-							<dt>Hash</dt>
-							<dd>
-								<TruncatedValue
-									value={hyperliquidBlock.hash}
-									format={TruncatedValueFormat.Abbr}
-								/></dd>
-						</div>
-					{/if}
-
-					{#if hyperliquidBlock.timestampMs != null}
-						<div>
-							<dt>Timestamp</dt>
-							<dd><Timestamp timestamp={hyperliquidBlock.timestampMs} /></dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

@@ -2,98 +2,116 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'cast',
+			},
+			{
+				label: 'observation time',
+			},
+			{
+				label: 'likes',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'cast',
+					},
+					{
+						label: 'observation time',
+					},
+					{
+						label: 'likes',
+					},
+					{
+						label: 'recasts',
+					},
+					{
+						label: 'replies',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Cast',
+					items: [
+						{
+							label: 'FarcasterCast',
+						},
+					],
+				},
+				{
+					label: 'Engagement',
+					items: [
+						{
+							label: 'like count',
+						},
+						{
+							label: 'recast count',
+						},
+						{
+							label: 'reply count',
+						},
+					],
+				},
+				{
+					label: 'History',
+					items: [
+						{
+							label: 'FarcasterCast_Timestamp list',
+						},
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'Neynar/Snapchain cast payload',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
-		href,
-		layout = EntityLayout.Summary,
-		open = $bindable(false),
+		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.FarcasterCast_Timestamp>
-			href?: string
-			layout?: EntityLayout
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
+			| 'layout'
 			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import SocialMetricSnapshotRows from '$/views/SocialMetricSnapshotRows.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.FarcasterCast_Timestamp}
 	entitySelector={selection.entitySelector}
-	href={href}
-	{layout}
 	bind:open
-	title="Farcaster cast snapshot"
 	{...EntityViewProps}
->
-	{#snippet Value()}
-		<Timestamp timestamp={selection.entitySelector.timestampMs} />
-	{/snippet}
-
-	{#snippet Title()}
-		<Timestamp timestamp={selection.entitySelector.timestampMs} />
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Timestamped Farcaster cast engagement counters resolved from hub-visible reaction and reply data.
-		</p>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection(
-					({ sources: [
-							Source.Snapchain_Rest,
-						], fields: { likeCount: true, recastCount: true, replyCount: true } }),
-				)}
-			placeholderText="Loading Farcaster cast snapshot..."
-		>
-			{#snippet children(farcasterCastTimestamp)}
-				<dl data-column-item="center">
-					<SocialMetricSnapshotRows
-						metrics={[
-							{
-								label: 'Likes',
-								value: farcasterCastTimestamp.likeCount,
-							},
-							{
-								label: 'Recasts',
-								value: farcasterCastTimestamp.recastCount,
-							},
-							{
-								label: 'Replies',
-								value: farcasterCastTimestamp.replyCount,
-							},
-						]}
-					/>
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

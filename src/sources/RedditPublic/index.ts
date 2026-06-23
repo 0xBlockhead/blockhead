@@ -1,15 +1,33 @@
+import { Source } from '$/sources/Source.ts'
 import {
-	type SourceProviderDefinition,
 	SourceProvider,
+	type SourceProviderDefinition,
 } from '$/sources/SourceProvider.ts'
-import { redditPublicApiOrigins } from '$/sources/RedditPublic/Rest/constants.ts'
-import RedditPublicJsonSource from '$/sources/RedditPublic/Rest/index.ts'
+import { redditPublicBindings } from '$/sources/RedditPublic/bindings.ts'
+
+export const redditPublicOrigins = [
+	...new Map(
+		redditPublicBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.RedditPublic,
 	label: 'Reddit public JSON',
-	origins: redditPublicApiOrigins,
 	sources: [
-		RedditPublicJsonSource,
+		{
+			provider: SourceProvider.RedditPublic,
+			source: Source.Reddit_PublicJson,
+			label: 'Reddit public JSON',
+		},
 	],
+	bindings: redditPublicBindings,
 } satisfies SourceProviderDefinition

@@ -1,177 +1,66 @@
 <script lang="ts">
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
-	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
-	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { type as arktype } from 'arktype'
 	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Context
-	import { writeLocalWatchedEvmAccount } from '$/collections/localMutations.ts'
-	import { appClient, select } from '$/routes/+layout.svelte'
-	import { resolve } from '$app/paths'
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
+	const listView = {
+		entityType: EntityType.EvmAccount,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
 		selection,
-		title = 'Watched accounts',
-		id,
+		title,
 		open = $bindable(true),
-		collapsible = true,
+		id = 'EvmAccounts',
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EvmAccount>
-			id: string
 			title?: string
 			open?: boolean
-			collapsible?: boolean
+			id?: string
+			href?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
-
-
-	let watchAddressInput = $state('')
-	let watchAddressError = $state<string | undefined>(
-		undefined,
-	)
-
-
-	// Actions
-	const watchAccount = () => {
-		const parsedAddress = EvmAddress(watchAddressInput.trim())
-		if (parsedAddress instanceof arktype.errors) {
-			watchAddressError = 'Enter a 20-byte EVM address.'
-			return
-		}
-
-		writeLocalWatchedEvmAccount(appClient, {
-			address: parsedAddress,
-		})
-		watchAddressInput = ''
-		watchAddressError = undefined
-	}
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
 </script>
 
 
 <EntitiesList
-	entityType={EntityType.EvmAccount}
-	{id}
-	bind:open
-	{collapsible}
+	entityType={listView.entityType}
 	{title}
+	bind:open
+	{id}
+	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Watched accounts are execution-layer addresses explicitly added to this facet.
-		</p>
-		<p>
-			Empty lists usually mean nothing is being watched yet or the parent entity has not loaded its relations fully.
-		</p>
-	{/snippet}
-
-	{#snippet Empty()}
-		<p data-text="muted">
-			No watched accounts in this evmAccounts yet.
-		</p>
-	{/snippet}
-
-	{#snippet body({ open: _bodyOpen })}
-		{#if open}
-			<form
-				data-card
-				data-column="gap-2"
-				onsubmit={(event) => {
-					event.preventDefault()
-					watchAccount()
-				}}
-			>
-				<label for={`${id}-watch-address`}>
-					Watch account
-				</label>
-
-				<div data-row="align-center">
-					<input
-						id={`${id}-watch-address`}
-						type="text"
-						bind:value={watchAddressInput}
-						placeholder="0xd8da6bf26964af9d7eed9e403e826090792bed6a"
-					/>
-
-					<button type="submit">
-						Add
-					</button>
-				</div>
-
-				{#if watchAddressError !== undefined}
-					<p data-text="muted">
-						{watchAddressError}
-					</p>
-				{/if}
-			</form>
-
-			<ResourceBoundary
-				resource={selection({
-						sources: [
-							Source.Local_Internal,
-						],
-					})}
-				placeholderText="Loading watched accounts…"
-			>
-				{#snippet children(actors)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.EvmAccount}
-				id={`${id}-items`}
-				{title}
-				open={true}
-				getKey={(evmAccount) => stringify(evmAccount.entitySelector)}
-				getSortValue={(evmAccount) => evmAccount.entitySelector.address.toLowerCase()}
-				placeholderKeys={new SvelteSet<string>()}
-				placeholderText="Loading watched accounts…"
-				items={actors.entities}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No watched accounts in this evmAccounts yet.
-					</p>
-				{/snippet}
-
-				{#snippet Item({ item })}
-					{@const aid = item.entitySelector}
-					<EvmAccountView
-						selection={select(EntityType.EvmAccount, aid)}
-							href={resolve('/account/[address=evmAddress]', {
-							address: aid.address,
-						})}
-						layout={EntityLayout.Summary}
-
-						title="Account"
-					/>
-				{/snippet}
-			</EntitiesList>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+	{#snippet Item({ item })}
+		<EvmAccountView
+			selection={select(EntityType.EvmAccount, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

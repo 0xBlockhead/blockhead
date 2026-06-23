@@ -1,9 +1,6 @@
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
-import {
-	substrateSidecarRestEndpoints,
-} from '$/sources/SubstrateSidecar/index.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
@@ -14,8 +11,8 @@ import { PolkadotBlockSelector } from '$/schema/PolkadotBlock.ts'
 import { PolkadotExtrinsicSelector } from '$/schema/PolkadotExtrinsic.ts'
 import { PolkadotEventSelector } from '$/schema/PolkadotEvent.ts'
 import { PolkadotAccountSelector } from '$/schema/PolkadotAccount.ts'
+import { PolkadotAccount_TimestampSelector } from '$/schema/PolkadotAccount_Timestamp.ts'
 import { PolkadotPalletSelector } from '$/schema/PolkadotPallet.ts'
-import { PolkadotValidatorSelector } from '$/schema/PolkadotValidator.ts'
 import { PolkadotNetworkSelector } from '$/schema/PolkadotNetwork.ts'
 
 type SidecarBlockEvent = {
@@ -23,10 +20,16 @@ type SidecarBlockEvent = {
 	extrinsicIndex?: number
 }
 
-type NetworkId = { caip2: {
+type PolkadotNetworkId = { caip2: {
 	namespace: string
 	reference: string
-} } | { slug: string } | { $network: NetworkId }
+} } | { slug: string }
+
+type NetworkId = PolkadotNetworkId | { $network: PolkadotNetworkId }
+
+const substrateSidecarRestBaseUrl = async () => (
+	(await import('$/sources/SubstrateSidecar/Rest/queries.ts')).substrateSidecarRestEndpoints[0].url
+)
 
 const assertPolkadotMainnet = (network: NetworkId) => {
 	if ('$network' in network) {
@@ -42,6 +45,35 @@ const assertPolkadotMainnet = (network: NetworkId) => {
 	}
 }
 
+const polkadotAccountTimestampFields = (
+	accountId: {
+		$network: PolkadotNetworkId
+		accountId: string
+	},
+	account: {
+		nonce?: string | number
+		free?: string
+	},
+	timestampMs: number
+) => ({
+	[EntityMetaKey.Selector]: {
+		$account: accountId,
+		timestampMs,
+		source: Source.SubstrateSidecar_Rest,
+	},
+	$account: {
+		[EntityMetaKey.Selector]: accountId,
+	},
+	timestampMs,
+	source: Source.SubstrateSidecar_Rest,
+	...(account.nonce != null && {
+		nonce: BigInt(account.nonce),
+	}),
+	...(account.free != null && {
+		freeBalancePlancks: BigInt(account.free),
+	}),
+})
+
 export default {
 	source: Source.SubstrateSidecar_Rest,
 
@@ -53,7 +85,7 @@ export default {
 					assertPolkadotMainnet($network)
 					const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 					const block = await getBlock({
-						restBaseUrl: substrateSidecarRestEndpoints[0].url,
+						restBaseUrl: await substrateSidecarRestBaseUrl(),
 						blockId: hash,
 					})
 					return {
@@ -166,7 +198,7 @@ export default {
 					assertPolkadotMainnet($block.$network)
 					const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 					const block = await getBlock({
-						restBaseUrl: substrateSidecarRestEndpoints[0].url,
+						restBaseUrl: await substrateSidecarRestBaseUrl(),
 						blockId: $block.blockNumber.toString(),
 					})
 					const extrinsic = block.extrinsics.at(extrinsicIndex)
@@ -214,7 +246,7 @@ export default {
 					assertPolkadotMainnet($block.$network)
 					const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 					const block = await getBlock({
-						restBaseUrl: substrateSidecarRestEndpoints[0].url,
+						restBaseUrl: await substrateSidecarRestBaseUrl(),
 						blockId: $block.blockNumber.toString(),
 					})
 					const event: SidecarBlockEvent | undefined = [
@@ -271,23 +303,56 @@ export default {
 					assertPolkadotMainnet($network)
 					const { getAccountBalanceInfo } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 					const account = await getAccountBalanceInfo({
-						restBaseUrl: substrateSidecarRestEndpoints[0].url,
+						restBaseUrl: await substrateSidecarRestBaseUrl(),
 						accountId: accountId,
 					})
 					return {
-						...(account.nonce != null && {
-							nonce: BigInt(account.nonce),
-						}),
-						...(account.free != null && {
-							freeBalancePlancks: BigInt(account.free),
-						}),
+						$$timestamps: [
+							polkadotAccountTimestampFields(
+								{
+									$network,
+									accountId,
+								},
+								account,
+								Date.now()
+							),
+						],
 					}
 				}
 			},
 		})({
 			fields: {
-				nonce: (account) => account.nonce,
-				freeBalancePlancks: (account) => account.freeBalancePlancks,
+				$$timestamps: (account) => account.$$timestamps.map((timestamp) => ({
+					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
+				})),
+			},
+		}),
+
+		defineResolver(Source.SubstrateSidecar_Rest, {
+			entityType: EntityType.PolkadotAccount_Timestamp,
+			resolve: {
+				[PolkadotAccount_TimestampSelector.AccountTimestampMsSource]: async ({ $account, timestampMs, source }) => {
+					if (source !== Source.SubstrateSidecar_Rest) throw new Error(`SubstrateSidecar_Rest: unsupported source ${source}`)
+					assertPolkadotMainnet($account.$network)
+					const { getAccountBalanceInfo } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
+					const account = await getAccountBalanceInfo({
+						restBaseUrl: await substrateSidecarRestBaseUrl(),
+						accountId: $account.accountId,
+					})
+					return polkadotAccountTimestampFields(
+						$account,
+						account,
+						timestampMs
+					)
+				},
+			},
+		})({
+			fields: {
+				$account: (timestamp) => timestamp.$account,
+				timestampMs: (timestamp) => timestamp.timestampMs,
+				source: (timestamp) => timestamp.source,
+				nonce: (timestamp) => timestamp.nonce,
+				freeBalancePlancks: (timestamp) => timestamp.freeBalancePlancks,
 			},
 		}),
 
@@ -297,7 +362,7 @@ export default {
 				[PolkadotPalletSelector.NetworkPalletName]: async ({ $network, palletName }) => {
 					assertPolkadotMainnet($network)
 					const { getRuntimeMetadata } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
-					const pallet = (await getRuntimeMetadata({ restBaseUrl: substrateSidecarRestEndpoints[0].url })).pallets
+					const pallet = (await getRuntimeMetadata({ restBaseUrl: await substrateSidecarRestBaseUrl() })).pallets
 						.find((runtimePallet) => runtimePallet.name === palletName)
 					if (pallet == null) throw new Error(`SubstrateSidecar_Rest: pallet not found for ${palletName}`)
 					return {
@@ -312,51 +377,12 @@ export default {
 		}),
 
 		defineResolver(Source.SubstrateSidecar_Rest, {
-			entityType: EntityType.PolkadotValidator,
-			resolve: {
-				[PolkadotValidatorSelector.NetworkStashAccountId]: async ({ $network, stashAccountId }) => {
-					assertPolkadotMainnet($network)
-					const { getStakingValidators } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
-					const validator = (await getStakingValidators({ restBaseUrl: substrateSidecarRestEndpoints[0].url })).validators
-						?.find((stakingValidator) => (
-						stakingValidator.accountId === stashAccountId
-						|| stakingValidator.address === stashAccountId
-						|| stakingValidator.stashId === stashAccountId
-						))
-					if (validator == null) throw new Error(`SubstrateSidecar_Rest: validator not found for ${stashAccountId}`)
-					return {
-						...(validator.controllerId != null && {
-							$controller: {
-								[EntityMetaKey.Selector]: {
-									$network: $network,
-									accountId: validator.controllerId,
-								},
-							},
-						}),
-						...(validator.commission != null && {
-							commissionPerBillion: Number(validator.commission),
-						}),
-						...(validator.totalStake != null && {
-							totalStakePlancks: BigInt(validator.totalStake),
-						}),
-					}
-				}
-			},
-		})({
-			fields: {
-				$controller: (validator) => validator.$controller,
-				commissionPerBillion: (validator) => validator.commissionPerBillion,
-				totalStakePlancks: (validator) => validator.totalStakePlancks,
-			},
-		}),
-
-		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotNetwork,
 			resolve: {
 				[PolkadotNetworkSelector.Network]: async (entitySelector) => {
 					assertPolkadotMainnet(entitySelector)
 					const { getStakingValidators } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
-					return ((await getStakingValidators({ restBaseUrl: substrateSidecarRestEndpoints[0].url })).validators ?? [])
+					return ((await getStakingValidators({ restBaseUrl: await substrateSidecarRestBaseUrl() })).validators ?? [])
 						.slice(0, 64)
 						.flatMap((validator) => {
 						const stashAccountId = validator.accountId ?? validator.address ?? validator.stashId
@@ -369,20 +395,6 @@ export default {
 										$network: entitySelector.$network,
 										stashAccountId,
 									},
-									...(validator.controllerId != null && {
-										$controller: {
-											[EntityMetaKey.Selector]: {
-												$network: entitySelector.$network,
-												accountId: validator.controllerId,
-											},
-										},
-									}),
-									...(validator.commission != null && {
-										commissionPerBillion: Number(validator.commission),
-									}),
-									...(validator.totalStake != null && {
-										totalStakePlancks: BigInt(validator.totalStake),
-									}),
 								},
 							]
 						})
@@ -403,7 +415,7 @@ export default {
 					assertPolkadotMainnet($network)
 					const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 					const block = await getBlock({
-						restBaseUrl: substrateSidecarRestEndpoints[0].url,
+						restBaseUrl: await substrateSidecarRestBaseUrl(),
 						blockId: hash,
 					})
 					if (BigInt(block.number) === 0n) return undefined
@@ -429,7 +441,7 @@ export default {
 					assertPolkadotMainnet($network)
 					const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 					const block = await getBlock({
-						restBaseUrl: substrateSidecarRestEndpoints[0].url,
+						restBaseUrl: await substrateSidecarRestBaseUrl(),
 						blockId: hash,
 					})
 					return block.extrinsics.map((extrinsic, extrinsicIndex) => ({
@@ -478,7 +490,7 @@ export default {
 					assertPolkadotMainnet($network)
 					const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 					const block = await getBlock({
-						restBaseUrl: substrateSidecarRestEndpoints[0].url,
+						restBaseUrl: await substrateSidecarRestBaseUrl(),
 						blockId: hash,
 					})
 					return ([

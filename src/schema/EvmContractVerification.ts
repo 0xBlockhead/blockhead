@@ -1,25 +1,18 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import EvmContract from '$/schema/EvmContract.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum EvmContractVerificationSelector {
 	EvmContract = 'evmContract',
+	Contract = '$contract',
 }
-
 export default {
 	entityType: EntityType.EvmContractVerification,
-
 	label: 'EVM contract verification',
 	labelPlural: 'EVM contract verifications',
-
 	selectors: [
 		{
 			name: EvmContractVerificationSelector.EvmContract,
@@ -28,76 +21,62 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$contract',
+			label: 'contract',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmContract,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'match',
+			label: 'match',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Sourcify_Rest,
-			],
 		},
 		{
 			name: 'creationMatch',
+			label: 'creation match',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Sourcify_Rest,
-			],
 		},
 		{
 			name: 'runtimeMatch',
+			label: 'runtime match',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Sourcify_Rest,
-			],
 		},
 		{
 			name: 'verifiedAtMs',
+			label: 'verified AT ms',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Sourcify_Rest,
-			],
 		},
 		{
 			name: 'matchId',
+			label: 'match ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Sourcify_Rest,
-			],
 		},
 		{
 			name: '$compilation',
+			label: 'compilation',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmContractCompilation,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Sourcify_Rest,
-			],
 		},
 		{
 			name: '$sourceBundle',
+			label: 'source bundle',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmContractSourceBundle,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Sourcify_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

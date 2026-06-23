@@ -1,25 +1,18 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
-
 export enum SolanaBlockSelector {
 	Slot = 'slot',
-	BlockHash = 'blockHash',
+	NetworkSlot = '$network+slot',
 }
-
 export default {
 	entityType: EntityType.SolanaBlock,
-
-	label: 'Solana Block',
-	labelPlural: 'Solana Blocks',
-
+	label: 'solana block',
+	labelPlural: 'solana blocks',
 	selectors: [
 		{
 			name: SolanaBlockSelector.Slot,
@@ -28,75 +21,79 @@ export default {
 				'slot',
 			],
 		},
-		{
-			name: SolanaBlockSelector.BlockHash,
-			fields: [
-				'$network',
-				'blockHash',
-			],
-		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'slot',
+			label: 'slot',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'blockHeight',
+			label: 'block height',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'blockHash',
+			label: 'Block hash',
+			description: 'The hash that identifies the block in its network.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'previousBlockHash',
+			label: 'previous block hash',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$parent',
+			label: 'parent',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.SolanaBlock,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'parentSlot',
+			label: 'parent slot',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'transactionCount',
+			label: 'transaction count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$$transactions',
+			label: 'transactions',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.SolanaTransaction,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
+			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

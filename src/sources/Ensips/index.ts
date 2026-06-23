@@ -1,13 +1,19 @@
-
-import { type SourceProviderDefinition, SourceProvider } from '$/sources/SourceProvider.ts'
-import EnsipsGithubSource from '$/sources/Ensips/Github/index.ts'
-import { githubHttpAllowedOrigins } from '$/sources/Github/githubHttpOrigins.ts'
+import { Source } from '$/sources/Source.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import { ensipsBindings } from '$/sources/Ensips/bindings.ts'
 
 export default {
 	provider: SourceProvider.Ensips,
-	label: 'Ensips',
-	origins: githubHttpAllowedOrigins,
+	label: 'ENSIPs',
 	sources: [
-		EnsipsGithubSource,
+		{
+			provider: SourceProvider.Ensips,
+			source: Source.Ensips_Github,
+			label: 'ENSIPs GitHub',
+		},
 	],
+	bindings: ensipsBindings,
 } satisfies SourceProviderDefinition

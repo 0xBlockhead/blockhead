@@ -1,0 +1,35 @@
+import { error } from '@sveltejs/kit'
+
+import { type as arktype } from 'arktype'
+
+import { parseEntitySelector } from '$/schema/$schema.ts'
+import EntitySchema from '$/schema/TonNftItem_Timestamp.ts'
+import { schema } from '$/schema/index.ts'
+
+import type { PageLoad } from './$types.ts'
+
+
+export const load: PageLoad = ({ params }) => {
+	const selector = parseEntitySelector(
+		schema,
+		EntitySchema,
+		{
+			'$item': {
+				'$collection': {
+					'$network': {
+						'$network': {
+							slug: decodeURIComponent(params.networkSlug),
+						},
+					},
+					collectionAddress: decodeURIComponent(params.collectionAddress),
+				},
+				itemIndex: decodeURIComponent(params.itemIndex),
+			},
+			timestampMs: Number(params.timestampMs),
+			source: decodeURIComponent(params.source),
+		}
+	)
+	if (selector instanceof arktype.errors) error(404, 'Invalid TonNftItem_Timestamp selector')
+
+	return { selector }
+}

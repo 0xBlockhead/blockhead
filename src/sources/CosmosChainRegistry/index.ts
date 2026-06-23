@@ -1,16 +1,19 @@
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
-import { githubHttpAllowedOrigins } from '$/sources/Github/githubHttpOrigins.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import { cosmosChainRegistryBindings } from '$/sources/CosmosChainRegistry/bindings.ts'
 
 export default {
 	provider: SourceProvider.CosmosChainRegistry,
-	label: 'Cosmos chain registry',
-	origins: githubHttpAllowedOrigins,
+	label: 'Cosmos Chain Registry',
 	sources: [
 		{
 			provider: SourceProvider.CosmosChainRegistry,
 			source: Source.CosmosChainRegistry_Github,
-			label: 'Cosmos chain registry GitHub',
+			label: 'Cosmos Chain Registry GitHub',
 		},
 	],
-} as const satisfies SourceProviderDefinition
+	bindings: cosmosChainRegistryBindings,
+} satisfies SourceProviderDefinition

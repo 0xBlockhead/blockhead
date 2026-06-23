@@ -2,102 +2,118 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Context
-	import { select } from '$/routes/+layout.svelte'
-	import { resolve } from '$app/paths'
 
 
 	// State
+	const view = {
+		layout: 'Summary',
+		defaultOpen: false,
+		query: {
+			sources: [
+				'Youtube_Rest',
+			],
+			fields: [
+				'$video',
+				'timestampMs',
+				'viewCount',
+				'likeCount',
+				'commentCount',
+			],
+		},
+		metrics: [
+			{
+				group: 'engagement',
+				field: 'viewCount',
+				label: 'Views',
+			},
+			{
+				group: 'engagement',
+				field: 'likeCount',
+				label: 'Likes',
+			},
+			{
+				group: 'engagement',
+				field: 'commentCount',
+				label: 'Comments',
+			},
+		],
+		closed: [
+			'$video',
+			'timestampMs',
+			'viewCount',
+		],
+		content: {
+			dl: [
+				[
+					'$video',
+					'timestampMs',
+					'viewCount',
+					'likeCount',
+					'commentCount',
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Video',
+					items: [
+						'$video',
+					],
+				},
+				{
+					label: 'Statistics',
+					items: [
+						'viewCount',
+						'likeCount',
+						'commentCount',
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'YouTube Data API videos.list statistics payload',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
-		href = resolve('/(social)/(youtube)/youtube/video/[videoId]', {
-			videoId: selection.entitySelector.$video.videoId,
-		}),
-		layout = EntityLayout.Summary,
-		open = $bindable(false),
+		layout = view.layout === undefined ? undefined : EntityLayout[view.layout],
+		open = $bindable(view.defaultOpen ?? true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.YouTubeVideo_Timestamp>
-			href?: string
 			layout?: EntityLayout
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import SocialMetricSnapshotRows from '$/views/SocialMetricSnapshotRows.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.YouTubeVideo_Timestamp}
 	entitySelector={selection.entitySelector}
-	href={href}
 	{layout}
 	bind:open
-	title="YouTube video snapshot"
 	{...EntityViewProps}
->
-	{#snippet Value()}
-		<Timestamp timestamp={selection.entitySelector.timestampMs} />
-	{/snippet}
-
-	{#snippet Title()}
-		<Timestamp timestamp={selection.entitySelector.timestampMs} />
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Timestamped YouTube video counters resolved from YouTube Data API and Piped video metadata.
-		</p>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection(
-					({ sources: [
-							Source.Youtube_Rest,
-							Source.Piped_Rest,
-						], fields: { viewCount: true, likeCount: true, commentCount: true } }),
-				)}
-			placeholderText="Loading YouTube video snapshot..."
-		>
-			{#snippet children(youTubeVideoTimestamp)}
-				<dl data-column-item="center">
-					<SocialMetricSnapshotRows
-						metrics={[
-							{
-								label: 'Views',
-								value: youTubeVideoTimestamp.viewCount,
-							},
-							{
-								label: 'Likes',
-								value: youTubeVideoTimestamp.likeCount,
-							},
-							{
-								label: 'Comments',
-								value: youTubeVideoTimestamp.commentCount,
-							},
-						]}
-					/>
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

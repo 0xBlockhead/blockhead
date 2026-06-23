@@ -3,14 +3,14 @@
 	import { select } from '$/routes/+layout.svelte'
 	// Components
 	import Page from '$/components/Page.svelte'
-	import EnsProtocolView from '$/views/EnsProtocolView.svelte'
+	import _GlobalEnsNetworkView from '$/views/_GlobalEnsNetworkView.svelte'
 </script>
 
 
 <Page>
-	<EnsProtocolView
-		selection={select(EntityType.EnsProtocol, {
-			scope: 'EnsProtocol',
+	<_GlobalEnsNetworkView
+		selection={select(EntityType._GlobalEnsNetwork, {
+			scope: '_GlobalEnsNetwork',
 		})}
 	/>
 </Page>

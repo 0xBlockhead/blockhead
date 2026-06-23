@@ -1,94 +1,97 @@
 <script lang="ts">
 	// Types/constants
+	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntitySelector } from '$/schema/$schema.ts'
-	import { schema } from '$/schema/index.ts'
-	import { EntityType } from '$/schema/EntityType.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { stringify } from 'devalue'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 
 
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'raw hex',
+			},
+			{
+				label: 'contract call data length in bytes',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'raw hex',
+					},
+					{
+						label: 'contract call data length in bytes',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Bytes',
+					items: [
+						{
+							label: 'raw call/input data',
+						},
+					],
+				},
+				{
+					label: 'Usage',
+					items: [
+						{
+							label: 'transaction input',
+						},
+						{
+							label: 'trace input',
+						},
+						{
+							label: 'locally composed call payload',
+						},
+					],
+				},
+				{
+					label: 'Decode context',
+					items: [
+						{
+							label: 'ABI/interface context required before argument interpretation',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
-		href = resolve(
-			'/(explore)/(evm)/evm/(calldata)/calldata/[hex]',
-			{ hex: selection.entitySelector.hex },
-		),
-		title = 'Calldata',
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.EvmCalldata>
-			href?: string
-			title?: string
 			open?: boolean
 		},
-		never
+		Pick<
+			ComponentProps<typeof EntityView2>,
+			| 'layout'
+			| 'showTypeAnnotation'
+		>
 	> = $props()
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.EvmCalldata}
 	entitySelector={selection.entitySelector}
-	href={href}
-	{title}
-	idDragPlainText={stringify(selection.entitySelector)}
 	bind:open
 	{...EntityViewProps}
->
-	{#snippet Value()}
-		<span data-text="font-monospace">
-			{selection.entitySelector.hex}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		{#if Value}
-		{@render Value()}
-					{/if}
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Calldata is the opaque byte blob included with a call: its opening bytes pick the function schema, followed by ABI-packed arguments.
-		</p>
-		<p>
-			Revert data and indexed events reuse similar hashing ideas but with different widths and meanings.
-		</p>
-	{/snippet}
-
-	{#snippet Content({})}
-		<div data-column="gap-1">
-			<dl data-column-item="center">
-				<div>
-					<dt>Contract call data length</dt>
-						<dd>{String((selection.entitySelector.hex.length - 2) / 2)} bytes</dd>
-					</div>
-					{#if open}
-						<div>
-							<dt>Call/input data (<code>msg.data</code>)</dt>
-							<dd>
-								<TruncatedValue
-									value={selection.entitySelector.hex}
-									format={TruncatedValueFormat.Visual}
-								/>
-							</dd>
-						</div>
-					{/if}
-				</dl>
-		</div>
-	{/snippet}
-</EntityView>
+	{view}
+/>

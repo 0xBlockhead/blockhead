@@ -1,0 +1,30 @@
+import { error } from '@sveltejs/kit'
+
+import { type as arktype } from 'arktype'
+
+import { parseEntitySelector } from '$/schema/$schema.ts'
+import { caip2ParamValueFromString } from '$/lib/caip2.ts'
+import EntitySchema from '$/schema/OracleFeed_Round.ts'
+import { schema } from '$/schema/index.ts'
+
+import type { PageLoad } from './$types.ts'
+
+
+export const load: PageLoad = ({ params }) => {
+	const selector = parseEntitySelector(
+		schema,
+		EntitySchema,
+		{
+			'$oracleFeed': {
+				'$network': {
+					caip2: caip2ParamValueFromString(params.caip2),
+				},
+				address: decodeURIComponent(params.address),
+			},
+			roundId: decodeURIComponent(params.roundId),
+		}
+	)
+	if (selector instanceof arktype.errors) error(404, 'Invalid OracleFeed_Round selector')
+
+	return { selector }
+}

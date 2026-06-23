@@ -1,32 +1,17 @@
 import { type } from 'arktype'
-
-import { TransportType } from '$/constants/TransportType.ts'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { UrlString } from '$/schema/UrlString.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum FilecoinNetworkSelector {
 	Network = 'network',
 }
-
-const filecoinRpcEndpointField = type({
-	url: UrlString,
-	transportType: type.valueOf(TransportType),
-	providerName: 'string',
-})
-
 export default {
 	entityType: EntityType.FilecoinNetwork,
-
-	label: 'Filecoin network',
-	labelPlural: 'Filecoin networks',
-
+	label: 'filecoin network',
+	labelPlural: 'filecoin networks',
 	selectors: [
 		{
 			name: FilecoinNetworkSelector.Network,
@@ -35,43 +20,34 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Constants_Internal,
-			],
 		},
 		{
 			name: 'rpcEndpoints',
+			label: 'RPC endpoints',
 			type: EntityFieldType.Primitive,
-			primitiveType: filecoinRpcEndpointField,
+			primitiveType: type({"url": "string", "transportType": "string", "providerName": "string"}),
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Lotus_JsonRpc,
-			],
 		},
 		{
 			name: '$$timestamps',
+			label: 'timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.FilecoinNetwork_Timestamp,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Lotus_JsonRpc,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$tipsets',
+			label: 'tipsets',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.FilecoinTipset,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Lotus_JsonRpc,
-			],
+			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

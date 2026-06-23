@@ -1,5 +1,7 @@
 import { type as arktype, type Type } from 'arktype'
 
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
+
 export type SourcePublicEnv = {
 	readonly [key: string]: string
 	readonly [key: `PUBLIC_${string}`]: string
@@ -22,11 +24,8 @@ export type SourceProviderDefinition<
 	provider: _SourceProvider
 	label: string
 	env?: Type<SourcePublicEnv>
-	origins?: readonly {
-		origin: string
-		corsEnabled: boolean
-	}[]
 	sources: readonly SourceDefinition<_SourceProvider, _Source>[]
+	bindings: readonly SourceBinding[]
 }
 
 export const requiredPublicEnvString = (
@@ -47,6 +46,28 @@ export const optionalPublicEnvString = (
 	const value = (publicEnv[key] ?? '').trim()
 	if (value === '')
 		return undefined
+
+	return value
+}
+
+export const envLocatorKey = (locator: string) => (
+	locator.startsWith('env:') ?
+		locator.slice('env:'.length)
+	:
+		undefined
+)
+
+export const resolveEnvLocator = (
+	locator: string,
+	env: Record<string, string | undefined>
+) => {
+	const key = envLocatorKey(locator)
+	if (key == null)
+		return locator
+
+	const value = (env[key] ?? '').trim()
+	if (value === '')
+		throw new Error(`Missing or empty source endpoint env: ${key}`)
 
 	return value
 }
@@ -74,15 +95,10 @@ export const indexSourceProviders = <
 			return {}
 
 		const subset = Object.fromEntries(
-			envSchema.props.flatMap((property) => (
-				(resolverPublicEnv[String(property.key)] ?? '').trim() === '' ?
-					[]
-				:
-					[[
-						String(property.key),
-						resolverPublicEnv[String(property.key)] ?? '',
-					]]
-			))
+			envSchema.props.map((property) => [
+				String(property.key),
+				resolverPublicEnv[String(property.key)] ?? '',
+			])
 		) satisfies SourcePublicEnv
 		const out = envSchema(subset)
 		if (out instanceof arktype.errors)
@@ -143,8 +159,13 @@ export const indexSourceProviders = <
 				entry.publicEnv,
 			]))
 		),
-		enabledSources: new Set(
-			enabledSourceEntries.map((entry) => entry.sourceDefinition.source)
-		),
 	}
 }
+
+export const enabledSourcesFromBindings = <
+	const _Source extends PropertyKey,
+>(
+	sourceBindings: readonly SourceBinding[]
+) => new Set(
+	sourceBindings.map((binding) => binding.source as _Source)
+)

@@ -3,25 +3,16 @@ import {
 	EntityFieldCardinality,
 	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { UrlString } from '$/schema/UrlString.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum SwarmResourceSelector {
 	ResourceAddress = 'resourceAddress',
+	ReferenceContentPath = 'reference+contentPath',
 }
-
-
-// Gateway-backed Swarm object (BZZ root hash + optional manifest path). `reference` is the 32-byte content address (64 hex chars); encrypted refs can be longer.
-
 export default {
 	entityType: EntityType.SwarmResource,
-
-	label: 'Swarm Resource',
-	labelPlural: 'Swarm Resources',
-
+	label: 'swarm resource',
+	labelPlural: 'swarm resources',
 	selectors: [
 		{
 			name: SwarmResourceSelector.ResourceAddress,
@@ -31,124 +22,98 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: 'reference',
+			label: 'Reference',
+			description: 'The namespace-specific reference value.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Swarm_Rest,
-			],
 		},
 		{
 			name: 'contentPath',
+			label: 'content path',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Swarm_Rest,
-			],
 		},
 		{
 			name: 'canonicalUri',
+			label: 'canonical URI',
 			type: EntityFieldType.Primitive,
-			primitiveType: UrlString,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Swarm_Rest,
-			],
 		},
 		{
 			name: 'gatewayOrigin',
+			label: 'gateway origin',
 			type: EntityFieldType.Primitive,
-			primitiveType: UrlString,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Swarm_Rest,
-			],
 		},
 		{
 			name: 'gatewayUrl',
+			label: 'gateway URL',
 			type: EntityFieldType.Primitive,
-			primitiveType: UrlString,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Swarm_Rest,
-			],
 		},
 		{
 			name: 'fileName',
+			label: 'file name',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Swarm_Rest,
-			],
 		},
 		{
 			name: 'extension',
+			label: 'extension',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Swarm_Rest,
-			],
 		},
 		{
 			name: 'contentType',
+			label: 'content type',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Swarm_Rest,
-			],
 		},
 		{
 			name: 'contentLength',
+			label: 'content length',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Swarm_Rest,
-			],
 		},
 		{
 			name: 'displayType',
+			label: 'display type',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('"text" | "image" | "video" | "audio" | "json" | "xml" | "pdf" | "iframe" | "binary"'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Swarm_Rest,
-			],
 		},
 		{
 			name: 'isContentTypeInferred',
+			label: 'is content type inferred',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
+			primitiveType: type("boolean"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Swarm_Rest,
-			],
 		},
 		{
 			name: 'text',
+			label: 'text',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Swarm_Rest,
-			],
 		},
 		{
 			name: '$media',
+			label: 'media',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Media,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Swarm_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

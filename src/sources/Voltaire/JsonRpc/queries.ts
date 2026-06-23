@@ -1,19 +1,12 @@
-import {
-	BlockStream,
-	type BlockInclude,
-	type BlocksEvent,
-	type BlockStreamEvent,
-	type StreamBlock,
-	type RetryOptions,
-} from '@tevm/voltaire/block'
-import { Rpc } from '@tevm/voltaire/jsonrpc'
-import { Hex } from '@tevm/voltaire/Hex'
-import { type Provider, HttpProvider, WebSocketProvider } from '@tevm/voltaire/provider'
-
 import { TransportType } from '$/constants/TransportType.ts'
-import type { SourceOrigin } from '$/sources/SourceProvider.ts'
-import type { ExecutionEndpoint } from '$/sources/Voltaire/JsonRpc/executionEndpoints.ts'
-
+import { jsonRpc } from '$/sources/Evm/JsonRpc/client.ts'
+import {
+	SourceEndpointKind,
+	SourceOperationGroup,
+	SourceTargetKind,
+	type SourceBinding,
+} from '$/sources/SourceBinding.ts'
+import { voltaireBindings } from '$/sources/Voltaire/bindings.ts'
 import {
 	getBlockByHash as getEvmBlockByHash,
 	getBlockByNumber as getEvmBlockByNumber,
@@ -21,13 +14,14 @@ import {
 	getTransactionByHash as getEvmTransactionByHash,
 	getTransactionReceipt as getEvmTransactionReceipt,
 } from '$/sources/Evm/JsonRpc/queries.ts'
-import { jsonRpc } from '$/sources/Evm/JsonRpc/client.ts'
-import { isJsonObject, type JsonValue } from '$/typescript/JsonValue.ts'
-
 import {
-	getRpcHeader,
-	getRpcReceipt,
-	getRpcTx,
+	getBlockNumber,
+	getGasPrice,
+	getMaxPriorityFeePerGas,
+} from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts'
+import type { SourceOrigin } from '$/sources/SourceProvider.ts'
+import { isJsonObject, type JsonValue } from '$/typescript/JsonValue.ts'
+import {
 	narrowBlockRpc,
 	narrowTxRpc,
 	narrowVoltaireReceiptRpc,
@@ -35,9 +29,154 @@ import {
 	type VoltaireBlockRpc,
 	type VoltaireReceiptRpc,
 	type VoltaireTxRpc,
-} from './types.ts'
+} from '$/sources/Voltaire/JsonRpc/types.ts'
 
-/** Voltaire `Provider.request` is EIP-1193 — JSON-shaped but untyped at the boundary. */
+const voltaireJsonRpcTransportCandidates = voltaireBindings.flatMap((binding) => (
+	binding.target.kind === SourceTargetKind.Eip155Chain ?
+		binding.endpoints.flatMap((endpoint) => (
+			endpoint.endpointKind === SourceEndpointKind.HttpUrl
+			|| endpoint.endpointKind === SourceEndpointKind.WebSocketUrl ?
+				[{
+					chainId: Number(binding.target.key),
+					rpcUrl: endpoint.locator,
+					transportType: (
+						endpoint.endpointKind === SourceEndpointKind.WebSocketUrl ?
+							TransportType.WebSocket
+						:
+							TransportType.Http
+					),
+				}]
+			:
+				[]
+		))
+	:
+		[]
+))
+
+const voltaireJsonRpcTransportCandidatesByChainId = Object.groupBy(
+	voltaireJsonRpcTransportCandidates,
+	(voltaireJsonRpcTransportCandidate) => voltaireJsonRpcTransportCandidate.chainId
+)
+
+export const voltaireJsonRpcTransportsWithOriginsByChainId = Object.fromEntries(
+	Object.entries(voltaireJsonRpcTransportCandidatesByChainId)
+			.map(([chainId, entries]) => [
+				Number(chainId),
+				entries.map((entry) => ({
+				...entry,
+				origins: voltaireBindings.flatMap((binding) => (
+					binding.target.kind === SourceTargetKind.Eip155Chain
+					&& binding.target.key === chainId ?
+						binding.endpoints.flatMap((endpoint) => (
+							endpoint.origin == null ?
+								[]
+							:
+								[{
+									origin: endpoint.origin,
+									corsEnabled: endpoint.corsEnabled === true,
+								}]
+						))
+					:
+						[]
+				)),
+			})),
+		])
+)
+
+export const voltaireJsonRpcTransportWithOriginsByChainId = Object.fromEntries(
+	Object.entries(voltaireJsonRpcTransportsWithOriginsByChainId)
+		.flatMap(([chainId, entries]) => {
+			const httpExecutionEndpoint = entries.find((entry) => entry.transportType === TransportType.Http)
+			const executionEndpoint = httpExecutionEndpoint ?? entries.at(0)
+			return executionEndpoint == null ?
+				[]
+			:
+				[[
+					Number(chainId),
+					executionEndpoint,
+				]]
+		})
+)
+
+export type Provider = {
+	request: (request: {
+		method: string
+		params?: readonly unknown[]
+	}) => Promise<unknown>
+}
+
+export type BlockInclude = 'header' | 'transactions' | 'receipts'
+
+export type BlocksEvent<_BlockInclude extends BlockInclude> = {
+	type: 'blocks'
+	blocks: readonly unknown[]
+	metadata: {
+		chainHead: bigint
+	}
+}
+
+export type BlockStreamEvent<_BlockInclude extends BlockInclude> =
+	| BlocksEvent<_BlockInclude>
+	| {
+		type: 'reorg'
+		metadata: {
+			chainHead: bigint
+		}
+	}
+
+export type RetryOptions = {
+	maxRetries?: number
+	initialDelay?: number
+	maxDelay?: number
+}
+
+const getVoltaireProviderRuntime = () => import('@tevm/voltaire/provider')
+
+const getVoltaireBlockRuntime = () => import('@tevm/voltaire/block')
+
+const evmExecutionJsonRpcBindingKey = (
+	chainId: number | string,
+	operationGroup: SourceOperationGroup
+) => `${String(chainId)}:${operationGroup}`
+
+const evmExecutionJsonRpcBindingByChainIdAndOperationGroup: Partial<Record<string, SourceBinding>> = Object.fromEntries(
+	voltaireBindings.flatMap((binding) => (
+		binding.operationGroups.map((operationGroup) => [
+			evmExecutionJsonRpcBindingKey(
+				binding.target.key,
+				operationGroup
+			),
+			binding,
+		])
+	))
+)
+
+export const getEvmExecutionJsonRpcBinding = ({
+	chainId,
+	operationGroup,
+}: {
+	chainId: number
+	operationGroup: SourceOperationGroup
+}): SourceBinding | undefined => evmExecutionJsonRpcBindingByChainIdAndOperationGroup[
+	evmExecutionJsonRpcBindingKey(
+		chainId,
+		operationGroup
+	)
+]
+
+export const getProviderForExecutionUrl = async ({
+	url,
+	transportType,
+}: {
+	url: string
+	transportType: TransportType
+}): Promise<Provider> => (
+	transportType === TransportType.WebSocket ?
+		getVoltaireProviderRuntime().then(({ WebSocketProvider }) => new WebSocketProvider(url))
+	:
+		getVoltaireProviderRuntime().then(({ HttpProvider }) => new HttpProvider(url))
+)
+
 const jsonValueFromProviderRequest = async (
 	// oxlint-disable-next-line typescript/no-restricted-types -- EIP-1193 Provider.request return
 	requestPromise: Promise<unknown>
@@ -48,187 +187,56 @@ const jsonValueFromProviderRequest = async (
 	return json
 }
 
-
-export const streamBlockToBlockRpcWire = (
-	block: StreamBlock<BlockInclude> | VoltaireBlockRpc
-): VoltaireBlockRpc => {
-	const transactions: VoltaireBlockRpc['transactions'] = (
-		(
-			'header' in block ?
-				// oxlint-disable-next-line typescript/no-unnecessary-condition -- Voltaire runtime can omit body despite StreamBlock typing
-				'body' in block && block.body != null ?
-					block.body.transactions
-				:
-					[]
-			:
-				block.transactions
-		) ?? []
-	).map((transaction) => String(transaction))
-	return {
-		number: 'header' in block ? String(Hex.fromBigInt(block.header.number)) : block.number,
-		hash: 'header' in block ? String(Hex.fromBytes(block.hash)) : block.hash,
-		parentHash: 'header' in block ? String(Hex.fromBytes(block.header.parentHash)) : block.parentHash,
-		timestamp: 'header' in block ? String(Hex.fromBigInt(block.header.timestamp)) : block.timestamp,
-		miner: 'header' in block ? String(Hex.fromBytes(block.header.beneficiary)) : block.miner,
-		gasUsed: 'header' in block ? String(Hex.fromBigInt(block.header.gasUsed)) : block.gasUsed,
-		gasLimit: 'header' in block ? String(Hex.fromBigInt(block.header.gasLimit)) : block.gasLimit,
-		...('header' in block ? block.header.baseFeePerGas != null && { baseFeePerGas: String(Hex.fromBigInt(block.header.baseFeePerGas)) } : block.baseFeePerGas != null && { baseFeePerGas: block.baseFeePerGas }),
-		transactions,
-	}
-}
-
-export const getBlockSpec = (n: number | bigint | 'latest'): 'latest' | `0x${string}` => (
-	n === 'latest' ? 'latest' : Hex.fromBigInt(BigInt(n))
-)
-
-export const getProviderForExecutionUrl = async ({
-	url,
-	transportType,
-}: {
-	url: string
-	transportType: TransportType
-}): Promise<Provider> => (
-	transportType === TransportType.WebSocket ?
-		new WebSocketProvider(url)
+const getBlockSpec = (blockNumber: bigint | 'latest'): 'latest' | `0x${string}` => (
+	blockNumber === 'latest' ?
+		'latest'
 	:
-		new HttpProvider(url)
+		`0x${blockNumber.toString(16)}`
 )
 
-export const getProviderForExecutionEndpoint = (
-	endpoint: ExecutionEndpoint
-): Promise<Provider> => (
-	getProviderForExecutionUrl({
-		url: endpoint.url,
-		transportType: endpoint.transportType,
+export const getChainHeadNumber = async ({
+	chainId,
+}: {
+	chainId: number
+}): Promise<number> => {
+	const binding = getEvmExecutionJsonRpcBinding({
+		chainId,
+		operationGroup: SourceOperationGroup.EvmRpcCore,
 	})
-)
+	if (binding == null)
+		throw new Error(`Voltaire_JsonRpc: no EVM JSON-RPC core binding for chain ${chainId}`)
 
-export const getBlockByNumber = async ({
-	provider,
-	blockNumber,
-	fullTransactions = false,
-}: {
-	provider: Provider
-	blockNumber: bigint | 'latest'
-	fullTransactions?: boolean
-}): Promise<VoltaireBlockRpc | null> => (
-	narrowBlockRpc(
-		await jsonValueFromProviderRequest(
-			provider.request(
-				Rpc.Eth.GetBlockByNumberRequest(
-					blockNumber === 'latest' ? 'latest' : getBlockSpec(blockNumber),
-					fullTransactions
-				)
-			)
-		)
-	)
-)
-
-export const getBlockTransactionCountByNumber = async ({
-	provider,
-	blockNumber,
-}: {
-	provider: Provider
-	blockNumber: bigint | 'latest'
-}): Promise<bigint> => {
-	const transactionCountHexUnknown = await provider.request(
-		Rpc.Eth.GetBlockTransactionCountByNumberRequest(
-			blockNumber === 'latest' ? 'latest' : getBlockSpec(blockNumber)
-		)
-	)
-	if (typeof transactionCountHexUnknown !== 'string')
-		throw new Error('eth_getBlockTransactionCountByNumber: expected hex string')
-	return BigInt(transactionCountHexUnknown)
+	return getBlockNumber(binding)
 }
 
-export const lookupTransactionByHash = async ({
-	provider,
-	txHash,
+export const getCurrentGasPrice = async ({
+	chainId,
 }: {
-	provider: Provider
-	txHash: `0x${string}`
-}): Promise<{
-	tx: VoltaireTxRpc
-	receipt: VoltaireReceiptRpc | null
-}> => {
-	const hashParam = Hex(txHash)
-	const [txUnknown, receiptUnknown] = await Promise.all([
-		jsonValueFromProviderRequest(
-			provider.request(Rpc.Eth.GetTransactionByHashRequest(hashParam))
-		),
-		jsonValueFromProviderRequest(
-			provider.request(Rpc.Eth.GetTransactionReceiptRequest(hashParam))
-		),
-	])
-	const tx = narrowTxRpc(txUnknown)
-	const receipt = narrowVoltaireReceiptRpc(receiptUnknown)
-	if (tx == null) throw new Error('Transaction not found')
-	return {
-		tx,
-		receipt,
-	}
+	chainId: number
+}): Promise<`0x${string}`> => {
+	const binding = getEvmExecutionJsonRpcBinding({
+		chainId,
+		operationGroup: SourceOperationGroup.EvmRpcCore,
+	})
+	if (binding == null)
+		throw new Error(`Voltaire_JsonRpc: no EVM JSON-RPC core binding for chain ${chainId}`)
+
+	return getGasPrice(binding)
 }
 
-/** BlockStream for live / reorg-aware blocks; prefer a WebSocket execution URL. */
-export const createLiveBlockStream = (provider: Provider) => (
-	// Voltaire `Provider.request` is untyped EIP-1193; `@tevm/voltaire/block` expects `TypedProvider` with stricter RPC param typing.
-	// @ts-expect-error Provider is structurally compatible at runtime for JSON-RPC block streaming
-	BlockStream({ provider })
-)
-
-export async function* iterateBlockStreamEvents({
-	provider,
-	include = 'header',
-	signal,
-	fromBlock,
-	maxQueuedBlocks,
-	pollingInterval,
-	retry,
+export const getCurrentMaxPriorityFeePerGas = async ({
+	chainId,
 }: {
-	provider: Provider
-	include?: BlockInclude
-	signal?: AbortSignal
-	fromBlock?: bigint
-	maxQueuedBlocks?: number
-	pollingInterval?: number
-	retry?: RetryOptions
-}): AsyncGenerator<BlockStreamEvent<BlockInclude>, void, void> {
-	const stream = createLiveBlockStream(provider)
-	for await (const event of stream.watch({
-		include,
-		signal,
-		fromBlock,
-		maxQueuedBlocks,
-		pollingInterval,
-		retry,
-	})) {
-		yield event
-	}
-}
+	chainId: number
+}): Promise<`0x${string}`> => {
+	const binding = getEvmExecutionJsonRpcBinding({
+		chainId,
+		operationGroup: SourceOperationGroup.EvmRpcCore,
+	})
+	if (binding == null)
+		throw new Error(`Voltaire_JsonRpc: no EVM JSON-RPC core binding for chain ${chainId}`)
 
-export async function* iterateBlockStreamBackfill({
-	provider,
-	fromBlock,
-	toBlock,
-	include = 'header',
-	signal,
-}: {
-	provider: Provider
-	fromBlock: bigint
-	toBlock: bigint
-	include?: BlockInclude
-	signal?: AbortSignal
-}): AsyncGenerator<BlocksEvent<BlockInclude>, void, void> {
-	const stream = createLiveBlockStream(provider)
-	for await (
-		const event of stream.backfill({
-			fromBlock,
-			toBlock,
-			include,
-			signal,
-		})
-	)
-		yield event
+	return getMaxPriorityFeePerGas(binding)
 }
 
 export const getChainHeadNumberForRpcUrl = async ({
@@ -240,18 +248,17 @@ export const getChainHeadNumberForRpcUrl = async ({
 	origins: readonly SourceOrigin[]
 	transportType: TransportType
 }): Promise<bigint> => {
-	if (transportType === TransportType.Http) {
-		const hex = await getEvmBlockNumber({
-			rpcUrl,
-			origins,
-		})
-		return BigInt(hex)
-	}
+	if (transportType === TransportType.Http)
+		return BigInt(await getEvmBlockNumber({ rpcUrl, origins }))
+
 	const provider = await getProviderForExecutionUrl({
 		url: rpcUrl,
 		transportType,
 	})
-	const hexUnknown = await provider.request(Rpc.Eth.BlockNumberRequest())
+	const hexUnknown = await provider.request({
+		method: 'eth_blockNumber',
+		params: [],
+	})
 	if (typeof hexUnknown !== 'string')
 		throw new Error('eth_blockNumber: expected hex string')
 	return BigInt(hexUnknown)
@@ -286,8 +293,7 @@ export const getBlockByNumberForRpcUrl = async ({
 			|| block.miner == null
 			|| block.gasUsed == null
 			|| block.gasLimit == null
-		)
-			return null
+		) return null
 
 		return {
 			number: block.number,
@@ -304,15 +310,20 @@ export const getBlockByNumberForRpcUrl = async ({
 		}
 	}
 
-	const provider = await getProviderForExecutionUrl({
-		url: rpcUrl,
-		transportType,
-	})
-	return getBlockByNumber({
-		provider,
-		blockNumber,
-		fullTransactions,
-	})
+	return narrowBlockRpc(
+		await jsonValueFromProviderRequest(
+			(await getProviderForExecutionUrl({
+				url: rpcUrl,
+				transportType,
+			})).request({
+				method: 'eth_getBlockByNumber',
+				params: [
+					getBlockSpec(blockNumber),
+					fullTransactions,
+				],
+			})
+		)
+	)
 }
 
 export const getBlockByHashForRpcUrl = async ({
@@ -344,8 +355,7 @@ export const getBlockByHashForRpcUrl = async ({
 			|| block.miner == null
 			|| block.gasUsed == null
 			|| block.gasLimit == null
-		)
-			return null
+		) return null
 
 		return {
 			number: block.number,
@@ -367,12 +377,13 @@ export const getBlockByHashForRpcUrl = async ({
 			(await getProviderForExecutionUrl({
 				url: rpcUrl,
 				transportType,
-			})).request(
-				Rpc.Eth.GetBlockByHashRequest(
+			})).request({
+				method: 'eth_getBlockByHash',
+				params: [
 					blockHash,
-					fullTransactions
-				)
-			)
+					fullTransactions,
+				],
+			})
 		)
 	)
 }
@@ -400,27 +411,27 @@ export const getRecentBlockWiresForRpcUrl = async ({
 		Array.from(
 			{ length: recentBlockDepth },
 			(_, index) => head - BigInt(index)
-			).filter((n) => n >= 0n)
-	)
-	const wires = await Promise.all(
-		blockNumbers.map((blockNumber) => (
-			Promise.race([
-				getBlockByNumberForRpcUrl({
-					rpcUrl,
-					origins,
-					transportType,
-					blockNumber,
-					fullTransactions: false,
-				}),
-				new Promise<null>((resolve) => {
-					setTimeout(() => resolve(null), 8_000)
-				}),
-			])
-		))
+		)
+			.filter((blockNumber) => blockNumber >= 0n)
 	)
 	return {
 		blockNumbers,
-		wires,
+		wires: await Promise.all(
+			blockNumbers.map((blockNumber) => (
+				Promise.race([
+					getBlockByNumberForRpcUrl({
+						rpcUrl,
+						origins,
+						transportType,
+						blockNumber,
+						fullTransactions: false,
+					}),
+					new Promise<null>((resolve) => {
+						setTimeout(() => resolve(null), 8_000)
+					}),
+				])
+			))
+		),
 	}
 }
 
@@ -442,13 +453,46 @@ export const getTransactionByHashForRpcUrl = async ({
 			txHash,
 		})
 
-	const provider = await getProviderForExecutionUrl({
-		url: rpcUrl,
-		transportType,
-	})
 	return narrowTxRpc(
 		await jsonValueFromProviderRequest(
-			provider.request(Rpc.Eth.GetTransactionByHashRequest(Hex(txHash)))
+			(await getProviderForExecutionUrl({
+				url: rpcUrl,
+				transportType,
+			})).request({
+				method: 'eth_getTransactionByHash',
+				params: [txHash],
+			})
+		)
+	)
+}
+
+export const getTransactionReceiptForRpcUrl = async ({
+	rpcUrl,
+	origins,
+	transportType,
+	txHash,
+}: {
+	rpcUrl: string
+	origins: readonly SourceOrigin[]
+	transportType: TransportType
+	txHash: `0x${string}`
+}): Promise<VoltaireReceiptRpc | null> => {
+	if (transportType === TransportType.Http)
+		return getEvmTransactionReceipt({
+			rpcUrl,
+			origins,
+			txHash,
+		})
+
+	return narrowVoltaireReceiptRpc(
+		await jsonValueFromProviderRequest(
+			(await getProviderForExecutionUrl({
+				url: rpcUrl,
+				transportType,
+			})).request({
+				method: 'eth_getTransactionReceipt',
+				params: [txHash],
+			})
 		)
 	)
 }
@@ -475,108 +519,86 @@ export const debugTraceTransactionForRpcUrl = async ({
 					{ tracer: 'callTracer' },
 				],
 			})
-			return (
-				isJsonObject(traceJson) ?
-					parseVoltaireCallTraceRpc(traceJson)
-				:
-					null
-			)
+			return isJsonObject(traceJson) ? parseVoltaireCallTraceRpc(traceJson) : null
 		} catch {
 			return null
 		}
 	}
 
-	const provider = await getProviderForExecutionUrl({
-		url: rpcUrl,
-		transportType,
-	})
 	try {
 		const traceJson = await jsonValueFromProviderRequest(
-			provider.request({
+			(await getProviderForExecutionUrl({
+				url: rpcUrl,
+				transportType,
+			})).request({
 				method: 'debug_traceTransaction',
 				params: [
-					Hex(txHash),
+					txHash,
 					{ tracer: 'callTracer' },
 				],
 			})
 		)
-		return (
-			isJsonObject(traceJson) ?
-				parseVoltaireCallTraceRpc(traceJson)
-			:
-				null
-		)
+		return isJsonObject(traceJson) ? parseVoltaireCallTraceRpc(traceJson) : null
 	} catch {
 		return null
 	}
 }
 
-export const getTransactionReceiptForRpcUrl = async ({
-	rpcUrl,
-	origins,
-	transportType,
-	txHash,
-}: {
-	rpcUrl: string
-	origins: readonly SourceOrigin[]
-	transportType: TransportType
-	txHash: `0x${string}`
-}): Promise<VoltaireReceiptRpc | null> => {
-	if (transportType === TransportType.Http)
-		return getEvmTransactionReceipt({
-			rpcUrl,
-			origins,
-			txHash,
-		})
+const createLiveBlockStream = (provider: Provider) => (
+	getVoltaireBlockRuntime().then(({ BlockStream }) => (
+		// @ts-expect-error Provider is structurally compatible at runtime for JSON-RPC block streaming
+		BlockStream({ provider })
+	))
+)
 
-	const provider = await getProviderForExecutionUrl({
-		url: rpcUrl,
-		transportType,
-	})
-	return narrowVoltaireReceiptRpc(
-		await jsonValueFromProviderRequest(
-			provider.request(Rpc.Eth.GetTransactionReceiptRequest(Hex(txHash)))
-		)
-	)
+export async function* iterateBlockStreamEvents({
+	provider,
+	include = 'header',
+	signal,
+	fromBlock,
+	maxQueuedBlocks,
+	pollingInterval,
+	retry,
+}: {
+	provider: Provider
+	include?: BlockInclude
+	signal?: AbortSignal
+	fromBlock?: bigint
+	maxQueuedBlocks?: number
+	pollingInterval?: number
+	retry?: RetryOptions
+}): AsyncGenerator<BlockStreamEvent<BlockInclude>, void, void> {
+	const stream = await createLiveBlockStream(provider)
+	for await (const event of stream.watch({
+		include,
+		signal,
+		fromBlock,
+		maxQueuedBlocks,
+		pollingInterval,
+		retry,
+	}))
+		yield event
 }
 
-export const lookupTransactionByHashForRpcUrl = async ({
-	rpcUrl,
-	origins,
-	transportType,
-	txHash,
+export async function* iterateBlockStreamBackfill({
+	provider,
+	fromBlock,
+	toBlock,
+	include = 'header',
+	signal,
 }: {
-	rpcUrl: string
-	origins: readonly SourceOrigin[]
-	transportType: TransportType
-	txHash: `0x${string}`
-}): Promise<{
-	tx: VoltaireTxRpc
-	receipt: VoltaireReceiptRpc | null
-}> => {
-	if (transportType === TransportType.Http) {
-		const tx = await getEvmTransactionByHash({
-			rpcUrl,
-			origins,
-			txHash,
-		})
-		if (tx == null) throw new Error('Transaction not found')
-		return {
-			tx,
-			receipt: await getEvmTransactionReceipt({
-				rpcUrl,
-				origins,
-				txHash,
-			}),
-		}
-	}
-
-	const provider = await getProviderForExecutionUrl({
-		url: rpcUrl,
-		transportType,
-	})
-	return lookupTransactionByHash({
-		provider,
-		txHash,
-	})
+	provider: Provider
+	fromBlock: bigint
+	toBlock: bigint
+	include?: BlockInclude
+	signal?: AbortSignal
+}): AsyncGenerator<BlocksEvent<BlockInclude>, void, void> {
+	const stream = await createLiveBlockStream(provider)
+	for await (const event of stream.backfill({
+		fromBlock,
+		toBlock,
+		include,
+		signal,
+	}))
+		yield event
 }

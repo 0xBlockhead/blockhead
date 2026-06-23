@@ -9,8 +9,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { _GlobalSelector } from '$/schema/_Global.ts'
 import { SpecificationProposalSelector } from '$/schema/SpecificationProposal.ts'
-import { SpecificationRealmSelector } from '$/schema/SpecificationRealm.ts'
-import { SpecificationProposalKindSelector } from '$/schema/SpecificationProposalKind.ts'
 
 const polkadotRfcRows = async (entries: { type: string, name: string }[]) => {
 	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
@@ -64,38 +62,6 @@ export default {
 			entityType: EntityType._Global,
 			resolve: {
 				[_GlobalSelector.Scope]: async () => {
-				const { getContents } = await import('$/sources/PolkadotRfcs/Github/queries.ts')
-				return polkadotRfcRows(await getContents())
-			}
-			}
-		})({
-				fields: {
-			$$proposals: (snapshot) => snapshot,
-		},
-			}),
-
-		defineResolver(Source.PolkadotRfcs_Github, {
-			entityType: EntityType.SpecificationRealm,
-			resolve: {
-				[SpecificationRealmSelector.Realm]: async ({ realm }) => {
-				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (realm !== SpecificationRealm.Polkadot) throw new Error('PolkadotRfcs_Github: $$proposals only supports Polkadot')
-				const { getContents } = await import('$/sources/PolkadotRfcs/Github/queries.ts')
-				return polkadotRfcRows(await getContents())
-			}
-			}
-		})({
-				fields: {
-			$$proposals: (snapshot) => snapshot,
-		},
-			}),
-
-		defineResolver(Source.PolkadotRfcs_Github, {
-			entityType: EntityType.SpecificationProposalKind,
-			resolve: {
-				[SpecificationProposalKindSelector.RealmCategory]: async ({ category, realm }) => {
-				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (realm !== SpecificationRealm.Polkadot || category !== ProposalCategory.Rfc) throw new Error('PolkadotRfcs_Github: $$proposals only supports Polkadot RFCs')
 				const { getContents } = await import('$/sources/PolkadotRfcs/Github/queries.ts')
 				return polkadotRfcRows(await getContents())
 			}

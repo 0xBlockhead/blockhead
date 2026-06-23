@@ -1,24 +1,17 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import LiquidityPool from '$/schema/LiquidityPool.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum LiquidityPool_TimestampSelector {
 	LiquidityPoolTimestampMsFeedKey = 'liquidityPoolTimestampMsFeedKey',
 }
-
 export default {
 	entityType: EntityType.LiquidityPool_Timestamp,
-
-	label: 'Liquidity pool observation',
-	labelPlural: 'Liquidity pool observations',
-
+	label: 'liquidity pool timestamp',
+	labelPlural: 'liquidity pool observations',
 	selectors: [
 		{
 			name: LiquidityPool_TimestampSelector.LiquidityPoolTimestampMsFeedKey,
@@ -29,121 +22,161 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$liquidityPool',
+			label: 'liquidity pool',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.LiquidityPool,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'feedKey',
+			label: 'feed key',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$parentLiquidityPool',
+			label: 'parent liquidity pool',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.LiquidityPool,
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Dexscreener_OpenApi,
-			],
+		},
+		{
+			name: 'baseTokenSymbol',
+			label: 'base token symbol',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'quoteTokenSymbol',
+			label: 'quote token symbol',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'baseTokenDecimals',
+			label: 'base token decimals',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'quoteTokenDecimals',
+			label: 'quote token decimals',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'pairCreatedAtMs',
+			label: 'pair created AT ms',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'dexscreenerLabels',
+			label: 'dexscreener labels',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: 'dexId',
+			label: 'dex ID',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'dexscreenerPairUrl',
+			label: 'dexscreener pair URL',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'priceUsd',
+			label: 'price usd',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Dexscreener_OpenApi,
-			],
 		},
 		{
 			name: 'priceNative',
+			label: 'price native',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Dexscreener_OpenApi,
-			],
 		},
 		{
 			name: 'liquidityUsd',
+			label: 'liquidity usd',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Dexscreener_OpenApi,
-			],
 		},
 		{
 			name: 'volumeUsd24h',
+			label: 'volume usd24h',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Dexscreener_OpenApi,
-			],
 		},
 		{
 			name: 'priceChangePercent24h',
+			label: 'price change percent24h',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Dexscreener_OpenApi,
-			],
 		},
 		{
 			name: 'transactionBuys24h',
+			label: 'transaction buys24h',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Dexscreener_OpenApi,
-			],
 		},
 		{
 			name: 'transactionSells24h',
+			label: 'transaction sells24h',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Dexscreener_OpenApi,
-			],
 		},
 		{
 			name: 'marketCapUsd',
+			label: 'market cap usd',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Dexscreener_OpenApi,
-			],
 		},
 		{
 			name: 'fdvUsd',
+			label: 'fdv usd',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Dexscreener_OpenApi,
-			],
 		},
 		{
 			name: 'transport',
+			label: 'transport',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

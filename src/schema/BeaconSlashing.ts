@@ -1,23 +1,18 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum BeaconSlashingSelector {
 	EvmNetworkSlotKindIndex = 'evmNetworkSlotKindIndex',
+	NetworkSlotKindIndex = '$network+slot+kind+index',
 }
-
 export default {
 	entityType: EntityType.BeaconSlashing,
-
-	label: 'Beacon slashing',
-	labelPlural: 'Beacon slashings',
-
+	label: 'beacon slashing',
+	labelPlural: 'beacon slashings',
 	selectors: [
 		{
 			name: BeaconSlashingSelector.EvmNetworkSlotKindIndex,
@@ -29,31 +24,34 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'slot',
+			label: 'slot',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'kind',
+			label: 'kind',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('"attester" | "proposer"'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'index',
+			label: 'index',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

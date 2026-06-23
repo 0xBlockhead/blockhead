@@ -1,33 +1,38 @@
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 
-	type NearBlocksResource = EntityProxyFieldResource<
-		typeof schema,
-		EntityType.NearNetwork,
-		'$$blocks'
-	>
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
+	const listView = {
+		entityType: EntityType.NearBlock,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
 		selection,
-		title = 'Blocks',
+		title,
 		open = $bindable(true),
-		id,
+		id = 'NearBlocks',
 		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: NearBlocksResource
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.NearBlock>
 			title?: string
 			open?: boolean
-			id: string
+			id?: string
 			href?: string
 		},
 		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
@@ -36,52 +41,26 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import NearBlockView from '$/views/NearBlockView.svelte'
 </script>
 
 
 <EntitiesList
-	entityType={EntityType.NearBlock}
+	entityType={listView.entityType}
 	{title}
 	bind:open
 	{id}
 	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>NEAR blocks collect chunks across shards for Nightshade execution.</p>
-	{/snippet}
-
-	{#snippet body()}
-		{#if open}
-			<ResourceBoundary resource={selection} placeholderText="Loading blocks…">
-				{#snippet children(blocks)}
-					<EntitiesList
-						collapsible={false}
-						showSummary={false}
-						entityType={EntityType.NearBlock}
-						id={`${id}-items`}
-						href={href}
-						getKey={(block) => stringify(block.entitySelector)}
-						getSortValue={(block) => -Number(block.entitySelector.height)}
-						open={true}
-						items={blocks.entities}
-						{title}
-						UnorderedListProps={{ orientation: ListOrientation.Column }}
-					>
-						{#snippet Empty()}<p data-text="muted">No recent blocks yet.</p>{/snippet}
-						{#snippet Item({ item })}
-							<NearBlockView
-								selection={select(EntityType.NearBlock, item.entitySelector)}
-								layout={EntityLayout.Summary}
-
-							/>
-						{/snippet}
-					</EntitiesList>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+	{#snippet Item({ item })}
+		<NearBlockView
+			selection={select(EntityType.NearBlock, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

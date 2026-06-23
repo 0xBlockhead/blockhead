@@ -1,227 +1,190 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import ZeroGNetwork from '$/schema/ZeroGNetwork.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum ZeroGNetwork_TimestampSelector {
-	ZeroGNetworkTimestampMs = 'zeroGNetworkTimestampMs',
+	NetworkTimestampMsSource = '$network+timestampMs+source',
 }
-
 export default {
 	entityType: EntityType.ZeroGNetwork_Timestamp,
-
-	label: '0G network snapshot',
-	labelPlural: '0G network snapshots',
-
+	label: 'zero g network timestamp',
+	labelPlural: 'zero g network observations',
 	selectors: [
 		{
-			name: ZeroGNetwork_TimestampSelector.ZeroGNetworkTimestampMs,
+			name: ZeroGNetwork_TimestampSelector.NetworkTimestampMsSource,
 			fields: [
 				'$network',
 				'timestampMs',
+				'source',
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.ZeroGNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'source',
+			label: 'Source',
+			description: 'The source that produced this observation.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'headBlockNumber',
+			label: 'head block number',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.ZeroGChain_JsonRpc,
-			],
 		},
 		{
 			name: 'headBlockHash',
+			label: 'head block hash',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.ZeroGChain_JsonRpc,
-			],
 		},
 		{
 			name: 'headTimestampMs',
+			label: 'head timestamp ms',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.ZeroGChain_JsonRpc,
-			],
 		},
 		{
 			name: 'transactionCount',
+			label: 'transaction count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.ZeroGChain_JsonRpc,
-			],
 		},
 		{
 			name: 'gasUsed',
+			label: 'gas used',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.ZeroGChain_JsonRpc,
-			],
 		},
 		{
 			name: 'gasLimit',
+			label: 'gas limit',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.ZeroGChain_JsonRpc,
-			],
 		},
 		{
 			name: 'baseFeePerGas',
+			label: 'base fee per gas',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.ZeroGChain_JsonRpc,
-			],
 		},
 		{
 			name: 'storageLogSyncHeight',
+			label: 'storage log sync height',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.ZeroGStorageScan_Rest,
-			],
 		},
 		{
 			name: 'storageLayer1LogSyncHeight',
+			label: 'storage layer1 log sync height',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.ZeroGStorageScan_Rest,
-			],
 		},
 		{
 			name: 'storageTransactionCount',
+			label: 'storage transaction count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.ZeroGStorageScan_Rest,
-			],
 		},
 		{
 			name: 'latestDataRoot',
+			label: 'latest data root',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.ZeroGStorageScan_Rest,
-			],
 		},
 		{
 			name: 'latestDataSizeBytes',
+			label: 'latest data size bytes',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.ZeroGStorageScan_Rest,
-			],
 		},
 		{
 			name: 'latestStorageTxHash',
+			label: 'latest storage transaction hash',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.ZeroGStorageScan_Rest,
-			],
 		},
 		{
 			name: 'storageMinerCount',
+			label: 'storage miner count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.ZeroGStorageScan_Rest,
-			],
 		},
 		{
 			name: 'latestStorageMiner',
+			label: 'latest storage miner',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.ZeroGStorageScan_Rest,
-			],
 		},
 		{
 			name: 'storageFeeTotal',
+			label: 'storage fee total',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.ZeroGStorageScan_Rest,
-			],
 		},
 		{
 			name: 'storageRewardTotal',
+			label: 'storage reward total',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.ZeroGStorageScan_Rest,
-			],
 		},
 		{
 			name: 'storageTotalWinCount',
+			label: 'storage total win count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.ZeroGStorageScan_Rest,
-			],
 		},
 		{
 			name: 'expiredFileCount',
+			label: 'expired file count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.ZeroGStorageScan_Rest,
-			],
 		},
 		{
 			name: 'prunedFileCount',
+			label: 'pruned file count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.ZeroGStorageScan_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

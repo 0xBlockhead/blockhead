@@ -20,7 +20,9 @@ import type {
 import { LightningNetworkSelector } from '$/schema/LightningNetwork.ts'
 import { LightningNetwork_TimestampSelector } from '$/schema/LightningNetwork_Timestamp.ts'
 import { LightningNodeSelector } from '$/schema/LightningNode.ts'
+import { LightningNode_TimestampSelector } from '$/schema/LightningNode_Timestamp.ts'
 import { LightningChannelSelector } from '$/schema/LightningChannel.ts'
+import { LightningChannel_TimestampSelector } from '$/schema/LightningChannel_Timestamp.ts'
 
 const bitcoinMainnet = {
 	caip2: bitcoinNetworkBySlug.bitcoin.caip2,
@@ -77,8 +79,19 @@ const nodeReferenceFromPublicKey = (publicKey: string) => ({
 })
 
 const nodeFieldsFromMempoolSpaceNode = (
-	node: MempoolSpaceLightningNode
+	node: MempoolSpaceLightningNode,
+	timestampMs = timestampMsFromSeconds(node.updated_at) ?? Date.now()
 ) => ({
+	[EntityMetaKey.Selector]: {
+		$node: {
+			$network: {
+				slug: 'lightning',
+			},
+			publicKey: node.public_key,
+		},
+		timestampMs,
+		source: Source.LightningMempoolSpace_Rest,
+	},
 	alias: node.alias ?? undefined,
 	color: node.color ?? undefined,
 	capacitySats: bigintFromWire(node.capacity),
@@ -104,10 +117,6 @@ const nodeReferenceFromMempoolSpaceChannelNode = (
 		},
 		publicKey: node.public_key,
 	},
-	alias: node.alias ?? undefined,
-	capacitySats: bigintFromWire(node.capacity),
-	channelCount: node.channels ?? undefined,
-	updatedAtMs: timestampMsFromIso(node.updated_at),
 })
 
 const nodeReferenceFromMempoolSpaceRankedNode = (
@@ -119,42 +128,50 @@ const nodeReferenceFromMempoolSpaceRankedNode = (
 		},
 		publicKey: node.publicKey,
 	},
-	alias: node.alias ?? undefined,
-	capacitySats: bigintFromWire(node.capacity),
-	channelCount: node.channels ?? undefined,
-	firstSeenMs: timestampMsFromSeconds(node.firstSeen),
-	updatedAtMs: timestampMsFromSeconds(node.updatedAt),
-	countryCode: node.iso_code ?? undefined,
-	city: node.city?.en,
 })
 
 const channelFieldsFromMempoolSpaceChannel = (
 	channel: MempoolSpaceLightningChannel
 ) => ({
-							[EntityMetaKey.Selector]: {
-								$network: {
-									slug: 'lightning',
-								},
-							channelId: String(channel.id),
-						},
+	[EntityMetaKey.Selector]: {
+		$network: {
+			slug: 'lightning',
+		},
+		channelId: String(channel.id),
+	},
 	shortChannelId: channel.short_id ?? undefined,
-	status: statusFromMempoolSpace(channel.status),
-	capacitySats: bigintFromWire(channel.capacity),
 	fundingTransactionId: channel.transaction_id ?? undefined,
 	fundingOutputIndex: channel.transaction_vout ?? undefined,
+	openedAtMs: timestampMsFromIso(channel.created),
+	...(channel.node_right != null && {
+		$node1: nodeReferenceFromMempoolSpaceChannelNode(channel.node_right),
+	}),
+})
+
+const channelTimestampFieldsFromMempoolSpaceChannel = (
+	channel: MempoolSpaceLightningChannel,
+	timestampMs = timestampMsFromIso(channel.updated_at) ?? timestampMsFromIso(channel.created) ?? Date.now()
+) => ({
+	[EntityMetaKey.Selector]: {
+		$channel: {
+			[EntityMetaKey.Selector]: {
+				$network: {
+					slug: 'lightning',
+				},
+				channelId: String(channel.id),
+			},
+		},
+		timestampMs,
+		source: Source.LightningMempoolSpace_Rest,
+	},
+	status: statusFromMempoolSpace(channel.status),
+	capacitySats: bigintFromWire(channel.capacity),
 	closingTransactionId: channel.closing_transaction_id ?? undefined,
 	closingFeeSats: bigintFromWire(channel.closing_fee),
 	closingReason: channel.closing_reason == null ? undefined : String(channel.closing_reason),
 	closedAtMs: timestampMsFromIso(channel.closing_date),
-	openedAtMs: timestampMsFromIso(channel.created),
 	updatedAtMs: timestampMsFromIso(channel.updated_at),
 	feeRatePpm: channel.fee_rate ?? undefined,
-	...(channel.node_left != null && {
-		$node0: nodeReferenceFromMempoolSpaceChannelNode(channel.node_left),
-	}),
-	...(channel.node_right != null && {
-		$node1: nodeReferenceFromMempoolSpaceChannelNode(channel.node_right),
-	}),
 })
 
 const timestampFieldsFromMempoolSpaceStatistics = (
@@ -167,6 +184,7 @@ const timestampFieldsFromMempoolSpaceStatistics = (
 			},
 		},
 		timestampMs: Date.parse(statistics.added),
+		source: Source.LightningMempoolSpace_Rest,
 	},
 	nodeCount: statistics.node_count ?? undefined,
 	channelCount: statistics.channel_count ?? undefined,
@@ -207,7 +225,7 @@ export default {
 		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningNetwork_Timestamp,
 			resolve: {
-				[LightningNetwork_TimestampSelector.LightningNetworkTimestampMs]: async ({ $lightningNetwork }) => {
+				[LightningNetwork_TimestampSelector.LightningNetworkTimestampMsSource]: async ({ $lightningNetwork }) => {
 					assertLightningNetwork($lightningNetwork.$network)
 					const { getLightningStatistics } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
 					return timestampFieldsFromMempoolSpaceStatistics(
@@ -238,11 +256,37 @@ export default {
 				[LightningNodeSelector.NetworkPublicKey]: async ({ $network, publicKey }) => {
 					assertLightningNetwork($network)
 					const { getLightningNode } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
-					return nodeFieldsFromMempoolSpaceNode(
-						await getLightningNode({
+					const node = await getLightningNode({
 							restBaseUrl: lightningNetworkBySlug.lightning.mempoolSpaceRestBaseUrl,
 							publicKey: publicKey,
 						})
+					return {
+						$$timestamps: [
+							nodeFieldsFromMempoolSpaceNode(node),
+						],
+					}
+				}
+			},
+		})({
+			fields: {
+				$$timestamps: (snapshot) => snapshot.$$timestamps.map((timestamp) => ({
+					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
+				})),
+			},
+		}),
+
+		defineResolver(Source.LightningMempoolSpace_Rest, {
+			entityType: EntityType.LightningNode_Timestamp,
+			resolve: {
+				[LightningNode_TimestampSelector.NodeTimestampMsSource]: async ({ $node, timestampMs }) => {
+					assertLightningNetwork($node.$network)
+					const { getLightningNode } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
+					return nodeFieldsFromMempoolSpaceNode(
+						await getLightningNode({
+							restBaseUrl: lightningNetworkBySlug.lightning.mempoolSpaceRestBaseUrl,
+							publicKey: $node.publicKey,
+						}),
+						timestampMs
 					)
 				}
 			},
@@ -277,19 +321,38 @@ export default {
 		})({
 			fields: {
 				shortChannelId: (snapshot) => snapshot.shortChannelId,
-				status: (snapshot) => snapshot.status,
-				capacitySats: (snapshot) => snapshot.capacitySats,
 				fundingTransactionId: (snapshot) => snapshot.fundingTransactionId,
 				fundingOutputIndex: (snapshot) => snapshot.fundingOutputIndex,
+				openedAtMs: (snapshot) => snapshot.openedAtMs,
+				$node1: (snapshot) => snapshot.$node1,
+			},
+		}),
+
+		defineResolver(Source.LightningMempoolSpace_Rest, {
+			entityType: EntityType.LightningChannel_Timestamp,
+			resolve: {
+				[LightningChannel_TimestampSelector.ChannelTimestampMsSource]: async ({ $channel, timestampMs }) => {
+					assertLightningNetwork($channel.$network)
+					const { getLightningChannel } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
+					return channelTimestampFieldsFromMempoolSpaceChannel(
+						await getLightningChannel({
+							restBaseUrl: lightningNetworkBySlug.lightning.mempoolSpaceRestBaseUrl,
+							channelId: $channel.channelId,
+						}),
+						timestampMs
+					)
+				}
+			},
+		})({
+			fields: {
+				status: (snapshot) => snapshot.status,
+				capacitySats: (snapshot) => snapshot.capacitySats,
+				feeRatePpm: (snapshot) => snapshot.feeRatePpm,
+				updatedAtMs: (snapshot) => snapshot.updatedAtMs,
 				closingTransactionId: (snapshot) => snapshot.closingTransactionId,
 				closingFeeSats: (snapshot) => snapshot.closingFeeSats,
 				closingReason: (snapshot) => snapshot.closingReason,
 				closedAtMs: (snapshot) => snapshot.closedAtMs,
-				openedAtMs: (snapshot) => snapshot.openedAtMs,
-				updatedAtMs: (snapshot) => snapshot.updatedAtMs,
-				feeRatePpm: (snapshot) => snapshot.feeRatePpm,
-				$node0: (snapshot) => snapshot.$node0,
-				$node1: (snapshot) => snapshot.$node1,
 			},
 		}),
 
@@ -358,9 +421,6 @@ export default {
 							channelId: channel.id,
 						},
 						shortChannelId: channel.short_id ?? undefined,
-						status: statusFromMempoolSpace(channel.status),
-						capacitySats: bigintFromWire(channel.capacity),
-						feeRatePpm: channel.fee_rate ?? undefined,
 						...(channel.node != null && {
 							$node1: nodeReferenceFromMempoolSpaceChannelNode(channel.node),
 						}),
@@ -385,14 +445,11 @@ export default {
 							publicKey: publicKey,
 						})
 					).slice(0, resolverContextRowLimit(context)).map((channel) => ({
-							[EntityMetaKey.Selector]: {
-								$network,
+						[EntityMetaKey.Selector]: {
+							$network,
 							channelId: String(channel.id),
 						},
 						shortChannelId: channel.short_id ?? undefined,
-						status: statusFromMempoolSpace(channel.status),
-						capacitySats: bigintFromWire(channel.capacity),
-						feeRatePpm: channel.fee_rate ?? undefined,
 						...(channel.node != null && {
 							$node1: nodeReferenceFromMempoolSpaceChannelNode(channel.node),
 						}),

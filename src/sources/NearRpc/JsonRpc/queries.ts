@@ -1,6 +1,7 @@
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
+import { TransportType } from '$/constants/TransportType.ts'
 import { jsonRpcVersion } from '$/sources/Evm/JsonRpc/constants.ts'
-import NearRpc from '$/sources/NearRpc/index.ts'
+import { nearRpcBindings } from '$/sources/NearRpc/bindings.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	NearRpcAccount,
@@ -14,6 +15,28 @@ import type {
 	NearRpcTransactionStatus,
 	NearRpcValidators,
 } from '$/sources/NearRpc/JsonRpc/types.ts'
+
+export const nearMainnetRpcEndpoints = [
+	{
+		url: nearRpcBindings[0].endpoints[0].locator,
+		transportType: TransportType.Http,
+		providerName: 'NEAR',
+	},
+] as const
+
+export const nearRpcOrigins = [
+	...new Map(
+		nearRpcBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 type JsonRpcResponse<_Result> = {
 	jsonrpc: typeof jsonRpcVersion
@@ -36,7 +59,7 @@ const nearJsonRpc = async <_Result>({
 	params: JsonValue
 }) => {
 	const response = await corsFetch(rpcUrl, {
-		origins: NearRpc.origins,
+		origins: nearRpcOrigins,
 		init: {
 			method: 'POST',
 			headers: {

@@ -1,13 +1,14 @@
 import { TransportType } from '$/constants/TransportType.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
-import NearBlocksRest from '$/sources/NearBlocks/Rest/index.ts'
-
-
-// Constants
+import { Source } from '$/sources/Source.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import { nearBlocksBindings } from '$/sources/NearBlocks/bindings.ts'
 
 export const nearBlocksMainnetRestEndpoints = [
 	{
-		url: 'https://api.nearblocks.io',
+		url: nearBlocksBindings[0].endpoints[0].locator,
 		transportType: TransportType.Http,
 		providerName: 'NearBlocks',
 	},
@@ -17,19 +18,29 @@ export const nearBlocksMainnetRestEndpoints = [
 	providerName: string
 }[]
 
-
-// Provider
+export const nearBlocksOrigins = [
+	...new Map(
+		nearBlocksBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.NearBlocks,
 	label: 'NearBlocks',
-	origins: [
-		...nearBlocksMainnetRestEndpoints.map((endpoint) => ({
-			origin: new URL(endpoint.url).origin,
-			corsEnabled: true,
-		})),
-	],
 	sources: [
-		NearBlocksRest,
+		{
+			provider: SourceProvider.NearBlocks,
+			source: Source.NearBlocks_Rest,
+			label: 'NearBlocks REST',
+		},
 	],
-} as const satisfies SourceProviderDefinition
+	bindings: nearBlocksBindings,
+} satisfies SourceProviderDefinition

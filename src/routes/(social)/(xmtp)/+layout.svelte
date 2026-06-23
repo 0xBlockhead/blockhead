@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { EntityType } from '$/schema/EntityType.ts'
-	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 
 
@@ -11,6 +10,10 @@
 
 	// State
 	let { children } = $props()
+
+
+	// Functions
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// Components
@@ -28,9 +31,14 @@
 >
 	{#snippet Summary({ open: _open })}
 		<XmtpView
-			selection={select(EntityType.XmtpNetwork, {
-				scope: 'XmtpNetwork',
-			})}
+			selection={
+				select(
+					EntityType.XmtpNetwork,
+					{
+						scope: 'XmtpNetwork',
+					}
+				)
+			}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

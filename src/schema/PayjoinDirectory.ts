@@ -1,25 +1,17 @@
 import { type } from 'arktype'
-
-import { UrlString } from '$/schema/UrlString.ts'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum PayjoinDirectorySelector {
 	DirectoryUrl = 'directoryUrl',
 }
-
 export default {
 	entityType: EntityType.PayjoinDirectory,
-
-	label: 'Payjoin directory',
-	labelPlural: 'Payjoin directories',
-
+	label: 'payjoin directory',
+	labelPlural: 'payjoin directories',
 	selectors: [
 		{
 			name: PayjoinDirectorySelector.DirectoryUrl,
@@ -28,40 +20,41 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: 'directoryUrl',
+			label: 'directory URL',
 			type: EntityFieldType.Primitive,
-			primitiveType: UrlString,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'ohttpGatewayUrl',
+			label: 'ohttp gateway URL',
 			type: EntityFieldType.Primitive,
-			primitiveType: UrlString,
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.PayjoinDirectory_Rest,
-			],
 		},
 		{
 			name: 'ohttpKeyConfig',
+			label: 'ohttp key config',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.PayjoinDirectory_Rest,
-			],
 		},
 		{
 			name: 'maxPayloadBytes',
+			label: 'max payload bytes',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.PayjoinDirectory_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: '$$blockheadSessions',
+			label: 'blockhead sessions',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.BlockheadPayjoinSession,
+			cardinality: EntityFieldCardinality.Many,
+		},
+	],
 } as const satisfies EntityDefinition

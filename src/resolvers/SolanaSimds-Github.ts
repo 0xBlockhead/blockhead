@@ -10,8 +10,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { _GlobalSelector } from '$/schema/_Global.ts'
 import { SpecificationProposalSelector } from '$/schema/SpecificationProposal.ts'
-import { SpecificationRealmSelector } from '$/schema/SpecificationRealm.ts'
-import { SpecificationProposalKindSelector } from '$/schema/SpecificationProposalKind.ts'
 
 const solanaSimdProposalRows = async (
 	entries: {
@@ -80,42 +78,6 @@ export default {
 			entityType: EntityType._Global,
 			resolve: {
 				[_GlobalSelector.Scope]: async () => {
-				const { getProposalContents } = await import('$/sources/SolanaSimds/Github/queries.ts')
-				return solanaSimdProposalRows(await getProposalContents())
-			}
-			}
-		})({
-				fields: {
-			$$proposals: (snapshot) => snapshot,
-		},
-			}),
-
-		defineResolver(Source.SolanaSimds_Github, {
-			entityType: EntityType.SpecificationRealm,
-			resolve: {
-				[SpecificationRealmSelector.Realm]: async ({ realm }) => {
-				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (realm !== SpecificationRealm.Solana) {
-					throw new Error('SolanaSimds_Github: $$proposals only supports SpecificationRealm.Solana')
-				}
-				const { getProposalContents } = await import('$/sources/SolanaSimds/Github/queries.ts')
-				return solanaSimdProposalRows(await getProposalContents())
-			}
-			}
-		})({
-				fields: {
-			$$proposals: (snapshot) => snapshot,
-		},
-			}),
-
-		defineResolver(Source.SolanaSimds_Github, {
-			entityType: EntityType.SpecificationProposalKind,
-			resolve: {
-				[SpecificationProposalKindSelector.RealmCategory]: async ({ category, realm }) => {
-				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (realm !== SpecificationRealm.Solana || category !== ProposalCategory.Simd) {
-					throw new Error('SolanaSimds_Github: $$proposals only supports Solana SIMD proposal kind')
-				}
 				const { getProposalContents } = await import('$/sources/SolanaSimds/Github/queries.ts')
 				return solanaSimdProposalRows(await getProposalContents())
 			}

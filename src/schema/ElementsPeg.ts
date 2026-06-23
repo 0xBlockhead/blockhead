@@ -1,30 +1,22 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
-
-export enum ElementsPegSelector {
-	ElementsNetworkPegTransactionIdDirection = 'elementsNetworkPegTransactionIdDirection',
-}
-
-
 export enum ElementsPegDirection {
 	PegIn = 'PegIn',
 	PegOut = 'PegOut',
 }
-
+export enum ElementsPegSelector {
+	ElementsNetworkPegTransactionIdDirection = 'elementsNetworkPegTransactionIdDirection',
+	NetworkPegTransactionIdDirection = '$network+pegTransactionId+direction',
+}
 export default {
 	entityType: EntityType.ElementsPeg,
-
-	label: 'Elements peg',
-	labelPlural: 'Elements pegs',
-
+	label: 'elements peg',
+	labelPlural: 'elements pegs',
 	selectors: [
 		{
 			name: ElementsPegSelector.ElementsNetworkPegTransactionIdDirection,
@@ -35,79 +27,69 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.ElementsNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'pegTransactionId',
+			label: 'peg transaction ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'direction',
+			label: 'direction',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(ElementsPegDirection),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$bitcoinTransaction',
+			label: 'Bitcoin transaction',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.UtxoTransaction,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Esplora_Rest,
-			],
 		},
 		{
 			name: '$elementsTransaction',
+			label: 'elements transaction',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.UtxoTransaction,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Esplora_Rest,
-			],
 		},
 		{
 			name: 'amountSats',
+			label: 'amount sats',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Esplora_Rest,
-			],
 		},
 		{
 			name: 'claimScript',
+			label: 'claim script',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Esplora_Rest,
-			],
 		},
 		{
 			name: 'pakProof',
+			label: 'pak proof',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Esplora_Rest,
-			],
 		},
 		{
-			name: 'status',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Esplora_Rest,
-			],
+			name: '$$timestamps',
+			label: 'timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.ElementsPeg_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

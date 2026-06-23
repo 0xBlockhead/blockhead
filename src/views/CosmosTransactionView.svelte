@@ -2,15 +2,131 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			{
+				label: 'transaction hash',
+			},
+			{
+				label: 'block',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					{
+						label: 'transaction hash',
+					},
+					{
+						label: 'block',
+					},
+					{
+						label: 'code/codespace',
+					},
+					{
+						label: 'gas wanted',
+					},
+					{
+						label: 'gas used',
+					},
+					{
+						label: 'fee summary',
+					},
+					'memo',
+					{
+						label: 'signer count',
+					},
+					{
+						label: 'signature count',
+					},
+					{
+						label: 'event type count',
+					},
+					{
+						label: 'message count',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Messages',
+					items: [
+						{
+							label: 'transaction SDK message rows',
+						},
+					],
+				},
+				{
+					label: 'Block',
+					items: [
+						{
+							label: 'containing Cosmos block',
+						},
+					],
+				},
+				{
+					label: 'Execution',
+					items: [
+						'code',
+						'codespace',
+						{
+							label: 'gas',
+						},
+						{
+							label: 'raw log',
+						},
+						{
+							label: 'event types',
+						},
+					],
+				},
+				{
+					label: 'Auth info',
+					items: [
+						{
+							label: 'fee amount/gas limit',
+						},
+						{
+							label: 'timeout height',
+						},
+						{
+							label: 'signer addresses',
+						},
+						{
+							label: 'public keys',
+						},
+						'signatures',
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'Cosmos SDK tx body/auth_info/tx_response',
+						},
+						{
+							label: 'CometBFT inclusion payloads',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +137,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,64 +145,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.CosmosTransaction}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.txHash}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		<TruncatedValue
-			value={selection.entitySelector.txHash}
-			format={TruncatedValueFormat.Abbr}
-		/>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection( { fields: { code: true, gasWanted: true, gasUsed: true, memo: true } })}
-			placeholderText={`Loading Cosmos Transaction...`}
-		>
-			{#snippet children(cosmosTransaction)}
-				<dl>
-					{#if cosmosTransaction.code != null}
-						<div>
-							<dt>Code</dt>
-							<dd><NumberValue value={cosmosTransaction.code} /></dd>
-						</div>
-					{/if}
-
-					{#if cosmosTransaction.gasWanted != null}
-						<div>
-							<dt>Gas Wanted</dt>
-							<dd><NumberValue value={cosmosTransaction.gasWanted} /></dd>
-						</div>
-					{/if}
-
-					{#if cosmosTransaction.gasUsed != null}
-						<div>
-							<dt>Gas Used</dt>
-							<dd><NumberValue value={cosmosTransaction.gasUsed} /></dd>
-						</div>
-					{/if}
-
-					{#if cosmosTransaction.memo != null}
-						<div>
-							<dt>Memo</dt>
-							<dd>{cosmosTransaction.memo}</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

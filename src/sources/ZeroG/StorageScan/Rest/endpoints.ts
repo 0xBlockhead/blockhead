@@ -1,0 +1,12 @@
+import { TransportType } from '$/constants/TransportType.ts'
+import { Source } from '$/sources/Source.ts'
+import { zeroGBindings } from '$/sources/ZeroG/bindings.ts'
+
+export const zeroGMainnetStorageEndpoints = zeroGBindings
+	.filter((binding) => binding.source === Source.ZeroGStorageScan_Rest)
+	.flatMap((binding) => binding.endpoints)
+	.map((endpoint) => ({
+		url: endpoint.locator,
+		transportType: TransportType.Http,
+		providerName: '0G StorageScan',
+	}))

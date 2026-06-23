@@ -1,23 +1,17 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum SolanaTransactionSelector {
 	NetworkSignature = 'networkSignature',
 }
-
 export default {
 	entityType: EntityType.SolanaTransaction,
-
-	label: 'Solana Transaction',
-	labelPlural: 'Solana Transactions',
-
+	label: 'solana transaction',
+	labelPlural: 'solana transactions',
 	selectors: [
 		{
 			name: SolanaTransactionSelector.NetworkSignature,
@@ -27,61 +21,48 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'signature',
+			label: 'signature',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$block',
+			label: 'block',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.SolanaBlock,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$feePayer',
+			label: 'fee payer',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.SolanaAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'slot',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'feeLamports',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'computeUnitsConsumed',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'status',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			name: '$$timestamps',
+			label: 'timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.SolanaTransaction_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: '$$instructions',
+			label: 'instructions',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.SolanaInstruction,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
+			cardinality: EntityFieldCardinality.Many,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

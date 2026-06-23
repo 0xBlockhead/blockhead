@@ -2,162 +2,155 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
-	import { schema } from '$/schema/index.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/EntityType.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { Source } from '$/sources/Source.ts'
-	import { stringify } from 'devalue'
-
-
-	// Context
-	import { select } from '$/routes/+layout.svelte'
-	import { resolve } from '$app/paths'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 
 
 	// State
+	const view = {
+		route: {
+			href: '/youtube/video/[videoId]',
+			dependsOn: [
+				'videoId',
+			],
+		},
+		query: {
+			sources: [
+				'Youtube_Rest',
+				'Piped_Rest',
+			],
+			openFields: [
+				'$author',
+				'$$timestamps',
+				'$$comments',
+			],
+			slot: 'YouTubeVideoQueryPolicy',
+		},
+		media: {
+			thumbnail: 'thumbnailUrl',
+			title: 'title',
+			fallbackIcon: 'video',
+			slot: 'YouTubeVideoThumbnail',
+		},
+		latest: [
+			{
+				field: '$$timestamps',
+				sort: 'timestampMs',
+				direction: 'desc',
+				view: 'YouTubeVideo_TimestampView',
+				slot: 'LatestYouTubeVideoMetrics',
+			},
+		],
+		closed: [
+			{
+				label: 'video id',
+			},
+			{
+				label: 'latest title',
+			},
+			{
+				label: 'latest description',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'video id',
+					},
+					{
+						label: 'published date',
+					},
+					{
+						label: 'duration',
+					},
+					{
+						label: 'author channel',
+					},
+					{
+						label: 'latest title',
+					},
+					{
+						label: 'latest description',
+					},
+					{
+						label: 'latest live state',
+					},
+					{
+						label: 'latest thumbnail',
+					},
+					{
+						label: 'latest view/like/comment snapshot',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Latest metadata',
+					items: [
+						{
+							label: 'latest video metadata observation',
+						},
+					],
+				},
+				{
+					label: 'Comments',
+					items: [
+						{
+							label: 'video comments',
+						},
+					],
+				},
+				{
+					label: 'Author',
+					items: [
+						{
+							label: 'author channel',
+						},
+					],
+				},
+				{
+					label: 'Metric snapshots',
+					items: [
+						{
+							label: 'video metric observations',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
-		href = resolve('/(social)/(youtube)/youtube/video/[videoId]', {
-			videoId: selection.entitySelector.videoId,
-		}),
-		layout = EntityLayout.SummaryDetails,
-		open = $bindable(
-			layout === EntityLayout.SummaryDetails,
-		),
+		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.YouTubeVideo>
-			href?: string
-			layout?: EntityLayout
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
+			| 'layout'
 			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
-	const video = $derived(
-				selection(({ sources: [
-						Source.Constants_Internal,
-					], fields: {
-					title: true,
-					publishedAt: true,
-					publishedAtMs: true,
-					thumbnailUrl: true,
-					$author: true,
-				} }),
-			)
-		)
-
-	const idKey = $derived(stringify(selection.entitySelector))
-
-
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import IconComponent from '$/components/Icon.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import YouTubeChannelView from '$/views/YouTubeChannelView.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.YouTubeVideo}
 	entitySelector={selection.entitySelector}
-	href={href}
-	{layout}
 	bind:open
 	{...EntityViewProps}
->
-	{#snippet Icon()}
-		<ResourceBoundary resource={video}>
-			{#snippet children(video)}
-				{#if video.thumbnailUrl}
-					<IconComponent
-						src={video.thumbnailUrl}
-						alt={video.title ?? selection.entitySelector.videoId}
-					/>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Value()}
-		<span>
-			{selection.entitySelector.videoId}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		<ResourceBoundary
-			resource={video}
-			placeholderText="Loading video…"
-		>
-			{#snippet children(video)}
-				{video.title ?? selection.entitySelector.videoId}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Video ids are fixed 11-character watch keys; metadata comes from the Data API or Piped stream payloads.
-		</p>
-		<p>
-			publishedAt is ISO-8601 from Google; Piped may surface a different time string for the same upload.
-		</p>
-		{/snippet}
-
-		{#snippet Content({})}
-			<dl data-column-item="center">
-				{#if open}
-					<div>
-						<dt>Published</dt>
-					<dd>
-						<ResourceBoundary
-							resource={video}
-							placeholderText="Loading video…"
-						>
-							{#snippet children(video)}
-								{#if video.publishedAtMs != null}
-									<Timestamp timestamp={video.publishedAtMs} />
-								{:else if video.publishedAt != null}
-									{video.publishedAt}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-
-			{#if open}
-				<div>
-					<dt>Channel</dt>
-					<dd>
-						<ResourceBoundary
-							resource={video}
-							placeholderText="Loading video…"
-						>
-							{#snippet children(video)}
-								{#if video.$author}
-									<YouTubeChannelView
-										selection={select(EntityType.YouTubeChannel, video.$author[EntityMetaKey.Selector])}
-										layout={EntityLayout.Title}
-
-										open={false}
-										/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-
-		</dl>
-	{/snippet}
-	</EntityView>
+	{view}
+/>

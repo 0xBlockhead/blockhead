@@ -1,16 +1,19 @@
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
-import DogecoinCoreJsonRpc from '$/sources/DogecoinCore/JsonRpc/index.ts'
+import { Source } from '$/sources/Source.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import { dogecoinCoreBindings } from '$/sources/DogecoinCore/bindings.ts'
 
 export default {
 	provider: SourceProvider.DogecoinCore,
 	label: 'Dogecoin Core',
-	origins: [
+	sources: [
 		{
-			origin: 'http://127.0.0.1:22555',
-			corsEnabled: false,
+			provider: SourceProvider.DogecoinCore,
+			source: Source.DogecoinCore_JsonRpc,
+			label: 'Dogecoin Core JSON-RPC',
 		},
 	],
-	sources: [
-		DogecoinCoreJsonRpc,
-	],
-} as const satisfies SourceProviderDefinition
+	bindings: dogecoinCoreBindings,
+} satisfies SourceProviderDefinition

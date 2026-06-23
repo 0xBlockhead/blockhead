@@ -1,5 +1,9 @@
-import { corsFetch, getJson, throwHttpError } from '$/lib/http.ts'
-import TronGrid from '$/sources/TronGrid/index.ts'
+import {
+	corsFetch,
+	getJson,
+	throwHttpError,
+} from '$/lib/http.ts'
+import { tronGridBindings } from '$/sources/TronGrid/bindings.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	TronGridAccountTransactions,
@@ -13,6 +17,27 @@ import type {
 	TronNodeWitnesses,
 } from '$/sources/TronGrid/Rest/types.ts'
 
+export const tronGridRestEndpoints = [
+	{
+		slug: 'trongrid',
+		restBaseUrl: tronGridBindings[0].endpoints[0].locator,
+	},
+] as const
+
+export const tronGridOrigins = [
+	...new Map(
+		tronGridBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
+
 const base = (restBaseUrl: string) => restBaseUrl.replace(/\/$/, '')
 
 const tronGridPost = async <_Result>({
@@ -25,7 +50,7 @@ const tronGridPost = async <_Result>({
 	body: JsonValue
 }) => {
 	const response = await corsFetch(`${base(restBaseUrl)}/${path}`, {
-		origins: TronGrid.origins,
+		origins: tronGridOrigins,
 		init: {
 			method: 'POST',
 			headers: {
@@ -130,7 +155,7 @@ export const getAccountTransactions = ({
 }) => (
 	getJson<TronGridAccountTransactions>(
 		`${base(restBaseUrl)}/v1/accounts/${address}/transactions?limit=${limit.toString()}`,
-		{ origins: TronGrid.origins  }
+		{ origins: tronGridOrigins }
 	)
 )
 
@@ -183,6 +208,6 @@ export const getAccountTrc20Transfers = ({
 }) => (
 	getJson<TronGridTrc20Transfers>(
 		`${base(restBaseUrl)}/v1/accounts/${address}/transactions/trc20?limit=${limit.toString()}`,
-		{ origins: TronGrid.origins  }
+		{ origins: tronGridOrigins }
 	)
 )

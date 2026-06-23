@@ -2,100 +2,140 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
-	import { schema } from '$/schema/index.ts'
-	import { EntityType } from '$/schema/EntityType.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Context
-	import { select } from '$/routes/+layout.svelte'
-	import { resolve } from '$app/paths'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 
 
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'position id',
+			},
+			{
+				label: 'network derived from pool',
+			},
+			{
+				label: 'pool',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'position id',
+					},
+					{
+						label: 'network derived from pool',
+					},
+					{
+						label: 'pool',
+					},
+					{
+						label: 'owner',
+					},
+					{
+						label: 'tick lower',
+					},
+					{
+						label: 'tick upper',
+					},
+					'liquidity',
+					{
+						label: 'token0 owed',
+					},
+					{
+						label: 'token1 owed',
+					},
+					{
+						label: 'token id',
+					},
+					'origin',
+					{
+						label: 'created timestamp',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Pool',
+					items: [
+						{
+							label: 'parent liquidity pool',
+						},
+					],
+				},
+				{
+					label: 'Owner',
+					items: [
+						{
+							label: 'owner EVM account',
+						},
+					],
+				},
+				{
+					label: 'Range/accounting',
+					items: [
+						{
+							label: 'ticks',
+						},
+						'liquidity',
+						{
+							label: 'owed token amounts',
+						},
+					],
+				},
+				{
+					label: 'Compatibility warning',
+					items: [
+						{
+							label: 'not CEX margin',
+						},
+						{
+							label: 'borrow APR',
+						},
+						{
+							label: 'liquidation',
+						},
+						{
+							label: 'or Dexscreener pool leverage',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
-		href = resolve('/(assets)/(leverage)/position/[positionId]', {
-			positionId: selection.entitySelector.id,
-		}),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.Leverage>
-			href?: string
 			open?: boolean
 		},
-		never
+		Pick<
+			ComponentProps<typeof EntityView2>,
+			| 'layout'
+			| 'showTypeAnnotation'
+		>
 	> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import EvmNetworkView from '$/views/EvmNetworkView.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.Leverage}
 	entitySelector={selection.entitySelector}
-	href={href}
-	{open}
+	bind:open
 	{...EntityViewProps}
->
-	{#snippet Value()}
-		<span data-text="font-monospace">
-			{selection.entitySelector.id}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		<span data-text="muted">
-			{#if Value}
-			{@render Value()}
-			{/if}
-		</span>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Concentrated-liquidity LP position accounting: owner, tick range, in-range liquidity, uncollected fees, optional ERC-721 token id.
-		</p>
-		<p>
-			Not CEX margin, borrow APR, or liquidation. Requires an on-chain resolver—Dexscreener pool leverages do not supply position-scoped state.
-		</p>
-		<p>
-			No position indexer is wired in this app yet.
-		</p>
-	{/snippet}
-
-	{#snippet Content({})}
-		<dl data-column-item="center">
-			<div>
-				<dt>Network</dt>
-				<dd>
-					<EvmNetworkView
-						selection={select(EntityType.EvmNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Value}
-					/>
-				</dd>
-			</div>
-
-			<div>
-				<dt>Position</dt>
-				<dd>
-					<span data-text="font-monospace">{selection.entitySelector.id}</span>
-				</dd>
-			</div>
-
-			{#if open}
-				<div>
-					<dt>Status</dt>
-					<dd>No position indexer is wired in this app yet.</dd>
-				</div>
-			{/if}
-		</dl>
-	{/snippet}
-
-</EntityView>
+	{view}
+/>

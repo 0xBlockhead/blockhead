@@ -1,25 +1,18 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import BittensorSubnet from '$/schema/BittensorSubnet.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum BittensorNeuronSelector {
 	BittensorSubnetUid = 'bittensorSubnetUid',
+	SubnetUid = '$subnet+uid',
 }
-
 export default {
 	entityType: EntityType.BittensorNeuron,
-
-	label: 'Bittensor neuron',
-	labelPlural: 'Bittensor neurons',
-
+	label: 'bittensor neuron',
+	labelPlural: 'bittensor neurons',
 	selectors: [
 		{
 			name: BittensorNeuronSelector.BittensorSubnetUid,
@@ -29,22 +22,20 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$subnet',
+			label: 'subnet',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.BittensorSubnet,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'uid',
+			label: 'UID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Bittensor_JsonRpc,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

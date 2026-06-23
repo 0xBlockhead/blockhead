@@ -2,13 +2,72 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'transaction',
+			},
+			{
+				label: 'input index',
+			},
+			{
+				label: 'key image',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'transaction',
+					},
+					{
+						label: 'input index',
+					},
+					{
+						label: 'key image',
+					},
+					{
+						label: 'ring status',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Ring',
+					items: [
+						{
+							label: 'ring/decoy set for this key image',
+						},
+					],
+				},
+				{
+					label: 'Transaction',
+					items: [
+						{
+							label: 'parent Monero transaction',
+						},
+					],
+				},
+				{
+					label: 'Wallet interpretation',
+					items: [
+						{
+							label: 'BlockheadMoneroTransferState only when a connected wallet links this key image',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -19,7 +78,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -27,24 +86,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.MoneroKeyImage}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.keyImage}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		<TruncatedValue
-			value={selection.entitySelector.keyImage}
-			format={TruncatedValueFormat.Abbr}
-		/>
-
-	{/snippet}
-</EntityView>
+	{view}
+/>

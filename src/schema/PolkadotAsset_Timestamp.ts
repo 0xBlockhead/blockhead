@@ -1,0 +1,146 @@
+import { type } from 'arktype'
+import {
+	EntityFieldCardinality,
+	EntityFieldType,
+	type EntityDefinition,
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+export enum PolkadotAsset_TimestampSelector {
+	AssetTimestampMsSource = '$asset+timestampMs+source',
+}
+export default {
+	entityType: EntityType.PolkadotAsset_Timestamp,
+	label: 'polkadot asset timestamp',
+	labelPlural: 'polkadot asset observations',
+	selectors: [
+		{
+			name: PolkadotAsset_TimestampSelector.AssetTimestampMsSource,
+			fields: [
+				'$asset',
+				'timestampMs',
+				'source',
+			],
+		},
+	],
+	fields: [
+		{
+			name: '$asset',
+			label: 'asset',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.PolkadotAsset,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'source',
+			label: 'Source',
+			description: 'The source that produced this observation.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'blockNumber',
+			label: 'Block number',
+			description: 'The block height or number in its network.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("bigint"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'blockHash',
+			label: 'Block hash',
+			description: 'The hash that identifies the block in its network.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'supply',
+			label: 'supply',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("bigint"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'holderCount',
+			label: 'holder count',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'status',
+			label: 'status',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'symbol',
+			label: 'Symbol',
+			description: 'The short ticker or symbol used for display.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'name',
+			label: 'Name',
+			description: 'The human-readable name of the subject.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'decimals',
+			label: 'Decimals',
+			description: 'The number of decimal places used to display the amount.',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'existentialDepositPlancks',
+			label: 'existential deposit plancks',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("bigint"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'owner',
+			label: 'owner',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'issuer',
+			label: 'issuer',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'admin',
+			label: 'admin',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'freezer',
+			label: 'freezer',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+	],
+} as const satisfies EntityDefinition

@@ -2,315 +2,120 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
-	import { stringify } from 'devalue'
-
-
-	// Context
-	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
-	import { resolve } from '$app/paths'
 
 
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'feed URL',
+			},
+			{
+				label: 'GUID',
+			},
+			'title',
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'feed URL',
+					},
+					{
+						label: 'GUID',
+					},
+					{
+						label: 'feed ref',
+					},
+					'title',
+					{
+						label: 'published/updated time',
+					},
+					'author',
+				],
+				[
+					'link',
+					'categories',
+					{
+						label: 'enclosure URL',
+					},
+					{
+						label: 'comments URL',
+					},
+					{
+						label: 'content/description presence',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Content',
+					items: [
+						{
+							label: 'description/content rendered as syndication HTML',
+						},
+					],
+				},
+				{
+					label: 'Feed',
+					items: [
+						{
+							label: 'parent RSS feed',
+						},
+					],
+				},
+				{
+					label: 'Linked media',
+					items: [
+						{
+							label: 'enclosure URL and comments URL',
+						},
+					],
+				},
+				{
+					label: 'Content observations',
+					items: [
+						{
+							label: 'RssItem_Timestamp target rows when implemented',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
-		href = resolve(
-			'/(social)/(rss)/rss/item/[feedKey]/[guid]',
-			{
-				feedKey: encodeURIComponent(selection.entitySelector.feedUrl),
-				guid: encodeURIComponent(selection.entitySelector.guid),
-			},
-		),
-		layout,
-		open = $bindable(
-			!(getIsInsideEntityList() ?? false),
-		),
+		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.RssItem>
-			href?: string
-			layout?: import('$/components/EntityView.svelte').EntityLayout
 			open?: boolean
 		},
-		never
+		Pick<
+			ComponentProps<typeof EntityView2>,
+			| 'layout'
+			| 'showTypeAnnotation'
+		>
 	> = $props()
 
 
-	import { syndicationHtmlToSafeHtml } from '$/lib/markdown.ts'
-	import { select } from '$/routes/+layout.svelte'
-
-	const item = $derived(selection( { sources: [
-				Source.Rss_Rest,
-			], fields: { title: true, link: true, publishedAt: true, $feed: true, ...(open ? ({ description: true, content: true, author: true, updatedAt: true, categories: true, enclosureUrl: true, commentsUrl: true }) : ({  })) } }))
-
-
 	// Components
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import RssFeedView from '$/views/RssFeedView.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.RssItem}
 	entitySelector={selection.entitySelector}
-	href={href}
-	{layout}
 	bind:open
 	{...EntityViewProps}
->
-	{#snippet Value()}
-		<TruncatedValue
-			value={selection.entitySelector.guid}
-			format={TruncatedValueFormat.Visual}
-		/>
-	{/snippet}
-
-	{#snippet Title()}
-		<ResourceBoundary
-			resource={item}
-			placeholderText="Loading item…"
-		>
-			{#snippet children(item)}
-				{item.title ?? selection.entitySelector.guid}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet HeadingAfter()}
-		<ResourceBoundary
-			resource={item}
-		>
-			{#snippet children(item)}
-				{#if item.publishedAt != null}
-					<span data-text="muted">
-						<Timestamp
-							timestamp={item.publishedAt}
-						/>
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A syndicated RSS / Atom entry keyed by feedUrl + guid within its source feed.
-		</p>
-		<p>
-			description is the summary; content is the full encoded body when the feed provides it. publishedAt is the syndication date.
-		</p>
-	{/snippet}
-
-	{#snippet Content({})}
-		<ResourceBoundary
-			resource={item}
-			placeholderText="Loading item…"
-		>
-			{#snippet children(item)}
-				<dl data-column-item="center">
-					<div>
-						<dt>GUID</dt>
-						<dd>
-							<TruncatedValue
-								endLength={12}
-								format={TruncatedValueFormat.Visual}
-								startLength={20}
-								value={selection.entitySelector.guid}
-							/>
-						</dd>
-					</div>
-
-					{#if item.$feed}
-						<div>
-							<dt>Feed</dt>
-							<dd>
-								<RssFeedView
-									selection={select(EntityType.RssFeed, item.$feed[EntityMetaKey.Selector])}
-									layout={EntityLayout.Value}
-
-									open={false}
-									/>
-							</dd>
-						</div>
-					{/if}
-
-					{#if item.author}
-						<div>
-							<dt>Author</dt>
-							<dd>{item.author}</dd>
-						</div>
-					{/if}
-
-					{#if item.link}
-						<div>
-							<dt>Link</dt>
-							<dd>
-								<a
-									href={item.link}
-									rel="noreferrer"
-									target="_blank"
-								>{item.link}</a>
-							</dd>
-						</div>
-					{/if}
-
-					{#if (
-						open
-						&& item.publishedAt != null
-					)}
-						<div>
-							<dt>Published</dt>
-							<dd>
-								<Timestamp
-									timestamp={item.publishedAt}
-								/>
-							</dd>
-						</div>
-					{/if}
-
-					{#if (
-						open
-						&& item.updatedAt != null
-					)}
-						<div>
-							<dt>Updated</dt>
-							<dd>
-								<Timestamp
-									timestamp={item.updatedAt}
-								/>
-							</dd>
-						</div>
-					{/if}
-
-					{#if (
-						open
-						&& item.categories
-					)}
-						<div>
-							<dt>Categories</dt>
-							<dd>{item.categories.join(', ')}</dd>
-						</div>
-					{/if}
-
-					{#if (
-						open
-						&& item.enclosureUrl
-					)}
-						<div>
-							<dt>Enclosure</dt>
-							<dd>
-								<a
-									href={item.enclosureUrl}
-									rel="noreferrer"
-									target="_blank"
-								>{item.enclosureUrl}</a>
-							</dd>
-						</div>
-					{/if}
-
-					{#if (
-						open
-						&& item.commentsUrl
-					)}
-						<div>
-							<dt>Comments</dt>
-							<dd>
-								<a
-									href={item.commentsUrl}
-									rel="noreferrer"
-									target="_blank"
-								>{item.commentsUrl}</a>
-							</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Details({
-		open: _open,
-	})}
-		{@const idKey = stringify(selection.entitySelector)}
-		<CollapsibleTabs
-			id={`${idKey}:carousel-item`}
-			sectionIdPrefix={idKey}
-			sections={[
-				{ id: 'description', label: 'Description' },
-				{ id: 'content', label: 'Content' },
-			]}
-			data-card
-		>
-			{#snippet Summary({ open: _summaryOpen })}
-				<header
-					data-row-item="flexible"
-					data-row="wrap gap-4"
-				>
-					<HeadingComponent>
-						Item detail
-					</HeadingComponent>
-				</header>
-			{/snippet}
-
-			{#snippet SectionDescription({ id, label })}
-				<ResourceBoundary
-					resource={item}
-					placeholderText="Loading item…"
-				>
-					{#snippet children(item)}
-						{#if item.description}
-							<div class="rss-html">
-								{@html syndicationHtmlToSafeHtml(item.description)}
-							</div>
-						{:else}
-							<p data-text="muted">No description.</p>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionContent({ id, label })}
-				<ResourceBoundary
-					resource={item}
-					placeholderText="Loading item…"
-				>
-					{#snippet children(item)}
-						{#if item.content}
-							<div class="rss-html">
-								{@html syndicationHtmlToSafeHtml(item.content)}
-							</div>
-						{:else}
-							<p data-text="muted">No full content.</p>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-	</CollapsibleTabs>
-	{/snippet}
-</EntityView>
-
-
-<style>
-	.rss-html {
-		:global(pre) {
-			white-space: pre-wrap;
-			word-break: break-word;
-		}
-
-		:global(img) {
-			max-width: 100%;
-			height: auto;
-		}
-	}
-</style>
+	{view}
+/>

@@ -1,0 +1,46 @@
+post:
+  operationId: "submitSyncCommitteeSelections"
+  summary: Determine if a distributed validator has been selected to make a sync committee contribution
+  description: |
+    Submit sync committee selections to a DVT middleware client. It returns the threshold aggregated sync 
+    committee selection. This endpoint should be used by a validator client running as part of a distributed 
+    validator cluster, and is implemented by a distributed validator middleware client. This endpoint is 
+    used to exchange partial selection proofs (slot signatures) for combined/aggregated selection proofs to 
+    allow a validator client to correctly determine if any of its validators has been selected to perform a 
+    sync committee contribution (sync aggregation) duty in a slot. Validator clients running in a distributed validator cluster must query this endpoint
+    at the start of each slot for all validators that are included in the current sync committee. Consensus
+    clients need not support this endpoint and may return a 501.
+  tags:
+    - Validator
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          title: SyncCommitteeSelectionRequest
+          type: array
+          items:
+            $ref: '../../beacon-node-oapi.yaml#/components/schemas/SyncCommitteeSelection'
+  responses:
+    "200":
+      description: |
+        Returns the threshold aggregated sync committee selection proofs.
+      content:
+        application/json:
+          schema:
+            title: SyncCommitteeSelectionResponse
+            type: object
+            required: [data]
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: '../../beacon-node-oapi.yaml#/components/schemas/SyncCommitteeSelection'
+    "400":
+      $ref: '../../beacon-node-oapi.yaml#/components/responses/InvalidRequest'
+    "500":
+      $ref: '../../beacon-node-oapi.yaml#/components/responses/InternalError'
+    "501":
+      $ref: '../../beacon-node-oapi.yaml#/components/responses/NotImplementedError'
+    "503":
+      $ref: '../../beacon-node-oapi.yaml#/components/responses/CurrentlySyncing'

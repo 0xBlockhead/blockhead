@@ -2,15 +2,94 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			{
+				label: 'transaction id',
+			},
+			{
+				label: 'transfer index',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					{
+						label: 'transaction id',
+					},
+					{
+						label: 'transfer index',
+					},
+					{
+						label: 'token',
+					},
+					'standard',
+					{
+						label: 'from account',
+					},
+					{
+						label: 'to account',
+					},
+					'amount',
+					{
+						label: 'timestamp',
+					},
+					{
+						label: 'transaction ref',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Transaction',
+					items: [
+						{
+							label: 'containing transaction',
+						},
+					],
+				},
+				{
+					label: 'Token',
+					items: [
+						{
+							label: 'token identity',
+						},
+					],
+				},
+				{
+					label: 'From',
+					items: [
+						{
+							label: 'sender account',
+						},
+					],
+				},
+				{
+					label: 'To',
+					items: [
+						{
+							label: 'recipient account',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +100,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,56 +108,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.TronTokenTransfer}
 	entitySelector={selection.entitySelector}
-	title={`${selection.entitySelector.transactionId}:${selection.entitySelector.transferIndex.toString()}`}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		Transfer {selection.entitySelector.transferIndex.toString()}
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection(
-					({ fields: { standard: true, amount: true, timestampMs: true } }),
-				)}
-			placeholderText="Loading TRON token transfer..."
-		>
-			{#snippet children(transfer)}
-				<dl data-column-item="center">
-					{#if transfer.standard != null}
-						<div>
-							<dt>Standard</dt>
-							<dd>{transfer.standard}</dd>
-						</div>
-					{/if}
-
-					{#if transfer.amount != null}
-						<div>
-							<dt>Amount</dt>
-							<dd><NumberValue value={transfer.amount} /></dd>
-						</div>
-					{/if}
-
-					{#if transfer.timestampMs != null}
-						<div>
-							<dt>Timestamp</dt>
-							<dd><Timestamp timestamp={transfer.timestampMs} /></dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

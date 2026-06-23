@@ -2,15 +2,92 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'validator account',
+			},
+			{
+				label: 'public key',
+			},
+			{
+				label: 'latest stake/status/performance observation',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'validator account',
+					},
+					{
+						label: 'public key',
+					},
+					{
+						label: 'latest stake/status/performance observation',
+					},
+					{
+						label: 'account link',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Validator observations',
+					items: [
+						{
+							label: 'epoch-scoped validator-set observations',
+						},
+					],
+				},
+				{
+					label: 'Account',
+					items: [
+						{
+							label: 'validator NEAR account',
+						},
+					],
+				},
+				{
+					label: 'Network',
+					items: [
+						{
+							label: 'parent NEAR network',
+						},
+					],
+				},
+				{
+					label: 'Epoch groups',
+					items: [
+						{
+							label: 'current',
+						},
+						{
+							label: 'next',
+						},
+						{
+							label: 'proposal',
+						},
+						{
+							label: 'fisherman',
+						},
+						{
+							label: 'kickout facets when source payloads expose them',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +98,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,56 +106,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.NearValidator}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.accountId}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		<TruncatedValue
-			value={selection.entitySelector.accountId}
-			format={TruncatedValueFormat.Abbr}
-		/>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection(
-					({ fields: { publicKey: true, stakeYoctoNear: true } }),
-				)}
-			placeholderText={`Loading NEAR Validator...`}
-		>
-			{#snippet children(nearValidator)}
-				<dl>
-					{#if nearValidator.publicKey != null}
-						<div>
-							<dt>Public Key</dt>
-							<dd>
-								<TruncatedValue
-									value={nearValidator.publicKey}
-									format={TruncatedValueFormat.Abbr}
-								/></dd>
-						</div>
-					{/if}
-
-					{#if nearValidator.stakeYoctoNear != null}
-						<div>
-							<dt>Stake Yocto Near</dt>
-							<dd><NumberValue value={nearValidator.stakeYoctoNear} /> yoctoNEAR</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

@@ -1,34 +1,48 @@
-import { type as arktype } from 'arktype'
+import { Source } from '$/sources/Source.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import {
+	lightningLndBindings,
+	lightningLndPublicEnv,
+} from '$/sources/LightningLnd/bindings.ts'
 
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
-import LightningLndRest from '$/sources/LightningLnd/Rest/index.ts'
+export const lightningLndOrigins = [
+	...new Map(
+		lightningLndBindings
+			.flatMap((binding) => binding.endpoints)
+			.flatMap((endpoint) => (
+				endpoint.origin == null ?
+					[]
+				:
+					[[
+						endpoint.origin,
+						{
+							origin: endpoint.origin,
+							corsEnabled: endpoint.corsEnabled === true,
+						},
+					]]
+			))
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.LightningLnd,
 	label: 'LND',
-	env: arktype({
-		PUBLIC_LND_MACAROON_HEX: 'string',
-		PUBLIC_LND_REST_BASE_URL: 'string',
-	}),
-	origins: [
-		{
-			origin: 'https://127.0.0.1:8080',
-			corsEnabled: false,
-		},
-		{
-			origin: 'http://127.0.0.1:8080',
-			corsEnabled: false,
-		},
-		{
-			origin: 'https://localhost:8080',
-			corsEnabled: false,
-		},
-		{
-			origin: 'http://localhost:8080',
-			corsEnabled: false,
-		},
-	],
+	env: lightningLndPublicEnv,
 	sources: [
-		LightningLndRest,
+		{
+			provider: SourceProvider.LightningLnd,
+			source: Source.LightningLnd_Grpc,
+			label: 'LND gRPC',
+		},
+		{
+			provider: SourceProvider.LightningLnd,
+			source: Source.LightningLnd_Rest,
+			label: 'LND REST',
+			env: lightningLndPublicEnv,
+		},
 	],
-} as const satisfies SourceProviderDefinition
+	bindings: lightningLndBindings,
+} satisfies SourceProviderDefinition

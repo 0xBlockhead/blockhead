@@ -2,15 +2,92 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'chunk hash',
+			},
+			{
+				label: 'block',
+			},
+			{
+				label: 'shard id',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'chunk hash',
+					},
+					{
+						label: 'block',
+					},
+					{
+						label: 'shard id',
+					},
+					{
+						label: 'gas used',
+					},
+					{
+						label: 'transaction count',
+					},
+					{
+						label: 'shard/block context',
+					},
+					{
+						label: 'raw chunk evidence',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Block',
+					items: [
+						{
+							label: 'NearBlock',
+						},
+					],
+				},
+				{
+					label: 'Shard execution',
+					items: [
+						{
+							label: 'shard id',
+						},
+						{
+							label: 'gas used',
+						},
+					],
+				},
+				{
+					label: 'Transactions',
+					items: [
+						{
+							label: 'NearTransaction list',
+						},
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'NEAR RPC chunk payload',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +98,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,60 +106,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.NearChunk}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.chunkHash}
-	idDragPlainText={selection.entitySelector.chunkHash}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Value()}
-		<TruncatedValue
-			value={selection.entitySelector.chunkHash}
-			format={TruncatedValueFormat.Abbr}
-		/>
-	{/snippet}
-
-	{#snippet Title()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>Chunk </span>
-			{#if Value}
-			{@render Value()}
-					{/if}
-		</span>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection( { fields: { shardId: true, gasUsed: true } })}
-			placeholderText={`Loading NEAR Chunk...`}
-		>
-			{#snippet children(nearChunk)}
-				<dl>
-					{#if nearChunk.shardId != null}
-						<div>
-							<dt>Shard ID</dt>
-							<dd><NumberValue value={nearChunk.shardId} /></dd>
-						</div>
-					{/if}
-
-					{#if nearChunk.gasUsed != null}
-						<div>
-							<dt>Gas Used</dt>
-							<dd><NumberValue value={nearChunk.gasUsed} /></dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

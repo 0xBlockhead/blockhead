@@ -1,104 +1,66 @@
 <script lang="ts">
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { resolve } from '$app/paths'
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
+	const listView = {
+		entityType: EntityType.FarcasterUser,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
 		selection,
-		id = 'users',
-		title = 'Users',
+		title,
 		open = $bindable(true),
-		collapsible = true,
-		CollapsibleProps = {},
-		href,
-	}: {
-		selection: EntityProxyEntitiesResource<typeof schema, EntityType.FarcasterUser>
-		id?: string
-		title?: string
-		CollapsibleProps?: ComponentProps<typeof EntitiesList>['CollapsibleProps']
-		href?: ComponentProps<typeof EntitiesList>['href']
-		open?: boolean
-		collapsible?: boolean
-	} = $props()
+		id = 'FarcasterUsers',
+		href = '',
+		...EntitiesListProps
+	}: WithRest<
+		{
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.FarcasterUser>
+			title?: string
+			open?: boolean
+			id?: string
+			href?: string
+		},
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
+	> = $props()
+
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import FarcasterUserView from '$/views/FarcasterUserView.svelte'
 </script>
 
 
 <EntitiesList
-	{CollapsibleProps}
-	entityType={EntityType.FarcasterUser}
-	{id}
+	entityType={listView.entityType}
 	{title}
 	bind:open
-	{collapsible}
-	{href}
+	{id}
+	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
+	{...EntitiesListProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Farcaster users are numeric FIDs registered through Hubs and Snapchain-style sync; directory APIs enumerate who exists on that network view.
-		</p>
-		<p>
-			Human-readable fnames resolve per profile; empty directories usually mean the indexer has not caught up yet.
-		</p>
-	{/snippet}
-
-	{#snippet Empty()}
-		<p data-text="muted">
-			No Farcaster users in this farcasterUsers yet.
-		</p>
-	{/snippet}
-
-	{#snippet body({ open: _bodyOpen })}
-			{#if open}
-				<ResourceBoundary
-					resource={selection({
-						sources: [Source.Snapchain_Rest],
-					})}
-					placeholderText="Loading Farcaster users…"
-				>
-					{#snippet children(users)}
-					<EntitiesList
-						collapsible={false}
-						showSummary={false}
-						entityType={EntityType.FarcasterUser}
-						id={`${id}-items`}
-						{title}
-						open={true}
-							items={users.values}
-						getKey={(farcasterUser) => stringify(farcasterUser[EntityMetaKey.Selector])}
-						getSortValue={(farcasterUser) => farcasterUser[EntityMetaKey.Selector].fid}
-						placeholderText="Loading Farcaster users…"
-					>
-						{#snippet Empty()}
-							<p data-text="muted">
-								No Farcaster users in this farcasterUsers yet.
-							</p>
-						{/snippet}
-
-						{#snippet Item({ item })}
-							<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId=farcasterFid]', {
-								userId: String(item[EntityMetaKey.Selector].fid),
-							})}>
-								FID {String(item[EntityMetaKey.Selector].fid)}
-							</a>
-						{/snippet}
-					</EntitiesList>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+	{#snippet Item({ item })}
+		<FarcasterUserView
+			selection={select(EntityType.FarcasterUser, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

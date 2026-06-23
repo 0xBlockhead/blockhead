@@ -1,23 +1,30 @@
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
+	const listView = {
+		entityType: EntityType.FilecoinMiner,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
 		selection,
-		title = 'Miners',
+		title,
 		open = $bindable(true),
-		id,
+		id = 'FilecoinMiners',
 		href = '',
 		...EntitiesListProps
 	}: WithRest<
@@ -25,7 +32,7 @@
 			selection: EntityProxyEntitiesResource<typeof schema, EntityType.FilecoinMiner>
 			title?: string
 			open?: boolean
-			id: string
+			id?: string
 			href?: string
 		},
 		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
@@ -34,65 +41,26 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import FilecoinMinerView from '$/views/FilecoinMinerView.svelte'
 </script>
 
 
 <EntitiesList
-	entityType={EntityType.FilecoinMiner}
+	entityType={listView.entityType}
 	{title}
 	bind:open
 	{id}
 	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Filecoin miners provide storage power and sector commitments to the network.
-		</p>
-	{/snippet}
-
-	{#snippet body()}
-		{#if open}
-			<ResourceBoundary resource={selection({
-					sources: [
-						Source.Lotus_JsonRpc,
-						Source.Filfox_Rest,
-					],
-					limit: 32,
-				})} placeholderText="Loading miners…">
-				{#snippet children(miners)}
-					<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.FilecoinMiner}
-				id={`${id}-items`}
-				href={href}
-				getKey={(miner) => stringify(miner.entitySelector)}
-				getSortValue={(miner) => stringify(miner.entitySelector)}
-				open={true}
-				items={miners.entities}
-				{title}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No miners listed yet.
-					</p>
-				{/snippet}
-
-				{#snippet Item({ item })}
-					<FilecoinMinerView
-						selection={select(EntityType.FilecoinMiner, item.entitySelector)}
-						layout={EntityLayout.Summary}
-
-					/>
-				{/snippet}
-					</EntitiesList>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+	{#snippet Item({ item })}
+		<FilecoinMinerView
+			selection={select(EntityType.FilecoinMiner, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

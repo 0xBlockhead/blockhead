@@ -1,23 +1,30 @@
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
+	const listView = {
+		entityType: EntityType.BittensorNeuron,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
 		selection,
-		title = 'Neurons',
+		title,
 		open = $bindable(true),
-		id,
+		id = 'BittensorNeurons',
 		href = '',
 		...EntitiesListProps
 	}: WithRest<
@@ -25,76 +32,35 @@
 			selection: EntityProxyEntitiesResource<typeof schema, EntityType.BittensorNeuron>
 			title?: string
 			open?: boolean
-			id: string
+			id?: string
 			href?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'CollapsibleProps'
-		>
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import BittensorNeuronView from '$/views/BittensorNeuronView.svelte'
 </script>
 
 
 <EntitiesList
-	entityType={EntityType.BittensorNeuron}
+	entityType={listView.entityType}
 	{title}
 	bind:open
 	{id}
 	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Neurons are subnet participants addressed by uid within a subnet metagraph.
-		</p>
-	{/snippet}
-
-	{#snippet body()}
-		{#if open}
-			<ResourceBoundary
-				resource={selection({
-						sources: [Source.Bittensor_JsonRpc],
-						limit: 32,
-					})}
-				placeholderText="Loading neurons…"
-			>
-				{#snippet children(neurons)}
-					<EntitiesList
-						collapsible={false}
-						showSummary={false}
-						entityType={EntityType.BittensorNeuron}
-						id={`${id}-items`}
-						href={href}
-						getKey={(neuron) => stringify(neuron.entitySelector)}
-						getSortValue={(neuron) => neuron.entitySelector.uid}
-						open={true}
-						items={neurons.entities}
-						{title}
-						UnorderedListProps={{ orientation: ListOrientation.Column }}
-					>
-						{#snippet Empty()}
-							<p data-text="muted">
-								No neurons listed yet.
-							</p>
-						{/snippet}
-
-						{#snippet Item({ item })}
-							<BittensorNeuronView
-							selection={select(EntityType.BittensorNeuron, item.entitySelector)}
-							layout={EntityLayout.SummaryInline}
-						/>
-						{/snippet}
-					</EntitiesList>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+	{#snippet Item({ item })}
+		<BittensorNeuronView
+			selection={select(EntityType.BittensorNeuron, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

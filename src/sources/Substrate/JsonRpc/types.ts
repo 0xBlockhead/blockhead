@@ -3,6 +3,9 @@ export type SubstrateRpcHeader = {
 	number: string
 	stateRoot: string
 	extrinsicsRoot: string
+	digest: {
+		logs: string[]
+	}
 }
 
 export type SubstrateRpcBlock = {
@@ -10,6 +13,7 @@ export type SubstrateRpcBlock = {
 		header: SubstrateRpcHeader
 		extrinsics: string[]
 	}
+	justifications?: unknown
 }
 
 export type SubstrateRuntimeVersion = {
@@ -18,8 +22,8 @@ export type SubstrateRuntimeVersion = {
 	authoringVersion: number
 	specVersion: number
 	implVersion: number
-	transactionVersion: number
-	stateVersion: number
+	transactionVersion?: number
+	stateVersion?: number
 }
 
 export type SubstrateSystemHealth = {

@@ -2,15 +2,83 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			{
+				label: 'account id',
+			},
+			{
+				label: 'latest nonce/native-balance summary',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					{
+						label: 'account id',
+					},
+					{
+						label: 'latest nonce/native-balance summary',
+					},
+					{
+						label: 'asset-balance snapshot count',
+					},
+					{
+						label: 'timestamp count',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Balance history',
+					items: [
+						{
+							label: 'timestamped account-state observations',
+						},
+					],
+				},
+				{
+					label: 'Asset balances',
+					items: [
+						{
+							label: 'asset balance observations grouped by asset',
+						},
+					],
+				},
+				{
+					label: 'Extrinsics',
+					items: [
+						{
+							label: 'signed Polkadot extrinsics when indexed',
+						},
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'node/indexer account payload fields',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +89,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,52 +97,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.PolkadotAccount}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.accountId}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		<TruncatedValue
-			value={selection.entitySelector.accountId}
-			format={TruncatedValueFormat.Abbr}
-		/>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection(
-					({ fields: { nonce: true, freeBalancePlancks: true } }),
-				)}
-			placeholderText={`Loading Polkadot Account...`}
-		>
-			{#snippet children(polkadotAccount)}
-				<dl>
-					{#if polkadotAccount.freeBalancePlancks != null}
-						<div>
-							<dt>Balance</dt>
-							<dd><NumberValue value={polkadotAccount.freeBalancePlancks} /> plancks</dd>
-						</div>
-					{/if}
-
-					{#if polkadotAccount.nonce != null}
-						<div>
-							<dt>Nonce</dt>
-							<dd><NumberValue value={polkadotAccount.nonce} /></dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

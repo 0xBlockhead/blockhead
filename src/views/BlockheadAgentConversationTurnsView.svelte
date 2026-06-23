@@ -1,103 +1,66 @@
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
+	const listView = {
+		entityType: EntityType.BlockheadAgentConversationTurn,
+		item: 'summary',
+		orientation: 'column',
+	} as const
+
 	let {
 		selection,
-		id = 'turns',
-		title = 'Turns',
+		title,
 		open = $bindable(true),
-		collapsible = true,
+		id = 'BlockheadAgentConversationTurns',
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			selection: EntityProxyEntitiesResource<typeof schema, EntityType.BlockheadAgentConversationTurn>
-			id?: string
 			title?: string
 			open?: boolean
-			collapsible?: boolean
+			id?: string
+			href?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadAgentConversationTurnView from '$/views/BlockheadAgentConversationTurnView.svelte'
 </script>
 
 
 <EntitiesList
-	entityType={EntityType.BlockheadAgentConversationTurn}
-	{id}
+	entityType={listView.entityType}
 	{title}
 	bind:open
-	{collapsible}
+	{id}
+	href={href}
+	resource={selection}
+	getKey={(entity) => stringify(entity.entitySelector)}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Ordered prompt–response pairs for this conversation; branch via parent turn ids when users edit or retry prompts.
-		</p>
-	{/snippet}
-
-	{#snippet Empty()}
-		<p data-text="muted">
-			No turns yet.
-		</p>
-	{/snippet}
-
-	{#snippet body({ open: _bodyOpen })}
-		{#if open}
-			<ResourceBoundary resource={selection({
-					sources: [Source.Local_Internal],
-				})} placeholderText="Loading turns…">
-				{#snippet children(turns)}
-					<EntitiesList
-						collapsible={false}
-						showSummary={false}
-						entityType={EntityType.BlockheadAgentConversationTurn}
-						id={`${id}-items`}
-						open={true}
-						items={turns.entities}
-						getKey={(turn) => stringify(turn.entitySelector)}
-						placeholderText="Loading turns…"
-						{title}
-						UnorderedListProps={{ orientation: ListOrientation.Column }}
-					>
-						{#snippet Empty()}
-							<p data-text="muted">
-								No turns yet.
-							</p>
-						{/snippet}
-
-						{#snippet Item({ item })}
-							<BlockheadAgentConversationTurnView
-								selection={select(EntityType.BlockheadAgentConversationTurn, item.entitySelector)}
-								layout={EntityLayout.Summary}
-
-							/>
-						{/snippet}
-					</EntitiesList>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+	{#snippet Item({ item })}
+		<BlockheadAgentConversationTurnView
+			selection={select(EntityType.BlockheadAgentConversationTurn, item.entitySelector)}
+			layout={EntityLayout.Summary}
+		/>
 	{/snippet}
 </EntitiesList>

@@ -12,7 +12,6 @@ import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { _GlobalSelector } from '$/schema/_Global.ts'
-import { BridgeTransactionSelector } from '$/schema/BridgeTransaction.ts'
 import { XmtpConversationSelector } from '$/schema/XmtpConversation.ts'
 import { BlockheadSourceSelector } from '$/schema/BlockheadSource.ts'
 import { BlockheadWalletSelector } from '$/schema/BlockheadWallet.ts'
@@ -24,15 +23,19 @@ import { BlockheadSessionSelector } from '$/schema/BlockheadSession.ts'
 import { BlockheadSessionActionSelector } from '$/schema/BlockheadSessionAction.ts'
 import { BlockheadRoomPeerSelector } from '$/schema/BlockheadRoomPeer.ts'
 import { BlockheadSharedAddressSelector } from '$/schema/BlockheadSharedAddress.ts'
-import { StateChannelSelector } from '$/schema/StateChannel.ts'
-import { StateChannelDepositSelector } from '$/schema/StateChannelDeposit.ts'
-import { StateChannelTransferSelector } from '$/schema/StateChannelTransfer.ts'
-import { StateChannelStateSelector } from '$/schema/StateChannelState.ts'
+import { BlockheadStateChannelSelector } from '$/schema/BlockheadStateChannel.ts'
+import { BlockheadStateChannel_TimestampSelector } from '$/schema/BlockheadStateChannel_Timestamp.ts'
+import { BlockheadStateChannelDepositSelector } from '$/schema/BlockheadStateChannelDeposit.ts'
+import { BlockheadStateChannelDeposit_TimestampSelector } from '$/schema/BlockheadStateChannelDeposit_Timestamp.ts'
+import { BlockheadStateChannelTransferSelector } from '$/schema/BlockheadStateChannelTransfer.ts'
+import { BlockheadStateChannelStateSelector } from '$/schema/BlockheadStateChannelState.ts'
 import { BlockheadAgentConversationSelector } from '$/schema/BlockheadAgentConversation.ts'
 import { BlockheadAgentConversationTurnSelector } from '$/schema/BlockheadAgentConversationTurn.ts'
+import { BlockheadEnsNameSearchSelector } from '$/schema/BlockheadEnsNameSearch.ts'
+import { normalize as ensNormalizeNode, toString as ensToString } from '@tevm/voltaire/Ens'
 import { EvmContractSelector } from '$/schema/EvmContract.ts'
 import { XmtpNetworkSelector } from '$/schema/XmtpNetwork.ts'
-import { EvmProtocolSelector } from '$/schema/EvmProtocol.ts'
+import { _GlobalEvmAbiCatalogSelector } from '$/schema/_GlobalEvmAbiCatalog.ts'
 
 const sliceNormalizedRowsForSubset = <_Row>(
 	normalizedCatalogRows: readonly _Row[],
@@ -52,17 +55,86 @@ const blockheadConnectionStatusByLocalStatus = {
 	error: BlockheadConnectionStatus.Error,
 } as const
 
-const findNormalizedBridgeTransactionRow = async (
-	...args: Parameters<typeof import('$/sources/Local/Internal/catalog.ts').findNormalizedBridgeTransactionRow>
-			) => (
-	(await import('$/sources/Local/Internal/catalog.ts')).findNormalizedBridgeTransactionRow(...args)
-)
+const stateChannelTimestampFields = (stateChannel: {
+	id: string
+	totalDeposited: bigint
+	balance0: bigint
+	balance1: bigint
+	turnNum: number
+	status: string
+	updatedAt: number
+}) => ({
+	[EntityMetaKey.Selector]: {
+		$channel: {
+			id: stateChannel.id,
+		},
+		timestampMs: stateChannel.updatedAt,
+		source: Source.Local_Internal,
+	},
+	$channel: {
+		[EntityMetaKey.Selector]: {
+			id: stateChannel.id,
+		},
+	},
+	timestampMs: stateChannel.updatedAt,
+	source: Source.Local_Internal,
+	totalDeposited: stateChannel.totalDeposited,
+	balance0: stateChannel.balance0,
+	balance1: stateChannel.balance1,
+	turnNum: stateChannel.turnNum,
+	status: stateChannel.status,
+})
+
+const stateChannelDepositTimestampFields = (stateChannelDeposit: {
+	channelId: string
+	accountAddress: string
+	availableBalance: bigint
+	lockedBalance: bigint
+	lastUpdated: number
+}) => ({
+	[EntityMetaKey.Selector]: {
+		$deposit: {
+			$channel: {
+				id: stateChannelDeposit.channelId,
+			},
+			$account: {
+				address: EvmAddress.assert(stateChannelDeposit.accountAddress),
+			},
+		},
+		timestampMs: stateChannelDeposit.lastUpdated,
+		source: Source.Local_Internal,
+	},
+	$deposit: {
+		[EntityMetaKey.Selector]: {
+			$channel: {
+				id: stateChannelDeposit.channelId,
+			},
+			$account: {
+				address: EvmAddress.assert(stateChannelDeposit.accountAddress),
+			},
+		},
+	},
+	timestampMs: stateChannelDeposit.lastUpdated,
+	source: Source.Local_Internal,
+	availableBalance: stateChannelDeposit.availableBalance,
+	lockedBalance: stateChannelDeposit.lockedBalance,
+})
 
 const coinInstanceIdForNormalizedStateChannelRow = async (
 	...args: Parameters<typeof import('$/sources/Local/Internal/catalog.ts').coinInstanceIdForNormalizedStateChannelRow>
 			) => (
 	(await import('$/sources/Local/Internal/catalog.ts')).coinInstanceIdForNormalizedStateChannelRow(...args)
 )
+
+const normalizedBlockheadEnsNameSearchQuery = (query: string): string => {
+	const trimmedQuery = query.trim()
+	if (trimmedQuery === '') throw new Error('Local_Internal: empty ENS name search query')
+	try {
+		return ensToString(ensNormalizeNode(trimmedQuery))
+	} catch {
+		return trimmedQuery.toLowerCase()
+	}
+}
 
 export default {
 	source: Source.Local_Internal,
@@ -285,7 +357,8 @@ export default {
 						},
 					},
 					indexInSequence: blockheadSessionAction.indexInSequence,
-					action: blockheadSessionAction.action,
+					actionType: blockheadSessionAction.action.type,
+					actionParams: blockheadSessionAction.action.params,
 					createdAt: blockheadSessionAction.createdAt,
 					updatedAt: blockheadSessionAction.updatedAt,
 				}
@@ -295,7 +368,8 @@ export default {
 				fields: {
 				$session: (action) => action.$session,
 				indexInSequence: (action) => action.indexInSequence,
-				action: (action) => action.action,
+				actionType: (action) => action.actionType,
+				actionParams: (action) => action.actionParams,
 				createdAt: (action) => action.createdAt,
 				updatedAt: (action) => action.updatedAt,
 			},
@@ -364,26 +438,23 @@ export default {
 			}),
 
 		defineResolver(Source.Local_Internal, {
-			entityType: EntityType.StateChannel,
+			entityType: EntityType.BlockheadStateChannel,
 			resolve: {
-				[StateChannelSelector.Id]: async ({ id }) => {
+				[BlockheadStateChannelSelector.Id]: async ({ id }) => {
 				const catalog = await readNormalizedLocalInternal()
 				const stateChannel = catalog.stateChannels.find((candidate) => candidate.id === id)
-					if (stateChannel == null) throw new Error('Local_Internal: StateChannel not present in local catalog')
+					if (stateChannel == null) throw new Error('Local_Internal: BlockheadStateChannel not present in local catalog')
 					const assetId = await coinInstanceIdForNormalizedStateChannelRow(stateChannel)
 					return {
 							$network: { [EntityMetaKey.Selector]: { caip2: { namespace: 'eip155' as const, reference: String(stateChannel.chainId) } } },
 						$participant0: { [EntityMetaKey.Selector]: { address: EvmAddress.assert(stateChannel.participant0) } },
 						$participant1: { [EntityMetaKey.Selector]: { address: EvmAddress.assert(stateChannel.participant1) } },
 						$asset: { [EntityMetaKey.Selector]: assetId },
-						totalDeposited: stateChannel.totalDeposited,
-						balance0: stateChannel.balance0,
-					balance1: stateChannel.balance1,
-					turnNum: stateChannel.turnNum,
-					status: stateChannel.status,
 					...(stateChannel.roomId != null && { $room: { [EntityMetaKey.Selector]: { id: stateChannel.roomId } } }),
 					createdAt: stateChannel.createdAt,
-					updatedAt: stateChannel.updatedAt,
+					$$timestamps: [
+						stateChannelTimestampFields(stateChannel),
+					],
 				}
 			}
 			},
@@ -393,33 +464,57 @@ export default {
 				$participant0: (channel) => channel.$participant0,
 				$participant1: (channel) => channel.$participant1,
 				$asset: (channel) => channel.$asset,
-				totalDeposited: (channel) => channel.totalDeposited,
-				balance0: (channel) => channel.balance0,
-				balance1: (channel) => channel.balance1,
-				turnNum: (channel) => channel.turnNum,
-				status: (channel) => channel.status,
 				$room: (channel) => channel.$room,
 				createdAt: (channel) => channel.createdAt,
-				updatedAt: (channel) => channel.updatedAt,
+				$$timestamps: (channel) => channel.$$timestamps.map((timestamp) => ({
+					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
+				})),
 			},
 			}),
 
 		defineResolver(Source.Local_Internal, {
-			entityType: EntityType.StateChannelDeposit,
+			entityType: EntityType.BlockheadStateChannel_Timestamp,
 			resolve: {
-				[StateChannelDepositSelector.Id]: async ({ id }) => {
+				[BlockheadStateChannel_TimestampSelector.ChannelTimestampMsSource]: async ({ $channel, source }) => {
+				if (source !== Source.Local_Internal) throw new Error(`Local_Internal: unsupported source ${source}`)
 				const catalog = await readNormalizedLocalInternal()
-				const stateChannelDeposit = catalog.stateChannelDeposits.find((candidate) => candidate.id === id)
+				const stateChannel = catalog.stateChannels.find((candidate) => candidate.id === $channel.id)
+					if (stateChannel == null) throw new Error('Local_Internal: BlockheadStateChannel not present in local catalog')
+					return stateChannelTimestampFields(stateChannel)
+			}
+			},
+		})({
+				fields: {
+				$channel: (timestamp) => timestamp.$channel,
+				timestampMs: (timestamp) => timestamp.timestampMs,
+				source: (timestamp) => timestamp.source,
+				totalDeposited: (timestamp) => timestamp.totalDeposited,
+				balance0: (timestamp) => timestamp.balance0,
+				balance1: (timestamp) => timestamp.balance1,
+				turnNum: (timestamp) => timestamp.turnNum,
+				status: (timestamp) => timestamp.status,
+			},
+			}),
+
+		defineResolver(Source.Local_Internal, {
+			entityType: EntityType.BlockheadStateChannelDeposit,
+			resolve: {
+				[BlockheadStateChannelDepositSelector.ChannelAccount]: async ({ $channel, $account }) => {
+				const catalog = await readNormalizedLocalInternal()
+				const stateChannelDeposit = catalog.stateChannelDeposits.find((candidate) => (
+					candidate.channelId === $channel.id
+					&& candidate.accountAddress === $account.address
+				))
 				if (stateChannelDeposit == null) {
-					throw new Error('Local_Internal: StateChannelDeposit not present in local catalog')
+					throw new Error('Local_Internal: BlockheadStateChannelDeposit not present in local catalog')
 					}
 					return {
 						$channel: { [EntityMetaKey.Selector]: { id: stateChannelDeposit.channelId } },
 							$network: { [EntityMetaKey.Selector]: { caip2: { namespace: 'eip155' as const, reference: String(stateChannelDeposit.chainId) } } },
 						$account: { [EntityMetaKey.Selector]: { address: EvmAddress.assert(stateChannelDeposit.accountAddress) } },
-						availableBalance: stateChannelDeposit.availableBalance,
-						lockedBalance: stateChannelDeposit.lockedBalance,
-						lastUpdated: stateChannelDeposit.lastUpdated,
+						$$timestamps: [
+							stateChannelDepositTimestampFields(stateChannelDeposit),
+						],
 				}
 			}
 			},
@@ -428,20 +523,52 @@ export default {
 				$channel: (deposit) => deposit.$channel,
 				$network: (deposit) => deposit.$network,
 				$account: (deposit) => deposit.$account,
-				availableBalance: (deposit) => deposit.availableBalance,
-				lockedBalance: (deposit) => deposit.lockedBalance,
-				lastUpdated: (deposit) => deposit.lastUpdated,
+				$$timestamps: (deposit) => deposit.$$timestamps.map((timestamp) => ({
+					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
+				})),
 			},
 			}),
 
 		defineResolver(Source.Local_Internal, {
-			entityType: EntityType.StateChannelTransfer,
+			entityType: EntityType.BlockheadStateChannelDeposit_Timestamp,
 			resolve: {
-				[StateChannelTransferSelector.Id]: async ({ id }) => {
+				[BlockheadStateChannelDeposit_TimestampSelector.DepositTimestampMsSource]: async ({ $deposit, source }) => {
+				if (source !== Source.Local_Internal) throw new Error(`Local_Internal: unsupported source ${source}`)
 				const catalog = await readNormalizedLocalInternal()
-				const stateChannelTransfer = catalog.stateChannelTransfers.find((candidate) => candidate.id === id)
+				const stateChannelDeposit = catalog.stateChannelDeposits.find((candidate) => (
+					candidate.channelId === $deposit.$channel.id
+					&& candidate.accountAddress === $deposit.$account.address
+				))
+				if (stateChannelDeposit == null) {
+					throw new Error('Local_Internal: BlockheadStateChannelDeposit not present in local catalog')
+					}
+					return stateChannelDepositTimestampFields(stateChannelDeposit)
+			}
+			},
+		})({
+				fields: {
+				$deposit: (timestamp) => timestamp.$deposit,
+				timestampMs: (timestamp) => timestamp.timestampMs,
+				source: (timestamp) => timestamp.source,
+				availableBalance: (timestamp) => timestamp.availableBalance,
+				lockedBalance: (timestamp) => timestamp.lockedBalance,
+			},
+			}),
+
+		defineResolver(Source.Local_Internal, {
+			entityType: EntityType.BlockheadStateChannelTransfer,
+			resolve: {
+				[BlockheadStateChannelTransferSelector.ChannelTurnNumFromToAmount]: async ({ $channel, $from, $to, amount, turnNum }) => {
+				const catalog = await readNormalizedLocalInternal()
+				const stateChannelTransfer = catalog.stateChannelTransfers.find((candidate) => (
+					candidate.channelId === $channel.id
+					&& candidate.from === $from.address
+					&& candidate.to === $to.address
+					&& candidate.amount === amount
+					&& candidate.turnNum === turnNum
+				))
 				if (stateChannelTransfer == null) {
-					throw new Error('Local_Internal: StateChannelTransfer not present in local catalog')
+					throw new Error('Local_Internal: BlockheadStateChannelTransfer not present in local catalog')
 					}
 					return {
 						$channel: { [EntityMetaKey.Selector]: { id: stateChannelTransfer.channelId } },
@@ -467,13 +594,17 @@ export default {
 			}),
 
 		defineResolver(Source.Local_Internal, {
-			entityType: EntityType.StateChannelState,
+			entityType: EntityType.BlockheadStateChannelState,
 			resolve: {
-				[StateChannelStateSelector.Id]: async ({ id }) => {
+				[BlockheadStateChannelStateSelector.ChannelVersionStateData]: async ({ $channel, stateData, version }) => {
 				const catalog = await readNormalizedLocalInternal()
-				const stateChannelState = catalog.stateChannelStates.find((candidate) => candidate.id === id)
+				const stateChannelState = catalog.stateChannelStates.find((candidate) => (
+					candidate.channelId === $channel.id
+					&& candidate.stateData === stateData
+					&& candidate.version === version
+				))
 				if (stateChannelState == null) {
-					throw new Error('Local_Internal: StateChannelState not present in local catalog')
+					throw new Error('Local_Internal: BlockheadStateChannelState not present in local catalog')
 				}
 				return {
 					$channel: { [EntityMetaKey.Selector]: { id: stateChannelState.channelId } },
@@ -571,6 +702,27 @@ export default {
 				error: (turn) => turn.error,
 				createdAt: (turn) => turn.createdAt,
 				promptVersion: (turn) => turn.promptVersion,
+			},
+			}),
+
+		defineResolver(Source.Local_Internal, {
+			entityType: EntityType.BlockheadEnsNameSearch,
+			resolve: {
+				[BlockheadEnsNameSearchSelector.Query]: async ({ query: querySelector }, context) => {
+				const query = normalizedBlockheadEnsNameSearchQuery(querySelector)
+				const limit = context.pagination.limit
+				return {
+					query,
+					createdAt: Date.now(),
+					...(limit != null && { resultLimit: limit }),
+				}
+			}
+			},
+		})({
+				fields: {
+				query: (entity) => entity.query,
+				createdAt: (entity) => entity.createdAt,
+				resultLimit: (entity) => entity.resultLimit,
 			},
 			}),
 
@@ -862,7 +1014,7 @@ export default {
 			},
 		})({
 				fields: {
-				$$bridgeTransactions: (entity) => entity,
+				$$blockheadBridgeTransactions: (entity) => entity,
 			},
 			}),
 
@@ -940,15 +1092,15 @@ export default {
 			},
 		})({
 				fields: {
-				$$stateChannels: (entity) => entity,
+					$$blockheadStateChannels: (entity) => entity,
 			},
 			}),
 
 		defineResolver(Source.Local_Internal, {
-			entityType: EntityType.StateChannel,
+			entityType: EntityType.BlockheadStateChannel,
 			resolve: {
-				[StateChannelSelector.Id]: async (
-				scopedEntitySelector: EntitySelector<typeof schema, EntityType.StateChannel>,
+				[BlockheadStateChannelSelector.Id]: async (
+				scopedEntitySelector: EntitySelector<typeof schema, EntityType.BlockheadStateChannel>,
 				context
 			) => (
 				sliceNormalizedRowsForSubset(
@@ -957,7 +1109,13 @@ export default {
 					context
 				)
 					.map((stateChannelTransfer) => ({
-						[EntityMetaKey.Selector]: { id: stateChannelTransfer.id },
+						[EntityMetaKey.Selector]: {
+							$channel: { id: stateChannelTransfer.channelId },
+							turnNum: stateChannelTransfer.turnNum,
+							$from: { address: EvmAddress.assert(stateChannelTransfer.from) },
+							$to: { address: EvmAddress.assert(stateChannelTransfer.to) },
+							amount: stateChannelTransfer.amount,
+						},
 					}))
 			)
 			},
@@ -968,10 +1126,10 @@ export default {
 			}),
 
 		defineResolver(Source.Local_Internal, {
-			entityType: EntityType.StateChannel,
+			entityType: EntityType.BlockheadStateChannel,
 			resolve: {
-				[StateChannelSelector.Id]: async (
-				scopedEntitySelector: EntitySelector<typeof schema, EntityType.StateChannel>,
+				[BlockheadStateChannelSelector.Id]: async (
+				scopedEntitySelector: EntitySelector<typeof schema, EntityType.BlockheadStateChannel>,
 				context
 			) => (
 				sliceNormalizedRowsForSubset(
@@ -980,7 +1138,11 @@ export default {
 					context
 				)
 					.map((stateChannelState) => ({
-						[EntityMetaKey.Selector]: { id: stateChannelState.id },
+						[EntityMetaKey.Selector]: {
+							$channel: { id: stateChannelState.channelId },
+							version: stateChannelState.version,
+							stateData: stateChannelState.stateData,
+						},
 					}))
 			)
 			},
@@ -991,10 +1153,10 @@ export default {
 			}),
 
 		defineResolver(Source.Local_Internal, {
-			entityType: EntityType.StateChannel,
+			entityType: EntityType.BlockheadStateChannel,
 			resolve: {
-				[StateChannelSelector.Id]: async (
-				scopedEntitySelector: EntitySelector<typeof schema, EntityType.StateChannel>,
+				[BlockheadStateChannelSelector.Id]: async (
+				scopedEntitySelector: EntitySelector<typeof schema, EntityType.BlockheadStateChannel>,
 				context
 			) => (
 				sliceNormalizedRowsForSubset(
@@ -1003,7 +1165,10 @@ export default {
 					context
 				)
 					.map((stateChannelDeposit) => ({
-						[EntityMetaKey.Selector]: { id: stateChannelDeposit.id },
+						[EntityMetaKey.Selector]: {
+							$channel: { id: stateChannelDeposit.channelId },
+							$account: { address: EvmAddress.assert(stateChannelDeposit.accountAddress) },
+						},
 					}))
 			)
 			},
@@ -1033,9 +1198,9 @@ export default {
 			}),
 
 		defineResolver(Source.Local_Internal, {
-			entityType: EntityType.EvmProtocol,
+			entityType: EntityType._GlobalEvmAbiCatalog,
 			resolve: {
-				[EvmProtocolSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType.EvmProtocol>, context) => (
+				[_GlobalEvmAbiCatalogSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._GlobalEvmAbiCatalog>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).evmSelectors,
 					context
@@ -1047,14 +1212,14 @@ export default {
 			},
 		})({
 				fields: {
-				$$evmSelectors: (entity) => entity,
+					$$sourceWindowSelectors: (entity) => entity,
 			},
 			}),
 
 		defineResolver(Source.Local_Internal, {
-			entityType: EntityType.EvmProtocol,
+			entityType: EntityType._GlobalEvmAbiCatalog,
 			resolve: {
-				[EvmProtocolSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType.EvmProtocol>, context) => (
+				[_GlobalEvmAbiCatalogSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._GlobalEvmAbiCatalog>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).evmTopics,
 					context
@@ -1066,14 +1231,14 @@ export default {
 			},
 		})({
 				fields: {
-				$$evmTopics: (entity) => entity,
+					$$sourceWindowTopics: (entity) => entity,
 			},
 			}),
 
 		defineResolver(Source.Local_Internal, {
-			entityType: EntityType.EvmProtocol,
+			entityType: EntityType._GlobalEvmAbiCatalog,
 			resolve: {
-				[EvmProtocolSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType.EvmProtocol>, context) => (
+				[_GlobalEvmAbiCatalogSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._GlobalEvmAbiCatalog>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).evmErrors,
 					context
@@ -1085,7 +1250,7 @@ export default {
 			},
 		})({
 				fields: {
-				$$evmErrors: (entity) => entity,
+					$$sourceWindowErrors: (entity) => entity,
 			},
 			}),
 	],

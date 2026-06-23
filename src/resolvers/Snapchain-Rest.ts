@@ -21,7 +21,7 @@ import { FarcasterUser_TimestampSelector } from '$/schema/FarcasterUser_Timestam
 import { FarcasterCastSelector } from '$/schema/FarcasterCast.ts'
 import { FarcasterCast_TimestampSelector } from '$/schema/FarcasterCast_Timestamp.ts'
 import { BlockheadFarcasterAccountConnectionSelector } from '$/schema/BlockheadFarcasterAccountConnection.ts'
-import { FarcasterNetworkSelector } from '$/schema/FarcasterNetwork.ts'
+import { _GlobalFarcasterNetworkSelector } from '$/schema/_GlobalFarcasterNetwork.ts'
 import { FarcasterChannelSelector } from '$/schema/FarcasterChannel.ts'
 import { FarcasterFeedSelector } from '$/schema/FarcasterFeed.ts'
 
@@ -165,8 +165,12 @@ export default {
 						const fieldValue = optionalNonemptyString(message.data?.userDataBody?.value)
 						if (fieldValue == null) continue
 						if (userDataType === 'USER_DATA_TYPE_PFP') {
-							const icon = mediaFromUrl(snapchainUserDataPfpHttpUrl(fieldValue), MediaType.Image)
-							if (icon != null) userFields.$icon = icon
+							const iconUrl = snapchainUserDataPfpHttpUrl(fieldValue)
+							if (iconUrl != null) {
+								userFields.iconUrl = iconUrl
+								const iconMedia = mediaFromUrl(iconUrl, MediaType.Image)
+								if (iconMedia != null) userFields.$icon = iconMedia
+							}
 						}
 					else if (userDataType === 'USER_DATA_TYPE_DISPLAY') userFields.displayName = fieldValue
 					else if (userDataType === 'USER_DATA_TYPE_BIO') userFields.bio = fieldValue
@@ -179,6 +183,7 @@ export default {
 			fields: {
 				username: (user) => user.username,
 				displayName: (user) => user.displayName,
+				iconUrl: (user) => user.iconUrl,
 				$icon: (user) => user.$icon,
 				bio: (user) => user.bio,
 				url: (user) => user.url,
@@ -390,8 +395,12 @@ export default {
 						const fieldValue = optionalNonemptyString(message.data?.userDataBody?.value)
 						if (fieldValue == null) continue
 						if (userDataType === 'USER_DATA_TYPE_PFP') {
-							const icon = mediaFromUrl(snapchainUserDataPfpHttpUrl(fieldValue), MediaType.Image)
-							if (icon != null) connectionFields.$icon = icon
+							const iconUrl = snapchainUserDataPfpHttpUrl(fieldValue)
+							if (iconUrl != null) {
+								connectionFields.iconUrl = iconUrl
+								const iconMedia = mediaFromUrl(iconUrl, MediaType.Image)
+								if (iconMedia != null) connectionFields.$icon = iconMedia
+							}
 						}
 					else if (userDataType === 'USER_DATA_TYPE_DISPLAY') connectionFields.displayName = fieldValue
 					else if (userDataType === 'USER_DATA_TYPE_BIO') connectionFields.bio = fieldValue
@@ -403,6 +412,7 @@ export default {
 			fields: {
 				username: (connection) => connection.username,
 				displayName: (connection) => connection.displayName,
+				iconUrl: (connection) => connection.iconUrl,
 				$icon: (connection) => connection.$icon,
 				bio: (connection) => connection.bio,
 				verifications: (connection) => connection.verifications,
@@ -411,35 +421,9 @@ export default {
 		}),
 
 		defineResolver(Source.Snapchain_Rest, {
-			entityType: EntityType.BlockheadFarcasterAccountConnection,
+			entityType: EntityType._GlobalFarcasterNetwork,
 			resolve: {
-				[BlockheadFarcasterAccountConnectionSelector.Fid]: async ({ fid }) => {
-					const { getUserBundleByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
-					const { userData } = await getUserBundleByFid({
-						fid: fid,
-					})
-					for (const message of (userData.messages ?? [])) {
-						const userDataType = message.data?.userDataBody?.type
-						const fieldValue = optionalNonemptyString(message.data?.userDataBody?.value)
-						if (fieldValue == null) continue
-						if (userDataType === 'USER_DATA_TYPE_PFP')
-							return (
-								mediaFromUrl(snapchainUserDataPfpHttpUrl(fieldValue), MediaType.Image)
-							)
-					}
-					return undefined
-				}
-			},
-		})({
-			fields: {
-				$icon: (icon) => icon,
-			},
-		}),
-
-		defineResolver(Source.Snapchain_Rest, {
-			entityType: EntityType.FarcasterNetwork,
-			resolve: {
-				[FarcasterNetworkSelector.Scope]: async (_entitySelector, context) => {
+				[_GlobalFarcasterNetworkSelector.Scope]: async (_entitySelector, context) => {
 					const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
 
 					type UserEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterUser>
@@ -471,7 +455,7 @@ export default {
 			},
 		})({
 			fields: {
-				$$users: (users) => users,
+				$$sourceWindowUsers: (users) => users,
 			},
 		}),
 
@@ -645,7 +629,9 @@ export default {
 		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterFeed,
 			resolve: {
-				[FarcasterFeedSelector.Trending]: async (_selector, context) => {
+				[FarcasterFeedSelector.Variant]: async ({ variant }, context) => {
+					if (variant !== 'trending')
+						throw new Error(`Snapchain_Rest: unsupported feed variant ${variant}`)
 					const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
 
 					type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>

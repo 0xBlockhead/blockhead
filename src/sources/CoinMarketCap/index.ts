@@ -1,25 +1,38 @@
-import { type as arktype } from 'arktype'
-
+import { Source } from '$/sources/Source.ts'
 import {
-	type SourceProviderDefinition,
 	SourceProvider,
+	type SourceProviderDefinition,
 } from '$/sources/SourceProvider.ts'
-import { origin } from '$/sources/CoinMarketCap/Rest/constants.ts'
-import CoinMarketCapRestSource from '$/sources/CoinMarketCap/Rest/index.ts'
+import {
+	coinMarketCapBindings,
+	coinMarketCapPublicEnv,
+} from '$/sources/CoinMarketCap/bindings.ts'
+
+export const coinMarketCapOrigins = [
+	...new Map(
+		coinMarketCapBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.CoinMarketCap,
 	label: 'Coin Market Cap',
-	env: arktype({
-		PUBLIC_COINMARKETCAP_API_KEY: 'string > 0',
-	}),
-	origins: [
+	env: coinMarketCapPublicEnv,
+	sources: [
 		{
-			origin,
-			corsEnabled: false,
+			provider: SourceProvider.CoinMarketCap,
+			source: Source.CoinMarketCap_Rest,
+			label: 'Coin Market Cap REST',
+			env: coinMarketCapPublicEnv,
 		},
 	],
-	sources: [
-		CoinMarketCapRestSource,
-	],
+	bindings: coinMarketCapBindings,
 } satisfies SourceProviderDefinition

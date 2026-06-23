@@ -1,25 +1,19 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum Erc4337PaymasterSelector {
 	EvmNetworkAddress = 'evmNetworkAddress',
+	NetworkAddress = '$network+address',
 }
-
 export default {
 	entityType: EntityType.Erc4337Paymaster,
-
-	label: 'ERC-4337 paymaster',
-	labelPlural: 'ERC-4337 paymasters',
-
+	label: 'erc4337 paymaster',
+	labelPlural: 'erc4337 paymasters',
 	selectors: [
 		{
 			name: Erc4337PaymasterSelector.EvmNetworkAddress,
@@ -29,37 +23,42 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'address',
+			label: 'Address',
+			description: 'The address or account identifier used by the source protocol.',
 			type: EntityFieldType.Primitive,
 			primitiveType: EvmAddress,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'userOperationsCount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
-		},
-		{
 			name: '$contract',
+			label: 'contract',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmContract,
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: '$$timestamps',
+			label: 'timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.Erc4337Paymaster_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: '$$userOperations',
+			label: 'user operations',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.EvmUserOperation,
+			cardinality: EntityFieldCardinality.Many,
+		},
+	],
 } as const satisfies EntityDefinition

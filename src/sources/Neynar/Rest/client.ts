@@ -6,13 +6,12 @@
 
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
 import { optionalPublicEnvString } from '$/sources/$sources.ts'
-import { Source } from '$/sources/Source.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import Neynar from '$/sources/Neynar/index.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
+import { neynarOrigins } from '$/sources/Neynar/index.ts'
 import { baseUrl } from '$/sources/Neynar/Rest/constants.ts'
 
 export const neynarRequestHeaders = (
-	publicEnv: SourcePublicEnvFor<Source.Neynar_Rest>
+	publicEnv: SourcePublicEnv
 ): Record<string, string> | undefined => {
 	const apiKey = optionalPublicEnvString(publicEnv, 'PUBLIC_NEYNAR_API_KEY')
 	return apiKey == null ?
@@ -26,14 +25,14 @@ export const neynarRequestHeaders = (
 }
 
 export async function neynarFetch<T>(
-	publicEnv: SourcePublicEnvFor<Source.Neynar_Rest>,
+	publicEnv: SourcePublicEnv,
 	path: string,
 	init?: RequestInit
 ): Promise<T | undefined> {
 	const headers = neynarRequestHeaders(publicEnv)
 	if (headers == null) return undefined
 	const res = await corsFetch(`${baseUrl}${path}`, {
-		origins: Neynar.origins,
+		origins: neynarOrigins,
 		init: {
 			...init,
 			headers: {

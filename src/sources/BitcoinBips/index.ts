@@ -1,11 +1,13 @@
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
-import { githubHttpAllowedOrigins } from '$/sources/Github/githubHttpOrigins.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import { bitcoinBipsBindings } from '$/sources/BitcoinBips/bindings.ts'
 
 export default {
 	provider: SourceProvider.BitcoinBips,
 	label: 'Bitcoin BIPs',
-	origins: githubHttpAllowedOrigins,
 	sources: [
 		{
 			provider: SourceProvider.BitcoinBips,
@@ -13,4 +15,5 @@ export default {
 			label: 'Bitcoin BIPs GitHub',
 		},
 	],
-} as const satisfies SourceProviderDefinition
+	bindings: bitcoinBipsBindings,
+} satisfies SourceProviderDefinition

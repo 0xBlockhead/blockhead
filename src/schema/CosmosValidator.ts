@@ -1,23 +1,17 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum CosmosValidatorSelector {
 	NetworkOperatorAddress = 'networkOperatorAddress',
 }
-
 export default {
 	entityType: EntityType.CosmosValidator,
-
-	label: 'Cosmos Validator',
-	labelPlural: 'Cosmos Validators',
-
+	label: 'Cosmos validator',
+	labelPlural: 'Cosmos validators',
 	selectors: [
 		{
 			name: CosmosValidatorSelector.NetworkOperatorAddress,
@@ -27,49 +21,76 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'operatorAddress',
+			label: 'operator address',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'consensusPubkey',
+			label: 'consensus public key',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'moniker',
+			label: 'moniker',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'jailed',
+			name: 'identity',
+			label: 'identity',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'status',
+			name: 'website',
+			label: 'website',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'tokens',
+			name: 'securityContact',
+			label: 'security contact',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: 'details',
+			label: 'details',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$$delegations',
+			label: 'delegations',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.CosmosDelegation,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: '$$timestamps',
+			label: 'timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.CosmosValidator_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
+		},
+	],
 } as const satisfies EntityDefinition

@@ -9,6 +9,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import type { HeliusEnhancedTransaction } from '$/sources/Helius/Rest/types.ts'
 import { SolanaTransactionSelector } from '$/schema/SolanaTransaction.ts'
+import { SolanaTransaction_TimestampSelector } from '$/schema/SolanaTransaction_Timestamp.ts'
 import { SolanaInstructionKind, SolanaInstructionSelector } from '$/schema/SolanaInstruction.ts'
 
 const assertSolanaMainnet = (network: { caip2: { namespace: string; reference: string } } | { slug: string }) => {
@@ -31,7 +32,6 @@ const heliusTransactionFields = (
 			slot: BigInt(transaction.slot),
 		},
 	},
-	slot: BigInt(transaction.slot),
 	...(transaction.feePayer != null && {
 		$feePayer: {
 			[EntityMetaKey.Selector]: {
@@ -40,10 +40,35 @@ const heliusTransactionFields = (
 			},
 		},
 	}),
+})
+
+const heliusTransactionTimestampFields = (
+	transactionId: {
+		$network: { caip2: { namespace: string; reference: string } } | { slug: string }
+		signature: string
+	},
+	transaction: HeliusEnhancedTransaction
+) => ({
+	[EntityMetaKey.Selector]: {
+		$transaction: transactionId,
+		slot: BigInt(transaction.slot),
+		source: Source.Helius_Rest,
+	},
+	$transaction: {
+		[EntityMetaKey.Selector]: transactionId,
+	},
+	slot: BigInt(transaction.slot),
+	source: Source.Helius_Rest,
+	...(transaction.timestamp != null && {
+		timestampMs: transaction.timestamp * 1000,
+	}),
 	...(transaction.fee != null && {
 		feeLamports: BigInt(transaction.fee),
 	}),
 	status: transaction.transactionError == null ? 'success' : 'failed',
+	...(transaction.transactionError != null && {
+		err: transaction.transactionError,
+	}),
 })
 
 const heliusInstructionRows = (
@@ -113,6 +138,12 @@ export default {
 							entitySelector.$network,
 							transaction
 						),
+						$$timestamps: [
+							heliusTransactionTimestampFields(
+								entitySelector,
+								transaction
+							),
+						],
 						$$instructions: heliusInstructionRows(
 							entitySelector,
 							transaction
@@ -123,13 +154,41 @@ export default {
 		})({
 			fields: {
 				$block: (transaction) => transaction.$block,
-				slot: (transaction) => transaction.slot,
 				$feePayer: (transaction) => transaction.$feePayer,
-				feeLamports: (transaction) => transaction.feeLamports,
-				status: (transaction) => transaction.status,
+				$$timestamps: (transaction) => transaction.$$timestamps.map((timestamp) => ({
+					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
+				})),
 				$$instructions: (transaction) => transaction.$$instructions.map((instruction) => ({
 					[EntityMetaKey.Selector]: instruction[EntityMetaKey.Selector],
 				})),
+			},
+		}),
+
+		defineResolver(Source.Helius_Rest, {
+			entityType: EntityType.SolanaTransaction_Timestamp,
+			resolve: {
+				[SolanaTransaction_TimestampSelector.TransactionSlotSource]: async ({ $transaction, slot, source }, context) => {
+					if (source !== Source.Helius_Rest) throw new Error(`Helius_Rest: unsupported source ${source}`)
+					const transaction = await getTransaction(
+						$transaction,
+						context
+					)
+					if (BigInt(transaction.slot) !== slot) throw new Error('Helius_Rest: SolanaTransaction_Timestamp id does not match transaction slot')
+					return heliusTransactionTimestampFields(
+						$transaction,
+						transaction
+					)
+				},
+			}
+		})({
+			fields: {
+				$transaction: (timestamp) => timestamp.$transaction,
+				slot: (timestamp) => timestamp.slot,
+				source: (timestamp) => timestamp.source,
+				timestampMs: (timestamp) => timestamp.timestampMs,
+				feeLamports: (timestamp) => timestamp.feeLamports,
+				status: (timestamp) => timestamp.status,
+				err: (timestamp) => timestamp.err,
 			},
 		}),
 
@@ -152,6 +211,7 @@ export default {
 		})({
 			fields: {
 				$program: (instruction) => instruction.$program,
+				innerInstructionIndex: () => undefined,
 				data: (instruction) => instruction.data,
 				$$accounts: (instruction) => instruction.$$accounts,
 			},

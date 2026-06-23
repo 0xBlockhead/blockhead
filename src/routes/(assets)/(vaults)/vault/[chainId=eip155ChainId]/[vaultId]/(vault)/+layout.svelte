@@ -13,9 +13,9 @@
 
 
 <ParentPageCollapsible
-	title={'Vaults'}
+	title="Vaults"
 	href={resolve('/vaults')}
-	id={'vaults'}
+	id="vaults"
 >
 	{@render children()}
 </ParentPageCollapsible>

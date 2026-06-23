@@ -2,16 +2,25 @@ import { readdir } from 'node:fs/promises'
 import { join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import {
-	e2eRouteParamFixtureForContext,
-	e2eRouteParamFixtureVariantsForContext,
-	e2eRouteRestSegmentFixtures,
-} from './_routeParamFixtures.ts'
-
-
 const repoRoot = join(fileURLToPath(new URL('.', import.meta.url)), '..', '..')
 
 const routesDir = join(repoRoot, 'src', 'routes')
+
+let routeParamFixtures:
+	| typeof import('./_routeParamFixtures.ts')
+	| undefined
+
+const loadRouteParamFixtures = async () => {
+	routeParamFixtures ??= await import('./_routeParamFixtures.ts')
+	return routeParamFixtures
+}
+
+const getRouteParamFixtures = () => {
+	if (routeParamFixtures === undefined)
+		throw new Error('Route param fixtures were read before route discovery initialized them')
+
+	return routeParamFixtures
+}
 
 const isRouteGroup = (segment: string) => (
 	segment.startsWith('(')
@@ -86,12 +95,12 @@ const dynamicFixture = (
 	staticSegments: readonly string[]
 ) => {
 	if (paramKey.startsWith('...'))
-		return e2eRouteRestSegmentFixtures[paramKey.slice(3)] ?? 'index.html'
+		return getRouteParamFixtures().e2eRouteRestSegmentFixtures[paramKey.slice(3)] ?? 'index.html'
 
 	if (matcherKey === 'eip155Caip2Namespace') return 'eip155'
 	if (matcherKey === 'eip155Caip2Reference') return '1'
 
-	const contextual = e2eRouteParamFixtureForContext(paramKey, staticSegments)
+	const contextual = getRouteParamFixtures().e2eRouteParamFixtureForContext(paramKey, staticSegments)
 	return (
 		contextual
 
@@ -125,11 +134,11 @@ const expandMixedSegment = (
 		matcherKey === 'eip155Caip2Reference' ?
 					['1']
 				:
-					e2eRouteParamFixtureVariantsForContext(
-					paramKey,
-					expandedContext.context.staticSegments,
-					expandedContext.context.params
-				)
+					getRouteParamFixtures().e2eRouteParamFixtureVariantsForContext(
+						paramKey,
+						expandedContext.context.staticSegments,
+						expandedContext.context.params
+					)
 			).map((fixture) => ({
 				context: {
 					...expandedContext.context,
@@ -207,7 +216,7 @@ const pageFileToPathname = (absPath: string) => {
 		matcherKey === 'eip155Caip2Reference' ?
 					['1']
 				:
-					e2eRouteParamFixtureVariantsForContext(
+					getRouteParamFixtures().e2eRouteParamFixtureVariantsForContext(
 						paramKey,
 						context.staticSegments,
 						context.params
@@ -264,6 +273,8 @@ const walkFiles = async function* (dir: string): AsyncGenerator<string> {
 }
 
 export const discoverPathnamesFromRoutes = async () => {
+	await loadRouteParamFixtures()
+
 	const seen = new Set<string>()
 	const out: string[] = []
 

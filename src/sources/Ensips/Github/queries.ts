@@ -1,39 +1,35 @@
-import { getJson, getText } from '$/sources/Github/Rest/client.ts'
+import { ensipsBindings } from '$/sources/Ensips/bindings.ts'
+import { ensipsGithubRepo } from '$/sources/Ensips/Github/constants.ts'
+import type { EnsipsGithubContents } from '$/sources/Ensips/Github/types.ts'
 import {
-	getRawUserContentUrl,
-	getRestRepoContentsUrl,
-} from '$/sources/Github/Rest/queries.ts'
-import Ensips from '$/sources/Ensips/index.ts'
+	getGithubContents,
+	getGithubRawText,
+	githubContentsUrl,
+	githubRawUrl,
+} from '$/sources/_shared/hosts/Github/Http/client.ts'
 
-import { ensipsGithubRepo } from './constants.ts'
-import type { EnsipsGithubContents } from './types.ts'
-
-export const getContentsUrl = () => (
-	getRestRepoContentsUrl({
-		owner: ensipsGithubRepo.owner,
-		repo: ensipsGithubRepo.repo,
-		pathInRepo: ensipsGithubRepo.path,
-		ref: ensipsGithubRepo.ref,
-	})
-)
+export const getContentsUrl = () => githubContentsUrl(ensipsGithubRepo)
 
 export const getProposalMarkdownUrl = ({ number }: { number: number }) => (
-	getRawUserContentUrl({
-		owner: ensipsGithubRepo.owner,
-		repo: ensipsGithubRepo.repo,
-		ref: ensipsGithubRepo.ref,
-		pathInRepo: `${ensipsGithubRepo.path}/${number}.md`,
+	githubRawUrl({
+		...ensipsGithubRepo,
+		path: `${ensipsGithubRepo.path}/${number}.md`,
 	})
 )
 
-export const getContents = (): Promise<EnsipsGithubContents> => getJson({
-	url: getContentsUrl(),
-	origins: Ensips.origins,
-})
+export const getContents = (): Promise<EnsipsGithubContents> => (
+	getGithubContents({
+		endpoints: ensipsBindings[0].endpoints,
+		target: ensipsGithubRepo,
+	}) as Promise<EnsipsGithubContents>
+)
 
 export const getProposalMarkdownText = ({ number }: { number: number }) => (
-	getText({
-		url: getProposalMarkdownUrl({ number }),
-		origins: Ensips.origins,
+	getGithubRawText({
+		endpoints: ensipsBindings[0].endpoints,
+		target: {
+			...ensipsGithubRepo,
+			path: `${ensipsGithubRepo.path}/${number}.md`,
+		},
 	})
 )

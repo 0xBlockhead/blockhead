@@ -3,8 +3,7 @@
  * @see https://docs.neynar.com/reference
  */
 
-import { Source } from '$/sources/Source.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import { neynarFetch } from '$/sources/Neynar/Rest/client.ts'
 import { neynarFeedDefaultLimit, neynarFeedMaxLimit } from '$/sources/Neynar/Rest/constants.ts'
 import type {
@@ -18,7 +17,7 @@ export const getBulkUsers = async ({
 	publicEnv,
 	fids,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Neynar_Rest>
+	publicEnv: SourcePublicEnv
 	fids: number[]
 }): Promise<NeynarBulkUsersResponse | undefined> => {
 	if (fids.length === 0) return { users: [] }
@@ -31,7 +30,7 @@ export const getBulkUsers = async ({
  * https://docs.neynar.com/reference/fetch-feed
  */
 export const getFeed = async (
-	publicEnv: SourcePublicEnvFor<Source.Neynar_Rest>,
+	publicEnv: SourcePublicEnv,
 	query: NeynarFeedQuery
 ): Promise<NeynarFeedResponse | undefined> => {
 	const searchParams = new URLSearchParams()
@@ -66,7 +65,7 @@ export const getFeed = async (
 }
 
 export const getCastByHash = async (
-	publicEnv: SourcePublicEnvFor<Source.Neynar_Rest>,
+	publicEnv: SourcePublicEnv,
 	hash: `0x${string}`
 ): Promise<NeynarCast | undefined> => {
 	const searchParams = new URLSearchParams({
@@ -85,7 +84,7 @@ export const getCastByHash = async (
  * https://docs.neynar.com/reference/lookup-cast-by-hash-or-url
  */
 export const getCastByClientUrl = async (
-	publicEnv: SourcePublicEnvFor<Source.Neynar_Rest>,
+	publicEnv: SourcePublicEnv,
 	clientUrl: string
 ): Promise<NeynarCast | undefined> => {
 	const searchParams = new URLSearchParams({

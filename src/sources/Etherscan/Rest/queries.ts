@@ -23,8 +23,7 @@ import type {
 	RpcReceipt,
 	RpcTransaction,
 } from '$/sources/Evm/JsonRpc/types.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import { Source } from '$/sources/Source.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import {
 	etherscanV2GetJson,
 	etherscanV2UnwrapAccountResultArray,
@@ -56,7 +55,7 @@ const etherscanAccountListRows = async <T>({
 	query,
 	options,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
+	publicEnv: SourcePublicEnv
 	chainId: number
 	query: Record<string, string | undefined>
 	options?: { apiKey?: string }
@@ -85,7 +84,7 @@ export const getTransactionByHash = async ({
 	txHash,
 	options,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
+	publicEnv: SourcePublicEnv
 	chainId: number
 	txHash: `0x${string}`
 	options?: { apiKey?: string }
@@ -114,7 +113,7 @@ export const getTransactionReceipt = async ({
 	txHash,
 	options,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
+	publicEnv: SourcePublicEnv
 	chainId: number
 	txHash: `0x${string}`
 	options?: { apiKey?: string }
@@ -142,7 +141,7 @@ export const getBlockNumber = async ({
 	chainId,
 	options,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
+	publicEnv: SourcePublicEnv
 	chainId: number
 	options?: { apiKey?: string }
 }): Promise<string | null> => {
@@ -171,7 +170,7 @@ export const getBlockByNumber = async ({
 	boolean,
 	options,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
+	publicEnv: SourcePublicEnv
 	chainId: number
 	tag: string
 	boolean: boolean
@@ -203,7 +202,7 @@ export const getContractAbiJsonString = async ({
 	address,
 	options,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
+	publicEnv: SourcePublicEnv
 	chainId: number
 	address: `0x${string}`
 	options?: { apiKey?: string }
@@ -241,7 +240,7 @@ export const getContractSourceCode = async ({
 	address,
 	options,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
+	publicEnv: SourcePublicEnv
 	chainId: number
 	address: `0x${string}`
 	options?: { apiKey?: string }
@@ -270,7 +269,7 @@ export const getContractCreation = async ({
 	address,
 	options,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
+	publicEnv: SourcePublicEnv
 	chainId: number
 	address: `0x${string}`
 	options?: { apiKey?: string }
@@ -302,7 +301,7 @@ export const getCode = async ({
 	address,
 	options,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
+	publicEnv: SourcePublicEnv
 	chainId: number
 	address: `0x${string}`
 	options?: { apiKey?: string }
@@ -330,7 +329,7 @@ export const getStorageAt = async ({
 	slotQuantityHex,
 	options,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
+	publicEnv: SourcePublicEnv
 	chainId: number
 	address: `0x${string}`
 	slotQuantityHex: `0x${string}`
@@ -361,7 +360,7 @@ export const getGasOracle = async ({
 	chainId,
 	options,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
+	publicEnv: SourcePublicEnv
 	chainId: number
 	options?: { apiKey?: string }
 }) => {
@@ -389,7 +388,7 @@ export const getErc20TokenTransfersByAddress = async ({
 	offset,
 	options,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
+	publicEnv: SourcePublicEnv
 	chainId: number
 	address: `0x${string}`
 	offset: number
@@ -420,7 +419,7 @@ export const getErc721TokenTransfersByAddress = async ({
 	offset,
 	options,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
+	publicEnv: SourcePublicEnv
 	chainId: number
 	address: `0x${string}`
 	offset: number
@@ -451,7 +450,7 @@ export const getErc1155TokenTransfersByAddress = async ({
 	offset,
 	options,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
+	publicEnv: SourcePublicEnv
 	chainId: number
 	address: `0x${string}`
 	offset: number
@@ -481,7 +480,7 @@ export const getTokenTransfersByAddress = async ({
 	offset,
 	options,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
+	publicEnv: SourcePublicEnv
 	chainId: number
 	address: `0x${string}`
 	offset: number
@@ -574,7 +573,7 @@ export const getTokenTransfersByTransaction = async ({
 	offset,
 	options,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
+	publicEnv: SourcePublicEnv
 	chainId: number
 	txHash: `0x${string}`
 	offset: number
@@ -659,7 +658,7 @@ export const getInternalTransactionsByAddress = async ({
 	offset,
 	options,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
+	publicEnv: SourcePublicEnv
 	chainId: number
 	address: `0x${string}`
 	offset: number
@@ -689,7 +688,7 @@ export const getInternalTransactionsByTxHash = async ({
 	txHash,
 	options,
 }: {
-	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
+	publicEnv: SourcePublicEnv
 	chainId: number
 	txHash: `0x${string}`
 	options?: { apiKey?: string }

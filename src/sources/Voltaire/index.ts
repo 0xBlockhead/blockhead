@@ -1,45 +1,63 @@
 import { TransportType } from '$/constants/TransportType.ts'
-import { type SourceProviderDefinition, SourceProvider } from '$/sources/SourceProvider.ts'
-import VoltaireJsonRpcSource from '$/sources/Voltaire/JsonRpc/index.ts'
-import { executionEndpoints } from '$/sources/Voltaire/JsonRpc/executionEndpoints.ts'
+import { Source } from '$/sources/Source.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import {
+	SourceEndpointKind,
+	SourceTargetKind,
+} from '$/sources/SourceBinding.ts'
+import { voltaireBindings } from '$/sources/Voltaire/bindings.ts'
 
-
-// Constants
-export const voltaireJsonRpcTransportCandidates = executionEndpoints.map((executionEndpoint) => ({
-	chainId: executionEndpoint.chainId,
-	rpcUrl: executionEndpoint.url,
-	transportType: executionEndpoint.transportType,
-}))
+export const voltaireJsonRpcTransportCandidates = voltaireBindings.flatMap((binding) => (
+	binding.target.kind === SourceTargetKind.Eip155Chain ?
+		binding.endpoints.flatMap((endpoint) => (
+			endpoint.endpointKind === SourceEndpointKind.HttpUrl
+			|| endpoint.endpointKind === SourceEndpointKind.WebSocketUrl ?
+				[{
+					chainId: Number(binding.target.key),
+					rpcUrl: endpoint.locator,
+					transportType: (
+						endpoint.endpointKind === SourceEndpointKind.WebSocketUrl ?
+							TransportType.WebSocket
+						:
+							TransportType.Http
+					),
+				}]
+			:
+				[]
+		))
+	:
+		[]
+))
 
 export const voltaireJsonRpcTransportCandidatesByChainId = Object.groupBy(
 	voltaireJsonRpcTransportCandidates,
 	(voltaireJsonRpcTransportCandidate) => voltaireJsonRpcTransportCandidate.chainId
 )
 
-/** Host suffixes that allow browser cross-origin JSON-RPC POST without `/api-proxy`. */
-const browserCorsJsonRpcOriginSuffixes = [
-	'.drpc.org',
-] as const
-
-const origins = [
-	...new Set(
-		voltaireJsonRpcTransportCandidates
-			.filter((entry) => entry.transportType === TransportType.Http)
-			.map((entry) => new URL(entry.rpcUrl).origin)
-	),
-]
-	.map((origin) => ({
-		origin,
-		corsEnabled: browserCorsJsonRpcOriginSuffixes.some((suffix) => origin.endsWith(suffix)),
-	}))
-
 export const voltaireJsonRpcTransportsWithOriginsByChainId = Object.fromEntries(
 	Object.entries(voltaireJsonRpcTransportCandidatesByChainId)
-		.map(([chainId, entries]) => [
-			Number(chainId),
-			entries.map((entry) => ({
+			.map(([chainId, entries]) => [
+				Number(chainId),
+				entries.map((entry) => ({
 				...entry,
-				origins,
+				origins: voltaireBindings.flatMap((binding) => (
+					binding.target.kind === SourceTargetKind.Eip155Chain
+					&& binding.target.key === chainId ?
+						binding.endpoints.flatMap((endpoint) => (
+							endpoint.origin == null ?
+								[]
+							:
+								[{
+									origin: endpoint.origin,
+									corsEnabled: endpoint.corsEnabled === true,
+								}]
+						))
+					:
+						[]
+				)),
 			})),
 		])
 )
@@ -59,13 +77,15 @@ export const voltaireJsonRpcTransportWithOriginsByChainId = Object.fromEntries(
 		})
 )
 
-const Voltaire = {
+export default {
 	provider: SourceProvider.Voltaire,
 	label: 'Voltaire',
-	origins,
 	sources: [
-		VoltaireJsonRpcSource,
+		{
+			provider: SourceProvider.Voltaire,
+			source: Source.Voltaire_JsonRpc,
+			label: 'Voltaire JSON-RPC',
+		},
 	],
+	bindings: voltaireBindings,
 } satisfies SourceProviderDefinition
-
-export default Voltaire

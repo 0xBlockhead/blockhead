@@ -1,10 +1,17 @@
 <script lang="ts">
+	// Types/constants
+	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+
+
+	// Context
 	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
-		params,
-	} = $props()
+		data,
+	}: PageProps = $props()
 
 
 	// Components
@@ -15,9 +22,6 @@
 
 <Page>
 	<YouTubeCommentView
-		selection={select(EntityType.YouTubeComment, {
-			videoId: decodeURIComponent(params.videoId),
-			commentId: decodeURIComponent(params.commentId),
-		})}
+		selection={select(EntityType.YouTubeComment, data.selector)}
 	/>
 </Page>

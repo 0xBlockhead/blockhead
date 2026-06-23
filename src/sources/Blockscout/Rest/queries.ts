@@ -7,7 +7,7 @@
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { corsFetch } from '$/lib/http.ts'
 import { getJson } from '$/sources/Blockscout/Rest/client.ts'
-import Blockscout from '$/sources/Blockscout/index.ts'
+import { blockscoutOrigins } from '$/sources/Blockscout/index.ts'
 import {
 	blockscoutV2ItemsCountMax,
 	restPath,
@@ -164,7 +164,7 @@ export const getStats = async ({
 		const url = new URL(explorerOrigin)
 		url.pathname = `${url.pathname.replace(/\/$/, '')}${restPath}/stats`
 		const res = await corsFetch(url.toString(), {
-			origins: Blockscout.origins,
+			origins: blockscoutOrigins,
 			init: { headers: { accept: 'application/json' } },
 		})
 		if (!res.ok) return null

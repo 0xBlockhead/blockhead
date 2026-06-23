@@ -2,15 +2,98 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			'address',
+			{
+				label: 'latest account-state snapshot',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					'address',
+					{
+						label: 'latest account number/sequence',
+					},
+					{
+						label: 'latest native-denom balance',
+					},
+					{
+						label: 'delegation count',
+					},
+					{
+						label: 'transaction count',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Account snapshots',
+					items: [
+						{
+							label: 'timestamped account/auth state observations',
+						},
+					],
+				},
+				{
+					label: 'Balances',
+					items: [
+						{
+							label: 'timestamped account balance observations grouped by denom',
+						},
+					],
+				},
+				{
+					label: 'Delegations',
+					items: [
+						{
+							label: 'staking delegations from this account',
+						},
+					],
+				},
+				{
+					label: 'Transactions',
+					items: [
+						{
+							label: 'Cosmos transactions involving this account when indexed',
+						},
+					],
+				},
+				{
+					label: 'Contracts/modules',
+					items: [
+						{
+							label: 'creator/admin/authority refs when linked by CosmosContract or CosmosModule',
+						},
+					],
+				},
+				{
+					label: 'Network',
+					items: [
+						{
+							label: 'parent Cosmos network',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +104,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,57 +112,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.CosmosAccount}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.address}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		<TruncatedValue
-			value={selection.entitySelector.address}
-			format={TruncatedValueFormat.Abbr}
-		/>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection( { fields: { accountNumber: true, sequence: true, balanceUatom: true } })}
-			placeholderText={`Loading Cosmos Account...`}
-		>
-			{#snippet children(cosmosAccount)}
-				<dl>
-					{#if cosmosAccount.balanceUatom != null}
-						<div>
-							<dt>Balance</dt>
-							<dd><NumberValue value={cosmosAccount.balanceUatom} /> uatom</dd>
-						</div>
-					{/if}
-
-					{#if cosmosAccount.accountNumber != null}
-						<div>
-							<dt>Account Number</dt>
-							<dd><NumberValue value={cosmosAccount.accountNumber} /></dd>
-						</div>
-					{/if}
-
-					{#if cosmosAccount.sequence != null}
-						<div>
-							<dt>Sequence</dt>
-							<dd><NumberValue value={cosmosAccount.sequence} /></dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

@@ -11,16 +11,14 @@ import type {
 	EtherscanAccountArray,
 	EtherscanProxyJsonRpc,
 } from '$/sources/Etherscan/Rest/types.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import { getJson } from '$/lib/http.ts'
 import {
 	optionalPublicEnvString,
 } from '$/sources/$sources.ts'
-import { Source } from '$/sources/Source.ts'
-import Etherscan from '$/sources/Etherscan/index.ts'
+import { etherscanOrigins } from '$/sources/Etherscan/index.ts'
 import {
 	restBaseUrl,
-	supportedByChainId,
 } from '$/sources/Etherscan/Rest/constants.ts'
 
 /**
@@ -68,7 +66,7 @@ export const etherscanV2UnwrapAccountResultArray = <T>(
 	*/
 export const etherscanResolvedApiKey = (
 	chainId: number,
-	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>,
+	publicEnv: SourcePublicEnv,
 	options?: { apiKey?: string }
 ): string | undefined => (
 	options?.apiKey?.trim()
@@ -87,7 +85,7 @@ export const etherscanV2GetJson = async <T>({
 }: {
 	chainId: number
 	query: Record<string, string | undefined>
-	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
+	publicEnv: SourcePublicEnv
 	options?: { apiKey?: string }
 }): Promise<T | null> => {
 	const search = new URLSearchParams()
@@ -97,5 +95,5 @@ export const etherscanV2GetJson = async <T>({
 	}
 	const apiKey = etherscanResolvedApiKey(chainId, publicEnv, options)
 	if (apiKey !== undefined) search.set('apikey', apiKey)
-	return getJson<T>(`${restBaseUrl}?${search}`, { origins: Etherscan.origins })
+	return getJson<T>(`${restBaseUrl}?${search}`, { origins: etherscanOrigins })
 }

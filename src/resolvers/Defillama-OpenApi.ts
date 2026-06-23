@@ -147,50 +147,18 @@ export default {
 		}),
 
 		defineResolver(Source.Defillama_OpenApi, {
-			entityType: EntityType._Global,
-			resolve: {
-				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => {
-					const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
-					return (
-						Object.values(CoinId)
-							.flatMap((coinId) => (
-							defillamaCurrentPriceIdByCoinId[coinId] != null ?
-								[
-									{
-										[EntityMetaKey.Selector]: {
-											$market: marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[coinId]),
-										},
-									},
-								]
-							:
-								[]
-							))
-					)
-				}
-			},
-		})({
-			fields: {
-				$$marketPrices: (marketPrices) => marketPrices,
-			},
-		}),
-
-		defineResolver(Source.Defillama_OpenApi, {
 			entityType: EntityType.Coin,
-			resolve: {
-				[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>) => {
-					const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
-					return (
-						defillamaCurrentPriceIdByCoinId[coinId] != null ?
+				resolve: {
+					[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>) => {
+						return (
 							[
 								{
 									[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[coinId]),
 								},
 							]
-						:
-							[]
-					)
-				}
-			},
+						)
+					}
+				},
 		})({
 			fields: {
 				$$marketsWithCoinAsBase: (markets) => markets,
@@ -199,13 +167,11 @@ export default {
 
 		defineResolver(Source.Defillama_OpenApi, {
 			entityType: EntityType.Coin,
-			resolve: {
-				[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>) => {
-					const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
-					if (defillamaCurrentPriceIdByCoinId[coinId] == null)
-						return []
-					return (
-						catalogSpotMarketsWithCoinAsQuote
+				resolve: {
+					[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>) => {
+						const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
+						return (
+							catalogSpotMarketsWithCoinAsQuote
 							.filter((catalogMarket) => catalogMarket.quoteCoinId === coinId)
 							.map(marketSelectorFromCatalogCoinCoinMarket)
 							.filter((marketId) => (
@@ -336,7 +302,7 @@ export default {
 			},
 		})({
 			fields: {
-				$icon: (icon) => icon,
+				$icon: (iconMedia) => iconMedia,
 			},
 		}),
 	],

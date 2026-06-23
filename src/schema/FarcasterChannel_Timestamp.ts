@@ -1,24 +1,18 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import FarcasterChannel from '$/schema/FarcasterChannel.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum FarcasterChannel_TimestampSelector {
 	FarcasterChannelTimestampMs = 'farcasterChannelTimestampMs',
+	ChannelTimestampMs = '$channel+timestampMs',
 }
-
 export default {
 	entityType: EntityType.FarcasterChannel_Timestamp,
-
-	label: 'Farcaster channel snapshot',
-	labelPlural: 'Farcaster channel snapshots',
-
+	label: 'Farcaster channel timestamp',
+	labelPlural: 'Farcaster channel observations',
 	selectors: [
 		{
 			name: FarcasterChannel_TimestampSelector.FarcasterChannelTimestampMs,
@@ -28,37 +22,35 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$channel',
+			label: 'channel',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.FarcasterChannel,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'followerCount',
+			label: 'follower count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Farcaster_Rest,
-			],
 		},
 		{
 			name: 'memberCount',
+			label: 'member count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Farcaster_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

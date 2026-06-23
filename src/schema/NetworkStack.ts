@@ -1,23 +1,18 @@
 import { type } from 'arktype'
-import { NetworkStackId } from '$/constants/NetworkStack.ts'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum NetworkStackSelector {
 	NetworkStackId = 'networkStackId',
 }
-
 export default {
 	entityType: EntityType.NetworkStack,
-
-	label: 'Network stack',
-	labelPlural: 'Network stacks',
-
+	label: 'network stack',
+	labelPlural: 'network stacks',
+	description: 'A curated protocol-stack classification used by network catalog rows.',
 	selectors: [
 		{
 			name: NetworkStackSelector.NetworkStackId,
@@ -26,19 +21,21 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: 'networkStackId',
+			label: 'network stack ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(NetworkStackId),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'label',
+			label: 'Label',
+			description: 'A human-readable name for the subject.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

@@ -1,25 +1,18 @@
 import { type } from 'arktype'
-import { Iso4217 } from '$/constants/Currency.ts'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum CurrencySelector {
 	Iso4217 = 'iso4217',
 }
-
-
 export default {
 	entityType: EntityType.Currency,
-
-	label: 'Currency',
-	labelPlural: 'Currencies',
-
+	label: 'currency',
+	labelPlural: 'currencies',
+	description: 'A currency unit used for quoting values, balances, and market data.',
 	selectors: [
 		{
 			name: CurrencySelector.Iso4217,
@@ -28,71 +21,64 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: 'iso4217',
+			label: 'iso4217',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(Iso4217),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'name',
+			label: 'Name',
+			description: 'The human-readable name of the subject.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [Source.Constants_Internal],
 		},
 		{
 			name: 'symbol',
+			label: 'Symbol',
+			description: 'The short ticker or symbol used for display.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [Source.Constants_Internal],
 		},
 		{
 			name: 'minorUnitExponent',
+			label: 'minor unit exponent',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [Source.Constants_Internal],
+		},
+		{
+			name: 'catalogSortWeight',
+			label: 'catalog sort weight',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("number"),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$$timestamps',
+			label: 'timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.Currency_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [Source.Constants_Internal],
+			cardinality: EntityFieldCardinality.ZeroOrMany,
 		},
 		{
 			name: '$$marketsWithCurrencyAsBase',
+			label: 'markets with currency as base',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.Market,
-			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Constants_Internal,
-				Source.Coingecko_Rest,
-				Source.Coingecko_OpenApi,
-				Source.CoinMarketCap_Rest,
-				Source.Coinpaprika_OpenApi,
-				Source.Defillama_OpenApi,
-				Source.TradingView_Rest,
-			],
+			cardinality: EntityFieldCardinality.ZeroOrMany,
 		},
 		{
 			name: '$$marketsWithCurrencyAsQuote',
+			label: 'markets with currency as quote',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.Market,
-			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Constants_Internal,
-				Source.Coingecko_Rest,
-				Source.Coingecko_OpenApi,
-				Source.CoinMarketCap_Rest,
-				Source.Coinpaprika_OpenApi,
-				Source.Defillama_OpenApi,
-				Source.TradingView_Rest,
-			],
+			cardinality: EntityFieldCardinality.ZeroOrMany,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

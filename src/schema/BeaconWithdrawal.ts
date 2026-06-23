@@ -1,23 +1,18 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum BeaconWithdrawalSelector {
 	EvmNetworkSlotIndex = 'evmNetworkSlotIndex',
+	NetworkSlotIndex = '$network+slot+index',
 }
-
 export default {
 	entityType: EntityType.BeaconWithdrawal,
-
-	label: 'Beacon withdrawal',
-	labelPlural: 'Beacon withdrawals',
-
+	label: 'beacon withdrawal',
+	labelPlural: 'beacon withdrawals',
 	selectors: [
 		{
 			name: BeaconWithdrawalSelector.EvmNetworkSlotIndex,
@@ -28,61 +23,55 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'slot',
+			label: 'slot',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'index',
+			label: 'index',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'validatorIndex',
+			label: 'validator index',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
 		},
 		{
 			name: '$validator',
+			label: 'validator',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.BeaconValidator,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
 		},
 		{
 			name: '$account',
+			label: 'account',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
 		},
 		{
 			name: 'amountGwei',
+			label: 'amount gwei',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

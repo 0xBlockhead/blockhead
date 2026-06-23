@@ -1,23 +1,17 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum ZeroGStorageLogEntrySelector {
 	NetworkLogEntryId = 'networkLogEntryId',
 }
-
 export default {
 	entityType: EntityType.ZeroGStorageLogEntry,
-
-	label: '0G storage log entry',
-	labelPlural: '0G storage log entries',
-
+	label: 'zero g storage log entry',
+	labelPlural: 'zero g storage log entries',
 	selectors: [
 		{
 			name: ZeroGStorageLogEntrySelector.NetworkLogEntryId,
@@ -27,43 +21,48 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'logEntryId',
+			label: 'log entry ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$dataBlob',
+			label: 'data blob',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.ZeroGDataBlob,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$consensusNetwork',
+			label: 'consensus network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.ZeroGConsensusNetwork,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'sequenceNumber',
+			label: 'sequence number',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'commitment',
+			label: 'commitment',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

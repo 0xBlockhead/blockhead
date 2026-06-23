@@ -1,15 +1,17 @@
-import { type as arktype } from 'arktype'
-
 import { TransportType } from '$/constants/TransportType.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
-import SubstrateSidecarRest from '$/sources/SubstrateSidecar/Rest/index.ts'
-
-
-// Constants
+import { Source } from '$/sources/Source.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import {
+	substrateSidecarBindings,
+	substrateSidecarPublicEnv,
+} from '$/sources/SubstrateSidecar/bindings.ts'
 
 export const substrateSidecarRestEndpoints = [
 	{
-		url: 'http://127.0.0.1:8080',
+		url: substrateSidecarBindings[0].endpoints[0].locator,
 		transportType: TransportType.Http,
 		providerName: 'Local Substrate Sidecar',
 	},
@@ -19,20 +21,31 @@ export const substrateSidecarRestEndpoints = [
 	providerName: string
 }[]
 
-
-// Provider
+export const substrateSidecarOrigins = [
+	...new Map(
+		substrateSidecarBindings
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => [
+				endpoint.origin,
+				{
+					origin: endpoint.origin,
+					corsEnabled: endpoint.corsEnabled,
+				},
+			])
+	).values(),
+]
 
 export default {
 	provider: SourceProvider.SubstrateSidecar,
 	label: 'Substrate API Sidecar',
-	env: arktype({
-		PUBLIC_SUBSTRATE_SIDECAR_REST_BASE_URL: 'string',
-	}),
-	origins: substrateSidecarRestEndpoints.map((endpoint) => ({
-		origin: new URL(endpoint.url).origin,
-		corsEnabled: false,
-	})),
+	env: substrateSidecarPublicEnv,
 	sources: [
-		SubstrateSidecarRest,
+		{
+			provider: SourceProvider.SubstrateSidecar,
+			source: Source.SubstrateSidecar_Rest,
+			label: 'Substrate API Sidecar REST',
+			env: substrateSidecarPublicEnv,
+		},
 	],
-} as const satisfies SourceProviderDefinition
+	bindings: substrateSidecarBindings,
+} satisfies SourceProviderDefinition

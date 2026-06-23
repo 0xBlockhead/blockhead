@@ -1,16 +1,19 @@
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
-import BitcoinCashNodeJsonRpc from '$/sources/BitcoinCashNode/JsonRpc/index.ts'
+import { Source } from '$/sources/Source.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import { bitcoinCashNodeBindings } from '$/sources/BitcoinCashNode/bindings.ts'
 
 export default {
 	provider: SourceProvider.BitcoinCashNode,
 	label: 'Bitcoin Cash Node',
-	origins: [
+	sources: [
 		{
-			origin: 'http://127.0.0.1:8332',
-			corsEnabled: false,
+			provider: SourceProvider.BitcoinCashNode,
+			source: Source.BitcoinCashNode_JsonRpc,
+			label: 'Bitcoin Cash Node JSON-RPC',
 		},
 	],
-	sources: [
-		BitcoinCashNodeJsonRpc,
-	],
-} as const satisfies SourceProviderDefinition
+	bindings: bitcoinCashNodeBindings,
+} satisfies SourceProviderDefinition

@@ -1,24 +1,18 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import LensAccount from '$/schema/LensAccount.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum LensAccount_TimestampSelector {
 	LensAccountTimestampMs = 'lensAccountTimestampMs',
+	AccountTimestampMs = '$account+timestampMs',
 }
-
 export default {
 	entityType: EntityType.LensAccount_Timestamp,
-
-	label: 'Lens account snapshot',
-	labelPlural: 'Lens account snapshots',
-
+	label: 'lens account timestamp',
+	labelPlural: 'lens account observations',
 	selectors: [
 		{
 			name: LensAccount_TimestampSelector.LensAccountTimestampMs,
@@ -28,37 +22,35 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$account',
+			label: 'account',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.LensAccount,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'followerCount',
+			label: 'follower count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Lens_Graphql,
-			],
 		},
 		{
 			name: 'followingCount',
+			label: 'following count',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Lens_Graphql,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

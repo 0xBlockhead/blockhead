@@ -2,7 +2,7 @@ import {
 	getJson,
 	getText,
 } from '$/lib/http.ts'
-import RedditPublic from '$/sources/RedditPublic/index.ts'
+import { redditPublicOrigins } from '$/sources/RedditPublic/index.ts'
 import {
 	redditPublicOrigin,
 	redditUserAgent,
@@ -12,7 +12,7 @@ export const redditJsonGet = async <T>(path: string) => (
 	getJson<T>(
 		`${redditPublicOrigin}${path.startsWith('/') ? path : `/${path}`}`,
 		{
-			origins: RedditPublic.origins,
+			origins: redditPublicOrigins,
 			init: {
 				headers: {
 					'User-Agent': redditUserAgent,
@@ -26,7 +26,7 @@ export const redditTextGet = async (path: string) => (
 	getText(
 		`${redditPublicOrigin}${path.startsWith('/') ? path : `/${path}`}`,
 		{
-			origins: RedditPublic.origins,
+			origins: redditPublicOrigins,
 			init: {
 				headers: {
 					'User-Agent': redditUserAgent,

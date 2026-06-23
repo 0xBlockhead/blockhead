@@ -1,8 +1,7 @@
 <script lang="ts">
 	// Types/constants
-	import type { PageProps } from './$types'
+	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -11,7 +10,7 @@
 
 	// State
 	let {
-		params,
+		data,
 	}: PageProps = $props()
 
 
@@ -23,23 +22,6 @@
 
 <Page>
 	<NetworkView
-		selection={select(
-			EntityType.Network,
-			{
-				slug: params.networkSlug,
-			},
-			{
-				sources: [
-					Source.Constants_Internal,
-				],
-				fields: {
-					name: true,
-					slug: true,
-					caip2: true,
-					namespace: true,
-					environment: true,
-				},
-			}
-		)}
+		selection={select(EntityType.Network, data.selector)}
 	/>
 </Page>

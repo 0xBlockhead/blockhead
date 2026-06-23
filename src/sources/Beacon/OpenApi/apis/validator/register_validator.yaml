@@ -1,0 +1,34 @@
+post:
+  operationId: "registerValidator"
+  summary: Provide beacon node with registrations for the given validators to the external builder network.
+  description: |
+    Prepares the beacon node for engaging with external builders. The
+    information must be sent by the beacon node to the builder network. It is
+    expected that the validator client will send this information periodically
+    to ensure the beacon node has correct and timely registration information
+    to provide to builders.
+
+    Note that only registrations for active or pending validators must be sent to the builder network.
+    Registrations for unknown or exited validators must be filtered out and not sent to the builder network.
+  tags:
+    - Validator
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: array
+          items:
+            $ref: '../../beacon-node-oapi.yaml#/components/schemas/SignedValidatorRegistration'
+      application/octet-stream:
+        schema:
+          description: "SSZ serialized `List[SignedValidatorRegistrationV1, VALIDATOR_REGISTRY_LIMIT]` bytes. Use content type header to indicate that SSZ data is contained in the request body."
+  responses:
+    "200":
+      description: Registration information has been received.
+    "400":
+      $ref: '../../beacon-node-oapi.yaml#/components/responses/InvalidRequest'
+    "415":
+      $ref: '../../beacon-node-oapi.yaml#/components/responses/UnsupportedMediaType'
+    "500":
+      $ref: '../../beacon-node-oapi.yaml#/components/responses/InternalError'

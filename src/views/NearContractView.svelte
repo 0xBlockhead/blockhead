@@ -2,15 +2,96 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'account id',
+			},
+			{
+				label: 'latest code hash',
+			},
+			{
+				label: 'latest code size',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'account id',
+					},
+					{
+						label: 'latest code hash',
+					},
+					{
+						label: 'latest code size',
+					},
+				],
+				[
+					{
+						label: 'storage-entry count',
+					},
+					{
+						label: 'latest observation time',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Code observations',
+					items: [
+						{
+							label: 'timestamped contract-code observations',
+						},
+					],
+				},
+				{
+					label: 'Storage entries',
+					items: [
+						{
+							label: 'storage entries by prefix/source',
+						},
+					],
+				},
+				{
+					label: 'Account',
+					items: [
+						{
+							label: 'parent NEAR account',
+						},
+					],
+				},
+				{
+					label: 'Deployments',
+					items: [
+						{
+							label: 'deploy-contract action rows when indexed',
+						},
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'view_account code_hash today',
+						},
+						{
+							label: 'view_code/contract_code_changes when wired',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +102,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,56 +110,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.NearContract}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.accountId}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		<TruncatedValue
-			value={selection.entitySelector.accountId}
-			format={TruncatedValueFormat.Abbr}
-		/>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection(
-					({ fields: { codeHash: true, codeSizeBytes: true } }),
-				)}
-			placeholderText={`Loading NEAR Contract...`}
-		>
-			{#snippet children(nearContract)}
-				<dl>
-					{#if nearContract.codeHash != null}
-						<div>
-							<dt>Code Hash</dt>
-							<dd>
-								<TruncatedValue
-									value={nearContract.codeHash}
-									format={TruncatedValueFormat.Abbr}
-								/></dd>
-						</div>
-					{/if}
-
-					{#if nearContract.codeSizeBytes != null}
-						<div>
-							<dt>Code Size Bytes</dt>
-							<dd><NumberValue value={nearContract.codeSizeBytes} /> bytes</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

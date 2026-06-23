@@ -1,6 +1,6 @@
 import { getJson } from '$/lib/http.ts'
 import { atprotoAppViewBySlug } from '$/constants/AtprotoAppView.ts'
-import AtprotoBsky from '$/sources/AtprotoBsky/index.ts'
+import { atprotoBskyOrigins } from '$/sources/AtprotoBsky/index.ts'
 
 const toQuery = (params: Record<string, string | number | undefined>) => {
 	const sp = new URLSearchParams()
@@ -18,6 +18,6 @@ export const bskyPublicXrpcGet = async <T>(
 ): Promise<T> => (
 	getJson<T>(
 		`${atprotoAppViewBySlug.bsky_public.origin}${atprotoAppViewBySlug.bsky_public.xrpcPath}${path}${toQuery(params)}`,
-		{ origins: AtprotoBsky.origins  }
+		{ origins: atprotoBskyOrigins }
 	)
 )

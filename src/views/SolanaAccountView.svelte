@@ -2,16 +2,103 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'network',
+			},
+			'pubkey',
+			{
+				label: 'owner program',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'network',
+					},
+					'pubkey',
+					{
+						label: 'owner program',
+					},
+				],
+				[
+					{
+						label: 'latest lamports/executable/rent/data snapshot',
+					},
+					{
+						label: 'token-account count',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Account observations',
+					items: [
+						{
+							label: 'slot-bounded account state observations',
+						},
+					],
+				},
+				{
+					label: 'Owner program',
+					items: [
+						{
+							label: 'owning Solana program',
+						},
+					],
+				},
+				{
+					label: 'Token accounts',
+					items: [
+						{
+							label: 'SPL token accounts owned by this pubkey',
+						},
+					],
+				},
+				{
+					label: 'Transactions/instructions',
+					items: [
+						{
+							label: 'instruction references when reached from transactions',
+						},
+					],
+				},
+				{
+					label: 'Network',
+					items: [
+						{
+							label: 'parent Solana network',
+						},
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'getAccountInfo',
+						},
+						{
+							label: 'getMultipleAccounts/getProgramAccounts when wired',
+						},
+						{
+							label: 'indexer account payloads',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -22,7 +109,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -30,86 +117,15 @@
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
-	import SolanaProgramView from '$/views/SolanaProgramView.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.SolanaAccount}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.pubkey}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		<TruncatedValue
-			value={selection.entitySelector.pubkey}
-			format={TruncatedValueFormat.Abbr}
-		/>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection(
-					({ fields: { $ownerProgram: true, lamports: true, rentEpoch: true, executable: true, dataEncoding: true } }),
-				)}
-			placeholderText={`Loading Solana Account...`}
-		>
-			{#snippet children(solanaAccount)}
-				<dl>
-					{#if solanaAccount.$ownerProgram}
-						<div>
-							<dt>Owner program</dt>
-							<dd>
-								<SolanaProgramView
-									selection={select(EntityType.SolanaProgram, solanaAccount.$ownerProgram[EntityMetaKey.Selector])}
-									layout={EntityLayout.Title}
-
-									open={false}
-									/>
-							</dd>
-						</div>
-					{/if}
-
-					{#if solanaAccount.lamports != null}
-						<div>
-							<dt>Lamports</dt>
-							<dd><NumberValue value={solanaAccount.lamports} /></dd>
-						</div>
-					{/if}
-
-					{#if solanaAccount.rentEpoch != null}
-						<div>
-							<dt>Rent Epoch</dt>
-							<dd><NumberValue value={solanaAccount.rentEpoch} /></dd>
-						</div>
-					{/if}
-
-					{#if solanaAccount.executable != null}
-						<div>
-							<dt>Executable</dt>
-							<dd>{solanaAccount.executable ? 'Yes' : 'No'}</dd>
-						</div>
-					{/if}
-
-					{#if solanaAccount.dataEncoding != null}
-						<div>
-							<dt>Data Encoding</dt>
-							<dd>
-								<TruncatedValue
-									value={solanaAccount.dataEncoding}
-									format={TruncatedValueFormat.Abbr}
-								/>
-							</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

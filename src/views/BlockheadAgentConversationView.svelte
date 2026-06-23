@@ -2,267 +2,129 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntityResourceData } from '$/client/$subscribe.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { Source } from '$/sources/Source.ts'
-
-
-	type Conversation = EntityResourceData<typeof schema, EntityType.BlockheadAgentConversation>
-
-	// Context
-	import { select } from '$/routes/+layout.svelte'
-	import { resolve } from '$app/paths'
 
 
 	// State
+	const view = {
+		actions: [
+			{
+				id: 'pin-conversation',
+				label: 'Pin conversation',
+				kind: 'createLocal',
+				slot: 'PinConversationAction',
+			},
+			{
+				id: 'delete-conversation',
+				label: 'Delete conversation',
+				kind: 'deleteLocal',
+				slot: 'DeleteConversationAction',
+			},
+		],
+		forms: [
+			{
+				id: 'new-turn',
+				label: 'New turn',
+				kind: 'createLocal',
+				fields: [
+					{
+						name: 'prompt',
+						label: 'Prompt',
+						kind: 'textarea',
+					},
+				],
+				slot: 'CreateConversationTurnForm',
+			},
+		],
+		closed: [
+			'name',
+			'id',
+			'pinned',
+			{
+				slot: 'LastActivity',
+				label: 'Last activity',
+			},
+		],
+		content: {
+			dl: [
+				[
+					'name',
+					'id',
+					'pinned',
+					'createdAt',
+					'updatedAt',
+					'defaultConnectionId',
+					'defaultModelId',
+					'$profile',
+					'$acpSession',
+					'$a2aTask',
+				],
+				[
+					'systemPrompt',
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Turns',
+					items: [
+						'$$turns',
+					],
+				},
+				{
+					label: 'Preferences',
+					items: [
+						'defaultConnectionId',
+						'defaultModelId',
+					],
+				},
+				{
+					label: 'Protocol refs',
+					items: [
+						'$acpSession',
+						'$a2aTask',
+					],
+				},
+				{
+					label: 'Profile',
+					items: [
+						'$profile',
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
-		href = resolve(
-			'/~/(agents)/agents/(conversations)/conversation/[conversationId]',
-			{ conversationId: selection.entitySelector.id },
-		),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.BlockheadAgentConversation>
-			href?: string
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
-	const conversation = $derived.by(() => (
-		selection(
-			({ sources: [
-				Source.Local_Internal,
-			], fields: { name: true, pinned: true, createdAt: true, updatedAt: true, ...(open ? ({ systemPrompt: true, defaultConnectionId: true, defaultModelId: true }) : ({  })) } }),
-		)
-	))
-
-
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.BlockheadAgentConversation}
 	entitySelector={selection.entitySelector}
-	href={href}
 	bind:open
 	{...EntityViewProps}
->
-	{#snippet Value()}
-		<TruncatedValue
-			value={selection.entitySelector.id}
-			format={TruncatedValueFormat.Visual}
-		/>
-	{/snippet}
-
-	{#snippet Title()}
-		{#if true}
-			{#snippet ConversationHeading(conversation: Conversation)}
-				{conversation.name ?? selection.entitySelector.id}
-			{/snippet}
-
-			<ResourceBoundary
-				children={ConversationHeading}
-				placeholderText="Loading conversation…"
-				resource={conversation}
-			/>
-		{/if}
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Persisted large-language-model chat transcripts: each row is one conversation with ordered user and assistant turns.
-		</p>
-		<p>
-			Those logs are ordinary local storage—not consensus state, Farcaster casts, or multiplayer CRDT rooms.
-		</p>
-	{/snippet}
-
-	{#snippet Content({})}
-		{#if open}
-			{#if true}
-				{#snippet ConversationSystemPromptProse(conversation: Conversation)}
-					{#if conversation.systemPrompt !== ''}
-						<p>
-							{conversation.systemPrompt}
-						</p>
-					{:else}
-						<p data-text="muted">
-							Empty.
-						</p>
-					{/if}
-				{/snippet}
-
-				<ResourceBoundary
-					children={ConversationSystemPromptProse}
-					placeholderText="Loading conversation…"
-					resource={conversation}
-				/>
-			{/if}
-		{/if}
-
-		<dl data-column-item="center">
-			<div>
-				<dt>Pinned</dt>
-				<dd>
-					{#if true}
-						{#snippet ConversationPinnedRow(conversation: Conversation)}
-							{conversation.pinned ? 'Yes' : 'No'}
-						{/snippet}
-
-						<ResourceBoundary
-							children={ConversationPinnedRow}
-							placeholderText="Loading conversation…"
-							resource={conversation}
-						/>
-					{/if}
-				</dd>
-			</div>
-
-			<div>
-				<dt>Last activity</dt>
-				<dd>
-					{#if true}
-						{#snippet ConversationLastActivityRow(conversation: Conversation)}
-							{#if conversation.updatedAt !== undefined}
-								<Timestamp
-									timestamp={conversation.updatedAt}
-								/>
-							{:else}
-								{#if conversation.createdAt !== undefined}
-									<Timestamp
-										timestamp={conversation.createdAt}
-									/>
-								{/if}
-							{/if}
-						{/snippet}
-
-						<ResourceBoundary
-							children={ConversationLastActivityRow}
-							placeholderText="Loading conversation…"
-							resource={conversation}
-						/>
-					{/if}
-				</dd>
-			</div>
-
-			{#if open}
-				<div>
-					<dt>Created</dt>
-					<dd>
-						{#if true}
-							{#snippet ConversationCreatedRow(conversation: Conversation)}
-								{#if conversation.createdAt !== undefined}
-									<Timestamp
-										timestamp={conversation.createdAt}
-									/>
-								{/if}
-							{/snippet}
-
-							<ResourceBoundary
-								children={ConversationCreatedRow}
-								placeholderText="Loading conversation…"
-								resource={conversation}
-							/>
-						{/if}
-					</dd>
-				</div>
-			{/if}
-
-			{#if open}
-				<div>
-					<dt>Updated</dt>
-					<dd>
-						{#if true}
-							{#snippet ConversationUpdatedRow(conversation: Conversation)}
-								{#if conversation.updatedAt !== undefined}
-									<Timestamp
-										timestamp={conversation.updatedAt}
-									/>
-								{/if}
-							{/snippet}
-
-							<ResourceBoundary
-								children={ConversationUpdatedRow}
-								placeholderText="Loading conversation…"
-								resource={conversation}
-							/>
-						{/if}
-					</dd>
-				</div>
-			{/if}
-
-			{#if open}
-				<div>
-					<dt>Default connection</dt>
-					<dd>
-						{#if true}
-							{#snippet ConversationConnectionRow(conversation: Conversation)}
-								{#if conversation.defaultConnectionId != null && conversation.defaultConnectionId !== ''}
-									<TruncatedValue
-										value={conversation.defaultConnectionId}
-										format={TruncatedValueFormat.Visual}
-									/>
-								{:else}
-									<span data-text="muted">
-										Not set.
-									</span>
-								{/if}
-							{/snippet}
-
-							<ResourceBoundary
-								children={ConversationConnectionRow}
-								placeholderText="Loading conversation…"
-								resource={conversation}
-							/>
-						{/if}
-					</dd>
-				</div>
-			{/if}
-
-			{#if open}
-				<div>
-					<dt>Default model</dt>
-					<dd>
-						{#if true}
-							{#snippet ConversationModelRow(conversation: Conversation)}
-								{#if conversation.defaultModelId != null && conversation.defaultModelId !== ''}
-									<TruncatedValue
-										value={conversation.defaultModelId}
-										format={TruncatedValueFormat.Visual}
-									/>
-								{:else}
-									<span data-text="muted">
-										Not set.
-									</span>
-								{/if}
-							{/snippet}
-
-							<ResourceBoundary
-								children={ConversationModelRow}
-								placeholderText="Loading conversation…"
-								resource={conversation}
-							/>
-						{/if}
-					</dd>
-				</div>
-			{/if}
-
-		</dl>
-	{/snippet}
-</EntityView>
+	{view}
+/>

@@ -1,22 +1,17 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum BlockheadSharedAddressSelector {
 	Id = 'id',
 }
-
 export default {
 	entityType: EntityType.BlockheadSharedAddress,
-
-	label: 'Shared Address',
-	labelPlural: 'Shared Addresses',
-
+	label: 'blockhead shared address',
+	labelPlural: 'blockhead shared addresses',
 	selectors: [
 		{
 			name: BlockheadSharedAddressSelector.Id,
@@ -25,49 +20,56 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: 'id',
+			label: 'ID',
+			description: 'The identifier assigned by the source domain.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$room',
+			label: 'room',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.BlockheadRoom,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'peerId',
+			label: 'peer ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$account',
+			label: 'account',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'targetPeerIds',
+			label: 'target peer ids',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string[] | null'),
+			primitiveType: type("string[] | null"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'sharedAt',
+			label: 'shared AT',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

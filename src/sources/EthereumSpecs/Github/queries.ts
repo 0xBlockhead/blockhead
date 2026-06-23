@@ -1,12 +1,5 @@
-/**
- * Raw upstream content for fork metadata (`ethereum/consensus-specs`, `ethereum/go-ethereum`,
- * pinned `ethereum/execution-specs` mainnet upgrade tree). OP Stack registry remains
- * `$/sources/Superchain/Github/queries.ts`.
- */
 import { getText } from '$/lib/http.ts'
-
-import EthereumSpecs from '$/sources/EthereumSpecs/index.ts'
-
+import { ethereumSpecsBindings } from '$/sources/EthereumSpecs/bindings.ts'
 import {
 	consensusHoleskyYamlUrl,
 	consensusMainnetYamlUrl,
@@ -14,8 +7,12 @@ import {
 	executionSpecsMainnetUpgradeMarkdownUrl,
 	goEthereumParamsConfigGoUrl,
 } from '$/sources/EthereumSpecs/Github/constants.ts'
-
 import type { ConsensusSpecsNetworkPreset } from '$/sources/EthereumSpecs/Github/types.ts'
+
+const origins = ethereumSpecsBindings[0].endpoints.map((endpoint) => ({
+	origin: endpoint.origin,
+	corsEnabled: endpoint.corsEnabled,
+}))
 
 const consensusSpecsConfigYamlUrlByPreset = {
 	mainnet: consensusMainnetYamlUrl,
@@ -30,18 +27,16 @@ export const fetchConsensusSpecsConfigYaml = async ({
 }) => (
 	getText(
 		consensusSpecsConfigYamlUrlByPreset[preset],
-		{ origins: EthereumSpecs.origins }
+		{ origins }
 	)
 )
-
 
 export const fetchGoEthereumParamsConfigGo = async () => (
 	getText(
 		goEthereumParamsConfigGoUrl,
-		{ origins: EthereumSpecs.origins }
+		{ origins }
 	)
 )
-
 
 export const fetchExecutionSpecsMainnetUpgradeMarkdown = async ({
 	filename,
@@ -50,6 +45,6 @@ export const fetchExecutionSpecsMainnetUpgradeMarkdown = async ({
 }) => (
 	getText(
 		executionSpecsMainnetUpgradeMarkdownUrl(filename),
-		{ origins: EthereumSpecs.origins }
+		{ origins }
 	)
 )

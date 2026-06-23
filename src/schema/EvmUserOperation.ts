@@ -1,25 +1,19 @@
 import { type } from 'arktype'
-
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
-import { Source } from '$/sources/Source.ts'
-
 export enum EvmUserOperationSelector {
 	EvmNetworkHash = 'evmNetworkHash',
+	NetworkHash = '$network+hash',
 }
-
 export default {
 	entityType: EntityType.EvmUserOperation,
-
-	label: 'User operation',
-	labelPlural: 'User operations',
-
+	label: 'EVM user operation',
+	labelPlural: 'EVM user operations',
 	selectors: [
 		{
 			name: EvmUserOperationSelector.EvmNetworkHash,
@@ -29,238 +23,190 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'hash',
+			label: 'Hash',
+			description: 'The hash that identifies this object in its protocol.',
 			type: EntityFieldType.Primitive,
 			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
 		},
 		{
 			name: '$bundledTransaction',
+			label: 'bundled transaction',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmTransaction,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
 		},
 		{
 			name: '$sender',
+			label: 'sender',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Erc4337SmartAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
 		},
 		{
 			name: '$block',
+			label: 'block',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmBlock,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
 		},
 		{
 			name: 'timestampMs',
+			label: 'Timestamp',
+			description: 'The observation time in Unix milliseconds.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
 		},
 		{
 			name: 'successful',
+			label: 'successful',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
+			primitiveType: type("boolean"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
 		},
 		{
 			name: 'fee',
+			label: 'fee',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
 		},
 		{
 			name: 'nonce',
+			label: 'nonce',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
 		},
 		{
 			name: 'callGasLimit',
+			label: 'call gas limit',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
 		},
 		{
 			name: 'verificationGasLimit',
+			label: 'verification gas limit',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
 		},
 		{
 			name: 'preVerificationGas',
+			label: 'pre verification gas',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
 		},
 		{
 			name: 'maxFeePerGas',
+			label: 'max fee per gas',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
 		},
 		{
 			name: 'maxPriorityFeePerGas',
+			label: 'max priority fee per gas',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
 		},
 		{
 			name: 'gas',
+			label: 'gas',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
 		},
 		{
 			name: 'gasUsed',
+			label: 'gas used',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
 		},
 		{
 			name: 'gasPrice',
+			label: 'gas price',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
 		},
 		{
 			name: 'entryPointVersion',
+			label: 'entry point version',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
 		},
 		{
 			name: '$entryPoint',
+			label: 'entry point',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmContract,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
 		},
 		{
 			name: 'initCode',
+			label: 'init code',
 			type: EntityFieldType.Primitive,
 			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
 		},
 		{
 			name: 'callData',
+			label: 'call data',
 			type: EntityFieldType.Primitive,
 			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
 		},
 		{
 			name: 'sponsorType',
+			label: 'sponsor type',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
 		},
 		{
 			name: 'paymasterAndData',
+			label: 'paymaster and data',
 			type: EntityFieldType.Primitive,
 			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
 		},
 		{
 			name: 'signature',
+			label: 'signature',
 			type: EntityFieldType.Primitive,
 			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
 		},
 		{
 			name: '$paymaster',
+			label: 'paymaster',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Erc4337Paymaster,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
 		},
 		{
 			name: '$bundler',
+			label: 'bundler',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Erc4337Bundler,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

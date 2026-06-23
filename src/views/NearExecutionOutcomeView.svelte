@@ -2,15 +2,89 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'transaction',
+			},
+			{
+				label: 'outcome id',
+			},
+			'status',
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'transaction',
+					},
+					{
+						label: 'outcome id',
+					},
+					'status',
+					{
+						label: 'gas burnt',
+					},
+					{
+						label: 'spawned receipt count',
+					},
+					{
+						label: 'status payload',
+					},
+					{
+						label: 'gas/profile evidence',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Transaction',
+					items: [
+						{
+							label: 'NearTransaction',
+						},
+					],
+				},
+				{
+					label: 'Outcome',
+					items: [
+						{
+							label: 'outcome id',
+						},
+						'status',
+						{
+							label: 'gas burnt',
+						},
+					],
+				},
+				{
+					label: 'Receipts',
+					items: [
+						{
+							label: 'NearReceipt list',
+						},
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'NEAR transaction status outcome payload',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
 		open = $bindable(true),
@@ -21,7 +95,7 @@
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
@@ -29,50 +103,15 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.NearExecutionOutcome}
 	entitySelector={selection.entitySelector}
-	title={selection.entitySelector.outcomeId}
 	bind:open
 	{...EntityViewProps}
->
-
-	{#snippet Title()}
-		<TruncatedValue
-			value={selection.entitySelector.outcomeId}
-			format={TruncatedValueFormat.Abbr}
-		/>
-	{/snippet}
-
-	{#snippet Content()}
-		<ResourceBoundary
-			resource={selection( { fields: { status: true, gasBurnt: true } })}
-			placeholderText={`Loading NEAR Execution Outcome...`}
-		>
-			{#snippet children(nearExecutionOutcome)}
-				<dl>
-					{#if nearExecutionOutcome.status != null}
-						<div>
-							<dt>Status</dt>
-							<dd>{nearExecutionOutcome.status}</dd>
-						</div>
-					{/if}
-
-					{#if nearExecutionOutcome.gasBurnt != null}
-						<div>
-							<dt>Gas Burnt</dt>
-							<dd><NumberValue value={nearExecutionOutcome.gasBurnt} /></dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-</EntityView>
+	{view}
+/>

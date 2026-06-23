@@ -2,7 +2,6 @@ import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
-import { nearMainnetRpcEndpoints } from '$/sources/NearRpc/index.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
@@ -33,7 +32,8 @@ import { NearContractSelector } from '$/schema/NearContract.ts'
 import { NearAccessKeySelector } from '$/schema/NearAccessKey.ts'
 import { NearValidatorSelector } from '$/schema/NearValidator.ts'
 
-const nearMainnetRpcUrl = nearMainnetRpcEndpoints[0].url
+const nearMainnetRpcUrl = async () =>
+	(await import('$/sources/NearRpc/JsonRpc/queries.ts')).nearMainnetRpcEndpoints[0].url
 
 const assertNearMainnet = (network: { caip2: {
 	namespace: string
@@ -225,7 +225,7 @@ const getNearTransactionStatus = async ({ $network, hash, signerAccountId }: {
 		throw new Error(`NearRpc_JsonRpc: transaction ${hash} requires signerAccountId`)
 	const { getTxStatus } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
 	return getTxStatus({
-		rpcUrl: nearMainnetRpcUrl,
+		rpcUrl: await nearMainnetRpcUrl(),
 		txHash: hash,
 		senderAccountId: signerAccountId,
 	})
@@ -242,7 +242,7 @@ export default {
 					assertNearMainnet($network)
 					const { getBlock } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
 					const wireBlock = await getBlock({
-						rpcUrl: nearMainnetRpcUrl,
+						rpcUrl: await nearMainnetRpcUrl(),
 						blockId: hash,
 					})
 					return {
@@ -293,7 +293,7 @@ export default {
 					assertNearMainnet($network)
 					const { getChunk } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
 					const wireChunk = await getChunk({
-						rpcUrl: nearMainnetRpcUrl,
+						rpcUrl: await nearMainnetRpcUrl(),
 						chunkHash: chunkHash,
 					})
 					return {
@@ -415,7 +415,7 @@ export default {
 						return nearReceiptFields(
 							$network,
 							await getReceipt({
-								rpcUrl: nearMainnetRpcUrl,
+								rpcUrl: await nearMainnetRpcUrl(),
 								receiptId: receiptId,
 							})
 					)
@@ -439,7 +439,7 @@ export default {
 					assertNearMainnet($network)
 					const { viewAccount } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
 					const account = await viewAccount({
-						rpcUrl: nearMainnetRpcUrl,
+						rpcUrl: await nearMainnetRpcUrl(),
 						accountId: accountId,
 					})
 					return {
@@ -471,7 +471,7 @@ export default {
 					assertNearMainnet($network)
 					const { viewAccount } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
 					const account = await viewAccount({
-						rpcUrl: nearMainnetRpcUrl,
+						rpcUrl: await nearMainnetRpcUrl(),
 						accountId: accountId,
 					})
 					if (account.code_hash === '11111111111111111111111111111111')
@@ -494,7 +494,7 @@ export default {
 					assertNearMainnet($account.$network)
 					const { viewAccessKey } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
 					return nearAccessKeyFields(await viewAccessKey({
-						rpcUrl: nearMainnetRpcUrl,
+						rpcUrl: await nearMainnetRpcUrl(),
 						accountId: $account.accountId,
 						publicKey: publicKey,
 					}))
@@ -514,7 +514,7 @@ export default {
 					assertNearMainnet($network)
 					const { getValidators } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
 					const validator = (await getValidators({
-						rpcUrl: nearMainnetRpcUrl,
+						rpcUrl: await nearMainnetRpcUrl(),
 					})).current_validators.find((nearValidator) => nearValidator.account_id === accountId)
 					if (validator == null) throw new Error(`NearRpc_JsonRpc: validator ${accountId} not found`)
 					return nearValidatorFields(validator)
@@ -543,6 +543,7 @@ export default {
 						getStatus,
 						getValidators,
 					} = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+					const rpcUrl = await nearMainnetRpcUrl()
 					const [
 						headBlock,
 					currentGasPrice,
@@ -550,17 +551,17 @@ export default {
 					validatorSet,
 					] = await Promise.all([
 						getBlock({
-							rpcUrl: nearMainnetRpcUrl,
+							rpcUrl,
 							blockId: 'final',
 						}),
 						getGasPrice({
-							rpcUrl: nearMainnetRpcUrl,
+							rpcUrl,
 						}),
 						getStatus({
-							rpcUrl: nearMainnetRpcUrl,
+							rpcUrl,
 						}),
 						getValidators({
-							rpcUrl: nearMainnetRpcUrl,
+							rpcUrl,
 						}),
 					])
 					return [
@@ -568,6 +569,7 @@ export default {
 							[EntityMetaKey.Selector]: {
 								$network: entitySelector,
 								timestampMs: Number(BigInt(headBlock.header.timestamp_nanosec) / 1_000_000n),
+								source: Source.NearRpc_JsonRpc,
 							},
 							headHeight: BigInt(headBlock.header.height),
 							headHash: headBlock.header.hash,
@@ -600,7 +602,7 @@ export default {
 					assertNearMainnet(entitySelector)
 					const { getBlock } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
 					const headBlock = await getBlock({
-						rpcUrl: nearMainnetRpcUrl,
+						rpcUrl: await nearMainnetRpcUrl(),
 						blockId: 'final',
 					})
 					const headBlockHeight = BigInt(headBlock.header.height)
@@ -633,7 +635,7 @@ export default {
 					assertNearMainnet(entitySelector)
 					const { getValidators } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
 					return (await getValidators({
-						rpcUrl: nearMainnetRpcUrl,
+						rpcUrl: await nearMainnetRpcUrl(),
 					})).current_validators
 						.slice(0, resolverContextRowLimit(context))
 						.map((validator) => ({
@@ -658,7 +660,7 @@ export default {
 					assertNearMainnet($network)
 					const { viewAccessKeyList } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
 					return (await viewAccessKeyList({
-						rpcUrl: nearMainnetRpcUrl,
+						rpcUrl: await nearMainnetRpcUrl(),
 						accountId: accountId,
 					})).keys.map((key) => ({
 						[EntityMetaKey.Selector]: {

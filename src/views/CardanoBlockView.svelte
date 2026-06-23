@@ -1,0 +1,111 @@
+<script lang="ts">
+	// Types/constants
+	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { schema } from '$/schema/index.ts'
+
+
+	// State
+	const view = {
+		closed: [
+			'hash',
+			'slot',
+			{
+				label: 'block number',
+			},
+		],
+		content: {
+			dl: [
+				[
+					'hash',
+					'slot',
+					{
+						label: 'block number',
+					},
+					'epoch',
+					'era',
+					{
+						label: 'issuer VRF/key',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Transactions',
+					items: [
+						{
+							label: 'transactions included in the block',
+						},
+					],
+				},
+				{
+					label: 'Navigation',
+					items: [
+						{
+							label: 'previous/next block links when sourceable',
+						},
+					],
+				},
+				{
+					label: 'Lookup evidence',
+					items: [
+						{
+							label: 'hash/block-number lookup',
+						},
+						{
+							label: 'slot lookup',
+						},
+						{
+							label: 'epoch-slot lookup',
+						},
+					],
+				},
+				{
+					label: 'Source evidence',
+					items: [
+						{
+							label: 'Blockfrost block response',
+						},
+						{
+							label: 'Koios/db-sync/Ogmios block payload',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
+	let {
+		selection,
+		open = $bindable(true),
+		...EntityViewProps
+	}: WithRest<
+		{
+			selection: EntityProxyResource<typeof schema, EntityType.CardanoBlock>
+			open?: boolean
+		},
+		Pick<
+			ComponentProps<typeof EntityView2>,
+			| 'layout'
+			| 'showTypeAnnotation'
+		>
+	> = $props()
+
+
+	// Components
+	import EntityView2 from '$/components/EntityView2.svelte'
+</script>
+
+
+<EntityView2
+	{selection}
+	entityType={EntityType.CardanoBlock}
+	entitySelector={selection.entitySelector}
+	bind:open
+	{...EntityViewProps}
+	{view}
+/>

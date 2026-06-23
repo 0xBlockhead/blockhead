@@ -20,7 +20,6 @@ import { ActivityPubActorSelector } from '$/schema/ActivityPubActor.ts'
 import { ActivityPubNoteSelector } from '$/schema/ActivityPubNote.ts'
 import { ActivityPubActor_TimestampSelector } from '$/schema/ActivityPubActor_Timestamp.ts'
 import { ActivityPubNote_TimestampSelector } from '$/schema/ActivityPubNote_Timestamp.ts'
-import { ActivityPubNetworkSelector } from '$/schema/ActivityPubNetwork.ts'
 
 
 const mastodonLocalAccountId = (
@@ -378,118 +377,6 @@ export default {
 				replyCount: (timestamp) => timestamp.replyCount,
 			},
 		}),
-		defineResolver(Source.Mastodon_Rest, {
-			entityType: EntityType.ActivityPubNetwork,
-			resolve: {
-				[ActivityPubNetworkSelector.Scope]: async (_entitySelector, context) => {
-					const publicEnv = context.publicEnv
-					const { getInstance } = await import('$/sources/Mastodon/Rest/queries.ts')
-					const instance = await getInstance(publicEnv)
-					return optionalNonemptyString(instance.title)
-				}
-			},
-		})({
-			fields: {
-				instanceTitle: (network) => network,
-			},
-		}),
-
-		defineResolver(Source.Mastodon_Rest, {
-			entityType: EntityType.ActivityPubNetwork,
-			resolve: {
-				[ActivityPubNetworkSelector.Scope]: async (_entitySelector, context) => {
-					const publicEnv = context.publicEnv
-					const { getInstance } = await import('$/sources/Mastodon/Rest/queries.ts')
-					const instance = await getInstance(publicEnv)
-					return (
-						optionalNonemptyString(instance.description)
-					?? optionalNonemptyString(instance.short_description)
-					)
-				}
-			},
-		})({
-			fields: {
-				instanceDescription: (network) => network,
-			},
-		}),
-
-		defineResolver(Source.Mastodon_Rest, {
-			entityType: EntityType.ActivityPubNetwork,
-			resolve: {
-				[ActivityPubNetworkSelector.Scope]: async (_entitySelector, context) => {
-					const publicEnv = context.publicEnv
-					const { getInstance } = await import('$/sources/Mastodon/Rest/queries.ts')
-					const instance = await getInstance(publicEnv)
-					return optionalNonemptyString(instance.version)
-				}
-			},
-		})({
-			fields: {
-				instanceVersion: (network) => network,
-			},
-		}),
-
-		defineResolver(Source.Mastodon_Rest, {
-			entityType: EntityType.ActivityPubNetwork,
-			resolve: {
-				[ActivityPubNetworkSelector.Scope]: async (_entitySelector, context) => {
-					const publicEnv = context.publicEnv
-					const { mastodonInstanceByKey } = await import('$/constants/Mastodon.ts')
-					const { listPublicTimeline } = await import('$/sources/Mastodon/Rest/queries.ts')
-					const limit = resolverContextRowLimit(context)
-					return (
-						(await listPublicTimeline(publicEnv, limit))
-							.flatMap((status) => {
-							const localAccountId = mastodonLocalAccountId(status.account)
-							if (localAccountId == null) return []
-							return [{
-								[EntityMetaKey.Selector]: {
-									instanceOrigin: mastodonInstanceByKey.mastodon_social.origin,
-									localAccountId,
-								},
-							}]
-							})
-					)
-				}
-			},
-		})({
-			fields: {
-				$$activityPubActors: (network) => network,
-			},
-		}),
-
-		defineResolver(Source.Mastodon_Rest, {
-			entityType: EntityType.ActivityPubNetwork,
-			resolve: {
-				[ActivityPubNetworkSelector.Scope]: async (_entitySelector, context) => {
-					const publicEnv = context.publicEnv
-					const { mastodonInstanceByKey } = await import('$/constants/Mastodon.ts')
-					const { listPublicTimeline } = await import('$/sources/Mastodon/Rest/queries.ts')
-					const limit = resolverContextRowLimit(context)
-					return (
-						(await listPublicTimeline(publicEnv, limit))
-							.flatMap((status) => (
-							status.id == null ?
-								[]
-							:
-								[
-									{
-										[EntityMetaKey.Selector]: {
-											instanceOrigin: mastodonInstanceByKey.mastodon_social.origin,
-											localStatusId: String(status.id),
-										},
-									},
-								]
-							))
-					)
-				}
-			},
-		})({
-			fields: {
-				$$activityPubNotes: (network) => network,
-			},
-		}),
-
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubActor,
 			resolve: {

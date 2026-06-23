@@ -1,15 +1,13 @@
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import {
+	SourceProvider,
+	type SourceProviderDefinition,
+} from '$/sources/SourceProvider.ts'
+import { bitcoinCashChipsBindings } from '$/sources/BitcoinCashChips/bindings.ts'
 
 export default {
 	provider: SourceProvider.BitcoinCashChips,
 	label: 'Bitcoin Cash CHIPs',
-	origins: [
-		{
-			origin: 'https://gitlab.com',
-			corsEnabled: false,
-		},
-	],
 	sources: [
 		{
 			provider: SourceProvider.BitcoinCashChips,
@@ -17,4 +15,5 @@ export default {
 			label: 'Bitcoin Cash CHIPs GitLab',
 		},
 	],
-} as const satisfies SourceProviderDefinition
+	bindings: bitcoinCashChipsBindings,
+} satisfies SourceProviderDefinition

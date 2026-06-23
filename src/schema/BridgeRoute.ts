@@ -1,32 +1,25 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
-import { Source } from '$/sources/Source.ts'
-
-
 export enum BridgeRouteTag {
 	Best = 'BEST',
 	Cheapest = 'CHEAPEST',
 	Fastest = 'FASTEST',
 	Recommended = 'RECOMMENDED',
 }
-
 export enum BridgeRouteSelector {
 	Quote = 'quote',
+	FromChainIdToChainIdFromTokenToTokenFromAmountFromAddressSlippageToAddress = 'fromChainId+toChainId+fromToken+toToken+fromAmount+fromAddress+slippage+toAddress',
 }
-
 export default {
 	entityType: EntityType.BridgeRoute,
-
-	label: 'Bridge route',
-	labelPlural: 'Bridge routes',
-
+	label: 'bridge route',
+	labelPlural: 'bridge routes',
 	selectors: [
 		{
 			name: BridgeRouteSelector.Quote,
@@ -42,131 +35,118 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: 'fromChainId',
+			label: 'from chain ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'toChainId',
+			label: 'to chain ID',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'fromToken',
+			label: 'from token',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'toToken',
+			label: 'to token',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'fromAmount',
+			label: 'from amount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'fromAddress',
+			label: 'from address',
 			type: EntityFieldType.Primitive,
 			primitiveType: EvmAddress,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'slippage',
+			label: 'slippage',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'toAddress',
+			label: 'to address',
 			type: EntityFieldType.Primitive,
 			primitiveType: EvmAddress,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$$steps',
+			label: 'steps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.BridgeRouteStep,
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Lifi_Rest,
-			],
 		},
 		{
 			name: '$fromNetwork',
+			label: 'from network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Lifi_Rest,
-			],
 		},
 		{
 			name: '$toNetwork',
+			label: 'to network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Lifi_Rest,
-			],
-		},
-		{
-			name: 'fromAmount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Lifi_Rest,
-			],
 		},
 		{
 			name: 'toAmount',
+			label: 'to amount',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Lifi_Rest,
-			],
 		},
 		{
 			name: 'toAmountMin',
+			label: 'to amount min',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type("bigint"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Lifi_Rest,
-			],
 		},
 		{
 			name: 'estimatedCostUsd',
+			label: 'estimated cost usd',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Lifi_Rest,
-			],
 		},
 		{
 			name: 'estimatedDurationSeconds',
+			label: 'estimated duration seconds',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Lifi_Rest,
-			],
 		},
 		{
 			name: 'tags',
+			label: 'tags',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(BridgeRouteTag).array(),
+			primitiveType: type("string[]"),
 			cardinality: EntityFieldCardinality.One,
-			// LI.FI GET /v1/quote returns one executable route, not BEST/CHEAPEST/FASTEST comparison tags.
-			defaultSources: [
-				Source.Lifi_Rest,
-			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

@@ -88,27 +88,27 @@ export const displayTypeFromContent = ({
 				'text'
 			:
 				contentType.startsWith('image/') ?
-				'image'
-			:
-				contentType.startsWith('video/') ?
-				'video'
-			:
-				contentType.startsWith('audio/') ?
-				'audio'
-			:
-				contentType.startsWith('application/json') ?
-				'json'
-			:
-				contentType.startsWith('application/xml') || contentType.startsWith('text/xml') ?
-				'xml'
-			:
-				contentType.startsWith('application/pdf') ?
-				'pdf'
-			:
-				text != null ?
-				'text'
-			:
-				'binary'
+					'image'
+				:
+					contentType.startsWith('video/') ?
+						'video'
+					:
+						contentType.startsWith('audio/') ?
+							'audio'
+						:
+							contentType.startsWith('application/json') ?
+								'json'
+							:
+								contentType.startsWith('application/xml') || contentType.startsWith('text/xml') ?
+									'xml'
+								:
+									contentType.startsWith('application/pdf') ?
+										'pdf'
+									:
+										text != null ?
+											'text'
+										:
+											'binary'
 )
 
 export const parseContentResponse = async ({

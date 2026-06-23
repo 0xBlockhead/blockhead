@@ -1,31 +1,18 @@
 import { type } from 'arktype'
-
-import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
-	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-
 export enum BlockheadTransferRequestSelector {
 	IdEvmNetwork = 'idEvmNetwork',
+	IdNetwork = 'id+$network',
 }
-
-
-const transferAllocationRow = type({
-	destination: EvmAddress,
-	token: EvmAddress,
-	amount: 'bigint',
-})
-
 export default {
 	entityType: EntityType.BlockheadTransferRequest,
-
-	label: 'Transfer Request',
-	labelPlural: 'Transfer Requests',
-
+	label: 'blockhead transfer request',
+	labelPlural: 'blockhead transfer requests',
 	selectors: [
 		{
 			name: BlockheadTransferRequestSelector.IdEvmNetwork,
@@ -35,61 +22,71 @@ export default {
 			],
 		},
 	],
-
 	fields: [
 		{
 			name: 'id',
+			label: 'ID',
+			description: 'The identifier assigned by the source domain.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$network',
+			label: 'network',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$room',
+			label: 'room',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.BlockheadRoom,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$from',
+			label: 'from',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$to',
+			label: 'to',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'allocations',
+			label: 'allocations',
 			type: EntityFieldType.Primitive,
-			primitiveType: transferAllocationRow.array(),
+			primitiveType: type({"destination": "string", "token": "string", "amount": "bigint"}).array(),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'status',
+			label: 'status',
 			type: EntityFieldType.Primitive,
-			primitiveType: type("'pending' | 'accepted' | 'rejected' | 'expired' | 'sent'"),
+			primitiveType: type("string"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'createdAt',
+			label: 'Created',
+			description: 'The time when the subject was created according to the source.',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'expiresAt',
+			label: 'expires AT',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type("number"),
 			cardinality: EntityFieldCardinality.One,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	],
 } as const satisfies EntityDefinition

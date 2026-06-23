@@ -5,135 +5,124 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
 
 
 	// State
+	const view = {
+		closed: [
+			{
+				label: 'post id',
+			},
+			{
+				label: 'latest text',
+			},
+			{
+				label: 'created time',
+			},
+		],
+		content: {
+			dl: [
+				[
+					{
+						label: 'post id',
+					},
+					{
+						label: 'created time',
+					},
+					{
+						label: 'author',
+					},
+					{
+						label: 'conversation id',
+					},
+					{
+						label: 'reply/quote refs',
+					},
+					{
+						label: 'latest post URL',
+					},
+					{
+						label: 'latest media attachments',
+					},
+					{
+						label: 'latest like/repost/reply/quote snapshot',
+					},
+				],
+			],
+		},
+		details: {
+			tabs: [
+				{
+					label: 'Latest content',
+					items: [
+						{
+							label: 'latest content observation by timestamp/source',
+						},
+					],
+				},
+				{
+					label: 'Thread refs',
+					items: [
+						{
+							label: 'reply/quote/conversation facets',
+						},
+					],
+				},
+				{
+					label: 'Author',
+					items: [
+						{
+							label: 'author profile',
+						},
+					],
+				},
+				{
+					label: 'Media',
+					items: [
+						{
+							label: 'media list from latest timestamp',
+						},
+					],
+				},
+				{
+					label: 'Metric snapshots',
+					items: [
+						{
+							label: 'post metric observations',
+						},
+					],
+				},
+			],
+		},
+	} satisfies ComponentProps<typeof EntityView2>['view']
+
 	let {
 		selection,
-		href = resolve('/(social)/(x)/x/post/[postId]', {
-			postId: selection.entitySelector.id,
-		}),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.XPost>
-			href?: string
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView>,
+			ComponentProps<typeof EntityView2>,
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
-	const post = $derived(
-		selection(({
-				sources: [
-					Source.Constants_Internal,
-				],
-				fields: {
-					postUrl: true,
-				},
-			}),
-		)
-	)
-
-
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import EntityView2 from '$/components/EntityView2.svelte'
 </script>
 
 
-<EntityView
+<EntityView2
+	{selection}
 	entityType={EntityType.XPost}
 	entitySelector={selection.entitySelector}
-	href={href}
 	bind:open
 	{...EntityViewProps}
->
-	{#snippet Value()}
-		<TruncatedValue
-			value={selection.entitySelector.id}
-			format={TruncatedValueFormat.Visual}
-		/>
-	{/snippet}
-
-	{#snippet Title()}
-		{#if open}
-			<ResourceBoundary
-				resource={post}
-				placeholderText="Loading X post…"
-			>
-				{#snippet children(_post)}
-					<TruncatedValue
-						value={selection.entitySelector.id}
-						format={TruncatedValueFormat.Visual}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{:else}
-			<TruncatedValue
-				value={selection.entitySelector.id}
-				format={TruncatedValueFormat.Visual}
-			/>
-		{/if}
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Public posts on X (Twitter): short text, timestamps, and author profile links.
-		</p>
-		<p>
-			Not Reddit threads, storage CIDs, on-chain receipts, or encrypted chats.
-		</p>
-	{/snippet}
-
-	{#snippet Content({ open })}
-		{#if open}
-			<ResourceBoundary
-				resource={post}
-				placeholderText="Loading X post…"
-			>
-				{#snippet children(_post)}
-					<p data-text="muted">
-						Live post text is unavailable from the current public X source.
-					</p>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
-
-		<dl data-column-item="center">
-			{#if open}
-				<ResourceBoundary
-					resource={post}
-					placeholderText="Loading X post…"
-				>
-					{#snippet children(post)}
-						{#if post.postUrl}
-							<div>
-								<dt>Post URL</dt>
-								<dd>
-									<TruncatedValue
-										format={TruncatedValueFormat.Visual}
-										value={post.postUrl}
-									/>
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/if}
-		</dl>
-	{/snippet}
-
-</EntityView>
+	{view}
+/>
