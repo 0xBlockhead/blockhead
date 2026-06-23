@@ -15,6 +15,15 @@ const tanstackBrowserSqliteSrc = fileURLToPath(new URL(
 	import.meta.url
 ))
 
+const referenceFolderTestExcludes = [
+	'src/schema_/**',
+	'src/views_/**',
+	'src/views__/**',
+	'src/routes_/**',
+	'src/sources_/**',
+	'src/resolvers_/**',
+] as const
+
 export default defineConfig({
 	resolve: {
 		alias: {
@@ -53,6 +62,7 @@ export default defineConfig({
 					exclude: [
 						'src/lib/server/**',
 						'src/routes/demo/**',
+						...referenceFolderTestExcludes,
 					]
 				}
 			},
@@ -66,6 +76,7 @@ export default defineConfig({
 					exclude: [
 						'src/**/*.svelte.{test,spec}.{js,ts}',
 						'src/routes/demo/**',
+						...referenceFolderTestExcludes,
 					]
 				}
 			}

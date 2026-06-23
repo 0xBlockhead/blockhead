@@ -27,6 +27,7 @@ const catalog = [
 	{ coinId: CoinId.SEI, wireId: 'sei-sei', decimals: 18 },
 	{ coinId: CoinId.SOL, wireId: 'sol-solana', decimals: 9 },
 	{ coinId: CoinId.STETH, wireId: 'steth-lido-staked-ether', decimals: 18 },
+	{ coinId: CoinId.TRX, wireId: 'trx-tron', decimals: 6 },
 	{ coinId: CoinId.UNI, wireId: 'uni-uniswap', decimals: 18 },
 	{ coinId: CoinId.USDC, wireId: 'usdc-usd-coin', decimals: 6 },
 	{ coinId: CoinId.USDT, wireId: 'usdt-tether', decimals: 6 },

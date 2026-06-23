@@ -1,6 +1,7 @@
 export const caipNamespacesGithubRepo = {
 	owner: 'ChainAgnostic',
 	repo: 'namespaces',
+	path: '',
 	ref: 'main',
 } as const
 

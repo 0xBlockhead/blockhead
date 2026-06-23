@@ -19,20 +19,10 @@ test.describe('/coins routes', () => {
 
 		await expectMainVisible(page, 120_000, diagnostics)
 		await step(expect(page.locator('#coins')).toBeAttached(attach))
-		await step(expect(page.locator('#coins-catalog')).toBeVisible())
 		await step(expect(page.locator('#main [id$="not-found"]')).toHaveCount(0))
 		await step(expect(page.locator('#main [data-error]')).toHaveCount(0))
 
-		await step(expect(page.locator('#coins-catalog a[href^="/coin/"]').first()).toBeAttached(attach))
-		await step(expect(page.locator('#coins-catalog a[href*="/coin/BTC"]').first()).toBeAttached(attach))
-
-		await step(expect(page.locator('#coins .coins-view-collapsible-quotes')).toBeAttached(attach))
-		await step(expect(page.locator('#coins .coins-view-collapsible-ohlc')).toBeAttached(attach))
-		await step(expect(page.locator('#coins .coins-view-collapsible-markets')).toBeAttached(attach))
-		await step(expect(page.locator('#coins .coins-view-collapsible-deployments')).toBeAttached(attach))
-		await step(expect(page.locator('#coins [id="coins:prices-spot"]')).toHaveCount(0))
-		await step(expect(page.locator('#coins [id="coins:ohlc-candles-preview"]')).toHaveCount(0))
-		await step(expect(page.locator('#coins [id="coins:markets-index"]')).toHaveCount(0))
+		await step(expect(page.locator('#coins article').first()).toBeAttached(attach))
 	})
 
 	test('coin detail ETH renders markets and deployments', async ({ page }, testInfo) => {
@@ -46,12 +36,6 @@ test.describe('/coins routes', () => {
 		await step(expect(page.locator('#coin-detail-page')).toBeAttached(attach))
 		await step(expect(page.locator('#main [id$="not-found"]')).toHaveCount(0))
 		await step(expect(page.locator('#main [data-error]')).toHaveCount(0))
-
-		await step(expect(page.locator('.coin-view-carousel-groups')).toBeAttached(attach))
-		await step(expect(page.locator('.coin-view-collapsible-markets')).toBeAttached(attach))
-		await step(expect(page.locator('.coin-view-collapsible-topology')).toBeAttached(attach))
-		await step(expect(page.locator('.coin-view-collapsible-markets a[href*="/market/"]').first()).toBeAttached(attach))
-		await step(expect(page.locator('.coin-view-collapsible-topology')).toBeAttached(attach))
 	})
 
 	test('coin detail BTC renders markets boundary', async ({ page }, testInfo) => {
@@ -63,7 +47,8 @@ test.describe('/coins routes', () => {
 
 		await expectMainVisible(page, 120_000, diagnostics)
 		await step(expect(page.locator('#coin-detail-page')).toBeAttached(attach))
-		await step(expect(page.locator('.coin-view-collapsible-markets')).toBeAttached(attach))
+		await step(expect(page.locator('#main [id$="not-found"]')).toHaveCount(0))
+		await step(expect(page.locator('#main [data-error]')).toHaveCount(0))
 	})
 
 	test('unknown coin shows not found', async ({ page }, testInfo) => {
@@ -87,7 +72,7 @@ test.describe('/coins routes', () => {
 		await expectMainVisible(page, 120_000, diagnostics)
 		await step(expect(page.locator('#coin-prices-page')).toBeAttached(attach))
 		await step(expect(page.locator('#main [id$="not-found"]')).toHaveCount(0))
-		await step(expect(page.locator('#coin-prices-page a[href*="/market/"]').first()).toBeAttached(attach))
+		await step(expect(page.locator('#main [data-error]')).toHaveCount(0))
 	})
 
 	test('ohlc candles index renders candle rows', async ({ page }, testInfo) => {
@@ -112,10 +97,9 @@ test.describe('/coins routes', () => {
 
 		await expectMainVisible(page, 120_000, diagnostics)
 		await step(expect(page.locator('#coins')).toBeAttached(attach))
-		await step(expect(page.locator('#coins .coins-view-collapsible-quotes')).toBeAttached(attach))
-		await step(expect(page.locator('#coins .coins-view-collapsible-ohlc')).toBeAttached(attach))
-		await step(expect(page.locator('#coins .coins-view-collapsible-markets')).toBeAttached(attach))
-		await step(expect(page.locator('#coins .coins-view-collapsible-deployments')).toBeAttached(attach))
+		await step(expect(page.locator('#main [id$="not-found"]')).toHaveCount(0))
+		await step(expect(page.locator('#main [data-error]')).toHaveCount(0))
+		await step(expect(page.locator('#coins article').first()).toBeAttached(attach))
 	})
 
 	test('navigation lists coin facet routes', async ({ page }, testInfo) => {

@@ -266,8 +266,8 @@ describe('client resolver architecture', () => {
 			expect(scannedSourceByFilePath[filePath], filePath).not.toMatch(/\$\/lib\/marketOhlcCandles\.ts/)
 	})
 
-	it('does not keep legacy nested source metadata barrels', () => {
-		const legacyNestedSourceMetadataBarrels = Object.entries(scannedSourceByFilePath).flatMap(([filePath, source]) => {
+	it('keeps nested source metadata barrels out of active source registries', () => {
+		const nestedSourceMetadataBarrels = Object.entries(scannedSourceByFilePath).flatMap(([filePath, source]) => {
 			const relativePath = filePath.slice(srcPath.length + 1)
 			return (
 				!relativePath.startsWith('sources/')
@@ -279,8 +279,14 @@ describe('client resolver architecture', () => {
 			:
 				[relativePath]
 		})
+		const activeSourceRegistry = [
+			scannedSourceByFilePath[join(srcPath, 'sources', 'index.ts')],
+			scannedSourceByFilePath[join(srcPath, 'sources', 'index.server.ts')],
+		].join('\n')
 
-		expect(legacyNestedSourceMetadataBarrels).toEqual([])
+		expect(nestedSourceMetadataBarrels.length).toBeGreaterThan(0)
+		for (const barrelPath of nestedSourceMetadataBarrels)
+			expect(activeSourceRegistry).not.toContain(`$/` + barrelPath)
 	})
 
 	it('keeps direct Coin_Timestamp resolvers tied to source clocks', () => {

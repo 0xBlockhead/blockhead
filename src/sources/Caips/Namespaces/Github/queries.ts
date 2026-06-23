@@ -1,26 +1,26 @@
-import { getJson } from '$/sources/Github/Rest/client.ts'
-import { getRestRepoContentsUrl } from '$/sources/Github/Rest/queries.ts'
-import Caips from '$/sources/Caips/index.ts'
-
+import { caipsBindings } from '$/sources/Caips/bindings.ts'
 import {
 	caipNamespacesGithubRepo,
 	caipNamespacesHumanBaseUrl,
 } from '$/sources/Caips/Namespaces/Github/constants.ts'
 import type { CaipNamespacesGithubContents } from '$/sources/Caips/Namespaces/Github/types.ts'
+import {
+	getGithubContents,
+	githubContentsUrl,
+} from '$/sources/_shared/hosts/Github/Http/client.ts'
+
+const caipNamespacesBinding = caipsBindings[1]
 
 export const getContentsUrl = () => (
-	getRestRepoContentsUrl({
-		owner: caipNamespacesGithubRepo.owner,
-		repo: caipNamespacesGithubRepo.repo,
-		pathInRepo: '',
-		ref: caipNamespacesGithubRepo.ref,
-	})
+	githubContentsUrl(caipNamespacesGithubRepo)
 )
 
-export const getContents = (): Promise<CaipNamespacesGithubContents> => getJson<CaipNamespacesGithubContents>({
-	url: getContentsUrl(),
-	origins: Caips.origins,
-})
+export const getContents = (): Promise<CaipNamespacesGithubContents> => (
+	getGithubContents({
+		endpoints: caipNamespacesBinding.endpoints,
+		target: caipNamespacesGithubRepo,
+	}) as Promise<CaipNamespacesGithubContents>
+)
 
 export const getProfileUrl = (namespace: string) => (
 	`${caipNamespacesHumanBaseUrl}/${namespace}/caip2`

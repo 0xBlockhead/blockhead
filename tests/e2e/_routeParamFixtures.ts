@@ -45,6 +45,9 @@ const YOUTUBE_PROBE_CHANNEL_ID = 'UC_x5XG1OV2P6uZZ5FSM9Ttw' as const
 const RSS_PROBE_FEED_URL = 'https://hnrss.org/item?id=48592832' as const
 const RSS_PROBE_ITEM_GUID = 'https://news.ycombinator.com/item?id=48594706' as const
 
+const ACTIVITY_PUB_PROBE_ACTOR_URI = 'https://mastodon.social/users/Gargron' as const
+const ACTIVITY_PUB_PROBE_NOTE_URI = 'https://mastodon.social/users/Gargron/statuses/116539053870420123' as const
+
 const LENS_PROBE_POST_ID = '161m1s2r2av9deyh2a3' as const
 
 const ZERO_G_PROBE_STORAGE_NODE_ID = '0x103E5184A40f98b4dA4AF91b22C588E44b271618' as const
@@ -206,6 +209,8 @@ export const e2eRouteParamFixtures: Record<string, string> = {
 	marketVenueId: MarketVenueId.Binance,
 	localAccountId: '13179',
 	localStatusId: '116539053870420123',
+	acct: 'Gargron@mastodon.social',
+	activityStreamsUri: ACTIVITY_PUB_PROBE_ACTOR_URI,
 	hash: CAST_HASH_32,
 	postId: LENS_PROBE_POST_ID,
 	conversationId: 'e2e-probe-agent-conversation',
@@ -340,7 +345,13 @@ export const e2eRouteParamFixtureForContext = (
 	if (paramKey === 'userId' && path.includes('x'))
 		return '12'
 
-	return e2eRouteParamFixtures[paramKey]
+	if (paramKey === 'activityStreamsUri' && path.includes('activity-pub-note'))
+		return ACTIVITY_PUB_PROBE_NOTE_URI
+
+	if (paramKey === 'activityStreamsUri' && path.includes('activity-pub-actor'))
+		return ACTIVITY_PUB_PROBE_ACTOR_URI
+
+	return e2eRouteParamFixtures[paramKey] ?? `e2e-probe-${paramKey}`
 }
 
 export const e2eRouteParamFixtureVariantsForContext = (

@@ -1330,6 +1330,21 @@ const loadFieldRows = async <
 						}],
 					}
 				} catch (error) {
+					if (fieldCanCompleteEmpty(
+						context,
+						entityType,
+						parentSelector,
+						parentSelectorKey,
+						definition
+					))
+						return {
+							rows: [],
+							outcomes: [{
+								source: String(resolverPart.source),
+								status: PersistedCollectionSourceStatus.Completed,
+							}],
+						}
+
 					return {
 						rows: [],
 						outcomes: [{

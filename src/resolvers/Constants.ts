@@ -517,6 +517,46 @@ const evmNetworkUpgradeEntityFromRow = (
 }
 
 
+const coinDecimalsByCoinId = new Map([
+	[CoinId.AAVE, 18],
+	[CoinId.ADA, 6],
+	[CoinId.APT, 8],
+	[CoinId.ARB, 18],
+	[CoinId.AVAX, 18],
+	[CoinId.BCH, 8],
+	[CoinId.BNB, 18],
+	[CoinId.BTC, 8],
+	[CoinId.CELO, 18],
+	[CoinId.DAI, 18],
+	[CoinId.DOGE, 8],
+	[CoinId.DOT, 10],
+	[CoinId.ETH, 18],
+	[CoinId.ETC, 18],
+	[CoinId.FIL, 18],
+	[CoinId.HBAR, 8],
+	[CoinId.LINK, 18],
+	[CoinId.LTC, 8],
+	[CoinId.OP, 18],
+	[CoinId.POL, 18],
+	[CoinId.SEI, 18],
+	[CoinId.SHIB, 18],
+	[CoinId.SOL, 9],
+	[CoinId.STETH, 18],
+	[CoinId.SUI, 9],
+	[CoinId.TON, 9],
+	[CoinId.TRX, 6],
+	[CoinId.UNI, 18],
+	[CoinId.USDC, 6],
+	[CoinId.USDT, 6],
+	[CoinId.WBTC, 8],
+	[CoinId.XDC, 18],
+	[CoinId.XLM, 7],
+	[CoinId.XMR, 12],
+	[CoinId.XRP, 6],
+	[CoinId.ZEC, 8],
+])
+
+
 export default {
 	source: Source.Constants_Internal,
 
@@ -787,14 +827,9 @@ export default {
 			entityType: EntityType.Coin,
 			resolve: {
 				[CoinSelector.CoinId]: async ({ coinId }) => {
-					if (coinId === CoinId.BTC)
-						return {
-							decimals: 8,
-						}
-					if (coinId === CoinId.ETH)
-						return {
-							decimals: 18,
-						}
+					const decimals = coinDecimalsByCoinId.get(coinId)
+					if (decimals != null)
+						return { decimals }
 
 					throw new Error(`Constants_Internal: Coin ${coinId} decimals not in catalog`)
 				}

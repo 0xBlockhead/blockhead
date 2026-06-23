@@ -653,13 +653,20 @@
 		...(declaredMedia?.contentSize === undefined ? [] : [declaredMedia.contentSize]),
 		...(declaredMedia?.displayType === undefined ? [] : [declaredMedia.displayType]),
 		...(declaredMedia?.text === undefined ? [] : [declaredMedia.text]),
-		...declaredContentDl.flat(),
-		...declaredContentBlocks.flat(),
-		...declaredDetailTabs.flatMap((tab) => tab.items ?? []),
-		...declaredDetailCarousels.flatMap((carousel) => (
-			carousel.sections.flatMap((section) => section.items ?? [])
-		)),
-		...declaredDetailItems.flatMap((item) => item.items),
+		...(
+			open ?
+				[
+					...declaredContentDl.flat(),
+					...declaredContentBlocks.flat(),
+					...declaredDetailTabs.flatMap((tab) => tab.items ?? []),
+					...declaredDetailCarousels.flatMap((carousel) => (
+						carousel.sections.flatMap((section) => section.items ?? [])
+					)),
+					...declaredDetailItems.flatMap((item) => item.items),
+				]
+			:
+				[]
+		),
 	])
 	const declaredQueryFields = $derived([
 		...(view?.query?.fields ?? []),
@@ -736,17 +743,22 @@
 					true,
 				]]
 		)),
-		...declaredDetailCarousels.flatMap((carousel) => (
-			carousel.sections.flatMap((section) => (
-				section.field === undefined ?
-					[]
-				:
-					[[
-						section.field,
-						section.selection ?? true,
-					]]
-			))
-		)),
+		...(
+			open ?
+				declaredDetailCarousels.flatMap((carousel) => (
+					carousel.sections.flatMap((section) => (
+						section.field === undefined ?
+							[]
+						:
+							[[
+								section.field,
+								section.selection ?? true,
+							]]
+					))
+				))
+			:
+				[]
+		),
 	])
 	const declaredFieldSelectionOptions = $derived(
 		selectionOptions ?? (

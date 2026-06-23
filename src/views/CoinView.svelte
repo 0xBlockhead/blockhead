@@ -3,6 +3,7 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
@@ -18,9 +19,6 @@
 		query: {
 			sources: [
 				'Constants_Internal',
-				'Coingecko_Rest',
-				'CoinMarketCap_Rest',
-				'Coinpaprika_OpenApi',
 			],
 			fields: [
 				'symbol',
@@ -165,17 +163,21 @@
 
 	let {
 		selection,
-		open = $bindable(true),
+		layout,
+		open = $bindable(
+			layout === undefined
+			|| layout === EntityLayout.SummaryDetails
+		),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.Coin>
+			layout?: EntityLayout
 			open?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView2>,
-			| 'layout'
-			| 'showTypeAnnotation'
+			'showTypeAnnotation'
 		>
 	> = $props()
 
@@ -190,6 +192,7 @@
 	entityType={EntityType.Coin}
 	entitySelector={selection.entitySelector}
 	bind:open
+	{layout}
 	{...EntityViewProps}
 	{view}
 />

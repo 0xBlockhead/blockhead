@@ -31,6 +31,14 @@ export default defineConfig({
 					/** Opt-in reuse only: stale Vite/SvelteKit generated route state makes route-settlement failures non-deterministic. */
 					reuseExistingServer: process.env.PLAYWRIGHT_REUSE_EXISTING_SERVER === '1',
 				},
-			}),
+	}),
 	testMatch: '**/*.e2e.{ts,js}',
+	testIgnore: [
+		'**/src/schema_/**',
+		'**/src/views_/**',
+		'**/src/views__/**',
+		'**/src/routes_/**',
+		'**/src/sources_/**',
+		'**/src/resolvers_/**',
+	],
 })

@@ -47,6 +47,7 @@ const catalog: readonly {
 	{
 		coinId: CoinId.TRX,
 		wireId: 'tron',
+		decimals: 6,
 	},
 	{
 		coinId: CoinId.DOGE,
