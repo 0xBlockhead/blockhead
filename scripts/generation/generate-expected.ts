@@ -5,10 +5,6 @@ import { generatedOwnership, ownershipSummary } from './ownership.ts'
 import { writeText } from './files.ts'
 
 type ExpectedApp = {
-	docs: {
-		resolverCoverageMarkdown: string
-		sourcesMarkdown: string
-	}
 	schema: {
 		entities: {
 			name: string
@@ -81,6 +77,15 @@ type ExpectedApp = {
 			entity: string
 			status: string
 		}[]
+		ledger: {
+			source: string
+			status: string
+			providerBinding: string
+			resolverFile: string
+			sourceRuntimeArtifacts: string
+			schemaEntitiesTouched: string
+			actionValidationRisk: string
+		}[]
 	}
 	views: {
 		entityViews: {
@@ -94,7 +99,7 @@ type ExpectedApp = {
 			viewName: string
 			file: string
 			capabilities: string[]
-			sourceText: string
+			sourceText?: string
 			sourceFile: string
 		}[]
 	}
@@ -125,7 +130,105 @@ type ExpectedApp = {
 			usesDataSelector: boolean
 			usesParams: boolean
 			usesSelect: boolean
-			sourceText: string
+			kind: 'global-collection' | 'global-source-collection' | 'data-selector-detail' | 'data-selector-simple-detail' | 'data-selector-child-collection' | 'param-id-detail' | 'param-selector-detail' | 'scope-detail' | 'direct-selector-detail' | 'derived-selector-detail' | 'linked-view' | 'simple-view' | 'catalog-param-detail' | 'global-hub-tabs' | 'eip155-network-collection' | 'evm-protocol-collection' | 'youtube-parent-collection' | 'social-network-child-collection' | 'decoded-parent-child-collection' | 'decoded-param-detail' | 'lens-account-detail' | 'proposal-selector-detail' | 'placeholder' | 'param-heading' | 'static-page' | 'custom'
+			viewComponent?: string
+			viewFile?: string
+			entityType?: string
+			paramName?: string
+			selectorExpression?: string
+			selectorImportStyle?: 'sectioned'
+			selectorDeclaration?: string
+			routeImports?: string[]
+			functionImports?: string[]
+			selectorGuard?: string
+			invalidText?: string
+			invalidOutsidePage?: boolean
+			viewProps?: string[]
+			derivedConstants?: {
+				name: string
+				expression: string
+			}[]
+			importEntitySelectorType?: boolean
+			importEip155NetworkSelectorFromCaip2?: boolean
+			importZeroExHex?: boolean
+			zeroExHexImportSymbols?: string
+			zeroExHexImportWithSchemaImports?: boolean
+			importWith0xHex?: boolean
+			with0xHexImportSection?: 'types' | 'functions'
+			typeConstantsAfterSchemaImports?: boolean
+			paramsMultiline?: boolean
+			componentIndentExtra?: boolean
+			explicitClosingTag?: boolean
+			scope?: string
+			hrefExpression?: string
+			childField?: string
+			collectionEntityType?: string
+			globalScope?: string
+			globalField?: string
+			globalSourceField?: string
+			globalSourceSources?: string[]
+			globalSourceIndentExtra?: boolean
+			globalSourceOmitContextSection?: boolean
+			id?: string
+			limit?: number
+			title?: string
+			titleExpression?: string
+			headTitle?: string
+			sortMode?: string
+			catalogImports?: string[]
+			catalogParamType?: string
+			catalogRowsName?: string
+			catalogRowName?: string
+			catalogLookupName?: string
+			catalogLookupField?: string
+			catalogRouteKey?: string
+			catalogTitleExpression?: string
+			catalogNotFoundCondition?: string
+			catalogMissingText?: string
+			catalogUnknownText?: string
+			catalogNotFoundId?: string
+			catalogDetailId?: string
+			hubKey?: string
+			hubScope?: string
+			hubTitleExpression?: string
+			hubHref?: string
+			hubSections?: {
+				id: string
+				label: string
+				viewComponent?: string
+				href?: string
+				globalField?: string
+				viewId?: string
+				placeholderText?: string
+			}[]
+			networkCollectionField?: string
+			networkCollectionSources?: string[]
+			networkCollectionCount?: boolean
+			networkCollectionInlineSources?: boolean
+			networkCollectionHrefAfterSelection?: boolean
+			networkCollectionTightContextState?: boolean
+			protocolCollectionField?: string
+			parentSelectorField?: string
+			parentSelectorParam?: string
+			parentSelectorTransform?: 'lowercase' | 'number'
+			networkScope?: string
+			placeholderText?: string
+			placeholderMultiline?: boolean
+			staticWrapper?: 'section-column' | 'main-card'
+			staticTitle?: string
+			staticLinks?: {
+				label: string
+				route: string
+			}[]
+			proposalLevel?: 'realm' | 'kind' | 'proposal'
+			collapsible?: boolean
+			open?: boolean
+			stateComment?: string
+			blankLineBeforeComponents?: boolean
+			blankLineBeforePageClose?: boolean
+			viewImportBeforePage?: boolean
+			sources?: string[]
+			sourceText?: string
 			sourceFile: string
 		}[]
 		sectionShells: {
@@ -136,7 +239,33 @@ type ExpectedApp = {
 			usesDataSelector: boolean
 			usesParams: boolean
 			usesSelect: boolean
-			sourceText: string
+			kind: 'app-shell' | 'parent-collapsible' | 'nested-parent-collapsible' | 'page-param-parent-collapsible' | 'param-summary-collapsible' | 'keyed-param-summary-collapsible' | 'scope-summary-collapsible' | 'page-param-summary-collapsible' | 'proposal-parent-collapsible' | 'passthrough' | 'custom'
+			viewComponent?: string
+			viewFile?: string
+			entityType?: string
+			scope?: string
+			derivedConstants?: {
+				name: string
+				expression: string
+			}[]
+			selectorExpression?: string
+			title?: string
+			viewTitle?: string
+			titleExpression?: string
+			hrefExpression?: string
+			hrefWrapped?: boolean
+			idExpression?: string
+			keyExpression?: string
+			nestedParents?: {
+				title: string
+				hrefExpression: string
+				idExpression: string
+			}[]
+			childrenName?: string
+			usesEip155NetworkSelectorFromCaip2?: boolean
+			usesStringify?: boolean
+			proposalLevel?: 'realm' | 'kind' | 'proposal'
+			sourceText?: string
 			sourceFile: string
 		}[]
 		selectorMappings: {
@@ -174,6 +303,10 @@ const schemaFieldSuffixByCardinality: Record<string, string> = {
 }
 
 const json = (value: unknown) => JSON.stringify(value, null, '\t')
+
+const quote = (value: string) => (
+	`'${value.replace(/\\/g, '\\\\').replace(/'/g, '\\\'')}'`
+)
 
 const splitTopLevel = (text: string, delimiter: string) => {
 	const parts: string[] = []
@@ -663,30 +796,171 @@ const schemaMarkdown = (app: ExpectedApp) => [
 const resolverCoverageMarkdown = (app: ExpectedApp) => [
 	'# Resolver Coverage',
 	'',
-	'Generated from APP.ts.',
+	'This ledger records the current resolver state for every `Source` row during the sources-v2 resolver migration. Keep it in sync when adding, migrating, deferring, or removing resolver facets.',
 	'',
-	'| Source | Entity | State |',
-	'|---|---|---|',
-	...app.resolvers.coverage.map((coverage) => `| \`${coverage.source}\` | \`${coverage.entity}\` | ${coverage.status} |`),
+	'State meanings:',
+	'',
+	'- `implemented`: `src/resolvers/index.ts` imports a resolver file whose source row validates against the current schema.',
+	'- `no resolver`: the source is a capability, catalog, wallet, local artifact, or runtime transport row with no schema resolver facet expected yet.',
+	'- `deferred-schema`: the source may eventually back resolver facets, but current schema/product rows or field contracts are absent or intentionally inactive.',
+	'- `deferred-runtime`: the source binding exists, but checked-in runtime endpoint materialization, source query code, client code, or hand-written wire types are absent.',
+	'- `deferred-artifact`: the source needs generated OpenAPI, GraphQL, proto, Candid, ABI, or other checked-in artifacts before resolver facets would be accurate.',
+	'',
+	`Current generated counts: ${[
+		'implemented',
+		'no resolver',
+		'deferred-schema',
+		'deferred-runtime',
+		'deferred-artifact',
+	].map((status) => `${status} ${app.resolvers.ledger.filter((row) => row.status === status).length}`).join('; ')}.`,
+	'',
+	'| Source | State | Provider binding | Resolver file | Source runtime/artifacts | Schema entities touched | Action / validation risk |',
+	'|---|---|---|---|---|---|---|',
+	...app.resolvers.ledger.map((row) => `| \`${row.source}\` | ${row.status} | ${row.providerBinding} | ${row.resolverFile} | ${row.sourceRuntimeArtifacts} | ${row.schemaEntitiesTouched} | ${row.actionValidationRisk} |`),
 ].join('\n')
 
-const sourceMarkdown = (app: ExpectedApp) => [
-	'# Sources',
+const sourcesMarkdown = (app: ExpectedApp) => [
+	'# Blockhead Sources',
 	'',
-	'Generated from APP.ts.',
+	'This file is generated from `APP.ts` source provider, source, binding, runtime binding, and artifact rows.',
+	'',
+	'## Source Bindings',
+	'',
+	'```ts',
+	'export enum SourceBinding {',
+	...[...new Set(app.sources.bindings.map((binding) => binding.id))].map((binding) => `\t${binding} = ${quote(binding)},`),
+	'}',
+	'```',
+	'',
+	'| Binding | Source | Target |',
+	'|---|---|---|',
+	...app.sources.bindings.map((binding) => `| \`${binding.id}\` | \`${binding.source}\` | ${binding.target} |`),
 	'',
 	'## Providers',
 	'',
-	...app.sources.providers.map((provider) => `- \`${provider.id}\``),
+	'| Provider | Label |',
+	'|---|---|',
+	...app.sources.providers.map((provider) => `| \`${provider.id}\` | ${provider.label} |`),
 	'',
 	'## Sources',
 	'',
-	...app.sources.sources.map((source) => `- \`${source.id}\` (${source.provider})`),
+	'| Source | Provider | Label |',
+	'|---|---|---|',
+	...app.sources.sources.map((source) => `| \`${source.id}\` | \`${source.provider}\` | ${source.label} |`),
 	'',
-	'## Schema Source Bindings',
+	'## Runtime Bindings',
 	'',
-	...app.sources.bindings.map((binding) => `- \`${binding.id}\` -> \`${binding.target}\``),
+	'| Source | Provider | Target | Wire | API | Delivery | Operations | Artifacts | Endpoints |',
+	'|---|---|---|---|---|---|---|---|---|',
+	...app.sources.runtimeBindings.map((binding) => `| \`${binding.source}\` | \`${binding.provider}\` | ${binding.targetKind}:${binding.targetKey} | ${binding.wireProtocol} | ${binding.apiFamily} | ${binding.delivery} | ${binding.operationGroups.join(', ')} | ${binding.artifactCount} | ${binding.endpointCount} |`),
+	'',
+	'## Runtime Artifacts',
+	'',
+	'| Source | Kind | Path | Generated |',
+	'|---|---|---|---|',
+	...app.sources.runtimeArtifacts.map((artifact) => `| \`${artifact.source}\` | ${artifact.kind} | \`${artifact.path}\` | ${artifact.generated ? 'yes' : 'no'} |`),
 ].join('\n')
+
+const entityFieldLabel = (
+	field: ExpectedApp['schema']['entities'][number]['fields'][number]
+) => (
+	field.label
+	?? field.name
+		.replace(/^\$\$?/, '')
+		.replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+		.replace(/[_-]+/g, ' ')
+		.toLowerCase()
+)
+
+const generatedViewFieldArray = (
+	fields: readonly string[],
+	indent = '\t\t'
+) => {
+	if (fields.length === 0)
+		return '[]'
+
+	return [
+		'[',
+		...fields.map((field) => `${indent}\t${quote(field)},`),
+		`${indent}]`,
+	].join('\n')
+}
+
+const generatedEntityViewShellSource = (
+	entity: ExpectedApp['schema']['entities'][number]
+) => {
+	const closedFields = (
+		entity.selectors[0]?.fields.filter((fieldName) => entity.fields.some((field) => field.name === fieldName && !field.type.startsWith('$:')))
+		?? []
+	)
+	const contentFields = entity.fields
+		.filter((field) => field.cardinality !== 'Zero' && !field.type.startsWith('$:'))
+		.map((field) => field.name)
+	const detailFields = entity.fields
+		.filter((field) => field.name.startsWith('$$') || (field.cardinality === 'Many' && field.type.startsWith('$:')))
+
+	return `<script lang="ts">
+\t// Types/constants
+\timport type { ComponentProps } from 'svelte'
+\timport type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
+\timport type { WithRest } from '$/typescript/WithRest.ts'
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { schema } from '$/schema/index.ts'
+
+
+\t// State
+\tconst view = {
+\t\tclosed: ${generatedViewFieldArray(closedFields)},
+\t\tcontent: {
+\t\t\tdl: [
+\t\t\t\t${generatedViewFieldArray(contentFields, '\t\t\t\t')},
+\t\t\t],
+\t\t},
+${detailFields.length === 0 ? '' : `\t\tdetails: {
+\t\t\ttabs: [
+${detailFields.map((field) => `\t\t\t\t{
+\t\t\t\t\tlabel: ${quote(field.labelPlural ?? entityFieldLabel(field))},
+\t\t\t\t\twhen: 'open',
+\t\t\t\t\titems: [
+\t\t\t\t\t\t${quote(field.name)},
+\t\t\t\t\t],
+\t\t\t\t},`).join('\n')}
+\t\t\t],
+\t\t},
+`}\t} satisfies ComponentProps<typeof EntityView2>['view']
+
+\tlet {
+\t\tselection,
+\t\topen = $bindable(true),
+\t\t...EntityViewProps
+\t}: WithRest<
+\t\t{
+\t\t\tselection: EntityProxyResource<typeof schema, EntityType.${entity.name}>
+\t\t\topen?: boolean
+\t\t},
+\t\tPick<
+\t\t\tComponentProps<typeof EntityView2>,
+\t\t\t| 'layout'
+\t\t\t| 'showTypeAnnotation'
+\t\t>
+\t> = $props()
+
+
+\t// Components
+\timport EntityView2 from '$/components/EntityView2.svelte'
+</script>
+
+
+<EntityView2
+\t{selection}
+\tentityType={EntityType.${entity.name}}
+\tentitySelector={selection.entitySelector}
+\tbind:open
+\t{...EntityViewProps}
+\t{view}
+/>
+`
+}
 
 const generatedSelectorRouteLeavesFile = (app: ExpectedApp) => [
 	'export const entitySelectorRouteLeaves = [',
@@ -886,6 +1160,1977 @@ const generatedRoutePage = (
 `
 }
 
+const generatedGlobalCollectionPageShell = (
+	shell: ExpectedApp['routes']['pageShells'][number]
+) => {
+	if (
+		shell.viewComponent === undefined
+		|| shell.collectionEntityType === undefined
+		|| shell.globalScope === undefined
+		|| shell.globalField === undefined
+	)
+		throw new Error(`Missing global collection page data for ${shell.routePath}`)
+
+	const viewFile = shell.viewFile ?? `${shell.viewComponent}.svelte`
+
+	return `<script lang="ts">
+\timport { select } from '$/routes/+layout.svelte'
+\t// Types/constants
+\timport { EntityType } from '$/schema/EntityType.ts'
+${shell.sources === undefined ? '' : `\timport { Source } from '$/sources/Source.ts'
+`}${shell.hrefExpression === undefined ? '' : `
+
+\t// Context
+\timport { resolve } from '$app/paths'
+`}
+
+\t// Components
+${shell.viewImportBeforePage ? `\timport ${shell.viewComponent} from '$/views/${viewFile}'
+\timport Page from '$/components/Page.svelte'` : `\timport Page from '$/components/Page.svelte'
+\timport ${shell.viewComponent} from '$/views/${viewFile}'`}
+</script>${shell.headTitle === undefined ? '' : `
+
+
+<svelte:head>
+\t<title>${shell.headTitle}</title>
+</svelte:head>`}
+
+
+<Page>
+\t<${shell.viewComponent}
+${shell.hrefExpression === undefined ? '' : `\t\thref={${shell.hrefExpression}}
+`}${shell.collapsible === undefined ? '' : `\t\tcollapsible={${shell.collapsible ? 'true' : 'false'}}
+`}\t\tselection={select(
+\t\t\tEntityType.${shell.collectionEntityType},
+\t\t\t{ scope: ${quote(shell.globalScope)} }
+\t\t).${shell.globalField}}
+${shell.sources === undefined ? '' : shell.sources.length === 1 ? `\t\tsources={[Source.${shell.sources[0]}]}
+` : `\t\tsources={[
+${shell.sources.map((source) => `\t\t\tSource.${source},`).join('\n')}
+\t\t]}
+`}${shell.id === undefined ? '' : `\t\tid=${JSON.stringify(shell.id)}
+`}${shell.limit === undefined ? '' : `\t\tlimit={${shell.limit}}
+`}${shell.title === undefined ? '' : `\t\ttitle=${JSON.stringify(shell.title)}
+`}${shell.open === undefined ? '' : '\t\topen\n'}\t/>
+</Page>
+`
+}
+
+const generatedParamSelectorPageHeader = (
+	shell: ExpectedApp['routes']['pageShells'][number]
+) => [
+	'<script lang="ts">',
+	...(shell.typeConstantsAfterSchemaImports ? [
+		"\timport { EntityType } from '$/schema/EntityType.ts'",
+		...(shell.zeroExHexImportWithSchemaImports === true && shell.zeroExHexImportSymbols !== undefined ? [
+			`\timport { ${shell.zeroExHexImportSymbols} } from '$/schema/ZeroExHex.ts'`,
+		] : []),
+		"\timport { select } from '$/routes/+layout.svelte'",
+		...(shell.importEip155NetworkSelectorFromCaip2 ? [
+			"\timport { eip155NetworkSelectorFromCaip2 } from '$/lib/caip2.ts'",
+		] : []),
+	] : [
+		'\t// Types/constants',
+		"\timport { EntityType } from '$/schema/EntityType.ts'",
+		"\timport { select } from '$/routes/+layout.svelte'",
+	]),
+	...(shell.importEntitySelectorType ? [
+		'\t// Types/constants',
+		"\timport type { EntitySelector } from '$/schema/$schema.ts'",
+	] : []),
+	...((shell.zeroExHexImportSymbols !== undefined && shell.zeroExHexImportWithSchemaImports !== true) || shell.with0xHexImportSection === 'types' ? [
+		'\t// Types/constants',
+		...(shell.zeroExHexImportSymbols === undefined || shell.zeroExHexImportWithSchemaImports === true ? [] : [
+			`\timport { ${shell.zeroExHexImportSymbols} } from '$/schema/ZeroExHex.ts'`,
+		]),
+		...(shell.with0xHexImportSection === 'types' ? [
+			"\timport { with0xHex } from '$/lib/hexLowerOfByteSize.ts'",
+		] : []),
+	] : []),
+	...(shell.with0xHexImportSection === 'functions' ? [
+		'\t// Functions',
+		"\timport { with0xHex } from '$/lib/hexLowerOfByteSize.ts'",
+	] : []),
+	...(
+		shell.importEntitySelectorType
+		|| (shell.zeroExHexImportSymbols !== undefined && shell.zeroExHexImportWithSchemaImports !== true)
+		|| shell.importWith0xHex
+		|| !shell.typeConstantsAfterSchemaImports ? [
+			'',
+			'',
+		] : []
+	),
+	'\t// State',
+].join('\n')
+
+const generatedGlobalSourceCollectionPageShell = (
+	shell: ExpectedApp['routes']['pageShells'][number],
+	viewFile: string
+) => {
+	if (
+		shell.viewComponent === undefined
+		|| shell.globalSourceField === undefined
+		|| shell.globalSourceSources === undefined
+		|| shell.id === undefined
+	)
+		throw new Error(`Missing global source collection page data for ${shell.routePath}`)
+
+	return `<script lang="ts">
+${shell.viewImportBeforePage ? '' : "\timport { select } from '$/routes/+layout.svelte'\n"}\t// Types/constants
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { Source } from '$/sources/Source.ts'
+
+
+${shell.globalSourceOmitContextSection ? '\t// Components' : `\t// Context
+${shell.viewImportBeforePage ? "\timport { select } from '$/routes/+layout.svelte'\n" : ''}${shell.networkCollectionTightContextState ? '' : '\n'}\t// Components`}
+${shell.viewImportBeforePage ? `\timport ${shell.viewComponent} from '$/views/${viewFile}'
+\timport Page from '$/components/Page.svelte'` : `\timport Page from '$/components/Page.svelte'
+\timport ${shell.viewComponent} from '$/views/${viewFile}'`}
+</script>
+
+
+<Page>
+\t<${shell.viewComponent}
+${shell.globalSourceIndentExtra ? '\t' : ''}\t\tselection={select(
+${shell.globalSourceIndentExtra ? '\t' : ''}\t\t\tEntityType._Global,
+${shell.globalSourceIndentExtra ? '\t' : ''}\t\t\t{ scope: '${shell.globalSourceField}' }
+${shell.globalSourceIndentExtra ? '\t' : ''}\t\t).${shell.globalSourceField}({
+${shell.globalSourceIndentExtra ? '\t' : ''}\t\t\tsources: [
+${shell.globalSourceSources.map((source) => `${shell.globalSourceIndentExtra ? '\t' : ''}\t\t\t\tSource.${source},`).join('\n')}
+${shell.globalSourceIndentExtra ? '\t' : ''}\t\t\t],
+${shell.limit === undefined ? '' : `${shell.globalSourceIndentExtra ? '\t' : ''}\t\t\tlimit: ${shell.limit},
+`}${shell.globalSourceIndentExtra ? '\t' : ''}\t\t})}
+${shell.globalSourceIndentExtra ? '\t' : ''}\t\tid="${shell.id}"
+${shell.title === undefined ? '' : `${shell.globalSourceIndentExtra ? '\t' : ''}\t\ttitle="${shell.title}"
+`}${shell.globalSourceIndentExtra ? '\t' : ''}\t/>
+</Page>
+`
+}
+
+const generatedRoutePageShell = (
+	shell: ExpectedApp['routes']['pageShells'][number]
+) => {
+	const viewFile = shell.viewFile ?? `${shell.viewComponent}.svelte`
+
+	if (shell.kind === 'custom') {
+		if (shell.sourceText === undefined)
+			throw new Error(`Missing custom route page source for ${shell.routePath}`)
+
+		return shell.sourceText
+	}
+
+	if (shell.kind === 'global-collection')
+		return generatedGlobalCollectionPageShell(shell)
+
+	if (shell.kind === 'global-source-collection')
+		return generatedGlobalSourceCollectionPageShell(shell, viewFile)
+
+	if (shell.kind === 'proposal-selector-detail') {
+		if (
+			shell.viewComponent === undefined
+			|| shell.entityType === undefined
+			|| shell.proposalLevel === undefined
+			|| shell.invalidText === undefined
+		)
+			throw new Error(`Missing proposal selector detail page data for ${shell.routePath}`)
+
+		const constantsImport = shell.proposalLevel === 'realm' ? `\timport { specificationRealmBySlug } from '$/constants/SpecificationProposal.ts'` : `\timport {
+\t\tproposalCategoryBySlug,
+\t\tproposalKindAllowedInRealmByKey,
+\t\tspecificationRealmBySlug,
+\t} from '$/constants/SpecificationProposal.ts'`
+
+		const selectorSource = shell.proposalLevel === 'realm' ? `\tconst selector = $derived(
+\t\tparams.specificationRealmSlug in specificationRealmBySlug ?
+\t\t\t{
+\t\t\t\trealm: specificationRealmBySlug[params.specificationRealmSlug]!.id,
+\t\t\t}
+\t\t:
+\t\t\tundefined,
+\t)` : shell.proposalLevel === 'kind' ? `\tconst realm = $derived(
+\t\tspecificationRealmBySlug[params.specificationRealmSlug]?.id,
+\t)
+
+\tconst category = $derived(
+\t\tproposalCategoryBySlug[params.proposalKindSlug]?.id,
+\t)
+
+\tconst selector = $derived(
+\t\trealm != null && category != null && proposalKindAllowedInRealmByKey[\`\${realm}:\${category}\`] != null ?
+\t\t\t{
+\t\t\t\trealm,
+\t\t\t\tcategory,
+\t\t\t}
+\t\t:
+\t\t\tundefined,
+\t)` : `\tconst realm = $derived(
+\t\tspecificationRealmBySlug[params.specificationRealmSlug]?.id,
+\t)
+
+\tconst category = $derived(
+\t\tproposalCategoryBySlug[params.proposalKindSlug]?.id,
+\t)
+
+\tconst proposalNumber = $derived(
+\t\t(() => {
+\t\t\tconst raw = params.proposalRef.slice(params.proposalRef.lastIndexOf('-') + 1)
+\t\t\treturn /^\\d+$/.test(raw) ? Number(raw) : undefined
+\t\t})(),
+\t)
+
+\tconst proposalCategory = $derived(
+\t\t(() => {
+\t\t\tconst raw = params.proposalRef.slice(0, params.proposalRef.lastIndexOf('-')).toLowerCase()
+\t\t\treturn proposalCategoryBySlug[raw]?.id ?? undefined
+\t\t})(),
+\t)
+
+\tconst selector = $derived(
+\t\trealm != null && category != null && proposalCategory != null
+\t\t&& proposalNumber != null
+\t\t&& category === proposalCategory
+\t\t&& proposalKindAllowedInRealmByKey[\`\${realm}:\${category}\`] != null ?
+\t\t\t{
+\t\t\t\trealm,
+\t\t\t\tcategory,
+\t\t\t\tnumber: proposalNumber,
+\t\t\t}
+\t\t:
+\t\t\tundefined,
+\t)`
+
+		return `<script lang="ts">
+${shell.proposalLevel === 'realm' ? `\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { select } from '$/routes/+layout.svelte'
+\t// Types/constants
+${constantsImport}
+` : `\t// Types/constants
+${constantsImport}
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { select } from '$/routes/+layout.svelte'
+${shell.proposalLevel === 'proposal' ? '\n' : ''}`}
+\t// State
+\tlet {
+\t\tparams,
+\t} = $props()
+
+${selectorSource}
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport ${shell.viewComponent} from '$/views/${viewFile}'
+</script>
+
+
+<Page>
+\t{#if selector !== undefined}
+\t\t<${shell.viewComponent}
+\t\t\tselection={select(EntityType.${shell.entityType}, selector)}
+\t\t\topen
+\t\t/>
+\t{:else}
+\t\t<p role="alert">
+\t\t\t${shell.invalidText}
+\t\t</p>
+\t{/if}
+</Page>
+`
+	}
+
+	if (shell.kind === 'placeholder') {
+		if (shell.placeholderText === undefined)
+			throw new Error(`Missing placeholder page text for ${shell.routePath}`)
+
+		return `<script lang="ts">
+\t// Components
+\timport Page from '$/components/Page.svelte'
+</script>
+
+
+<Page>
+${shell.placeholderMultiline ? `\t<p data-text="muted">
+\t\t${shell.placeholderText}
+\t</p>` : `\t<p data-text="muted">${shell.placeholderText}</p>`}
+</Page>
+`
+	}
+
+	if (shell.kind === 'static-page') {
+		if (
+			shell.staticWrapper === undefined
+			|| shell.staticTitle === undefined
+		)
+			throw new Error(`Missing static page data for ${shell.routePath}`)
+
+		if (shell.staticWrapper === 'section-column')
+			return `<section data-column>
+\t<h1>${shell.staticTitle}</h1>
+</section>
+`
+
+		const link = shell.staticLinks?.[0]
+
+		if (link === undefined)
+			throw new Error(`Missing static page link for ${shell.routePath}`)
+
+		return `<script lang="ts">
+\t// Context
+\timport { resolve } from '$app/paths'
+</script>
+
+
+<main data-column>
+\t<section data-card>
+\t\t<h1>${shell.staticTitle}</h1>
+
+\t\t<a href={resolve('${link.route}')}>${link.label}</a>
+\t</section>
+</main>
+`
+	}
+
+	if (shell.kind === 'derived-selector-detail') {
+		if (
+			shell.viewComponent === undefined
+			|| shell.entityType === undefined
+			|| shell.selectorDeclaration === undefined
+			|| shell.selectorGuard === undefined
+			|| shell.invalidText === undefined
+		)
+			throw new Error(`Missing derived selector detail page data for ${shell.routePath}`)
+
+		return `<script lang="ts">
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { select } from '$/routes/+layout.svelte'
+\t// State
+\tlet {
+\t\tparams,
+\t} = $props()
+
+${shell.functionImports === undefined ? '' : `${shell.functionImports.map((importLine) => `\t${importLine}`).join('\n')}
+
+`}${shell.selectorDeclaration.split('\n').map((line) => `\t${line}`).join('\n')}
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport ${shell.viewComponent} from '$/views/${viewFile}'
+</script>
+
+
+{#if ${shell.selectorGuard}}
+\t<Page>
+\t\t<${shell.viewComponent}
+\t\t\tselection={select(EntityType.${shell.entityType}, selector)}
+${shell.viewProps === undefined ? '' : `${shell.viewProps.map((prop) => `\t\t\t${prop}`).join('\n')}
+`}\t\t/>
+\t</Page>
+{:else}
+\t<p role="alert">
+\t\t${shell.invalidText}
+\t</p>
+{/if}
+`
+	}
+
+	if (shell.kind === 'data-selector-simple-detail') {
+		if (
+			shell.viewComponent === undefined
+			|| shell.entityType === undefined
+		)
+			throw new Error(`Missing simple data selector detail page data for ${shell.routePath}`)
+
+		return `<script lang="ts">
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { select } from '$/routes/+layout.svelte'
+\t// State
+\tlet {
+\t\tdata,
+\t} = $props()
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport ${shell.viewComponent} from '$/views/${viewFile}'
+</script>
+
+
+<Page>
+\t<${shell.viewComponent}
+\t\tselection={select(EntityType.${shell.entityType}, data.selector)}
+\t/>
+</Page>
+`
+	}
+
+	if (shell.kind === 'direct-selector-detail') {
+		if (
+			shell.viewComponent === undefined
+			|| shell.entityType === undefined
+			|| shell.selectorExpression === undefined
+		)
+			throw new Error(`Missing direct selector detail page data for ${shell.routePath}`)
+
+		return shell.selectorImportStyle === 'sectioned' ? `<script lang="ts">
+\t// Types/constants
+\timport { EntityType } from '$/schema/EntityType.ts'
+
+\t// Context
+\timport { select } from '$/routes/+layout.svelte'
+
+
+${shell.paramsMultiline === undefined ? '' : `\t// State
+\tlet {
+\t\tparams,
+\t} = $props()
+${shell.blankLineBeforeComponents === false ? '\n' : '\n\n'}`}\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport ${shell.viewComponent} from '$/views/${viewFile}'
+</script>
+
+
+<Page>
+\t<${shell.viewComponent}
+\t\tselection={select(EntityType.${shell.entityType}, ${shell.selectorExpression})}
+${shell.viewProps === undefined ? '' : `${shell.viewProps.map((prop) => `\t\t${prop}`).join('\n')}
+`}${shell.explicitClosingTag ? `\t>
+\t</${shell.viewComponent}>` : '\t/>'}
+</Page>
+` : `<script lang="ts">
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { select } from '$/routes/+layout.svelte'
+${shell.paramsMultiline === undefined ? '' : `\t// State
+\tlet {
+\t\tparams,
+\t} = $props()
+${shell.blankLineBeforeComponents === false ? '\n' : '\n\n'}`}\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport ${shell.viewComponent} from '$/views/${viewFile}'
+</script>
+
+
+<Page>
+\t<${shell.viewComponent}
+\t\tselection={select(EntityType.${shell.entityType}, ${shell.selectorExpression})}
+${shell.viewProps === undefined ? '' : `${shell.viewProps.map((prop) => `\t\t${prop}`).join('\n')}
+`}${shell.explicitClosingTag ? `\t>
+\t</${shell.viewComponent}>` : '\t/>'}
+</Page>
+`
+	}
+
+	if (shell.kind === 'linked-view') {
+		if (
+			shell.viewComponent === undefined
+			|| shell.hrefExpression === undefined
+			|| shell.id === undefined
+		)
+			throw new Error(`Missing linked view page data for ${shell.routePath}`)
+
+		return `<script lang="ts">
+\t// Context
+\timport { resolve } from '$app/paths'
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport ${shell.viewComponent} from '$/views/${viewFile}'
+</script>
+
+
+<Page>
+\t<${shell.viewComponent}
+\t\thref={${shell.hrefExpression}}
+\t\tid="${shell.id}"
+${shell.titleExpression === undefined ? '' : `\t\ttitle={${shell.titleExpression}}
+`}\t/>
+</Page>
+`
+	}
+
+	if (shell.kind === 'simple-view') {
+		if (shell.viewComponent === undefined)
+			throw new Error(`Missing simple view page data for ${shell.routePath}`)
+
+		return `<script lang="ts">
+${shell.paramsMultiline === undefined ? '' : `\t// State
+\tlet {
+\t\tparams,
+\t} = $props()
+
+
+`}\t// Components
+${shell.viewImportBeforePage ? `\timport ${shell.viewComponent} from '$/views/${viewFile}'
+\timport Page from '$/components/Page.svelte'` : `\timport Page from '$/components/Page.svelte'
+\timport ${shell.viewComponent} from '$/views/${viewFile}'`}
+</script>
+
+
+<Page>
+\t<${shell.viewComponent}${shell.viewProps === undefined ? ' />' : `
+${shell.viewProps.map((prop) => `\t\t${prop}`).join('\n')}
+\t/>`}
+</Page>
+`
+	}
+
+	if (shell.kind === 'catalog-param-detail') {
+		if (
+			shell.viewComponent === undefined
+			|| shell.entityType === undefined
+			|| shell.paramName === undefined
+			|| shell.catalogImports === undefined
+			|| shell.catalogParamType === undefined
+			|| shell.catalogRowsName === undefined
+			|| shell.catalogRowName === undefined
+			|| shell.catalogLookupField === undefined
+			|| shell.catalogRouteKey === undefined
+			|| shell.catalogTitleExpression === undefined
+			|| shell.catalogNotFoundCondition === undefined
+			|| shell.catalogUnknownText === undefined
+		)
+			throw new Error(`Missing catalog param detail page data for ${shell.routePath}`)
+
+		const missingOrUnknown = shell.catalogMissingText === undefined ? `\t\t<h1>
+\t\t\tNot found
+\t\t</h1>
+\t\t<p>
+\t\t\t${shell.catalogUnknownText}
+\t\t</p>` : `\t\t<h1>
+\t\t\tNot found
+\t\t</h1>
+\t\t<p>
+\t\t\t{route.param ?
+\t\t\t\t\`${shell.catalogUnknownText}\`
+\t\t\t:
+\t\t\t\t'${shell.catalogMissingText}'}
+\t\t</p>`
+
+		const detail = shell.catalogDetailId === undefined ? `<${shell.viewComponent}
+\t\t\tselection={select(EntityType.${shell.entityType}, { ${shell.catalogRouteKey}: route.${shell.catalogRouteKey} })}
+${shell.open ? '\t\t\topen\n' : ''}\t\t/>` : `<${shell.viewComponent}
+\t\t\t\tselection={select(EntityType.${shell.entityType}, {
+\t\t\t\t\t${shell.catalogRouteKey}: route.${shell.catalogRouteKey},
+\t\t\t\t})}
+${shell.open ? '\t\t\t\topen\n' : ''}\t\t\t/>`
+
+		return `<script lang="ts">
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { select } from '$/routes/+layout.svelte'
+\t// Types/constants
+${shell.catalogImports.map((catalogImport) => `\t${catalogImport}`).join('\n')}
+
+
+\t// State
+\tlet {
+\t\tparams,
+\t} = $props()
+
+\tconst route = $derived.by(() => {
+\t\tconst param = params.${shell.paramName} ?? ''
+\t\tconst ${shell.catalogRouteKey} = ${shell.catalogRouteKey}FromParam(param)
+\t\treturn { param, ${shell.catalogRouteKey} }
+\t})
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport ${shell.viewComponent} from '$/views/${viewFile}'
+
+
+\t// Functions
+\tconst ${shell.catalogRouteKey}FromParam = (param: string): ${shell.catalogParamType} | null => (
+\t\t${shell.catalogRowsName}.find((${shell.catalogRowName}) => ${shell.catalogRowName}.${shell.catalogLookupField} === param)?.${shell.catalogLookupField} ?? null
+\t)
+</script>
+
+
+<svelte:head>
+\t<title>
+\t\t${shell.catalogTitleExpression}
+\t</title>
+</svelte:head>
+
+
+<Page>
+\t{#if ${shell.catalogNotFoundCondition}}
+${shell.catalogNotFoundId === undefined ? missingOrUnknown : `\t\t<div id="${shell.catalogNotFoundId}">
+${missingOrUnknown}
+\t\t</div>`}
+\t{:else}
+${shell.catalogDetailId === undefined ? `\t\t${detail}` : `\t\t<div id="${shell.catalogDetailId}">
+\t\t\t${detail}
+\t\t</div>`}
+\t{/if}
+</Page>
+`
+	}
+
+	if (shell.kind === 'global-hub-tabs') {
+		if (
+			shell.hubKey === undefined
+			|| shell.hubScope === undefined
+			|| shell.hubTitleExpression === undefined
+			|| shell.hubHref === undefined
+			|| shell.hubSections === undefined
+		)
+			throw new Error(`Missing global hub tabs page data for ${shell.routePath}`)
+
+		const viewImports = shell.hubSections
+			.filter((section) => section.viewComponent !== undefined)
+			.toReversed()
+			.map((section) => `\timport ${section.viewComponent} from '$/views/${section.viewComponent}.svelte'`)
+			.join('\n')
+
+		return `<script lang="ts">
+\timport { select } from '$/routes/+layout.svelte'
+\t// Types/constants
+\timport { EntityType } from '$/schema/EntityType.ts'
+
+
+\t// Context
+\timport { resolve } from '$app/paths'
+
+
+\tconst hubKey = '${shell.hubKey}'
+
+
+\t// Components
+${viewImports}
+\timport CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+\timport HeadingComponent from '$/components/Heading.svelte'
+\timport Page from '$/components/Page.svelte'
+\timport GlobalView from '$/views/GlobalView.svelte'
+</script>
+
+
+<Page>
+\t<GlobalView
+\t\tselection={select(EntityType._Global, { scope: '${shell.hubScope}' })}
+\t\ttitle=${shell.hubTitleExpression}
+\t\thref={resolve('${shell.hubHref}')}
+\t>
+\t\t{#snippet children({ open: hubOpen,
+\t\t})}
+\t\t\t<CollapsibleTabs
+\t\t\t\tid={\`\${hubKey}:hub\`}
+\t\t\t\tsectionIdPrefix={hubKey}
+\t\t\t\tsections={[
+${shell.hubSections.map((section) => `\t\t\t\t\t{ id: '${section.id}', label: '${section.label}' },`).join('\n')}
+\t\t\t\t]}
+\t\t\t\tdata-card
+\t\t\t\tscrollContainerProps={{
+\t\t\t\t\t'data-row': 'start align-start',
+\t\t\t\t\tstyle: '--carousel-basis: 40ch',
+\t\t\t\t}}
+\t\t\t>
+\t\t\t\t{#snippet Summary({ open: _summaryOpen })}
+\t\t\t\t\t<header
+\t\t\t\t\t\tdata-row-item="flexible"
+\t\t\t\t\t\tdata-row="wrap gap-4"
+\t\t\t\t\t>
+\t\t\t\t\t\t<HeadingComponent>
+\t\t\t\t\t\t\t${shell.hubScope}
+\t\t\t\t\t\t</HeadingComponent>
+\t\t\t\t\t</header>
+\t\t\t\t{/snippet}
+
+${shell.hubSections.map((section) => `\t\t\t\t{#snippet Section${section.id.split('-').map((part) => `${part[0]?.toUpperCase() ?? ''}${part.slice(1)}`).join('')}({ id, label })}
+${section.placeholderText === undefined ? `\t\t\t\t\t<${section.viewComponent}
+${section.href === undefined ? '' : `\t\t\t\t\t\thref={resolve('${section.href}')}
+`}${section.globalField === undefined ? '' : `\t\t\t\t\t\tselection={select(
+\t\t\tEntityType._Global,
+\t\t\t{ scope: '${section.globalField}' }
+\t\t).${section.globalField}}
+`}\t\t\t\t\t\tid="${section.viewId}"
+\t\t\t\t\t\topen={hubOpen}
+\t\t\t\t\t/>` : `\t\t\t\t\t<p data-text="muted">
+\t\t\t\t\t\t${section.placeholderText}
+\t\t\t\t\t</p>`}
+\t\t\t\t{/snippet}`).join('\n\n')}
+\t\t</CollapsibleTabs>
+\t\t{/snippet}
+\t</GlobalView>
+</Page>
+`
+	}
+
+	if (shell.kind === 'eip155-network-collection') {
+		if (
+			shell.viewComponent === undefined
+			|| shell.networkCollectionField === undefined
+			|| shell.networkCollectionSources === undefined
+			|| shell.id === undefined
+		)
+			throw new Error(`Missing EIP-155 network collection page data for ${shell.routePath}`)
+
+		const hrefProp = shell.hrefExpression === undefined ? '' : `\t\thref={resolve(
+\t\t\t${shell.hrefExpression},
+\t\t\t{
+\t\t\t\tcaip2: params.caip2,
+\t\t\t}
+\t\t)}
+`
+		const selectionProp = `\t\tselection={select(
+\t\t\tEntityType.EvmNetwork,
+\t\t\teip155NetworkSelectorFromCaip2(params.caip2)
+\t\t).${shell.networkCollectionField}({
+${shell.networkCollectionInlineSources ? `\t\t\tsources: [Source.${shell.networkCollectionSources[0]}],
+` : `\t\t\tsources: [
+${shell.networkCollectionSources.map((source) => `\t\t\t\tSource.${source},`).join('\n')}
+\t\t\t],
+`}${shell.limit === undefined ? '' : `\t\t\tlimit: ${shell.limit},
+`}${shell.networkCollectionCount ? `\t\t\tcount: true,
+` : ''}\t\t})}
+`
+
+		return `<script lang="ts">
+\timport { eip155NetworkSelectorFromCaip2 } from '$/lib/caip2.ts'
+\t// Types/constants
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { Source } from '$/sources/Source.ts'
+
+
+\t// Context
+\timport { select } from '$/routes/+layout.svelte'
+${shell.hrefExpression === undefined ? '' : "\timport { resolve } from '$app/paths'\n"}${shell.networkCollectionTightContextState ? '' : '\n'}
+\t// State
+\tlet {
+\t\tparams,
+\t} = $props()
+${shell.blankLineBeforeComponents === false ? '' : '\n'}
+\t// Components
+${shell.viewImportBeforePage ? `\timport ${shell.viewComponent} from '$/views/${viewFile}'
+\timport Page from '$/components/Page.svelte'` : `\timport Page from '$/components/Page.svelte'
+\timport ${shell.viewComponent} from '$/views/${viewFile}'`}
+</script>
+
+
+<Page>
+\t<${shell.viewComponent}
+${shell.networkCollectionHrefAfterSelection ? `${selectionProp}${hrefProp}` : `${hrefProp}${selectionProp}`}\t\tid="${shell.id}"
+\t/>
+</Page>
+`
+	}
+
+	if (shell.kind === 'evm-protocol-collection') {
+		if (
+			shell.viewComponent === undefined
+			|| shell.hrefExpression === undefined
+			|| shell.protocolCollectionField === undefined
+			|| shell.id === undefined
+		)
+			throw new Error(`Missing EVM protocol collection page data for ${shell.routePath}`)
+
+		return `<script lang="ts">
+\timport { select } from '$/routes/+layout.svelte'
+\t// Types/constants
+\timport { EntityType } from '$/schema/EntityType.ts'
+
+
+\t// Context
+\timport { resolve } from '$app/paths'
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport ${shell.viewComponent} from '$/views/${viewFile}'
+</script>
+
+
+<Page>
+\t<${shell.viewComponent}
+\t\thref={resolve(${shell.hrefExpression})}
+\t\tselection={select(
+\t\t\tEntityType.EvmProtocol,
+\t\t\t{
+\t\t\t\tscope: 'EvmProtocol',
+\t\t\t}
+\t\t).${shell.protocolCollectionField}}
+\t\tid="${shell.id}"
+\t/>
+</Page>
+`
+	}
+
+	if (shell.kind === 'youtube-parent-collection') {
+		if (
+			shell.viewComponent === undefined
+			|| shell.entityType === undefined
+			|| shell.parentSelectorField === undefined
+			|| shell.parentSelectorParam === undefined
+			|| shell.childField === undefined
+			|| shell.hrefExpression === undefined
+			|| shell.id === undefined
+		)
+			throw new Error(`Missing YouTube parent collection page data for ${shell.routePath}`)
+
+		return `<script lang="ts">
+\timport { select } from '$/routes/+layout.svelte'
+\t// Types/constants
+\timport { EntityType } from '$/schema/EntityType.ts'
+
+
+\t// Context
+\timport { resolve } from '$app/paths'
+
+
+\t// State
+\tlet {
+\t\tparams,
+\t} = $props()
+${shell.blankLineBeforeComponents === false ? '' : '\n'}
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport ${shell.viewComponent} from '$/views/${viewFile}'
+</script>
+
+
+<Page>
+\t<${shell.viewComponent}
+\t\thref={resolve(${shell.hrefExpression})}
+\t\tselection={select(
+\t\t\tEntityType.${shell.entityType},
+\t\t\t{
+\t\t\t\t${shell.parentSelectorField}: decodeURIComponent(params.${shell.parentSelectorParam}),
+\t\t\t}
+\t\t).${shell.childField}}
+\t\tid="${shell.id}"
+${shell.title === undefined ? '' : `\t\ttitle="${shell.title}"
+`}\t/>
+</Page>
+`
+	}
+
+	if (shell.kind === 'social-network-child-collection') {
+		if (
+			shell.viewComponent === undefined
+			|| shell.entityType === undefined
+			|| shell.networkScope === undefined
+			|| shell.childField === undefined
+			|| shell.id === undefined
+			|| shell.title === undefined
+		)
+			throw new Error(`Missing social network child collection page data for ${shell.routePath}`)
+
+		return `<script lang="ts">
+\timport { select } from '$/routes/+layout.svelte'
+\t// Types/constants
+\timport { EntityType } from '$/schema/EntityType.ts'
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport ${shell.viewComponent} from '$/views/${viewFile}'
+</script>
+
+
+<Page>
+\t<${shell.viewComponent}
+\t\tselection={select(
+\t\t\tEntityType.${shell.entityType},
+\t\t\t{ scope: '${shell.networkScope}' }
+\t\t).${shell.childField}}
+\t\tid="${shell.id}"
+\t\ttitle="${shell.title}"
+\t/>
+</Page>
+`
+	}
+
+	if (shell.kind === 'decoded-parent-child-collection') {
+		if (
+			shell.viewComponent === undefined
+			|| shell.entityType === undefined
+			|| shell.parentSelectorField === undefined
+			|| shell.parentSelectorParam === undefined
+			|| shell.childField === undefined
+			|| shell.hrefExpression === undefined
+			|| shell.id === undefined
+		)
+			throw new Error(`Missing decoded parent child collection page data for ${shell.routePath}`)
+
+		const optionalProps = [
+			...(shell.sortMode === undefined ? [] : [
+				`\t\tsortMode="${shell.sortMode}"`,
+			]),
+			...(shell.title === undefined ? [] : [
+				`\t\ttitle="${shell.title}"`,
+			]),
+		].join('\n')
+
+		return `<script lang="ts">
+\timport { select } from '$/routes/+layout.svelte'
+\t// Context
+\timport { resolve } from '$app/paths'
+
+
+\t// State
+\tlet {
+\t\tparams,
+\t} = $props()
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport ${shell.viewComponent} from '$/views/${viewFile}'
+</script>
+
+
+<Page>
+\t<${shell.viewComponent}
+\t\thref={resolve(${shell.hrefExpression})}
+\t\tselection={select(
+\t\t\tEntityType.${shell.entityType},
+\t\t\t{
+\t\t\t\t${shell.parentSelectorField}: decodeURIComponent(params.${shell.parentSelectorParam})${shell.parentSelectorTransform === 'lowercase' ? '.toLowerCase()' : ''},
+\t\t\t}
+\t\t).${shell.childField}}
+\t\tid="${shell.id}"
+${optionalProps === '' ? '' : `${optionalProps}
+`}\t/>
+</Page>
+`
+	}
+
+	if (shell.kind === 'decoded-param-detail') {
+		if (
+			shell.viewComponent === undefined
+			|| shell.entityType === undefined
+			|| shell.parentSelectorField === undefined
+			|| shell.parentSelectorParam === undefined
+		)
+			throw new Error(`Missing decoded param detail page data for ${shell.routePath}`)
+
+		const selectorValueExpression = (
+			shell.parentSelectorTransform === 'number' ?
+				`Number(params.${shell.parentSelectorParam})`
+			:
+				`decodeURIComponent(params.${shell.parentSelectorParam})${shell.parentSelectorTransform === 'lowercase' ? '.toLowerCase()' : ''}`
+		)
+
+		return `<script lang="ts">
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { select } from '$/routes/+layout.svelte'
+\t// State
+\tlet {
+\t\tparams,
+\t} = $props()
+${shell.blankLineBeforeComponents === false ? '' : '\n'}
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport ${shell.viewComponent} from '$/views/${viewFile}'
+</script>
+
+
+<Page>
+\t<${shell.viewComponent}
+\t\tselection={select(EntityType.${shell.entityType}, { ${shell.parentSelectorField}: ${selectorValueExpression} })}
+\t${shell.title === undefined ? '' : `\ttitle={'${shell.title}'}
+`}${shell.explicitClosingTag === false ? '\t/>' : `>
+\t</${shell.viewComponent}>`}
+</Page>
+`
+	}
+
+	if (shell.kind === 'lens-account-detail') {
+		if (
+			shell.viewComponent === undefined
+			|| shell.entityType === undefined
+			|| shell.paramName === undefined
+		)
+			throw new Error(`Missing Lens account detail page data for ${shell.routePath}`)
+
+		return `<script lang="ts">
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { select } from '$/routes/+layout.svelte'
+\t// State
+\tlet {
+\t\tparams,
+\t} = $props()
+
+\tconst selector = $derived.by(() => {
+\t\tconst raw = decodeURIComponent(params.${shell.paramName})
+\t\tif (raw.startsWith('legacy:'))
+\t\t\treturn { legacyProfileId: raw.slice('legacy:'.length) }
+
+\t\tconst with0x = raw.startsWith('0x') ? raw : \`0x\${raw}\`
+\t\tconst address = (
+\t\t\thexLowerOfByteSize(with0x, 20)
+\t\t\t?? (
+\t\t\t\t/^0x[a-fA-F0-9]{40}$/i.test(with0x) ?
+\t\t\t\t\thexLowerOfByteSize(\`0x\${with0x.slice(2).toLowerCase()}\`, 20)
+\t\t\t\t:
+\t\t\t\t\tundefined
+\t\t\t)
+\t\t)
+\t\treturn address === undefined ? { localName: raw.replace(/^@/, '') } : { address }
+\t})
+
+
+\t// Functions
+\timport { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport ${shell.viewComponent} from '$/views/${viewFile}'
+</script>
+
+
+<Page>
+\t<${shell.viewComponent}
+\t\tselection={select(EntityType.${shell.entityType}, selector)}
+\t/>
+</Page>
+`
+	}
+
+	if (shell.kind === 'param-heading') {
+		if (shell.paramName === undefined)
+			throw new Error(`Missing param heading page param for ${shell.routePath}`)
+
+		return `<script lang="ts">
+\t// State
+\tlet {
+\t\tparams,
+\t} = $props()
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+</script>
+
+
+<Page>
+\t<h1>{params.${shell.paramName}}</h1>
+</Page>
+`
+	}
+
+	if (shell.kind === 'data-selector-child-collection') {
+		if (
+			shell.viewComponent === undefined
+			|| shell.entityType === undefined
+			|| shell.childField === undefined
+		)
+			throw new Error(`Missing data selector child collection page data for ${shell.routePath}`)
+
+		return `<script lang="ts">
+\timport { select } from '$/routes/+layout.svelte'
+\t// Types/constants
+\timport type { PageProps } from './$types.ts'
+\timport { EntityType } from '$/schema/EntityType.ts'
+${shell.hrefExpression === undefined ? '' : `
+
+\t// Context
+\timport { resolve } from '$app/paths'
+
+`
+}
+\tlet { data }: PageProps = $props()
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport ${shell.viewComponent} from '$/views/${shell.viewComponent}.svelte'
+</script>
+
+
+<Page>
+\t<${shell.viewComponent}
+${shell.hrefExpression === undefined ? '' : `\t\thref={${shell.hrefExpression}}
+`}\t\tselection={select(
+\t\t\tEntityType.${shell.entityType},
+\t\t\tdata.selector
+\t\t).${shell.childField}}
+${shell.id === undefined ? '' : `\t\tid=${JSON.stringify(shell.id)}
+`}${shell.title === undefined ? '' : `\t\ttitle=${JSON.stringify(shell.title)}
+`}\t/>
+</Page>
+`
+	}
+
+	if (shell.kind === 'param-id-detail') {
+		if (
+			shell.viewComponent === undefined
+			|| shell.entityType === undefined
+			|| shell.paramName === undefined
+		)
+			throw new Error(`Missing param id detail page data for ${shell.routePath}`)
+
+		return `<script lang="ts">
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { select } from '$/routes/+layout.svelte'
+\t// ${shell.stateComment ?? 'State'}
+\tlet {
+\t\tparams,
+\t} = $props()
+${shell.blankLineBeforeComponents ? '\n' : ''}
+\t// Components
+${shell.viewImportBeforePage ? `\timport ${shell.viewComponent} from '$/views/${viewFile}'
+\timport Page from '$/components/Page.svelte'` : `\timport Page from '$/components/Page.svelte'
+\timport ${shell.viewComponent} from '$/views/${viewFile}'`}
+</script>
+
+
+<Page>
+\t<${shell.viewComponent}
+\t\tselection={select(EntityType.${shell.entityType}, { id: params.${shell.paramName} })}
+\t/>
+</Page>
+`
+	}
+
+	if (shell.kind === 'param-selector-detail') {
+		if (
+			shell.viewComponent === undefined
+			|| shell.entityType === undefined
+			|| shell.selectorExpression === undefined
+		)
+			throw new Error(`Missing param selector detail page data for ${shell.routePath}`)
+
+		return `${generatedParamSelectorPageHeader(shell)}
+${shell.paramsMultiline ? `\tlet {
+\t\tparams,
+\t} = $props()` : '\tlet { params } = $props()'}
+${shell.derivedConstants === undefined ? '' : `
+${shell.derivedConstants.map((derivedConstant) => `\tconst ${derivedConstant.name} = $derived(${derivedConstant.expression})`).join('\n\n')}
+`}
+
+\t// Components
+${shell.viewImportBeforePage ? `\timport ${shell.viewComponent} from '$/views/${viewFile}'
+\timport Page from '$/components/Page.svelte'` : `\timport Page from '$/components/Page.svelte'
+\timport ${shell.viewComponent} from '$/views/${viewFile}'`}
+</script>
+
+
+<Page>
+${shell.componentIndentExtra ? '\t\t' : '\t'}<${shell.viewComponent}
+${shell.componentIndentExtra ? '\t\t\t' : '\t\t'}selection={select(EntityType.${shell.entityType}, {
+${shell.selectorExpression}
+\t\t})}
+${shell.limit === undefined ? '' : `${shell.componentIndentExtra ? '\t\t\t' : '\t\t'}limit={${shell.limit}}
+`}${shell.explicitClosingTag ? `\t>
+\t</${shell.viewComponent}>` : '\t/>'}
+</Page>
+`
+	}
+
+	if (shell.kind === 'scope-detail') {
+		if (
+			shell.viewComponent === undefined
+			|| shell.entityType === undefined
+			|| shell.scope === undefined
+		)
+			throw new Error(`Missing scope detail page data for ${shell.routePath}`)
+
+		return `<script lang="ts">
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { select } from '$/routes/+layout.svelte'
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport ${shell.viewComponent} from '$/views/${viewFile}'
+</script>
+
+
+<Page>
+\t<${shell.viewComponent}
+\t\tselection={select(EntityType.${shell.entityType}, {
+\t\t\tscope: ${quote(shell.scope)},
+\t\t})}
+\t/>
+${shell.blankLineBeforePageClose ? '\n' : ''}</Page>
+`
+	}
+
+	if (
+		shell.viewComponent === undefined
+		|| shell.entityType === undefined
+	)
+		throw new Error(`Missing data selector page data for ${shell.routePath}`)
+
+	if (shell.viewFile !== undefined)
+		return `<script lang="ts">
+\t// Types/constants
+\timport type { PageProps } from './$types.ts'
+\timport { EntityType } from '$/schema/EntityType.ts'
+
+
+\t// Context
+\timport { select } from '$/routes/+layout.svelte'
+
+
+\t// State
+\tlet {
+\t\tdata,
+\t}: PageProps = $props()
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport ${shell.viewComponent} from '$/views/${viewFile}'
+</script>
+
+
+<Page>
+\t<${shell.viewComponent}
+\t\tselection={select(EntityType.${shell.entityType}, data.selector)}
+\t/>
+</Page>
+`
+
+	return `<script lang="ts">
+\t// Types/constants
+\timport type { PageProps } from './$types.ts'
+\timport { EntityType } from '$/schema/EntityType.ts'
+
+
+\t// State
+\tlet {
+\t\tdata,
+\t}: PageProps = $props()
+
+
+\t// Functions
+\timport { select } from '$/routes/+layout.svelte'
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport ${shell.viewComponent} from '$/views/${shell.viewComponent}.svelte'
+</script>
+
+
+<Page>
+\t<${shell.viewComponent}
+\t\tselection={
+\t\t\tselect(
+\t\t\t\tEntityType.${shell.entityType},
+\t\t\t\tdata.selector
+\t\t\t)
+\t\t}
+\t/>
+</Page>
+`
+}
+
+const generatedAppShell = () => `<script module lang="ts">
+\t// Polyfills
+\timport '$/polyfills.ts'
+
+\timport { QueryClient } from '@tanstack/query-core'
+\timport {
+\t\tcreateBrowserWASQLitePersistence,
+\t\topenBrowserWASQLiteOPFSDatabase,
+\t} from '@tanstack/browser-db-sqlite-persistence'
+\timport { env } from '$env/dynamic/public'
+
+\timport {
+\t\tclient,
+\t} from '$/client/$client.svelte.ts'
+\timport {
+\t\tcreateE2EClientInstrumentation,
+\t\te2eDatabaseName,
+\t\te2eSchemaVersion,
+\t\tinstallAppClientProbe,
+\t} from '$/client/$e2eProbe.ts'
+\timport {
+\t\tBLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION,
+\t\tBLOCKHEAD_WA_SQLITE_DATABASE_NAME,
+\t} from '$/constants/Persistence.ts'
+\timport { resolvers } from '$/resolvers/index.ts'
+\timport { schema } from '$/schema/index.ts'
+\timport { sourceProviders } from '$/sources/index.ts'
+
+\tconst basePersistence = createBrowserWASQLitePersistence({
+\t\tdatabase: await openBrowserWASQLiteOPFSDatabase({
+\t\t\tdatabaseName: e2eDatabaseName(BLOCKHEAD_WA_SQLITE_DATABASE_NAME),
+\t\t}),
+\t\tschemaMismatchPolicy: 'reset',
+\t})
+\tconst e2eInstrumentation = createE2EClientInstrumentation(basePersistence)
+
+\texport const appClient = client(
+\t\t{
+\t\t\tschema,
+\t\t\tsourceProviders,
+\t\t}
+\t)(
+\t\t{
+\t\t\tresolvers,
+\t\t\tenv,
+\t\t}
+\t)(
+\t\t{
+\t\t\tqueryClient: new QueryClient({
+\t\t\t\tdefaultOptions: {
+\t\t\t\t\tqueries: {
+\t\t\t\t\t\tgcTime: 0,
+\t\t\t\t\t},
+\t\t\t\t},
+\t\t\t}),
+\t\t\tpersistence: e2eInstrumentation.persistence,
+\t\t\tschemaVersion: e2eSchemaVersion(BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION),
+\t\t\twaitForPersistence: e2eInstrumentation.waitForPersistence,
+\t\t}
+\t)
+
+\texport const select = appClient.select
+</script>
+
+
+<script lang="ts">
+\t// Types/constants
+\timport '$/styles/fonts.css'
+\timport '$/styles/colors.css'
+\timport '$/styles/reset.css'
+\timport '$/styles/components.css'
+
+
+\t// View transitions
+
+
+\t// Context
+\timport {
+\t\tmountWalletConnectionRuntime,
+\t} from '$/state/wallets/walletConnectionRuntime.svelte.ts'
+\timport { useNavigationItems } from './navigationItems.svelte.ts'
+
+
+\t// State
+\tlet {
+\t\tchildren,
+\t} = $props()
+
+\tinstallAppClientProbe(appClient)
+
+\t$effect(() => (
+\t\tmountWalletConnectionRuntime(appClient)
+\t\t\t.destroy
+\t))
+
+\t// Components
+\timport Navigation from './Navigation.svelte'
+
+
+\t// Functions
+\timport { asset } from '$app/paths'
+</script>
+
+
+<svelte:head>
+\t<link
+\t\trel="icon"
+\t\thref={asset('/favicon.svg')}
+\t/>
+</svelte:head>
+
+
+<div
+\tid="layout"
+\tdata-scroll-container="layout-inline-panes snap-inline"
+\tdata-sticky-container
+>
+\t<a
+\t\thref="#main"
+\t\tclass="skip-link"
+\t>
+\t\tSkip to main content
+\t</a>
+
+\t<Navigation
+\t\tnavigationItems={useNavigationItems().navigationItems}
+\t/>
+
+\t<div
+\t\tid="main"
+\t\ttabindex="-1"
+\t\tdata-scroll-item="pane-flexible"
+\t\tdata-sticky-container
+\t\tdata-column
+\t>
+\t\t<div
+\t\t\tclass="layout-main"
+\t\t\tdata-column-item="flexible"
+\t\t\tdata-column
+\t\t>
+\t\t\t{@render children()}
+\t\t</div>
+\t</div>
+</div>
+
+
+<style>
+\t#layout {
+\t\t--navigation-desktop-inlineSize: 16rem;
+\t\t--navigation-mobile-blockSize: 4rem;
+
+\t\tinline-size: 100dvw;
+\t\tblock-size: 100dvh;
+\t\tpadding: var(--safeArea-insetTop) var(--safeArea-insetRight) var(--safeArea-insetBottom) var(--safeArea-insetLeft);
+\t\talign-items: start;
+\t\tgap: var(--separator-width);
+
+\t\t&[data-scroll-container] {
+\t\t\t--sticky-paddingBlockStart: var(--safeArea-insetTop);
+\t\t\t--sticky-paddingBlockEnd: var(--safeArea-insetBottom);
+\t\t\t--sticky-paddingInlineStart: var(--safeArea-insetLeft);
+\t\t\t--sticky-paddingInlineEnd: var(--safeArea-insetRight);
+\t\t}
+
+\t\t@media (width >= 60rem) {
+\t\t\t&[data-scroll-container~='layout-inline-panes'] {
+\t\t\t\t--scrollPanes-paneStatic-inlineSize: var(--navigation-desktop-inlineSize);
+\t\t\t}
+\t\t}
+
+\t\t> :global(.layout-nav) {
+\t\t\tbox-shadow: 0 0 0 var(--separator-width) var(--border-color);
+\t\t}
+
+\t\t> #main {
+\t\t\t--sticky-paddingInlineStart: clamp(1rem, 6cqi, 2rem);
+\t\t\t--sticky-paddingInlineEnd: clamp(1rem, 6cqi, 2rem);
+\t\t\t--sticky-paddingBlockStart: 1.5rem;
+\t\t\t--sticky-paddingBlockEnd: 1.5rem;
+
+\t\t\talign-self: stretch;
+\t\t\tpadding: 1.5rem;
+
+\t\t\t> .layout-main {
+\t\t\t\tview-transition-name: Main;
+
+\t\t\t\tmin-height: calc(100% - 3rem);
+
+\t\t\t\t> :global([data-scroll-container]:only-child) {
+\t\t\t\t\t--scrollContainer-sizeBlock: calc(100cqb - 3rem);
+\t\t\t\t}
+\t\t\t}
+\t\t}
+\t}
+
+
+\t.skip-link {
+\t\tposition: absolute;
+\t\ttop: -100%;
+\t\tleft: 0;
+\t\tpadding: 0.5em 1em;
+\t\tbackground: var(--color-bg-page);
+\t\tz-index: 1000;
+\t\tcolor: var(--color-fg);
+
+\t\t&:focus {
+\t\t\ttop: 0;
+\t\t}
+\t}
+
+\t::view-transition-old(Main) {
+\t\tanimation: 0.2s var(--transition-easeOutExpo) both MainTransitionOut;
+\t}
+\t::view-transition-new(Main) {
+\t\tanimation: 0.2s var(--transition-easeOutExpo) both MainTransitionIn;
+\t}
+\t@keyframes MainTransitionIn {
+\t\tfrom {
+\t\t\topacity: 0;
+\t\t\tscale: 0.95;
+\t\t\tfilter: blur(2px);
+\t\t}
+\t}
+\t@keyframes MainTransitionOut {
+\t\tto {
+\t\t\topacity: 0;
+\t\t\tscale: 0.95;
+\t\t\tfilter: blur(2px);
+\t\t}
+\t}
+</style>
+`
+
+const generatedRouteSectionShell = (
+	shell: ExpectedApp['routes']['sectionShells'][number]
+) => {
+	if (shell.kind === 'app-shell')
+		return generatedAppShell()
+
+	if (shell.kind === 'custom') {
+		if (shell.sourceText === undefined)
+			throw new Error(`Missing custom route section source for ${shell.routePath}`)
+
+		return shell.sourceText
+	}
+
+	if (shell.kind === 'passthrough')
+		return `<script lang="ts">
+\t// State
+\tlet { children } = $props()
+</script>
+
+
+{@render children()}
+`
+
+	if (shell.kind === 'page-param-parent-collapsible') {
+		if (
+			shell.hrefExpression === undefined
+			|| shell.idExpression === undefined
+		)
+			throw new Error(`Missing page-param parent collapsible data for ${shell.routePath}`)
+
+		return `<script lang="ts">
+\t// Context
+\timport { resolve } from '$app/paths'
+\timport { page } from '$app/state'
+
+
+\t// State
+\tlet {
+\t\tchildren,
+\t} = $props()
+
+
+\t// Components
+\timport ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
+</script>
+
+
+<ParentPageCollapsible
+${shell.titleExpression === undefined ? shell.title === undefined ? '' : `\ttitle=${JSON.stringify(shell.title)}
+` : `\ttitle={${shell.titleExpression}}
+`}\thref={${shell.hrefExpression}}
+\tid={${shell.idExpression}}
+>
+\t{@render children()}
+</ParentPageCollapsible>
+`
+	}
+
+	if (shell.kind === 'nested-parent-collapsible') {
+		if (
+			shell.nestedParents === undefined
+			|| shell.nestedParents.length !== 2
+			|| shell.childrenName === undefined
+		)
+			throw new Error(`Missing nested parent collapsible data for ${shell.routePath}`)
+
+		return `<script lang="ts">
+\timport { eip155NetworkSelectorFromCaip2 } from '$/lib/caip2.ts'
+\t// Types/constants
+\timport type { Snippet } from 'svelte'
+\timport { stringify } from 'devalue'
+
+
+\t// Context
+\timport { resolve } from '$app/paths'
+
+
+\t// State
+\tlet {
+\t\tchildren: ${shell.childrenName},
+\t\tparams,
+\t}: {
+\t\tchildren: Snippet
+\t\tparams: {
+\t\t\tcaip2: \`eip155:\${string}\`
+\t\t\ttransactionId?: string
+\t\t}
+\t} = $props()
+
+
+\t// Components
+\timport ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
+</script>
+
+
+<ParentPageCollapsible
+\ttitle="${shell.nestedParents[0].title}"
+\thref={${shell.nestedParents[0].hrefExpression}}
+\tid={${shell.nestedParents[0].idExpression}}
+>
+\t<ParentPageCollapsible
+\t\ttitle="${shell.nestedParents[1].title}"
+\t\thref={${shell.nestedParents[1].hrefExpression}}
+\t\tid={${shell.nestedParents[1].idExpression}}
+\t>
+\t\t{@render ${shell.childrenName}()}
+\t</ParentPageCollapsible>
+</ParentPageCollapsible>
+`
+	}
+
+	if (shell.kind === 'proposal-parent-collapsible') {
+		if (
+			shell.viewComponent === undefined
+			|| shell.entityType === undefined
+			|| shell.proposalLevel === undefined
+			|| shell.hrefExpression === undefined
+			|| shell.idExpression === undefined
+		)
+			throw new Error(`Missing proposal parent section data for ${shell.routePath}`)
+
+		const viewFile = shell.viewFile ?? `${shell.viewComponent}.svelte`
+		const constantsImport = shell.proposalLevel === 'realm' ? `\timport { specificationRealmBySlug } from '$/constants/SpecificationProposal.ts'` : `\timport {
+\t\tproposalCategoryBySlug,
+\t\tproposalKindAllowedInRealmByKey,
+\t\tspecificationRealmBySlug,
+\t} from '$/constants/SpecificationProposal.ts'`
+		const selectorSource = shell.proposalLevel === 'realm' ? `\tconst selector = $derived(
+\t\tparams.specificationRealmSlug in specificationRealmBySlug ?
+\t\t\t{
+\t\t\t\trealm: specificationRealmBySlug[params.specificationRealmSlug]!.id,
+\t\t\t}
+\t\t:
+\t\t\tundefined,
+\t)` : `\tconst realm = $derived(
+\t\tspecificationRealmBySlug[params.specificationRealmSlug]?.id,
+\t)
+
+\tconst category = $derived(
+\t\tproposalCategoryBySlug[params.proposalKindSlug]?.id,
+\t)
+
+\tconst selector = $derived(
+\t\trealm != null && category != null && proposalKindAllowedInRealmByKey[\`\${realm}:\${category}\`] != null ?
+\t\t\t{
+\t\t\t\trealm,
+\t\t\t\tcategory,
+\t\t\t}
+\t\t:
+\t\t\tundefined,
+\t)`
+
+		return `<script lang="ts">
+${shell.proposalLevel === 'realm' ? `\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { select } from '$/routes/+layout.svelte'
+\t// Types/constants
+${constantsImport}
+\timport { stringify } from 'devalue'` : `\t// Types/constants
+${constantsImport}
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { select } from '$/routes/+layout.svelte'
+
+\timport { stringify } from 'devalue'`}
+
+
+\t// Context
+\timport { resolve } from '$app/paths'
+
+
+\t// State
+\tlet {
+\t\tchildren,
+\t\tparams,
+\t} = $props()
+
+${selectorSource}
+
+
+\t// Components
+\timport { EntityLayout } from '$/components/EntityView.svelte'
+\timport ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
+\timport ${shell.viewComponent} from '$/views/${viewFile}'
+</script>
+
+
+{#if selector !== undefined}
+\t<ParentPageCollapsible
+\t\thref={${shell.hrefExpression}}
+\t\tid={${shell.idExpression}}
+\t>
+\t\t{#snippet Summary({ open: _open })}
+\t\t\t<${shell.viewComponent}
+\t\t\t\tselection={select(EntityType.${shell.entityType}, selector)}
+\t\t\t\tlayout={EntityLayout.SummaryInline}
+\t\t\t/>
+\t\t{/snippet}
+
+\t\t{@render children()}
+\t</ParentPageCollapsible>
+{:else}
+\t{@render children()}
+{/if}
+`
+	}
+
+	if (shell.kind === 'scope-summary-collapsible') {
+		if (
+			shell.viewComponent === undefined
+			|| shell.entityType === undefined
+			|| shell.scope === undefined
+			|| shell.hrefExpression === undefined
+			|| shell.idExpression === undefined
+		)
+			throw new Error(`Missing scope summary section data for ${shell.routePath}`)
+
+		return `<script lang="ts">
+\t// Types/constants
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { stringify } from 'devalue'
+
+
+\t// Context
+\timport { resolve } from '$app/paths'
+
+
+\t// State
+\tlet { children } = $props()
+
+
+\t// Functions
+\timport { select } from '$/routes/+layout.svelte'
+
+
+\t// Components
+\timport { EntityLayout } from '$/components/EntityView.svelte'
+\timport ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
+\timport ${shell.viewComponent} from '$/views/${shell.viewComponent}.svelte'
+</script>
+
+
+<ParentPageCollapsible
+\thref={${shell.hrefExpression}}
+\tid={${shell.idExpression}}
+>
+\t{#snippet Summary({ open: _open })}
+\t\t<${shell.viewComponent}
+\t\t\tselection={
+\t\t\t\tselect(
+\t\t\t\t\tEntityType.${shell.entityType},
+\t\t\t\t\t{
+\t\t\t\t\t\tscope: ${quote(shell.scope)},
+\t\t\t\t\t}
+\t\t\t\t)
+\t\t\t}
+\t\t\tlayout={EntityLayout.SummaryInline}
+\t\t/>
+\t{/snippet}
+
+\t{@render children()}
+</ParentPageCollapsible>
+`
+	}
+
+	if (shell.kind === 'param-summary-collapsible') {
+		if (
+			shell.viewComponent === undefined
+			|| shell.selectorExpression === undefined
+			|| shell.hrefExpression === undefined
+			|| shell.idExpression === undefined
+		)
+			throw new Error(`Missing param summary section data for ${shell.routePath}`)
+
+		return `<script lang="ts">
+\t// Types/constants
+\timport { EntityType } from '$/schema/EntityType.ts'
+${shell.usesStringify ? "\timport { stringify } from 'devalue'" : ''}
+
+
+\t// Context
+\timport { resolve } from '$app/paths'
+
+
+\t// State
+\tlet {
+\t\tchildren,
+\t\tparams,
+\t} = $props()
+${shell.derivedConstants === undefined ? '' : `
+${shell.derivedConstants.map((derivedConstant) => `\tconst ${derivedConstant.name} = $derived(
+\t\t${derivedConstant.expression},
+\t)`).join('\n\n')}
+`}
+
+\t// Functions
+${shell.usesEip155NetworkSelectorFromCaip2 ? "\timport { eip155NetworkSelectorFromCaip2 } from '$/lib/caip2.ts'\n" : ''}\timport { select } from '$/routes/+layout.svelte'
+
+
+\t// Components
+\timport { EntityLayout } from '$/components/EntityView.svelte'
+\timport ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
+\timport ${shell.viewComponent} from '$/views/${shell.viewComponent}.svelte'
+</script>
+
+
+<ParentPageCollapsible
+${shell.hrefWrapped === true ? `\thref={
+\t\t${shell.hrefExpression}
+\t}` : `\thref={${shell.hrefExpression}}`}
+\tid={${shell.idExpression}}
+>
+\t{#snippet Summary({ open: _open })}
+\t\t<${shell.viewComponent}
+\t\t\tselection={
+\t\t\t\tselect(
+${shell.selectorExpression}
+\t\t\t\t)
+\t\t\t}
+\t\t\tlayout={EntityLayout.SummaryInline}
+\t\t/>
+\t{/snippet}
+
+\t{@render children()}
+</ParentPageCollapsible>
+`
+	}
+
+	if (shell.kind === 'keyed-param-summary-collapsible') {
+		if (
+			shell.viewComponent === undefined
+			|| shell.selectorExpression === undefined
+			|| shell.hrefExpression === undefined
+			|| shell.idExpression === undefined
+			|| shell.keyExpression === undefined
+		)
+			throw new Error(`Missing keyed param summary section data for ${shell.routePath}`)
+
+		return `<script lang="ts">
+\t// Types/constants
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { stringify } from 'devalue'
+${shell.usesEip155NetworkSelectorFromCaip2 ? "\timport { eip155NetworkSelectorFromCaip2 } from '$/lib/caip2.ts'\n" : ''}
+
+\t// Context
+\timport { resolve } from '$app/paths'
+
+
+\t// State
+\tlet {
+\t\tchildren,
+\t\tparams,
+\t} = $props()
+
+
+\t// Functions
+\timport { select } from '$/routes/+layout.svelte'
+
+
+\t// Components
+\timport { EntityLayout } from '$/components/EntityView.svelte'
+\timport ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
+\timport ${shell.viewComponent} from '$/views/${shell.viewComponent}.svelte'
+</script>
+
+
+{#key ${shell.keyExpression}}
+\t<ParentPageCollapsible
+\t\thref={${shell.hrefExpression}}
+\t\tid={${shell.idExpression}}
+\t>
+\t\t{#snippet Summary({ open: _open })}
+\t\t\t<${shell.viewComponent}
+\t\t\t\tselection={
+\t\t\t\t\tselect(
+${shell.selectorExpression}
+\t\t\t\t\t)
+\t\t\t\t}
+\t\t\t\tlayout={EntityLayout.SummaryInline}
+\t\t\t/>
+\t\t{/snippet}
+
+\t\t{@render children()}
+\t</ParentPageCollapsible>
+{/key}
+`
+	}
+
+	if (shell.kind === 'page-param-summary-collapsible') {
+		if (
+			shell.viewComponent === undefined
+			|| shell.derivedConstants === undefined
+			|| shell.selectorExpression === undefined
+			|| shell.hrefExpression === undefined
+			|| shell.idExpression === undefined
+		)
+			throw new Error(`Missing page-param summary section data for ${shell.routePath}`)
+
+		return `<script lang="ts">
+\t// Types/constants
+\timport { EntityType } from '$/schema/EntityType.ts'
+
+
+\t// Context
+\timport { resolve } from '$app/paths'
+\timport { page } from '$app/state'
+
+
+\t// State
+\tlet { children } = $props()
+
+${shell.derivedConstants.map((derivedConstant) => `\tconst ${derivedConstant.name} = $derived(
+\t\t${derivedConstant.expression},
+\t)`).join('\n\n')}
+
+
+\t// Functions
+\timport { select } from '$/routes/+layout.svelte'
+
+
+\t// Components
+\timport { EntityLayout } from '$/components/EntityView.svelte'
+\timport ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
+\timport ${shell.viewComponent} from '$/views/${shell.viewComponent}.svelte'
+</script>
+
+
+<ParentPageCollapsible
+\thref={${shell.hrefExpression}}
+\tid={${shell.idExpression}}
+>
+\t{#snippet Summary({ open: _open })}
+\t\t<${shell.viewComponent}
+\t\t\tselection={
+\t\t\t\tselect(
+${shell.selectorExpression}
+\t\t\t\t)
+\t\t\t}
+\t\t\tlayout={EntityLayout.SummaryInline}
+${shell.viewTitle === undefined ? '\t\t/>' : `\t\t\ttitle="${shell.viewTitle}"
+\t\t/>`}
+\t{/snippet}
+
+\t{@render children()}
+</ParentPageCollapsible>
+`
+	}
+
+	if (shell.hrefExpression === undefined)
+		throw new Error(`Missing parent collapsible href for ${shell.routePath}`)
+
+	return `<script lang="ts">${shell.usesEip155NetworkSelectorFromCaip2 ? `
+\timport { eip155NetworkSelectorFromCaip2 } from '$/lib/caip2.ts'` : ''}${shell.usesStringify ? `
+\t// Types/constants
+\timport { stringify } from 'devalue'
+
+` : ''}
+\t// Context
+\timport { resolve } from '$app/paths'
+
+
+\t// State
+\tlet {${shell.usesParams ? `
+\t\tchildren,
+\t\tparams,
+\t}` : ' children }'} = $props()
+
+
+\t// Components
+\timport ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
+</script>
+
+
+<ParentPageCollapsible
+${shell.titleExpression === undefined ? shell.title === undefined ? '' : `\ttitle=${JSON.stringify(shell.title)}
+` : `\ttitle={${shell.titleExpression}}
+`}\thref={${shell.hrefExpression}}
+${shell.idExpression === undefined ? '' : `\tid=${shell.idExpression.startsWith('\'') || shell.idExpression.startsWith('"') ? JSON.stringify(shell.idExpression.slice(1, -1)) : `{${shell.idExpression}}`}
+`}>\n\t{@render children()}
+</ParentPageCollapsible>
+`
+}
+
 export const generateExpected = async () => {
 	const app: ExpectedApp = loadApp()
 	const ownershipRows = generatedOwnership()
@@ -899,16 +3144,22 @@ export const generateExpected = async () => {
 
 	writeText('.generated/expected/APP.snapshot.json', json(app))
 	writeText('.generated/expected/SCHEMA.md', schemaMarkdown(app))
-	writeText('.generated/expected/RESOLVER-COVERAGE.md', app.docs.resolverCoverageMarkdown)
-	writeText('.generated/expected/SOURCES.md', app.docs.sourcesMarkdown)
+	writeText('.generated/expected/RESOLVER-COVERAGE.md', resolverCoverageMarkdown(app))
+	writeText('.generated/expected/SOURCES.md', sourcesMarkdown(app))
 	writeText('.generated/expected/src/schema/schema.json', json(app.schema))
 	writeText('.generated/expected/src/schema/EntityType.ts', generatedEntityTypeFile(app))
 	writeText('.generated/expected/src/schema/index.ts', generatedSchemaIndexFile(app))
 	for (const entity of app.schema.entities)
 		writeText(`.generated/expected/src/schema/${entity.name}.ts`, generatedEntitySchemaFile(entity))
 	writeText('.generated/expected/src/views/index.ts', generatedViewsIndexFile(app))
-	for (const shell of app.views.entityViewShells)
-		writeText(`.generated/expected/${shell.file}`, shell.sourceText)
+	for (const shell of app.views.entityViewShells) {
+		const entity = app.schema.entities.find((candidate) => candidate.name === shell.entity)
+
+		if (entity === undefined)
+			throw new Error(`Missing schema entity for view shell ${shell.entity}`)
+
+		writeText(`.generated/expected/${shell.file}`, shell.sourceText ?? generatedEntityViewShellSource(entity))
+	}
 	writeText('.generated/expected/src/sources/sources.json', json(app.sources))
 	writeText('.generated/expected/src/resolvers/resolvers.json', json(app.resolvers))
 	writeText('.generated/expected/src/views/views.json', json(app.views))
@@ -918,9 +3169,9 @@ export const generateExpected = async () => {
 	for (const transform of app.routes.loaderTransforms)
 		writeText(`.generated/expected/src/routes/${transform.routePath}/+page.ts`, generatedRoutePageModule(transform))
 	for (const shell of app.routes.pageShells)
-		writeText(`.generated/expected/src/routes/${shell.routePath}/+page.svelte`, shell.sourceText)
+		writeText(`.generated/expected/src/routes/${shell.routePath}/+page.svelte`, generatedRoutePageShell(shell))
 	for (const shell of app.routes.sectionShells)
-		writeText(`.generated/expected/src/routes/${shell.routePath}/+layout.svelte`, shell.sourceText)
+		writeText(`.generated/expected/src/routes/${shell.routePath}/+layout.svelte`, generatedRouteSectionShell(shell))
 	for (const mapping of emittedRouteMappings) {
 		writeText(`.generated/expected/src/routes/${mapping.path}/+page.svelte`, generatedRoutePage(app, mapping))
 	}

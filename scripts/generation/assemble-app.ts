@@ -173,7 +173,7 @@ type AppEntityViewShell = {
 	viewName: string
 	file: string
 	capabilities: string[]
-	sourceText: string
+	sourceText?: string
 	sourceFile: string
 }
 
@@ -243,11 +243,152 @@ type AppRoutePageShell = {
 	usesDataSelector: boolean
 	usesParams: boolean
 	usesSelect: boolean
-	sourceText: string
+	kind: 'global-collection' | 'global-source-collection' | 'data-selector-detail' | 'data-selector-simple-detail' | 'data-selector-child-collection' | 'param-id-detail' | 'param-selector-detail' | 'scope-detail' | 'direct-selector-detail' | 'derived-selector-detail' | 'linked-view' | 'simple-view' | 'catalog-param-detail' | 'global-hub-tabs' | 'eip155-network-collection' | 'evm-protocol-collection' | 'youtube-parent-collection' | 'social-network-child-collection' | 'decoded-parent-child-collection' | 'decoded-param-detail' | 'lens-account-detail' | 'proposal-selector-detail' | 'placeholder' | 'param-heading' | 'static-page' | 'custom'
+	viewComponent?: string
+	viewFile?: string
+	entityType?: string
+	paramName?: string
+	selectorExpression?: string
+	selectorImportStyle?: 'sectioned'
+	selectorDeclaration?: string
+	routeImports?: string[]
+	functionImports?: string[]
+	selectorGuard?: string
+	invalidText?: string
+	invalidOutsidePage?: boolean
+	viewProps?: string[]
+	derivedConstants?: {
+		name: string
+		expression: string
+	}[]
+	importEntitySelectorType?: boolean
+	importEip155NetworkSelectorFromCaip2?: boolean
+	importZeroExHex?: boolean
+	zeroExHexImportSymbols?: string
+	zeroExHexImportWithSchemaImports?: boolean
+	importWith0xHex?: boolean
+	with0xHexImportSection?: 'types' | 'functions'
+	typeConstantsAfterSchemaImports?: boolean
+	paramsMultiline?: boolean
+	componentIndentExtra?: boolean
+	explicitClosingTag?: boolean
+	scope?: string
+	hrefExpression?: string
+	childField?: string
+	collectionEntityType?: string
+	globalScope?: string
+	globalField?: string
+	globalSourceField?: string
+	globalSourceSources?: string[]
+	globalSourceIndentExtra?: boolean
+	globalSourceOmitContextSection?: boolean
+	id?: string
+	limit?: number
+	title?: string
+	titleExpression?: string
+	headTitle?: string
+	sortMode?: string
+	catalogImports?: string[]
+	catalogParamType?: string
+	catalogRowsName?: string
+	catalogRowName?: string
+	catalogLookupName?: string
+	catalogLookupField?: string
+	catalogRouteKey?: string
+	catalogTitleExpression?: string
+	catalogNotFoundCondition?: string
+	catalogMissingText?: string
+	catalogUnknownText?: string
+	catalogNotFoundId?: string
+	catalogDetailId?: string
+	hubKey?: string
+	hubScope?: string
+	hubTitleExpression?: string
+	hubHref?: string
+	hubSections?: {
+		id: string
+		label: string
+		viewComponent?: string
+		href?: string
+		globalField?: string
+		viewId?: string
+		placeholderText?: string
+	}[]
+	networkCollectionField?: string
+	networkCollectionSources?: string[]
+	networkCollectionCount?: boolean
+	networkCollectionInlineSources?: boolean
+	networkCollectionHrefAfterSelection?: boolean
+	networkCollectionTightContextState?: boolean
+	protocolCollectionField?: string
+	parentSelectorField?: string
+	parentSelectorParam?: string
+	parentSelectorTransform?: 'lowercase' | 'number'
+	networkScope?: string
+	placeholderText?: string
+	placeholderMultiline?: boolean
+	staticWrapper?: 'section-column' | 'main-card'
+	staticTitle?: string
+	staticLinks?: {
+		label: string
+		route: string
+	}[]
+	proposalLevel?: 'realm' | 'kind' | 'proposal'
+	collapsible?: boolean
+	open?: boolean
+	viewImportBeforePage?: boolean
+	stateComment?: string
+	blankLineBeforeComponents?: boolean
+	blankLineBeforePageClose?: boolean
+	sources?: string[]
+	sourceText?: string
 	sourceFile: string
 }
 
-type AppRouteSectionShell = AppRoutePageShell
+type AppRouteSectionShell = Omit<
+	AppRoutePageShell,
+	| 'kind'
+	| 'viewComponent'
+	| 'selectorExpression'
+	| 'importEntitySelectorType'
+	| 'typeConstantsAfterSchemaImports'
+	| 'hrefExpression'
+	| 'globalScope'
+	| 'globalField'
+	| 'id'
+	| 'limit'
+	| 'title'
+	| 'collapsible'
+	| 'open'
+	| 'sources'
+	| 'sourceText'
+> & {
+	kind: 'parent-collapsible' | 'nested-parent-collapsible' | 'page-param-parent-collapsible' | 'param-summary-collapsible' | 'keyed-param-summary-collapsible' | 'scope-summary-collapsible' | 'page-param-summary-collapsible' | 'proposal-parent-collapsible' | 'passthrough' | 'custom'
+	viewComponent?: string
+	entityType?: string
+	scope?: string
+	derivedConstants?: {
+		name: string
+		expression: string
+	}[]
+	selectorExpression?: string
+	title?: string
+	viewTitle?: string
+	titleExpression?: string
+	hrefExpression?: string
+	hrefWrapped?: boolean
+	idExpression?: string
+	keyExpression?: string
+	nestedParents?: {
+		title: string
+		hrefExpression: string
+		idExpression: string
+	}[]
+	childrenName?: string
+	usesEip155NetworkSelectorFromCaip2?: boolean
+	usesStringify?: boolean
+	sourceText?: string
+}
 
 type AppResolverCoverage = {
 	entity: string
@@ -258,6 +399,16 @@ type AppResolverCoverage = {
 		| 'deferred-schema'
 		| 'deferred-runtime'
 		| 'deferred-artifact'
+}
+
+type AppResolverCoverageLedgerRow = {
+	source: string
+	status: AppResolverCoverage['status']
+	providerBinding: string
+	resolverFile: string
+	sourceRuntimeArtifacts: string
+	schemaEntitiesTouched: string
+	actionValidationRisk: string
 }
 
 const cardinalityBySchemaSuffix = new Map([
@@ -653,10 +804,9 @@ export const factsToEntityViewShells = (
 				viewName: value.viewName,
 				file: value.file,
 				capabilities: value.capabilities,
-				sourceText: generatedEntityViewShellSource(
-					entityByName[value.entity],
-					value.sourceText
-				),
+				...(isGeneratedEntityViewShell(entityByName[value.entity], value.sourceText) ? {} : {
+					sourceText: value.sourceText,
+				}),
 				sourceFile: fact.sourceFile,
 			}
 		})
@@ -687,6 +837,20 @@ const hasRejectedRouteShape = (
 	|| path.includes('/network/[caip2=networkCaip2]')
 	|| path.includes('/data/data/')
 	|| path.includes('/global/global/')
+)
+
+const isGeneratedEntityViewShell = (
+	entity: AppEntity | undefined,
+	sourceText: string
+) => (
+	entity !== undefined
+	&& sourceText.includes('const view =')
+	&& sourceText.includes('<EntityView2')
+	&& !sourceText.includes('ResourceBoundary')
+	&& !sourceText.includes('{#snippet')
+	&& !sourceText.includes('Render:')
+	&& !sourceText.includes('Content:')
+	&& !sourceText.includes('import { select }')
 )
 
 const routeParamNames = (
@@ -1011,6 +1175,668 @@ const factToRouteSvelteShell = (
 	fact: SchemaFact
 ): AppRoutePageShell => {
 	const value = fact.value as Omit<AppRoutePageShell, 'sourceFile'>
+	const sourceText = value.sourceText ?? ''
+	const catalogParamDetail = (
+		value.routePath === '(assets)/(coins)/coin/[coinId]' ? {
+			viewComponent: 'CoinView',
+			entityType: 'Coin',
+			paramName: 'coinId',
+			catalogImports: [
+				"import type { CoinId } from '$/constants/Coin.ts'",
+				"import { coinById, coins } from '$/constants/Coin.ts'",
+			],
+			catalogParamType: 'CoinId',
+			catalogRowsName: 'coins',
+			catalogRowName: 'c',
+			catalogLookupField: 'id',
+			catalogRouteKey: 'coinId',
+			catalogTitleExpression: "{route.coinId ? coinById[route.coinId]?.symbol ?? route.coinId : route.param || 'Coin'} – Coin",
+			catalogNotFoundCondition: '!route.coinId',
+			catalogUnknownText: 'Unsupported coin: ${route.param}',
+			catalogMissingText: 'Coin required',
+			catalogNotFoundId: 'coin-not-found',
+			catalogDetailId: 'coin-detail-page',
+			open: true,
+		}
+		: value.routePath === '(assets)/(currencies)/currency/[iso4217=iso4217]' ? {
+			viewComponent: 'CurrencyView',
+			entityType: 'Currency',
+			paramName: 'iso4217',
+			catalogImports: [
+				"import {",
+				"\tcurrencies,",
+				"\tcurrencyByIso4217,",
+				"\ttype Iso4217,",
+				"} from '$/constants/Currency.ts'",
+			],
+			catalogParamType: 'Iso4217',
+			catalogRowsName: 'currencies',
+			catalogRowName: 'currency',
+			catalogLookupField: 'iso4217',
+			catalogRouteKey: 'iso4217',
+			catalogTitleExpression: "{route.iso4217 ? currencyByIso4217[route.iso4217].name : route.param || 'Currency'}",
+			catalogNotFoundCondition: 'route.iso4217 == null',
+			catalogUnknownText: 'Unknown ISO&nbsp;4217 code.',
+		}
+		: value.routePath === '(assets)/(marketVenues)/market-venue/[marketVenueId=marketVenueId]' ? {
+			viewComponent: 'MarketVenueView',
+			entityType: 'MarketVenue',
+			paramName: 'marketVenueId',
+			catalogImports: [
+				"import {",
+				"\tmarketVenueById,",
+				"\tmarketVenues,",
+				"\ttype MarketVenueId,",
+				"} from '$/constants/MarketVenue.ts'",
+			],
+			catalogParamType: 'MarketVenueId',
+			catalogRowsName: 'marketVenues',
+			catalogRowName: 'marketVenue',
+			catalogLookupField: 'id',
+			catalogRouteKey: 'marketVenueId',
+			catalogTitleExpression: "{route.marketVenueId ? marketVenueById[route.marketVenueId].label : route.param || 'Market venue'}",
+			catalogNotFoundCondition: 'route.marketVenueId == null',
+			catalogUnknownText: 'Unknown market venue.',
+		}
+		: undefined
+	)
+	const globalHubTabs = (
+		value.routePath === '~/accounts' ? {
+			hubKey: 'accounts',
+			hubScope: 'Accounts',
+			hubTitleExpression: '"Accounts"',
+			hubHref: '/~/accounts',
+			hubSections: [
+				{ id: 'connections', label: 'Connections', viewComponent: 'BlockheadWalletConnectionsView', viewId: 'wallet-connections' },
+				{ id: 'watched-accounts', label: 'Watched accounts', viewComponent: 'EvmAccountsView', href: '/~/accounts/watched-accounts', globalField: '$$actors', viewId: 'accounts' },
+				{ id: 'balances', label: 'Balances', viewComponent: 'EvmNetworkActorCoinBalancesView', href: '/~/accounts/balances', globalField: '$$actorCoins', viewId: 'balances' },
+			],
+		}
+		: value.routePath === '~/manage' ? {
+			hubKey: 'manage',
+			hubScope: 'Manage',
+			hubTitleExpression: '"Manage"',
+			hubHref: '/~/manage',
+			hubSections: [
+				{ id: 'profiles', label: 'Profiles', placeholderText: 'Profiles are not wired yet.' },
+				{ id: 'sources', label: 'Sources', viewComponent: 'BlockheadSourcesView', href: '/~/manage/sources', globalField: '$$blockheadSources', viewId: 'sources' },
+			],
+		}
+		: value.routePath === '~/multiplayer' ? {
+			hubKey: 'multiplayer',
+			hubScope: 'Multiplayer',
+			hubTitleExpression: "{'Multiplayer'}",
+			hubHref: '/~/multiplayer',
+			hubSections: [
+				{ id: 'rooms', label: 'Rooms', viewComponent: 'BlockheadRoomsView', href: '/~/multiplayer/rooms', globalField: '$$blockheadRooms', viewId: 'rooms' },
+				{ id: 'contacts', label: 'Contacts', viewComponent: 'BlockheadRoomPeersView', href: '/~/multiplayer/contacts', globalField: '$$blockheadRoomPeers', viewId: 'contacts' },
+			],
+		}
+		: undefined
+	)
+	const eip155NetworkCollection = new Map<string, Partial<AppRoutePageShell>>([
+		['(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/beacon-epochs', {
+			viewComponent: 'BeaconEpochsView',
+			networkCollectionField: '$$beaconEpochs',
+			id: 'beacon-epochs',
+			networkCollectionSources: ['Beacon_Rest'],
+		}],
+		['(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/beacon-slots', {
+			viewComponent: 'BeaconSlotsView',
+			networkCollectionField: '$$beaconSlots',
+			id: 'beacon-slots',
+			networkCollectionSources: ['Beacon_Rest'],
+		}],
+		['(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/blobs', {
+			viewComponent: 'EvmBlobsView',
+			networkCollectionField: '$$blobs',
+			id: 'blobs',
+			networkCollectionSources: ['Voltaire_JsonRpc'],
+			limit: 8,
+			hrefExpression: "'/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/blobs'",
+			networkCollectionHrefAfterSelection: true,
+		}],
+		['(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/blocks', {
+			viewComponent: 'EvmBlocksView',
+			networkCollectionField: '$$blocks',
+			id: 'blocks',
+			networkCollectionSources: ['Voltaire_JsonRpc'],
+			limit: 16,
+			networkCollectionCount: true,
+			hrefExpression: "'/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/blocks'",
+		}],
+		['(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/contracts', {
+			viewComponent: 'EvmContractsView',
+			networkCollectionField: '$$contracts',
+			id: 'contracts',
+			networkCollectionSources: ['Blockscout_Rest'],
+			limit: 16,
+			hrefExpression: "'/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/contracts'",
+		}],
+		['(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/precompiles', {
+			viewComponent: 'EvmPrecompilesView',
+			networkCollectionField: '$$precompiles',
+			id: 'precompiles',
+			networkCollectionSources: ['Constants_Internal'],
+			limit: 64,
+		}],
+		['(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/transactions', {
+			viewComponent: 'EvmTransactionsView',
+			networkCollectionField: '$$transactions',
+			id: 'transactions',
+			networkCollectionSources: ['Blockscout_Rest'],
+			limit: 8,
+			hrefExpression: "'/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/transactions'",
+			networkCollectionInlineSources: true,
+		}],
+		['(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/upgrades', {
+			viewComponent: 'EthereumNetworkUpgradesView',
+			networkCollectionField: '$$upgrades',
+			id: 'upgrades',
+			networkCollectionSources: ['Constants_Internal'],
+			limit: 512,
+			viewImportBeforePage: true,
+			networkCollectionTightContextState: true,
+		}],
+	]).get(value.routePath)
+	const evmProtocolCollection = new Map<string, Partial<AppRoutePageShell>>([
+		['(explore)/(evm)/evm/errors', {
+			viewComponent: 'EvmErrorsView',
+			hrefExpression: "'/evm/errors'",
+			protocolCollectionField: '$$evmErrors',
+			id: 'errors',
+		}],
+		['(explore)/(evm)/evm/selectors', {
+			viewComponent: 'EvmSelectorsView',
+			hrefExpression: "'/evm/selectors'",
+			protocolCollectionField: '$$evmSelectors',
+			id: 'selectors',
+		}],
+		['(explore)/(evm)/evm/topics', {
+			viewComponent: 'EvmTopicsView',
+			hrefExpression: "'/evm/topics'",
+			protocolCollectionField: '$$evmTopics',
+			id: 'topics',
+		}],
+	]).get(value.routePath)
+	const globalSourceCollection = new Map<string, Partial<AppRoutePageShell>>([
+		['(explore)/proposals', {
+			viewComponent: 'SpecificationRealmsView',
+			globalSourceField: '$$specificationRealms',
+			globalSourceSources: ['Constants_Internal'],
+			id: 'proposal-realms',
+			title: 'Proposals',
+			globalSourceIndentExtra: true,
+			globalSourceOmitContextSection: true,
+		}],
+		['(explore)/upgrades', {
+			viewComponent: 'EthereumNetworkUpgradesView',
+			globalSourceField: '$$networkUpgrades',
+			globalSourceSources: ['Constants_Internal'],
+			id: 'upgrades',
+			limit: 512,
+			viewImportBeforePage: true,
+		}],
+	]).get(value.routePath)
+	const youtubeParentCollection = new Map<string, Partial<AppRoutePageShell>>([
+		['(social)/(youtube)/youtube/channel/[channelId]/(channel)/videos', {
+			viewComponent: 'YouTubeVideosView',
+			entityType: 'YouTubeChannel',
+			parentSelectorField: 'channelId',
+			parentSelectorParam: 'channelId',
+			childField: '$$videos',
+			hrefExpression: "'/youtube/videos'",
+			id: 'youtube-channel-videos',
+		}],
+		['(social)/(youtube)/youtube/channel/[channelId]/(channel)/playlists', {
+			viewComponent: 'YouTubePlaylistsView',
+			entityType: 'YouTubeChannel',
+			parentSelectorField: 'channelId',
+			parentSelectorParam: 'channelId',
+			childField: '$$playlists',
+			hrefExpression: "'/youtube/playlists'",
+			id: 'youtube-channel-playlists',
+		}],
+		['(social)/(youtube)/youtube/playlist/[playlistId]/(playlist)/videos', {
+			viewComponent: 'YouTubeVideosView',
+			entityType: 'YouTubePlaylist',
+			parentSelectorField: 'playlistId',
+			parentSelectorParam: 'playlistId',
+			childField: '$$videos',
+			hrefExpression: "'/youtube/videos'",
+			id: 'youtube-playlist-videos',
+			title: 'Playlist videos',
+		}],
+	]).get(value.routePath)
+	const socialNetworkChildCollection = new Map<string, Partial<AppRoutePageShell>>([
+		['(social)/(nostr)/nostr/articles', {
+			viewComponent: 'NostrArticlesView',
+			entityType: 'NostrNetwork',
+			networkScope: 'NostrNetwork',
+			childField: '$$nostrArticles',
+			id: 'nostr-articles',
+			title: 'Articles',
+		}],
+		['(social)/(nostr)/nostr/reposts', {
+			viewComponent: 'NostrRepostsView',
+			entityType: 'NostrNetwork',
+			networkScope: 'NostrNetwork',
+			childField: '$$nostrReposts',
+			id: 'nostr-reposts',
+			title: 'Reposts',
+		}],
+	]).get(value.routePath)
+	const dataSelectorSimpleDetail = new Map<string, Partial<AppRoutePageShell>>([
+		['(social)/(rss)/rss/feed/[feedKey]', {
+			viewComponent: 'RssFeedView',
+			entityType: 'RssFeed',
+		}],
+		['(social)/(rss)/rss/item/[feedKey]/[guid]', {
+			viewComponent: 'RssItemView',
+			entityType: 'RssItem',
+		}],
+	]).get(value.routePath)
+	const decodedParentChildCollection = new Map<string, Partial<AppRoutePageShell>>([
+		['(social)/(lens)/lens/post/[postId]/(post)/comments', {
+			viewComponent: 'LensCommentsView',
+			entityType: 'LensPost',
+			parentSelectorField: 'id',
+			parentSelectorParam: 'postId',
+			childField: '$$comments',
+			hrefExpression: "'/lens'",
+			id: 'lens-post-comments',
+		}],
+		['(social)/(reddit)/reddit/link/[fullname]/(link)/comments', {
+			viewComponent: 'RedditCommentsView',
+			entityType: 'RedditLink',
+			parentSelectorField: 'fullname',
+			parentSelectorParam: 'fullname',
+			childField: '$$comments',
+			hrefExpression: "'/reddit/comments'",
+			id: 'reddit-link-comments',
+		}],
+		['(social)/(reddit)/reddit/comment/[fullname]/(comment)/replies', {
+			viewComponent: 'RedditCommentsView',
+			entityType: 'RedditComment',
+			parentSelectorField: 'fullname',
+			parentSelectorParam: 'fullname',
+			childField: '$$replies',
+			hrefExpression: "'/reddit/comments'",
+			id: 'reddit-comment-replies',
+			sortMode: 'createdAtAsc',
+			title: 'Replies',
+		}],
+		['(social)/(reddit)/reddit/r/[name]/(subreddit)/links', {
+			viewComponent: 'RedditLinksView',
+			entityType: 'RedditSubreddit',
+			parentSelectorField: 'name',
+			parentSelectorParam: 'name',
+			parentSelectorTransform: 'lowercase',
+			childField: '$$links',
+			hrefExpression: "'/reddit/links'",
+			id: 'reddit-subreddit-links',
+		}],
+	]).get(value.routePath)
+	const decodedParamDetail = new Map<string, Partial<AppRoutePageShell>>([
+		['(social)/(atproto)/atproto/post/[...uri]', {
+			viewComponent: 'AtprotoPostView',
+			entityType: 'AtprotoPost',
+			parentSelectorField: 'uri',
+			parentSelectorParam: 'uri',
+		}],
+		['(social)/(farcaster)/farcaster/(accounts)/account/[accountId]', {
+			viewComponent: 'BlockheadFarcasterAccountConnectionView',
+			entityType: 'BlockheadFarcasterAccountConnection',
+			parentSelectorField: 'fid',
+			parentSelectorParam: 'accountId',
+			parentSelectorTransform: 'number',
+			title: 'Account',
+			explicitClosingTag: false,
+			blankLineBeforeComponents: false,
+		}],
+		['(social)/(lens)/lens/post/[postId]', {
+			viewComponent: 'LensPostView',
+			entityType: 'LensPost',
+			parentSelectorField: 'id',
+			parentSelectorParam: 'postId',
+		}],
+		['(social)/(reddit)/reddit/comment/[fullname]', {
+			viewComponent: 'RedditCommentView',
+			entityType: 'RedditComment',
+			parentSelectorField: 'fullname',
+			parentSelectorParam: 'fullname',
+		}],
+		['(social)/(reddit)/reddit/link/[fullname]', {
+			viewComponent: 'RedditLinkView',
+			entityType: 'RedditLink',
+			parentSelectorField: 'fullname',
+			parentSelectorParam: 'fullname',
+		}],
+		['(social)/(reddit)/reddit/r/[name]', {
+			viewComponent: 'RedditSubredditView',
+			entityType: 'RedditSubreddit',
+			parentSelectorField: 'name',
+			parentSelectorParam: 'name',
+			parentSelectorTransform: 'lowercase',
+		}],
+		['(social)/(x)/x/post/[postId]', {
+			viewComponent: 'XPostView',
+			entityType: 'XPost',
+			parentSelectorField: 'id',
+			parentSelectorParam: 'postId',
+		}],
+	]).get(value.routePath)
+	const proposalSelectorDetail = new Map<string, Partial<AppRoutePageShell>>([
+		['(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]', {
+			viewComponent: 'SpecificationRealmView',
+			entityType: 'SpecificationRealm',
+			proposalLevel: 'realm',
+			invalidText: 'Unknown specification realm.',
+		}],
+		['(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]', {
+			viewComponent: 'ProposalKindView',
+			viewFile: 'SpecificationProposalKindView.svelte',
+			entityType: 'SpecificationProposalKind',
+			proposalLevel: 'kind',
+			invalidText: 'Unknown proposal kind in this realm.',
+		}],
+		['(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]/(proposalKind)/[proposalRef=proposalRef]', {
+			viewComponent: 'ProposalView',
+			viewFile: 'SpecificationProposalView.svelte',
+			entityType: 'SpecificationProposal',
+			proposalLevel: 'proposal',
+			invalidText: 'Invalid proposal id in URL.',
+		}],
+	]).get(value.routePath)
+	const isLensAccountDetailRoute = (
+		value.routePath === '(social)/(lens)/lens/account/[address=evmAddress]'
+		|| value.routePath === '(social)/(lens)/lens/account/[address=evmAddress]/(account)/posts'
+	)
+	const globalCollectionMatch = sourceText.match(/EntityType\.([A-Za-z0-9_]+),\s*\{ scope: '([^']+)' \}\s*\)\.(\$\$[A-Za-z0-9_]+)/)
+	const hrefExpression = sourceText.match(/\n\t\thref=\{([^]*?)\}\n/)?.[1]?.trim()
+	const id = sourceText.match(/\n\t\tid="([^"]+)"/)?.[1]
+	const limit = sourceText.match(/\n\t\tlimit=\{([0-9]+)\}/)?.[1]
+	const title = sourceText.match(/\n\t\ttitle="([^"]+)"/)?.[1]
+	const headTitle = sourceText.match(/<svelte:head>\n\t<title>([^<]+)<\/title>\n<\/svelte:head>/)?.[1]
+	const collapsible = sourceText.match(/\n\t\tcollapsible=\{(true|false)\}/)?.[1]
+	const open = sourceText.includes('\n\t\topen\n')
+	const sources = [
+		...sourceText.matchAll(/Source\.([A-Za-z0-9_]+)/g),
+	].map((match) => match[1] ?? '')
+		.filter((source) => source !== '' && source !== 'ts')
+	const viewImport = value.components[1] === undefined ? undefined : `import ${value.components[1]} from '$/views/${value.components[1]}.svelte'`
+	const importedViewFile = sourceText.match(/import [A-Za-z0-9_]+ from '\$\/views\/([^']+\.svelte)'/)?.[1]
+	const pageImport = "import Page from '$/components/Page.svelte'"
+	const dataSelectorDetailMatch = sourceText.match(/selection=\{\s*select\(\s*EntityType\.([A-Za-z0-9_]+),\s*data\.selector\s*\)\s*\}/)
+	const dataSelectorChildCollectionMatch = sourceText.match(/selection=\{select\(\s*EntityType\.([A-Za-z0-9_]+),\s*data\.selector\s*\)\.(\$\$[A-Za-z0-9_]+)\}/)
+	const paramIdDetailMatch = sourceText.match(/selection=\{select\(EntityType\.([A-Za-z0-9_]+), \{ id: params\.([A-Za-z0-9_]+) \}\)\}/)
+	const paramSelectorDetailMatch = sourceText.match(/selection=\{select\(EntityType\.([A-Za-z0-9_]+), \{\n([^]*?)\n\t\t\}\)\}/)
+	const scopeDetailMatch = sourceText.match(/selection=\{select\(EntityType\.([A-Za-z0-9_]+), \{\n\t\t\tscope: '([^']+)',\n\t\t\}\)\}/)
+	const directSelectorInlinePageMatch = sourceText.match(/^<script lang="ts">\n\timport \{ EntityType \} from '\$\/schema\/EntityType\.ts'\n\timport \{ select \} from '\$\/routes\/\+layout\.svelte'\n(?<stateBlock>\t\/\/ State\n\tlet \{\n\t\tparams,\n\t\} = \$props\(\)\n\n(?<blankLineBeforeComponents>\n)?)?\t\/\/ Components\n\timport Page from '\$\/components\/Page\.svelte'\n\timport (?<viewComponent>[A-Za-z0-9_]+) from '\$\/views\/(?<viewFile>[^']+\.svelte)'\n<\/script>\n\n\n<Page>\n\t<\k<viewComponent>\n\t\tselection=\{select\(EntityType\.(?<entityType>[A-Za-z0-9_]+), (?<selectorExpression>[^\n]+)\)\}\n(?<viewProps>(?:\t\t[^\n]+\n)*)(?<closing>\t\/>|>\n\t<\/\k<viewComponent>>)\n<\/Page>\n$/)
+	const directSelectorSectionedPageMatch = sourceText.match(/^<script lang="ts">\n\t\/\/ Types\/constants\n\timport \{ EntityType \} from '\$\/schema\/EntityType\.ts'\n\n\t\/\/ Context\n\timport \{ select \} from '\$\/routes\/\+layout\.svelte'\n\n\n(?<stateBlock>\t\/\/ State\n\tlet \{\n\t\tparams,\n\t\} = \$props\(\)\n\n(?<blankLineBeforeComponents>\n)?)?\t\/\/ Components\n\timport Page from '\$\/components\/Page\.svelte'\n\timport (?<viewComponent>[A-Za-z0-9_]+) from '\$\/views\/(?<viewFile>[^']+\.svelte)'\n<\/script>\n\n\n<Page>\n\t<\k<viewComponent>\n\t\tselection=\{select\(EntityType\.(?<entityType>[A-Za-z0-9_]+), (?<selectorExpression>[^\n]+)\)\}\n\t\/>\n<\/Page>\n$/)
+	const directSelectorPageMatch = directSelectorInlinePageMatch ?? directSelectorSectionedPageMatch
+	const simpleDerivedSelectorPageMatch = sourceText.match(/^<script lang="ts">\n\timport \{ EntityType \} from '\$\/schema\/EntityType\.ts'\n\timport \{ select \} from '\$\/routes\/\+layout\.svelte'\n\t\/\/ State\n\tlet \{\n\t\tparams,\n\t\} = \$props\(\)\n\n(?<functionImports>(?:\timport [^\n]+\n\n)?)\tconst selector = \$derived\(\n(?<selectorExpression>[^]*?)\n\t\)\n\n\n\t\/\/ Components\n\timport Page from '\$\/components\/Page\.svelte'\n\timport (?<viewComponent>[A-Za-z0-9_]+) from '\$\/views\/(?<viewFile>[^']+\.svelte)'\n<\/script>\n\n\n\{#if (?<selectorGuard>[^}]+)\}\n\t<Page>\n\t\t<\k<viewComponent>\n\t\t\tselection=\{select\(EntityType\.(?<entityType>[A-Za-z0-9_]+), selector\)\}\n(?<viewProps>(?:\t\t\t[A-Za-z0-9_]+\n)?)\t\t\/>\n\t<\/Page>\n\{:else\}\n\t<p role="alert">\n\t\t(?<invalidText>[^<\n]+)\n\t<\/p>\n\{\/if\}\n$/)
+	const linkedViewPageMatch = sourceText.match(/^<script lang="ts">\n\t\/\/ Context\n\timport \{ resolve \} from '\$app\/paths'\n\n\n\t\/\/ Components\n\timport Page from '\$\/components\/Page\.svelte'\n\timport (?<viewComponent>[A-Za-z0-9_]+) from '\$\/views\/(?<viewFile>[^']+\.svelte)'\n<\/script>\n\n\n<Page>\n\t<\k<viewComponent>\n\t\thref=\{(?<hrefExpression>[^}]+)\}\n\t\tid="(?<id>[^"]+)"\n(?<titleLine>\t\ttitle=\{(?<titleExpression>[^}]+)\}\n)?\t\/>\n<\/Page>\n$/)
+	const simpleViewPageMatch = sourceText.match(/^<script lang="ts">\n(?<stateBlock>\t\/\/ State\n\tlet \{\n\t\tparams,\n\t\} = \$props\(\)\n\n\n)?\t\/\/ Components\n(?<componentImports>\timport [^\n]+\n\timport [^\n]+\n)<\/script>\n\n\n<Page>\n\t<(?<viewComponent>[A-Za-z0-9_]+)(?<selfClosing> \/>|\n(?<viewProps>(?:\t\t[^\n]+\n)+)\t\/>)\n<\/Page>\n$/)
+	const oneLinePlaceholderMatch = sourceText.match(/^<script lang="ts">\n\t\/\/ Components\n\timport Page from '\$\/components\/Page\.svelte'\n<\/script>\n\n\n<Page>\n\t<p data-text="muted">([^\n<]+)<\/p>\n<\/Page>\n$/)
+	const multilinePlaceholderMatch = sourceText.match(/^<script lang="ts">\n\t\/\/ Components\n\timport Page from '\$\/components\/Page\.svelte'\n<\/script>\n\n\n<Page>\n\t<p data-text="muted">\n\t\t([^\n<]+)\n\t<\/p>\n<\/Page>\n$/)
+	const paramHeadingMatch = sourceText.match(/^<script lang="ts">\n\t\/\/ State\n\tlet \{\n\t\tparams,\n\t\} = \$props\(\)\n\n\n\t\/\/ Components\n\timport Page from '\$\/components\/Page\.svelte'\n<\/script>\n\n\n<Page>\n\t<h1>\{params\.([A-Za-z0-9_]+)\}<\/h1>\n<\/Page>\n$/)
+	const staticSectionHeadingMatch = sourceText.match(/^<section data-column>\n\t<h1>([^<]+)<\/h1>\n<\/section>\n$/)
+	const staticMainCardLinkMatch = sourceText.match(/^<script lang="ts">\n\t\/\/ Context\n\timport \{ resolve \} from '\$app\/paths'\n<\/script>\n\n\n<main data-column>\n\t<section data-card>\n\t\t<h1>([^<]+)<\/h1>\n\n\t\t<a href=\{resolve\('([^']+)'\)\}>([^<]+)<\/a>\n\t<\/section>\n<\/main>\n$/)
+	const derivedConstantMatches = [...sourceText.matchAll(/\n\tconst ([A-Za-z0-9_]+) = \$derived\(([^]*?)\)\n/g)]
+	const zeroExHexImportSymbols = sourceText.match(/import \{ ([^}]+) \} from '\$\/schema\/ZeroExHex\.ts'/)?.[1]
+	const stateComment = sourceText.match(/\n\t\/\/ (State|Props)\n\tlet \{/)?.[1]
+	const matchingViewImport = value.components[1] === undefined ? undefined : `import ${value.components[1]} from '$/views/${value.components[1]}.svelte'`
+	const importsMatchingViewComponent = (
+		matchingViewImport !== undefined
+		&& (
+			sourceText.includes(matchingViewImport)
+			|| sourceText.includes(`import ${value.components[1]} from '$/views/${importedViewFile ?? ''}'`)
+				&& importedViewFile === `_${value.components[1]}.svelte`
+		)
+	)
+	const multilineHrefExpression = sourceText.match(/\n\t\thref=\{([^]*?)\}\n\t\tselection=/)?.[1]?.trim()
+	const isGlobalCollectionPage = (
+		value.components.length === 2
+		&& value.components[0] === 'Page'
+		&& value.usesSelect
+		&& !value.usesParams
+		&& !value.usesDataSelector
+		&& globalCollectionMatch !== null
+		&& hrefExpression !== undefined
+		&& (
+			!sourceText.includes('<svelte:head>')
+			|| headTitle !== undefined
+		)
+		&& !sourceText.includes('<p ')
+		&& !sourceText.includes(`).${globalCollectionMatch?.[3] ?? ''}({`)
+		&& !sourceText.includes('\n\t\torderByCreatedAt=')
+		&& !sourceText.includes('\n\t\tplaceholderText=')
+	)
+	const isDataSelectorDetailPage = (
+		value.components.length === 2
+		&& value.components[0] === 'Page'
+		&& value.usesSelect
+		&& value.usesDataSelector
+		&& !value.usesParams
+		&& dataSelectorDetailMatch !== null
+		&& !sourceText.includes('<svelte:head>')
+		&& !sourceText.includes('<p ')
+		&& !sourceText.includes('ResourceBoundary')
+		&& !sourceText.includes('{#if')
+		&& sourceText.includes('import type { PageProps }')
+		&& sourceText.includes('}: PageProps = $props()')
+		&& importsMatchingViewComponent
+	)
+	const isDataSelectorChildCollectionPage = (
+		value.components.length === 2
+		&& value.components[0] === 'Page'
+		&& value.usesSelect
+		&& value.usesDataSelector
+		&& !value.usesParams
+		&& dataSelectorChildCollectionMatch !== null
+		&& importsMatchingViewComponent
+		&& sourceText.includes('import type { PageProps }')
+		&& sourceText.includes('let { data }: PageProps = $props()')
+		&& !sourceText.includes('<svelte:head>')
+		&& !sourceText.includes('<p ')
+	)
+	const isParamIdDetailPage = (
+		value.components.length === 2
+		&& value.components[0] === 'Page'
+		&& value.usesSelect
+		&& value.usesParams
+		&& !value.usesDataSelector
+		&& paramIdDetailMatch !== null
+		&& importsMatchingViewComponent
+		&& value.routePath !== '(social)/farcaster'
+		&& !sourceText.includes('<svelte:head>')
+		&& !sourceText.includes('<p ')
+		&& !sourceText.includes('\t/>\n\n</Page>')
+	)
+	const isScopeDetailPage = (
+		value.components.length === 2
+		&& value.components[0] === 'Page'
+		&& value.usesSelect
+		&& !value.usesParams
+		&& !value.usesDataSelector
+		&& scopeDetailMatch !== null
+		&& importsMatchingViewComponent
+		&& !sourceText.includes('<svelte:head>')
+		&& !sourceText.includes('<p ')
+	)
+	const isParamSelectorDetailPage = (
+		value.components.length === 2
+		&& value.components[0] === 'Page'
+		&& value.usesSelect
+		&& value.usesParams
+		&& !value.usesDataSelector
+		&& paramSelectorDetailMatch !== null
+		&& importsMatchingViewComponent
+		&& (
+			sourceText.includes('let { params } = $props()')
+			|| sourceText.includes(`let {
+		params,
+	} = $props()`)
+		)
+		&& !sourceText.includes('<svelte:head>')
+		&& !sourceText.includes('<p ')
+		&& !sourceText.includes('ResourceBoundary')
+		&& !sourceText.includes('{#if')
+	)
+	const isPlaceholderPage = (
+		value.components.length === 1
+		&& value.components[0] === 'Page'
+		&& !value.usesSelect
+		&& !value.usesParams
+		&& !value.usesDataSelector
+		&& (
+			oneLinePlaceholderMatch !== null
+			|| multilinePlaceholderMatch !== null
+		)
+	)
+	const isParamHeadingPage = (
+		value.components.length === 1
+		&& value.components[0] === 'Page'
+		&& !value.usesSelect
+		&& value.usesParams
+		&& !value.usesDataSelector
+		&& paramHeadingMatch !== null
+	)
+	const isStaticPage = (
+		!value.usesSelect
+		&& !value.usesParams
+		&& !value.usesDataSelector
+		&& (
+			staticSectionHeadingMatch !== null
+			|| staticMainCardLinkMatch !== null
+		)
+	)
+	const isSimpleDerivedSelectorPage = (
+		value.components.length === 2
+		&& value.components[0] === 'Page'
+		&& value.usesSelect
+		&& value.usesParams
+		&& !value.usesDataSelector
+		&& simpleDerivedSelectorPageMatch !== null
+		&& simpleDerivedSelectorPageMatch.groups?.viewComponent === value.components[1]
+	)
+	const isDirectSelectorPage = (
+		value.components.length === 2
+		&& value.components[0] === 'Page'
+		&& value.usesSelect
+		&& !value.usesDataSelector
+		&& directSelectorPageMatch !== null
+		&& directSelectorPageMatch.groups?.viewComponent === value.components[1]
+	)
+	const isLinkedViewPage = (
+		value.components.length === 2
+		&& value.components[0] === 'Page'
+		&& !value.usesSelect
+		&& !value.usesParams
+		&& !value.usesDataSelector
+		&& linkedViewPageMatch !== null
+		&& linkedViewPageMatch.groups?.viewComponent === value.components[1]
+	)
+	const simpleViewImportLine = simpleViewPageMatch?.groups?.componentImports
+		.split('\n')
+		.find((line) => line.includes(`import ${simpleViewPageMatch.groups?.viewComponent ?? ''} from '$/views/`))
+	const simpleViewFile = simpleViewImportLine?.match(/from '\$\/views\/([^']+\.svelte)'/)?.[1]
+	const isSimpleViewPage = (
+		value.components.length === 2
+		&& value.components[0] === 'Page'
+		&& !value.usesSelect
+		&& !value.usesDataSelector
+		&& simpleViewPageMatch !== null
+		&& simpleViewPageMatch.groups?.viewComponent === value.components[1]
+		&& simpleViewFile !== undefined
+	)
+	const isCatalogParamDetailPage = (
+		value.components.length === 2
+		&& value.components[0] === 'Page'
+		&& value.usesSelect
+		&& value.usesParams
+		&& !value.usesDataSelector
+		&& catalogParamDetail !== undefined
+		&& catalogParamDetail.viewComponent === value.components[1]
+	)
+	const isGlobalHubTabsPage = (
+		value.components.includes('Page')
+		&& value.components.includes('GlobalView')
+		&& value.components.includes('CollapsibleTabs')
+		&& globalHubTabs !== undefined
+	)
+	const isEip155NetworkCollectionPage = (
+		value.components.includes('Page')
+		&& value.usesSelect
+		&& value.usesParams
+		&& !value.usesDataSelector
+		&& eip155NetworkCollection !== undefined
+	)
+	const isEvmProtocolCollectionPage = (
+		value.components.includes('Page')
+		&& value.usesSelect
+		&& !value.usesParams
+		&& !value.usesDataSelector
+		&& evmProtocolCollection !== undefined
+	)
+	const isGlobalSourceCollectionPage = (
+		value.components.includes('Page')
+		&& value.usesSelect
+		&& !value.usesParams
+		&& !value.usesDataSelector
+		&& globalSourceCollection !== undefined
+	)
+	const isYoutubeParentCollectionPage = (
+		value.components.includes('Page')
+		&& value.usesSelect
+		&& value.usesParams
+		&& !value.usesDataSelector
+		&& youtubeParentCollection !== undefined
+	)
+	const isSocialNetworkChildCollectionPage = (
+		value.components.includes('Page')
+		&& value.usesSelect
+		&& !value.usesParams
+		&& !value.usesDataSelector
+		&& socialNetworkChildCollection !== undefined
+	)
+	const isDataSelectorSimpleDetailPage = (
+		value.components.includes('Page')
+		&& value.usesSelect
+		&& value.usesDataSelector
+		&& !value.usesParams
+		&& dataSelectorSimpleDetail !== undefined
+	)
+	const isDecodedParentChildCollectionPage = (
+		value.components.includes('Page')
+		&& value.usesSelect
+		&& value.usesParams
+		&& !value.usesDataSelector
+		&& decodedParentChildCollection !== undefined
+	)
+	const isDecodedParamDetailPage = (
+		value.components.includes('Page')
+		&& value.usesSelect
+		&& value.usesParams
+		&& !value.usesDataSelector
+		&& decodedParamDetail !== undefined
+	)
+	const isLensAccountDetailPage = (
+		value.components.includes('Page')
+		&& value.components.includes('LensAccountView')
+		&& value.usesSelect
+		&& value.usesParams
+		&& !value.usesDataSelector
+		&& isLensAccountDetailRoute
+	)
+	const isProposalSelectorDetailPage = (
+		value.components.includes('Page')
+		&& value.usesSelect
+		&& value.usesParams
+		&& !value.usesDataSelector
+		&& proposalSelectorDetail !== undefined
+	)
 
 	return {
 		routePath: value.routePath,
@@ -1020,8 +1846,496 @@ const factToRouteSvelteShell = (
 		usesDataSelector: value.usesDataSelector,
 		usesParams: value.usesParams,
 		usesSelect: value.usesSelect,
-		sourceText: value.sourceText,
+		kind: (
+			isGlobalCollectionPage ? 'global-collection'
+			: isGlobalSourceCollectionPage ? 'global-source-collection'
+			: isDataSelectorDetailPage ? 'data-selector-detail'
+			: isDataSelectorSimpleDetailPage ? 'data-selector-simple-detail'
+			: isDataSelectorChildCollectionPage ? 'data-selector-child-collection'
+			: isParamIdDetailPage ? 'param-id-detail'
+			: isParamSelectorDetailPage ? 'param-selector-detail'
+			: isScopeDetailPage ? 'scope-detail'
+			: isDirectSelectorPage ? 'direct-selector-detail'
+			: isSimpleDerivedSelectorPage ? 'derived-selector-detail'
+			: isLinkedViewPage ? 'linked-view'
+			: isSimpleViewPage ? 'simple-view'
+			: isCatalogParamDetailPage ? 'catalog-param-detail'
+			: isGlobalHubTabsPage ? 'global-hub-tabs'
+			: isEip155NetworkCollectionPage ? 'eip155-network-collection'
+			: isEvmProtocolCollectionPage ? 'evm-protocol-collection'
+			: isYoutubeParentCollectionPage ? 'youtube-parent-collection'
+			: isSocialNetworkChildCollectionPage ? 'social-network-child-collection'
+			: isDecodedParentChildCollectionPage ? 'decoded-parent-child-collection'
+			: isDecodedParamDetailPage ? 'decoded-param-detail'
+			: isLensAccountDetailPage ? 'lens-account-detail'
+			: isProposalSelectorDetailPage ? 'proposal-selector-detail'
+			: isPlaceholderPage ? 'placeholder'
+			: isParamHeadingPage ? 'param-heading'
+			: isStaticPage ? 'static-page'
+			:
+				'custom'
+		),
+		...(isGlobalCollectionPage ? {
+			viewComponent: value.components[1],
+			...(hrefExpression === undefined ? {} : { hrefExpression }),
+			collectionEntityType: globalCollectionMatch[1],
+			globalScope: globalCollectionMatch[2],
+			globalField: globalCollectionMatch[3],
+			...(id === undefined ? {} : { id }),
+			...(limit === undefined ? {} : { limit: Number(limit) }),
+			...(title === undefined ? {} : { title }),
+			...(headTitle === undefined ? {} : { headTitle }),
+			...(collapsible === undefined ? {} : { collapsible: collapsible === 'true' }),
+			...(open ? { open: true } : {}),
+			...(viewImport !== undefined && sourceText.indexOf(viewImport) < sourceText.indexOf(pageImport) ? { viewImportBeforePage: true } : {}),
+			...(sources.length === 0 ? {} : { sources }),
+		} : isGlobalSourceCollectionPage ? {
+			...globalSourceCollection,
+		} : isDataSelectorDetailPage ? {
+			viewComponent: value.components[1],
+			...(importedViewFile === undefined || importedViewFile === `${value.components[1]}.svelte` ? {} : { viewFile: importedViewFile }),
+			entityType: dataSelectorDetailMatch[1],
+		} : isDataSelectorSimpleDetailPage ? {
+			...dataSelectorSimpleDetail,
+		} : isDataSelectorChildCollectionPage ? {
+			viewComponent: value.components[1],
+			...(importedViewFile === undefined || importedViewFile === `${value.components[1]}.svelte` ? {} : { viewFile: importedViewFile }),
+			entityType: dataSelectorChildCollectionMatch[1],
+			childField: dataSelectorChildCollectionMatch[2],
+			...(multilineHrefExpression === undefined ? {} : { hrefExpression: multilineHrefExpression }),
+			...(id === undefined ? {} : { id }),
+			...(title === undefined ? {} : { title }),
+		} : isParamIdDetailPage ? {
+			viewComponent: value.components[1],
+			...(importedViewFile === undefined || importedViewFile === `${value.components[1]}.svelte` ? {} : { viewFile: importedViewFile }),
+			entityType: paramIdDetailMatch[1],
+			paramName: paramIdDetailMatch[2],
+			...(stateComment === undefined || stateComment === 'State' ? {} : { stateComment }),
+			...(sourceText.includes('} = $props()\n\n\n\t// Components') ? { blankLineBeforeComponents: true } : {}),
+			...(viewImport !== undefined && sourceText.indexOf(viewImport) < sourceText.indexOf(pageImport) ? { viewImportBeforePage: true } : {}),
+		} : isParamSelectorDetailPage ? {
+			viewComponent: value.components[1],
+			...(importedViewFile === undefined || importedViewFile === `${value.components[1]}.svelte` ? {} : { viewFile: importedViewFile }),
+			entityType: paramSelectorDetailMatch[1],
+			selectorExpression: paramSelectorDetailMatch[2],
+			...(derivedConstantMatches.length === 0 ? {} : {
+				derivedConstants: derivedConstantMatches.map((match) => ({
+					name: match[1],
+					expression: match[2],
+				})),
+			}),
+			...(limit === undefined ? {} : { limit: Number(limit) }),
+			...(sourceText.includes("import type { EntitySelector } from '$/schema/$schema.ts'") ? { importEntitySelectorType: true } : {}),
+			...(sourceText.includes("import { eip155NetworkSelectorFromCaip2 } from '$/lib/caip2.ts'") ? { importEip155NetworkSelectorFromCaip2: true } : {}),
+			...(sourceText.includes("import { ZeroExHex } from '$/schema/ZeroExHex.ts'") ? { importZeroExHex: true } : {}),
+			...(zeroExHexImportSymbols === undefined ? {} : { zeroExHexImportSymbols }),
+			...(zeroExHexImportSymbols !== undefined && sourceText.indexOf("$/schema/ZeroExHex.ts") < sourceText.indexOf("$/routes/+layout.svelte") ? { zeroExHexImportWithSchemaImports: true } : {}),
+			...(sourceText.includes("import { with0xHex } from '$/lib/hexLowerOfByteSize.ts'") ? {
+				importWith0xHex: true,
+				with0xHexImportSection: sourceText.includes("// Functions\n\timport { with0xHex }") ? 'functions' : 'types',
+			} : {}),
+			...(sourceText.startsWith(`<script lang="ts">
+	import { EntityType }`) ? { typeConstantsAfterSchemaImports: true } : {}),
+			...(sourceText.includes(`let {
+		params,
+	} = $props()`) ? { paramsMultiline: true } : {}),
+			...(sourceText.includes(`\n\t\t<${value.components[1]}`) ? { componentIndentExtra: true } : {}),
+			...(sourceText.includes(`\n\t<${value.components[1]}`) && sourceText.includes(`>\n\t</${value.components[1]}>`) ? { explicitClosingTag: true } : {}),
+			...(viewImport !== undefined && sourceText.indexOf(viewImport) < sourceText.indexOf(pageImport) ? { viewImportBeforePage: true } : {}),
+		} : isScopeDetailPage ? {
+			viewComponent: value.components[1],
+			...(importedViewFile === undefined || importedViewFile === `${value.components[1]}.svelte` ? {} : { viewFile: importedViewFile }),
+			entityType: scopeDetailMatch[1],
+			scope: scopeDetailMatch[2],
+			...(sourceText.includes('\t/>\n\n</Page>') ? { blankLineBeforePageClose: true } : {}),
+		} : isDirectSelectorPage ? {
+			viewComponent: directSelectorPageMatch.groups?.viewComponent,
+			...(directSelectorPageMatch.groups?.viewFile === `${directSelectorPageMatch.groups?.viewComponent}.svelte` ? {} : { viewFile: directSelectorPageMatch.groups?.viewFile }),
+			entityType: directSelectorPageMatch.groups?.entityType,
+			selectorExpression: directSelectorPageMatch.groups?.selectorExpression,
+			...(directSelectorSectionedPageMatch === null ? {} : { selectorImportStyle: 'sectioned' }),
+			...(directSelectorPageMatch.groups?.stateBlock === undefined ? {} : { paramsMultiline: true }),
+			...(directSelectorPageMatch.groups?.stateBlock === undefined || directSelectorPageMatch.groups.blankLineBeforeComponents !== undefined ? {} : { blankLineBeforeComponents: false }),
+			...(directSelectorPageMatch.groups?.closing === undefined || directSelectorPageMatch.groups.closing.trim() === '/>' ? {} : { explicitClosingTag: true }),
+			...((directSelectorPageMatch.groups?.viewProps ?? '').trim() === '' ? {} : {
+				viewProps: (directSelectorPageMatch.groups?.viewProps ?? '')
+					.trim()
+					.split('\n')
+					.filter((line) => line !== '')
+					.map((line) => line.trim()),
+			}),
+		} : isSimpleDerivedSelectorPage ? {
+			viewComponent: simpleDerivedSelectorPageMatch.groups?.viewComponent,
+			...(simpleDerivedSelectorPageMatch.groups?.viewFile === `${simpleDerivedSelectorPageMatch.groups?.viewComponent}.svelte` ? {} : { viewFile: simpleDerivedSelectorPageMatch.groups?.viewFile }),
+			entityType: simpleDerivedSelectorPageMatch.groups?.entityType,
+			...((simpleDerivedSelectorPageMatch.groups?.functionImports ?? '').trim() === '' ? {} : {
+				functionImports: (simpleDerivedSelectorPageMatch.groups?.functionImports ?? '')
+				.trim()
+				.split('\n')
+				.filter((line) => line !== '')
+				.map((line) => line.trim()),
+			}),
+			selectorDeclaration: `const selector = $derived(\n${(simpleDerivedSelectorPageMatch.groups?.selectorExpression ?? '').replace(/^\t/gm, '')}\n)`,
+			selectorGuard: simpleDerivedSelectorPageMatch.groups?.selectorGuard,
+			invalidText: simpleDerivedSelectorPageMatch.groups?.invalidText,
+			invalidOutsidePage: true,
+			...((simpleDerivedSelectorPageMatch.groups?.viewProps ?? '').trim() === '' ? {} : {
+				viewProps: (simpleDerivedSelectorPageMatch.groups?.viewProps ?? '')
+					.trim()
+					.split('\n')
+					.filter((line) => line !== '')
+					.map((line) => line.trim()),
+			}),
+		} : isLinkedViewPage ? {
+			viewComponent: linkedViewPageMatch.groups?.viewComponent,
+			...(linkedViewPageMatch.groups?.viewFile === `${linkedViewPageMatch.groups?.viewComponent}.svelte` ? {} : { viewFile: linkedViewPageMatch.groups?.viewFile }),
+			hrefExpression: linkedViewPageMatch.groups?.hrefExpression,
+			id: linkedViewPageMatch.groups?.id,
+			...(linkedViewPageMatch.groups?.titleExpression === undefined ? {} : { titleExpression: linkedViewPageMatch.groups.titleExpression }),
+		} : isSimpleViewPage ? {
+			viewComponent: simpleViewPageMatch.groups?.viewComponent,
+			...(simpleViewFile === `${simpleViewPageMatch.groups?.viewComponent}.svelte` ? {} : { viewFile: simpleViewFile }),
+			...(simpleViewPageMatch.groups?.stateBlock === undefined ? {} : { paramsMultiline: true }),
+			...(simpleViewPageMatch.groups?.componentImports.startsWith(`\timport ${simpleViewPageMatch.groups?.viewComponent}`) ? { viewImportBeforePage: true } : {}),
+			...((simpleViewPageMatch.groups?.viewProps ?? '').trim() === '' ? {} : {
+				viewProps: (simpleViewPageMatch.groups?.viewProps ?? '')
+					.trim()
+					.split('\n')
+					.filter((line) => line !== '')
+					.map((line) => line.trim()),
+			}),
+		} : isCatalogParamDetailPage ? {
+			...catalogParamDetail,
+		} : isGlobalHubTabsPage ? {
+			...globalHubTabs,
+		} : isEip155NetworkCollectionPage ? {
+			...eip155NetworkCollection,
+		} : isEvmProtocolCollectionPage ? {
+			...evmProtocolCollection,
+		} : isYoutubeParentCollectionPage ? {
+			...youtubeParentCollection,
+		} : isSocialNetworkChildCollectionPage ? {
+			...socialNetworkChildCollection,
+		} : isDecodedParentChildCollectionPage ? {
+			...decodedParentChildCollection,
+		} : isDecodedParamDetailPage ? {
+			...decodedParamDetail,
+		} : isLensAccountDetailPage ? {
+			viewComponent: 'LensAccountView',
+			entityType: 'LensAccount',
+			paramName: 'address',
+		} : isProposalSelectorDetailPage ? {
+			...proposalSelectorDetail,
+		} : isPlaceholderPage ? {
+			placeholderText: (oneLinePlaceholderMatch ?? multilinePlaceholderMatch)?.[1]?.trim(),
+			...(multilinePlaceholderMatch === null ? {} : { placeholderMultiline: true }),
+		} : isParamHeadingPage ? {
+			paramName: paramHeadingMatch[1],
+		} : isStaticPage ? {
+			staticWrapper: staticMainCardLinkMatch === null ? 'section-column' : 'main-card',
+			staticTitle: (staticSectionHeadingMatch ?? staticMainCardLinkMatch)?.[1],
+			...(staticMainCardLinkMatch === null ? {} : {
+				staticLinks: [
+					{
+						route: staticMainCardLinkMatch[2],
+						label: staticMainCardLinkMatch[3],
+					},
+				],
+			}),
+		} : {
+			sourceText,
+		}),
 		sourceFile: fact.sourceFile,
+	}
+}
+
+const routeSectionShellFromPageShell = (
+	shell: AppRoutePageShell
+): AppRouteSectionShell => {
+	if (
+		shell.routePath === ''
+		&& shell.components.join('+') === 'Navigation'
+		&& !shell.usesSelect
+		&& !shell.usesParams
+		&& shell.sourceText.includes('createBrowserWASQLitePersistence')
+		&& shell.sourceText.includes('mountWalletConnectionRuntime(appClient)')
+		&& shell.sourceText.includes('navigationItems={useNavigationItems().navigationItems}')
+	)
+		return {
+			...shell,
+			kind: 'app-shell',
+			sourceText: undefined,
+		}
+
+	const title = shell.sourceText.match(/\n\ttitle="([^"]+)"/)?.[1]
+	const titleExpression = shell.sourceText.match(/\n\ttitle=\{([^]*?)\}\n(?:\thref=|\tid=|\>)/)?.[1]?.trim()
+	const hrefExpression = shell.sourceText.match(/\n\thref=\{([^]*?)\}\n(?:\tid=|\>)/)?.[1]?.trim()
+	const idExpression = shell.sourceText.match(/\n\tid=\{([^]*?)\}\n\>/)?.[1]?.trim()
+		?? (shell.sourceText.match(/\n\tid="([^"]+)"\n\>/)?.[1] === undefined ? undefined : quote(shell.sourceText.match(/\n\tid="([^"]+)"\n\>/)?.[1] ?? ''))
+	const keyedHrefExpression = shell.sourceText.match(/\n\t\thref=\{([^]*?)\}\n\t\tid=/)?.[1]?.trim()
+	const keyedIdExpression = shell.sourceText.match(/\n\t\tid=\{([^]*?)\}\n\t>/)?.[1]?.trim()
+	const parentPageCollapsibleCount = [...shell.sourceText.matchAll(/<ParentPageCollapsible/g)].length
+	const nestedParentMatches = [...shell.sourceText.matchAll(/<ParentPageCollapsible\n\ttitle="([^"]+)"\n\thref=\{([^]*?)\}\n\tid=\{([^]*?)\}\n>|<ParentPageCollapsible\n\t\ttitle="([^"]+)"\n\t\thref=\{([^]*?)\}\n\t\tid=\{([^]*?)\}\n\t>/g)]
+	const summaryScopeMatch = shell.sourceText.match(/select\(\s*EntityType\.([A-Za-z0-9_]+),\s*\{\s*scope: '([^']+)',?\s*\}\s*\)/)
+	const pageParamDerivedMatches = [...shell.sourceText.matchAll(/\n\tconst ([A-Za-z0-9_]+) = \$derived\(\n\t\t([^]*?),\n\t\)\n/g)]
+	const summarySelectMatch = shell.sourceText.match(/selection=\{\n\t\t\t\tselect\(\n([^]*?)\n\t\t\t\t\)\n\t\t\t\}/)
+	const keyedSummarySelectMatch = shell.sourceText.match(/selection=\{\n\t\t\t\t\tselect\(\n([^]*?)\n\t\t\t\t\t\)\n\t\t\t\t\}/)
+	const summaryViewTitle = shell.sourceText.match(/\n\t\t\ttitle="([^"]+)"/)?.[1]
+	const keyExpression = shell.sourceText.match(/\{#key ([^}]+)\}/)?.[1]
+	const childrenName = shell.sourceText.match(/\{@render ([A-Za-z0-9_]+)\(\)\}/)?.[1]
+	const proposalParentCollapsible = new Map<string, Partial<AppRouteSectionShell>>([
+		['(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)', {
+			viewComponent: 'SpecificationRealmView',
+			entityType: 'SpecificationRealm',
+			proposalLevel: 'realm',
+			hrefExpression: "resolve('/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]', {\n\t\t\tspecificationRealmSlug: params.specificationRealmSlug,\n\t\t})",
+			idExpression: 'stringify(selector)',
+		}],
+		['(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]/(proposalKind)', {
+			viewComponent: 'ProposalKindView',
+			viewFile: 'SpecificationProposalKindView.svelte',
+			entityType: 'SpecificationProposalKind',
+			proposalLevel: 'kind',
+			hrefExpression: "resolve('/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]', {\n\t\t\tspecificationRealmSlug: params.specificationRealmSlug,\n\t\t\tproposalKindSlug: params.proposalKindSlug,\n\t\t})",
+			idExpression: 'stringify(selector)',
+		}],
+	]).get(shell.routePath)
+
+	if (
+		proposalParentCollapsible !== undefined
+		&& shell.components.includes('ParentPageCollapsible')
+		&& shell.usesSelect
+		&& shell.usesParams
+		&& shell.sourceText.includes('{#if selector !== undefined}')
+	)
+		return {
+			...shell,
+			kind: 'proposal-parent-collapsible',
+			...proposalParentCollapsible,
+			sourceText: undefined,
+		}
+
+	if (
+		shell.components.join('+') === 'ParentPageCollapsible'
+		&& !shell.usesSelect
+		&& shell.usesParams
+		&& shell.sourceText.includes("import type { Snippet } from 'svelte'")
+		&& shell.sourceText.includes("import { eip155NetworkSelectorFromCaip2 } from '$/lib/caip2.ts'")
+		&& shell.sourceText.includes("import { stringify } from 'devalue'")
+		&& parentPageCollapsibleCount === 2
+		&& nestedParentMatches.length === 2
+		&& childrenName !== undefined
+	)
+		return {
+			...shell,
+			kind: 'nested-parent-collapsible',
+			nestedParents: nestedParentMatches.map((match) => ({
+				title: match[1] ?? match[4],
+				hrefExpression: (match[2] ?? match[5]).trim(),
+				idExpression: (match[3] ?? match[6]).trim(),
+			})),
+			childrenName,
+			usesEip155NetworkSelectorFromCaip2: true,
+			usesStringify: true,
+			sourceText: undefined,
+		}
+
+	if (
+		shell.components.join('+') === 'ParentPageCollapsible'
+		&& !shell.usesSelect
+		&& shell.usesParams
+		&& shell.sourceText.includes("import { page } from '$app/state'")
+		&& shell.sourceText.includes('{@render children()}')
+		&& !shell.sourceText.includes('{#snippet')
+		&& hrefExpression !== undefined
+		&& idExpression !== undefined
+		&& parentPageCollapsibleCount === 1
+	)
+		return {
+			...shell,
+			kind: 'page-param-parent-collapsible',
+			...(title === undefined ? {} : { title }),
+			...(titleExpression === undefined ? {} : { titleExpression }),
+			hrefExpression,
+			idExpression,
+			sourceText: undefined,
+		}
+
+	if (
+		shell.components.join('+') === 'ParentPageCollapsible'
+		&& !shell.usesSelect
+		&& (
+			!shell.usesParams
+			|| (
+				shell.sourceText.includes("import { eip155NetworkSelectorFromCaip2 } from '$/lib/caip2.ts'")
+				&& shell.sourceText.includes("import { stringify } from 'devalue'")
+				&& shell.sourceText.includes(`let {
+		children,
+		params,
+	} = $props()`)
+			)
+		)
+		&& shell.sourceText.includes('{@render children()}')
+		&& hrefExpression !== undefined
+		&& parentPageCollapsibleCount === 1
+	)
+		return {
+			...shell,
+			kind: 'parent-collapsible',
+			...(title === undefined ? {} : { title }),
+			...(titleExpression === undefined ? {} : { titleExpression }),
+			hrefExpression,
+			...(idExpression === undefined ? {} : { idExpression }),
+			...(shell.sourceText.includes('eip155NetworkSelectorFromCaip2') ? { usesEip155NetworkSelectorFromCaip2: true } : {}),
+			...(shell.sourceText.includes('stringify(') ? { usesStringify: true } : {}),
+			sourceText: undefined,
+		}
+
+	if (
+		shell.components.length === 2
+		&& shell.components[0] === 'ParentPageCollapsible'
+		&& shell.usesSelect
+		&& !shell.usesParams
+		&& shell.sourceText.includes('{#snippet Summary({ open: _open })}')
+		&& shell.sourceText.includes('layout={EntityLayout.SummaryInline}')
+		&& hrefExpression !== undefined
+		&& idExpression !== undefined
+		&& summaryScopeMatch !== null
+		&& parentPageCollapsibleCount === 1
+	)
+		return {
+			...shell,
+			kind: 'scope-summary-collapsible',
+			viewComponent: shell.components[1],
+			entityType: summaryScopeMatch[1],
+			scope: summaryScopeMatch[2],
+			hrefExpression,
+			idExpression,
+			sourceText: undefined,
+		}
+
+	if (
+		shell.components.length === 2
+		&& shell.components[0] === 'ParentPageCollapsible'
+		&& shell.usesSelect
+		&& shell.usesParams
+		&& !shell.sourceText.includes("import { page } from '$app/state'")
+		&& shell.sourceText.includes('{#snippet Summary({ open: _open })}')
+		&& shell.sourceText.includes('layout={EntityLayout.SummaryInline}')
+		&& shell.sourceText.includes('{#key ')
+		&& shell.sourceText.includes(`import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
+	import ${shell.components[1]} from '$/views/${shell.components[1]}.svelte'`)
+		&& !shell.sourceText.includes('{#if')
+		&& pageParamDerivedMatches.length === 0
+		&& keyedHrefExpression !== undefined
+		&& keyedIdExpression !== undefined
+		&& keyExpression !== undefined
+		&& keyedSummarySelectMatch !== null
+		&& parentPageCollapsibleCount === 1
+	)
+		return {
+			...shell,
+			kind: 'keyed-param-summary-collapsible',
+			viewComponent: shell.components[1],
+			selectorExpression: keyedSummarySelectMatch[1],
+			hrefExpression: keyedHrefExpression,
+			idExpression: keyedIdExpression,
+			keyExpression,
+			...(shell.sourceText.includes('eip155NetworkSelectorFromCaip2') ? { usesEip155NetworkSelectorFromCaip2: true } : {}),
+			...(shell.sourceText.includes('stringify') ? { usesStringify: true } : {}),
+			sourceText: undefined,
+		}
+
+	if (
+		shell.components.length === 2
+		&& shell.components[0] === 'ParentPageCollapsible'
+		&& shell.usesSelect
+		&& shell.usesParams
+		&& !shell.sourceText.includes("import { page } from '$app/state'")
+		&& shell.sourceText.includes('{#snippet Summary({ open: _open })}')
+		&& shell.sourceText.includes('layout={EntityLayout.SummaryInline}')
+		&& shell.sourceText.includes(`import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
+	import ${shell.components[1]} from '$/views/${shell.components[1]}.svelte'`)
+		&& !shell.sourceText.includes('{#if')
+		&& !shell.sourceText.includes('{#key')
+		&& hrefExpression !== undefined
+		&& idExpression !== undefined
+		&& summarySelectMatch !== null
+		&& parentPageCollapsibleCount === 1
+	)
+		return {
+			...shell,
+			kind: 'param-summary-collapsible',
+			viewComponent: shell.components[1],
+			...(pageParamDerivedMatches.length === 0 ? {} : {
+				derivedConstants: pageParamDerivedMatches.map((match) => ({
+					name: match[1],
+					expression: match[2],
+				})),
+			}),
+			selectorExpression: summarySelectMatch[1],
+			hrefExpression,
+			...(shell.sourceText.includes('\n\thref={\n') ? { hrefWrapped: true } : {}),
+			idExpression,
+			...(shell.sourceText.includes('eip155NetworkSelectorFromCaip2') ? { usesEip155NetworkSelectorFromCaip2: true } : {}),
+			...(shell.sourceText.includes('stringify') ? { usesStringify: true } : {}),
+			sourceText: undefined,
+		}
+
+	if (
+		shell.components.length === 2
+		&& shell.components[0] === 'ParentPageCollapsible'
+		&& shell.usesSelect
+		&& shell.usesParams
+		&& shell.sourceText.includes("import { page } from '$app/state'")
+		&& shell.sourceText.includes('{#snippet Summary({ open: _open })}')
+		&& shell.sourceText.includes('layout={EntityLayout.SummaryInline}')
+		&& shell.sourceText.includes(`import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
+	import ${shell.components[1]} from '$/views/${shell.components[1]}.svelte'`)
+		&& !shell.sourceText.includes('{#if')
+		&& !shell.sourceText.includes('{#key')
+		&& hrefExpression !== undefined
+		&& idExpression !== undefined
+		&& pageParamDerivedMatches.length > 0
+		&& summarySelectMatch !== null
+		&& parentPageCollapsibleCount === 1
+	)
+		return {
+			...shell,
+			kind: 'page-param-summary-collapsible',
+			viewComponent: shell.components[1],
+			derivedConstants: pageParamDerivedMatches.map((match) => ({
+				name: match[1],
+				expression: match[2],
+			})),
+			selectorExpression: summarySelectMatch[1],
+			...(summaryViewTitle === undefined ? {} : { viewTitle: summaryViewTitle }),
+			hrefExpression,
+			idExpression,
+			sourceText: undefined,
+		}
+
+	if (
+		shell.components.length === 0
+		&& !shell.usesSelect
+		&& !shell.usesParams
+		&& shell.sourceText.trim() === `<script lang="ts">
+	// State
+	let { children } = $props()
+</script>
+
+
+{@render children()}`
+	)
+		return {
+			...shell,
+			kind: 'passthrough',
+			sourceText: undefined,
+		}
+
+	return {
+		...shell,
+		kind: 'custom',
 	}
 }
 
@@ -1050,6 +2364,7 @@ export const factsToRouteSectionShells = (facts: readonly SchemaFact[]): AppRout
 		.filter((fact) => fact.kind === 'route.section-shell')
 		.filter((fact) => fact.sourceFile.startsWith('src/routes/'))
 		.map(factToRouteSvelteShell)
+		.map(routeSectionShellFromPageShell)
 )
 
 export const factsToResolverCoverage = (facts: readonly SchemaFact[]): AppResolverCoverage[] => {
@@ -1087,123 +2402,15 @@ export const factsToResolverCoverage = (facts: readonly SchemaFact[]): AppResolv
 	]
 }
 
+export const factsToResolverCoverageLedger = (facts: readonly SchemaFact[]): AppResolverCoverageLedgerRow[] => (
+	facts
+		.filter((fact) => fact.kind === 'resolver.coverage-row')
+		.map((fact) => fact.value as AppResolverCoverageLedgerRow)
+)
+
 const quote = (value: string) => (
 	`'${value.replace(/\\/g, '\\\\').replace(/'/g, '\\\'')}'`
 )
-
-const fieldLabel = (
-	field: AppEntity['fields'][number]
-) => (
-	field.label
-	?? field.name
-		.replace(/^\$\$?/, '')
-		.replace(/([a-z0-9])([A-Z])/g, '$1 $2')
-		.replace(/[_-]+/g, ' ')
-		.toLowerCase()
-)
-
-const generatedEntityViewShellSource = (
-	entity: AppEntity | undefined,
-	sourceText: string
-) => {
-	if (
-		entity === undefined
-		|| !sourceText.includes('const view =')
-		|| !sourceText.includes('<EntityView2')
-		|| sourceText.includes('ResourceBoundary')
-		|| sourceText.includes('{#snippet')
-		|| sourceText.includes('Render:')
-		|| sourceText.includes('Content:')
-		|| sourceText.includes('import { select }')
-	)
-		return sourceText
-
-	const closedFields = (
-		entity.selectors[0]?.fields.filter((fieldName) => entity.fields.some((field) => field.name === fieldName && !field.type.startsWith('$:')))
-		?? []
-	)
-	const contentFields = entity.fields
-		.filter((field) => field.cardinality !== 'Zero' && !field.type.startsWith('$:'))
-		.map((field) => field.name)
-	const detailFields = entity.fields
-		.filter((field) => field.name.startsWith('$$') || (field.cardinality === 'Many' && field.type.startsWith('$:')))
-
-	return `<script lang="ts">
-\t// Types/constants
-\timport type { ComponentProps } from 'svelte'
-\timport type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-\timport type { WithRest } from '$/typescript/WithRest.ts'
-\timport { EntityType } from '$/schema/EntityType.ts'
-\timport { schema } from '$/schema/index.ts'
-
-
-\t// State
-\tconst view = {
-\t\tclosed: ${serializeGeneratedViewFieldArray(closedFields)},
-\t\tcontent: {
-\t\t\tdl: [
-\t\t\t\t${serializeGeneratedViewFieldArray(contentFields, '\t\t\t\t')},
-\t\t\t],
-\t\t},
-${detailFields.length === 0 ? '' : `\t\tdetails: {
-\t\t\ttabs: [
-${detailFields.map((field) => `\t\t\t\t{
-\t\t\t\t\tlabel: ${quote(field.labelPlural ?? fieldLabel(field))},
-\t\t\t\t\twhen: 'open',
-\t\t\t\t\titems: [
-\t\t\t\t\t\t${quote(field.name)},
-\t\t\t\t\t],
-\t\t\t\t},`).join('\n')}
-\t\t\t],
-\t\t},
-`}\t} satisfies ComponentProps<typeof EntityView2>['view']
-
-\tlet {
-\t\tselection,
-\t\topen = $bindable(true),
-\t\t...EntityViewProps
-\t}: WithRest<
-\t\t{
-\t\t\tselection: EntityProxyResource<typeof schema, EntityType.${entity.name}>
-\t\t\topen?: boolean
-\t\t},
-\t\tPick<
-\t\t\tComponentProps<typeof EntityView2>,
-\t\t\t| 'layout'
-\t\t\t| 'showTypeAnnotation'
-\t\t>
-\t> = $props()
-
-
-\t// Components
-\timport EntityView2 from '$/components/EntityView2.svelte'
-</script>
-
-
-<EntityView2
-\t{selection}
-\tentityType={EntityType.${entity.name}}
-\tentitySelector={selection.entitySelector}
-\tbind:open
-\t{...EntityViewProps}
-\t{view}
-/>
-`
-}
-
-const serializeGeneratedViewFieldArray = (
-	fields: readonly string[],
-	indent = '\t\t'
-) => {
-	if (fields.length === 0)
-		return '[]'
-
-	return [
-		'[',
-		...fields.map((field) => `${indent}\t${quote(field)},`),
-		`${indent}]`,
-	].join('\n')
-}
 
 const serializeText = (value: string) => JSON.stringify(value)
 
@@ -1217,6 +2424,32 @@ const serializeStringArray = (values: readonly string[], indent: string) => {
 		`${indent}]`,
 	].join('\n')
 }
+
+const serializeStringEnum = (
+	name: string,
+	values: readonly string[]
+) => [
+	`export enum ${name} {`,
+	...[...new Set(values)].map((value) => `\t${value} = ${quote(value)},`),
+	'}',
+].join('\n')
+
+const serializeTableRows = (
+	_typeName: string,
+	keys: readonly string[],
+	rows: readonly (readonly string[])[],
+	indent: string
+) => [
+	'[',
+	...rows.flatMap((row) => [
+		`${indent}\t{`,
+		...keys.flatMap((key, index) => row[index] === 'undefined' ? [] : [
+			`${indent}\t\t${key}: ${row[index]},`,
+		]),
+		`${indent}\t},`,
+	]),
+	`${indent}]`,
+].join('\n')
 
 const serializeAppEntities = (entities: readonly AppEntity[]) => [
 	'[',
@@ -1252,38 +2485,42 @@ const serializeAppEntities = (entities: readonly AppEntity[]) => [
 			]),
 			'\t\t\t\t],',
 		]),
-		'\t\t\t\tselectors: [',
-		...entity.selectors.flatMap((selector) => [
-			'\t\t\t\t\t{',
-			`\t\t\t\t\t\tname: ${quote(selector.name)},`,
-			`\t\t\t\t\t\tfields: ${serializeStringArray(selector.fields, '\t\t\t\t\t\t')},`,
-			...(selector.member === undefined ? [] : [
-				`\t\t\t\t\t\tmember: ${quote(selector.member)},`,
+		`\t\t\t\tselectors: ${serializeTableRows(
+			'AppSchemaEntity[\'selectors\'][number]',
+			[
+				'name',
+				'fields',
+				'member',
+				'value',
+			],
+			entity.selectors.map((selector) => [
+				quote(selector.name),
+				serializeStringArray(selector.fields, '\t\t\t\t\t'),
+				selector.member === undefined ? 'undefined' : quote(selector.member),
+				selector.value === undefined ? 'undefined' : quote(selector.value),
 			]),
-			...(selector.value === undefined ? [] : [
-				`\t\t\t\t\t\tvalue: ${quote(selector.value)},`,
+			'\t\t\t\t'
+		)},`,
+		`\t\t\t\tfields: ${serializeTableRows(
+			'AppSchemaEntity[\'fields\'][number]',
+			[
+				'name',
+				'type',
+				'cardinality',
+				'label',
+				'labelPlural',
+				'description',
+			],
+			entity.fields.map((field) => [
+				quote(field.name),
+				quote(field.type),
+				quote(field.cardinality),
+				field.label === undefined ? 'undefined' : quote(field.label),
+				field.labelPlural === undefined ? 'undefined' : quote(field.labelPlural),
+				field.description === undefined ? 'undefined' : quote(field.description),
 			]),
-			'\t\t\t\t\t},',
-		]),
-		'\t\t\t\t],',
-		'\t\t\t\tfields: [',
-		...entity.fields.flatMap((field) => [
-			'\t\t\t\t\t{',
-			`\t\t\t\t\t\tname: ${quote(field.name)},`,
-			`\t\t\t\t\t\ttype: ${quote(field.type)},`,
-			`\t\t\t\t\t\tcardinality: ${quote(field.cardinality)},`,
-			...(field.label === undefined ? [] : [
-				`\t\t\t\t\t\tlabel: ${quote(field.label)},`,
-			]),
-			...(field.labelPlural === undefined ? [] : [
-				`\t\t\t\t\t\tlabelPlural: ${quote(field.labelPlural)},`,
-			]),
-			...(field.description === undefined ? [] : [
-				`\t\t\t\t\t\tdescription: ${quote(field.description)},`,
-			]),
-			'\t\t\t\t\t},',
-		]),
-		'\t\t\t\t],',
+			'\t\t\t\t'
+		)},`,
 		`\t\t\t\tsourceBindings: ${serializeStringArray(entity.sourceBindings, '\t\t\t\t')},`,
 		...(entity.view === undefined ? [] : [
 			`\t\t\t\tview: ${quote(entity.view)},`,
@@ -1293,85 +2530,111 @@ const serializeAppEntities = (entities: readonly AppEntity[]) => [
 	'\t\t]',
 ].join('\n')
 
-const serializeSourceProviders = (providers: readonly AppSourceProvider[]) => [
-	'[',
-	...providers.flatMap((provider) => [
-		'\t\t\t{',
-		`\t\t\t\tid: ${quote(provider.id)},`,
-		`\t\t\t\tlabel: ${quote(provider.label)},`,
-		'\t\t\t},',
+const serializeSourceProviders = (providers: readonly AppSourceProvider[]) => serializeTableRows(
+	'AppSourceProvider',
+	[
+		'id',
+		'label',
+	],
+	providers.map((provider) => [
+		quote(provider.id),
+		quote(provider.label),
 	]),
-	'\t\t]',
-].join('\n')
+	'\t\t'
+)
 
-const serializeSources = (sources: readonly AppSource[]) => [
-	'[',
-	...sources.flatMap((source) => [
-		'\t\t\t{',
-		`\t\t\t\tid: ${quote(source.id)},`,
-		`\t\t\t\tprovider: ${quote(source.provider)},`,
-		`\t\t\t\tlabel: ${quote(source.label)},`,
-		'\t\t\t},',
+const serializeSources = (sources: readonly AppSource[]) => serializeTableRows(
+	'AppSource',
+	[
+		'id',
+		'provider',
+		'label',
+	],
+	sources.map((source) => [
+		quote(source.id),
+		quote(source.provider),
+		quote(source.label),
 	]),
-	'\t\t]',
-].join('\n')
+	'\t\t'
+)
 
-const serializeSourceBindings = (bindings: readonly AppSourceBinding[]) => [
-	'[',
-	...bindings.flatMap((binding) => [
-		'\t\t\t{',
-		`\t\t\t\tid: ${quote(binding.id)},`,
-		`\t\t\t\tsource: ${quote(binding.source)},`,
-		`\t\t\t\ttarget: ${quote(binding.target)},`,
-		'\t\t\t},',
+const serializeSourceBindings = (bindings: readonly AppSourceBinding[]) => serializeTableRows(
+	'AppSourceBinding',
+	[
+		'id',
+		'source',
+		'target',
+	],
+	bindings.map((binding) => [
+		quote(binding.id),
+		quote(binding.source),
+		quote(binding.target),
 	]),
-	'\t\t]',
-].join('\n')
+	'\t\t'
+)
 
-const serializeRuntimeSourceBindings = (bindings: readonly AppRuntimeSourceBinding[]) => [
-	'[',
-	...bindings.flatMap((binding) => [
-		'\t\t\t{',
-		`\t\t\t\tprovider: ${quote(binding.provider)},`,
-		`\t\t\t\tsource: ${quote(binding.source)},`,
-		`\t\t\t\ttargetKind: ${quote(binding.targetKind)},`,
-		`\t\t\t\ttargetKey: ${quote(binding.targetKey)},`,
-		`\t\t\t\tendpointCount: ${binding.endpointCount},`,
-		`\t\t\t\twireProtocol: ${quote(binding.wireProtocol)},`,
-		`\t\t\t\tapiFamily: ${quote(binding.apiFamily)},`,
-		`\t\t\t\toperationGroups: ${serializeStringArray(binding.operationGroups, '\t\t\t\t')},`,
-		`\t\t\t\tdelivery: ${quote(binding.delivery)},`,
-		`\t\t\t\tartifactCount: ${binding.artifactCount},`,
-		'\t\t\t},',
+const serializeRuntimeSourceBindings = (bindings: readonly AppRuntimeSourceBinding[]) => serializeTableRows(
+	'AppRuntimeSourceBinding',
+	[
+		'provider',
+		'source',
+		'targetKind',
+		'targetKey',
+		'endpointCount',
+		'wireProtocol',
+		'apiFamily',
+		'operationGroups',
+		'delivery',
+		'artifactCount',
+	],
+	bindings.map((binding) => [
+		quote(binding.provider),
+		quote(binding.source),
+		quote(binding.targetKind),
+		quote(binding.targetKey),
+		String(binding.endpointCount),
+		quote(binding.wireProtocol),
+		quote(binding.apiFamily),
+		serializeStringArray(binding.operationGroups, '\t\t\t'),
+		quote(binding.delivery),
+		String(binding.artifactCount),
 	]),
-	'\t\t]',
-].join('\n')
+	'\t\t'
+)
 
-const serializeRuntimeSourceArtifacts = (artifacts: readonly AppRuntimeSourceArtifact[]) => [
-	'[',
-	...artifacts.flatMap((artifact) => [
-		'\t\t\t{',
-		`\t\t\t\tsource: ${quote(artifact.source)},`,
-		`\t\t\t\tkind: ${quote(artifact.kind)},`,
-		`\t\t\t\tpath: ${quote(artifact.path)},`,
-		`\t\t\t\tgenerated: ${artifact.generated ? 'true' : 'false'},`,
-		'\t\t\t},',
+const serializeRuntimeSourceArtifacts = (artifacts: readonly AppRuntimeSourceArtifact[]) => serializeTableRows(
+	'AppRuntimeSourceArtifact',
+	[
+		'source',
+		'kind',
+		'path',
+		'generated',
+	],
+	artifacts.map((artifact) => [
+		quote(artifact.source),
+		quote(artifact.kind),
+		quote(artifact.path),
+		artifact.generated ? 'true' : 'false',
 	]),
-	'\t\t]',
-].join('\n')
+	'\t\t'
+)
 
-const serializeEntityViews = (views: readonly AppEntityView[]) => [
-	'[',
-	...views.flatMap((view) => [
-		'\t\t\t{',
-		`\t\t\t\tentity: ${quote(view.entity)},`,
-		`\t\t\t\tkind: ${quote(view.kind)},`,
-		`\t\t\t\tfile: ${quote(view.file)},`,
-		`\t\t\t\townership: ${quote(view.ownership)},`,
-		'\t\t\t},',
+const serializeEntityViews = (views: readonly AppEntityView[]) => serializeTableRows(
+	'AppEntityView',
+	[
+		'entity',
+		'kind',
+		'file',
+		'ownership',
+	],
+	views.map((view) => [
+		quote(view.entity),
+		quote(view.kind),
+		quote(view.file),
+		quote(view.ownership),
 	]),
-	'\t\t]',
-].join('\n')
+	'\t\t'
+)
 
 const serializeEntityViewShells = (shells: readonly AppEntityViewShell[]) => [
 	'[',
@@ -1381,106 +2644,143 @@ const serializeEntityViewShells = (shells: readonly AppEntityViewShell[]) => [
 		`\t\t\t\tviewName: ${quote(shell.viewName)},`,
 		`\t\t\t\tfile: ${quote(shell.file)},`,
 		`\t\t\t\tcapabilities: ${serializeStringArray(shell.capabilities, '\t\t\t\t')},`,
-		`\t\t\t\tsourceText: ${serializeText(shell.sourceText)},`,
+		...(shell.sourceText === undefined ? [] : [
+			`\t\t\t\tsourceText: ${serializeText(shell.sourceText)},`,
+		]),
 		`\t\t\t\tsourceFile: ${quote(shell.sourceFile)},`,
 		'\t\t\t},',
 	]),
 	'\t\t]',
 ].join('\n')
 
-const serializeRouteSections = (sections: readonly AppRouteSection[]) => [
-	'[',
-	...sections.flatMap((section) => [
-		'\t\t\t{',
-		`\t\t\t\tid: ${quote(section.id)},`,
-		`\t\t\t\tpath: ${quote(section.path)},`,
-		'\t\t\t},',
+const serializeRouteSections = (sections: readonly AppRouteSection[]) => serializeTableRows(
+	'AppRouteSection',
+	[
+		'id',
+		'path',
+	],
+	sections.map((section) => [
+		quote(section.id),
+		quote(section.path),
 	]),
-	'\t\t]',
-].join('\n')
+	'\t\t'
+)
 
-const serializeRoutePages = (pages: readonly AppRoutePage[]) => [
-	'[',
-	...pages.flatMap((page) => [
-		'\t\t\t{',
-		`\t\t\t\tid: ${quote(page.id)},`,
-		`\t\t\t\tpath: ${quote(page.path)},`,
-		`\t\t\t\townership: ${quote(page.ownership)},`,
-		'\t\t\t},',
+const serializeRoutePages = (pages: readonly AppRoutePage[]) => serializeTableRows(
+	'AppRoutePage',
+	[
+		'id',
+		'path',
+		'ownership',
+	],
+	pages.map((page) => [
+		quote(page.id),
+		quote(page.path),
+		quote(page.ownership),
 	]),
-	'\t\t]',
-].join('\n')
+	'\t\t'
+)
 
-const serializeSelectorRouteMappings = (mappings: readonly AppSelectorRouteMapping[]) => [
-	'[',
-	...mappings.flatMap((mapping) => [
-		'\t\t\t{',
-		`\t\t\t\tentity: ${quote(mapping.entity)},`,
-		`\t\t\t\tselector: ${quote(mapping.selector)},`,
-		`\t\t\t\tfields: ${serializeStringArray(mapping.fields, '\t\t\t\t')},`,
-		`\t\t\t\toutcome: ${quote(mapping.outcome)},`,
-		...(mapping.path === undefined ? [] : [
-			`\t\t\t\tpath: ${quote(mapping.path)},`,
-		]),
-		...(mapping.visiblePath === undefined ? [] : [
-			`\t\t\t\tvisiblePath: ${quote(mapping.visiblePath)},`,
-		]),
-		...(mapping.emitPage === undefined ? [] : [
-			`\t\t\t\temitPage: ${mapping.emitPage ? 'true' : 'false'},`,
-		]),
-		`\t\t\t\tparentFields: ${serializeStringArray(mapping.parentFields, '\t\t\t\t')},`,
-		`\t\t\t\tlocalFields: ${serializeStringArray(mapping.localFields, '\t\t\t\t')},`,
-		'\t\t\t\tparams: [',
-		...mapping.params.flatMap((param) => [
-			'\t\t\t\t\t{',
-			`\t\t\t\t\t\tfield: ${quote(param.field)},`,
-			`\t\t\t\t\t\tname: ${quote(param.name)},`,
+const serializeSelectorRouteParams = (
+	params: readonly AppSelectorRouteMapping['params'][number][],
+	indent: string
+) => {
+	if (params.length === 0)
+		return '[]'
+
+	return [
+		'[',
+		...params.flatMap((param) => [
+			`${indent}\t{`,
+			`${indent}\t\tfield: ${quote(param.field)},`,
+			`${indent}\t\tname: ${quote(param.name)},`,
 			...(param.matcher === undefined ? [] : [
-				`\t\t\t\t\t\tmatcher: ${quote(param.matcher)},`,
+				`${indent}\t\tmatcher: ${quote(param.matcher)},`,
 			]),
-			'\t\t\t\t\t},',
+			`${indent}\t},`,
 		]),
-		'\t\t\t\t],',
-		`\t\t\t\tunresolved: ${serializeStringArray(mapping.unresolved, '\t\t\t\t')},`,
-		...(mapping.reason === undefined ? [] : [
-			`\t\t\t\treason: ${quote(mapping.reason)},`,
-		]),
-		'\t\t\t},',
-	]),
-	'\t\t]',
-].join('\n')
+		`${indent}]`,
+	].join('\n')
+}
 
-const serializeHubCollectionRoutes = (routes: readonly AppHubCollectionRoute[]) => [
-	'[',
-	...routes.flatMap((route) => [
-		'\t\t\t{',
-		`\t\t\t\tentity: ${quote(route.entity)},`,
-		`\t\t\t\thub: ${quote(route.hub)},`,
-		`\t\t\t\tpath: ${quote(route.path)},`,
-		`\t\t\t\tview: ${quote(route.view)},`,
-		`\t\t\t\tunresolved: ${serializeStringArray(route.unresolved, '\t\t\t\t')},`,
-		'\t\t\t},',
+const serializeSelectorRouteMappings = (mappings: readonly AppSelectorRouteMapping[]) => serializeTableRows(
+	'AppSelectorRouteMapping',
+	[
+		'entity',
+		'selector',
+		'fields',
+		'outcome',
+		'path',
+		'visiblePath',
+		'emitPage',
+		'parentFields',
+		'localFields',
+		'params',
+		'unresolved',
+		'reason',
+	],
+	mappings.map((mapping) => [
+		quote(mapping.entity),
+		quote(mapping.selector),
+		serializeStringArray(mapping.fields, '\t\t\t'),
+		quote(mapping.outcome),
+		mapping.path === undefined ? 'undefined' : quote(mapping.path),
+		mapping.visiblePath === undefined ? 'undefined' : quote(mapping.visiblePath),
+		mapping.emitPage === undefined ? 'undefined' : mapping.emitPage ? 'true' : 'false',
+		serializeStringArray(mapping.parentFields, '\t\t\t'),
+		serializeStringArray(mapping.localFields, '\t\t\t'),
+		serializeSelectorRouteParams(mapping.params, '\t\t\t'),
+		serializeStringArray(mapping.unresolved, '\t\t\t'),
+		mapping.reason === undefined ? 'undefined' : quote(mapping.reason),
 	]),
-	'\t\t]',
-].join('\n')
+	'\t\t'
+)
 
-const serializeRouteLoaderTransforms = (transforms: readonly AppRouteLoaderTransform[]) => [
-	'[',
-	...transforms.flatMap((transform) => [
-		'\t\t\t{',
-		`\t\t\t\tentity: ${quote(transform.entity)},`,
-		`\t\t\t\troutePath: ${quote(transform.routePath)},`,
-		`\t\t\t\tvisiblePath: ${quote(transform.visiblePath)},`,
-		`\t\t\t\tparams: ${serializeStringArray(transform.params, '\t\t\t\t')},`,
-		`\t\t\t\tselectorFields: ${serializeStringArray(transform.selectorFields, '\t\t\t\t')},`,
-		`\t\t\t\timportedSymbols: ${serializeStringArray(transform.importedSymbols, '\t\t\t\t')},`,
-		`\t\t\t\tselectorExpression: ${serializeText(transform.selectorExpression)},`,
-		`\t\t\t\tsimpleDirectParamShape: ${transform.simpleDirectParamShape ? 'true' : 'false'},`,
-		`\t\t\t\tsourceFile: ${quote(transform.sourceFile)},`,
-		'\t\t\t},',
+const serializeHubCollectionRoutes = (routes: readonly AppHubCollectionRoute[]) => serializeTableRows(
+	'AppHubCollectionRoute',
+	[
+		'entity',
+		'hub',
+		'path',
+		'view',
+		'unresolved',
+	],
+	routes.map((route) => [
+		quote(route.entity),
+		quote(route.hub),
+		quote(route.path),
+		quote(route.view),
+		serializeStringArray(route.unresolved, '\t\t\t'),
 	]),
-	'\t\t]',
-].join('\n')
+	'\t\t'
+)
+
+const serializeRouteLoaderTransforms = (transforms: readonly AppRouteLoaderTransform[]) => serializeTableRows(
+	'AppRouteLoaderTransform',
+	[
+		'entity',
+		'routePath',
+		'visiblePath',
+		'params',
+		'selectorFields',
+		'importedSymbols',
+		'selectorExpression',
+		'simpleDirectParamShape',
+		'sourceFile',
+	],
+	transforms.map((transform) => [
+		quote(transform.entity),
+		quote(transform.routePath),
+		quote(transform.visiblePath),
+		serializeStringArray(transform.params, '\t\t\t'),
+		serializeStringArray(transform.selectorFields, '\t\t\t'),
+		serializeStringArray(transform.importedSymbols, '\t\t\t'),
+		serializeText(transform.selectorExpression),
+		transform.simpleDirectParamShape ? 'true' : 'false',
+		quote(transform.sourceFile),
+	]),
+	'\t\t'
+)
 
 const serializeRouteSvelteShells = (shells: readonly AppRoutePageShell[]) => [
 	'[',
@@ -1493,41 +2793,442 @@ const serializeRouteSvelteShells = (shells: readonly AppRoutePageShell[]) => [
 		`\t\t\t\tusesDataSelector: ${shell.usesDataSelector ? 'true' : 'false'},`,
 		`\t\t\t\tusesParams: ${shell.usesParams ? 'true' : 'false'},`,
 		`\t\t\t\tusesSelect: ${shell.usesSelect ? 'true' : 'false'},`,
-		`\t\t\t\tsourceText: ${serializeText(shell.sourceText)},`,
+		`\t\t\t\tkind: ${quote(shell.kind)},`,
+		...(shell.viewComponent === undefined ? [] : [
+			`\t\t\t\tviewComponent: ${quote(shell.viewComponent)},`,
+		]),
+		...(shell.viewFile === undefined ? [] : [
+			`\t\t\t\tviewFile: ${quote(shell.viewFile)},`,
+		]),
+		...(shell.entityType === undefined ? [] : [
+			`\t\t\t\tentityType: ${quote(shell.entityType)},`,
+		]),
+		...(shell.paramName === undefined ? [] : [
+			`\t\t\t\tparamName: ${quote(shell.paramName)},`,
+		]),
+		...(shell.selectorExpression === undefined ? [] : [
+			`\t\t\t\tselectorExpression: ${serializeText(shell.selectorExpression)},`,
+		]),
+		...(shell.selectorImportStyle === undefined ? [] : [
+			`\t\t\t\tselectorImportStyle: ${quote(shell.selectorImportStyle)},`,
+		]),
+		...(shell.selectorDeclaration === undefined ? [] : [
+			`\t\t\t\tselectorDeclaration: ${serializeText(shell.selectorDeclaration)},`,
+		]),
+		...(shell.routeImports === undefined ? [] : [
+			`\t\t\t\trouteImports: ${serializeStringArray(shell.routeImports, '\t\t\t\t')},`,
+		]),
+		...(shell.functionImports === undefined ? [] : [
+			`\t\t\t\tfunctionImports: ${serializeStringArray(shell.functionImports, '\t\t\t\t')},`,
+		]),
+		...(shell.selectorGuard === undefined ? [] : [
+			`\t\t\t\tselectorGuard: ${quote(shell.selectorGuard)},`,
+		]),
+		...(shell.invalidText === undefined ? [] : [
+			`\t\t\t\tinvalidText: ${quote(shell.invalidText)},`,
+		]),
+		...(shell.invalidOutsidePage === undefined ? [] : [
+			`\t\t\t\tinvalidOutsidePage: ${shell.invalidOutsidePage ? 'true' : 'false'},`,
+		]),
+		...(shell.viewProps === undefined ? [] : [
+			`\t\t\t\tviewProps: ${serializeStringArray(shell.viewProps, '\t\t\t\t')},`,
+		]),
+		...(shell.derivedConstants === undefined ? [] : [
+			`\t\t\t\tderivedConstants: [`,
+			...shell.derivedConstants.flatMap((derivedConstant) => [
+				`\t\t\t\t\t{`,
+				`\t\t\t\t\t\tname: ${quote(derivedConstant.name)},`,
+				`\t\t\t\t\t\texpression: ${serializeText(derivedConstant.expression)},`,
+				`\t\t\t\t\t},`,
+			]),
+			`\t\t\t\t],`,
+		]),
+		...(shell.importEntitySelectorType === undefined ? [] : [
+			`\t\t\t\timportEntitySelectorType: ${shell.importEntitySelectorType ? 'true' : 'false'},`,
+		]),
+		...(shell.importEip155NetworkSelectorFromCaip2 === undefined ? [] : [
+			`\t\t\t\timportEip155NetworkSelectorFromCaip2: ${shell.importEip155NetworkSelectorFromCaip2 ? 'true' : 'false'},`,
+		]),
+		...(shell.importZeroExHex === undefined ? [] : [
+			`\t\t\t\timportZeroExHex: ${shell.importZeroExHex ? 'true' : 'false'},`,
+		]),
+		...(shell.zeroExHexImportSymbols === undefined ? [] : [
+			`\t\t\t\tzeroExHexImportSymbols: ${quote(shell.zeroExHexImportSymbols)},`,
+		]),
+		...(shell.zeroExHexImportWithSchemaImports === undefined ? [] : [
+			`\t\t\t\tzeroExHexImportWithSchemaImports: true,`,
+		]),
+		...(shell.importWith0xHex === undefined ? [] : [
+			`\t\t\t\timportWith0xHex: ${shell.importWith0xHex ? 'true' : 'false'},`,
+		]),
+		...(shell.with0xHexImportSection === undefined ? [] : [
+			`\t\t\t\twith0xHexImportSection: ${quote(shell.with0xHexImportSection)},`,
+		]),
+		...(shell.typeConstantsAfterSchemaImports === undefined ? [] : [
+			`\t\t\t\ttypeConstantsAfterSchemaImports: ${shell.typeConstantsAfterSchemaImports ? 'true' : 'false'},`,
+		]),
+		...(shell.paramsMultiline === undefined ? [] : [
+			`\t\t\t\tparamsMultiline: ${shell.paramsMultiline ? 'true' : 'false'},`,
+		]),
+		...(shell.componentIndentExtra === undefined ? [] : [
+			`\t\t\t\tcomponentIndentExtra: ${shell.componentIndentExtra ? 'true' : 'false'},`,
+		]),
+		...(shell.explicitClosingTag === undefined ? [] : [
+			`\t\t\t\texplicitClosingTag: ${shell.explicitClosingTag ? 'true' : 'false'},`,
+		]),
+		...(shell.scope === undefined ? [] : [
+			`\t\t\t\tscope: ${quote(shell.scope)},`,
+		]),
+		...(shell.hrefExpression === undefined ? [] : [
+			`\t\t\t\threfExpression: ${serializeText(shell.hrefExpression)},`,
+		]),
+		...(shell.childField === undefined ? [] : [
+			`\t\t\t\tchildField: ${quote(shell.childField)},`,
+		]),
+		...(shell.collectionEntityType === undefined ? [] : [
+			`\t\t\t\tcollectionEntityType: ${quote(shell.collectionEntityType)},`,
+		]),
+		...(shell.globalScope === undefined ? [] : [
+			`\t\t\t\tglobalScope: ${quote(shell.globalScope)},`,
+		]),
+		...(shell.globalField === undefined ? [] : [
+			`\t\t\t\tglobalField: ${quote(shell.globalField)},`,
+		]),
+		...(shell.globalSourceField === undefined ? [] : [
+			`\t\t\t\tglobalSourceField: ${quote(shell.globalSourceField)},`,
+		]),
+		...(shell.globalSourceSources === undefined ? [] : [
+			`\t\t\t\tglobalSourceSources: ${serializeStringArray(shell.globalSourceSources, '\t\t\t\t')},`,
+		]),
+		...(shell.globalSourceIndentExtra === undefined ? [] : [
+			`\t\t\t\tglobalSourceIndentExtra: true,`,
+		]),
+		...(shell.globalSourceOmitContextSection === undefined ? [] : [
+			`\t\t\t\tglobalSourceOmitContextSection: true,`,
+		]),
+		...(shell.id === undefined ? [] : [
+			`\t\t\t\tid: ${quote(shell.id)},`,
+		]),
+		...(shell.limit === undefined ? [] : [
+			`\t\t\t\tlimit: ${shell.limit},`,
+		]),
+		...(shell.title === undefined ? [] : [
+			`\t\t\t\ttitle: ${quote(shell.title)},`,
+		]),
+		...(shell.titleExpression === undefined ? [] : [
+			`\t\t\t\ttitleExpression: ${serializeText(shell.titleExpression)},`,
+		]),
+		...(shell.headTitle === undefined ? [] : [
+			`\t\t\t\theadTitle: ${quote(shell.headTitle)},`,
+		]),
+		...(shell.sortMode === undefined ? [] : [
+			`\t\t\t\tsortMode: ${quote(shell.sortMode)},`,
+		]),
+		...(shell.catalogImports === undefined ? [] : [
+			`\t\t\t\tcatalogImports: ${serializeStringArray(shell.catalogImports, '\t\t\t\t')},`,
+		]),
+		...(shell.catalogParamType === undefined ? [] : [
+			`\t\t\t\tcatalogParamType: ${quote(shell.catalogParamType)},`,
+		]),
+		...(shell.catalogRowsName === undefined ? [] : [
+			`\t\t\t\tcatalogRowsName: ${quote(shell.catalogRowsName)},`,
+		]),
+		...(shell.catalogRowName === undefined ? [] : [
+			`\t\t\t\tcatalogRowName: ${quote(shell.catalogRowName)},`,
+		]),
+		...(shell.catalogLookupName === undefined ? [] : [
+			`\t\t\t\tcatalogLookupName: ${quote(shell.catalogLookupName)},`,
+		]),
+		...(shell.catalogLookupField === undefined ? [] : [
+			`\t\t\t\tcatalogLookupField: ${quote(shell.catalogLookupField)},`,
+		]),
+		...(shell.catalogRouteKey === undefined ? [] : [
+			`\t\t\t\tcatalogRouteKey: ${quote(shell.catalogRouteKey)},`,
+		]),
+		...(shell.catalogTitleExpression === undefined ? [] : [
+			`\t\t\t\tcatalogTitleExpression: ${serializeText(shell.catalogTitleExpression)},`,
+		]),
+		...(shell.catalogNotFoundCondition === undefined ? [] : [
+			`\t\t\t\tcatalogNotFoundCondition: ${quote(shell.catalogNotFoundCondition)},`,
+		]),
+		...(shell.catalogMissingText === undefined ? [] : [
+			`\t\t\t\tcatalogMissingText: ${quote(shell.catalogMissingText)},`,
+		]),
+		...(shell.catalogUnknownText === undefined ? [] : [
+			`\t\t\t\tcatalogUnknownText: ${quote(shell.catalogUnknownText)},`,
+		]),
+		...(shell.catalogNotFoundId === undefined ? [] : [
+			`\t\t\t\tcatalogNotFoundId: ${quote(shell.catalogNotFoundId)},`,
+		]),
+		...(shell.catalogDetailId === undefined ? [] : [
+			`\t\t\t\tcatalogDetailId: ${quote(shell.catalogDetailId)},`,
+		]),
+		...(shell.hubKey === undefined ? [] : [
+			`\t\t\t\thubKey: ${quote(shell.hubKey)},`,
+		]),
+		...(shell.hubScope === undefined ? [] : [
+			`\t\t\t\thubScope: ${quote(shell.hubScope)},`,
+		]),
+		...(shell.hubTitleExpression === undefined ? [] : [
+			`\t\t\t\thubTitleExpression: ${quote(shell.hubTitleExpression)},`,
+		]),
+		...(shell.hubHref === undefined ? [] : [
+			`\t\t\t\thubHref: ${quote(shell.hubHref)},`,
+		]),
+		...(shell.hubSections === undefined ? [] : [
+			`\t\t\t\thubSections: [`,
+			...shell.hubSections.flatMap((section) => [
+				`\t\t\t\t\t{`,
+				`\t\t\t\t\t\tid: ${quote(section.id)},`,
+				`\t\t\t\t\t\tlabel: ${quote(section.label)},`,
+				...(section.viewComponent === undefined ? [] : [
+					`\t\t\t\t\t\tviewComponent: ${quote(section.viewComponent)},`,
+				]),
+				...(section.href === undefined ? [] : [
+					`\t\t\t\t\t\thref: ${quote(section.href)},`,
+				]),
+				...(section.globalField === undefined ? [] : [
+					`\t\t\t\t\t\tglobalField: ${quote(section.globalField)},`,
+				]),
+				...(section.viewId === undefined ? [] : [
+					`\t\t\t\t\t\tviewId: ${quote(section.viewId)},`,
+				]),
+				...(section.placeholderText === undefined ? [] : [
+					`\t\t\t\t\t\tplaceholderText: ${quote(section.placeholderText)},`,
+				]),
+				`\t\t\t\t\t},`,
+			]),
+			`\t\t\t\t],`,
+		]),
+		...(shell.networkCollectionField === undefined ? [] : [
+			`\t\t\t\tnetworkCollectionField: ${quote(shell.networkCollectionField)},`,
+		]),
+		...(shell.networkCollectionSources === undefined ? [] : [
+			`\t\t\t\tnetworkCollectionSources: ${serializeStringArray(shell.networkCollectionSources, '\t\t\t\t')},`,
+		]),
+		...(shell.networkCollectionCount === undefined ? [] : [
+			`\t\t\t\tnetworkCollectionCount: true,`,
+		]),
+		...(shell.networkCollectionInlineSources === undefined ? [] : [
+			`\t\t\t\tnetworkCollectionInlineSources: true,`,
+		]),
+		...(shell.networkCollectionHrefAfterSelection === undefined ? [] : [
+			`\t\t\t\tnetworkCollectionHrefAfterSelection: true,`,
+		]),
+		...(shell.networkCollectionTightContextState === undefined ? [] : [
+			`\t\t\t\tnetworkCollectionTightContextState: true,`,
+		]),
+		...(shell.protocolCollectionField === undefined ? [] : [
+			`\t\t\t\tprotocolCollectionField: ${quote(shell.protocolCollectionField)},`,
+		]),
+		...(shell.parentSelectorField === undefined ? [] : [
+			`\t\t\t\tparentSelectorField: ${quote(shell.parentSelectorField)},`,
+		]),
+		...(shell.parentSelectorParam === undefined ? [] : [
+			`\t\t\t\tparentSelectorParam: ${quote(shell.parentSelectorParam)},`,
+		]),
+		...(shell.parentSelectorTransform === undefined ? [] : [
+			`\t\t\t\tparentSelectorTransform: ${quote(shell.parentSelectorTransform)},`,
+		]),
+		...(shell.networkScope === undefined ? [] : [
+			`\t\t\t\tnetworkScope: ${quote(shell.networkScope)},`,
+		]),
+		...(shell.placeholderText === undefined ? [] : [
+			`\t\t\t\tplaceholderText: ${quote(shell.placeholderText)},`,
+		]),
+		...(shell.placeholderMultiline === undefined ? [] : [
+			`\t\t\t\tplaceholderMultiline: ${shell.placeholderMultiline ? 'true' : 'false'},`,
+		]),
+		...(shell.staticWrapper === undefined ? [] : [
+			`\t\t\t\tstaticWrapper: ${quote(shell.staticWrapper)},`,
+		]),
+		...(shell.staticTitle === undefined ? [] : [
+			`\t\t\t\tstaticTitle: ${quote(shell.staticTitle)},`,
+		]),
+		...(shell.staticLinks === undefined ? [] : [
+			`\t\t\t\tstaticLinks: [`,
+			...shell.staticLinks.flatMap((link) => [
+				`\t\t\t\t\t{`,
+				`\t\t\t\t\t\tlabel: ${quote(link.label)},`,
+				`\t\t\t\t\t\troute: ${quote(link.route)},`,
+				`\t\t\t\t\t},`,
+			]),
+			`\t\t\t\t],`,
+		]),
+		...(shell.proposalLevel === undefined ? [] : [
+			`\t\t\t\tproposalLevel: ${quote(shell.proposalLevel)},`,
+		]),
+		...(shell.collapsible === undefined ? [] : [
+			`\t\t\t\tcollapsible: ${shell.collapsible ? 'true' : 'false'},`,
+		]),
+		...(shell.open === undefined ? [] : [
+			`\t\t\t\topen: ${shell.open ? 'true' : 'false'},`,
+		]),
+		...(shell.stateComment === undefined ? [] : [
+			`\t\t\t\tstateComment: ${quote(shell.stateComment)},`,
+		]),
+		...(shell.blankLineBeforeComponents === undefined ? [] : [
+			`\t\t\t\tblankLineBeforeComponents: ${shell.blankLineBeforeComponents ? 'true' : 'false'},`,
+		]),
+		...(shell.blankLineBeforePageClose === undefined ? [] : [
+			`\t\t\t\tblankLineBeforePageClose: ${shell.blankLineBeforePageClose ? 'true' : 'false'},`,
+		]),
+		...(shell.viewImportBeforePage === undefined ? [] : [
+			`\t\t\t\tviewImportBeforePage: ${shell.viewImportBeforePage ? 'true' : 'false'},`,
+		]),
+		...(shell.sources === undefined ? [] : [
+			`\t\t\t\tsources: ${serializeStringArray(shell.sources, '\t\t\t\t')},`,
+		]),
+		...(shell.sourceText === undefined ? [] : [
+			`\t\t\t\tsourceText: ${serializeText(shell.sourceText)},`,
+		]),
 		`\t\t\t\tsourceFile: ${quote(shell.sourceFile)},`,
 		'\t\t\t},',
 	]),
 	'\t\t]',
 ].join('\n')
 
-const serializeResolverCoverage = (coverageRows: readonly AppResolverCoverage[]) => [
+const serializeRouteSectionShells = (shells: readonly AppRouteSectionShell[]) => [
 	'[',
-	...coverageRows.flatMap((coverage) => [
+	...shells.flatMap((shell) => [
 		'\t\t\t{',
-		`\t\t\t\tentity: ${quote(coverage.entity)},`,
-		`\t\t\t\tsource: ${quote(coverage.source)},`,
-		`\t\t\t\tstatus: ${quote(coverage.status)},`,
+		`\t\t\t\troutePath: ${quote(shell.routePath)},`,
+		`\t\t\t\tvisiblePath: ${quote(shell.visiblePath)},`,
+		`\t\t\t\trouteGroupPath: ${quote(shell.routeGroupPath)},`,
+		`\t\t\t\tcomponents: ${serializeStringArray(shell.components, '\t\t\t\t')},`,
+		`\t\t\t\tusesDataSelector: ${shell.usesDataSelector ? 'true' : 'false'},`,
+		`\t\t\t\tusesParams: ${shell.usesParams ? 'true' : 'false'},`,
+		`\t\t\t\tusesSelect: ${shell.usesSelect ? 'true' : 'false'},`,
+		`\t\t\t\tkind: ${quote(shell.kind)},`,
+		...(shell.viewComponent === undefined ? [] : [
+			`\t\t\t\tviewComponent: ${quote(shell.viewComponent)},`,
+		]),
+		...(shell.viewFile === undefined ? [] : [
+			`\t\t\t\tviewFile: ${quote(shell.viewFile)},`,
+		]),
+		...(shell.entityType === undefined ? [] : [
+			`\t\t\t\tentityType: ${quote(shell.entityType)},`,
+		]),
+		...(shell.scope === undefined ? [] : [
+			`\t\t\t\tscope: ${quote(shell.scope)},`,
+		]),
+		...(shell.derivedConstants === undefined ? [] : [
+			`\t\t\t\tderivedConstants: [`,
+			...shell.derivedConstants.flatMap((derivedConstant) => [
+				`\t\t\t\t\t{`,
+				`\t\t\t\t\t\tname: ${quote(derivedConstant.name)},`,
+				`\t\t\t\t\t\texpression: ${serializeText(derivedConstant.expression)},`,
+				`\t\t\t\t\t},`,
+			]),
+			`\t\t\t\t],`,
+		]),
+		...(shell.selectorExpression === undefined ? [] : [
+			`\t\t\t\tselectorExpression: ${serializeText(shell.selectorExpression)},`,
+		]),
+		...(shell.title === undefined ? [] : [
+			`\t\t\t\ttitle: ${quote(shell.title)},`,
+		]),
+		...(shell.viewTitle === undefined ? [] : [
+			`\t\t\t\tviewTitle: ${quote(shell.viewTitle)},`,
+		]),
+		...(shell.titleExpression === undefined ? [] : [
+			`\t\t\t\ttitleExpression: ${serializeText(shell.titleExpression)},`,
+		]),
+		...(shell.hrefExpression === undefined ? [] : [
+			`\t\t\t\threfExpression: ${serializeText(shell.hrefExpression)},`,
+		]),
+		...(shell.hrefWrapped === undefined ? [] : [
+			`\t\t\t\threfWrapped: true,`,
+		]),
+		...(shell.idExpression === undefined ? [] : [
+			`\t\t\t\tidExpression: ${serializeText(shell.idExpression)},`,
+		]),
+		...(shell.keyExpression === undefined ? [] : [
+			`\t\t\t\tkeyExpression: ${serializeText(shell.keyExpression)},`,
+		]),
+		...(shell.nestedParents === undefined ? [] : [
+			`\t\t\t\tnestedParents: [`,
+			...shell.nestedParents.flatMap((nestedParent) => [
+				`\t\t\t\t\t{`,
+				`\t\t\t\t\t\ttitle: ${quote(nestedParent.title)},`,
+				`\t\t\t\t\t\threfExpression: ${serializeText(nestedParent.hrefExpression)},`,
+				`\t\t\t\t\t\tidExpression: ${serializeText(nestedParent.idExpression)},`,
+				`\t\t\t\t\t},`,
+			]),
+			`\t\t\t\t],`,
+		]),
+		...(shell.childrenName === undefined ? [] : [
+			`\t\t\t\tchildrenName: ${quote(shell.childrenName)},`,
+		]),
+		...(shell.usesEip155NetworkSelectorFromCaip2 === undefined ? [] : [
+			`\t\t\t\tusesEip155NetworkSelectorFromCaip2: ${shell.usesEip155NetworkSelectorFromCaip2 ? 'true' : 'false'},`,
+		]),
+		...(shell.usesStringify === undefined ? [] : [
+			`\t\t\t\tusesStringify: ${shell.usesStringify ? 'true' : 'false'},`,
+		]),
+		...(shell.proposalLevel === undefined ? [] : [
+			`\t\t\t\tproposalLevel: ${quote(shell.proposalLevel)},`,
+		]),
+		...(shell.sourceText === undefined ? [] : [
+			`\t\t\t\tsourceText: ${serializeText(shell.sourceText)},`,
+		]),
+		`\t\t\t\tsourceFile: ${quote(shell.sourceFile)},`,
 		'\t\t\t},',
 	]),
 	'\t\t]',
 ].join('\n')
 
-const serializeProbes = (probes: readonly AppProbe[]) => [
-	'[',
-	...probes.flatMap((probe) => [
-		'\t\t\t{',
-		`\t\t\t\tpath: ${quote(probe.path)},`,
-		'\t\t\t},',
+const serializeResolverCoverage = (coverageRows: readonly AppResolverCoverage[]) => serializeTableRows(
+	'AppResolverCoverage',
+	[
+		'entity',
+		'source',
+		'status',
+	],
+	coverageRows.map((coverage) => [
+		quote(coverage.entity),
+		quote(coverage.source),
+		quote(coverage.status),
 	]),
-	'\t\t]',
-].join('\n')
+	'\t\t'
+)
+
+const serializeResolverCoverageLedger = (coverageRows: readonly AppResolverCoverageLedgerRow[]) => serializeTableRows(
+	'AppResolverCoverageLedgerRow',
+	[
+		'source',
+		'status',
+		'providerBinding',
+		'resolverFile',
+		'sourceRuntimeArtifacts',
+		'schemaEntitiesTouched',
+		'actionValidationRisk',
+	],
+	coverageRows.map((coverage) => [
+		quote(coverage.source),
+		quote(coverage.status),
+		quote(coverage.providerBinding),
+		quote(coverage.resolverFile),
+		quote(coverage.sourceRuntimeArtifacts),
+		quote(coverage.schemaEntitiesTouched),
+		quote(coverage.actionValidationRisk),
+	]),
+	'\t\t'
+)
+
+const serializeProbes = (probes: readonly AppProbe[]) => serializeTableRows(
+	'AppProbe',
+	[
+		'path',
+	],
+	probes.map((probe) => [
+		quote(probe.path),
+	]),
+	'\t\t'
+)
 
 const appTypesSource = `
 export type App = {
-\tdocs: {
-\t\tresolverCoverageMarkdown: string
-\t\tsourcesMarkdown: string
-\t}
 \tschema: {
 \t\tentities: AppSchemaEntity[]
 \t}
@@ -1540,9 +3241,13 @@ export type App = {
 \t}
 \tresolvers: {
 \t\tcoverage: AppResolverCoverage[]
+\t\tledger: AppResolverCoverageLedgerRow[]
 \t}
 \tviews: {
-\t\trenderers: AppViewRenderer[]
+\t\trenderers: {
+\t\t\tid: string
+\t\t\ttarget: string
+\t\t}[]
 \t\tentityViews: AppEntityView[]
 \t\tentityViewShells: AppEntityViewShell[]
 \t}
@@ -1554,12 +3259,15 @@ export type App = {
 \t\tloaderTransforms: AppRouteLoaderTransform[]
 \t\tpageShells: AppRoutePageShell[]
 \t\tsectionShells: AppRouteSectionShell[]
-\t\taliases: AppRouteAlias[]
+\t\taliases: {
+\t\t\tfrom: string
+\t\t\tto: string
+\t\t}[]
 \t}
 \tprobes: {
-\t\troutes: AppRouteProbe[]
-\t\tboundaries: AppBoundaryProbe[]
-\t\tcors: AppCorsProbe[]
+\t\troutes: AppProbe[]
+\t\tboundaries: AppProbe[]
+\t\tcors: AppProbe[]
 \t}
 }
 
@@ -1569,35 +3277,29 @@ type AppSchemaEntity = {
 \tlabelPlural?: string
 \tdescription?: string
 \tnotes?: string
-\tenums?: AppSchemaEnum[]
-\tselectors: AppSchemaSelector[]
-\tfields: AppSchemaField[]
+\tenums?: {
+\t\tname: string
+\t\tmembers: {
+\t\t\tname: string
+\t\t\tvalue: string
+\t\t}[]
+\t}[]
+\tselectors: {
+\t\tname: string
+\t\tfields: string[]
+\t\tmember?: string
+\t\tvalue?: string
+\t}[]
+\tfields: {
+\t\tname: string
+\t\ttype: string
+\t\tcardinality: string
+\t\tlabel?: string
+\t\tlabelPlural?: string
+\t\tdescription?: string
+\t}[]
 \tsourceBindings: string[]
 \tview?: string
-}
-
-type AppSchemaEnum = {
-\tname: string
-\tmembers: {
-\t\tname: string
-\t\tvalue: string
-\t}[]
-}
-
-type AppSchemaSelector = {
-\tname: string
-\tfields: string[]
-\tmember?: string
-\tvalue?: string
-}
-
-type AppSchemaField = {
-\tname: string
-\ttype: string
-\tcardinality: string
-\tlabel?: string
-\tlabelPlural?: string
-\tdescription?: string
 }
 
 type AppSourceProvider = {
@@ -1637,6 +3339,10 @@ type AppRuntimeSourceArtifact = {
 \tgenerated: boolean
 }
 
+type AppProbe = {
+\tpath: string
+}
+
 type AppResolverCoverage = {
 \tentity: string
 \tsource: string
@@ -1648,9 +3354,14 @@ type AppResolverCoverage = {
 \t\t| 'deferred-artifact'
 }
 
-type AppViewRenderer = {
-\tid: string
-\ttarget: string
+type AppResolverCoverageLedgerRow = {
+\tsource: string
+\tstatus: AppResolverCoverage['status']
+\tproviderBinding: string
+\tresolverFile: string
+\tsourceRuntimeArtifacts: string
+\tschemaEntitiesTouched: string
+\tactionValidationRisk: string
 }
 
 type AppEntityView = {
@@ -1665,7 +3376,7 @@ type AppEntityViewShell = {
 \tviewName: string
 \tfile: string
 \tcapabilities: string[]
-\tsourceText: string
+\tsourceText?: string
 \tsourceFile: string
 }
 
@@ -1735,27 +3446,159 @@ type AppRoutePageShell = {
 \tusesDataSelector: boolean
 \tusesParams: boolean
 \tusesSelect: boolean
-\tsourceText: string
+\tkind: 'global-collection' | 'global-source-collection' | 'data-selector-detail' | 'data-selector-simple-detail' | 'data-selector-child-collection' | 'param-id-detail' | 'param-selector-detail' | 'scope-detail' | 'direct-selector-detail' | 'derived-selector-detail' | 'linked-view' | 'simple-view' | 'catalog-param-detail' | 'global-hub-tabs' | 'eip155-network-collection' | 'evm-protocol-collection' | 'youtube-parent-collection' | 'social-network-child-collection' | 'decoded-parent-child-collection' | 'decoded-param-detail' | 'lens-account-detail' | 'proposal-selector-detail' | 'placeholder' | 'param-heading' | 'static-page' | 'custom'
+\tviewComponent?: string
+\tviewFile?: string
+\tentityType?: string
+\tparamName?: string
+\tselectorExpression?: string
+\tselectorImportStyle?: 'sectioned'
+\tselectorDeclaration?: string
+\trouteImports?: string[]
+\tfunctionImports?: string[]
+\tselectorGuard?: string
+\tinvalidText?: string
+\tinvalidOutsidePage?: boolean
+\tviewProps?: string[]
+\tderivedConstants?: {
+\t\tname: string
+\t\texpression: string
+\t}[]
+\timportEntitySelectorType?: boolean
+\timportEip155NetworkSelectorFromCaip2?: boolean
+\timportZeroExHex?: boolean
+\tzeroExHexImportSymbols?: string
+\tzeroExHexImportWithSchemaImports?: boolean
+\timportWith0xHex?: boolean
+\twith0xHexImportSection?: 'types' | 'functions'
+\ttypeConstantsAfterSchemaImports?: boolean
+\tparamsMultiline?: boolean
+\tcomponentIndentExtra?: boolean
+\texplicitClosingTag?: boolean
+\tscope?: string
+\threfExpression?: string
+\tchildField?: string
+\tcollectionEntityType?: string
+\tglobalScope?: string
+\tglobalField?: string
+\tglobalSourceField?: string
+\tglobalSourceSources?: string[]
+\tglobalSourceIndentExtra?: boolean
+\tglobalSourceOmitContextSection?: boolean
+\tid?: string
+\tlimit?: number
+\ttitle?: string
+\ttitleExpression?: string
+\theadTitle?: string
+\tsortMode?: string
+\tcatalogImports?: string[]
+\tcatalogParamType?: string
+\tcatalogRowsName?: string
+\tcatalogRowName?: string
+\tcatalogLookupName?: string
+\tcatalogLookupField?: string
+\tcatalogRouteKey?: string
+\tcatalogTitleExpression?: string
+\tcatalogNotFoundCondition?: string
+\tcatalogMissingText?: string
+\tcatalogUnknownText?: string
+\tcatalogNotFoundId?: string
+\tcatalogDetailId?: string
+\thubKey?: string
+\thubScope?: string
+\thubTitleExpression?: string
+\thubHref?: string
+\thubSections?: {
+\t\tid: string
+\t\tlabel: string
+\t\tviewComponent?: string
+\t\thref?: string
+\t\tglobalField?: string
+\t\tviewId?: string
+\t\tplaceholderText?: string
+\t}[]
+\tnetworkCollectionField?: string
+\tnetworkCollectionSources?: string[]
+\tnetworkCollectionCount?: boolean
+\tnetworkCollectionInlineSources?: boolean
+\tnetworkCollectionHrefAfterSelection?: boolean
+\tnetworkCollectionTightContextState?: boolean
+\tprotocolCollectionField?: string
+\tparentSelectorField?: string
+\tparentSelectorParam?: string
+\tparentSelectorTransform?: 'lowercase' | 'number'
+\tnetworkScope?: string
+\tplaceholderText?: string
+\tplaceholderMultiline?: boolean
+\tstaticWrapper?: 'section-column' | 'main-card'
+\tstaticTitle?: string
+\tstaticLinks?: {
+\t\tlabel: string
+\t\troute: string
+\t}[]
+\tproposalLevel?: 'realm' | 'kind' | 'proposal'
+\tcollapsible?: boolean
+\topen?: boolean
+\tstateComment?: string
+\tblankLineBeforeComponents?: boolean
+\tblankLineBeforePageClose?: boolean
+\tviewImportBeforePage?: boolean
+\tsources?: string[]
+\tsourceText?: string
 \tsourceFile: string
 }
 
-type AppRouteSectionShell = AppRoutePageShell
-
-type AppRouteAlias = {
-\tfrom: string
-\tto: string
-}
-
-type AppRouteProbe = {
-\tpath: string
-}
-
-type AppBoundaryProbe = {
-\tpath: string
-}
-
-type AppCorsProbe = {
-\tpath: string
+type AppRouteSectionShell = Omit<
+\tAppRoutePageShell,
+\t| 'kind'
+\t| 'viewComponent'
+\t| 'entityType'
+\t| 'paramName'
+\t| 'scope'
+\t| 'hrefExpression'
+\t| 'childField'
+\t| 'collectionEntityType'
+\t| 'globalScope'
+\t| 'globalField'
+\t| 'id'
+\t| 'limit'
+\t| 'title'
+\t| 'collapsible'
+\t| 'open'
+\t| 'stateComment'
+\t| 'blankLineBeforeComponents'
+\t| 'blankLineBeforePageClose'
+\t| 'viewImportBeforePage'
+\t| 'sources'
+\t| 'sourceText'
+> & {
+\tkind: 'app-shell' | 'parent-collapsible' | 'nested-parent-collapsible' | 'page-param-parent-collapsible' | 'param-summary-collapsible' | 'keyed-param-summary-collapsible' | 'scope-summary-collapsible' | 'page-param-summary-collapsible' | 'proposal-parent-collapsible' | 'passthrough' | 'custom'
+\tviewComponent?: string
+\tviewFile?: string
+\tentityType?: string
+\tscope?: string
+\tderivedConstants?: {
+\t\tname: string
+\t\texpression: string
+\t}[]
+\tselectorExpression?: string
+\ttitle?: string
+\tviewTitle?: string
+\ttitleExpression?: string
+\threfExpression?: string
+\threfWrapped?: boolean
+\tidExpression?: string
+\tkeyExpression?: string
+\tnestedParents?: {
+\t\ttitle: string
+\t\threfExpression: string
+\t\tidExpression: string
+\t}[]
+\tchildrenName?: string
+\tusesEip155NetworkSelectorFromCaip2?: boolean
+\tusesStringify?: boolean
+\tproposalLevel?: 'realm' | 'kind' | 'proposal'
+\tsourceText?: string
 }
 `.trim()
 
@@ -1790,17 +3633,21 @@ export const assembleApp = async () => {
 	const routePageShells = factsToRoutePageShells(facts, selectorRouteMappings)
 	const routeSectionShells = factsToRouteSectionShells(facts)
 	const resolverCoverage = factsToResolverCoverage(facts)
+	const resolverCoverageLedger = factsToResolverCoverageLedger(facts)
 	const routeProbes = factsToProbes(facts, 'route')
 	const boundaryProbes = factsToProbes(facts, 'boundary')
 	const corsProbes = factsToProbes(facts, 'cors')
 
 	writeText('APP.ts', [
-		'export const APP = {',
-		'\tdocs: {',
-		`\t\tresolverCoverageMarkdown: ${serializeText(readText('RESOLVER-COVERAGE.md'))},`,
-		`\t\tsourcesMarkdown: ${serializeText(readText('SOURCES.md'))},`,
-		'\t},',
+		serializeStringEnum('AppEntityType', entities.map((entity) => entity.name)),
 		'',
+		serializeStringEnum('AppSourceProvider', providers.map((provider) => provider.id)),
+		'',
+		serializeStringEnum('AppSource', sources.map((source) => source.id)),
+		'',
+		serializeStringEnum('AppSourceBinding', bindings.map((binding) => binding.id)),
+		'',
+		'export const APP = {',
 		'\tschema: {',
 		`\t\tentities: ${serializeAppEntities(entities)},`,
 		'\t},',
@@ -1813,8 +3660,9 @@ export const assembleApp = async () => {
 		`\t\truntimeArtifacts: ${serializeRuntimeSourceArtifacts(runtimeArtifacts)},`,
 		'\t},',
 		'',
-		'\tresolvers: {',
+	'\tresolvers: {',
 		`\t\tcoverage: ${serializeResolverCoverage(resolverCoverage)},`,
+		`\t\tledger: ${serializeResolverCoverageLedger(resolverCoverageLedger)},`,
 		'\t},',
 		'',
 	'\tviews: {',
@@ -1830,7 +3678,7 @@ export const assembleApp = async () => {
 		`\t\thubCollections: ${serializeHubCollectionRoutes(hubCollectionRoutes)},`,
 		`\t\tloaderTransforms: ${serializeRouteLoaderTransforms(routeLoaderTransforms)},`,
 		`\t\tpageShells: ${serializeRouteSvelteShells(routePageShells)},`,
-		`\t\tsectionShells: ${serializeRouteSvelteShells(routeSectionShells)},`,
+		`\t\tsectionShells: ${serializeRouteSectionShells(routeSectionShells)},`,
 		'\t\taliases: [],',
 		'\t},',
 		'',

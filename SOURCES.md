@@ -1,110 +1,193 @@
-# Blockhead Mock Sources
+# Blockhead Sources
+
+This file is generated from `APP.ts` source provider, source, binding, runtime binding, and artifact rows.
+
+## Source Bindings
 
 ```ts
 export enum SourceBinding {
-	Across_Rest = 'Across_Rest',
-	Algod_Rest = 'Algod_Rest',
-	AlgorandIndexer_Rest = 'AlgorandIndexer_Rest',
-	AlgorandWallet_WalletApi = 'AlgorandWallet_WalletApi',
-	Allium_Rest = 'Allium_Rest',
-	Amboss_Graphql = 'Amboss_Graphql',
-	A2aService_Http = 'A2aService_Http',
 	A2aWellKnown_Http = 'A2aWellKnown_Http',
-	AcpLocal_JsonRpc = 'AcpLocal_JsonRpc',
 	AcpRegistry_Rest = 'AcpRegistry_Rest',
-	Anthropic_Rest = 'Anthropic_Rest',
-	AwsBedrock_Rest = 'AwsBedrock_Rest',
-	AzureAiFoundry_Rest = 'AzureAiFoundry_Rest',
+	Allium_Rest = 'Allium_Rest',
+	BitcoinBips_Github = 'BitcoinBips_Github',
+	BitcoinCashChips_Gitlab = 'BitcoinCashChips_Gitlab',
+	Caips_Github = 'Caips_Github',
+	Chainlist_Rest = 'Chainlist_Rest',
 	Cohere_Rest = 'Cohere_Rest',
+	CoinMarketCap_Rest = 'CoinMarketCap_Rest',
+	Coingecko_OpenApi = 'Coingecko_OpenApi',
+	Coingecko_Rest = 'Coingecko_Rest',
+	Coinpaprika_OpenApi = 'Coinpaprika_OpenApi',
+	Constants_Internal = 'Constants_Internal',
+	CosmosAdrs_Github = 'CosmosAdrs_Github',
 	CroissantDocument_Local = 'CroissantDocument_Local',
 	CycloneDxDocument_Local = 'CycloneDxDocument_Local',
-	GoogleAi_Rest = 'GoogleAi_Rest',
-	HuggingFaceHub_Rest = 'HuggingFaceHub_Rest',
-	McpConfigured_Protocol = 'McpConfigured_Protocol',
+	Defillama_OpenApi = 'Defillama_OpenApi',
+	Dexscreener_OpenApi = 'Dexscreener_OpenApi',
+	DogecoinDips_Github = 'DogecoinDips_Github',
+	Dune_Rest = 'Dune_Rest',
+	Ensips_Github = 'Ensips_Github',
+	EthereumEips_Github = 'EthereumEips_Github',
+	EthereumLists_Rest = 'EthereumLists_Rest',
+	FilecoinFips_Github = 'FilecoinFips_Github',
+	LitecoinLips_Github = 'LitecoinLips_Github',
+	Local_Internal = 'Local_Internal',
 	McpPackageRegistry_Rest = 'McpPackageRegistry_Rest',
 	MistralAi_Rest = 'MistralAi_Rest',
 	Mlflow_Rest = 'Mlflow_Rest',
+	NearNeps_Github = 'NearNeps_Github',
 	OciRegistry_Distribution = 'OciRegistry_Distribution',
 	OnnxArtifact_Local = 'OnnxArtifact_Local',
 	OpenAI_Rest = 'OpenAI_Rest',
+	PolkadotRfcs_Github = 'PolkadotRfcs_Github',
+	SolanaSimds_Github = 'SolanaSimds_Github',
 	SpdxDocument_Local = 'SpdxDocument_Local',
+	TradingView_Rest = 'TradingView_Rest',
 	X402_Http = 'X402_Http',
-	AptosAip62_WalletApi = 'AptosAip62_WalletApi',
-	AptosFullnode_Rest = 'AptosFullnode_Rest',
-	AptosIndexer_Graphql = 'AptosIndexer_Graphql',
+	ZcashZips_Github = 'ZcashZips_Github',
+	Fedi_Rest = 'Fedi_Rest',
+	Mastodon_Rest = 'Mastodon_Rest',
 	Arweave_Graphql = 'Arweave_Graphql',
 	Arweave_Rest = 'Arweave_Rest',
+	AtprotoSync_Xrpc = 'AtprotoSync_Xrpc',
 	Atproto_BskySocial_Xrpc = 'Atproto_BskySocial_Xrpc',
 	Atproto_Xrpc = 'Atproto_Xrpc',
-	AtprotoSync_Xrpc = 'AtprotoSync_Xrpc',
-	Avail_JsonRpc = 'Avail_JsonRpc',
+	Blockscout_Rest = 'Blockscout_Rest',
+	Etherscan_Rest = 'Etherscan_Rest',
+	TheGraph_Graphql = 'TheGraph_Graphql',
+	Voltaire_JsonRpc = 'Voltaire_JsonRpc',
+	Openchain_Rest = 'Openchain_Rest',
+	Farcaster_Rest = 'Farcaster_Rest',
+	Neynar_Rest = 'Neynar_Rest',
+	Snapchain_Rest = 'Snapchain_Rest',
+	Ipfs_Rest = 'Ipfs_Rest',
+	Lens_Graphql = 'Lens_Graphql',
+	NostrBand_Rest = 'NostrBand_Rest',
+	NostrRelay_Nip11_Http = 'NostrRelay_Nip11_Http',
+	NostrRelay_WebSocket = 'NostrRelay_WebSocket',
+	Primal_Rest = 'Primal_Rest',
+	Reddit_PublicJson = 'Reddit_PublicJson',
+	Reddit_Rest = 'Reddit_Rest',
+	Rss2Json_Rest = 'Rss2Json_Rest',
+	Rss_Rest = 'Rss_Rest',
+	Swarm_Rest = 'Swarm_Rest',
+	X_FxEmbed_Rest = 'X_FxEmbed_Rest',
+	X_Rest = 'X_Rest',
+	Piped_Rest = 'Piped_Rest',
+	Youtube_Rest = 'Youtube_Rest',
+	CosmosSdk_Rest = 'CosmosSdk_Rest',
+	Hyperliquid_JsonRpc = 'Hyperliquid_JsonRpc',
+	NearRpc_JsonRpc = 'NearRpc_JsonRpc',
+	QuilibriumNode_Grpc = 'QuilibriumNode_Grpc',
+	Solana_JsonRpc = 'Solana_JsonRpc',
+	SubstrateSidecar_Rest = 'SubstrateSidecar_Rest',
+	TronGrid_Rest = 'TronGrid_Rest',
+	TronScan_Rest = 'TronScan_Rest',
+	Algod_Rest = 'Algod_Rest',
+	AlgorandIndexer_Rest = 'AlgorandIndexer_Rest',
+	Nodely_Algod_Rest = 'Nodely_Algod_Rest',
+	Nodely_AlgorandIndexer_Rest = 'Nodely_AlgorandIndexer_Rest',
+	AptosFullnode_Rest = 'AptosFullnode_Rest',
+	AptosIndexer_Graphql = 'AptosIndexer_Graphql',
+	CardanoBlockfrost_Rest = 'CardanoBlockfrost_Rest',
+	CardanoKoios_Rest = 'CardanoKoios_Rest',
+	HederaMirrorNode_Rest = 'HederaMirrorNode_Rest',
+	Helius_Rest = 'Helius_Rest',
+	MetaplexDAS_Rest = 'MetaplexDAS_Rest',
+	Polkadot_JsonRpc = 'Polkadot_JsonRpc',
+	StellarHorizon_Rest = 'StellarHorizon_Rest',
+	Sui_Graphql = 'Sui_Graphql',
+	Sui_Grpc = 'Sui_Grpc',
+	Sui_JsonRpc = 'Sui_JsonRpc',
+	TezosDappetizer_Postgres = 'TezosDappetizer_Postgres',
+	TezosNode_Rpc = 'TezosNode_Rpc',
+	Xrpl_Rippled = 'Xrpl_Rippled',
+	CosmosChainRegistry_Github = 'CosmosChainRegistry_Github',
+	TrustWalletAssets_Github = 'TrustWalletAssets_Github',
+	MetadataVision_Rest = 'MetadataVision_Rest',
 	AvailExplorer_Rest = 'AvailExplorer_Rest',
+	Avail_JsonRpc = 'Avail_JsonRpc',
+	L2Beat_Rest = 'L2Beat_Rest',
 	AvalancheInfo_JsonRpc = 'AvalancheInfo_JsonRpc',
 	AvalanchePlatformVm_JsonRpc = 'AvalanchePlatformVm_JsonRpc',
 	Avascan_Rest = 'Avascan_Rest',
-	Axelarscan_Rest = 'Axelarscan_Rest',
 	Beacon_Rest = 'Beacon_Rest',
 	BeaconchaIn_Rest = 'BeaconchaIn_Rest',
-	BetterCallDev_Rest = 'BetterCallDev_Rest',
-	BigDipper_Rest = 'BigDipper_Rest',
-	BinanceChainApi_Rest = 'BinanceChainApi_Rest',
-	BinanceChainExplorer_Rest = 'BinanceChainExplorer_Rest',
-	BitcoinBips_Github = 'BitcoinBips_Github',
 	BitcoinCashBcmr_Github = 'BitcoinCashBcmr_Github',
-	BitcoinCashChips_Gitlab = 'BitcoinCashChips_Gitlab',
 	BitcoinCashNode_JsonRpc = 'BitcoinCashNode_JsonRpc',
-	BitcoinCore_JsonRpc = 'BitcoinCore_JsonRpc',
-	Bithomp_Rest = 'Bithomp_Rest',
 	Bittensor_JsonRpc = 'Bittensor_JsonRpc',
 	BitTorrent_HttpTracker = 'BitTorrent_HttpTracker',
-	BitTorrent_MainlineDht = 'BitTorrent_MainlineDht',
-	BitTorrent_MetadataExchange = 'BitTorrent_MetadataExchange',
-	BitTorrent_PeerWire = 'BitTorrent_PeerWire',
 	BitTorrent_UdpTracker = 'BitTorrent_UdpTracker',
+	TransmissionRpc_JsonRpc = 'TransmissionRpc_JsonRpc',
+	WebTorrent_Tracker = 'WebTorrent_Tracker',
+	qBittorrentWebUi_Rest = 'qBittorrentWebUi_Rest',
+	BitTorrent_MainlineDht = 'BitTorrent_MainlineDht',
+	WebTorrent_Dht = 'WebTorrent_Dht',
 	BitTorrentMetainfo_File = 'BitTorrentMetainfo_File',
-	Blobscan_Rest = 'Blobscan_Rest',
-	Blockchair_Rest = 'Blockchair_Rest',
-	Blockfrost_Rest = 'Blockfrost_Rest',
-	Blockscout_Rest = 'Blockscout_Rest',
+	BitTorrent_MetadataExchange = 'BitTorrent_MetadataExchange',
+	WebTorrent_Client = 'WebTorrent_Client',
+	BitTorrent_PeerWire = 'BitTorrent_PeerWire',
+	MagnetUri_Uri = 'MagnetUri_Uri',
+	LibtorrentSession_Rest = 'LibtorrentSession_Rest',
+	CashuMint_Rest = 'CashuMint_Rest',
+	CodexNetworkPresets_Github = 'CodexNetworkPresets_Github',
+	CodexNode_Rest = 'CodexNode_Rest',
+	FedimintClient_Rpc = 'FedimintClient_Rpc',
+	Lotus_JsonRpc = 'Lotus_JsonRpc',
+	KaspaNode_Grpc = 'KaspaNode_Grpc',
+	KaspaNode_Wrpc = 'KaspaNode_Wrpc',
+	LightningLnd_Grpc = 'LightningLnd_Grpc',
+	LightningLnd_Rest = 'LightningLnd_Rest',
+	LitecoinCore_JsonRpc = 'LitecoinCore_JsonRpc',
+	LitecoinWalletRpc_JsonRpc = 'LitecoinWalletRpc_JsonRpc',
+	LogosBlockchainNode_Rest = 'LogosBlockchainNode_Rest',
+	MoneroWalletRpc_JsonRpc = 'MoneroWalletRpc_JsonRpc',
+	PayjoinDirectory_Rest = 'PayjoinDirectory_Rest',
+	PayjoinOhttpRelay_Http = 'PayjoinOhttpRelay_Http',
+	PayjoinReceiver_Http = 'PayjoinReceiver_Http',
+	QuilibriumNodeMetrics_Prometheus = 'QuilibriumNodeMetrics_Prometheus',
+	RadicleCli_Local = 'RadicleCli_Local',
+	RadicleNode_Control = 'RadicleNode_Control',
+	Radicle_Remote = 'Radicle_Remote',
+	Nitro_ClientStore = 'Nitro_ClientStore',
+	Nitro_NodeRpc = 'Nitro_NodeRpc',
+	WakuNode_Rest = 'WakuNode_Rest',
+	WalletConnect_SignClient = 'WalletConnect_SignClient',
+	WalletStandard_WalletApi = 'WalletStandard_WalletApi',
+	Xmtp_BrowserSdk = 'Xmtp_BrowserSdk',
+	Xmtp_NodeSdk = 'Xmtp_NodeSdk',
+	ZcashClientBackend_Local = 'ZcashClientBackend_Local',
+	ZcashLightwalletd_Grpc = 'ZcashLightwalletd_Grpc',
+	ZcashdWallet_JsonRpc = 'ZcashdWallet_JsonRpc',
+	ZeroGStorageNode_JsonRpc = 'ZeroGStorageNode_JsonRpc',
+	BinanceChainApi_Rest = 'BinanceChainApi_Rest',
+	BinanceChainExplorer_Rest = 'BinanceChainExplorer_Rest',
 	BnbBeaconArchive_Rest = 'BnbBeaconArchive_Rest',
 	BnbChainFusion_Rest = 'BnbChainFusion_Rest',
-	CaipNamespaces_Github = 'CaipNamespaces_Github',
-	Caips_Github = 'Caips_Github',
-	CardanoBlockfrost_Rest = 'CardanoBlockfrost_Rest',
-	CardanoCip30_WalletApi = 'CardanoCip30_WalletApi',
+	Lifi_Rest = 'Lifi_Rest',
+	Across_Rest = 'Across_Rest',
+	Axelarscan_Rest = 'Axelarscan_Rest',
+	LayerZeroScan_Rest = 'LayerZeroScan_Rest',
+	LifiStatus_Rest = 'LifiStatus_Rest',
+	Wormholescan_Rest = 'Wormholescan_Rest',
+	Blockfrost_Rest = 'Blockfrost_Rest',
 	CardanoDbSync_Postgres = 'CardanoDbSync_Postgres',
-	CardanoKoios_Rest = 'CardanoKoios_Rest',
+	Koios_Rest = 'Koios_Rest',
+	Ogmios_JsonRpc = 'Ogmios_JsonRpc',
 	CardanoNode_LocalStateQuery = 'CardanoNode_LocalStateQuery',
 	Cardanoscan_Rest = 'Cardanoscan_Rest',
-	CashuMint_Rest = 'CashuMint_Rest',
-	Celenium_Rest = 'Celenium_Rest',
-	Celestia_JsonRpc = 'Celestia_JsonRpc',
-	ChainlinkDataFeeds_AddressCatalog = 'ChainlinkDataFeeds_AddressCatalog',
-	ChainlinkDataFeeds_Contracts = 'ChainlinkDataFeeds_Contracts',
-	Chainlist_Rest = 'Chainlist_Rest',
 	CircleCctp_IrisApi = 'CircleCctp_IrisApi',
 	CircleCctpContracts_Evm = 'CircleCctpContracts_Evm',
 	CircleCctpContracts_Solana = 'CircleCctpContracts_Solana',
 	CircleCctpContracts_Stellar = 'CircleCctpContracts_Stellar',
-	CodexNetworkPresets_Github = 'CodexNetworkPresets_Github',
-	CodexNode_Rest = 'CodexNode_Rest',
-	Coingecko_OpenApi = 'Coingecko_OpenApi',
-	Coingecko_Rest = 'Coingecko_Rest',
-	CoinMarketCap_Rest = 'CoinMarketCap_Rest',
-	Coinpaprika_OpenApi = 'Coinpaprika_OpenApi',
+	Celenium_Rest = 'Celenium_Rest',
+	Celestia_JsonRpc = 'Celestia_JsonRpc',
 	CometBft_Rest = 'CometBft_Rest',
-	Conseil_Postgres = 'Conseil_Postgres',
-	Constants_Internal = 'Constants_Internal',
-	CosmosAdrs_Github = 'CosmosAdrs_Github',
-	CosmosChainRegistry_Github = 'CosmosChainRegistry_Github',
-	CosmosSdk_Rest = 'CosmosSdk_Rest',
+	Sourcify_Rest = 'Sourcify_Rest',
+	BigDipper_Rest = 'BigDipper_Rest',
+	Mintscan_Rest = 'Mintscan_Rest',
 	CronosExplorer_Rest = 'CronosExplorer_Rest',
-	Defillama_OpenApi = 'Defillama_OpenApi',
-	Defillama_Rest = 'Defillama_Rest',
-	Dexscreener_OpenApi = 'Dexscreener_OpenApi',
 	DogecoinCore_JsonRpc = 'DogecoinCore_JsonRpc',
-	DogecoinDips_Github = 'DogecoinDips_Github',
-	Dune_Rest = 'Dune_Rest',
 	DydxIndexer_Rest = 'DydxIndexer_Rest',
 	DydxValidator_Rest = 'DydxValidator_Rest',
 	EasContracts_Evm = 'EasContracts_Evm',
@@ -112,1505 +195,4438 @@ export enum SourceBinding {
 	EigenExplorer_Rest = 'EigenExplorer_Rest',
 	EigenLayerContracts_Evm = 'EigenLayerContracts_Evm',
 	EigenLayerSubgraph_Graphql = 'EigenLayerSubgraph_Graphql',
-	Ensips_Github = 'Ensips_Github',
-	EnsMetadataService_Rest = 'EnsMetadataService_Rest',
 	Erigon_JsonRpc = 'Erigon_JsonRpc',
+	Reth_JsonRpc = 'Reth_JsonRpc',
 	Esplora_Rest = 'Esplora_Rest',
-	EthereumEips_Github = 'EthereumEips_Github',
-	EthereumLists_Rest = 'EthereumLists_Rest',
-	EthereumSpecs_Github = 'EthereumSpecs_Github',
-	Etherscan_Rest = 'Etherscan_Rest',
-	Eip8004Scan_Rest = 'Eip8004Scan_Rest',
+	EnsMetadataService_Rest = 'EnsMetadataService_Rest',
 	EthForks_Rest = 'EthForks_Rest',
-	Farcaster_Rest = 'Farcaster_Rest',
-	Fedi_Rest = 'Fedi_Rest',
-	FedimintClient_Rpc = 'FedimintClient_Rpc',
+	EthereumSpecs_Github = 'EthereumSpecs_Github',
+	Blobscan_Rest = 'Blobscan_Rest',
+	ZeroGChain_JsonRpc = 'ZeroGChain_JsonRpc',
+	MevRelay_Rest = 'MevRelay_Rest',
+	Superchain_Github = 'Superchain_Github',
 	FedimintGatewayd_Rest = 'FedimintGatewayd_Rest',
-	FilecoinFips_Github = 'FilecoinFips_Github',
 	Filfox_Rest = 'Filfox_Rest',
-	ForgejoIssues_Rest = 'ForgejoIssues_Rest',
-	ForgejoPulls_Rest = 'ForgejoPulls_Rest',
-	ForgejoReleases_Rest = 'ForgejoReleases_Rest',
-	ForgejoRepos_Rest = 'ForgejoRepos_Rest',
-	Freighter_WalletApi = 'Freighter_WalletApi',
 	Git_Local = 'Git_Local',
 	Git_Remote = 'Git_Remote',
 	Github_Git = 'Github_Git',
-	Github_Rest = 'Github_Rest',
 	Gitlab_Rest = 'Gitlab_Rest',
-	HashConnect_WalletApi = 'HashConnect_WalletApi',
-	HederaMirrorNode_Rest = 'HederaMirrorNode_Rest',
+	ForgejoIssues_Rest = 'ForgejoIssues_Rest',
+	Github_Rest = 'Github_Rest',
+	GoogleAi_Rest = 'GoogleAi_Rest',
+	HuggingFaceHub_Rest = 'HuggingFaceHub_Rest',
+	ForgejoRepos_Rest = 'ForgejoRepos_Rest',
+	ForgejoPulls_Rest = 'ForgejoPulls_Rest',
+	ForgejoReleases_Rest = 'ForgejoReleases_Rest',
+	SigstoreRekor_Rest = 'SigstoreRekor_Rest',
 	HederaSdk_Grpc = 'HederaSdk_Grpc',
-	HederaWalletConnect_SignClient = 'HederaWalletConnect_SignClient',
-	Helius_Rest = 'Helius_Rest',
-	HyperliquidDocs_Rest = 'HyperliquidDocs_Rest',
-	Hyperliquid_JsonRpc = 'Hyperliquid_JsonRpc',
 	Hyperliquid_Rest = 'Hyperliquid_Rest',
+	Osmosis_LCD_Rest = 'Osmosis_LCD_Rest',
 	IcDashboard_Canister = 'IcDashboard_Canister',
 	InternetComputer_Canister = 'InternetComputer_Canister',
 	InternetComputer_Http = 'InternetComputer_Http',
 	InternetComputer_RosettaApi = 'InternetComputer_RosettaApi',
-	InternetComputer_WalletApi = 'InternetComputer_WalletApi',
-	InternetIdentity_Delegation = 'InternetIdentity_Delegation',
-	Ipfs_Rest = 'Ipfs_Rest',
-	Juno_JsonRpc = 'Juno_JsonRpc',
-	Kabila_WalletConnect = 'Kabila_WalletConnect',
 	KaspaExplorer_Rest = 'KaspaExplorer_Rest',
-	KaspaNode_Grpc = 'KaspaNode_Grpc',
 	KaspaNode_Rest = 'KaspaNode_Rest',
-	KaspaNode_Wrpc = 'KaspaNode_Wrpc',
-	KaspaWalletCli_WalletApi = 'KaspaWalletCli_WalletApi',
-	KaspaWalletSdk_WalletApi = 'KaspaWalletSdk_WalletApi',
-	KaswareWallet_WalletApi = 'KaswareWallet_WalletApi',
-	Keplr_WalletApi = 'Keplr_WalletApi',
-	Koios_Rest = 'Koios_Rest',
-	L2Beat_Rest = 'L2Beat_Rest',
-	LayerZeroScan_Rest = 'LayerZeroScan_Rest',
-	Leap_WalletApi = 'Leap_WalletApi',
-	LedgerFilecoin_WalletApi = 'LedgerFilecoin_WalletApi',
-	Lens_Graphql = 'Lens_Graphql',
-	LibtorrentSession_Rest = 'LibtorrentSession_Rest',
-	Lifi_Rest = 'Lifi_Rest',
-	LifiStatus_Rest = 'LifiStatus_Rest',
-	LightningLnd_Grpc = 'LightningLnd_Grpc',
-	LightningLnd_Rest = 'LightningLnd_Rest',
+	Amboss_Graphql = 'Amboss_Graphql',
 	LightningMempoolSpace_Rest = 'LightningMempoolSpace_Rest',
-	LitecoinCore_JsonRpc = 'LitecoinCore_JsonRpc',
-	LitecoinLips_Github = 'LitecoinLips_Github',
-	LitecoinWalletRpc_JsonRpc = 'LitecoinWalletRpc_JsonRpc',
-	Local_Internal = 'Local_Internal',
-	LogosBlockchainNode_Rest = 'LogosBlockchainNode_Rest',
-	LogosDocs_Rest = 'LogosDocs_Rest',
-	Lotus_JsonRpc = 'Lotus_JsonRpc',
-	Magic_HederaWalletApi = 'Magic_HederaWalletApi',
-	MagnetUri_Uri = 'MagnetUri_Uri',
-	Martian_WalletApi = 'Martian_WalletApi',
-	Mastodon_Rest = 'Mastodon_Rest',
-	MempoolSpace_Rest = 'MempoolSpace_Rest',
-	MetadataVision_Rest = 'MetadataVision_Rest',
-	MetaplexDAS_Rest = 'MetaplexDAS_Rest',
-	MevRelay_Rest = 'MevRelay_Rest',
-	Mintscan_Rest = 'Mintscan_Rest',
+	Defillama_Rest = 'Defillama_Rest',
 	MoneroDaemonRpc_JsonRpc = 'MoneroDaemonRpc_JsonRpc',
-	MoneroWalletRpc_JsonRpc = 'MoneroWalletRpc_JsonRpc',
+	ThreeXpl_Rest = 'ThreeXpl_Rest',
 	NearBlocks_Rest = 'NearBlocks_Rest',
-	NearConnect_WalletApi = 'NearConnect_WalletApi',
-	NearNeps_Github = 'NearNeps_Github',
-	NearRpc_JsonRpc = 'NearRpc_JsonRpc',
-	NearWalletSelector_WalletApi = 'NearWalletSelector_WalletApi',
-	Neynar_Rest = 'Neynar_Rest',
-	Nfid_WalletApi = 'Nfid_WalletApi',
-	Nitro_ClientStore = 'Nitro_ClientStore',
-	Nitro_NodeRpc = 'Nitro_NodeRpc',
-	Nodely_Algod_Rest = 'Nodely_Algod_Rest',
-	Nodely_AlgorandIndexer_Rest = 'Nodely_AlgorandIndexer_Rest',
-	NostrBand_Rest = 'NostrBand_Rest',
-	NostrRelay_Nip11_Http = 'NostrRelay_Nip11_Http',
-	NostrRelay_WebSocket = 'NostrRelay_WebSocket',
-	Ogmios_JsonRpc = 'Ogmios_JsonRpc',
-	OneInchSwap_Rest = 'OneInchSwap_Rest',
-	Openchain_Rest = 'Openchain_Rest',
+	BitcoinCore_JsonRpc = 'BitcoinCore_JsonRpc',
+	MempoolSpace_Rest = 'MempoolSpace_Rest',
 	OpenSea_Rest = 'OpenSea_Rest',
-	Osmosis_LCD_Rest = 'Osmosis_LCD_Rest',
-	Paraswap_Rest = 'Paraswap_Rest',
-	Pathfinder_JsonRpc = 'Pathfinder_JsonRpc',
-	PayjoinDirectory_Rest = 'PayjoinDirectory_Rest',
-	PayjoinOhttpRelay_Http = 'PayjoinOhttpRelay_Http',
-	PayjoinReceiver_Http = 'PayjoinReceiver_Http',
-	Petra_WalletApi = 'Petra_WalletApi',
-	Piped_Rest = 'Piped_Rest',
-	PlugWallet_WalletApi = 'PlugWallet_WalletApi',
-	Polkadot_JsonRpc = 'Polkadot_JsonRpc',
-	PolkadotInjectedWeb3_WalletApi = 'PolkadotInjectedWeb3_WalletApi',
-	PolkadotRfcs_Github = 'PolkadotRfcs_Github',
-	Pontem_WalletApi = 'Pontem_WalletApi',
-	Primal_Rest = 'Primal_Rest',
-	Pyth_EvmContract = 'Pyth_EvmContract',
-	Pyth_SolanaProgram = 'Pyth_SolanaProgram',
+	Reservoir_Rest = 'Reservoir_Rest',
+	ChainlinkDataFeeds_AddressCatalog = 'ChainlinkDataFeeds_AddressCatalog',
+	ChainlinkDataFeeds_Contracts = 'ChainlinkDataFeeds_Contracts',
+	Subscan_Rest = 'Subscan_Rest',
 	PythBenchmarks_Rest = 'PythBenchmarks_Rest',
 	PythHermes_Rest = 'PythHermes_Rest',
 	PythPriceFeedsCatalog_Rest = 'PythPriceFeedsCatalog_Rest',
-	qBittorrentWebUi_Rest = 'qBittorrentWebUi_Rest',
-	QuilibriumDocs_Rest = 'QuilibriumDocs_Rest',
-	QuilibriumNode_Grpc = 'QuilibriumNode_Grpc',
-	QuilibriumNodeRpc_Grpc = 'QuilibriumNodeRpc_Grpc',
-	QuilibriumNodeMetrics_Prometheus = 'QuilibriumNodeMetrics_Prometheus',
+	Pyth_EvmContract = 'Pyth_EvmContract',
+	Pyth_SolanaProgram = 'Pyth_SolanaProgram',
 	Radicle_Local = 'Radicle_Local',
-	Radicle_Remote = 'Radicle_Remote',
-	RadicleCli_Local = 'RadicleCli_Local',
-	RadicleNode_Control = 'RadicleNode_Control',
-	Reddit_PublicJson = 'Reddit_PublicJson',
-	Reddit_Rest = 'Reddit_Rest',
-	Reservoir_Rest = 'Reservoir_Rest',
-	Reth_JsonRpc = 'Reth_JsonRpc',
-	Rss_Rest = 'Rss_Rest',
-	Rss2Json_Rest = 'Rss2Json_Rest',
-	SigstoreRekor_Rest = 'SigstoreRekor_Rest',
-	Snapchain_Rest = 'Snapchain_Rest',
-	Solana_JsonRpc = 'Solana_JsonRpc',
-	SolanaMobileWalletAdapter_WalletApi = 'SolanaMobileWalletAdapter_WalletApi',
-	SolanaSimds_Github = 'SolanaSimds_Github',
-	Sourcify_Rest = 'Sourcify_Rest',
+	StellarExpert_Rest = 'StellarExpert_Rest',
+	StellarRpc_JsonRpc = 'StellarRpc_JsonRpc',
+	HyperliquidDocs_Rest = 'HyperliquidDocs_Rest',
+	QuilibriumDocs_Rest = 'QuilibriumDocs_Rest',
+	Juno_JsonRpc = 'Juno_JsonRpc',
+	Pathfinder_JsonRpc = 'Pathfinder_JsonRpc',
 	Starknet_JsonRpc = 'Starknet_JsonRpc',
 	Starkscan_Rest = 'Starkscan_Rest',
-	StellarExpert_Rest = 'StellarExpert_Rest',
-	StellarHorizon_Rest = 'StellarHorizon_Rest',
-	StellarRpc_JsonRpc = 'StellarRpc_JsonRpc',
+	Voyager_Rest = 'Voyager_Rest',
 	StellarToml_Rest = 'StellarToml_Rest',
-	StoicWallet_WalletApi = 'StoicWallet_WalletApi',
-	Subscan_Rest = 'Subscan_Rest',
-	SubstrateSidecar_Rest = 'SubstrateSidecar_Rest',
-	Sui_Graphql = 'Sui_Graphql',
-	Sui_Grpc = 'Sui_Grpc',
-	Sui_JsonRpc = 'Sui_JsonRpc',
-	Superchain_Github = 'Superchain_Github',
-	Swarm_Rest = 'Swarm_Rest',
-	TezosDappetizer_Postgres = 'TezosDappetizer_Postgres',
-	TezosNode_Rpc = 'TezosNode_Rpc',
-	TheGraph_Graphql = 'TheGraph_Graphql',
-	ThreeXpl_Rest = 'ThreeXpl_Rest',
+	OneInchSwap_Rest = 'OneInchSwap_Rest',
+	Paraswap_Rest = 'Paraswap_Rest',
+	ZeroExSwap_Rest = 'ZeroExSwap_Rest',
+	BetterCallDev_Rest = 'BetterCallDev_Rest',
+	Conseil_Postgres = 'Conseil_Postgres',
+	Tzkt_Rest = 'Tzkt_Rest',
 	TonApi_Rest = 'TonApi_Rest',
 	TonCenter_V2_Rest = 'TonCenter_V2_Rest',
 	TonCenter_V3_Rest = 'TonCenter_V3_Rest',
-	TonConnect_WalletApi = 'TonConnect_WalletApi',
-	Tonlib_JsonRpc = 'Tonlib_JsonRpc',
 	TonLiteServer_Adnl = 'TonLiteServer_Adnl',
+	Tonlib_JsonRpc = 'Tonlib_JsonRpc',
 	TonVerifier_Rest = 'TonVerifier_Rest',
-	TradingView_Rest = 'TradingView_Rest',
-	TransmissionRpc_JsonRpc = 'TransmissionRpc_JsonRpc',
 	TronFullNode_Rest = 'TronFullNode_Rest',
-	TronGrid_Rest = 'TronGrid_Rest',
-	TronLink_WalletApi = 'TronLink_WalletApi',
-	TronScan_Rest = 'TronScan_Rest',
 	TronSolidityNode_Rest = 'TronSolidityNode_Rest',
-	TronTip1193_WalletApi = 'TronTip1193_WalletApi',
-	TronTip6963_WalletApi = 'TronTip6963_WalletApi',
-	TrustWalletAssets_Github = 'TrustWalletAssets_Github',
-	Tzkt_Rest = 'Tzkt_Rest',
-	Voltaire_JsonRpc = 'Voltaire_JsonRpc',
-	Voyager_Rest = 'Voyager_Rest',
-	WakuNode_Rest = 'WakuNode_Rest',
-	WalletConnect_SignClient = 'WalletConnect_SignClient',
-	WalletStandard_WalletApi = 'WalletStandard_WalletApi',
-	WebTorrent_Client = 'WebTorrent_Client',
-	WebTorrent_Dht = 'WebTorrent_Dht',
-	WebTorrent_Tracker = 'WebTorrent_Tracker',
-	Wormholescan_Rest = 'Wormholescan_Rest',
-	X_FxEmbed_Rest = 'X_FxEmbed_Rest',
-	X_Rest = 'X_Rest',
-	Xaman_Api = 'Xaman_Api',
-	Xmtp_BrowserSdk = 'Xmtp_BrowserSdk',
-	Xmtp_NodeSdk = 'Xmtp_NodeSdk',
-	Xrpl_Rippled = 'Xrpl_Rippled',
-	XrplClio_JsonRpc = 'XrplClio_JsonRpc',
-	XrpScan_Rest = 'XrpScan_Rest',
-	Youtube_Rest = 'Youtube_Rest',
-	ZcashClientBackend_Local = 'ZcashClientBackend_Local',
+	Blockchair_Rest = 'Blockchair_Rest',
 	Zcashd_JsonRpc = 'Zcashd_JsonRpc',
-	ZcashdWallet_JsonRpc = 'ZcashdWallet_JsonRpc',
-	ZcashLightwalletd_Grpc = 'ZcashLightwalletd_Grpc',
-	ZcashZips_Github = 'ZcashZips_Github',
-	Zebra_JsonRpc = 'Zebra_JsonRpc',
-	ZeroExSwap_Rest = 'ZeroExSwap_Rest',
-	ZeroGChain_JsonRpc = 'ZeroGChain_JsonRpc',
+	Bithomp_Rest = 'Bithomp_Rest',
+	XrpScan_Rest = 'XrpScan_Rest',
+	XrplClio_JsonRpc = 'XrplClio_JsonRpc',
 	ZeroGChainScan_Rest = 'ZeroGChainScan_Rest',
-	ZeroGStorageNode_JsonRpc = 'ZeroGStorageNode_JsonRpc',
 	ZeroGStorageScan_Rest = 'ZeroGStorageScan_Rest',
+	Anthropic_Rest = 'Anthropic_Rest',
+	AwsBedrock_Rest = 'AwsBedrock_Rest',
+	AzureAiFoundry_Rest = 'AzureAiFoundry_Rest',
+	Eip8004Scan_Rest = 'Eip8004Scan_Rest',
+	AcpLocal_JsonRpc = 'AcpLocal_JsonRpc',
+	A2aService_Http = 'A2aService_Http',
+	McpConfigured_Protocol = 'McpConfigured_Protocol',
 }
-
-export const sourceBindings = {
-	[SourceBinding.Across_Rest]: { provider: SourceProvider.Across, source: Source.Across_Rest, target: { kind: SourceTargetKind.Global, key: 'bridge-route-api' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.AcrossApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Algod_Rest]: { provider: SourceProvider.Algod, source: Source.Algod_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'algorand' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.AlgodApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.AlgorandIndexer_Rest]: { provider: SourceProvider.AlgorandIndexer, source: Source.AlgorandIndexer_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'algorand' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.AlgorandIndexerApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.AlgorandWallet_WalletApi]: { provider: SourceProvider.AlgorandWallet, source: Source.AlgorandWallet_WalletApi, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.Allium_Rest]: { provider: SourceProvider.Allium, source: Source.Allium_Rest, target: { kind: SourceTargetKind.SqlDataset, key: 'allium-dataset' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-query-api' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.AlliumQueryApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Amboss_Graphql]: { provider: SourceProvider.Amboss, source: Source.Amboss_Graphql, target: { kind: SourceTargetKind.Global, key: 'lightning-node-directory' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.Graphql, apiFamily: ApiFamily.GraphqlHttp, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }], artifacts: [{ kind: SourceArtifactKind.GraphqlSchema, path: '$source-artifact', generated: false }, { kind: SourceArtifactKind.GraphqlTypes, path: '$source-artifact', generated: false }] },
-	[SourceBinding.AptosAip62_WalletApi]: { provider: SourceProvider.AptosAip62, source: Source.AptosAip62_WalletApi, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.AptosFullnode_Rest]: { provider: SourceProvider.AptosFullnode, source: Source.AptosFullnode_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'aptos' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.AptosFullnodeApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.AptosIndexer_Graphql]: { provider: SourceProvider.AptosIndexer, source: Source.AptosIndexer_Graphql, target: { kind: SourceTargetKind.Caip2Network, key: 'aptos' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.Graphql, apiFamily: ApiFamily.GraphqlHttp, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }], artifacts: [{ kind: SourceArtifactKind.GraphqlSchema, path: '$source-artifact', generated: false }, { kind: SourceArtifactKind.GraphqlTypes, path: '$source-artifact', generated: false }] },
-	[SourceBinding.Arweave_Graphql]: { provider: SourceProvider.Arweave, source: Source.Arweave_Graphql, target: { kind: SourceTargetKind.ContentAddressScheme, key: 'arweave' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-graphql' }], wireProtocol: WireProtocol.Graphql, apiFamily: ApiFamily.GraphqlHttp, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }], artifacts: [{ kind: SourceArtifactKind.GraphqlSchema, path: '$source-artifact', generated: false }, { kind: SourceArtifactKind.GraphqlTypes, path: '$source-artifact', generated: false }] },
-	[SourceBinding.Arweave_Rest]: { provider: SourceProvider.Arweave, source: Source.Arweave_Rest, target: { kind: SourceTargetKind.ContentAddressScheme, key: 'arweave' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-gateway' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.ArweaveGateway, operationGroups: [SourceOperationGroup.ContentGatewayRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Atproto_BskySocial_Xrpc]: { provider: SourceProvider.AtprotoBskySocial, source: Source.Atproto_BskySocial_Xrpc, target: { kind: SourceTargetKind.Feed, key: 'atproto' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.Xrpc, apiFamily: ApiFamily.AtprotoXrpc, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Atproto_Xrpc]: { provider: SourceProvider.AtprotoBsky, source: Source.Atproto_Xrpc, target: { kind: SourceTargetKind.Feed, key: 'atproto' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.Xrpc, apiFamily: ApiFamily.AtprotoXrpc, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.AtprotoSync_Xrpc]: { provider: SourceProvider.AtprotoSync, source: Source.AtprotoSync_Xrpc, target: { kind: SourceTargetKind.Feed, key: 'atproto-repo-sync' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-pds-or-relay-xrpc' }, { endpointKind: SourceEndpointKind.WebSocketUrl, locator: 'configured-pds-or-relay-firehose' }], wireProtocol: WireProtocol.Xrpc, apiFamily: ApiFamily.AtprotoXrpc, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.ServerOnly, credentials: [{ scope: SourceCredentialScope.None }], artifacts: [{ kind: SourceArtifactKind.JsonSchema, path: 'lexicons/com/atproto/sync/*.json', generated: false }] },
-	[SourceBinding.Avail_JsonRpc]: { provider: SourceProvider.Avail, source: Source.Avail_JsonRpc, target: { kind: SourceTargetKind.Caip2Network, key: 'avail' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.SubstrateJsonRpc, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.AvailExplorer_Rest]: { provider: SourceProvider.AvailExplorer, source: Source.AvailExplorer_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'avail' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.AvailExplorerApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.AvalancheInfo_JsonRpc]: { provider: SourceProvider.AvalancheInfo, source: Source.AvalancheInfo_JsonRpc, target: { kind: SourceTargetKind.Caip2Network, key: 'avalanche-p-chain' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.JsonRpcApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.AvalanchePlatformVm_JsonRpc]: { provider: SourceProvider.AvalanchePlatformVm, source: Source.AvalanchePlatformVm_JsonRpc, target: { kind: SourceTargetKind.Caip2Network, key: 'avalanche-p-chain' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.JsonRpcApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Avascan_Rest]: { provider: SourceProvider.Avascan, source: Source.Avascan_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'avalanche' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.AvascanApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Axelarscan_Rest]: { provider: SourceProvider.Axelarscan, source: Source.Axelarscan_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'axelar' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.AxelarscanApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Beacon_Rest]: { provider: SourceProvider.Beacon, source: Source.Beacon_Rest, target: { kind: SourceTargetKind.Eip155Chain, key: 'configured-chain' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.EthereumBeaconRestApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.BeaconchaIn_Rest]: { provider: SourceProvider.BeaconchaIn, source: Source.BeaconchaIn_Rest, target: { kind: SourceTargetKind.Eip155Chain, key: 'configured-chain' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.BeaconchaInApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.BetterCallDev_Rest]: { provider: SourceProvider.BetterCallDev, source: Source.BetterCallDev_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'tezos' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.BetterCallDevApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.BigDipper_Rest]: { provider: SourceProvider.BigDipper, source: Source.BigDipper_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'cosmos' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.BigDipperApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.BinanceChainApi_Rest]: { provider: SourceProvider.BinanceChainApi, source: Source.BinanceChainApi_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'bnb-beacon-chain' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.BinanceChainApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.BinanceChainExplorer_Rest]: { provider: SourceProvider.BinanceChainExplorer, source: Source.BinanceChainExplorer_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'bnb-beacon-chain' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.BinanceChainExplorerApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.BitcoinBips_Github]: { provider: SourceProvider.BitcoinBips, source: Source.BitcoinBips_Github, target: { kind: SourceTargetKind.GitRepository, key: 'configured-repository' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'github-api-and-raw' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.GithubContentsApi, operationGroups: [SourceOperationGroup.GithubRepositoryContents], delivery: SourceDelivery.BrowserDirect, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.BitcoinCashBcmr_Github]: { provider: SourceProvider.BitcoinCashBcmr, source: Source.BitcoinCashBcmr_Github, target: { kind: SourceTargetKind.GitRepository, key: 'configured-repository' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'github-api-and-raw' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.GithubContentsApi, operationGroups: [SourceOperationGroup.GithubRepositoryContents], delivery: SourceDelivery.BrowserDirect, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.BitcoinCashChips_Gitlab]: { provider: SourceProvider.BitcoinCashChips, source: Source.BitcoinCashChips_Gitlab, target: { kind: SourceTargetKind.GitRepository, key: 'configured-repository' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'gitlab-api-and-raw' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.GitlabRest, operationGroups: [SourceOperationGroup.GithubRepositoryContents], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.BitcoinCashNode_JsonRpc]: { provider: SourceProvider.BitcoinCashNode, source: Source.BitcoinCashNode_JsonRpc, target: { kind: SourceTargetKind.Caip2Network, key: 'bitcoin-cash' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.JsonRpcApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.BitcoinCore_JsonRpc]: { provider: SourceProvider.BitcoinCore, source: Source.BitcoinCore_JsonRpc, target: { kind: SourceTargetKind.Caip2Network, key: 'bitcoin' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.JsonRpcApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Bithomp_Rest]: { provider: SourceProvider.Bithomp, source: Source.Bithomp_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'xrpl' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.BithompApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Bittensor_JsonRpc]: { provider: SourceProvider.Bittensor, source: Source.Bittensor_JsonRpc, target: { kind: SourceTargetKind.Caip2Network, key: 'bittensor' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.JsonRpcApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.BitTorrent_HttpTracker]: { provider: SourceProvider.BitTorrent, source: Source.BitTorrent_HttpTracker, target: { kind: SourceTargetKind.TorrentSwarm, key: 'configured-infohash' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-tracker' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.BitTorrentTracker, operationGroups: [SourceOperationGroup.BitTorrentAnnounce], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.BitTorrent_MainlineDht]: { provider: SourceProvider.BitTorrent, source: Source.BitTorrent_MainlineDht, target: { kind: SourceTargetKind.TorrentSwarm, key: 'configured-infohash' }, endpoints: [{ endpointKind: SourceEndpointKind.UdpAddress, locator: 'configured-dht-bootstrap' }], wireProtocol: WireProtocol.Bencode, apiFamily: ApiFamily.BitTorrentDht, operationGroups: [SourceOperationGroup.BitTorrentDhtLookup], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.BitTorrent_MetadataExchange]: { provider: SourceProvider.BitTorrent, source: Source.BitTorrent_MetadataExchange, target: { kind: SourceTargetKind.TorrentSwarm, key: 'configured-infohash' }, endpoints: [{ endpointKind: SourceEndpointKind.TcpAddress, locator: 'configured-peer' }], wireProtocol: WireProtocol.Bencode, apiFamily: ApiFamily.BitTorrent_MetadataExchange, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.BitTorrent_PeerWire]: { provider: SourceProvider.BitTorrent, source: Source.BitTorrent_PeerWire, target: { kind: SourceTargetKind.TorrentSwarm, key: 'configured-infohash' }, endpoints: [{ endpointKind: SourceEndpointKind.TcpAddress, locator: 'configured-peer' }], wireProtocol: WireProtocol.Bencode, apiFamily: ApiFamily.BitTorrent_PeerWire, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.BitTorrent_UdpTracker]: { provider: SourceProvider.BitTorrent, source: Source.BitTorrent_UdpTracker, target: { kind: SourceTargetKind.TorrentSwarm, key: 'configured-infohash' }, endpoints: [{ endpointKind: SourceEndpointKind.UdpAddress, locator: 'configured-tracker' }], wireProtocol: WireProtocol.Bencode, apiFamily: ApiFamily.BitTorrentTracker, operationGroups: [SourceOperationGroup.BitTorrentAnnounce], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.BitTorrentMetainfo_File]: { provider: SourceProvider.BitTorrent, source: Source.BitTorrentMetainfo_File, target: { kind: SourceTargetKind.TorrentSwarm, key: 'configured-infohash' }, endpoints: [{ endpointKind: SourceEndpointKind.LocalFilePath, locator: 'configured-torrent-file' }], wireProtocol: WireProtocol.Bencode, apiFamily: ApiFamily.BitTorrentMetainfo, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Blobscan_Rest]: { provider: SourceProvider.Blobscan, source: Source.Blobscan_Rest, target: { kind: SourceTargetKind.Eip155Chain, key: 'configured-chain' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.BlobscanApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Blockchair_Rest]: { provider: SourceProvider.Blockchair, source: Source.Blockchair_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'configured-network' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.BlockchairApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Blockfrost_Rest]: { provider: SourceProvider.Blockfrost, source: Source.Blockfrost_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'cardano' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.BlockfrostApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Blockscout_Rest]: { provider: SourceProvider.Blockscout, source: Source.Blockscout_Rest, target: { kind: SourceTargetKind.Eip155Chain, key: 'configured-chain' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.BlockscoutApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.BnbBeaconArchive_Rest]: { provider: SourceProvider.BnbBeaconArchive, source: Source.BnbBeaconArchive_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'bnb-beacon-chain' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.BnbBeaconArchiveApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.BnbChainFusion_Rest]: { provider: SourceProvider.BnbChainFusion, source: Source.BnbChainFusion_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'bnb-beacon-chain' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.BnbChainFusionApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.CaipNamespaces_Github]: { provider: SourceProvider.Caips, source: Source.CaipNamespaces_Github, target: { kind: SourceTargetKind.GitRepository, key: 'ChainAgnostic/namespaces@main:namespaces' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'github-api-and-raw' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.GithubContentsApi, operationGroups: [SourceOperationGroup.GithubRepositoryContents], delivery: SourceDelivery.BrowserDirect, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Caips_Github]: { provider: SourceProvider.Caips, source: Source.Caips_Github, target: { kind: SourceTargetKind.GitRepository, key: 'configured-repository' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'github-api-and-raw' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.GithubContentsApi, operationGroups: [SourceOperationGroup.GithubRepositoryContents], delivery: SourceDelivery.BrowserDirect, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.CardanoBlockfrost_Rest]: { provider: SourceProvider.CardanoBlockfrost, source: Source.CardanoBlockfrost_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'cardano' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.BlockfrostApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.CardanoCip30_WalletApi]: { provider: SourceProvider.CardanoCip30, source: Source.CardanoCip30_WalletApi, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.CardanoDbSync_Postgres]: { provider: SourceProvider.CardanoDbSync, source: Source.CardanoDbSync_Postgres, target: { kind: SourceTargetKind.SqlDataset, key: 'configured-dataset' }, endpoints: [{ endpointKind: SourceEndpointKind.PostgresDsn, locator: 'configured-postgres-dsn' }], wireProtocol: WireProtocol.Sql, apiFamily: ApiFamily.Postgres, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.ServerOnly, credentials: [{ scope: SourceCredentialScope.RuntimeSecret }] },
-	[SourceBinding.CardanoKoios_Rest]: { provider: SourceProvider.CardanoKoios, source: Source.CardanoKoios_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'cardano' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.KoiosApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.CardanoNode_LocalStateQuery]: { provider: SourceProvider.CardanoNode, source: Source.CardanoNode_LocalStateQuery, target: { kind: SourceTargetKind.LocalDevice, key: 'configured-cardano-node' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.CardanoLocalStateQuery, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.ServerOnly, credentials: [{ scope: SourceCredentialScope.LocalSecret }] },
-	[SourceBinding.Cardanoscan_Rest]: { provider: SourceProvider.Cardanoscan, source: Source.Cardanoscan_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'cardano' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.CardanoscanApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.CashuMint_Rest]: { provider: SourceProvider.Cashu, source: Source.CashuMint_Rest, target: { kind: SourceTargetKind.Global, key: 'configured-cashu-mint' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.CashuNutHttpApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Celenium_Rest]: { provider: SourceProvider.Celenium, source: Source.Celenium_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'celestia' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.CeleniumApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Celestia_JsonRpc]: { provider: SourceProvider.Celestia, source: Source.Celestia_JsonRpc, target: { kind: SourceTargetKind.Caip2Network, key: 'celestia' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.CelestiaNodeJsonRpc, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.ChainlinkDataFeeds_AddressCatalog]: { provider: SourceProvider.ChainlinkDataFeeds, source: Source.ChainlinkDataFeeds_AddressCatalog, target: { kind: SourceTargetKind.Eip155Chain, key: 'configured-chain' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.ChainlinkDataFeedsAddressCatalog, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.ChainlinkDataFeeds_Contracts]: { provider: SourceProvider.ChainlinkDataFeeds, source: Source.ChainlinkDataFeeds_Contracts, target: { kind: SourceTargetKind.Eip155Chain, key: 'configured-chain' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.ChainlinkDataFeedsContracts, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Chainlist_Rest]: { provider: SourceProvider.Chainlist, source: Source.Chainlist_Rest, target: { kind: SourceTargetKind.Global, key: 'network-catalog' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.ChainlistApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.CircleCctp_IrisApi]: { provider: SourceProvider.CircleCctp, source: Source.CircleCctp_IrisApi, target: { kind: SourceTargetKind.Global, key: 'cctp-iris-api' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.CircleIrisApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.CircleCctpContracts_Evm]: { provider: SourceProvider.CircleCctp, source: Source.CircleCctpContracts_Evm, target: { kind: SourceTargetKind.Eip155Chain, key: 'configured-chain' }, endpoints: [{ endpointKind: SourceEndpointKind.InProcess, locator: 'contract-catalog' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.EvmExecutionJsonRpc, operationGroups: [SourceOperationGroup.EvmRpcCore], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.CircleCctpContracts_Solana]: { provider: SourceProvider.CircleCctp, source: Source.CircleCctpContracts_Solana, target: { kind: SourceTargetKind.Caip2Network, key: 'solana' }, endpoints: [{ endpointKind: SourceEndpointKind.InProcess, locator: 'program-catalog' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.SolanaJsonRpc, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.CircleCctpContracts_Stellar]: { provider: SourceProvider.CircleCctp, source: Source.CircleCctpContracts_Stellar, target: { kind: SourceTargetKind.Caip2Network, key: 'stellar' }, endpoints: [{ endpointKind: SourceEndpointKind.InProcess, locator: 'contract-catalog' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.StellarHorizonOrRpc, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.CodexNetworkPresets_Github]: { provider: SourceProvider.CodexNetworkPresets, source: Source.CodexNetworkPresets_Github, target: { kind: SourceTargetKind.GitRepository, key: 'configured-repository' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'github-api-and-raw' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.GithubContentsApi, operationGroups: [SourceOperationGroup.GithubRepositoryContents], delivery: SourceDelivery.BrowserDirect, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.CodexNode_Rest]: { provider: SourceProvider.CodexNode, source: Source.CodexNode_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'codex' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.CodexNodeApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Coingecko_OpenApi]: { provider: SourceProvider.Coingecko, source: Source.Coingecko_OpenApi, target: { kind: SourceTargetKind.Global, key: 'market-data' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.OpenApiHttp, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }], artifacts: [{ kind: SourceArtifactKind.OpenApiSpec, path: '$source-artifact', generated: false }, { kind: SourceArtifactKind.OpenApiTypes, path: '$source-artifact', generated: false }] },
-	[SourceBinding.Coingecko_Rest]: { provider: SourceProvider.Coingecko, source: Source.Coingecko_Rest, target: { kind: SourceTargetKind.Global, key: 'market-data' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.CoingeckoApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.CoinMarketCap_Rest]: { provider: SourceProvider.CoinMarketCap, source: Source.CoinMarketCap_Rest, target: { kind: SourceTargetKind.Global, key: 'market-data' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.CoinMarketCapApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Coinpaprika_OpenApi]: { provider: SourceProvider.Coinpaprika, source: Source.Coinpaprika_OpenApi, target: { kind: SourceTargetKind.Global, key: 'market-data' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.OpenApiHttp, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }], artifacts: [{ kind: SourceArtifactKind.OpenApiSpec, path: '$source-artifact', generated: false }, { kind: SourceArtifactKind.OpenApiTypes, path: '$source-artifact', generated: false }] },
-	[SourceBinding.CometBft_Rest]: { provider: SourceProvider.CometBft, source: Source.CometBft_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'cosmos' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.CometBftRestApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Conseil_Postgres]: { provider: SourceProvider.Conseil, source: Source.Conseil_Postgres, target: { kind: SourceTargetKind.SqlDataset, key: 'configured-dataset' }, endpoints: [{ endpointKind: SourceEndpointKind.PostgresDsn, locator: 'configured-postgres-dsn' }], wireProtocol: WireProtocol.Sql, apiFamily: ApiFamily.Postgres, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.ServerOnly, credentials: [{ scope: SourceCredentialScope.RuntimeSecret }] },
-	[SourceBinding.Constants_Internal]: { provider: SourceProvider._Constants, source: Source.Constants_Internal, target: { kind: SourceTargetKind.Global, key: 'checked-in-catalog' }, endpoints: [{ endpointKind: SourceEndpointKind.InProcess, locator: 'src/constants/**' }], wireProtocol: WireProtocol.InProcess, apiFamily: ApiFamily.CatalogRows, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.BrowserDirect, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.CosmosAdrs_Github]: { provider: SourceProvider.CosmosAdrs, source: Source.CosmosAdrs_Github, target: { kind: SourceTargetKind.GitRepository, key: 'configured-repository' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'github-api-and-raw' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.GithubContentsApi, operationGroups: [SourceOperationGroup.GithubRepositoryContents], delivery: SourceDelivery.BrowserDirect, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.CosmosChainRegistry_Github]: { provider: SourceProvider.CosmosChainRegistry, source: Source.CosmosChainRegistry_Github, target: { kind: SourceTargetKind.GitRepository, key: 'configured-repository' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'github-api-and-raw' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.GithubContentsApi, operationGroups: [SourceOperationGroup.GithubRepositoryContents], delivery: SourceDelivery.BrowserDirect, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.CosmosSdk_Rest]: { provider: SourceProvider.CosmosSdk, source: Source.CosmosSdk_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'cosmos' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.CosmosSdkRest, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.CronosExplorer_Rest]: { provider: SourceProvider.CronosExplorer, source: Source.CronosExplorer_Rest, target: { kind: SourceTargetKind.Eip155Chain, key: 'configured-chain' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.CronosExplorerApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Defillama_OpenApi]: { provider: SourceProvider.Defillama, source: Source.Defillama_OpenApi, target: { kind: SourceTargetKind.Global, key: 'defi-market-data' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.OpenApiHttp, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }], artifacts: [{ kind: SourceArtifactKind.OpenApiSpec, path: '$source-artifact', generated: false }, { kind: SourceArtifactKind.OpenApiTypes, path: '$source-artifact', generated: false }] },
-	[SourceBinding.Defillama_Rest]: { provider: SourceProvider.Defillama, source: Source.Defillama_Rest, target: { kind: SourceTargetKind.Global, key: 'defi-market-data' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.DefillamaApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Dexscreener_OpenApi]: { provider: SourceProvider.Dexscreener, source: Source.Dexscreener_OpenApi, target: { kind: SourceTargetKind.Global, key: 'dex-market-data' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.OpenApiHttp, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }], artifacts: [{ kind: SourceArtifactKind.OpenApiSpec, path: '$source-artifact', generated: false }, { kind: SourceArtifactKind.OpenApiTypes, path: '$source-artifact', generated: false }] },
-	[SourceBinding.DogecoinCore_JsonRpc]: { provider: SourceProvider.DogecoinCore, source: Source.DogecoinCore_JsonRpc, target: { kind: SourceTargetKind.Caip2Network, key: 'dogecoin' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.JsonRpcApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.DogecoinDips_Github]: { provider: SourceProvider.DogecoinDips, source: Source.DogecoinDips_Github, target: { kind: SourceTargetKind.GitRepository, key: 'configured-repository' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'github-api-and-raw' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.GithubContentsApi, operationGroups: [SourceOperationGroup.GithubRepositoryContents], delivery: SourceDelivery.BrowserDirect, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Dune_Rest]: { provider: SourceProvider.Dune, source: Source.Dune_Rest, target: { kind: SourceTargetKind.SqlDataset, key: 'dune-dataset' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-query-api' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.DuneApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.DydxIndexer_Rest]: { provider: SourceProvider.Dydx, source: Source.DydxIndexer_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'dydx-chain' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.DydxIndexerRest, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.DydxValidator_Rest]: { provider: SourceProvider.Dydx, source: Source.DydxValidator_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'dydx-chain' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.CosmosSdkRest, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.EasContracts_Evm]: { provider: SourceProvider.Eas, source: Source.EasContracts_Evm, target: { kind: SourceTargetKind.Eip155Chain, key: 'configured-chain' }, endpoints: [{ endpointKind: SourceEndpointKind.InProcess, locator: 'contract-catalog' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.EvmExecutionJsonRpc, operationGroups: [SourceOperationGroup.EvmRpcCore], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.EasScan_Graphql]: { provider: SourceProvider.Eas, source: Source.EasScan_Graphql, target: { kind: SourceTargetKind.Eip155Chain, key: 'configured-chain' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.Graphql, apiFamily: ApiFamily.GraphqlHttp, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }], artifacts: [{ kind: SourceArtifactKind.GraphqlSchema, path: '$source-artifact', generated: false }, { kind: SourceArtifactKind.GraphqlTypes, path: '$source-artifact', generated: false }] },
-	[SourceBinding.EigenExplorer_Rest]: { provider: SourceProvider.EigenExplorer, source: Source.EigenExplorer_Rest, target: { kind: SourceTargetKind.Eip155Chain, key: 'eigenlayer' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.EigenExplorerApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.EigenLayerContracts_Evm]: { provider: SourceProvider.EigenLayer, source: Source.EigenLayerContracts_Evm, target: { kind: SourceTargetKind.Eip155Chain, key: 'configured-chain' }, endpoints: [{ endpointKind: SourceEndpointKind.InProcess, locator: 'contract-catalog' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.EvmExecutionJsonRpc, operationGroups: [SourceOperationGroup.EvmRpcCore], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.EigenLayerSubgraph_Graphql]: { provider: SourceProvider.EigenLayer, source: Source.EigenLayerSubgraph_Graphql, target: { kind: SourceTargetKind.Eip155Chain, key: 'eigenlayer' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-subgraph' }], wireProtocol: WireProtocol.Graphql, apiFamily: ApiFamily.GraphqlHttp, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }], artifacts: [{ kind: SourceArtifactKind.GraphqlSchema, path: '$source-artifact', generated: false }, { kind: SourceArtifactKind.GraphqlTypes, path: '$source-artifact', generated: false }] },
-	[SourceBinding.Ensips_Github]: { provider: SourceProvider.Ensips, source: Source.Ensips_Github, target: { kind: SourceTargetKind.GitRepository, key: 'configured-repository' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'github-api-and-raw' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.GithubContentsApi, operationGroups: [SourceOperationGroup.GithubRepositoryContents], delivery: SourceDelivery.BrowserDirect, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.EnsMetadataService_Rest]: { provider: SourceProvider.EnsMetadataService, source: Source.EnsMetadataService_Rest, target: { kind: SourceTargetKind.Eip155Chain, key: 'configured-chain' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.EnsMetadataServiceApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Erigon_JsonRpc]: { provider: SourceProvider.Erigon, source: Source.Erigon_JsonRpc, target: { kind: SourceTargetKind.Eip155Chain, key: 'configured-chain' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.EvmExecutionJsonRpc, operationGroups: [SourceOperationGroup.EvmRpcCore, SourceOperationGroup.EvmRpcTrace, SourceOperationGroup.EvmRpcTxpool], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Esplora_Rest]: { provider: SourceProvider.Esplora, source: Source.Esplora_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'utxo-network' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.EsploraApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.EthereumEips_Github]: { provider: SourceProvider.EthereumEips, source: Source.EthereumEips_Github, target: { kind: SourceTargetKind.GitRepository, key: 'configured-repository' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'github-api-and-raw' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.GithubContentsApi, operationGroups: [SourceOperationGroup.GithubRepositoryContents], delivery: SourceDelivery.BrowserDirect, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.EthereumLists_Rest]: { provider: SourceProvider.EthereumLists, source: Source.EthereumLists_Rest, target: { kind: SourceTargetKind.Global, key: 'asset-network-catalog' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.EthereumListsApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.EthereumSpecs_Github]: { provider: SourceProvider.EthereumSpecs, source: Source.EthereumSpecs_Github, target: { kind: SourceTargetKind.GitRepository, key: 'configured-repository' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'github-api-and-raw' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.GithubContentsApi, operationGroups: [SourceOperationGroup.GithubRepositoryContents], delivery: SourceDelivery.BrowserDirect, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Etherscan_Rest]: { provider: SourceProvider.Etherscan, source: Source.Etherscan_Rest, target: { kind: SourceTargetKind.Eip155Chain, key: 'configured-chain' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.EtherscanApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.EthForks_Rest]: { provider: SourceProvider.EthForks, source: Source.EthForks_Rest, target: { kind: SourceTargetKind.Eip155Chain, key: 'configured-chain' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.EthForksApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Farcaster_Rest]: { provider: SourceProvider.Farcaster, source: Source.Farcaster_Rest, target: { kind: SourceTargetKind.Feed, key: 'farcaster' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.FarcasterHubHttpApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Fedi_Rest]: { provider: SourceProvider.Fedi, source: Source.Fedi_Rest, target: { kind: SourceTargetKind.Feed, key: 'activitypub' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.FediApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.FedimintClient_Rpc]: { provider: SourceProvider.FedimintClient, source: Source.FedimintClient_Rpc, target: { kind: SourceTargetKind.LocalDevice, key: 'configured-fedimint-client' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.JsonRpcApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.LocalSecret }] },
-	[SourceBinding.FedimintGatewayd_Rest]: { provider: SourceProvider.FedimintGatewayd, source: Source.FedimintGatewayd_Rest, target: { kind: SourceTargetKind.LocalDevice, key: 'configured-fedimint-gatewayd' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.FedimintGatewaydApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.ServerOnly, credentials: [{ scope: SourceCredentialScope.LocalSecret }] },
-	[SourceBinding.FilecoinFips_Github]: { provider: SourceProvider.FilecoinFips, source: Source.FilecoinFips_Github, target: { kind: SourceTargetKind.GitRepository, key: 'configured-repository' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'github-api-and-raw' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.GithubContentsApi, operationGroups: [SourceOperationGroup.GithubRepositoryContents], delivery: SourceDelivery.BrowserDirect, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Filfox_Rest]: { provider: SourceProvider.Filfox, source: Source.Filfox_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'filecoin' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.FilfoxApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.ForgejoIssues_Rest]: { provider: SourceProvider.Forgejo, source: Source.ForgejoIssues_Rest, target: { kind: SourceTargetKind.GitRepository, key: 'configured-repository' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.ForgejoIssuesApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.ForgejoPulls_Rest]: { provider: SourceProvider.Forgejo, source: Source.ForgejoPulls_Rest, target: { kind: SourceTargetKind.GitRepository, key: 'configured-repository' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.ForgejoPullsApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.ForgejoReleases_Rest]: { provider: SourceProvider.Forgejo, source: Source.ForgejoReleases_Rest, target: { kind: SourceTargetKind.GitRepository, key: 'configured-repository' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.ForgejoReleasesApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.ForgejoRepos_Rest]: { provider: SourceProvider.Forgejo, source: Source.ForgejoRepos_Rest, target: { kind: SourceTargetKind.GitRepository, key: 'configured-repository' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.ForgejoReposApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Freighter_WalletApi]: { provider: SourceProvider.Freighter, source: Source.Freighter_WalletApi, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.Git_Local]: { provider: SourceProvider.Git, source: Source.Git_Local, target: { kind: SourceTargetKind.LocalDevice, key: 'workspace' }, endpoints: [{ endpointKind: SourceEndpointKind.LocalFilePath, locator: 'configured-local-path' }], wireProtocol: WireProtocol.LocalFiles, apiFamily: ApiFamily.LocalState, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.LocalSecret }] },
-	[SourceBinding.Git_Remote]: { provider: SourceProvider.Git, source: Source.Git_Remote, target: { kind: SourceTargetKind.GitRepository, key: 'configured-repository' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.GitRemote, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Github_Git]: { provider: SourceProvider.Github, source: Source.Github_Git, target: { kind: SourceTargetKind.GitRepository, key: 'configured-repository' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'github-api-and-raw' }], wireProtocol: WireProtocol.Git, apiFamily: ApiFamily.GitObject, operationGroups: [SourceOperationGroup.GitObject], delivery: SourceDelivery.BrowserDirect, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Github_Rest]: { provider: SourceProvider.Github, source: Source.Github_Rest, target: { kind: SourceTargetKind.GitRepository, key: 'configured-repository' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'github-api-and-raw' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.GithubContentsApi, operationGroups: [SourceOperationGroup.GithubRepositoryContents], delivery: SourceDelivery.BrowserDirect, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Gitlab_Rest]: { provider: SourceProvider.Gitlab, source: Source.Gitlab_Rest, target: { kind: SourceTargetKind.GitRepository, key: 'configured-repository' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'gitlab-api-and-raw' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.GitlabRest, operationGroups: [SourceOperationGroup.GithubRepositoryContents], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.HashConnect_WalletApi]: { provider: SourceProvider.HashConnect, source: Source.HashConnect_WalletApi, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.HederaMirrorNode_Rest]: { provider: SourceProvider.HederaMirrorNode, source: Source.HederaMirrorNode_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'hedera' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.HederaMirrorNodeApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.HederaSdk_Grpc]: { provider: SourceProvider.HederaSdk, source: Source.HederaSdk_Grpc, target: { kind: SourceTargetKind.Caip2Network, key: 'hedera' }, endpoints: [{ endpointKind: SourceEndpointKind.TcpAddress, locator: 'configured-grpc-endpoint' }], wireProtocol: WireProtocol.Grpc, apiFamily: ApiFamily.GrpcService, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.ServerOnly, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.HederaWalletConnect_SignClient]: { provider: SourceProvider.HederaWalletConnect, source: Source.HederaWalletConnect_SignClient, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.Helius_Rest]: { provider: SourceProvider.Helius, source: Source.Helius_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'solana' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.HeliusApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.HyperliquidDocs_Rest]: { provider: SourceProvider.HyperliquidDocs, source: Source.HyperliquidDocs_Rest, target: { kind: SourceTargetKind.Global, key: 'hyperliquid-docs' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'https://hyperliquid.gitbook.io' }], wireProtocol: WireProtocol.RawHttp, apiFamily: ApiFamily.StaticWebsite, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.BrowserDirect, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Hyperliquid_JsonRpc]: { provider: SourceProvider.Hyperliquid, source: Source.Hyperliquid_JsonRpc, target: { kind: SourceTargetKind.Caip2Network, key: 'hyperliquid' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.JsonRpcApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Hyperliquid_Rest]: { provider: SourceProvider.Hyperliquid, source: Source.Hyperliquid_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'hyperliquid' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.HyperliquidRestApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.IcDashboard_Canister]: { provider: SourceProvider.InternetComputer, source: Source.IcDashboard_Canister, target: { kind: SourceTargetKind.Canister, key: 'configured-canister' }, endpoints: [{ endpointKind: SourceEndpointKind.CanisterId, locator: 'configured-canister-id' }], wireProtocol: WireProtocol.Canister, apiFamily: ApiFamily.IcCanister, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.RemoteQuery, credentials: [{ scope: SourceCredentialScope.None }], artifacts: [{ kind: SourceArtifactKind.Candid, path: '$source-artifact', generated: false }] },
-	[SourceBinding.InternetComputer_Canister]: { provider: SourceProvider.InternetComputer, source: Source.InternetComputer_Canister, target: { kind: SourceTargetKind.Canister, key: 'configured-canister' }, endpoints: [{ endpointKind: SourceEndpointKind.CanisterId, locator: 'configured-canister-id' }], wireProtocol: WireProtocol.Canister, apiFamily: ApiFamily.IcCanister, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.RemoteQuery, credentials: [{ scope: SourceCredentialScope.None }], artifacts: [{ kind: SourceArtifactKind.Candid, path: '$source-artifact', generated: false }] },
-	[SourceBinding.InternetComputer_Http]: { provider: SourceProvider.InternetComputer, source: Source.InternetComputer_Http, target: { kind: SourceTargetKind.Global, key: 'internet-computer' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-ic-boundary' }], wireProtocol: WireProtocol.RawHttp, apiFamily: ApiFamily.CertifiedHttpGateway, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.RemoteQuery, credentials: [{ scope: SourceCredentialScope.None }], artifacts: [{ kind: SourceArtifactKind.Candid, path: '$source-artifact', generated: false }] },
-	[SourceBinding.InternetComputer_RosettaApi]: { provider: SourceProvider.InternetComputer, source: Source.InternetComputer_RosettaApi, target: { kind: SourceTargetKind.Canister, key: 'configured-canister' }, endpoints: [{ endpointKind: SourceEndpointKind.CanisterId, locator: 'configured-canister-id' }], wireProtocol: WireProtocol.Canister, apiFamily: ApiFamily.IcCanister, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.RemoteQuery, credentials: [{ scope: SourceCredentialScope.None }], artifacts: [{ kind: SourceArtifactKind.Candid, path: '$source-artifact', generated: false }] },
-	[SourceBinding.InternetComputer_WalletApi]: { provider: SourceProvider.InternetComputer, source: Source.InternetComputer_WalletApi, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.InternetIdentity_Delegation]: { provider: SourceProvider.InternetIdentity, source: Source.InternetIdentity_Delegation, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.Ipfs_Rest]: { provider: SourceProvider.Ipfs, source: Source.Ipfs_Rest, target: { kind: SourceTargetKind.ContentAddressScheme, key: 'ipfs' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-gateway' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.IpfsGateway, operationGroups: [SourceOperationGroup.ContentGatewayRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Juno_JsonRpc]: { provider: SourceProvider.Juno, source: Source.Juno_JsonRpc, target: { kind: SourceTargetKind.Caip2Network, key: 'starknet' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.StarknetJsonRpc, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Kabila_WalletConnect]: { provider: SourceProvider.Kabila, source: Source.Kabila_WalletConnect, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.KaspaExplorer_Rest]: { provider: SourceProvider.KaspaExplorer, source: Source.KaspaExplorer_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'kaspa' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.KaspaExplorerApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.KaspaNode_Grpc]: { provider: SourceProvider.KaspaNode, source: Source.KaspaNode_Grpc, target: { kind: SourceTargetKind.Caip2Network, key: 'kaspa' }, endpoints: [{ endpointKind: SourceEndpointKind.TcpAddress, locator: 'configured-grpc-endpoint' }], wireProtocol: WireProtocol.Grpc, apiFamily: ApiFamily.GrpcService, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.ServerOnly, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.KaspaNode_Rest]: { provider: SourceProvider.KaspaNode, source: Source.KaspaNode_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'kaspa' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-rest-endpoint' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.KaspaRestApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.KaspaNode_Wrpc]: { provider: SourceProvider.KaspaNode, source: Source.KaspaNode_Wrpc, target: { kind: SourceTargetKind.Caip2Network, key: 'kaspa' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.Wrpc, apiFamily: ApiFamily.KaspaWrpcApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.KaspaWalletCli_WalletApi]: { provider: SourceProvider.KaspaWalletCli, source: Source.KaspaWalletCli_WalletApi, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.KaspaWalletSdk_WalletApi]: { provider: SourceProvider.KaspaWalletSdk, source: Source.KaspaWalletSdk_WalletApi, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.KaswareWallet_WalletApi]: { provider: SourceProvider.KaswareWallet, source: Source.KaswareWallet_WalletApi, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.Keplr_WalletApi]: { provider: SourceProvider.Keplr, source: Source.Keplr_WalletApi, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.Koios_Rest]: { provider: SourceProvider.Koios, source: Source.Koios_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'cardano' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.KoiosApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.L2Beat_Rest]: { provider: SourceProvider.L2Beat, source: Source.L2Beat_Rest, target: { kind: SourceTargetKind.Global, key: 'scaling-project-catalog' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.L2BeatScalingApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.LayerZeroScan_Rest]: { provider: SourceProvider.LayerZeroScan, source: Source.LayerZeroScan_Rest, target: { kind: SourceTargetKind.Global, key: 'bridge-message-api' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.LayerZeroScanApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Leap_WalletApi]: { provider: SourceProvider.Leap, source: Source.Leap_WalletApi, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.LedgerFilecoin_WalletApi]: { provider: SourceProvider.LedgerFilecoin, source: Source.LedgerFilecoin_WalletApi, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.Lens_Graphql]: { provider: SourceProvider.Lens, source: Source.Lens_Graphql, target: { kind: SourceTargetKind.Feed, key: 'lens' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.Graphql, apiFamily: ApiFamily.GraphqlHttp, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }], artifacts: [{ kind: SourceArtifactKind.GraphqlSchema, path: '$source-artifact', generated: false }, { kind: SourceArtifactKind.GraphqlTypes, path: '$source-artifact', generated: false }] },
-	[SourceBinding.LibtorrentSession_Rest]: { provider: SourceProvider.LibtorrentSession, source: Source.LibtorrentSession_Rest, target: { kind: SourceTargetKind.LocalDevice, key: 'configured-libtorrent-session' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-local-session-api' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.BitTorrentClient, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.LocalSecret }] },
-	[SourceBinding.Lifi_Rest]: { provider: SourceProvider.Lifi, source: Source.Lifi_Rest, target: { kind: SourceTargetKind.Global, key: 'bridge-route-api' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.LifiQuoteApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.LifiStatus_Rest]: { provider: SourceProvider.Lifi, source: Source.LifiStatus_Rest, target: { kind: SourceTargetKind.Global, key: 'bridge-status-api' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.LifiStatusApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.LightningLnd_Grpc]: { provider: SourceProvider.LightningLnd, source: Source.LightningLnd_Grpc, target: { kind: SourceTargetKind.LocalDevice, key: 'configured-lnd-node' }, endpoints: [{ endpointKind: SourceEndpointKind.TcpAddress, locator: 'configured-grpc-endpoint' }], wireProtocol: WireProtocol.Grpc, apiFamily: ApiFamily.GrpcService, operationGroups: [SourceOperationGroup.GenericRead, SourceOperationGroup.WalletAccountRead], delivery: SourceDelivery.ServerOnly, credentials: [{ scope: SourceCredentialScope.LocalSecret }] },
-	[SourceBinding.LightningLnd_Rest]: { provider: SourceProvider.LightningLnd, source: Source.LightningLnd_Rest, target: { kind: SourceTargetKind.LocalDevice, key: 'configured-lnd-node' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.LndRestApi, operationGroups: [SourceOperationGroup.GenericRead, SourceOperationGroup.WalletAccountRead], delivery: SourceDelivery.ServerOnly, credentials: [{ scope: SourceCredentialScope.LocalSecret }] },
-	[SourceBinding.LightningMempoolSpace_Rest]: { provider: SourceProvider.LightningMempoolSpace, source: Source.LightningMempoolSpace_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'lightning-network' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.MempoolSpaceLightningApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.LitecoinCore_JsonRpc]: { provider: SourceProvider.LitecoinCore, source: Source.LitecoinCore_JsonRpc, target: { kind: SourceTargetKind.Caip2Network, key: 'litecoin' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.JsonRpcApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.LitecoinLips_Github]: { provider: SourceProvider.LitecoinLips, source: Source.LitecoinLips_Github, target: { kind: SourceTargetKind.GitRepository, key: 'configured-repository' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'github-api-and-raw' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.GithubContentsApi, operationGroups: [SourceOperationGroup.GithubRepositoryContents], delivery: SourceDelivery.BrowserDirect, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.LitecoinWalletRpc_JsonRpc]: { provider: SourceProvider.LitecoinWalletRpc, source: Source.LitecoinWalletRpc_JsonRpc, target: { kind: SourceTargetKind.LocalDevice, key: 'wallet-rpc' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-local-rpc' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.JsonRpcApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.LocalSecret }] },
-	[SourceBinding.Local_Internal]: { provider: SourceProvider.Local, source: Source.Local_Internal, target: { kind: SourceTargetKind.LocalDevice, key: 'workspace' }, endpoints: [{ endpointKind: SourceEndpointKind.LocalFilePath, locator: 'configured-local-path' }], wireProtocol: WireProtocol.LocalFiles, apiFamily: ApiFamily.LocalState, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.LocalSecret }] },
-	[SourceBinding.LogosBlockchainNode_Rest]: { provider: SourceProvider.LogosBlockchainNode, source: Source.LogosBlockchainNode_Rest, target: { kind: SourceTargetKind.LocalDevice, key: 'configured-logos-node' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-local-rest-api' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.LogosBlockchainNodeApi, operationGroups: [SourceOperationGroup.GenericRead, SourceOperationGroup.WalletAccountRead], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.LocalSecret }] },
-	[SourceBinding.LogosDocs_Rest]: { provider: SourceProvider.LogosDocs, source: Source.LogosDocs_Rest, target: { kind: SourceTargetKind.Global, key: 'docs' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'https://docs.logoslabs.io' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.RestJson, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.BrowserDirect, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Lotus_JsonRpc]: { provider: SourceProvider.Lotus, source: Source.Lotus_JsonRpc, target: { kind: SourceTargetKind.Caip2Network, key: 'filecoin' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.JsonRpcApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Magic_HederaWalletApi]: { provider: SourceProvider.Magic, source: Source.Magic_HederaWalletApi, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.MagnetUri_Uri]: { provider: SourceProvider.MagnetUri, source: Source.MagnetUri_Uri, target: { kind: SourceTargetKind.TorrentSwarm, key: 'configured-infohash' }, endpoints: [{ endpointKind: SourceEndpointKind.InProcess, locator: 'magnet-uri-parser' }], wireProtocol: WireProtocol.Uri, apiFamily: ApiFamily.Uri, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.BrowserDirect, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Martian_WalletApi]: { provider: SourceProvider.Martian, source: Source.Martian_WalletApi, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.Mastodon_Rest]: { provider: SourceProvider.Mastodon, source: Source.Mastodon_Rest, target: { kind: SourceTargetKind.Feed, key: 'activitypub' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.MastodonApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.MempoolSpace_Rest]: { provider: SourceProvider.MempoolSpace, source: Source.MempoolSpace_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'bitcoin' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.MempoolSpaceApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.MetadataVision_Rest]: { provider: SourceProvider.MetadataVision, source: Source.MetadataVision_Rest, target: { kind: SourceTargetKind.Eip155Chain, key: 'configured-chain' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.MetadataVisionApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.MetaplexDAS_Rest]: { provider: SourceProvider.MetaplexDAS, source: Source.MetaplexDAS_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'solana' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.MetaplexDasApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.MevRelay_Rest]: { provider: SourceProvider.MevRelay, source: Source.MevRelay_Rest, target: { kind: SourceTargetKind.Eip155Chain, key: 'configured-chain' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.MevRelayApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Mintscan_Rest]: { provider: SourceProvider.Mintscan, source: Source.Mintscan_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'cosmos' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.MintscanApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.MoneroDaemonRpc_JsonRpc]: { provider: SourceProvider.MoneroDaemonRpc, source: Source.MoneroDaemonRpc_JsonRpc, target: { kind: SourceTargetKind.Caip2Network, key: 'monero' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.JsonRpcApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.MoneroWalletRpc_JsonRpc]: { provider: SourceProvider.MoneroWalletRpc, source: Source.MoneroWalletRpc_JsonRpc, target: { kind: SourceTargetKind.LocalDevice, key: 'wallet-rpc' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-local-rpc' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.JsonRpcApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.LocalSecret }] },
-	[SourceBinding.NearBlocks_Rest]: { provider: SourceProvider.NearBlocks, source: Source.NearBlocks_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'near' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.NearBlocksApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.NearConnect_WalletApi]: { provider: SourceProvider.NearConnect, source: Source.NearConnect_WalletApi, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.NearNeps_Github]: { provider: SourceProvider.NearNeps, source: Source.NearNeps_Github, target: { kind: SourceTargetKind.GitRepository, key: 'configured-repository' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'github-api-and-raw' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.GithubContentsApi, operationGroups: [SourceOperationGroup.GithubRepositoryContents], delivery: SourceDelivery.BrowserDirect, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.NearRpc_JsonRpc]: { provider: SourceProvider.NearRpc, source: Source.NearRpc_JsonRpc, target: { kind: SourceTargetKind.Caip2Network, key: 'near' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-rpc-endpoint' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.JsonRpcApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.NearWalletSelector_WalletApi]: { provider: SourceProvider.NearWalletSelector, source: Source.NearWalletSelector_WalletApi, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.Neynar_Rest]: { provider: SourceProvider.Neynar, source: Source.Neynar_Rest, target: { kind: SourceTargetKind.Feed, key: 'farcaster' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.NeynarApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Nfid_WalletApi]: { provider: SourceProvider.Nfid, source: Source.Nfid_WalletApi, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.Nitro_ClientStore]: { provider: SourceProvider.Nitro, source: Source.Nitro_ClientStore, target: { kind: SourceTargetKind.LocalDevice, key: 'state-channel-client-store' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.LocalState, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.LocalSecret }] },
-	[SourceBinding.Nitro_NodeRpc]: { provider: SourceProvider.Nitro, source: Source.Nitro_NodeRpc, target: { kind: SourceTargetKind.LocalDevice, key: 'configured-state-channel-node' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.NitroNodeRpcApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.ServerOnly, credentials: [{ scope: SourceCredentialScope.LocalSecret }] },
-	[SourceBinding.Nodely_Algod_Rest]: { provider: SourceProvider.Nodely, source: Source.Nodely_Algod_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'algorand' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.AlgodApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Nodely_AlgorandIndexer_Rest]: { provider: SourceProvider.Nodely, source: Source.Nodely_AlgorandIndexer_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'algorand' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.AlgorandIndexerApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.NostrBand_Rest]: { provider: SourceProvider.NostrBand, source: Source.NostrBand_Rest, target: { kind: SourceTargetKind.Feed, key: 'nostr' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.NostrBandApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.NostrRelay_Nip11_Http]: { provider: SourceProvider.NostrRelay, source: Source.NostrRelay_Nip11_Http, target: { kind: SourceTargetKind.Feed, key: 'configured-feed' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-nostr-relay' }], wireProtocol: WireProtocol.RawHttp, apiFamily: ApiFamily.NostrNip11, operationGroups: [SourceOperationGroup.NostrRelayRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.NostrRelay_WebSocket]: { provider: SourceProvider.NostrRelay, source: Source.NostrRelay_WebSocket, target: { kind: SourceTargetKind.Feed, key: 'configured-feed' }, endpoints: [{ endpointKind: SourceEndpointKind.WebSocketUrl, locator: 'configured-nostr-relay' }], wireProtocol: WireProtocol.JsonMessages, apiFamily: ApiFamily.NostrRelay, operationGroups: [SourceOperationGroup.NostrRelayRead], delivery: SourceDelivery.RemoteLive, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Ogmios_JsonRpc]: { provider: SourceProvider.Ogmios, source: Source.Ogmios_JsonRpc, target: { kind: SourceTargetKind.Caip2Network, key: 'cardano' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.JsonRpcApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.OneInchSwap_Rest]: { provider: SourceProvider.OneInchSwap, source: Source.OneInchSwap_Rest, target: { kind: SourceTargetKind.Global, key: 'swap-route-api' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.OneInchSwapApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Openchain_Rest]: { provider: SourceProvider.Openchain, source: Source.Openchain_Rest, target: { kind: SourceTargetKind.Global, key: 'evm-labels-api' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.OpenchainApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.OpenSea_Rest]: { provider: SourceProvider.OpenSea, source: Source.OpenSea_Rest, target: { kind: SourceTargetKind.Eip155Chain, key: 'configured-chain' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.OpenSeaApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Osmosis_LCD_Rest]: { provider: SourceProvider.OsmosisLCD, source: Source.Osmosis_LCD_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'cosmos' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.CosmosLcdApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Paraswap_Rest]: { provider: SourceProvider.Paraswap, source: Source.Paraswap_Rest, target: { kind: SourceTargetKind.Global, key: 'swap-route-api' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.ParaswapApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Pathfinder_JsonRpc]: { provider: SourceProvider.Pathfinder, source: Source.Pathfinder_JsonRpc, target: { kind: SourceTargetKind.Caip2Network, key: 'starknet' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.StarknetJsonRpc, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.PayjoinDirectory_Rest]: { provider: SourceProvider.Payjoin, source: Source.PayjoinDirectory_Rest, target: { kind: SourceTargetKind.Global, key: 'payjoin-directory' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.PayjoinDirectoryApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.PayjoinOhttpRelay_Http]: { provider: SourceProvider.Payjoin, source: Source.PayjoinOhttpRelay_Http, target: { kind: SourceTargetKind.Global, key: 'payjoin-ohttp-relay' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.RawHttp, apiFamily: ApiFamily.RawHttp, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.PayjoinReceiver_Http]: { provider: SourceProvider.Payjoin, source: Source.PayjoinReceiver_Http, target: { kind: SourceTargetKind.Global, key: 'payjoin-receiver' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.RawHttp, apiFamily: ApiFamily.RawHttp, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Petra_WalletApi]: { provider: SourceProvider.Petra, source: Source.Petra_WalletApi, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.Piped_Rest]: { provider: SourceProvider.Piped, source: Source.Piped_Rest, target: { kind: SourceTargetKind.Feed, key: 'youtube' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.PipedApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.PlugWallet_WalletApi]: { provider: SourceProvider.PlugWallet, source: Source.PlugWallet_WalletApi, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.Polkadot_JsonRpc]: { provider: SourceProvider.Polkadot, source: Source.Polkadot_JsonRpc, target: { kind: SourceTargetKind.Caip2Network, key: 'substrate' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.JsonRpcApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.PolkadotInjectedWeb3_WalletApi]: { provider: SourceProvider.PolkadotInjectedWeb3, source: Source.PolkadotInjectedWeb3_WalletApi, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.PolkadotRfcs_Github]: { provider: SourceProvider.PolkadotRfcs, source: Source.PolkadotRfcs_Github, target: { kind: SourceTargetKind.GitRepository, key: 'configured-repository' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'github-api-and-raw' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.GithubContentsApi, operationGroups: [SourceOperationGroup.GithubRepositoryContents], delivery: SourceDelivery.BrowserDirect, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Pontem_WalletApi]: { provider: SourceProvider.Pontem, source: Source.Pontem_WalletApi, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.Primal_Rest]: { provider: SourceProvider.Primal, source: Source.Primal_Rest, target: { kind: SourceTargetKind.Feed, key: 'nostr' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.PrimalApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Pyth_EvmContract]: { provider: SourceProvider.Pyth, source: Source.Pyth_EvmContract, target: { kind: SourceTargetKind.Global, key: 'pyth-contract-catalog' }, endpoints: [{ endpointKind: SourceEndpointKind.InProcess, locator: 'contract-catalog' }], wireProtocol: WireProtocol.InProcess, apiFamily: ApiFamily.CatalogRows, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.BrowserDirect, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Pyth_SolanaProgram]: { provider: SourceProvider.Pyth, source: Source.Pyth_SolanaProgram, target: { kind: SourceTargetKind.Global, key: 'pyth-program-catalog' }, endpoints: [{ endpointKind: SourceEndpointKind.InProcess, locator: 'program-catalog' }], wireProtocol: WireProtocol.InProcess, apiFamily: ApiFamily.CatalogRows, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.BrowserDirect, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.PythBenchmarks_Rest]: { provider: SourceProvider.Pyth, source: Source.PythBenchmarks_Rest, target: { kind: SourceTargetKind.Global, key: 'oracle-feed-catalog' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.PythBenchmarksApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.PythHermes_Rest]: { provider: SourceProvider.Pyth, source: Source.PythHermes_Rest, target: { kind: SourceTargetKind.Global, key: 'oracle-feed-catalog' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.PythHermesApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.PythPriceFeedsCatalog_Rest]: { provider: SourceProvider.Pyth, source: Source.PythPriceFeedsCatalog_Rest, target: { kind: SourceTargetKind.Global, key: 'oracle-feed-catalog' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.PythPriceFeedsCatalogApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.qBittorrentWebUi_Rest]: { provider: SourceProvider.qBittorrentWebUi, source: Source.qBittorrentWebUi_Rest, target: { kind: SourceTargetKind.LocalDevice, key: 'configured-qbittorrent-client' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-qbittorrent-webui' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.BitTorrentClient, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.LocalSecret }] },
-	[SourceBinding.QuilibriumDocs_Rest]: { provider: SourceProvider.QuilibriumDocs, source: Source.QuilibriumDocs_Rest, target: { kind: SourceTargetKind.Global, key: 'docs' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'https://docs.quilibrium.com' }, { endpointKind: SourceEndpointKind.HttpUrl, locator: 'https://quilibrium.com' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.RestJson, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.BrowserDirect, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.QuilibriumNode_Grpc]: { provider: SourceProvider.QuilibriumNode, source: Source.QuilibriumNode_Grpc, target: { kind: SourceTargetKind.LocalDevice, key: 'configured-quilibrium-node' }, endpoints: [{ endpointKind: SourceEndpointKind.TcpAddress, locator: 'configured-grpc-endpoint' }], wireProtocol: WireProtocol.Grpc, apiFamily: ApiFamily.GrpcService, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.ServerOnly, credentials: [{ scope: SourceCredentialScope.LocalSecret }] },
-	[SourceBinding.QuilibriumNodeRpc_Grpc]: { provider: SourceProvider.QuilibriumNodeRpc, source: Source.QuilibriumNodeRpc_Grpc, target: { kind: SourceTargetKind.Caip2Network, key: 'quilibrium' }, endpoints: [{ endpointKind: SourceEndpointKind.TcpAddress, locator: 'configured-grpc-endpoint' }], wireProtocol: WireProtocol.Grpc, apiFamily: ApiFamily.GrpcService, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.ServerOnly, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.QuilibriumNodeMetrics_Prometheus]: { provider: SourceProvider.QuilibriumNodeMetrics, source: Source.QuilibriumNodeMetrics_Prometheus, target: { kind: SourceTargetKind.LocalDevice, key: 'configured-quilibrium-node' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.PrometheusText, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.ServerOnly, credentials: [{ scope: SourceCredentialScope.LocalSecret }] },
-	[SourceBinding.Radicle_Local]: { provider: SourceProvider.Radicle, source: Source.Radicle_Local, target: { kind: SourceTargetKind.LocalDevice, key: 'workspace' }, endpoints: [{ endpointKind: SourceEndpointKind.LocalFilePath, locator: 'configured-local-path' }], wireProtocol: WireProtocol.LocalFiles, apiFamily: ApiFamily.LocalState, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.LocalSecret }] },
-	[SourceBinding.Radicle_Remote]: { provider: SourceProvider.Radicle, source: Source.Radicle_Remote, target: { kind: SourceTargetKind.GitRepository, key: 'configured-repository' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.RadicleRemoteApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.RadicleCli_Local]: { provider: SourceProvider.RadicleCli, source: Source.RadicleCli_Local, target: { kind: SourceTargetKind.LocalDevice, key: 'workspace' }, endpoints: [{ endpointKind: SourceEndpointKind.LocalFilePath, locator: 'configured-local-path' }], wireProtocol: WireProtocol.LocalFiles, apiFamily: ApiFamily.LocalState, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.LocalSecret }] },
-	[SourceBinding.RadicleNode_Control]: { provider: SourceProvider.RadicleNode, source: Source.RadicleNode_Control, target: { kind: SourceTargetKind.LocalDevice, key: 'configured-radicle-node' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.RadicleNodeControlApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.LocalSecret }] },
-	[SourceBinding.Reddit_PublicJson]: { provider: SourceProvider.Reddit, source: Source.Reddit_PublicJson, target: { kind: SourceTargetKind.Feed, key: 'reddit' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.RedditPublicJson, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Reddit_Rest]: { provider: SourceProvider.Reddit, source: Source.Reddit_Rest, target: { kind: SourceTargetKind.Feed, key: 'reddit' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.RedditApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Reservoir_Rest]: { provider: SourceProvider.Reservoir, source: Source.Reservoir_Rest, target: { kind: SourceTargetKind.Eip155Chain, key: 'configured-chain' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.ReservoirApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Reth_JsonRpc]: { provider: SourceProvider.Reth, source: Source.Reth_JsonRpc, target: { kind: SourceTargetKind.Eip155Chain, key: 'configured-chain' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.EvmExecutionJsonRpc, operationGroups: [SourceOperationGroup.EvmRpcCore, SourceOperationGroup.EvmRpcTrace, SourceOperationGroup.EvmRpcTxpool], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Rss_Rest]: { provider: SourceProvider.Rss, source: Source.Rss_Rest, target: { kind: SourceTargetKind.Feed, key: 'configured-feed' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.SyndicationXml, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Rss2Json_Rest]: { provider: SourceProvider.Rss2Json, source: Source.Rss2Json_Rest, target: { kind: SourceTargetKind.Feed, key: 'configured-feed' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.Rss2JsonApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.SigstoreRekor_Rest]: { provider: SourceProvider.SigstoreRekor, source: Source.SigstoreRekor_Rest, target: { kind: SourceTargetKind.Global, key: 'transparency-log' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.SigstoreRekorApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Snapchain_Rest]: { provider: SourceProvider.Snapchain, source: Source.Snapchain_Rest, target: { kind: SourceTargetKind.Feed, key: 'farcaster' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.SnapchainApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Solana_JsonRpc]: { provider: SourceProvider.Solana, source: Source.Solana_JsonRpc, target: { kind: SourceTargetKind.Caip2Network, key: 'solana' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.JsonRpcApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.SolanaMobileWalletAdapter_WalletApi]: { provider: SourceProvider.SolanaMobileWalletAdapter, source: Source.SolanaMobileWalletAdapter_WalletApi, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.SolanaSimds_Github]: { provider: SourceProvider.SolanaSimds, source: Source.SolanaSimds_Github, target: { kind: SourceTargetKind.GitRepository, key: 'configured-repository' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'github-api-and-raw' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.GithubContentsApi, operationGroups: [SourceOperationGroup.GithubRepositoryContents], delivery: SourceDelivery.BrowserDirect, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Sourcify_Rest]: { provider: SourceProvider.Sourcify, source: Source.Sourcify_Rest, target: { kind: SourceTargetKind.Eip155Chain, key: 'configured-chain' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.SourcifyApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Starknet_JsonRpc]: { provider: SourceProvider.Starknet, source: Source.Starknet_JsonRpc, target: { kind: SourceTargetKind.Caip2Network, key: 'starknet' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.StarknetJsonRpc, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Starkscan_Rest]: { provider: SourceProvider.Starkscan, source: Source.Starkscan_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'starknet' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.StarknetExplorerRest, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.StellarExpert_Rest]: { provider: SourceProvider.StellarExpert, source: Source.StellarExpert_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'stellar' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.StellarExpertApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.StellarHorizon_Rest]: { provider: SourceProvider.StellarHorizon, source: Source.StellarHorizon_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'stellar' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.StellarHorizonApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.StellarRpc_JsonRpc]: { provider: SourceProvider.StellarRpc, source: Source.StellarRpc_JsonRpc, target: { kind: SourceTargetKind.Caip2Network, key: 'stellar' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-rpc-endpoint' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.JsonRpcApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.StellarToml_Rest]: { provider: SourceProvider.StellarToml, source: Source.StellarToml_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'stellar' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.StellarToml, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.StoicWallet_WalletApi]: { provider: SourceProvider.StoicWallet, source: Source.StoicWallet_WalletApi, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.Subscan_Rest]: { provider: SourceProvider.Subscan, source: Source.Subscan_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'substrate' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.SubscanApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.SubstrateSidecar_Rest]: { provider: SourceProvider.SubstrateSidecar, source: Source.SubstrateSidecar_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'substrate' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.SubstrateSidecarApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Sui_Graphql]: { provider: SourceProvider.Sui, source: Source.Sui_Graphql, target: { kind: SourceTargetKind.Caip2Network, key: 'sui' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.Graphql, apiFamily: ApiFamily.GraphqlHttp, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }], artifacts: [{ kind: SourceArtifactKind.GraphqlSchema, path: '$source-artifact', generated: false }, { kind: SourceArtifactKind.GraphqlTypes, path: '$source-artifact', generated: false }] },
-	[SourceBinding.Sui_Grpc]: { provider: SourceProvider.Sui, source: Source.Sui_Grpc, target: { kind: SourceTargetKind.Caip2Network, key: 'sui' }, endpoints: [{ endpointKind: SourceEndpointKind.TcpAddress, locator: 'configured-grpc-endpoint' }], wireProtocol: WireProtocol.Grpc, apiFamily: ApiFamily.GrpcService, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.ServerOnly, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Sui_JsonRpc]: { provider: SourceProvider.Sui, source: Source.Sui_JsonRpc, target: { kind: SourceTargetKind.Caip2Network, key: 'sui' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.JsonRpcApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Superchain_Github]: { provider: SourceProvider.Superchain, source: Source.Superchain_Github, target: { kind: SourceTargetKind.GitRepository, key: 'configured-repository' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'github-api-and-raw' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.GithubContentsApi, operationGroups: [SourceOperationGroup.GithubRepositoryContents], delivery: SourceDelivery.BrowserDirect, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Swarm_Rest]: { provider: SourceProvider.Swarm, source: Source.Swarm_Rest, target: { kind: SourceTargetKind.ContentAddressScheme, key: 'swarm' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-gateway' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.SwarmGateway, operationGroups: [SourceOperationGroup.ContentGatewayRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.TezosDappetizer_Postgres]: { provider: SourceProvider.TezosDappetizer, source: Source.TezosDappetizer_Postgres, target: { kind: SourceTargetKind.SqlDataset, key: 'configured-dataset' }, endpoints: [{ endpointKind: SourceEndpointKind.PostgresDsn, locator: 'configured-postgres-dsn' }], wireProtocol: WireProtocol.Sql, apiFamily: ApiFamily.Postgres, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.ServerOnly, credentials: [{ scope: SourceCredentialScope.RuntimeSecret }] },
-	[SourceBinding.TezosNode_Rpc]: { provider: SourceProvider.TezosNode, source: Source.TezosNode_Rpc, target: { kind: SourceTargetKind.Caip2Network, key: 'tezos' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-rpc-endpoint' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.TezosNodeRpc, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }], artifacts: [{ kind: SourceArtifactKind.OpenApiSpec, path: '$source-artifact', generated: false }] },
-	[SourceBinding.TheGraph_Graphql]: { provider: SourceProvider.TheGraph, source: Source.TheGraph_Graphql, target: { kind: SourceTargetKind.Global, key: 'configured-subgraph' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.Graphql, apiFamily: ApiFamily.GraphqlHttp, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }], artifacts: [{ kind: SourceArtifactKind.GraphqlSchema, path: '$source-artifact', generated: false }, { kind: SourceArtifactKind.GraphqlTypes, path: '$source-artifact', generated: false }] },
-	[SourceBinding.ThreeXpl_Rest]: { provider: SourceProvider.ThreeXpl, source: Source.ThreeXpl_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'configured-network' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.ThreeXplApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.TonApi_Rest]: { provider: SourceProvider.TonApi, source: Source.TonApi_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'ton' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.TonApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.TonCenter_V2_Rest]: { provider: SourceProvider.TonCenter, source: Source.TonCenter_V2_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'ton' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.TonCenterV2Api, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.TonCenter_V3_Rest]: { provider: SourceProvider.TonCenter, source: Source.TonCenter_V3_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'ton' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.TonCenterV3Api, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.TonConnect_WalletApi]: { provider: SourceProvider.TonConnect, source: Source.TonConnect_WalletApi, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.Tonlib_JsonRpc]: { provider: SourceProvider.Tonlib, source: Source.Tonlib_JsonRpc, target: { kind: SourceTargetKind.Caip2Network, key: 'ton' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.JsonRpcApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.TonLiteServer_Adnl]: { provider: SourceProvider.TonLiteServer, source: Source.TonLiteServer_Adnl, target: { kind: SourceTargetKind.Caip2Network, key: 'ton' }, endpoints: [{ endpointKind: SourceEndpointKind.TcpAddress, locator: 'configured-lite-server' }], wireProtocol: WireProtocol.Adnl, apiFamily: ApiFamily.TonLiteServer, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.ServerOnly, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.TonVerifier_Rest]: { provider: SourceProvider.TonVerifier, source: Source.TonVerifier_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'ton' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.TonVerifierApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.TradingView_Rest]: { provider: SourceProvider.TradingView, source: Source.TradingView_Rest, target: { kind: SourceTargetKind.Global, key: 'market-data' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.TradingViewApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.TransmissionRpc_JsonRpc]: { provider: SourceProvider.Transmission, source: Source.TransmissionRpc_JsonRpc, target: { kind: SourceTargetKind.LocalDevice, key: 'configured-transmission-client' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-transmission-rpc' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.BitTorrentClient, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.LocalSecret }] },
-	[SourceBinding.TronFullNode_Rest]: { provider: SourceProvider.TronFullNode, source: Source.TronFullNode_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'tron' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.TronFullNodeApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.TronGrid_Rest]: { provider: SourceProvider.TronGrid, source: Source.TronGrid_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'tron' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.TronGridApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.TronLink_WalletApi]: { provider: SourceProvider.TronLink, source: Source.TronLink_WalletApi, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.TronScan_Rest]: { provider: SourceProvider.TronScan, source: Source.TronScan_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'tron' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.TronScanApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.TronSolidityNode_Rest]: { provider: SourceProvider.TronSolidityNode, source: Source.TronSolidityNode_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'tron' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.TronSolidityNodeApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.TronTip1193_WalletApi]: { provider: SourceProvider.TronTip1193, source: Source.TronTip1193_WalletApi, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.TronTip6963_WalletApi]: { provider: SourceProvider.TronTip6963, source: Source.TronTip6963_WalletApi, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.TrustWalletAssets_Github]: { provider: SourceProvider.TrustWalletAssets, source: Source.TrustWalletAssets_Github, target: { kind: SourceTargetKind.GitRepository, key: 'configured-repository' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'github-api-and-raw' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.GithubContentsApi, operationGroups: [SourceOperationGroup.GithubRepositoryContents], delivery: SourceDelivery.BrowserDirect, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Tzkt_Rest]: { provider: SourceProvider.Tzkt, source: Source.Tzkt_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'tezos' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.TzktApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Voltaire_JsonRpc]: { provider: SourceProvider.Voltaire, source: Source.Voltaire_JsonRpc, target: { kind: SourceTargetKind.Eip155Chain, key: 'configured-chain' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.EvmExecutionJsonRpc, operationGroups: [SourceOperationGroup.EvmRpcCore, SourceOperationGroup.EvmRpcTrace, SourceOperationGroup.EvmRpcTxpool], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Voyager_Rest]: { provider: SourceProvider.Voyager, source: Source.Voyager_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'starknet' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.StarknetExplorerRest, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.WakuNode_Rest]: { provider: SourceProvider.WakuNode, source: Source.WakuNode_Rest, target: { kind: SourceTargetKind.LocalDevice, key: 'configured-waku-node' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-local-rest-api' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.WakuNodeRestApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.WalletConnect_SignClient]: { provider: SourceProvider.WalletConnect, source: Source.WalletConnect_SignClient, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.WalletStandard_WalletApi]: { provider: SourceProvider.WalletStandard, source: Source.WalletStandard_WalletApi, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.WebTorrent_Client]: { provider: SourceProvider.WebTorrent, source: Source.WebTorrent_Client, target: { kind: SourceTargetKind.TorrentSwarm, key: 'configured-infohash' }, endpoints: [{ endpointKind: SourceEndpointKind.InProcess, locator: 'webtorrent-client' }], wireProtocol: WireProtocol.InProcess, apiFamily: ApiFamily.BitTorrentClient, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.BrowserDirect, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.WebTorrent_Dht]: { provider: SourceProvider.WebTorrent, source: Source.WebTorrent_Dht, target: { kind: SourceTargetKind.TorrentSwarm, key: 'configured-infohash' }, endpoints: [{ endpointKind: SourceEndpointKind.WebSocketUrl, locator: 'configured-webtorrent-dht' }], wireProtocol: WireProtocol.Bencode, apiFamily: ApiFamily.BitTorrentDht, operationGroups: [SourceOperationGroup.BitTorrentDhtLookup], delivery: SourceDelivery.BrowserDirect, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.WebTorrent_Tracker]: { provider: SourceProvider.WebTorrent, source: Source.WebTorrent_Tracker, target: { kind: SourceTargetKind.TorrentSwarm, key: 'configured-infohash' }, endpoints: [{ endpointKind: SourceEndpointKind.WebSocketUrl, locator: 'configured-webtorrent-tracker' }], wireProtocol: WireProtocol.WebSocketMessages, apiFamily: ApiFamily.BitTorrentTracker, operationGroups: [SourceOperationGroup.BitTorrentAnnounce], delivery: SourceDelivery.BrowserDirect, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Wormholescan_Rest]: { provider: SourceProvider.Wormholescan, source: Source.Wormholescan_Rest, target: { kind: SourceTargetKind.Global, key: 'bridge-message-api' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.WormholescanApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.X_FxEmbed_Rest]: { provider: SourceProvider.FxEmbed, source: Source.X_FxEmbed_Rest, target: { kind: SourceTargetKind.Feed, key: 'x' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.FxEmbedApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.X_Rest]: { provider: SourceProvider.X, source: Source.X_Rest, target: { kind: SourceTargetKind.Feed, key: 'x' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.XApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Xaman_Api]: { provider: SourceProvider.Xaman, source: Source.Xaman_Api, target: { kind: SourceTargetKind.LocalDevice, key: 'user-session' }, endpoints: [{ endpointKind: SourceEndpointKind.BrowserWalletProvider, locator: 'injected-or-session-provider' }], wireProtocol: WireProtocol.WalletProvider, apiFamily: ApiFamily.WalletApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.UserDelegated }] },
-	[SourceBinding.Xmtp_BrowserSdk]: { provider: SourceProvider.Xmtp, source: Source.Xmtp_BrowserSdk, target: { kind: SourceTargetKind.Feed, key: 'xmtp' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.RestJson, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Xmtp_NodeSdk]: { provider: SourceProvider.Xmtp, source: Source.Xmtp_NodeSdk, target: { kind: SourceTargetKind.Feed, key: 'xmtp' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.RestJson, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Xrpl_Rippled]: { provider: SourceProvider.Xrpl, source: Source.Xrpl_Rippled, target: { kind: SourceTargetKind.Caip2Network, key: 'xrpl' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.JsonRpcApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.XrplClio_JsonRpc]: { provider: SourceProvider.XrplClio, source: Source.XrplClio_JsonRpc, target: { kind: SourceTargetKind.Caip2Network, key: 'xrpl' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }, { endpointKind: SourceEndpointKind.WebSocketUrl, locator: 'configured-websocket-url' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.JsonRpcApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.XrpScan_Rest]: { provider: SourceProvider.XrpScan, source: Source.XrpScan_Rest, target: { kind: SourceTargetKind.Caip2Network, key: 'xrpl' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.XrpScanApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Youtube_Rest]: { provider: SourceProvider.Youtube, source: Source.Youtube_Rest, target: { kind: SourceTargetKind.Feed, key: 'youtube' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.YouTubeDataApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.ZcashClientBackend_Local]: { provider: SourceProvider.ZcashClientBackend, source: Source.ZcashClientBackend_Local, target: { kind: SourceTargetKind.LocalDevice, key: 'workspace' }, endpoints: [{ endpointKind: SourceEndpointKind.LocalFilePath, locator: 'configured-local-path' }], wireProtocol: WireProtocol.LocalFiles, apiFamily: ApiFamily.LocalState, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.LocalSecret }] },
-	[SourceBinding.Zcashd_JsonRpc]: { provider: SourceProvider.Zcashd, source: Source.Zcashd_JsonRpc, target: { kind: SourceTargetKind.Caip2Network, key: 'zcash' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.JsonRpcApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.ZcashdWallet_JsonRpc]: { provider: SourceProvider.Zcashd, source: Source.ZcashdWallet_JsonRpc, target: { kind: SourceTargetKind.LocalDevice, key: 'wallet-rpc' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-local-rpc' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.JsonRpcApi, operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.LocalSecret }] },
-	[SourceBinding.ZcashLightwalletd_Grpc]: { provider: SourceProvider.ZcashLightwalletd, source: Source.ZcashLightwalletd_Grpc, target: { kind: SourceTargetKind.Caip2Network, key: 'zcash' }, endpoints: [{ endpointKind: SourceEndpointKind.TcpAddress, locator: 'configured-grpc-endpoint' }], wireProtocol: WireProtocol.Grpc, apiFamily: ApiFamily.GrpcService, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.ServerOnly, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.ZcashZips_Github]: { provider: SourceProvider.ZcashZips, source: Source.ZcashZips_Github, target: { kind: SourceTargetKind.GitRepository, key: 'configured-repository' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'github-api-and-raw' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.GithubContentsApi, operationGroups: [SourceOperationGroup.GithubRepositoryContents], delivery: SourceDelivery.BrowserDirect, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.Zebra_JsonRpc]: { provider: SourceProvider.Zebra, source: Source.Zebra_JsonRpc, target: { kind: SourceTargetKind.Caip2Network, key: 'bip122:00040fe8ec8471911baa1db1266ea15d' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'http://127.0.0.1:8232' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.BitcoinJsonRpc, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.LocalOnly, credentials: [{ scope: SourceCredentialScope.LocalSecret }] },
-	[SourceBinding.ZeroExSwap_Rest]: { provider: SourceProvider.ZeroExSwap, source: Source.ZeroExSwap_Rest, target: { kind: SourceTargetKind.Global, key: 'swap-route-api' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.ZeroExSwapApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.ZeroGChain_JsonRpc]: { provider: SourceProvider.ZeroG, source: Source.ZeroGChain_JsonRpc, target: { kind: SourceTargetKind.Caip2Network, key: '0g' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.JsonRpcApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.ZeroGChainScan_Rest]: { provider: SourceProvider.ZeroG, source: Source.ZeroGChainScan_Rest, target: { kind: SourceTargetKind.Caip2Network, key: '0g' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.ZeroGChainScanApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.ZeroGStorageNode_JsonRpc]: { provider: SourceProvider.ZeroG, source: Source.ZeroGStorageNode_JsonRpc, target: { kind: SourceTargetKind.Caip2Network, key: '0g' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.JsonRpc2, apiFamily: ApiFamily.JsonRpcApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.ZeroGStorageScan_Rest]: { provider: SourceProvider.ZeroG, source: Source.ZeroGStorageScan_Rest, target: { kind: SourceTargetKind.Caip2Network, key: '0g' }, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }], wireProtocol: WireProtocol.HttpRest, apiFamily: ApiFamily.ZeroGStorageScanApi, operationGroups: [SourceOperationGroup.GenericRead], delivery: SourceDelivery.HttpProxy, credentials: [{ scope: SourceCredentialScope.None }] },
-	[SourceBinding.A2aService_Http]: {
-		provider: SourceProvider.A2a,
-		source: Source.A2aService_Http,
-		target: { kind: SourceTargetKind.HttpOrigin, key: 'configured-agent-origin' },
-		endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'agent-card-interface-url' }],
-		wireProtocol: WireProtocol.RawHttp,
-		apiFamily: ApiFamily.A2a,
-		operationGroups: [
-			SourceOperationGroup.AgentTask,
-			SourceOperationGroup.AgentMessage,
-			SourceOperationGroup.AgentArtifact,
-			SourceOperationGroup.AgentCapabilityCatalog,
-		],
-		delivery: SourceDelivery.HttpProxy,
-		credentials: [{ scope: SourceCredentialScope.SourceDefined }],
-	},
-
-	[SourceBinding.A2aWellKnown_Http]: {
-		provider: SourceProvider.A2a,
-		source: Source.A2aWellKnown_Http,
-		target: { kind: SourceTargetKind.HttpOrigin, key: 'configured-agent-origin' },
-		endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: '/.well-known/agent-card.json' }],
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.A2a,
-		operationGroups: [
-			SourceOperationGroup.AgentDiscovery,
-			SourceOperationGroup.AgentCapabilityCatalog,
-		],
-		delivery: SourceDelivery.HttpProxy,
-		credentials: [{ scope: SourceCredentialScope.None }],
-	},
-
-	[SourceBinding.AcpLocal_JsonRpc]: {
-		provider: SourceProvider.Acp,
-		source: Source.AcpLocal_JsonRpc,
-		target: { kind: SourceTargetKind.LocalRuntime, key: 'configured-acp-agent' },
-		endpoints: [{ endpointKind: SourceEndpointKind.LocalProcess, locator: 'configured-command' }],
-		wireProtocol: WireProtocol.JsonRpc,
-		apiFamily: ApiFamily.Acp,
-		operationGroups: [
-			SourceOperationGroup.AgentRuntime,
-			SourceOperationGroup.AgentSession,
-			SourceOperationGroup.LocalToolExecution,
-		],
-		delivery: SourceDelivery.LocalOnly,
-		credentials: [{ scope: SourceCredentialScope.LocalConfig }],
-	},
-
-	[SourceBinding.AcpRegistry_Rest]: {
-		provider: SourceProvider.Acp,
-		source: Source.AcpRegistry_Rest,
-		target: { kind: SourceTargetKind.Global, key: 'acp-registry' },
-		endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'https://cdn.agentclientprotocol.com/registry/v1/latest/registry.json' }],
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.RestJson,
-		operationGroups: [
-			SourceOperationGroup.AgentCapabilityCatalog,
-			SourceOperationGroup.AiArtifactCatalog,
-			SourceOperationGroup.RepositoryMetadata,
-		],
-		delivery: SourceDelivery.HttpProxy,
-		credentials: [{ scope: SourceCredentialScope.None }],
-	},
-
-	[SourceBinding.Anthropic_Rest]: {
-		provider: SourceProvider.Anthropic,
-		source: Source.Anthropic_Rest,
-		target: { kind: SourceTargetKind.Global, key: 'anthropic-api' },
-		endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'https://api.anthropic.com' }],
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.RestJson,
-		operationGroups: [
-			SourceOperationGroup.AiModelCatalog,
-			SourceOperationGroup.AiProviderOperationCatalog,
-			SourceOperationGroup.GenericRead,
-		],
-		delivery: SourceDelivery.HttpProxy,
-		credentials: [{ scope: SourceCredentialScope.ApiKey }],
-	},
-
-	[SourceBinding.AwsBedrock_Rest]: {
-		provider: SourceProvider.AwsBedrock,
-		source: Source.AwsBedrock_Rest,
-		target: { kind: SourceTargetKind.Global, key: 'aws-bedrock' },
-		endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-bedrock-runtime-and-control-plane' }],
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.RestJson,
-		operationGroups: [
-			SourceOperationGroup.AiModelCatalog,
-			SourceOperationGroup.AiProviderOperationCatalog,
-		],
-		delivery: SourceDelivery.HttpProxy,
-		credentials: [{ scope: SourceCredentialScope.ApiKey }],
-	},
-
-	[SourceBinding.AzureAiFoundry_Rest]: {
-		provider: SourceProvider.AzureAiFoundry,
-		source: Source.AzureAiFoundry_Rest,
-		target: { kind: SourceTargetKind.Global, key: 'azure-ai-foundry' },
-		endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-ai-foundry-endpoint' }],
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.RestJson,
-		operationGroups: [
-			SourceOperationGroup.AiModelCatalog,
-			SourceOperationGroup.AiProviderOperationCatalog,
-		],
-		delivery: SourceDelivery.HttpProxy,
-		credentials: [{ scope: SourceCredentialScope.ApiKey }],
-	},
-
-	[SourceBinding.Cohere_Rest]: {
-		provider: SourceProvider.Cohere,
-		source: Source.Cohere_Rest,
-		target: { kind: SourceTargetKind.Global, key: 'cohere-api' },
-		endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'https://api.cohere.com' }],
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.RestJson,
-		operationGroups: [
-			SourceOperationGroup.AiModelCatalog,
-			SourceOperationGroup.AiProviderOperationCatalog,
-		],
-		delivery: SourceDelivery.HttpProxy,
-		credentials: [{ scope: SourceCredentialScope.ApiKey }],
-	},
-
-	[SourceBinding.CroissantDocument_Local]: {
-		provider: SourceProvider.MlCommons,
-		source: Source.CroissantDocument_Local,
-		target: { kind: SourceTargetKind.LocalFile, key: 'croissant-document' },
-		endpoints: [{ endpointKind: SourceEndpointKind.LocalFile, locator: 'selected-file-or-artifact' }],
-		wireProtocol: WireProtocol.LocalFile,
-		apiFamily: ApiFamily.LocalParser,
-		operationGroups: [
-			SourceOperationGroup.AiDatasetMetadata,
-			SourceOperationGroup.DocumentClaimExtraction,
-		],
-		delivery: SourceDelivery.LocalOnly,
-		credentials: [{ scope: SourceCredentialScope.None }],
-	},
-
-	[SourceBinding.CycloneDxDocument_Local]: {
-		provider: SourceProvider.CycloneDx,
-		source: Source.CycloneDxDocument_Local,
-		target: { kind: SourceTargetKind.LocalFile, key: 'cyclonedx-document' },
-		endpoints: [{ endpointKind: SourceEndpointKind.LocalFile, locator: 'selected-file-or-artifact' }],
-		wireProtocol: WireProtocol.LocalFile,
-		apiFamily: ApiFamily.LocalParser,
-		operationGroups: [
-			SourceOperationGroup.AiArtifactCatalog,
-			SourceOperationGroup.DocumentClaimExtraction,
-		],
-		delivery: SourceDelivery.LocalOnly,
-		credentials: [{ scope: SourceCredentialScope.None }],
-	},
-
-	[SourceBinding.GoogleAi_Rest]: {
-		provider: SourceProvider.GoogleAi,
-		source: Source.GoogleAi_Rest,
-		target: { kind: SourceTargetKind.Global, key: 'google-ai-api' },
-		endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'https://generativelanguage.googleapis.com' }],
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.RestJson,
-		operationGroups: [
-			SourceOperationGroup.AiModelCatalog,
-			SourceOperationGroup.AiProviderOperationCatalog,
-			SourceOperationGroup.GenericRead,
-		],
-		delivery: SourceDelivery.HttpProxy,
-		credentials: [{ scope: SourceCredentialScope.ApiKey }],
-	},
-
-	[SourceBinding.HuggingFaceHub_Rest]: {
-		provider: SourceProvider.HuggingFace,
-		source: Source.HuggingFaceHub_Rest,
-		target: { kind: SourceTargetKind.Global, key: 'huggingface-hub' },
-		endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'https://huggingface.co/api' }],
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.RestJson,
-		operationGroups: [
-			SourceOperationGroup.AiArtifactCatalog,
-			SourceOperationGroup.RepositoryMetadata,
-			SourceOperationGroup.GenericRead,
-		],
-		delivery: SourceDelivery.HttpProxy,
-		credentials: [{ scope: SourceCredentialScope.OptionalApiKey }],
-	},
-
-	[SourceBinding.McpConfigured_Protocol]: {
-		provider: SourceProvider.Mcp,
-		source: Source.McpConfigured_Protocol,
-		target: { kind: SourceTargetKind.LocalOrRemoteService, key: 'configured-mcp-server' },
-		endpoints: [{ endpointKind: SourceEndpointKind.SourceDefined, locator: 'stdio|streamable-http|legacy-http-sse|custom' }],
-		wireProtocol: WireProtocol.JsonRpc,
-		apiFamily: ApiFamily.Mcp,
-		operationGroups: [
-			SourceOperationGroup.PromptCatalog,
-			SourceOperationGroup.ResourceCatalog,
-			SourceOperationGroup.ToolCall,
-			SourceOperationGroup.ToolCatalog,
-		],
-		delivery: SourceDelivery.SourceDefined,
-		credentials: [{ scope: SourceCredentialScope.SourceDefined }],
-	},
-
-	[SourceBinding.McpPackageRegistry_Rest]: {
-		provider: SourceProvider.Mcp,
-		source: Source.McpPackageRegistry_Rest,
-		target: { kind: SourceTargetKind.Global, key: 'mcp-package-registry' },
-		endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'https://registry.modelcontextprotocol.io/v0.1/servers' }],
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.RestJson,
-		operationGroups: [
-			SourceOperationGroup.AgentCapabilityCatalog,
-			SourceOperationGroup.AiArtifactCatalog,
-			SourceOperationGroup.RepositoryMetadata,
-		],
-		delivery: SourceDelivery.HttpProxy,
-		credentials: [{ scope: SourceCredentialScope.OptionalApiKey }],
-	},
-
-	[SourceBinding.MistralAi_Rest]: {
-		provider: SourceProvider.MistralAi,
-		source: Source.MistralAi_Rest,
-		target: { kind: SourceTargetKind.Global, key: 'mistral-api' },
-		endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'https://api.mistral.ai' }],
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.RestJson,
-		operationGroups: [
-			SourceOperationGroup.AiModelCatalog,
-			SourceOperationGroup.AiProviderOperationCatalog,
-			SourceOperationGroup.GenericRead,
-		],
-		delivery: SourceDelivery.HttpProxy,
-		credentials: [{ scope: SourceCredentialScope.ApiKey }],
-	},
-
-	[SourceBinding.Mlflow_Rest]: {
-		provider: SourceProvider.Mlflow,
-		source: Source.Mlflow_Rest,
-		target: { kind: SourceTargetKind.Global, key: 'configured-mlflow-tracking-server' },
-		endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-tracking-server' }],
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.RestJson,
-		operationGroups: [
-			SourceOperationGroup.AiArtifactCatalog,
-			SourceOperationGroup.DocumentClaimExtraction,
-			SourceOperationGroup.GenericRead,
-		],
-		delivery: SourceDelivery.HttpProxy,
-		credentials: [{ scope: SourceCredentialScope.OptionalApiKey }],
-	},
-
-	[SourceBinding.OciRegistry_Distribution]: {
-		provider: SourceProvider.OciRegistry,
-		source: Source.OciRegistry_Distribution,
-		target: { kind: SourceTargetKind.Global, key: 'configured-oci-registry' },
-		endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-registry' }],
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.OciDistribution,
-		operationGroups: [
-			SourceOperationGroup.AiArtifactCatalog,
-			SourceOperationGroup.ContentGatewayRead,
-		],
-		delivery: SourceDelivery.HttpProxy,
-		credentials: [{ scope: SourceCredentialScope.OptionalApiKey }],
-	},
-
-	[SourceBinding.OnnxArtifact_Local]: {
-		provider: SourceProvider.Onnx,
-		source: Source.OnnxArtifact_Local,
-		target: { kind: SourceTargetKind.LocalFile, key: 'onnx-artifact' },
-		endpoints: [{ endpointKind: SourceEndpointKind.LocalFile, locator: 'selected-file-or-artifact' }],
-		wireProtocol: WireProtocol.LocalFile,
-		apiFamily: ApiFamily.LocalParser,
-		operationGroups: [
-			SourceOperationGroup.AiArtifactCatalog,
-			SourceOperationGroup.DocumentClaimExtraction,
-		],
-		delivery: SourceDelivery.LocalOnly,
-		credentials: [{ scope: SourceCredentialScope.None }],
-	},
-
-	[SourceBinding.OpenAI_Rest]: {
-		provider: SourceProvider.OpenAI,
-		source: Source.OpenAI_Rest,
-		target: { kind: SourceTargetKind.Global, key: 'openai-api' },
-		endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'https://api.openai.com' }],
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.RestJson,
-		operationGroups: [
-			SourceOperationGroup.AiModelCatalog,
-			SourceOperationGroup.AiProviderOperationCatalog,
-			SourceOperationGroup.GenericRead,
-		],
-		delivery: SourceDelivery.HttpProxy,
-		credentials: [{ scope: SourceCredentialScope.ApiKey }],
-	},
-
-	[SourceBinding.SpdxDocument_Local]: {
-		provider: SourceProvider.Spdx,
-		source: Source.SpdxDocument_Local,
-		target: { kind: SourceTargetKind.LocalFile, key: 'spdx-document' },
-		endpoints: [{ endpointKind: SourceEndpointKind.LocalFile, locator: 'selected-file-or-artifact' }],
-		wireProtocol: WireProtocol.LocalFile,
-		apiFamily: ApiFamily.LocalParser,
-		operationGroups: [
-			SourceOperationGroup.AiArtifactCatalog,
-			SourceOperationGroup.DocumentClaimExtraction,
-		],
-		delivery: SourceDelivery.LocalOnly,
-		credentials: [{ scope: SourceCredentialScope.None }],
-	},
-
-	[SourceBinding.Eip8004Scan_Rest]: {
-		provider: SourceProvider.Eip8004Scan,
-		source: Source.Eip8004Scan_Rest,
-		target: { kind: SourceTargetKind.Eip155Chain, key: 'configured-chain' },
-		endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-indexer-api' }],
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.RestJson,
-		operationGroups: [
-			SourceOperationGroup.AgentRegistryRead,
-			SourceOperationGroup.AgentCapabilityCatalog,
-			SourceOperationGroup.GenericRead,
-		],
-		delivery: SourceDelivery.HttpProxy,
-		credentials: [{ scope: SourceCredentialScope.None }],
-	},
-
-	[SourceBinding.X402_Http]: {
-		provider: SourceProvider.X402,
-		source: Source.X402_Http,
-		target: { kind: SourceTargetKind.HttpOrigin, key: 'configured-paid-endpoint' },
-		endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'configured-url' }],
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.RestJson,
-		operationGroups: [SourceOperationGroup.PaymentRequirementProbe],
-		delivery: SourceDelivery.HttpProxy,
-		credentials: [{ scope: SourceCredentialScope.OptionalWallet }],
-	},
-} as const satisfies Record<SourceBinding, SourceBindingDefinition>
 ```
 
-## Wallet Connection Source Rows
-
-The rows below are the canonical wallet-source modeling notes for wallet and wallet-connection schema work. They intentionally do not define a second enum namespace; promote names into the top-level `SourceBinding` enum and source-definition map above only when the binding is executable, constants-backed, or otherwise part of the product source catalog.
-
-## Source Rows
-
-Source status labels:
-
-- `Implemented connection`: current runtime can create connected `BlockheadWalletConnection` and `BlockheadWalletAccount` rows.
-- `Implemented discovery`: current runtime can create `BlockheadWallet` candidates, but another source row describes the account API.
-- `Runtime discovery-only`: current runtime can discover `BlockheadWallet` candidates, but `connect()` returns a disconnected/error placeholder.
-- `Constants-backed target`: represented in `src/constants/Wallet.ts`, but no runtime adapter currently mounts it.
-- `Research target`: documented source candidate with external protocol/source grounding, but not yet constants-backed or runtime-backed.
-
-Only entries listed below as `Source ...` rows are modeled wallet sources. Enum bindings without a `Source ...` row are evidence handles or backlog candidates only; they must not be referenced from schema rows, resolver rows, runtime adapters, or constants-backed wallet methods until promoted into this section with status, evidence, API surface, produced rows, and persistence semantics.
-
-`Produces ::` describes the source's modeled output surface. For `Implemented discovery` and `Runtime discovery-only` rows, current runtime output is only `BlockheadWallet`; connection, account, request, session, grant, or authentication rows must be explicitly marked target-only in the same row until a mounted adapter writes them. `BlockheadWalletRequest`, `BlockheadWalletTransportSession`, `BlockheadWalletCapabilityGrant`, and `BlockheadWalletAuthentication` describe target rows unless the source status says an implemented runtime currently writes them. Current implemented wallet adapters write only wallet candidates, connections, accounts, and connection account counts.
-
-Capability language in source rows describes the source/protocol surface unless a row explicitly says current runtime. Do not infer runtime `connect`, `sign`, `send`, `switch`, or `watch` support from a `WalletConnectionMethod.capabilities` list when status is `Implemented discovery`, `Runtime discovery-only`, `Constants-backed target`, or `Research target`. Current `BlockheadWallet.capabilities` rows written by discovery-only adapters must contain only `discover`.
-
-Constants-backed method rows map to source rows as follows:
-
-```text
-  eip6963 -> Eip6963_BrowserEvent, Eip1193_InjectedProvider
-  eip1193-legacy -> Eip1193_InjectedProvider
-  tron-tip1193 -> TronTip1193_WalletApi
-  wallet-standard -> WalletStandard_BrowserRegistry
-  aptos-aip62 -> AptosAip62_WalletApi
-  aptos-injected-globals -> AptosInjected_WalletApi
-  cardano-cip30 -> CardanoCip30_WalletApi
-  cosmos-offline-signer -> CosmosOfflineSigner_WalletApi
-  polkadot-injected-web3 -> PolkadotInjectedWeb3_WalletApi
-  walletconnect-v2 -> WalletConnect_SignClient
-  ton-connect -> TonConnect_Bridge
-  near-wallet-selector -> NearWalletSelector_Sdk
-  icrc-signer -> IcrcSigner_PostMessage
-  starknet-wallet-api -> StarknetWalletApi_WalletApi
-  sats-connect -> BitcoinSatsConnect_WalletApi
-  bitcoin-injected-globals -> BitcoinInjected_WalletApi
-  trezor-connect -> TrezorConnect_Bridge
-  direct-hardware-transport -> LedgerJs_WebHid
-```
-
-```text
-  Source WalletConnect_SignClient
-    Status :: Constants-backed target
-    Source evidence :: WalletConnect Wallet SDK docs describe WalletKit session proposals, namespace approval, active sessions, session topics, and session request handling with `respondSessionRequest`: https://docs.walletconnect.network/wallet-sdk/web/usage
-    Provider :: WalletConnect
-    Kind :: wallet-transport
-    Transport :: relay
-    API surface :: Sign Client JSON-RPC session API
-    Produces :: BlockheadWalletConnection, BlockheadWalletAccount, BlockheadWalletTransportSession, BlockheadWalletRequest
-    Session identity :: topic
-    Connect means :: dapp proposes required/optional namespaces; wallet approves a session containing namespaces, methods, events, and accounts
-    Account shape :: CAIP-10 strings in session namespaces
-    Scope shape :: CAIP namespace + chains + methods + events
-    Runtime handles :: SignClient instance, proposal promise, relay subscription
-    Persistence :: topic/session metadata only
-    Notes :: Best broad remote/mobile/hardware bridge. Use Sign Client directly for protocol control; QR/modal is presentation only.
-
-  Source Eip6963_BrowserEvent
-    Status :: Implemented discovery
-    Source evidence :: EIP-6963 defines multi injected provider discovery through browser window events carrying provider info and an EIP-1193 provider: https://eips.ethereum.org/EIPS/eip-6963
-    Provider :: Browser wallet extensions
-    Kind :: wallet-discovery
-    Transport :: injected event
-    API surface :: browser CustomEvent carrying EIP-1193 provider metadata
-    Produces :: current BlockheadWallet
-    Session identity :: none
-    Connect means :: not a connection; it only announces an EIP-1193 provider candidate
-    Account shape :: none until EIP-1193 request
-    Scope shape :: none until EIP-1193 request
-    Runtime handles :: provider object
-    Persistence :: discovered wallet metadata only if desired
-    Notes :: Discovery only. Pair with Eip1193_InjectedProvider for actual account access.
-
-  Source Eip1193_InjectedProvider
-    Status :: Constants-backed target
-    Source evidence :: EIP-1193 defines the Ethereum Provider JavaScript API, including `request`, provider events, and connectivity semantics: https://eips.ethereum.org/EIPS/eip-1193
-    Provider :: EVM browser wallets
-    Kind :: wallet-api
-    Transport :: injected provider
-    API surface :: `provider.request({ method, params })`, `accountsChanged`, `chainChanged`, `connect`, `disconnect`
-    Produces :: BlockheadWalletConnection, BlockheadWalletAccount, BlockheadWalletRequest
-    Session identity :: wallet id or provider id; no standard durable topic
-    Connect means :: `eth_requestAccounts` or `wallet_requestPermissions` grants account access
-    Account shape :: EVM address on active chain, normalized to `eip155:<chainId>:<address>`
-    Scope shape :: active chain and EVM JSON-RPC methods/events inferred from provider and permissions
-    Runtime handles :: provider object
-    Persistence :: serializable wallet id, exposed accounts, selected state, timestamps
-    Notes :: Highest EVM browser baseline. Current runtime reaches legacy `window.ethereum` through the EIP-6963 adapter fallback and emits EIP-6963-normalized connection rows. Legacy `send`/`sendAsync` can be adapter fallback, not schema.
-
-  Source WalletStandard_BrowserRegistry
-    Status :: Runtime discovery-only
-    Source evidence :: The Wallet Standard repository describes interfaces and conventions for wallets and apps for any blockchain, including Wallet/WalletAccount interfaces, global window events, wallet registration, `getWallets`, and chain-specific extensions: https://github.com/wallet-standard/wallet-standard
-    Provider :: Wallet Standard wallets
-    Kind :: wallet-discovery-and-api
-    Transport :: injected event/registry
-    API surface :: `getWallets()`, `standard:connect`, chain feature methods
-    Produces :: current BlockheadWallet; target BlockheadWalletConnection, BlockheadWalletAccount, BlockheadWalletRequest
-    Session identity :: wallet name/id plus account set; usually no durable topic
-    Connect means :: `standard:connect` returns accounts and authorizes feature calls
-    Account shape :: wallet-standard account objects, normalized by adapter to CAIP-like account rows
-    Scope shape :: features and chains advertised by wallet/account
-    Runtime handles :: wallet object and feature methods
-    Persistence :: wallet id, account ids, feature/capability snapshot
-    Notes :: Strong for Solana and Sui today. Keep Bitcoin-specific role-address behavior under explicit Bitcoin sources until a primary Bitcoin Wallet Standard spec/source is attached.
-
-  Source AptosAip62_WalletApi
-    Status :: Constants-backed target
-    Source evidence :: Aptos wallet adapter docs describe dapp wallet connection, `connect(walletName)`, `disconnect()`, account state, signing/submitting transactions, message signing, and wallet grouping for Aptos Connect, available, installable, and not-detected wallets: https://aptos.dev/build/sdks/wallet-adapter/dapp
-    Provider :: Aptos wallets
-    Kind :: wallet-discovery-and-api
-    Transport :: Aptos wallet adapter / AIP-62-compatible wallet surface
-    API surface :: Aptos wallet adapter methods such as `connect`, `disconnect`, account state, message signing, transaction signing, and transaction submission
-    Produces :: target BlockheadWallet, BlockheadWalletConnection, BlockheadWalletAccount, BlockheadWalletRequest
-    Session identity :: wallet id plus account
-    Connect means :: `connect(walletName)` authorizes a selected wallet and exposes an Aptos account
-    Account shape :: Aptos account address/public key, normalized to Aptos namespace rows
-    Scope shape :: Aptos network plus available feature methods
-    Runtime handles :: Aptos wallet adapter wallet object
-    Persistence :: serializable account/scope snapshot
-    Notes :: Source-grounded target. The current runtime does not use the Aptos wallet adapter/AIP-62 connection surface.
-
-  Source AptosInjected_WalletApi
-    Status :: Runtime discovery-only
-    Source evidence :: Current runtime adapter observes legacy Aptos wallet globals. Treat this as adapter-grounded discovery, not a universal Aptos connection protocol.
-    Provider :: Aptos browser wallets
-    Kind :: wallet-discovery
-    Transport :: injected globals
-    API surface :: legacy wallet-specific globals such as `window.aptos`, `window.martian`, and `window.pontem`
-    Produces :: current BlockheadWallet
-    Session identity :: none
-    Connect means :: not implemented; current runtime only discovers candidate globals
-    Account shape :: none until a wallet-specific connect adapter is implemented
-    Scope shape :: none until a wallet-specific connect adapter is implemented
-    Runtime handles :: wallet-specific global object
-    Persistence :: discovered wallet metadata only
-    Notes :: Do not label legacy Aptos globals as AIP-62. Each global needs source-specific API mapping before it can produce connections or account rows.
-
-  Source CardanoCip30_WalletApi
-    Status :: Implemented connection
-    Source evidence :: CIP-30 defines the Cardano dApp-wallet web bridge with `cardano.{walletName}.enable()`, used/unused/change/reward address APIs, `signTx`, `signData`, and `submitTx`: https://cips.cardano.org/cip/CIP-30
-    Provider :: Cardano browser wallets
-    Kind :: wallet-api
-    Transport :: namespaced injected global
-    API surface :: `window.cardano.<wallet>.enable()` returns wallet API with address/signing methods
-    Produces :: current BlockheadWallet, BlockheadWalletConnection, BlockheadWalletAccount; target BlockheadWalletRequest
-    Session identity :: wallet global key
-    Connect means :: `enable()` grants API access for address, UTXO, balance, signing, and submit APIs
-    Account shape :: role address set, not a single account; CIP-30 distinguishes used, unused, change, and reward addresses
-    Scope shape :: Cardano network id plus CIP-30 methods
-    Runtime handles :: CIP-30 wallet API object
-    Persistence :: current runtime writes wallet id, used/unused address rows, network id, and methods; change/reward addresses and address roles are target fields until local account selectors support them
-    Notes :: UTXO/address semantics differ from EVM. Do not infer wallet balance from public address list alone. Current implementation does not persist CIP-30 UTXOs, balance, collateral, change address, reward addresses, or request rows.
-
-  Source PolkadotInjectedWeb3_WalletApi
-    Status :: Implemented connection
-    Source evidence :: Polkadot extension docs describe `@polkadot/extension-dapp` as an extractor over `window.injectedWeb3`, with `web3Enable`, `web3Accounts`, account `meta.source`, `web3AccountsSubscribe`, and `web3FromAddress` / `web3FromSource` for signer access: https://polkadot.js.org/docs/extension/ and https://polkadot.js.org/docs/extension/usage/
-    Provider :: Substrate extensions
-    Kind :: wallet-api
-    Transport :: namespaced injected global
-    API surface :: `window.injectedWeb3[name].enable(app)` exposes accounts and signer
-    Produces :: current BlockheadWallet, BlockheadWalletConnection, BlockheadWalletAccount; target BlockheadWalletRequest
-    Session identity :: extension key/source
-    Connect means :: extension authorizes app and returns accounts/signer
-    Account shape :: Substrate address/account id plus extension source; chain/genesis-specific CAIP reference requires chain context not supplied by the current runtime
-    Scope shape :: current runtime uses generic Polkadot scope reference `0`; chain/genesis-specific scopes are target-only until a chain context is passed into the adapter
-    Runtime handles :: injected extension/signer object
-    Persistence :: current runtime writes extension key, exposed addresses, generic reference `0`, and methods; account names and source metadata are not yet persisted
-    Notes :: `@polkadot/extension-dapp` is the documented wrapper over `window.injectedWeb3`. Current implementation uses raw injectedWeb3 and should not be treated as resolving chain-specific Substrate account identity.
-
-  Source CosmosOfflineSigner_WalletApi
-    Status :: Runtime discovery-only
-    Source evidence :: Keplr docs describe chain-scoped wallet access with `getKey(chainId)` returning account/public key data and signing methods such as `signAmino(chainId, signer, ...)` and `signDirect(chainId, signer, ...)` requiring a chain id: https://docs.keplr.app/api/guide/get-key and https://docs.keplr.app/api/guide/sign-a-message
-    Provider :: Keplr/Leap/Cosmos wallets
-    Kind :: wallet-api
-    Transport :: injected global
-    API surface :: `enable(chainId)`, `getKey(chainId)`, `getOfflineSigner(chainId)`, `signAmino`, `signDirect`, account/signer methods
-    Produces :: current BlockheadWallet; target BlockheadWalletConnection, BlockheadWalletAccount, BlockheadWalletRequest
-    Session identity :: wallet key + chain id
-    Connect means :: target behavior is enabling a concrete chain id and exposing key/account plus signer methods; current runtime only discovers globals
-    Account shape :: bech32 address scoped by Cosmos chain id
-    Scope shape :: Cosmos chain id plus account/key/signing methods
-    Runtime handles :: OfflineSigner object
-    Persistence :: target connection rows need wallet id, chain id, exposed account/key rows, and capabilities; current runtime writes no connection/account rows
-    Notes :: Strong convention, not a universal formal browser discovery standard. Leap often mirrors Keplr. Do not create account rows without a concrete chain id and returned key/account evidence.
-
-  Source TronTip1193_WalletApi
-    Status :: Runtime discovery-only
-    Source evidence :: Current runtime adapter observes TRON injected globals. Treat this as adapter-grounded discovery until a primary TIP/provider document is attached.
-    Provider :: TronLink/TRON wallets
-    Kind :: wallet-api
-    Transport :: injected provider
-    API surface :: `window.tron.request({ method: 'eth_requestAccounts' })`, TIP-6963 events, legacy `tronLink.request`
-    Produces :: current BlockheadWallet; target BlockheadWalletConnection, BlockheadWalletAccount, BlockheadWalletRequest
-    Session identity :: injected wallet id
-    Connect means :: account request grants Tron address exposure
-    Account shape :: Tron address, normalized to Tron namespace
-    Scope shape :: TRON chain scope and signing/send methods
-    Runtime handles :: injected provider/tronWeb object
-    Persistence :: account/scope snapshot
-    Notes :: Close to EIP-1193/EIP-6963 conceptually but not identical.
-
-  Source StarknetWalletApi_WalletApi
-    Status :: Runtime discovery-only
-    Source evidence :: The `starknet-io/get-starknet` repository describes a Starknet wallet-dApp bridge with built-in connection UI, `getAvailableWallets`, `getPreAuthorizedWallets`, `getDiscoveryWallets`, `getLastConnectedWallet`, `enable`, and `disconnect`: https://github.com/starknet-io/get-starknet
-    Provider :: Starknet wallets
-    Kind :: wallet-discovery-and-api
-    Transport :: injected window object / wallet-dApp bridge
-    API surface :: get-starknet discovery helpers and Starknet wallet object enable/disconnect flow
-    Produces :: current BlockheadWallet; target BlockheadWalletConnection, BlockheadWalletAccount, BlockheadWalletRequest
-    Session identity :: selected Starknet wallet object plus connected account when enabled
-    Connect means :: `enable(wallet)` connects a selected Starknet window object and exposes a connected wallet object
-    Account shape :: Starknet account address scoped by Starknet chain
-    Scope shape :: Starknet chain and wallet object methods
-    Runtime handles :: Starknet window object or get-starknet connected wallet object
-    Persistence :: discovered wallet id and, when implemented, connected account/scope snapshot
-    Notes :: Current runtime only discovers `window.starknet`, `window.starknet_argentX`, and `window.starknet_braavos`; it does not call `enable`.
-
-  Source TonConnect_Bridge
-    Status :: Constants-backed target
-    Source evidence :: TON Connect SDK docs define manifest metadata, wallet lists with universal/deep links and bridge URLs, remote/injected connection sources, `sendTransaction`, `signData`, status-change subscriptions, and connection restoration: https://ton-connect.github.io/sdk/modules/_tonconnect_sdk.html
-    Provider :: TON Connect wallets
-    Kind :: wallet-transport
-    Transport :: HTTP bridge with universal-link/deep-link and injected connection variants
-    API surface :: TON Connect protocol/SDK with manifest URL, bridge URL, universal link, transaction request messages
-    Produces :: BlockheadWallet, BlockheadWalletConnection, BlockheadWalletAccount, BlockheadWalletTransportSession, BlockheadWalletRequest
-    Session identity :: TON Connect session
-    Connect means :: wallet approves dapp manifest/session and exposes account
-    Account shape :: TON address plus wallet state/init metadata when available
-    Scope shape :: TON network and transaction/message methods
-    Runtime handles :: TonConnect connector
-    Persistence :: manifest URL, bridge URL, session metadata, account
-    Notes :: Requires public HTTPS manifest. The constants row uses `http-bridge` as the primary transport; universal links, deep links, and injected sources are adapter-level connection variants, not wallet identity.
-
-  Source TezosBeacon_Sdk
-    Status :: Research target
-    Source evidence :: Beacon docs describe Beacon as the TZIP-10 wallet/dApp interaction implementation, using `beacon-sdk` to build peer-to-peer channels, send dApp requests to wallets, and track connections/accounts: https://docs.walletbeacon.io/
-    Provider :: Tezos Beacon wallets
-    Kind :: wallet-transport
-    Transport :: extension/postMessage/P2P/deep-link
-    API surface :: Beacon `DAppClient.requestPermissions`, operation/signature requests, peer messaging
-    Produces :: BlockheadWallet, BlockheadWalletConnection, BlockheadWalletAccount, BlockheadWalletTransportSession, BlockheadWalletRequest
-    Session identity :: peer/account permission
-    Connect means :: permission request creates account/network authorization
-    Account shape :: Tezos address/public key scoped by network
-    Scope shape :: network type and Beacon permissions
-    Runtime handles :: DAppClient/transport
-    Persistence :: peer/session/account metadata
-    Notes :: Beacon is a true protocol layer, not only a wallet-specific API.
-
-  Source IcrcSigner_PostMessage
-    Status :: Constants-backed target
-    Source evidence :: DFINITY's ICRC repository is the proposal repository, and ICRC-49 is an open draft issue for a call-canister extension to ICRC-25. Treat this as draft source grounding, not a finalized wallet standard: https://github.com/dfinity/ICRC and https://github.com/dfinity/ICRC/issues/49
-    Provider :: Internet Computer signers
-    Kind :: wallet-transport
-    Transport :: popup/postMessage/injected discovery
-    API surface :: draft ICRC signer/call-canister proposal surface for supported standards, permissions, accounts, signing, and delegation
-    Produces :: BlockheadWallet, BlockheadWalletConnection, BlockheadWalletAccount, BlockheadWalletTransportSession, BlockheadWalletRequest, BlockheadWalletCapabilityGrant
-    Session identity :: signer/session id when supplied
-    Connect means :: signer grants origin/app access to principals/accounts and methods
-    Account shape :: principal and optional subaccount
-    Scope shape :: ICRC standards/methods/canisters
-    Runtime handles :: popup/window port/message channel
-    Persistence :: signer id, principal/subaccount rows, permissions
-    Notes :: Model as remote signer transport only while explicitly marked modeled/draft. Principal/subaccount semantics are not CAIP-10-clean in all cases.
-
-  Source NearWalletSelector_Sdk
-    Status :: Constants-backed target
-    Source evidence :: NEAR Wallet Selector docs describe a JS/TS wallet selector abstraction, wallet modules, sign-in/sign-out, signed accounts, account querying, NEP-413 message signing, and sign-and-send transaction methods: https://docs.near.org/tools/wallet-selector
-    Provider :: NEAR Wallet Selector
-    Kind :: wallet-sdk
-    Transport :: wallet module abstraction over extension/redirect/popup/injected/ledger/mobile transports
-    API surface :: selector setup, wallet module selection, `signIn`/`signOut`, `getAccounts`, NEP-413 signing, sign-and-send transaction methods
-    Produces :: BlockheadWallet, BlockheadWalletConnection, BlockheadWalletAccount, BlockheadWalletTransportSession, BlockheadWalletRequest
-    Session identity :: selected wallet id plus signed account session when supplied by module
-    Connect means :: selected wallet module signs in and exposes signed account ids plus transaction/signing methods
-    Account shape :: NEAR account id/public key
-    Scope shape :: network, contract ids, methods, transaction capabilities
-    Runtime handles :: wallet selector instance and selected wallet module
-    Persistence :: selected wallet id, signed account ids, network, and module/session metadata when serializable
-    Notes :: The selector is the sourceable abstraction. Individual wallet modules determine the concrete transport, so do not model this as iframe-only.
-
-  Source BitcoinSatsConnect_WalletApi
-    Status :: Constants-backed target
-    Source evidence :: The Sats Connect repository describes a JavaScript library for connecting apps to Bitcoin, Spark, Starknet, Stacks, and Bitcoin L2 wallets, with `request('getAccounts')`, address purposes, message signatures, PSBT signing, transfers, and wallet-disconnect flows: https://github.com/secretkeylabs/sats-connect
-    Provider :: Sats Connect wallets
-    Kind :: wallet-api
-    Transport :: injected/deep-link/provider bridge through Sats Connect request API
-    API surface :: `request('getAccounts')`, message signing, PSBT signing, transfer/send methods, disconnect
-    Produces :: BlockheadWallet, BlockheadWalletConnection, BlockheadWalletAccount, BlockheadWalletRequest
-    Session identity :: wallet id plus account/address set
-    Connect means :: `getAccounts` exposes requested address purposes after wallet approval
-    Account shape :: role address set: payment, ordinals, Stacks, and other supported purposes
-    Scope shape :: requested address purposes, networks, chains, and request methods
-    Runtime handles :: Sats Connect provider/adapter
-    Persistence :: exposed addresses and purposes
-    Notes :: Source-grounded target. The current runtime does not discover Sats Connect separately and does not call Sats Connect request methods. Current Bitcoin browser discovery is represented by `BitcoinInjected_WalletApi`.
-
-  Source BitcoinInjected_WalletApi
-    Status :: Runtime discovery-only
-    Source evidence :: Current runtime adapter observes wallet-specific Bitcoin globals. Treat this as adapter-grounded discovery, not a shared Bitcoin wallet standard.
-    Provider :: Bitcoin browser wallets
-    Kind :: wallet-discovery
-    Transport :: injected globals
-    API surface :: wallet-specific globals such as `LeatherProvider`, `XverseProviders`, `unisat`, and `magicEden.bitcoin`
-    Produces :: current BlockheadWallet
-    Session identity :: none
-    Connect means :: not implemented; current runtime only discovers candidate globals
-    Account shape :: none until a wallet-specific connect adapter is implemented
-    Scope shape :: none until a wallet-specific connect adapter is implemented
-    Runtime handles :: wallet-specific global object
-    Persistence :: discovered wallet metadata only
-    Notes :: Do not label every Bitcoin global as Sats Connect. Each wallet/global needs source-specific API mapping before it can produce connections or account rows.
-
-  Source StellarWalletConnect_WalletApi
-    Status :: Research target
-    Source evidence :: Stellar SEP-0043 defines a standard web wallet API with `getAddress` and `signTransaction` for wallet/dapp interactions: https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0043.md
-    Provider :: Stellar wallets
-    Kind :: wallet-transport
-    Transport :: WalletConnect relay or extension API
-    API surface :: Stellar WalletConnect methods such as signing XDR/message plus Freighter extension API
-    Produces :: BlockheadWalletConnection, BlockheadWalletAccount, BlockheadWalletRequest
-    Session identity :: WalletConnect topic or extension wallet id
-    Connect means :: wallet approves Stellar account and signing methods
-    Account shape :: Stellar public key scoped by pubnet/testnet
-    Scope shape :: `stellar:*` namespace methods/events
-    Runtime handles :: WalletConnect client or extension API
-    Persistence :: topic/account/scope
-    Notes :: Freighter extension and WalletConnect mobile paths are distinct transports normalized to the same entities.
-
-  Source HederaWalletConnect_WalletApi
-    Status :: Research target
-    Source evidence :: HIP-820 specifies WalletConnect 2.0 methods for Hedera, including `hedera_signTransaction`, `hedera_signAndExecuteTransaction`, `hedera_executeTransaction`, query execution, message signing, and Hedera CAIP identifiers: https://hips.hedera.com/hip/hip-820
-    Provider :: Hedera wallets
-    Kind :: wallet-transport
-    Transport :: WalletConnect relay
-    API surface :: HIP-820-style WalletConnect namespace/methods
-    Produces :: BlockheadWalletConnection, BlockheadWalletAccount, BlockheadWalletRequest
-    Session identity :: WalletConnect topic
-    Connect means :: wallet approves Hedera account and transaction/signing methods
-    Account shape :: Hedera account id or EVM alias depending namespace
-    Scope shape :: Hedera namespace or EVM `eip155` namespace for EVM-compatible flows
-    Runtime handles :: WalletConnect client
-    Persistence :: topic/account/scope
-    Notes :: HashConnect is legacy/sunset direction; model WalletConnect as preferred transport.
-
-  Source AlgorandWalletConnect_WalletApi
-    Status :: Research target
-    Source evidence :: ARC-25 specifies Algorand WalletConnect v1 session creation and JSON-RPC request/response handling, with `algo_signTxn` as the transaction signing method: https://dev.algorand.co/arc-standards/arc-0025/
-    Provider :: Algorand wallets
-    Kind :: wallet-transport
-    Transport :: WalletConnect relay or wallet SDK bridge
-    API surface :: ARC-25/WalletConnect signing methods, Pera/Defly connectors
-    Produces :: BlockheadWalletConnection, BlockheadWalletAccount, BlockheadWalletRequest
-    Session identity :: WalletConnect topic or connector session
-    Connect means :: wallet approves Algorand account and signing requests
-    Account shape :: Algorand address scoped by network
-    Scope shape :: Algorand network and signing methods
-    Runtime handles :: connector/client object
-    Persistence :: session/account/scope
-    Notes :: Practical integrations often use wallet SDKs over WalletConnect; keep schema protocol-neutral.
-
-  Source FlowFcl_Discovery
-    Status :: Research target
-    Source evidence :: Flow FCL docs describe FCL as a standardized dapp/wallet client with authentication, wallet discovery, authorization, transaction mutation, front-channel wallet communication, and back-channel HTTP: https://developers.flow.com/build/tools/clients/fcl-js
-    Provider :: Flow wallets
-    Kind :: wallet-transport
-    Transport :: discovery service + iframe/popup/extension/http post
-    API surface :: FCL authentication and authorization service strategies
-    Produces :: BlockheadWallet, BlockheadWalletConnection, BlockheadWalletAccount, BlockheadWalletTransportSession, BlockheadWalletRequest
-    Session identity :: FCL current user/session
-    Connect means :: FCL authenticate selects wallet service and returns user authorization
-    Account shape :: Flow account address
-    Scope shape :: Flow network and service roles
-    Runtime handles :: FCL service/session objects
-    Persistence :: user/account/service metadata
-    Notes :: FCL is the practical protocol client for Flow; discovery service is part of the connection source.
-
-  Source Xaman_XrplSdk
-    Status :: Research target
-    Source evidence :: Xaman SDK docs expose `Xumm.authorize()` for browser sign-in flow and SDK sections for payload sign requests, OAuth/OpenID, push, and user/runtime APIs: https://docs.xaman.dev/js-ts-sdk/sdk-syntax/xumm.authorize
-    Provider :: Xaman/XRPL wallets
-    Kind :: wallet-auth-and-request
-    Transport :: OAuth/JWT/push/deep-link
-    API surface :: Xaman SDK authorize and payload signing flow
-    Produces :: BlockheadWalletAuthentication, BlockheadWalletConnection, BlockheadWalletAccount, BlockheadWalletRequest
-    Session identity :: JWT/user token or payload id
-    Connect means :: user authorizes app/account through Xaman flow; signing happens through payload requests
-    Account shape :: XRPL classic address
-    Scope shape :: app authorization and payload permissions
-    Runtime handles :: SDK/client/token
-    Persistence :: auth/account/payload metadata, not raw tokens unless explicitly local-only
-    Notes :: This is not a generic injected provider. Authentication and request payloads should stay distinct.
-
-  Source BitcoinCoreWallet_JsonRpc
-    Status :: Research target
-    Source evidence :: Bitcoin Core RPC reference includes wallet RPC methods such as `getwalletinfo`, `listunspent`, `sendtoaddress`, `signmessage`, and related address/transaction wallet operations: https://developer.bitcoin.org/reference/rpc/
-    Provider :: Bitcoin Core wallet
-    Kind :: local-wallet-rpc
-    Transport :: local JSON-RPC
-    API surface :: wallet RPC commands for descriptors, addresses, UTXOs, PSBTs, balances, transactions
-    Produces :: BlockheadWalletConnection, BlockheadWalletAccount, BlockheadWalletRequest, explicit Bitcoin local/private wallet rows when modeled
-    Session identity :: local RPC profile/wallet name
-    Connect means :: Blockhead has configured local RPC access to a wallet
-    Account shape :: descriptors/accounts/addresses, not generic browser account
-    Scope shape :: local RPC command access
-    Runtime handles :: RPC client/auth
-    Persistence :: profile id, wallet name, redacted endpoint metadata
-    Notes :: Local/private wallet source. Public Bitcoin Core node data alone is not wallet state.
-
-  Source MoneroWalletRpc_JsonRpc
-    Status :: Research target
-    Source evidence :: Monero wallet RPC docs define a dedicated wallet RPC surface for wallet accounts, subaddresses, transfers, outputs, payments, signing, and wallet state: https://docs.getmonero.org/rpc-library/wallet-rpc/
-    Provider :: monero-wallet-rpc
-    Kind :: local-wallet-rpc
-    Transport :: local JSON-RPC
-    API surface :: wallet RPC methods for accounts, subaddresses, transfers, outputs, key images, balances
-    Produces :: explicit Monero local/private wallet rows when modeled, BlockheadWalletRequest
-    Session identity :: local RPC profile/wallet file
-    Connect means :: Blockhead can query a local wallet RPC process
-    Account shape :: Monero account/subaddress indexes and addresses
-    Scope shape :: local wallet RPC command access
-    Runtime handles :: RPC client/auth
-    Persistence :: redacted local profile/wallet id
-    Notes :: Correctly local/private: public daemon data cannot reveal owned outputs, balances, or transfer interpretation.
-
-  Source ZcashdWallet_JsonRpc
-    Status :: Research target
-    Source evidence :: Zcash RPC docs include wallet methods for transparent and shielded/unified wallet state, including `z_exportviewingkey`, `z_getbalance`, `z_getbalanceforviewingkey`, `z_listaccounts`, `z_listunspent`, `z_sendmany`, and operation status/result APIs: https://zcash.github.io/rpc/
-    Provider :: zcashd wallet
-    Kind :: local-wallet-rpc
-    Transport :: local JSON-RPC
-    API surface :: wallet RPC methods for addresses, balances, notes, transactions, viewing/spending keys
-    Produces :: explicit Zcash local/private wallet rows when modeled, BlockheadWalletRequest
-    Session identity :: local RPC profile/wallet
-    Connect means :: Blockhead has local wallet RPC access or imported viewing/spending key context
-    Account shape :: transparent/shielded/unified addresses and key fingerprints
-    Scope shape :: local wallet RPC/key-scan access
-    Runtime handles :: RPC client/auth
-    Persistence :: key fingerprints and redacted local profile; raw key material local-only
-    Notes :: Public Zcash chain rows expose commitments/nullifiers, not wallet-owned notes or balances.
-
-  Source CashuWallet_Local
-    Status :: Research target
-    Source evidence :: Cashu docs describe ecash as a bearer token stored on the user's device and identify NUTs as the protocol specifications for wallet/mint implementations: https://docs.cashu.space/
-    Provider :: Blockhead local Cashu wallet store
-    Kind :: local-wallet-store
-    Transport :: local persistence + mint REST calls
-    API surface :: local proof/token/quote store, Cashu mint REST for quote/checkstate/melt/mint
-    Produces :: explicit Cashu local/private proof, token, and quote rows when modeled
-    Session identity :: local wallet id + mint + unit
-    Connect means :: Blockhead has local bearer proof/token material for a mint
-    Account shape :: no public account; wallet state is bearer proof inventory
-    Scope shape :: local mint/unit/proof set
-    Runtime handles :: local store and mint client
-    Persistence :: proof metadata and optionally raw proof material under local trusted policy
-    Notes :: Cashu proofs are bearer money. This is not a normal account-exposure wallet connection.
-
-  Source LedgerJs_WebHid
-    Status :: Constants-backed target
-    Source evidence :: Ledger's `hw-transport-webhid` package documents WebHID communication with Ledger hardware wallets, user-gesture/HTTPS constraints, `TransportWebHID.create()`, `exchange(apdu)`, device listing/listening, and explicit device permission requests: https://github.com/LedgerHQ/ledger-live/tree/develop/libs/ledgerjs/packages/hw-transport-webhid
-    Provider :: Ledger device
-    Kind :: direct-hardware
-    Transport :: WebHID
-    API surface :: APDU/app-specific LedgerJS calls
-    Produces :: BlockheadWalletConnection, BlockheadWalletAccount, BlockheadWalletTransportSession, BlockheadWalletRequest
-    Session identity :: device pairing/profile id
-    Connect means :: user grants browser device access and opens/signs through a Ledger app
-    Account shape :: derivation path + public key/address
-    Scope shape :: device app + chain + derivation path + methods
-    Runtime handles :: WebHID device/transport
-    Persistence :: redacted pairing/profile, derivation metadata, not device handle
-    Notes :: Desktop Chromium-limited and chain-specific. This grounds the current `direct-hardware-transport` constants row only for Ledger WebHID. Other hardware products, WebUSB paths, and chain apps need separate source rows or narrower constants rows before they become modeled support.
-
-  Source TrezorConnect_Bridge
-    Status :: Constants-backed target
-    Source evidence :: Trezor Connect exposes a public Connect Explorer/API surface for browser-mediated device methods and bridge/device interaction: https://connect.trezor.io/9/
-    Provider :: Trezor Connect
-    Kind :: direct-hardware
-    Transport :: browser bridge/WebUSB/local bridge
-    API surface :: Trezor Connect method calls per chain
-    Produces :: BlockheadWalletConnection, BlockheadWalletAccount, BlockheadWalletTransportSession, BlockheadWalletRequest
-    Session identity :: device/session profile where available
-    Connect means :: Trezor bridge/session approves address export or signing request
-    Account shape :: derivation path + address/public key
-    Scope shape :: chain method and derivation path
-    Runtime handles :: TrezorConnect instance/bridge session
-    Persistence :: redacted pairing/profile and derivation metadata
-    Notes :: Not EIP-1193-shaped. For EVM dapps, MetaMask/Rabby bridges are usually simpler.
-```
-
-## Coverage Matrix
-
-```text
-  EVM browser extensions ::
-    Sources Eip6963_BrowserEvent, Eip1193_InjectedProvider
-    Connection BlockheadWalletConnection
-    Account BlockheadWalletAccount caip10
-    Request Target `BlockheadWalletRequest`; current runtime does not persist EIP-1193 request rows
-
-  Remote/mobile/hardware bridge ::
-    Sources WalletConnect_SignClient
-    Connection Target `BlockheadWalletConnection` after Sign Client integration
-    Transport Target `BlockheadWalletTransportSession` topic after Sign Client integration
-    Account Target `BlockheadWalletAccount` CAIP-10 rows from approved session namespaces
-    Request Target `BlockheadWalletRequest` for session requests
-
-  Solana/Sui Wallet Standard ::
-    Sources WalletStandard_BrowserRegistry
-    Wallet BlockheadWallet discovery only today
-    Connection Target only after `standard:connect` feature calls are mapped
-    Account Target CAIP-like or chain-specific account object only after connection support exists
-    Request Target only after feature-call instrumentation exists
-
-  Bitcoin injected globals ::
-    Sources BitcoinInjected_WalletApi
-    Wallet BlockheadWallet discovery only today
-    Connection Target only after wallet-specific APIs are mapped
-    Account Target roleAddressSet only after connection support exists
-
-  Cardano ::
-    Sources CardanoCip30_WalletApi
-    Connection BlockheadWalletConnection
-    Account Current runtime writes CAIP-shaped `BlockheadWalletAccount` rows for used/unused addresses only
-    Target account shape roleAddressSet with used/unused/change/reward roles after selectors support address roles
-    Request Target `BlockheadWalletRequest`; current runtime does not persist CIP-30 request rows
-    No generic Cardano wallet-state entity without a local wallet inventory source
-
-  Cosmos ::
-    Sources CosmosOfflineSigner_WalletApi
-    Wallet BlockheadWallet discovery only today
-    Connection Target only with concrete chain id and enabled signer
-    Account Target chainAddress only after `getKey(chainId)` / signer account exposure
-    Request Target signer calls
-    No generic Cosmos wallet-state entity from signer exposure alone
-
-  Polkadot/Substrate ::
-    Sources PolkadotInjectedWeb3_WalletApi
-    Connection BlockheadWalletConnection
-    Account Current runtime writes CAIP-shaped `BlockheadWalletAccount` rows with generic `polkadot:0` reference
-    Target account shape chain/genesis-scoped chainAddress after chain context is passed into the adapter
-    Request Target `BlockheadWalletRequest`; current runtime does not persist extension request rows
-    No generic Polkadot wallet-state entity from extension exposure alone
-
-  TON/Beacon/NEAR/ICP/Flow/Xaman ::
-    Sources TonConnect_Bridge, TezosBeacon_Sdk, NearWalletSelector_Sdk, IcrcSigner_PostMessage, FlowFcl_Discovery, Xaman_XrplSdk
-    Connection Target `BlockheadWalletConnection` when an authorization/session exists
-    Transport Target `BlockheadWalletTransportSession` when durable
-    Authentication Target `BlockheadWalletAuthentication` when sign-in/OAuth is primary
-    Request Target `BlockheadWalletRequest`
-
-  Local/private wallet state ::
-    Sources BitcoinCoreWallet_JsonRpc, MoneroWalletRpc_JsonRpc, ZcashdWallet_JsonRpc, CashuWallet_Local
-    Connection Target optional `BlockheadWalletConnection` for configured local wallet client
-    State Explicit local/private wallet rows are valid only after their selectors and exposed source state are modeled
-    Account Target `BlockheadWalletAccount` only when exposing general account/address selectors is useful
-
-  Direct hardware ::
-    Sources LedgerJs_WebHid, TrezorConnect_Bridge
-    Connection Target `BlockheadWalletConnection`
-    Transport Target `BlockheadWalletTransportSession` device pairing
-    Account Target `BlockheadWalletAccount` derivationPath/address
-    Request Target `BlockheadWalletRequest` devicePrompt
-    No public chain state under Blockhead rows
-```
-
-## Rejected Or Quarantined Candidates
-
-- OpenLV / Open Lavatory WebRTC wallet bridge: removed from `src/constants/Wallet.ts` and from source rows because no public primary source, repository, specification, or explicit local product requirement was verified. Re-add only with evidence for the transport, API surface, session identity, account shape, and persistence contract.
-- Ledger Wallet Provider EVM injected provider: removed from `src/constants/Wallet.ts` and source bindings until a public primary source verifies the injected discovery surface, provider API contract, account shape, and persistence contract. Keep Ledger direct-device modeling under the grounded WebHID source row.
-- LedgerJS WebUSB: keep out of the constants-backed method list until it has a separate source row and product decision. Do not hide WebUSB under the current WebHID `direct-hardware-transport` row.
-
-## Sourceability Rules
-
-- Add a `WalletConnectionMethod` row when a protocol/spec/source exists and the method can be described with a stable discovery/transport/API surface.
-- Add a live `BlockheadWallet` row only when a constants seed, browser discovery event/global, registry, manifest, or local profile exposes a candidate.
-- Add a `BlockheadWalletConnection` row only when a user/session/local configuration has authorized or attempted a connection.
-- Add a `BlockheadWalletAccount` row only when a wallet source exposes an account, address, principal, subaccount, derivation path, or role address.
-- Add `BlockheadWalletTransportSession` only when the transport has durable serializable identity.
-- Add `BlockheadWalletRequest` for wallet API calls that matter for debugging, audit, pending status, or user-visible execution.
-- Add `BlockheadWalletCapabilityGrant` for signed/durable capability artifacts, not for ordinary account exposure.
-- Add `BlockheadWalletAuthentication` for sign-in/OAuth/SIWx flows, even if they used a wallet to sign.
-- Add chain-specific local/private wallet rows only when the source exposes private/local wallet inventory and the schema defines concrete selectors for that exposed state, not when a browser signer exposes an address.
-
-## Intent And Session Source Notes
-
-This section folds the prior intent/source research into the full source catalog. The schema may reference only concrete `SourceBinding` enum members. Order-server, wallet API, browser transport, and runtime names below are source-family notes unless they already exist as executable bindings in this file.
-
-Local source ownership:
-
-- `Local_Internal` owns product-local sessions, ordered actions, accepted invocation records, typed swap/bridge/transfer intent rows, readiness request envelopes, outcome summaries, local quote/order records, wallet requests, simulation envelopes, retained simulation calls/logs, list membership, local ids, ordering, timestamps, summaries, and payload hashes.
-- `Constants_Internal` owns checked-in labels, enum/catalog normalization, action/protocol/wallet/status keys, option definitions, and reproducibility hashes. Catalog rows support validation and display; they do not become provider, wallet, runtime, or chain observations.
-- Browser drag/drop is transient UI transport. Persist only accepted or replayable results as `BlockheadIntentInvocation`; never model hover state, `DataTransfer`, drag rectangles, tooltip previews, or raw UI payloads as durable source rows.
-- TEVM-style simulation output is local runtime evidence. Until a concrete `Tevm_Runtime` binding is admitted, simulation rows use `Local_Internal` for retained runtime artifacts and `Voltaire_JsonRpc` only for fork/RPC context where applicable.
-
-Prior-art source families:
-
-- OIF aggregators, LI.FI intent order servers, NEAR Intents order servers, UniswapX/Trade API, and 1inch Fusion are signed-order or filler-market source candidates. They can motivate `BlockheadIntentQuote` and `BlockheadIntentOrder`, but they are not listed on schema rows until concrete executable source bindings, auth/CORS behavior, endpoint selectors, clocks, status vocabulary, and payload examples are admitted.
-- Existing `Lifi_Rest` and `OneInchSwap_Rest` bindings are normal route/source bindings unless a future source row proves an order-server or signed-order lifecycle. Ordinary executable route quotes remain on specialized rows such as `SwapQuote_Timestamp` and `BridgeRouteQuote_Timestamp`, not `BlockheadIntentQuote`.
-- Existing wallet source rows such as injected EIP-1193 providers, EIP-6963 discovery, WalletConnect, Wallet Standard, and protocol wallet SDK rows may later supply wallet request/status observations. The durable schema boundary remains `BlockheadWalletRequest` plus `BlockheadWalletRequest_Timestamp`; wallet-reported success is not chain finality.
-
-Intent source mapping:
-
-| Schema row | Source ownership |
-| --- | --- |
-| `BlockheadSession` | `Local_Internal` |
-| `BlockheadSessionAction` | `Local_Internal`, `Constants_Internal` |
-| `BlockheadIntentInvocation` | `Local_Internal`, `Constants_Internal`; browser drag/drop remains transient transport |
-| `BlockheadActionReadinessCheck` | `Local_Internal`, `Constants_Internal` |
-| `BlockheadActionReadinessCheck_Timestamp` | `Local_Internal`, `Constants_Internal`; wallet/source capability observations can be promoted only through concrete wallet source facets |
-| `BlockheadActionOutcome` | `Local_Internal`, `Constants_Internal`; public transaction, receipt, bridge, and protocol evidence resolves outside this local artifact |
-| `BlockheadActionOutcome_Timestamp` | `Local_Internal`, `Constants_Internal` |
-| `BlockheadSwapIntent`, `BlockheadBridgeIntent`, `BlockheadTransferIntent` | `Local_Internal`, `Constants_Internal`; CAIP fields and native refs are local product-routing fields until resolved by existing account/network/asset sources |
-| `BlockheadIntentQuote` | `Local_Internal`, `Constants_Internal`; provider/order-server handles are correlation fields, not row identity |
-| `BlockheadIntentQuote_Timestamp` | `Local_Internal` until concrete signed-order/filler-market source bindings are admitted |
-| `BlockheadIntentOrder` | `Local_Internal`, `Constants_Internal`; `source+orderId` remains a correlation handle |
-| `BlockheadIntentOrder_Timestamp` | `Local_Internal`, `Constants_Internal` until concrete provider status source bindings are admitted |
-| `BlockheadWalletRequest` | `Local_Internal`, `Constants_Internal`; concrete wallet sources may observe lifecycle timestamps |
-| `BlockheadWalletRequest_Timestamp` | `Local_Internal`, `Constants_Internal`, plus concrete wallet source facets when implemented |
-| `BlockheadSessionSimulation` | `Local_Internal`, `Voltaire_JsonRpc` for fork context |
-| `BlockheadSessionSimulationCall`, `BlockheadSessionSimulationLog` | `Local_Internal` runtime replay/debug artifacts |
-
-Intent field sourceability:
-
-- Local ids, scoped ids, session/action links, list membership, ordering indexes, created/updated/requested/submitted timestamps, selected protocol, typed intent parameters, local quote/order/wallet links, outcomes, and simulation envelopes are `Local_Internal`.
-- Enum labels, normalized status labels, capability keys, protocol/action/wallet/invocation/simulation keys, intent definitions, and reproducibility hashes are `Constants_Internal`.
-- Payload hash fields such as `requestPayloadHash`, `quotePayloadHash`, `orderPayloadHash`, `statusPayloadHash`, `resultPayloadHash`, `inputDataHash`, `outputDataHash`, and `dataHash` are evidence handles. The source that produced the retained payload owns the observation; raw payloads stay out of primary schema fields.
-- Provider quote fields such as quote ids, solver ids, expiries, previews, checksums, and provider errors belong on quote timestamp observations. Provider order status, fill/claim transaction hashes, gas, status payload hashes, and provider errors belong on order timestamp observations.
-- Wallet request parents describe what Blockhead asked a wallet to do. Wallet-reported signatures, transaction ids/hashes, bundle ids/status, numeric status codes, observed atomicity, receipt counts, and wallet errors belong on wallet request timestamps.
-- Readiness parents describe what Blockhead asked to check. Observed balances, allowances, deficits, capability support, and errors belong on readiness timestamp observations or existing account/asset/wallet rows.
-- Simulation fork/run envelopes, calls, logs, gas summaries, errors, and runtime hashes are replay/debug evidence. They must not become canonical transaction, receipt, trace, or public log facts without public chain resolver evidence.
-- `source` on quote/order parents is a provider/source correlation field. `source` on timestamp rows is the observer identity and belongs in selectors whenever multiple observers can report divergent observations at the same clock.
-
-Intent resolver proof rules:
-
-- Resolver facet absence represents unsupported facts. Do not encode source support as `EntityFieldCardinality.Zero`, placeholder primitives, or generic empty lists.
-- Negative fixtures should cover drag hover with no durable row, route quote that does not create `BlockheadIntentQuote`, provider handles that do not collapse local artifacts, wallet rejection without chain finality, wallet success without receipt finality, simulated logs without public logs, and unsupported facets represented by absence.
-- Treat `source-supported`, `source-derived-local`, `source-observed-not-canonical`, `source-unavailable`, `source-ambiguous`, and `source-out-of-scope` as distinct review outcomes when adding resolver facets.
-
-AI source-layer notes:
-
-- SourceProvider/SourceBinding are Blockhead executable source metadata. AiModelProvider is AI-domain provider identity.
-- Source-native digest identifiers such as OCI digests, IPFS CIDs, Arweave ids, and Git object ids remain native selectors. Local/evidence hashes used for snapshots, request/response payloads, arguments, prompts, files, signatures, and claims must carry an explicit hash algorithm.
-- Model/provider API sources resolve provider-scoped model selectors, source/time model observations, provider catalog entries, provider API operations, and catalog observations. Provider model list/detail endpoints may expose descriptions, lifecycle, token limits, supported methods, and capability flags; keep those on `AiModel_Timestamp` unless the provider contract makes them immutable identity fields. They do not prove equivalence with HF repos, OCI artifacts, or model cards.
-- Hugging Face Hub and MLflow resolve source-scoped catalog entries, model versions, artifacts, documents, and claims. They should not directly resolve AiModel unless a resolver derives a provider-scoped model selector.
-- Dataset/evaluation sources resolve dataset selectors, benchmark/catalog rows, document claims, and timestamped evaluation observations. Hugging Face model-index results originate as model-card claims; MLflow metrics originate as run/model metric observations with timestamp/step and optional dataset name/digest. Do not collapse those into static evaluation identity.
-- Direct provider API execution is represented as BlockheadAgentProviderCall local state linked to AiProviderApiOperation/AiModel. Provider sources supply operation/model metadata and probe health, while Local_Internal owns the user's request/response execution record. Current Blockhead conversation turns store user prompt and assistant text directly; ACP/A2A protocol messages remain protocol-native rows.
-- Parser, registry, and protocol document sources resolve documents, document claims, artifacts, and relationship claims. Claim extraction applies to HF cards, Croissant JSON-LD, SPDX, CycloneDX ML-BOM, OCI manifests/artifact manifests, A2A cards, EIP-8004 files, MLflow/ONNX metadata, and Git-hosted docs. They do not create dedicated AiModelCard/AiManifest/AiBom entities by default.
-- ACP registry REST resolves curated ACP agent program metadata, versions, and distribution blocks from the registry JSON/schema. Registry entries are installable program/package catalog rows, not running agent identity.
-- ACP local JSON-RPC resolves local runtime/session/turn/tool/file/terminal state and Blockhead-local conversation links over editor-launched stdio. Local installed agent program configuration is Blockhead-local state; live ACP process state is AcpAgentRuntime. Remote HTTP/WebSocket ACP should become a separate source binding when implemented.
-- A2A well-known HTTP resolves card snapshots and service/skill/interface declarations. A2A service HTTP resolves tasks, messages, artifacts, task status observations, and authenticated extended cards across the source-declared protocol binding; the binding may be JSON-RPC, HTTP+JSON/REST, gRPC behind a gateway, or a custom A2A binding.
-- MCP package registry REST resolves server.json/API catalog rows keyed by registry server name, version, packages, remotes, repository metadata, and official registry status. Package/remotes declarations are deployable server catalog metadata, not running McpServer identity.
-- MCP configured protocol resolves server-scoped tools/resources/prompts and tool calls over stdio, Streamable HTTP, legacy HTTP+SSE, or custom transport. MCP messages remain JSON-RPC; tool/resource/prompt names are not global.
-- EIP-8004 sources resolve crypto-native registration identity, registration-file evidence, service endpoint declarations, endpoint-domain verification, reputation feedback, and validation observations. Registration-file and validation/feedback hashes are source-native hash commitments such as keccak256, so schema rows keep hash algorithms explicit. Use Eip8004Scan_Rest for indexer/API reads and the existing Voltaire_JsonRpc binding for direct EVM contract reads; do not add an EIP-8004-specific JSON-RPC source unless the transport differs from normal EVM JSON-RPC. A2A/MCP/x402 declarations inside registration files remain endpoint rows or claims.
-- X402 probes resolve HTTP 402 payment requirement observations and native PAYMENT-REQUIRED / PAYMENT-SIGNATURE / PAYMENT-RESPONSE payload evidence, not payment settlement identity. Settlement transaction hashes or receipts belong to native payment/chain rows.
-- BlockheadAgentConnection rows are local configuration. Provider/protocol sources may still resolve BlockheadAgentConnection_Timestamp health/probe observations for the configured endpoint.
-- AgentIdentityClaim is reserved for explicit equivalence/control/verified-binding evidence; use AiRelationshipClaim for non-equivalence relationships and provenance.
-- Sigstore/Rekor resolves AiArtifactAttestation rows. Attestations are evidence about artifact integrity/provenance, not alternate artifact selectors.
+| Binding | Source | Target |
+|---|---|---|
+| `A2aWellKnown_Http` | `A2aWellKnown_Http` | _Global |
+| `AcpRegistry_Rest` | `AcpRegistry_Rest` | _Global |
+| `Allium_Rest` | `Allium_Rest` | _Global |
+| `BitcoinBips_Github` | `BitcoinBips_Github` | _Global |
+| `BitcoinCashChips_Gitlab` | `BitcoinCashChips_Gitlab` | _Global |
+| `Caips_Github` | `Caips_Github` | _Global |
+| `Chainlist_Rest` | `Chainlist_Rest` | _Global |
+| `Cohere_Rest` | `Cohere_Rest` | _Global |
+| `CoinMarketCap_Rest` | `CoinMarketCap_Rest` | _Global |
+| `Coingecko_OpenApi` | `Coingecko_OpenApi` | _Global |
+| `Coingecko_Rest` | `Coingecko_Rest` | _Global |
+| `Coinpaprika_OpenApi` | `Coinpaprika_OpenApi` | _Global |
+| `Constants_Internal` | `Constants_Internal` | _Global |
+| `CosmosAdrs_Github` | `CosmosAdrs_Github` | _Global |
+| `CroissantDocument_Local` | `CroissantDocument_Local` | _Global |
+| `CycloneDxDocument_Local` | `CycloneDxDocument_Local` | _Global |
+| `Defillama_OpenApi` | `Defillama_OpenApi` | _Global |
+| `Dexscreener_OpenApi` | `Dexscreener_OpenApi` | _Global |
+| `DogecoinDips_Github` | `DogecoinDips_Github` | _Global |
+| `Dune_Rest` | `Dune_Rest` | _Global |
+| `Ensips_Github` | `Ensips_Github` | _Global |
+| `EthereumEips_Github` | `EthereumEips_Github` | _Global |
+| `EthereumLists_Rest` | `EthereumLists_Rest` | _Global |
+| `FilecoinFips_Github` | `FilecoinFips_Github` | _Global |
+| `LitecoinLips_Github` | `LitecoinLips_Github` | _Global |
+| `Local_Internal` | `Local_Internal` | _Global |
+| `McpPackageRegistry_Rest` | `McpPackageRegistry_Rest` | _Global |
+| `MistralAi_Rest` | `MistralAi_Rest` | _Global |
+| `Mlflow_Rest` | `Mlflow_Rest` | _Global |
+| `NearNeps_Github` | `NearNeps_Github` | _Global |
+| `OciRegistry_Distribution` | `OciRegistry_Distribution` | _Global |
+| `OnnxArtifact_Local` | `OnnxArtifact_Local` | _Global |
+| `OpenAI_Rest` | `OpenAI_Rest` | _Global |
+| `PolkadotRfcs_Github` | `PolkadotRfcs_Github` | _Global |
+| `SolanaSimds_Github` | `SolanaSimds_Github` | _Global |
+| `SpdxDocument_Local` | `SpdxDocument_Local` | _Global |
+| `TradingView_Rest` | `TradingView_Rest` | _Global |
+| `X402_Http` | `X402_Http` | _Global |
+| `ZcashZips_Github` | `ZcashZips_Github` | _Global |
+| `Constants_Internal` | `Constants_Internal` | _GlobalActivityPubNetwork |
+| `Fedi_Rest` | `Fedi_Rest` | _GlobalActivityPubNetwork |
+| `Mastodon_Rest` | `Mastodon_Rest` | _GlobalActivityPubNetwork |
+| `Fedi_Rest` | `Fedi_Rest` | _GlobalActivityPubNetwork_Timestamp |
+| `Mastodon_Rest` | `Mastodon_Rest` | _GlobalActivityPubNetwork_Timestamp |
+| `Arweave_Graphql` | `Arweave_Graphql` | _GlobalArweaveNetwork |
+| `Arweave_Rest` | `Arweave_Rest` | _GlobalArweaveNetwork |
+| `Constants_Internal` | `Constants_Internal` | _GlobalArweaveNetwork |
+| `Arweave_Graphql` | `Arweave_Graphql` | _GlobalArweaveNetwork_Timestamp |
+| `Arweave_Rest` | `Arweave_Rest` | _GlobalArweaveNetwork_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | _GlobalArweaveNetwork_Timestamp |
+| `AtprotoSync_Xrpc` | `AtprotoSync_Xrpc` | _GlobalAtprotoNetwork |
+| `Atproto_BskySocial_Xrpc` | `Atproto_BskySocial_Xrpc` | _GlobalAtprotoNetwork |
+| `Atproto_Xrpc` | `Atproto_Xrpc` | _GlobalAtprotoNetwork |
+| `Constants_Internal` | `Constants_Internal` | _GlobalAtprotoNetwork |
+| `AtprotoSync_Xrpc` | `AtprotoSync_Xrpc` | _GlobalAtprotoNetwork_Timestamp |
+| `Atproto_BskySocial_Xrpc` | `Atproto_BskySocial_Xrpc` | _GlobalAtprotoNetwork_Timestamp |
+| `Atproto_Xrpc` | `Atproto_Xrpc` | _GlobalAtprotoNetwork_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | _GlobalAtprotoNetwork_Timestamp |
+| `Blockscout_Rest` | `Blockscout_Rest` | _GlobalEnsNetwork |
+| `Constants_Internal` | `Constants_Internal` | _GlobalEnsNetwork |
+| `Etherscan_Rest` | `Etherscan_Rest` | _GlobalEnsNetwork |
+| `TheGraph_Graphql` | `TheGraph_Graphql` | _GlobalEnsNetwork |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | _GlobalEnsNetwork |
+| `Blockscout_Rest` | `Blockscout_Rest` | _GlobalEnsNetwork_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | _GlobalEnsNetwork_Timestamp |
+| `Etherscan_Rest` | `Etherscan_Rest` | _GlobalEnsNetwork_Timestamp |
+| `TheGraph_Graphql` | `TheGraph_Graphql` | _GlobalEnsNetwork_Timestamp |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | _GlobalEnsNetwork_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | _GlobalEvmAbiCatalog |
+| `Local_Internal` | `Local_Internal` | _GlobalEvmAbiCatalog |
+| `Openchain_Rest` | `Openchain_Rest` | _GlobalEvmAbiCatalog |
+| `Constants_Internal` | `Constants_Internal` | _GlobalEvmAbiCatalog_Timestamp |
+| `Local_Internal` | `Local_Internal` | _GlobalEvmAbiCatalog_Timestamp |
+| `Openchain_Rest` | `Openchain_Rest` | _GlobalEvmAbiCatalog_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | _GlobalFarcasterNetwork |
+| `Farcaster_Rest` | `Farcaster_Rest` | _GlobalFarcasterNetwork |
+| `Neynar_Rest` | `Neynar_Rest` | _GlobalFarcasterNetwork |
+| `Snapchain_Rest` | `Snapchain_Rest` | _GlobalFarcasterNetwork |
+| `Constants_Internal` | `Constants_Internal` | _GlobalFarcasterNetwork_Timestamp |
+| `Farcaster_Rest` | `Farcaster_Rest` | _GlobalFarcasterNetwork_Timestamp |
+| `Neynar_Rest` | `Neynar_Rest` | _GlobalFarcasterNetwork_Timestamp |
+| `Snapchain_Rest` | `Snapchain_Rest` | _GlobalFarcasterNetwork_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | _GlobalIpfsAccess |
+| `Ipfs_Rest` | `Ipfs_Rest` | _GlobalIpfsAccess |
+| `Constants_Internal` | `Constants_Internal` | _GlobalIpfsAccess_Timestamp |
+| `Ipfs_Rest` | `Ipfs_Rest` | _GlobalIpfsAccess_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | _GlobalLensNetwork |
+| `Lens_Graphql` | `Lens_Graphql` | _GlobalLensNetwork |
+| `Constants_Internal` | `Constants_Internal` | _GlobalLensNetwork_Timestamp |
+| `Lens_Graphql` | `Lens_Graphql` | _GlobalLensNetwork_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | _GlobalNostrNetwork |
+| `NostrBand_Rest` | `NostrBand_Rest` | _GlobalNostrNetwork |
+| `NostrRelay_Nip11_Http` | `NostrRelay_Nip11_Http` | _GlobalNostrNetwork |
+| `NostrRelay_WebSocket` | `NostrRelay_WebSocket` | _GlobalNostrNetwork |
+| `Primal_Rest` | `Primal_Rest` | _GlobalNostrNetwork |
+| `Constants_Internal` | `Constants_Internal` | _GlobalNostrNetwork_Timestamp |
+| `NostrBand_Rest` | `NostrBand_Rest` | _GlobalNostrNetwork_Timestamp |
+| `NostrRelay_Nip11_Http` | `NostrRelay_Nip11_Http` | _GlobalNostrNetwork_Timestamp |
+| `NostrRelay_WebSocket` | `NostrRelay_WebSocket` | _GlobalNostrNetwork_Timestamp |
+| `Primal_Rest` | `Primal_Rest` | _GlobalNostrNetwork_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | _GlobalRedditNetwork |
+| `Reddit_PublicJson` | `Reddit_PublicJson` | _GlobalRedditNetwork |
+| `Reddit_Rest` | `Reddit_Rest` | _GlobalRedditNetwork |
+| `Constants_Internal` | `Constants_Internal` | _GlobalRedditNetwork_Timestamp |
+| `Reddit_PublicJson` | `Reddit_PublicJson` | _GlobalRedditNetwork_Timestamp |
+| `Reddit_Rest` | `Reddit_Rest` | _GlobalRedditNetwork_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | _GlobalRssNetwork |
+| `Rss2Json_Rest` | `Rss2Json_Rest` | _GlobalRssNetwork |
+| `Rss_Rest` | `Rss_Rest` | _GlobalRssNetwork |
+| `Constants_Internal` | `Constants_Internal` | _GlobalRssNetwork_Timestamp |
+| `Rss2Json_Rest` | `Rss2Json_Rest` | _GlobalRssNetwork_Timestamp |
+| `Rss_Rest` | `Rss_Rest` | _GlobalRssNetwork_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | _GlobalSwarmAccess |
+| `Swarm_Rest` | `Swarm_Rest` | _GlobalSwarmAccess |
+| `Constants_Internal` | `Constants_Internal` | _GlobalSwarmAccess_Timestamp |
+| `Swarm_Rest` | `Swarm_Rest` | _GlobalSwarmAccess_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | _GlobalXNetwork |
+| `X_FxEmbed_Rest` | `X_FxEmbed_Rest` | _GlobalXNetwork |
+| `X_Rest` | `X_Rest` | _GlobalXNetwork |
+| `Constants_Internal` | `Constants_Internal` | _GlobalXNetwork_Timestamp |
+| `X_FxEmbed_Rest` | `X_FxEmbed_Rest` | _GlobalXNetwork_Timestamp |
+| `X_Rest` | `X_Rest` | _GlobalXNetwork_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | _GlobalYouTubeNetwork |
+| `Piped_Rest` | `Piped_Rest` | _GlobalYouTubeNetwork |
+| `Youtube_Rest` | `Youtube_Rest` | _GlobalYouTubeNetwork |
+| `Constants_Internal` | `Constants_Internal` | _GlobalYouTubeNetwork_Timestamp |
+| `Piped_Rest` | `Piped_Rest` | _GlobalYouTubeNetwork_Timestamp |
+| `Youtube_Rest` | `Youtube_Rest` | _GlobalYouTubeNetwork_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | Account |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | Account |
+| `Hyperliquid_JsonRpc` | `Hyperliquid_JsonRpc` | Account |
+| `Local_Internal` | `Local_Internal` | Account |
+| `NearRpc_JsonRpc` | `NearRpc_JsonRpc` | Account |
+| `QuilibriumNode_Grpc` | `QuilibriumNode_Grpc` | Account |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | Account |
+| `SubstrateSidecar_Rest` | `SubstrateSidecar_Rest` | Account |
+| `TronGrid_Rest` | `TronGrid_Rest` | Account |
+| `TronScan_Rest` | `TronScan_Rest` | Account |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | Account |
+| `Fedi_Rest` | `Fedi_Rest` | ActivityPubActor |
+| `Mastodon_Rest` | `Mastodon_Rest` | ActivityPubActor |
+| `Fedi_Rest` | `Fedi_Rest` | ActivityPubActor_Timestamp |
+| `Mastodon_Rest` | `Mastodon_Rest` | ActivityPubActor_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | ActivityPubNetwork |
+| `Fedi_Rest` | `Fedi_Rest` | ActivityPubNote |
+| `Mastodon_Rest` | `Mastodon_Rest` | ActivityPubNote |
+| `Fedi_Rest` | `Fedi_Rest` | ActivityPubNote_Timestamp |
+| `Mastodon_Rest` | `Mastodon_Rest` | ActivityPubNote_Timestamp |
+| `Algod_Rest` | `Algod_Rest` | AlgorandAccount |
+| `AlgorandIndexer_Rest` | `AlgorandIndexer_Rest` | AlgorandAccount |
+| `Nodely_Algod_Rest` | `Nodely_Algod_Rest` | AlgorandAccount |
+| `Nodely_AlgorandIndexer_Rest` | `Nodely_AlgorandIndexer_Rest` | AlgorandAccount |
+| `Algod_Rest` | `Algod_Rest` | AlgorandAccount_Timestamp |
+| `AlgorandIndexer_Rest` | `AlgorandIndexer_Rest` | AlgorandAccount_Timestamp |
+| `Nodely_Algod_Rest` | `Nodely_Algod_Rest` | AlgorandAccount_Timestamp |
+| `Nodely_AlgorandIndexer_Rest` | `Nodely_AlgorandIndexer_Rest` | AlgorandAccount_Timestamp |
+| `Algod_Rest` | `Algod_Rest` | AlgorandApplication |
+| `AlgorandIndexer_Rest` | `AlgorandIndexer_Rest` | AlgorandApplication |
+| `Nodely_Algod_Rest` | `Nodely_Algod_Rest` | AlgorandApplication |
+| `Nodely_AlgorandIndexer_Rest` | `Nodely_AlgorandIndexer_Rest` | AlgorandApplication |
+| `Algod_Rest` | `Algod_Rest` | AlgorandApplication_Timestamp |
+| `AlgorandIndexer_Rest` | `AlgorandIndexer_Rest` | AlgorandApplication_Timestamp |
+| `Nodely_Algod_Rest` | `Nodely_Algod_Rest` | AlgorandApplication_Timestamp |
+| `Nodely_AlgorandIndexer_Rest` | `Nodely_AlgorandIndexer_Rest` | AlgorandApplication_Timestamp |
+| `Algod_Rest` | `Algod_Rest` | AlgorandApplicationLocalState_Round |
+| `AlgorandIndexer_Rest` | `AlgorandIndexer_Rest` | AlgorandApplicationLocalState_Round |
+| `Nodely_Algod_Rest` | `Nodely_Algod_Rest` | AlgorandApplicationLocalState_Round |
+| `Nodely_AlgorandIndexer_Rest` | `Nodely_AlgorandIndexer_Rest` | AlgorandApplicationLocalState_Round |
+| `Algod_Rest` | `Algod_Rest` | AlgorandAsset |
+| `AlgorandIndexer_Rest` | `AlgorandIndexer_Rest` | AlgorandAsset |
+| `Nodely_Algod_Rest` | `Nodely_Algod_Rest` | AlgorandAsset |
+| `Nodely_AlgorandIndexer_Rest` | `Nodely_AlgorandIndexer_Rest` | AlgorandAsset |
+| `Algod_Rest` | `Algod_Rest` | AlgorandAsset_Timestamp |
+| `AlgorandIndexer_Rest` | `AlgorandIndexer_Rest` | AlgorandAsset_Timestamp |
+| `Nodely_Algod_Rest` | `Nodely_Algod_Rest` | AlgorandAsset_Timestamp |
+| `Nodely_AlgorandIndexer_Rest` | `Nodely_AlgorandIndexer_Rest` | AlgorandAsset_Timestamp |
+| `Algod_Rest` | `Algod_Rest` | AlgorandAssetHolding_Round |
+| `AlgorandIndexer_Rest` | `AlgorandIndexer_Rest` | AlgorandAssetHolding_Round |
+| `Nodely_Algod_Rest` | `Nodely_Algod_Rest` | AlgorandAssetHolding_Round |
+| `Nodely_AlgorandIndexer_Rest` | `Nodely_AlgorandIndexer_Rest` | AlgorandAssetHolding_Round |
+| `Algod_Rest` | `Algod_Rest` | AlgorandBox |
+| `AlgorandIndexer_Rest` | `AlgorandIndexer_Rest` | AlgorandBox |
+| `Nodely_Algod_Rest` | `Nodely_Algod_Rest` | AlgorandBox |
+| `Nodely_AlgorandIndexer_Rest` | `Nodely_AlgorandIndexer_Rest` | AlgorandBox |
+| `Algod_Rest` | `Algod_Rest` | AlgorandBox_Round |
+| `AlgorandIndexer_Rest` | `AlgorandIndexer_Rest` | AlgorandBox_Round |
+| `Nodely_Algod_Rest` | `Nodely_Algod_Rest` | AlgorandBox_Round |
+| `Nodely_AlgorandIndexer_Rest` | `Nodely_AlgorandIndexer_Rest` | AlgorandBox_Round |
+| `Algod_Rest` | `Algod_Rest` | AlgorandNetwork |
+| `AlgorandIndexer_Rest` | `AlgorandIndexer_Rest` | AlgorandNetwork |
+| `Constants_Internal` | `Constants_Internal` | AlgorandNetwork |
+| `Nodely_Algod_Rest` | `Nodely_Algod_Rest` | AlgorandNetwork |
+| `Nodely_AlgorandIndexer_Rest` | `Nodely_AlgorandIndexer_Rest` | AlgorandNetwork |
+| `Algod_Rest` | `Algod_Rest` | AlgorandNetwork_Timestamp |
+| `AlgorandIndexer_Rest` | `AlgorandIndexer_Rest` | AlgorandNetwork_Timestamp |
+| `Nodely_Algod_Rest` | `Nodely_Algod_Rest` | AlgorandNetwork_Timestamp |
+| `Nodely_AlgorandIndexer_Rest` | `Nodely_AlgorandIndexer_Rest` | AlgorandNetwork_Timestamp |
+| `Algod_Rest` | `Algod_Rest` | AlgorandRound |
+| `AlgorandIndexer_Rest` | `AlgorandIndexer_Rest` | AlgorandRound |
+| `Nodely_Algod_Rest` | `Nodely_Algod_Rest` | AlgorandRound |
+| `Nodely_AlgorandIndexer_Rest` | `Nodely_AlgorandIndexer_Rest` | AlgorandRound |
+| `Algod_Rest` | `Algod_Rest` | AlgorandTealProgram |
+| `AlgorandIndexer_Rest` | `AlgorandIndexer_Rest` | AlgorandTealProgram |
+| `Nodely_Algod_Rest` | `Nodely_Algod_Rest` | AlgorandTealProgram |
+| `Nodely_AlgorandIndexer_Rest` | `Nodely_AlgorandIndexer_Rest` | AlgorandTealProgram |
+| `Algod_Rest` | `Algod_Rest` | AlgorandTealProgram_Timestamp |
+| `AlgorandIndexer_Rest` | `AlgorandIndexer_Rest` | AlgorandTealProgram_Timestamp |
+| `Nodely_Algod_Rest` | `Nodely_Algod_Rest` | AlgorandTealProgram_Timestamp |
+| `Nodely_AlgorandIndexer_Rest` | `Nodely_AlgorandIndexer_Rest` | AlgorandTealProgram_Timestamp |
+| `Algod_Rest` | `Algod_Rest` | AlgorandTransaction |
+| `AlgorandIndexer_Rest` | `AlgorandIndexer_Rest` | AlgorandTransaction |
+| `Nodely_Algod_Rest` | `Nodely_Algod_Rest` | AlgorandTransaction |
+| `Nodely_AlgorandIndexer_Rest` | `Nodely_AlgorandIndexer_Rest` | AlgorandTransaction |
+| `Algod_Rest` | `Algod_Rest` | AlgorandTransactionGroup |
+| `AlgorandIndexer_Rest` | `AlgorandIndexer_Rest` | AlgorandTransactionGroup |
+| `Nodely_Algod_Rest` | `Nodely_Algod_Rest` | AlgorandTransactionGroup |
+| `Nodely_AlgorandIndexer_Rest` | `Nodely_AlgorandIndexer_Rest` | AlgorandTransactionGroup |
+| `Algod_Rest` | `Algod_Rest` | AlgorandTransactionProof |
+| `Nodely_Algod_Rest` | `Nodely_Algod_Rest` | AlgorandTransactionProof |
+| `AptosFullnode_Rest` | `AptosFullnode_Rest` | AptosAccount |
+| `AptosIndexer_Graphql` | `AptosIndexer_Graphql` | AptosAccount |
+| `AptosFullnode_Rest` | `AptosFullnode_Rest` | AptosAccount_Timestamp |
+| `AptosIndexer_Graphql` | `AptosIndexer_Graphql` | AptosAccount_Timestamp |
+| `AptosFullnode_Rest` | `AptosFullnode_Rest` | AptosAccountResource |
+| `AptosIndexer_Graphql` | `AptosIndexer_Graphql` | AptosAccountResource |
+| `AptosFullnode_Rest` | `AptosFullnode_Rest` | AptosAccountResource_Timestamp |
+| `AptosIndexer_Graphql` | `AptosIndexer_Graphql` | AptosAccountResource_Timestamp |
+| `AptosFullnode_Rest` | `AptosFullnode_Rest` | AptosBlock |
+| `AptosIndexer_Graphql` | `AptosIndexer_Graphql` | AptosBlock |
+| `AptosFullnode_Rest` | `AptosFullnode_Rest` | AptosCoinBalance_Timestamp |
+| `AptosIndexer_Graphql` | `AptosIndexer_Graphql` | AptosCoinBalance_Timestamp |
+| `AptosFullnode_Rest` | `AptosFullnode_Rest` | AptosEvent |
+| `AptosIndexer_Graphql` | `AptosIndexer_Graphql` | AptosEvent |
+| `AptosFullnode_Rest` | `AptosFullnode_Rest` | AptosNetwork |
+| `AptosIndexer_Graphql` | `AptosIndexer_Graphql` | AptosNetwork |
+| `Constants_Internal` | `Constants_Internal` | AptosNetwork |
+| `AptosFullnode_Rest` | `AptosFullnode_Rest` | AptosNetwork_Timestamp |
+| `AptosIndexer_Graphql` | `AptosIndexer_Graphql` | AptosNetwork_Timestamp |
+| `AptosFullnode_Rest` | `AptosFullnode_Rest` | AptosStateChange |
+| `AptosIndexer_Graphql` | `AptosIndexer_Graphql` | AptosStateChange |
+| `AptosFullnode_Rest` | `AptosFullnode_Rest` | AptosTableItem |
+| `AptosIndexer_Graphql` | `AptosIndexer_Graphql` | AptosTableItem |
+| `AptosFullnode_Rest` | `AptosFullnode_Rest` | AptosTableItem_Timestamp |
+| `AptosIndexer_Graphql` | `AptosIndexer_Graphql` | AptosTableItem_Timestamp |
+| `AptosFullnode_Rest` | `AptosFullnode_Rest` | AptosTransaction |
+| `AptosIndexer_Graphql` | `AptosIndexer_Graphql` | AptosTransaction |
+| `AptosFullnode_Rest` | `AptosFullnode_Rest` | AptosTransaction_Timestamp |
+| `AptosIndexer_Graphql` | `AptosIndexer_Graphql` | AptosTransaction_Timestamp |
+| `Arweave_Graphql` | `Arweave_Graphql` | ArweaveBlock |
+| `Arweave_Rest` | `Arweave_Rest` | ArweaveBlock |
+| `Constants_Internal` | `Constants_Internal` | ArweaveBlock |
+| `Arweave_Graphql` | `Arweave_Graphql` | ArweaveNetwork |
+| `Arweave_Rest` | `Arweave_Rest` | ArweaveNetwork |
+| `Constants_Internal` | `Constants_Internal` | ArweaveNetwork |
+| `Arweave_Graphql` | `Arweave_Graphql` | ArweaveNetwork_Timestamp |
+| `Arweave_Rest` | `Arweave_Rest` | ArweaveNetwork_Timestamp |
+| `Arweave_Graphql` | `Arweave_Graphql` | ArweaveResource |
+| `Arweave_Rest` | `Arweave_Rest` | ArweaveResource |
+| `Arweave_Rest` | `Arweave_Rest` | ArweaveResource_Timestamp |
+| `Arweave_Graphql` | `Arweave_Graphql` | ArweaveTransaction |
+| `Arweave_Rest` | `Arweave_Rest` | ArweaveTransaction |
+| `AlgorandIndexer_Rest` | `AlgorandIndexer_Rest` | AssetClass |
+| `Blockscout_Rest` | `Blockscout_Rest` | AssetClass |
+| `CardanoBlockfrost_Rest` | `CardanoBlockfrost_Rest` | AssetClass |
+| `CardanoKoios_Rest` | `CardanoKoios_Rest` | AssetClass |
+| `Etherscan_Rest` | `Etherscan_Rest` | AssetClass |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | AssetClass |
+| `Helius_Rest` | `Helius_Rest` | AssetClass |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | AssetClass |
+| `TronGrid_Rest` | `TronGrid_Rest` | AssetClass |
+| `TronScan_Rest` | `TronScan_Rest` | AssetClass |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | AssetClass |
+| `Allium_Rest` | `Allium_Rest` | AssetEligibility |
+| `Blockscout_Rest` | `Blockscout_Rest` | AssetEligibility |
+| `Dune_Rest` | `Dune_Rest` | AssetEligibility |
+| `Etherscan_Rest` | `Etherscan_Rest` | AssetEligibility |
+| `Helius_Rest` | `Helius_Rest` | AssetEligibility |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | AssetEligibility |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | AssetEligibility |
+| `AlgorandIndexer_Rest` | `AlgorandIndexer_Rest` | AssetFormatSupport_Timestamp |
+| `AptosFullnode_Rest` | `AptosFullnode_Rest` | AssetFormatSupport_Timestamp |
+| `AptosIndexer_Graphql` | `AptosIndexer_Graphql` | AssetFormatSupport_Timestamp |
+| `Blockscout_Rest` | `Blockscout_Rest` | AssetFormatSupport_Timestamp |
+| `CardanoBlockfrost_Rest` | `CardanoBlockfrost_Rest` | AssetFormatSupport_Timestamp |
+| `CardanoKoios_Rest` | `CardanoKoios_Rest` | AssetFormatSupport_Timestamp |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | AssetFormatSupport_Timestamp |
+| `Etherscan_Rest` | `Etherscan_Rest` | AssetFormatSupport_Timestamp |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | AssetFormatSupport_Timestamp |
+| `Helius_Rest` | `Helius_Rest` | AssetFormatSupport_Timestamp |
+| `MetaplexDAS_Rest` | `MetaplexDAS_Rest` | AssetFormatSupport_Timestamp |
+| `Polkadot_JsonRpc` | `Polkadot_JsonRpc` | AssetFormatSupport_Timestamp |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | AssetFormatSupport_Timestamp |
+| `StellarHorizon_Rest` | `StellarHorizon_Rest` | AssetFormatSupport_Timestamp |
+| `Sui_Graphql` | `Sui_Graphql` | AssetFormatSupport_Timestamp |
+| `Sui_Grpc` | `Sui_Grpc` | AssetFormatSupport_Timestamp |
+| `Sui_JsonRpc` | `Sui_JsonRpc` | AssetFormatSupport_Timestamp |
+| `TezosDappetizer_Postgres` | `TezosDappetizer_Postgres` | AssetFormatSupport_Timestamp |
+| `TezosNode_Rpc` | `TezosNode_Rpc` | AssetFormatSupport_Timestamp |
+| `TronGrid_Rest` | `TronGrid_Rest` | AssetFormatSupport_Timestamp |
+| `TronScan_Rest` | `TronScan_Rest` | AssetFormatSupport_Timestamp |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | AssetFormatSupport_Timestamp |
+| `Xrpl_Rippled` | `Xrpl_Rippled` | AssetFormatSupport_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | AssetInstance |
+| `CosmosChainRegistry_Github` | `CosmosChainRegistry_Github` | AssetInstance |
+| `TrustWalletAssets_Github` | `TrustWalletAssets_Github` | AssetInstance |
+| `AlgorandIndexer_Rest` | `AlgorandIndexer_Rest` | AssetObject |
+| `Arweave_Rest` | `Arweave_Rest` | AssetObject |
+| `Blockscout_Rest` | `Blockscout_Rest` | AssetObject |
+| `CardanoBlockfrost_Rest` | `CardanoBlockfrost_Rest` | AssetObject |
+| `CardanoKoios_Rest` | `CardanoKoios_Rest` | AssetObject |
+| `Etherscan_Rest` | `Etherscan_Rest` | AssetObject |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | AssetObject |
+| `Helius_Rest` | `Helius_Rest` | AssetObject |
+| `Ipfs_Rest` | `Ipfs_Rest` | AssetObject |
+| `MetadataVision_Rest` | `MetadataVision_Rest` | AssetObject |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | AssetObject |
+| `Swarm_Rest` | `Swarm_Rest` | AssetObject |
+| `TronGrid_Rest` | `TronGrid_Rest` | AssetObject |
+| `TronScan_Rest` | `TronScan_Rest` | AssetObject |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | AssetObject |
+| `Algod_Rest` | `Algod_Rest` | AssetSupply_LedgerCoordinate |
+| `AlgorandIndexer_Rest` | `AlgorandIndexer_Rest` | AssetSupply_LedgerCoordinate |
+| `Blockscout_Rest` | `Blockscout_Rest` | AssetSupply_LedgerCoordinate |
+| `CardanoBlockfrost_Rest` | `CardanoBlockfrost_Rest` | AssetSupply_LedgerCoordinate |
+| `CardanoKoios_Rest` | `CardanoKoios_Rest` | AssetSupply_LedgerCoordinate |
+| `Etherscan_Rest` | `Etherscan_Rest` | AssetSupply_LedgerCoordinate |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | AssetSupply_LedgerCoordinate |
+| `Helius_Rest` | `Helius_Rest` | AssetSupply_LedgerCoordinate |
+| `Nodely_Algod_Rest` | `Nodely_Algod_Rest` | AssetSupply_LedgerCoordinate |
+| `Nodely_AlgorandIndexer_Rest` | `Nodely_AlgorandIndexer_Rest` | AssetSupply_LedgerCoordinate |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | AssetSupply_LedgerCoordinate |
+| `TronGrid_Rest` | `TronGrid_Rest` | AssetSupply_LedgerCoordinate |
+| `TronScan_Rest` | `TronScan_Rest` | AssetSupply_LedgerCoordinate |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | AssetSupply_LedgerCoordinate |
+| `Allium_Rest` | `Allium_Rest` | AssetSupply_Timestamp |
+| `Blockscout_Rest` | `Blockscout_Rest` | AssetSupply_Timestamp |
+| `CoinMarketCap_Rest` | `CoinMarketCap_Rest` | AssetSupply_Timestamp |
+| `Coingecko_OpenApi` | `Coingecko_OpenApi` | AssetSupply_Timestamp |
+| `Coingecko_Rest` | `Coingecko_Rest` | AssetSupply_Timestamp |
+| `Coinpaprika_OpenApi` | `Coinpaprika_OpenApi` | AssetSupply_Timestamp |
+| `Defillama_OpenApi` | `Defillama_OpenApi` | AssetSupply_Timestamp |
+| `Dune_Rest` | `Dune_Rest` | AssetSupply_Timestamp |
+| `Etherscan_Rest` | `Etherscan_Rest` | AssetSupply_Timestamp |
+| `Atproto_BskySocial_Xrpc` | `Atproto_BskySocial_Xrpc` | AtprotoActor |
+| `Atproto_Xrpc` | `Atproto_Xrpc` | AtprotoActor |
+| `Constants_Internal` | `Constants_Internal` | AtprotoActor |
+| `Atproto_BskySocial_Xrpc` | `Atproto_BskySocial_Xrpc` | AtprotoActor_Timestamp |
+| `Atproto_Xrpc` | `Atproto_Xrpc` | AtprotoActor_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | AtprotoNetwork |
+| `Atproto_BskySocial_Xrpc` | `Atproto_BskySocial_Xrpc` | AtprotoPost |
+| `Atproto_Xrpc` | `Atproto_Xrpc` | AtprotoPost |
+| `Constants_Internal` | `Constants_Internal` | AtprotoPost |
+| `Atproto_BskySocial_Xrpc` | `Atproto_BskySocial_Xrpc` | AtprotoPost_Timestamp |
+| `Atproto_Xrpc` | `Atproto_Xrpc` | AtprotoPost_Timestamp |
+| `AtprotoSync_Xrpc` | `AtprotoSync_Xrpc` | AtprotoRepoCommit |
+| `AvailExplorer_Rest` | `AvailExplorer_Rest` | AvailAppId |
+| `Avail_JsonRpc` | `Avail_JsonRpc` | AvailAppId |
+| `Constants_Internal` | `Constants_Internal` | AvailAppId |
+| `AvailExplorer_Rest` | `AvailExplorer_Rest` | AvailAppId_Timestamp |
+| `Avail_JsonRpc` | `Avail_JsonRpc` | AvailAppId_Timestamp |
+| `AvailExplorer_Rest` | `AvailExplorer_Rest` | AvailBlock |
+| `Avail_JsonRpc` | `Avail_JsonRpc` | AvailBlock |
+| `SubstrateSidecar_Rest` | `SubstrateSidecar_Rest` | AvailBlock |
+| `AvailExplorer_Rest` | `AvailExplorer_Rest` | AvailDataSubmission |
+| `Avail_JsonRpc` | `Avail_JsonRpc` | AvailDataSubmission |
+| `AvailExplorer_Rest` | `AvailExplorer_Rest` | AvailNetwork |
+| `Avail_JsonRpc` | `Avail_JsonRpc` | AvailNetwork |
+| `Constants_Internal` | `Constants_Internal` | AvailNetwork |
+| `L2Beat_Rest` | `L2Beat_Rest` | AvailNetwork |
+| `AvailExplorer_Rest` | `AvailExplorer_Rest` | AvailNetwork_Timestamp |
+| `Avail_JsonRpc` | `Avail_JsonRpc` | AvailNetwork_Timestamp |
+| `AvalancheInfo_JsonRpc` | `AvalancheInfo_JsonRpc` | AvalancheBlockchain |
+| `AvalanchePlatformVm_JsonRpc` | `AvalanchePlatformVm_JsonRpc` | AvalancheBlockchain |
+| `Avascan_Rest` | `Avascan_Rest` | AvalancheBlockchain |
+| `AvalanchePlatformVm_JsonRpc` | `AvalanchePlatformVm_JsonRpc` | AvalancheDelegator |
+| `Avascan_Rest` | `Avascan_Rest` | AvalancheDelegator |
+| `AvalanchePlatformVm_JsonRpc` | `AvalanchePlatformVm_JsonRpc` | AvalanchePChainBlock |
+| `Avascan_Rest` | `Avascan_Rest` | AvalanchePChainBlock |
+| `AvalanchePlatformVm_JsonRpc` | `AvalanchePlatformVm_JsonRpc` | AvalanchePChainTransaction |
+| `Avascan_Rest` | `Avascan_Rest` | AvalanchePChainTransaction |
+| `AvalanchePlatformVm_JsonRpc` | `AvalanchePlatformVm_JsonRpc` | AvalanchePChainTransaction_Timestamp |
+| `Avascan_Rest` | `Avascan_Rest` | AvalanchePChainTransaction_Timestamp |
+| `AvalancheInfo_JsonRpc` | `AvalancheInfo_JsonRpc` | AvalancheSubnet |
+| `AvalanchePlatformVm_JsonRpc` | `AvalanchePlatformVm_JsonRpc` | AvalancheSubnet |
+| `Avascan_Rest` | `Avascan_Rest` | AvalancheSubnet |
+| `AvalancheInfo_JsonRpc` | `AvalancheInfo_JsonRpc` | AvalancheSubnet_Timestamp |
+| `AvalanchePlatformVm_JsonRpc` | `AvalanchePlatformVm_JsonRpc` | AvalancheSubnet_Timestamp |
+| `Avascan_Rest` | `Avascan_Rest` | AvalancheSubnet_Timestamp |
+| `AvalancheInfo_JsonRpc` | `AvalancheInfo_JsonRpc` | AvalancheValidator |
+| `AvalanchePlatformVm_JsonRpc` | `AvalanchePlatformVm_JsonRpc` | AvalancheValidator |
+| `Avascan_Rest` | `Avascan_Rest` | AvalancheValidator |
+| `AvalancheInfo_JsonRpc` | `AvalancheInfo_JsonRpc` | AvalancheValidator_Timestamp |
+| `AvalanchePlatformVm_JsonRpc` | `AvalanchePlatformVm_JsonRpc` | AvalancheValidator_Timestamp |
+| `Avascan_Rest` | `Avascan_Rest` | AvalancheValidator_Timestamp |
+| `Beacon_Rest` | `Beacon_Rest` | BeaconAttestation |
+| `Beacon_Rest` | `Beacon_Rest` | BeaconCommittee |
+| `Beacon_Rest` | `Beacon_Rest` | BeaconEpoch |
+| `BeaconchaIn_Rest` | `BeaconchaIn_Rest` | BeaconEpoch |
+| `Beacon_Rest` | `Beacon_Rest` | BeaconSlashing |
+| `Beacon_Rest` | `Beacon_Rest` | BeaconSlot |
+| `Beacon_Rest` | `Beacon_Rest` | BeaconSyncCommittee |
+| `Beacon_Rest` | `Beacon_Rest` | BeaconValidator |
+| `Beacon_Rest` | `Beacon_Rest` | BeaconValidator_Timestamp |
+| `Beacon_Rest` | `Beacon_Rest` | BeaconWithdrawal |
+| `BitcoinCashBcmr_Github` | `BitcoinCashBcmr_Github` | BitcoinCashBcmrMetadata |
+| `BitcoinCashBcmr_Github` | `BitcoinCashBcmr_Github` | BitcoinCashCashTokenCategory |
+| `BitcoinCashNode_JsonRpc` | `BitcoinCashNode_JsonRpc` | BitcoinCashCashTokenCategory |
+| `BitcoinCashNode_JsonRpc` | `BitcoinCashNode_JsonRpc` | BitcoinCashCashTokenCommitment |
+| `BitcoinCashNode_JsonRpc` | `BitcoinCashNode_JsonRpc` | BitcoinCashCashTokenFungibleAmount |
+| `BitcoinCashNode_JsonRpc` | `BitcoinCashNode_JsonRpc` | BitcoinCashCashTokenNft |
+| `Bittensor_JsonRpc` | `Bittensor_JsonRpc` | BittensorBlock |
+| `Bittensor_JsonRpc` | `Bittensor_JsonRpc` | BittensorMetagraph_Timestamp |
+| `Bittensor_JsonRpc` | `Bittensor_JsonRpc` | BittensorNetwork |
+| `Constants_Internal` | `Constants_Internal` | BittensorNetwork |
+| `Bittensor_JsonRpc` | `Bittensor_JsonRpc` | BittensorNetwork_Timestamp |
+| `Bittensor_JsonRpc` | `Bittensor_JsonRpc` | BittensorNeuron |
+| `Bittensor_JsonRpc` | `Bittensor_JsonRpc` | BittensorSubnet |
+| `Constants_Internal` | `Constants_Internal` | BittensorSubnet |
+| `BitTorrent_HttpTracker` | `BitTorrent_HttpTracker` | BitTorrentAnnounce_Timestamp |
+| `BitTorrent_UdpTracker` | `BitTorrent_UdpTracker` | BitTorrentAnnounce_Timestamp |
+| `TransmissionRpc_JsonRpc` | `TransmissionRpc_JsonRpc` | BitTorrentAnnounce_Timestamp |
+| `WebTorrent_Tracker` | `WebTorrent_Tracker` | BitTorrentAnnounce_Timestamp |
+| `qBittorrentWebUi_Rest` | `qBittorrentWebUi_Rest` | BitTorrentAnnounce_Timestamp |
+| `BitTorrent_MainlineDht` | `BitTorrent_MainlineDht` | BitTorrentDhtLookup_Timestamp |
+| `TransmissionRpc_JsonRpc` | `TransmissionRpc_JsonRpc` | BitTorrentDhtLookup_Timestamp |
+| `WebTorrent_Dht` | `WebTorrent_Dht` | BitTorrentDhtLookup_Timestamp |
+| `qBittorrentWebUi_Rest` | `qBittorrentWebUi_Rest` | BitTorrentDhtLookup_Timestamp |
+| `BitTorrent_MainlineDht` | `BitTorrent_MainlineDht` | BitTorrentDhtNode_Timestamp |
+| `TransmissionRpc_JsonRpc` | `TransmissionRpc_JsonRpc` | BitTorrentDhtNode_Timestamp |
+| `WebTorrent_Dht` | `WebTorrent_Dht` | BitTorrentDhtNode_Timestamp |
+| `qBittorrentWebUi_Rest` | `qBittorrentWebUi_Rest` | BitTorrentDhtNode_Timestamp |
+| `BitTorrentMetainfo_File` | `BitTorrentMetainfo_File` | BitTorrentFile |
+| `BitTorrent_MetadataExchange` | `BitTorrent_MetadataExchange` | BitTorrentFile |
+| `TransmissionRpc_JsonRpc` | `TransmissionRpc_JsonRpc` | BitTorrentFile |
+| `WebTorrent_Client` | `WebTorrent_Client` | BitTorrentFile |
+| `qBittorrentWebUi_Rest` | `qBittorrentWebUi_Rest` | BitTorrentFile |
+| `BitTorrentMetainfo_File` | `BitTorrentMetainfo_File` | BitTorrentFileTreeEntry |
+| `BitTorrent_MetadataExchange` | `BitTorrent_MetadataExchange` | BitTorrentFileTreeEntry |
+| `TransmissionRpc_JsonRpc` | `TransmissionRpc_JsonRpc` | BitTorrentFileTreeEntry |
+| `WebTorrent_Client` | `WebTorrent_Client` | BitTorrentFileTreeEntry |
+| `qBittorrentWebUi_Rest` | `qBittorrentWebUi_Rest` | BitTorrentFileTreeEntry |
+| `BitTorrentMetainfo_File` | `BitTorrentMetainfo_File` | BitTorrentMetainfo |
+| `BitTorrent_MetadataExchange` | `BitTorrent_MetadataExchange` | BitTorrentMetainfo |
+| `TransmissionRpc_JsonRpc` | `TransmissionRpc_JsonRpc` | BitTorrentMetainfo |
+| `WebTorrent_Client` | `WebTorrent_Client` | BitTorrentMetainfo |
+| `qBittorrentWebUi_Rest` | `qBittorrentWebUi_Rest` | BitTorrentMetainfo |
+| `BitTorrent_HttpTracker` | `BitTorrent_HttpTracker` | BitTorrentPeer_Timestamp |
+| `BitTorrent_MainlineDht` | `BitTorrent_MainlineDht` | BitTorrentPeer_Timestamp |
+| `BitTorrent_PeerWire` | `BitTorrent_PeerWire` | BitTorrentPeer_Timestamp |
+| `BitTorrent_UdpTracker` | `BitTorrent_UdpTracker` | BitTorrentPeer_Timestamp |
+| `TransmissionRpc_JsonRpc` | `TransmissionRpc_JsonRpc` | BitTorrentPeer_Timestamp |
+| `WebTorrent_Tracker` | `WebTorrent_Tracker` | BitTorrentPeer_Timestamp |
+| `qBittorrentWebUi_Rest` | `qBittorrentWebUi_Rest` | BitTorrentPeer_Timestamp |
+| `BitTorrentMetainfo_File` | `BitTorrentMetainfo_File` | BitTorrentPiece |
+| `BitTorrent_MetadataExchange` | `BitTorrent_MetadataExchange` | BitTorrentPiece |
+| `TransmissionRpc_JsonRpc` | `TransmissionRpc_JsonRpc` | BitTorrentPiece |
+| `WebTorrent_Client` | `WebTorrent_Client` | BitTorrentPiece |
+| `qBittorrentWebUi_Rest` | `qBittorrentWebUi_Rest` | BitTorrentPiece |
+| `BitTorrent_HttpTracker` | `BitTorrent_HttpTracker` | BitTorrentSwarmObservation_Timestamp |
+| `BitTorrent_MainlineDht` | `BitTorrent_MainlineDht` | BitTorrentSwarmObservation_Timestamp |
+| `BitTorrent_UdpTracker` | `BitTorrent_UdpTracker` | BitTorrentSwarmObservation_Timestamp |
+| `TransmissionRpc_JsonRpc` | `TransmissionRpc_JsonRpc` | BitTorrentSwarmObservation_Timestamp |
+| `WebTorrent_Tracker` | `WebTorrent_Tracker` | BitTorrentSwarmObservation_Timestamp |
+| `qBittorrentWebUi_Rest` | `qBittorrentWebUi_Rest` | BitTorrentSwarmObservation_Timestamp |
+| `BitTorrentMetainfo_File` | `BitTorrentMetainfo_File` | BitTorrentTracker |
+| `BitTorrent_HttpTracker` | `BitTorrent_HttpTracker` | BitTorrentTracker |
+| `BitTorrent_UdpTracker` | `BitTorrent_UdpTracker` | BitTorrentTracker |
+| `MagnetUri_Uri` | `MagnetUri_Uri` | BitTorrentTracker |
+| `WebTorrent_Tracker` | `WebTorrent_Tracker` | BitTorrentTracker |
+| `BitTorrent_HttpTracker` | `BitTorrent_HttpTracker` | BitTorrentTrackerScrape_Timestamp |
+| `BitTorrent_UdpTracker` | `BitTorrent_UdpTracker` | BitTorrentTrackerScrape_Timestamp |
+| `TransmissionRpc_JsonRpc` | `TransmissionRpc_JsonRpc` | BitTorrentTrackerScrape_Timestamp |
+| `qBittorrentWebUi_Rest` | `qBittorrentWebUi_Rest` | BitTorrentTrackerScrape_Timestamp |
+| `Algod_Rest` | `Algod_Rest` | BlockheadAlgorandParticipationKey |
+| `Local_Internal` | `Local_Internal` | BlockheadAlgorandParticipationKey |
+| `Algod_Rest` | `Algod_Rest` | BlockheadAlgorandPendingTransaction |
+| `Local_Internal` | `Local_Internal` | BlockheadAlgorandPendingTransaction |
+| `AvalancheInfo_JsonRpc` | `AvalancheInfo_JsonRpc` | BlockheadAvalancheNodeState |
+| `Local_Internal` | `Local_Internal` | BlockheadAvalancheNodeState |
+| `AvalancheInfo_JsonRpc` | `AvalancheInfo_JsonRpc` | BlockheadAvalancheNodeState_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadAvalancheNodeState_Timestamp |
+| `LibtorrentSession_Rest` | `LibtorrentSession_Rest` | BlockheadBitTorrentClientState |
+| `Local_Internal` | `Local_Internal` | BlockheadBitTorrentClientState |
+| `TransmissionRpc_JsonRpc` | `TransmissionRpc_JsonRpc` | BlockheadBitTorrentClientState |
+| `WebTorrent_Client` | `WebTorrent_Client` | BlockheadBitTorrentClientState |
+| `qBittorrentWebUi_Rest` | `qBittorrentWebUi_Rest` | BlockheadBitTorrentClientState |
+| `LibtorrentSession_Rest` | `LibtorrentSession_Rest` | BlockheadBitTorrentClientState_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadBitTorrentClientState_Timestamp |
+| `TransmissionRpc_JsonRpc` | `TransmissionRpc_JsonRpc` | BlockheadBitTorrentClientState_Timestamp |
+| `WebTorrent_Client` | `WebTorrent_Client` | BlockheadBitTorrentClientState_Timestamp |
+| `qBittorrentWebUi_Rest` | `qBittorrentWebUi_Rest` | BlockheadBitTorrentClientState_Timestamp |
+| `LibtorrentSession_Rest` | `LibtorrentSession_Rest` | BlockheadBitTorrentTransfer_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadBitTorrentTransfer_Timestamp |
+| `TransmissionRpc_JsonRpc` | `TransmissionRpc_JsonRpc` | BlockheadBitTorrentTransfer_Timestamp |
+| `WebTorrent_Client` | `WebTorrent_Client` | BlockheadBitTorrentTransfer_Timestamp |
+| `qBittorrentWebUi_Rest` | `qBittorrentWebUi_Rest` | BlockheadBitTorrentTransfer_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | BlockheadBridgeIntent |
+| `Local_Internal` | `Local_Internal` | BlockheadBridgeIntent |
+| `Local_Internal` | `Local_Internal` | BlockheadBridgeTransaction |
+| `CashuMint_Rest` | `CashuMint_Rest` | BlockheadCashuMeltQuote |
+| `Local_Internal` | `Local_Internal` | BlockheadCashuMeltQuote |
+| `CashuMint_Rest` | `CashuMint_Rest` | BlockheadCashuMeltQuote_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadCashuMeltQuote_Timestamp |
+| `CashuMint_Rest` | `CashuMint_Rest` | BlockheadCashuMintQuote |
+| `Local_Internal` | `Local_Internal` | BlockheadCashuMintQuote |
+| `CashuMint_Rest` | `CashuMint_Rest` | BlockheadCashuMintQuote_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadCashuMintQuote_Timestamp |
+| `CashuMint_Rest` | `CashuMint_Rest` | BlockheadCashuProof |
+| `Local_Internal` | `Local_Internal` | BlockheadCashuProof |
+| `CashuMint_Rest` | `CashuMint_Rest` | BlockheadCashuProof_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadCashuProof_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadCashuToken |
+| `CashuMint_Rest` | `CashuMint_Rest` | BlockheadCashuWalletState |
+| `Local_Internal` | `Local_Internal` | BlockheadCashuWalletState |
+| `CashuMint_Rest` | `CashuMint_Rest` | BlockheadCashuWalletState_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadCashuWalletState_Timestamp |
+| `CodexNetworkPresets_Github` | `CodexNetworkPresets_Github` | BlockheadCodexStorageNodeState |
+| `CodexNode_Rest` | `CodexNode_Rest` | BlockheadCodexStorageNodeState |
+| `Local_Internal` | `Local_Internal` | BlockheadCodexStorageNodeState |
+| `CodexNode_Rest` | `CodexNode_Rest` | BlockheadCodexStorageNodeState_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadCodexStorageNodeState_Timestamp |
+| `CodexNode_Rest` | `CodexNode_Rest` | BlockheadCodexStoredData |
+| `Local_Internal` | `Local_Internal` | BlockheadCodexStoredData |
+| `CodexNode_Rest` | `CodexNode_Rest` | BlockheadCodexStoredData_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadCodexStoredData_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadEnsNameSearch |
+| `TheGraph_Graphql` | `TheGraph_Graphql` | BlockheadEnsNameSearch |
+| `Local_Internal` | `Local_Internal` | BlockheadFarcasterAccountConnection |
+| `Neynar_Rest` | `Neynar_Rest` | BlockheadFarcasterAccountConnection |
+| `Snapchain_Rest` | `Snapchain_Rest` | BlockheadFarcasterAccountConnection |
+| `FedimintClient_Rpc` | `FedimintClient_Rpc` | BlockheadFedimintClientState |
+| `Local_Internal` | `Local_Internal` | BlockheadFedimintClientState |
+| `FedimintClient_Rpc` | `FedimintClient_Rpc` | BlockheadFedimintClientState_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadFedimintClientState_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadFilecoinPendingMessage |
+| `Lotus_JsonRpc` | `Lotus_JsonRpc` | BlockheadFilecoinPendingMessage |
+| `KaspaNode_Grpc` | `KaspaNode_Grpc` | BlockheadKaspaNodeState |
+| `KaspaNode_Wrpc` | `KaspaNode_Wrpc` | BlockheadKaspaNodeState |
+| `Local_Internal` | `Local_Internal` | BlockheadKaspaNodeState |
+| `KaspaNode_Grpc` | `KaspaNode_Grpc` | BlockheadKaspaNodeState_Timestamp |
+| `KaspaNode_Wrpc` | `KaspaNode_Wrpc` | BlockheadKaspaNodeState_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadKaspaNodeState_Timestamp |
+| `LightningLnd_Grpc` | `LightningLnd_Grpc` | BlockheadLightningChannelState |
+| `LightningLnd_Rest` | `LightningLnd_Rest` | BlockheadLightningChannelState |
+| `Local_Internal` | `Local_Internal` | BlockheadLightningChannelState |
+| `LightningLnd_Grpc` | `LightningLnd_Grpc` | BlockheadLightningChannelState_Timestamp |
+| `LightningLnd_Rest` | `LightningLnd_Rest` | BlockheadLightningChannelState_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadLightningChannelState_Timestamp |
+| `LightningLnd_Grpc` | `LightningLnd_Grpc` | BlockheadLightningHtlc |
+| `LightningLnd_Rest` | `LightningLnd_Rest` | BlockheadLightningHtlc |
+| `Local_Internal` | `Local_Internal` | BlockheadLightningHtlc |
+| `LightningLnd_Grpc` | `LightningLnd_Grpc` | BlockheadLightningInvoice |
+| `LightningLnd_Rest` | `LightningLnd_Rest` | BlockheadLightningInvoice |
+| `Local_Internal` | `Local_Internal` | BlockheadLightningInvoice |
+| `LightningLnd_Grpc` | `LightningLnd_Grpc` | BlockheadLightningInvoice_Timestamp |
+| `LightningLnd_Rest` | `LightningLnd_Rest` | BlockheadLightningInvoice_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadLightningInvoice_Timestamp |
+| `LightningLnd_Grpc` | `LightningLnd_Grpc` | BlockheadLightningNodeState |
+| `LightningLnd_Rest` | `LightningLnd_Rest` | BlockheadLightningNodeState |
+| `Local_Internal` | `Local_Internal` | BlockheadLightningNodeState |
+| `LightningLnd_Grpc` | `LightningLnd_Grpc` | BlockheadLightningNodeState_Timestamp |
+| `LightningLnd_Rest` | `LightningLnd_Rest` | BlockheadLightningNodeState_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadLightningNodeState_Timestamp |
+| `LightningLnd_Grpc` | `LightningLnd_Grpc` | BlockheadLightningPayment |
+| `LightningLnd_Rest` | `LightningLnd_Rest` | BlockheadLightningPayment |
+| `Local_Internal` | `Local_Internal` | BlockheadLightningPayment |
+| `LightningLnd_Grpc` | `LightningLnd_Grpc` | BlockheadLightningPayment_Timestamp |
+| `LightningLnd_Rest` | `LightningLnd_Rest` | BlockheadLightningPayment_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadLightningPayment_Timestamp |
+| `LitecoinCore_JsonRpc` | `LitecoinCore_JsonRpc` | BlockheadLitecoinMwebOutputState |
+| `LitecoinWalletRpc_JsonRpc` | `LitecoinWalletRpc_JsonRpc` | BlockheadLitecoinMwebOutputState |
+| `Local_Internal` | `Local_Internal` | BlockheadLitecoinMwebOutputState |
+| `LitecoinCore_JsonRpc` | `LitecoinCore_JsonRpc` | BlockheadLitecoinMwebOutputState_Timestamp |
+| `LitecoinWalletRpc_JsonRpc` | `LitecoinWalletRpc_JsonRpc` | BlockheadLitecoinMwebOutputState_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadLitecoinMwebOutputState_Timestamp |
+| `LitecoinCore_JsonRpc` | `LitecoinCore_JsonRpc` | BlockheadLitecoinMwebWalletState |
+| `LitecoinWalletRpc_JsonRpc` | `LitecoinWalletRpc_JsonRpc` | BlockheadLitecoinMwebWalletState |
+| `Local_Internal` | `Local_Internal` | BlockheadLitecoinMwebWalletState |
+| `LitecoinCore_JsonRpc` | `LitecoinCore_JsonRpc` | BlockheadLitecoinMwebWalletState_Timestamp |
+| `LitecoinWalletRpc_JsonRpc` | `LitecoinWalletRpc_JsonRpc` | BlockheadLitecoinMwebWalletState_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadLitecoinMwebWalletState_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadLogosBlockchainNodeState |
+| `LogosBlockchainNode_Rest` | `LogosBlockchainNode_Rest` | BlockheadLogosBlockchainNodeState |
+| `LogosBlockchainNode_Rest` | `LogosBlockchainNode_Rest` | BlockheadLogosBlockchainNodeState_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadLogosBlockchainWalletKeyState |
+| `LogosBlockchainNode_Rest` | `LogosBlockchainNode_Rest` | BlockheadLogosBlockchainWalletKeyState |
+| `LogosBlockchainNode_Rest` | `LogosBlockchainNode_Rest` | BlockheadLogosBlockchainWalletKeyState_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadMoneroOutputState |
+| `MoneroWalletRpc_JsonRpc` | `MoneroWalletRpc_JsonRpc` | BlockheadMoneroOutputState |
+| `Local_Internal` | `Local_Internal` | BlockheadMoneroOutputState_Timestamp |
+| `MoneroWalletRpc_JsonRpc` | `MoneroWalletRpc_JsonRpc` | BlockheadMoneroOutputState_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadMoneroSubaddressState |
+| `MoneroWalletRpc_JsonRpc` | `MoneroWalletRpc_JsonRpc` | BlockheadMoneroSubaddressState |
+| `Local_Internal` | `Local_Internal` | BlockheadMoneroSubaddressState_Timestamp |
+| `MoneroWalletRpc_JsonRpc` | `MoneroWalletRpc_JsonRpc` | BlockheadMoneroSubaddressState_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadMoneroTransferState |
+| `MoneroWalletRpc_JsonRpc` | `MoneroWalletRpc_JsonRpc` | BlockheadMoneroTransferState |
+| `Local_Internal` | `Local_Internal` | BlockheadMoneroTransferState_Timestamp |
+| `MoneroWalletRpc_JsonRpc` | `MoneroWalletRpc_JsonRpc` | BlockheadMoneroTransferState_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadMoneroWalletState |
+| `MoneroWalletRpc_JsonRpc` | `MoneroWalletRpc_JsonRpc` | BlockheadMoneroWalletState |
+| `Local_Internal` | `Local_Internal` | BlockheadMoneroWalletState_Timestamp |
+| `MoneroWalletRpc_JsonRpc` | `MoneroWalletRpc_JsonRpc` | BlockheadMoneroWalletState_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadPanelTree |
+| `Local_Internal` | `Local_Internal` | BlockheadPayjoinSession |
+| `PayjoinDirectory_Rest` | `PayjoinDirectory_Rest` | BlockheadPayjoinSession |
+| `PayjoinOhttpRelay_Http` | `PayjoinOhttpRelay_Http` | BlockheadPayjoinSession |
+| `PayjoinReceiver_Http` | `PayjoinReceiver_Http` | BlockheadPayjoinSession |
+| `Local_Internal` | `Local_Internal` | BlockheadQuilibriumAccountState |
+| `QuilibriumNode_Grpc` | `QuilibriumNode_Grpc` | BlockheadQuilibriumAccountState |
+| `Local_Internal` | `Local_Internal` | BlockheadQuilibriumAccountState_Timestamp |
+| `QuilibriumNode_Grpc` | `QuilibriumNode_Grpc` | BlockheadQuilibriumAccountState_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadQuilibriumNodeState |
+| `QuilibriumNodeMetrics_Prometheus` | `QuilibriumNodeMetrics_Prometheus` | BlockheadQuilibriumNodeState |
+| `QuilibriumNode_Grpc` | `QuilibriumNode_Grpc` | BlockheadQuilibriumNodeState |
+| `Local_Internal` | `Local_Internal` | BlockheadQuilibriumNodeState_Timestamp |
+| `QuilibriumNodeMetrics_Prometheus` | `QuilibriumNodeMetrics_Prometheus` | BlockheadQuilibriumNodeState_Timestamp |
+| `QuilibriumNode_Grpc` | `QuilibriumNode_Grpc` | BlockheadQuilibriumNodeState_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadQuilibriumPendingTransaction |
+| `QuilibriumNode_Grpc` | `QuilibriumNode_Grpc` | BlockheadQuilibriumPendingTransaction |
+| `Local_Internal` | `Local_Internal` | BlockheadRadicleNodeInventory_Timestamp |
+| `RadicleCli_Local` | `RadicleCli_Local` | BlockheadRadicleNodeInventory_Timestamp |
+| `RadicleNode_Control` | `RadicleNode_Control` | BlockheadRadicleNodeInventory_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadRadicleNodeState |
+| `RadicleCli_Local` | `RadicleCli_Local` | BlockheadRadicleNodeState |
+| `RadicleNode_Control` | `RadicleNode_Control` | BlockheadRadicleNodeState |
+| `Local_Internal` | `Local_Internal` | BlockheadRadicleNodeState_Timestamp |
+| `RadicleCli_Local` | `RadicleCli_Local` | BlockheadRadicleNodeState_Timestamp |
+| `RadicleNode_Control` | `RadicleNode_Control` | BlockheadRadicleNodeState_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadRadiclePeer |
+| `RadicleCli_Local` | `RadicleCli_Local` | BlockheadRadiclePeer |
+| `RadicleNode_Control` | `RadicleNode_Control` | BlockheadRadiclePeer |
+| `Local_Internal` | `Local_Internal` | BlockheadRadicleSeedObservation_Timestamp |
+| `RadicleCli_Local` | `RadicleCli_Local` | BlockheadRadicleSeedObservation_Timestamp |
+| `RadicleNode_Control` | `RadicleNode_Control` | BlockheadRadicleSeedObservation_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadRadicleSyncSession |
+| `RadicleNode_Control` | `RadicleNode_Control` | BlockheadRadicleSyncSession |
+| `Radicle_Remote` | `Radicle_Remote` | BlockheadRadicleSyncSession |
+| `Local_Internal` | `Local_Internal` | BlockheadRoom |
+| `Local_Internal` | `Local_Internal` | BlockheadRoomPeer |
+| `Local_Internal` | `Local_Internal` | BlockheadSession |
+| `Local_Internal` | `Local_Internal` | BlockheadSessionAction |
+| `Constants_Internal` | `Constants_Internal` | BlockheadIntentInvocation |
+| `Local_Internal` | `Local_Internal` | BlockheadIntentInvocation |
+| `Constants_Internal` | `Constants_Internal` | BlockheadActionReadinessCheck |
+| `Local_Internal` | `Local_Internal` | BlockheadActionReadinessCheck |
+| `Constants_Internal` | `Constants_Internal` | BlockheadActionReadinessCheck_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadActionReadinessCheck_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | BlockheadActionOutcome |
+| `Local_Internal` | `Local_Internal` | BlockheadActionOutcome |
+| `Constants_Internal` | `Constants_Internal` | BlockheadActionOutcome_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadActionOutcome_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadSessionSimulation |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | BlockheadSessionSimulation |
+| `Local_Internal` | `Local_Internal` | BlockheadSessionSimulationCall |
+| `Local_Internal` | `Local_Internal` | BlockheadSessionSimulationLog |
+| `Local_Internal` | `Local_Internal` | BlockheadSharedAddress |
+| `Local_Internal` | `Local_Internal` | BlockheadSiweChallenge |
+| `Local_Internal` | `Local_Internal` | BlockheadSocialPostSession |
+| `Local_Internal` | `Local_Internal` | BlockheadSource |
+| `Local_Internal` | `Local_Internal` | BlockheadSource_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadStateChannel |
+| `Nitro_ClientStore` | `Nitro_ClientStore` | BlockheadStateChannel |
+| `Nitro_NodeRpc` | `Nitro_NodeRpc` | BlockheadStateChannel |
+| `Local_Internal` | `Local_Internal` | BlockheadStateChannel_Timestamp |
+| `Nitro_ClientStore` | `Nitro_ClientStore` | BlockheadStateChannel_Timestamp |
+| `Nitro_NodeRpc` | `Nitro_NodeRpc` | BlockheadStateChannel_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadStateChannelDeposit |
+| `Nitro_ClientStore` | `Nitro_ClientStore` | BlockheadStateChannelDeposit |
+| `Nitro_NodeRpc` | `Nitro_NodeRpc` | BlockheadStateChannelDeposit |
+| `Local_Internal` | `Local_Internal` | BlockheadStateChannelDeposit_Timestamp |
+| `Nitro_ClientStore` | `Nitro_ClientStore` | BlockheadStateChannelDeposit_Timestamp |
+| `Nitro_NodeRpc` | `Nitro_NodeRpc` | BlockheadStateChannelDeposit_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadStateChannelState |
+| `Nitro_ClientStore` | `Nitro_ClientStore` | BlockheadStateChannelState |
+| `Nitro_NodeRpc` | `Nitro_NodeRpc` | BlockheadStateChannelState |
+| `Local_Internal` | `Local_Internal` | BlockheadStateChannelTransfer |
+| `Nitro_ClientStore` | `Nitro_ClientStore` | BlockheadStateChannelTransfer |
+| `Nitro_NodeRpc` | `Nitro_NodeRpc` | BlockheadStateChannelTransfer |
+| `Constants_Internal` | `Constants_Internal` | BlockheadSwapIntent |
+| `Local_Internal` | `Local_Internal` | BlockheadSwapIntent |
+| `Constants_Internal` | `Constants_Internal` | BlockheadTransferIntent |
+| `Local_Internal` | `Local_Internal` | BlockheadTransferIntent |
+| `Local_Internal` | `Local_Internal` | BlockheadTransferRequest |
+| `Local_Internal` | `Local_Internal` | BlockheadWakuMessageObservation_Timestamp |
+| `WakuNode_Rest` | `WakuNode_Rest` | BlockheadWakuMessageObservation_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadWakuNodeState |
+| `WakuNode_Rest` | `WakuNode_Rest` | BlockheadWakuNodeState |
+| `Local_Internal` | `Local_Internal` | BlockheadWakuNodeState_Timestamp |
+| `WakuNode_Rest` | `WakuNode_Rest` | BlockheadWakuNodeState_Timestamp |
+| `Caips_Github` | `Caips_Github` | WalletConnectionMethod |
+| `Constants_Internal` | `Constants_Internal` | WalletConnectionMethod |
+| `EthereumEips_Github` | `EthereumEips_Github` | WalletConnectionMethod |
+| `WalletConnect_SignClient` | `WalletConnect_SignClient` | WalletConnectionMethod |
+| `WalletStandard_WalletApi` | `WalletStandard_WalletApi` | WalletConnectionMethod |
+| `Constants_Internal` | `Constants_Internal` | BlockheadWallet |
+| `Local_Internal` | `Local_Internal` | BlockheadWallet |
+| `Local_Internal` | `Local_Internal` | BlockheadWalletAccount |
+| `Local_Internal` | `Local_Internal` | BlockheadWalletConnection |
+| `Constants_Internal` | `Constants_Internal` | BlockheadIntentQuote |
+| `Local_Internal` | `Local_Internal` | BlockheadIntentQuote |
+| `Local_Internal` | `Local_Internal` | BlockheadIntentQuote_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | BlockheadIntentOrder |
+| `Local_Internal` | `Local_Internal` | BlockheadIntentOrder |
+| `Constants_Internal` | `Constants_Internal` | BlockheadIntentOrder_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadIntentOrder_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadWalletTransportSession |
+| `Constants_Internal` | `Constants_Internal` | BlockheadWalletRequest |
+| `Local_Internal` | `Local_Internal` | BlockheadWalletRequest |
+| `Constants_Internal` | `Constants_Internal` | BlockheadWalletRequest_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadWalletRequest_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadWalletCapabilityGrant |
+| `Local_Internal` | `Local_Internal` | BlockheadWalletAuthentication |
+| `Constants_Internal` | `Constants_Internal` | XmtpConversation |
+| `Local_Internal` | `Local_Internal` | XmtpConversation |
+| `Xmtp_BrowserSdk` | `Xmtp_BrowserSdk` | XmtpConversation |
+| `Xmtp_NodeSdk` | `Xmtp_NodeSdk` | XmtpConversation |
+| `Constants_Internal` | `Constants_Internal` | XmtpNetwork |
+| `Local_Internal` | `Local_Internal` | XmtpNetwork |
+| `Local_Internal` | `Local_Internal` | BlockheadZcashNoteState |
+| `ZcashClientBackend_Local` | `ZcashClientBackend_Local` | BlockheadZcashNoteState |
+| `ZcashLightwalletd_Grpc` | `ZcashLightwalletd_Grpc` | BlockheadZcashNoteState |
+| `ZcashdWallet_JsonRpc` | `ZcashdWallet_JsonRpc` | BlockheadZcashNoteState |
+| `Local_Internal` | `Local_Internal` | BlockheadZcashNoteState_Timestamp |
+| `ZcashClientBackend_Local` | `ZcashClientBackend_Local` | BlockheadZcashNoteState_Timestamp |
+| `ZcashLightwalletd_Grpc` | `ZcashLightwalletd_Grpc` | BlockheadZcashNoteState_Timestamp |
+| `ZcashdWallet_JsonRpc` | `ZcashdWallet_JsonRpc` | BlockheadZcashNoteState_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadZcashViewingKey |
+| `ZcashClientBackend_Local` | `ZcashClientBackend_Local` | BlockheadZcashViewingKey |
+| `ZcashdWallet_JsonRpc` | `ZcashdWallet_JsonRpc` | BlockheadZcashViewingKey |
+| `Local_Internal` | `Local_Internal` | BlockheadZcashViewingKey_Timestamp |
+| `ZcashClientBackend_Local` | `ZcashClientBackend_Local` | BlockheadZcashViewingKey_Timestamp |
+| `ZcashLightwalletd_Grpc` | `ZcashLightwalletd_Grpc` | BlockheadZcashViewingKey_Timestamp |
+| `ZcashdWallet_JsonRpc` | `ZcashdWallet_JsonRpc` | BlockheadZcashViewingKey_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadZcashWalletState |
+| `ZcashClientBackend_Local` | `ZcashClientBackend_Local` | BlockheadZcashWalletState |
+| `ZcashLightwalletd_Grpc` | `ZcashLightwalletd_Grpc` | BlockheadZcashWalletState |
+| `ZcashdWallet_JsonRpc` | `ZcashdWallet_JsonRpc` | BlockheadZcashWalletState |
+| `Local_Internal` | `Local_Internal` | BlockheadZcashWalletState_Timestamp |
+| `ZcashClientBackend_Local` | `ZcashClientBackend_Local` | BlockheadZcashWalletState_Timestamp |
+| `ZcashLightwalletd_Grpc` | `ZcashLightwalletd_Grpc` | BlockheadZcashWalletState_Timestamp |
+| `ZcashdWallet_JsonRpc` | `ZcashdWallet_JsonRpc` | BlockheadZcashWalletState_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadZeroGStorageNodeState |
+| `ZeroGStorageNode_JsonRpc` | `ZeroGStorageNode_JsonRpc` | BlockheadZeroGStorageNodeState |
+| `Local_Internal` | `Local_Internal` | BlockheadZeroGStorageNodeState_Timestamp |
+| `ZeroGStorageNode_JsonRpc` | `ZeroGStorageNode_JsonRpc` | BlockheadZeroGStorageNodeState_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadZeroGStorageProof |
+| `ZeroGStorageNode_JsonRpc` | `ZeroGStorageNode_JsonRpc` | BlockheadZeroGStorageProof |
+| `Local_Internal` | `Local_Internal` | BlockheadZeroGStoredChunk |
+| `ZeroGStorageNode_JsonRpc` | `ZeroGStorageNode_JsonRpc` | BlockheadZeroGStoredChunk |
+| `BinanceChainApi_Rest` | `BinanceChainApi_Rest` | BnbBeaconBlock |
+| `BinanceChainExplorer_Rest` | `BinanceChainExplorer_Rest` | BnbBeaconBlock |
+| `BnbBeaconArchive_Rest` | `BnbBeaconArchive_Rest` | BnbBeaconBlock |
+| `BinanceChainApi_Rest` | `BinanceChainApi_Rest` | BnbBeaconNetwork |
+| `BinanceChainExplorer_Rest` | `BinanceChainExplorer_Rest` | BnbBeaconNetwork |
+| `BnbBeaconArchive_Rest` | `BnbBeaconArchive_Rest` | BnbBeaconNetwork |
+| `BnbChainFusion_Rest` | `BnbChainFusion_Rest` | BnbBeaconNetwork |
+| `BinanceChainApi_Rest` | `BinanceChainApi_Rest` | BnbBeaconNetwork_Timestamp |
+| `BinanceChainExplorer_Rest` | `BinanceChainExplorer_Rest` | BnbBeaconNetwork_Timestamp |
+| `BnbBeaconArchive_Rest` | `BnbBeaconArchive_Rest` | BnbBeaconNetwork_Timestamp |
+| `BnbChainFusion_Rest` | `BnbChainFusion_Rest` | BnbBeaconNetwork_Timestamp |
+| `BinanceChainApi_Rest` | `BinanceChainApi_Rest` | BnbBeaconToken |
+| `BinanceChainExplorer_Rest` | `BinanceChainExplorer_Rest` | BnbBeaconToken |
+| `BnbBeaconArchive_Rest` | `BnbBeaconArchive_Rest` | BnbBeaconToken |
+| `BnbChainFusion_Rest` | `BnbChainFusion_Rest` | BnbBeaconToken |
+| `BinanceChainApi_Rest` | `BinanceChainApi_Rest` | BnbBeaconToken_Timestamp |
+| `BinanceChainExplorer_Rest` | `BinanceChainExplorer_Rest` | BnbBeaconToken_Timestamp |
+| `BnbBeaconArchive_Rest` | `BnbBeaconArchive_Rest` | BnbBeaconToken_Timestamp |
+| `BnbChainFusion_Rest` | `BnbChainFusion_Rest` | BnbBeaconToken_Timestamp |
+| `BinanceChainExplorer_Rest` | `BinanceChainExplorer_Rest` | BnbBeaconTokenMigration |
+| `Blockscout_Rest` | `Blockscout_Rest` | BnbBeaconTokenMigration |
+| `BnbBeaconArchive_Rest` | `BnbBeaconArchive_Rest` | BnbBeaconTokenMigration |
+| `BnbChainFusion_Rest` | `BnbChainFusion_Rest` | BnbBeaconTokenMigration |
+| `BinanceChainExplorer_Rest` | `BinanceChainExplorer_Rest` | BnbBeaconTokenMigration_Timestamp |
+| `Blockscout_Rest` | `Blockscout_Rest` | BnbBeaconTokenMigration_Timestamp |
+| `BnbBeaconArchive_Rest` | `BnbBeaconArchive_Rest` | BnbBeaconTokenMigration_Timestamp |
+| `BnbChainFusion_Rest` | `BnbChainFusion_Rest` | BnbBeaconTokenMigration_Timestamp |
+| `BinanceChainApi_Rest` | `BinanceChainApi_Rest` | BnbBeaconTokenTransfer |
+| `BinanceChainExplorer_Rest` | `BinanceChainExplorer_Rest` | BnbBeaconTokenTransfer |
+| `BnbBeaconArchive_Rest` | `BnbBeaconArchive_Rest` | BnbBeaconTokenTransfer |
+| `BinanceChainApi_Rest` | `BinanceChainApi_Rest` | BnbBeaconTransaction |
+| `BinanceChainExplorer_Rest` | `BinanceChainExplorer_Rest` | BnbBeaconTransaction |
+| `BnbBeaconArchive_Rest` | `BnbBeaconArchive_Rest` | BnbBeaconTransaction |
+| `BinanceChainApi_Rest` | `BinanceChainApi_Rest` | BnbValidator |
+| `BinanceChainExplorer_Rest` | `BinanceChainExplorer_Rest` | BnbValidator |
+| `BnbBeaconArchive_Rest` | `BnbBeaconArchive_Rest` | BnbValidator |
+| `BinanceChainApi_Rest` | `BinanceChainApi_Rest` | BnbValidator_Timestamp |
+| `BinanceChainExplorer_Rest` | `BinanceChainExplorer_Rest` | BnbValidator_Timestamp |
+| `BnbBeaconArchive_Rest` | `BnbBeaconArchive_Rest` | BnbValidator_Timestamp |
+| `Lifi_Rest` | `Lifi_Rest` | BridgeRoute |
+| `Lifi_Rest` | `Lifi_Rest` | BridgeRouteStep |
+| `Lifi_Rest` | `Lifi_Rest` | BridgeRouteQuote_Timestamp |
+| `Lifi_Rest` | `Lifi_Rest` | BridgeRouteQuoteStep |
+| `Across_Rest` | `Across_Rest` | BridgeTransfer |
+| `Allium_Rest` | `Allium_Rest` | BridgeTransfer |
+| `Axelarscan_Rest` | `Axelarscan_Rest` | BridgeTransfer |
+| `Dune_Rest` | `Dune_Rest` | BridgeTransfer |
+| `LayerZeroScan_Rest` | `LayerZeroScan_Rest` | BridgeTransfer |
+| `LifiStatus_Rest` | `LifiStatus_Rest` | BridgeTransfer |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | BridgeTransfer |
+| `Wormholescan_Rest` | `Wormholescan_Rest` | BridgeTransfer |
+| `Across_Rest` | `Across_Rest` | BridgeTransfer_Timestamp |
+| `Allium_Rest` | `Allium_Rest` | BridgeTransfer_Timestamp |
+| `Axelarscan_Rest` | `Axelarscan_Rest` | BridgeTransfer_Timestamp |
+| `Dune_Rest` | `Dune_Rest` | BridgeTransfer_Timestamp |
+| `LayerZeroScan_Rest` | `LayerZeroScan_Rest` | BridgeTransfer_Timestamp |
+| `LifiStatus_Rest` | `LifiStatus_Rest` | BridgeTransfer_Timestamp |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | BridgeTransfer_Timestamp |
+| `Wormholescan_Rest` | `Wormholescan_Rest` | BridgeTransfer_Timestamp |
+| `Blockfrost_Rest` | `Blockfrost_Rest` | CardanoAddress |
+| `CardanoDbSync_Postgres` | `CardanoDbSync_Postgres` | CardanoAddress |
+| `Koios_Rest` | `Koios_Rest` | CardanoAddress |
+| `Ogmios_JsonRpc` | `Ogmios_JsonRpc` | CardanoAddress |
+| `Blockfrost_Rest` | `Blockfrost_Rest` | CardanoAddress_Timestamp |
+| `CardanoDbSync_Postgres` | `CardanoDbSync_Postgres` | CardanoAddress_Timestamp |
+| `Koios_Rest` | `Koios_Rest` | CardanoAddress_Timestamp |
+| `Ogmios_JsonRpc` | `Ogmios_JsonRpc` | CardanoAddress_Timestamp |
+| `Blockfrost_Rest` | `Blockfrost_Rest` | CardanoBlock |
+| `CardanoDbSync_Postgres` | `CardanoDbSync_Postgres` | CardanoBlock |
+| `CardanoNode_LocalStateQuery` | `CardanoNode_LocalStateQuery` | CardanoBlock |
+| `Cardanoscan_Rest` | `Cardanoscan_Rest` | CardanoBlock |
+| `Koios_Rest` | `Koios_Rest` | CardanoBlock |
+| `Ogmios_JsonRpc` | `Ogmios_JsonRpc` | CardanoBlock |
+| `Blockfrost_Rest` | `Blockfrost_Rest` | CardanoCertificate |
+| `CardanoDbSync_Postgres` | `CardanoDbSync_Postgres` | CardanoCertificate |
+| `Koios_Rest` | `Koios_Rest` | CardanoCertificate |
+| `Ogmios_JsonRpc` | `Ogmios_JsonRpc` | CardanoCertificate |
+| `CardanoDbSync_Postgres` | `CardanoDbSync_Postgres` | CardanoCommittee_Epoch |
+| `CardanoNode_LocalStateQuery` | `CardanoNode_LocalStateQuery` | CardanoCommittee_Epoch |
+| `Koios_Rest` | `Koios_Rest` | CardanoCommittee_Epoch |
+| `Ogmios_JsonRpc` | `Ogmios_JsonRpc` | CardanoCommittee_Epoch |
+| `CardanoDbSync_Postgres` | `CardanoDbSync_Postgres` | CardanoConstitution_Epoch |
+| `CardanoNode_LocalStateQuery` | `CardanoNode_LocalStateQuery` | CardanoConstitution_Epoch |
+| `Koios_Rest` | `Koios_Rest` | CardanoConstitution_Epoch |
+| `Ogmios_JsonRpc` | `Ogmios_JsonRpc` | CardanoConstitution_Epoch |
+| `CardanoDbSync_Postgres` | `CardanoDbSync_Postgres` | CardanoDRep |
+| `CardanoNode_LocalStateQuery` | `CardanoNode_LocalStateQuery` | CardanoDRep |
+| `Koios_Rest` | `Koios_Rest` | CardanoDRep |
+| `Ogmios_JsonRpc` | `Ogmios_JsonRpc` | CardanoDRep |
+| `CardanoDbSync_Postgres` | `CardanoDbSync_Postgres` | CardanoDRep_Timestamp |
+| `CardanoNode_LocalStateQuery` | `CardanoNode_LocalStateQuery` | CardanoDRep_Timestamp |
+| `Koios_Rest` | `Koios_Rest` | CardanoDRep_Timestamp |
+| `Ogmios_JsonRpc` | `Ogmios_JsonRpc` | CardanoDRep_Timestamp |
+| `CardanoDbSync_Postgres` | `CardanoDbSync_Postgres` | CardanoGovernanceProposal |
+| `CardanoNode_LocalStateQuery` | `CardanoNode_LocalStateQuery` | CardanoGovernanceProposal |
+| `Koios_Rest` | `Koios_Rest` | CardanoGovernanceProposal |
+| `Ogmios_JsonRpc` | `Ogmios_JsonRpc` | CardanoGovernanceProposal |
+| `CardanoDbSync_Postgres` | `CardanoDbSync_Postgres` | CardanoGovernanceProposal_Timestamp |
+| `CardanoNode_LocalStateQuery` | `CardanoNode_LocalStateQuery` | CardanoGovernanceProposal_Timestamp |
+| `Koios_Rest` | `Koios_Rest` | CardanoGovernanceProposal_Timestamp |
+| `Ogmios_JsonRpc` | `Ogmios_JsonRpc` | CardanoGovernanceProposal_Timestamp |
+| `CardanoDbSync_Postgres` | `CardanoDbSync_Postgres` | CardanoGovernanceVote |
+| `CardanoNode_LocalStateQuery` | `CardanoNode_LocalStateQuery` | CardanoGovernanceVote |
+| `Koios_Rest` | `Koios_Rest` | CardanoGovernanceVote |
+| `Ogmios_JsonRpc` | `Ogmios_JsonRpc` | CardanoGovernanceVote |
+| `Blockfrost_Rest` | `Blockfrost_Rest` | CardanoNativeAsset |
+| `CardanoDbSync_Postgres` | `CardanoDbSync_Postgres` | CardanoNativeAsset |
+| `Cardanoscan_Rest` | `Cardanoscan_Rest` | CardanoNativeAsset |
+| `Koios_Rest` | `Koios_Rest` | CardanoNativeAsset |
+| `Blockfrost_Rest` | `Blockfrost_Rest` | CardanoNativeAsset_Timestamp |
+| `CardanoDbSync_Postgres` | `CardanoDbSync_Postgres` | CardanoNativeAsset_Timestamp |
+| `Cardanoscan_Rest` | `Cardanoscan_Rest` | CardanoNativeAsset_Timestamp |
+| `Koios_Rest` | `Koios_Rest` | CardanoNativeAsset_Timestamp |
+| `Blockfrost_Rest` | `Blockfrost_Rest` | CardanoNetwork |
+| `CardanoDbSync_Postgres` | `CardanoDbSync_Postgres` | CardanoNetwork |
+| `CardanoNode_LocalStateQuery` | `CardanoNode_LocalStateQuery` | CardanoNetwork |
+| `Cardanoscan_Rest` | `Cardanoscan_Rest` | CardanoNetwork |
+| `Constants_Internal` | `Constants_Internal` | CardanoNetwork |
+| `Koios_Rest` | `Koios_Rest` | CardanoNetwork |
+| `Ogmios_JsonRpc` | `Ogmios_JsonRpc` | CardanoNetwork |
+| `Blockfrost_Rest` | `Blockfrost_Rest` | CardanoNetwork_Timestamp |
+| `CardanoNode_LocalStateQuery` | `CardanoNode_LocalStateQuery` | CardanoNetwork_Timestamp |
+| `Koios_Rest` | `Koios_Rest` | CardanoNetwork_Timestamp |
+| `Ogmios_JsonRpc` | `Ogmios_JsonRpc` | CardanoNetwork_Timestamp |
+| `Blockfrost_Rest` | `Blockfrost_Rest` | CardanoProtocolParameters_Epoch |
+| `CardanoDbSync_Postgres` | `CardanoDbSync_Postgres` | CardanoProtocolParameters_Epoch |
+| `CardanoNode_LocalStateQuery` | `CardanoNode_LocalStateQuery` | CardanoProtocolParameters_Epoch |
+| `Koios_Rest` | `Koios_Rest` | CardanoProtocolParameters_Epoch |
+| `Ogmios_JsonRpc` | `Ogmios_JsonRpc` | CardanoProtocolParameters_Epoch |
+| `Blockfrost_Rest` | `Blockfrost_Rest` | CardanoScriptWitness |
+| `CardanoDbSync_Postgres` | `CardanoDbSync_Postgres` | CardanoScriptWitness |
+| `Koios_Rest` | `Koios_Rest` | CardanoScriptWitness |
+| `Ogmios_JsonRpc` | `Ogmios_JsonRpc` | CardanoScriptWitness |
+| `Blockfrost_Rest` | `Blockfrost_Rest` | CardanoStakeCredential |
+| `CardanoDbSync_Postgres` | `CardanoDbSync_Postgres` | CardanoStakeCredential |
+| `CardanoNode_LocalStateQuery` | `CardanoNode_LocalStateQuery` | CardanoStakeCredential |
+| `Cardanoscan_Rest` | `Cardanoscan_Rest` | CardanoStakeCredential |
+| `Koios_Rest` | `Koios_Rest` | CardanoStakeCredential |
+| `Ogmios_JsonRpc` | `Ogmios_JsonRpc` | CardanoStakeCredential |
+| `Blockfrost_Rest` | `Blockfrost_Rest` | CardanoStakeDelegation_Epoch |
+| `CardanoDbSync_Postgres` | `CardanoDbSync_Postgres` | CardanoStakeDelegation_Epoch |
+| `CardanoNode_LocalStateQuery` | `CardanoNode_LocalStateQuery` | CardanoStakeDelegation_Epoch |
+| `Cardanoscan_Rest` | `Cardanoscan_Rest` | CardanoStakeDelegation_Epoch |
+| `Koios_Rest` | `Koios_Rest` | CardanoStakeDelegation_Epoch |
+| `Ogmios_JsonRpc` | `Ogmios_JsonRpc` | CardanoStakeDelegation_Epoch |
+| `Blockfrost_Rest` | `Blockfrost_Rest` | CardanoStakePool |
+| `CardanoDbSync_Postgres` | `CardanoDbSync_Postgres` | CardanoStakePool |
+| `Cardanoscan_Rest` | `Cardanoscan_Rest` | CardanoStakePool |
+| `Koios_Rest` | `Koios_Rest` | CardanoStakePool |
+| `Blockfrost_Rest` | `Blockfrost_Rest` | CardanoStakePool_Timestamp |
+| `CardanoDbSync_Postgres` | `CardanoDbSync_Postgres` | CardanoStakePool_Timestamp |
+| `Cardanoscan_Rest` | `Cardanoscan_Rest` | CardanoStakePool_Timestamp |
+| `Koios_Rest` | `Koios_Rest` | CardanoStakePool_Timestamp |
+| `Blockfrost_Rest` | `Blockfrost_Rest` | CardanoTransaction |
+| `CardanoDbSync_Postgres` | `CardanoDbSync_Postgres` | CardanoTransaction |
+| `CardanoNode_LocalStateQuery` | `CardanoNode_LocalStateQuery` | CardanoTransaction |
+| `Cardanoscan_Rest` | `Cardanoscan_Rest` | CardanoTransaction |
+| `Koios_Rest` | `Koios_Rest` | CardanoTransaction |
+| `Ogmios_JsonRpc` | `Ogmios_JsonRpc` | CardanoTransaction |
+| `Blockfrost_Rest` | `Blockfrost_Rest` | CardanoTxInput |
+| `CardanoDbSync_Postgres` | `CardanoDbSync_Postgres` | CardanoTxInput |
+| `Koios_Rest` | `Koios_Rest` | CardanoTxInput |
+| `Ogmios_JsonRpc` | `Ogmios_JsonRpc` | CardanoTxInput |
+| `Blockfrost_Rest` | `Blockfrost_Rest` | CardanoTxOutput |
+| `CardanoDbSync_Postgres` | `CardanoDbSync_Postgres` | CardanoTxOutput |
+| `Koios_Rest` | `Koios_Rest` | CardanoTxOutput |
+| `Ogmios_JsonRpc` | `Ogmios_JsonRpc` | CardanoTxOutput |
+| `Blockfrost_Rest` | `Blockfrost_Rest` | CardanoTxOutputAsset |
+| `CardanoDbSync_Postgres` | `CardanoDbSync_Postgres` | CardanoTxOutputAsset |
+| `Koios_Rest` | `Koios_Rest` | CardanoTxOutputAsset |
+| `CashuMint_Rest` | `CashuMint_Rest` | CashuKeyset |
+| `CashuMint_Rest` | `CashuMint_Rest` | CashuKeyset_Timestamp |
+| `CashuMint_Rest` | `CashuMint_Rest` | CashuMint |
+| `CashuMint_Rest` | `CashuMint_Rest` | CashuMint_Timestamp |
+| `CircleCctp_IrisApi` | `CircleCctp_IrisApi` | CctpAllowance |
+| `CircleCctp_IrisApi` | `CircleCctp_IrisApi` | CctpAttestation_Timestamp |
+| `CircleCctp_IrisApi` | `CircleCctp_IrisApi` | CctpBurnFee_Timestamp |
+| `CircleCctpContracts_Evm` | `CircleCctpContracts_Evm` | CctpDomainSupport |
+| `CircleCctpContracts_Solana` | `CircleCctpContracts_Solana` | CctpDomainSupport |
+| `CircleCctpContracts_Stellar` | `CircleCctpContracts_Stellar` | CctpDomainSupport |
+| `CircleCctp_IrisApi` | `CircleCctp_IrisApi` | CctpDomainSupport |
+| `Constants_Internal` | `Constants_Internal` | CctpDomainSupport |
+| `CircleCctp_IrisApi` | `CircleCctp_IrisApi` | CctpFastBurnAllowance_Timestamp |
+| `CircleCctp_IrisApi` | `CircleCctp_IrisApi` | CctpFee |
+| `CircleCctpContracts_Evm` | `CircleCctpContracts_Evm` | CctpMessage |
+| `CircleCctpContracts_Solana` | `CircleCctpContracts_Solana` | CctpMessage |
+| `CircleCctpContracts_Stellar` | `CircleCctpContracts_Stellar` | CctpMessage |
+| `CircleCctp_IrisApi` | `CircleCctp_IrisApi` | CctpMessage |
+| `Celenium_Rest` | `Celenium_Rest` | CelestiaBlob |
+| `Celestia_JsonRpc` | `Celestia_JsonRpc` | CelestiaBlob |
+| `Celenium_Rest` | `Celenium_Rest` | CelestiaBlock |
+| `Celestia_JsonRpc` | `Celestia_JsonRpc` | CelestiaBlock |
+| `CometBft_Rest` | `CometBft_Rest` | CelestiaBlock |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | CelestiaBlock |
+| `Celenium_Rest` | `Celenium_Rest` | CelestiaNamespace |
+| `Celestia_JsonRpc` | `Celestia_JsonRpc` | CelestiaNamespace |
+| `Constants_Internal` | `Constants_Internal` | CelestiaNamespace |
+| `Celenium_Rest` | `Celenium_Rest` | CelestiaNamespace_Timestamp |
+| `Celestia_JsonRpc` | `Celestia_JsonRpc` | CelestiaNamespace_Timestamp |
+| `Celenium_Rest` | `Celenium_Rest` | CelestiaNetwork |
+| `Celestia_JsonRpc` | `Celestia_JsonRpc` | CelestiaNetwork |
+| `CometBft_Rest` | `CometBft_Rest` | CelestiaNetwork |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | CelestiaNetwork |
+| `L2Beat_Rest` | `L2Beat_Rest` | CelestiaNetwork |
+| `Celenium_Rest` | `Celenium_Rest` | CelestiaNetwork_Timestamp |
+| `Celestia_JsonRpc` | `Celestia_JsonRpc` | CelestiaNetwork_Timestamp |
+| `CometBft_Rest` | `CometBft_Rest` | CelestiaNetwork_Timestamp |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | CelestiaNetwork_Timestamp |
+| `Allium_Rest` | `Allium_Rest` | ClaimTopicRequirement |
+| `Blockscout_Rest` | `Blockscout_Rest` | ClaimTopicRequirement |
+| `Dune_Rest` | `Dune_Rest` | ClaimTopicRequirement |
+| `Etherscan_Rest` | `Etherscan_Rest` | ClaimTopicRequirement |
+| `Sourcify_Rest` | `Sourcify_Rest` | ClaimTopicRequirement |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | ClaimTopicRequirement |
+| `CodexNode_Rest` | `CodexNode_Rest` | CodexDataset |
+| `Blockscout_Rest` | `Blockscout_Rest` | Coin |
+| `CoinMarketCap_Rest` | `CoinMarketCap_Rest` | Coin |
+| `Coingecko_OpenApi` | `Coingecko_OpenApi` | Coin |
+| `Coingecko_Rest` | `Coingecko_Rest` | Coin |
+| `Coinpaprika_OpenApi` | `Coinpaprika_OpenApi` | Coin |
+| `Constants_Internal` | `Constants_Internal` | Coin |
+| `Defillama_OpenApi` | `Defillama_OpenApi` | Coin |
+| `Lifi_Rest` | `Lifi_Rest` | Coin |
+| `TradingView_Rest` | `TradingView_Rest` | Coin |
+| `Blockscout_Rest` | `Blockscout_Rest` | Coin_Timestamp |
+| `CoinMarketCap_Rest` | `CoinMarketCap_Rest` | Coin_Timestamp |
+| `Coingecko_OpenApi` | `Coingecko_OpenApi` | Coin_Timestamp |
+| `Coingecko_Rest` | `Coingecko_Rest` | Coin_Timestamp |
+| `Coinpaprika_OpenApi` | `Coinpaprika_OpenApi` | Coin_Timestamp |
+| `Dexscreener_OpenApi` | `Dexscreener_OpenApi` | Coin_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | CoinBridgeCapability |
+| `Lifi_Rest` | `Lifi_Rest` | CoinBridgeCapability |
+| `Allium_Rest` | `Allium_Rest` | ComplianceModule |
+| `Blockscout_Rest` | `Blockscout_Rest` | ComplianceModule |
+| `Dune_Rest` | `Dune_Rest` | ComplianceModule |
+| `Etherscan_Rest` | `Etherscan_Rest` | ComplianceModule |
+| `Helius_Rest` | `Helius_Rest` | ComplianceModule |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | ComplianceModule |
+| `Sourcify_Rest` | `Sourcify_Rest` | ComplianceModule |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | ComplianceModule |
+| `Blockscout_Rest` | `Blockscout_Rest` | ContractInterfaceMember |
+| `Constants_Internal` | `Constants_Internal` | ContractInterfaceMember |
+| `Etherscan_Rest` | `Etherscan_Rest` | ContractInterfaceMember |
+| `Local_Internal` | `Local_Internal` | ContractInterfaceMember |
+| `Sourcify_Rest` | `Sourcify_Rest` | ContractInterfaceMember |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | CosmosAccount |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | CosmosAccount_Timestamp |
+| `BigDipper_Rest` | `BigDipper_Rest` | CosmosAccountBalance_Timestamp |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | CosmosAccountBalance_Timestamp |
+| `Mintscan_Rest` | `Mintscan_Rest` | CosmosAccountBalance_Timestamp |
+| `CometBft_Rest` | `CometBft_Rest` | CosmosBlock |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | CosmosBlock |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | CosmosContract |
+| `BigDipper_Rest` | `BigDipper_Rest` | CosmosDelegation |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | CosmosDelegation |
+| `Mintscan_Rest` | `Mintscan_Rest` | CosmosDelegation |
+| `BigDipper_Rest` | `BigDipper_Rest` | CosmosDelegation_Timestamp |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | CosmosDelegation_Timestamp |
+| `Mintscan_Rest` | `Mintscan_Rest` | CosmosDelegation_Timestamp |
+| `CosmosChainRegistry_Github` | `CosmosChainRegistry_Github` | CosmosDenom |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | CosmosDenom |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | CosmosGovernanceProposal |
+| `BigDipper_Rest` | `BigDipper_Rest` | CosmosGovernanceProposal_Timestamp |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | CosmosGovernanceProposal_Timestamp |
+| `Mintscan_Rest` | `Mintscan_Rest` | CosmosGovernanceProposal_Timestamp |
+| `BigDipper_Rest` | `BigDipper_Rest` | CosmosGovernanceProposalDeposit |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | CosmosGovernanceProposalDeposit |
+| `Mintscan_Rest` | `Mintscan_Rest` | CosmosGovernanceProposalDeposit |
+| `BigDipper_Rest` | `BigDipper_Rest` | CosmosGovernanceProposalDeposit_Timestamp |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | CosmosGovernanceProposalDeposit_Timestamp |
+| `Mintscan_Rest` | `Mintscan_Rest` | CosmosGovernanceProposalDeposit_Timestamp |
+| `BigDipper_Rest` | `BigDipper_Rest` | CosmosGovernanceProposalTally_Timestamp |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | CosmosGovernanceProposalTally_Timestamp |
+| `Mintscan_Rest` | `Mintscan_Rest` | CosmosGovernanceProposalTally_Timestamp |
+| `BigDipper_Rest` | `BigDipper_Rest` | CosmosGovernanceProposalVote |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | CosmosGovernanceProposalVote |
+| `Mintscan_Rest` | `Mintscan_Rest` | CosmosGovernanceProposalVote |
+| `BigDipper_Rest` | `BigDipper_Rest` | CosmosGovernanceProposalVote_Timestamp |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | CosmosGovernanceProposalVote_Timestamp |
+| `Mintscan_Rest` | `Mintscan_Rest` | CosmosGovernanceProposalVote_Timestamp |
+| `BigDipper_Rest` | `BigDipper_Rest` | CosmosMessage |
+| `CometBft_Rest` | `CometBft_Rest` | CosmosMessage |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | CosmosMessage |
+| `Mintscan_Rest` | `Mintscan_Rest` | CosmosMessage |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | CosmosModule |
+| `CometBft_Rest` | `CometBft_Rest` | CosmosNetwork |
+| `Constants_Internal` | `Constants_Internal` | CosmosNetwork |
+| `CosmosChainRegistry_Github` | `CosmosChainRegistry_Github` | CosmosNetwork |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | CosmosNetwork |
+| `CometBft_Rest` | `CometBft_Rest` | CosmosNetwork_Timestamp |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | CosmosNetwork_Timestamp |
+| `CometBft_Rest` | `CometBft_Rest` | CosmosTransaction |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | CosmosTransaction |
+| `CometBft_Rest` | `CometBft_Rest` | CosmosValidator |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | CosmosValidator |
+| `BigDipper_Rest` | `BigDipper_Rest` | CosmosValidator_Timestamp |
+| `CometBft_Rest` | `CometBft_Rest` | CosmosValidator_Timestamp |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | CosmosValidator_Timestamp |
+| `Mintscan_Rest` | `Mintscan_Rest` | CosmosValidator_Timestamp |
+| `CometBft_Rest` | `CometBft_Rest` | CronosNetworkProfile |
+| `CosmosChainRegistry_Github` | `CosmosChainRegistry_Github` | CronosNetworkProfile |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | CronosNetworkProfile |
+| `CronosExplorer_Rest` | `CronosExplorer_Rest` | CronosNetworkProfile |
+| `CoinMarketCap_Rest` | `CoinMarketCap_Rest` | Currency |
+| `Coingecko_OpenApi` | `Coingecko_OpenApi` | Currency |
+| `Coingecko_Rest` | `Coingecko_Rest` | Currency |
+| `Coinpaprika_OpenApi` | `Coinpaprika_OpenApi` | Currency |
+| `Constants_Internal` | `Constants_Internal` | Currency |
+| `Defillama_OpenApi` | `Defillama_OpenApi` | Currency |
+| `TradingView_Rest` | `TradingView_Rest` | Currency |
+| `Constants_Internal` | `Constants_Internal` | Currency_Timestamp |
+| `DogecoinCore_JsonRpc` | `DogecoinCore_JsonRpc` | DogecoinAuxPowMerkleBranch |
+| `DogecoinCore_JsonRpc` | `DogecoinCore_JsonRpc` | DogecoinAuxPowParentBlockHeader |
+| `DogecoinCore_JsonRpc` | `DogecoinCore_JsonRpc` | DogecoinBlockAuxPow |
+| `DydxIndexer_Rest` | `DydxIndexer_Rest` | DydxChainMarket |
+| `DydxValidator_Rest` | `DydxValidator_Rest` | DydxChainMarket |
+| `DydxIndexer_Rest` | `DydxIndexer_Rest` | DydxChainMarket_Timestamp |
+| `DydxValidator_Rest` | `DydxValidator_Rest` | DydxChainMarket_Timestamp |
+| `DydxIndexer_Rest` | `DydxIndexer_Rest` | DydxChainNetwork |
+| `DydxValidator_Rest` | `DydxValidator_Rest` | DydxChainNetwork |
+| `DydxIndexer_Rest` | `DydxIndexer_Rest` | DydxChainNetwork_Timestamp |
+| `DydxValidator_Rest` | `DydxValidator_Rest` | DydxChainNetwork_Timestamp |
+| `DydxIndexer_Rest` | `DydxIndexer_Rest` | DydxChainOrder |
+| `DydxValidator_Rest` | `DydxValidator_Rest` | DydxChainOrder |
+| `DydxIndexer_Rest` | `DydxIndexer_Rest` | DydxChainOrder_Timestamp |
+| `DydxValidator_Rest` | `DydxValidator_Rest` | DydxChainOrder_Timestamp |
+| `DydxIndexer_Rest` | `DydxIndexer_Rest` | DydxChainPerpetualPosition_Timestamp |
+| `DydxValidator_Rest` | `DydxValidator_Rest` | DydxChainPerpetualPosition_Timestamp |
+| `DydxIndexer_Rest` | `DydxIndexer_Rest` | DydxChainSubaccount |
+| `DydxValidator_Rest` | `DydxValidator_Rest` | DydxChainSubaccount |
+| `DydxIndexer_Rest` | `DydxIndexer_Rest` | DydxChainSubaccount_Timestamp |
+| `DydxValidator_Rest` | `DydxValidator_Rest` | DydxChainSubaccount_Timestamp |
+| `Blockscout_Rest` | `Blockscout_Rest` | EasAttestation |
+| `EasContracts_Evm` | `EasContracts_Evm` | EasAttestation |
+| `EasScan_Graphql` | `EasScan_Graphql` | EasAttestation |
+| `Etherscan_Rest` | `Etherscan_Rest` | EasAttestation |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EasAttestation |
+| `Blockscout_Rest` | `Blockscout_Rest` | EasAttestation_Timestamp |
+| `EasContracts_Evm` | `EasContracts_Evm` | EasAttestation_Timestamp |
+| `EasScan_Graphql` | `EasScan_Graphql` | EasAttestation_Timestamp |
+| `Etherscan_Rest` | `Etherscan_Rest` | EasAttestation_Timestamp |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EasAttestation_Timestamp |
+| `Blockscout_Rest` | `Blockscout_Rest` | EasSchema |
+| `EasContracts_Evm` | `EasContracts_Evm` | EasSchema |
+| `EasScan_Graphql` | `EasScan_Graphql` | EasSchema |
+| `Etherscan_Rest` | `Etherscan_Rest` | EasSchema |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EasSchema |
+| `EigenExplorer_Rest` | `EigenExplorer_Rest` | EigenLayerAllocation_Timestamp |
+| `EigenLayerContracts_Evm` | `EigenLayerContracts_Evm` | EigenLayerAllocation_Timestamp |
+| `EigenLayerSubgraph_Graphql` | `EigenLayerSubgraph_Graphql` | EigenLayerAllocation_Timestamp |
+| `Etherscan_Rest` | `Etherscan_Rest` | EigenLayerAllocation_Timestamp |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EigenLayerAllocation_Timestamp |
+| `EigenExplorer_Rest` | `EigenExplorer_Rest` | EigenLayerAvs |
+| `EigenLayerContracts_Evm` | `EigenLayerContracts_Evm` | EigenLayerAvs |
+| `EigenLayerSubgraph_Graphql` | `EigenLayerSubgraph_Graphql` | EigenLayerAvs |
+| `Etherscan_Rest` | `Etherscan_Rest` | EigenLayerAvs |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EigenLayerAvs |
+| `EigenExplorer_Rest` | `EigenExplorer_Rest` | EigenLayerAvs_Timestamp |
+| `EigenLayerContracts_Evm` | `EigenLayerContracts_Evm` | EigenLayerAvs_Timestamp |
+| `EigenLayerSubgraph_Graphql` | `EigenLayerSubgraph_Graphql` | EigenLayerAvs_Timestamp |
+| `Etherscan_Rest` | `Etherscan_Rest` | EigenLayerAvs_Timestamp |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EigenLayerAvs_Timestamp |
+| `EigenExplorer_Rest` | `EigenExplorer_Rest` | EigenLayerDelegation_Timestamp |
+| `EigenLayerContracts_Evm` | `EigenLayerContracts_Evm` | EigenLayerDelegation_Timestamp |
+| `EigenLayerSubgraph_Graphql` | `EigenLayerSubgraph_Graphql` | EigenLayerDelegation_Timestamp |
+| `Etherscan_Rest` | `Etherscan_Rest` | EigenLayerDelegation_Timestamp |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EigenLayerDelegation_Timestamp |
+| `EigenExplorer_Rest` | `EigenExplorer_Rest` | EigenLayerOperator |
+| `EigenLayerContracts_Evm` | `EigenLayerContracts_Evm` | EigenLayerOperator |
+| `EigenLayerSubgraph_Graphql` | `EigenLayerSubgraph_Graphql` | EigenLayerOperator |
+| `Etherscan_Rest` | `Etherscan_Rest` | EigenLayerOperator |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EigenLayerOperator |
+| `Constants_Internal` | `Constants_Internal` | EigenLayerProtocol |
+| `EigenExplorer_Rest` | `EigenExplorer_Rest` | EigenLayerProtocol |
+| `EigenLayerContracts_Evm` | `EigenLayerContracts_Evm` | EigenLayerProtocol |
+| `EigenLayerSubgraph_Graphql` | `EigenLayerSubgraph_Graphql` | EigenLayerProtocol |
+| `Etherscan_Rest` | `Etherscan_Rest` | EigenLayerProtocol |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EigenLayerProtocol |
+| `EigenExplorer_Rest` | `EigenExplorer_Rest` | EigenLayerReward_Timestamp |
+| `EigenLayerContracts_Evm` | `EigenLayerContracts_Evm` | EigenLayerReward_Timestamp |
+| `EigenLayerSubgraph_Graphql` | `EigenLayerSubgraph_Graphql` | EigenLayerReward_Timestamp |
+| `Etherscan_Rest` | `Etherscan_Rest` | EigenLayerReward_Timestamp |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EigenLayerReward_Timestamp |
+| `EigenExplorer_Rest` | `EigenExplorer_Rest` | EigenLayerSlashingEvent |
+| `EigenLayerContracts_Evm` | `EigenLayerContracts_Evm` | EigenLayerSlashingEvent |
+| `EigenLayerSubgraph_Graphql` | `EigenLayerSubgraph_Graphql` | EigenLayerSlashingEvent |
+| `Etherscan_Rest` | `Etherscan_Rest` | EigenLayerSlashingEvent |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EigenLayerSlashingEvent |
+| `EigenExplorer_Rest` | `EigenExplorer_Rest` | EigenLayerStrategy |
+| `EigenLayerContracts_Evm` | `EigenLayerContracts_Evm` | EigenLayerStrategy |
+| `EigenLayerSubgraph_Graphql` | `EigenLayerSubgraph_Graphql` | EigenLayerStrategy |
+| `Etherscan_Rest` | `Etherscan_Rest` | EigenLayerStrategy |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EigenLayerStrategy |
+| `EigenExplorer_Rest` | `EigenExplorer_Rest` | EigenLayerStrategy_Timestamp |
+| `EigenLayerContracts_Evm` | `EigenLayerContracts_Evm` | EigenLayerStrategy_Timestamp |
+| `EigenLayerSubgraph_Graphql` | `EigenLayerSubgraph_Graphql` | EigenLayerStrategy_Timestamp |
+| `Etherscan_Rest` | `Etherscan_Rest` | EigenLayerStrategy_Timestamp |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EigenLayerStrategy_Timestamp |
+| `Allium_Rest` | `Allium_Rest` | Eip7702Authorization |
+| `Blockscout_Rest` | `Blockscout_Rest` | Eip7702Authorization |
+| `Erigon_JsonRpc` | `Erigon_JsonRpc` | Eip7702Authorization |
+| `Etherscan_Rest` | `Etherscan_Rest` | Eip7702Authorization |
+| `Reth_JsonRpc` | `Reth_JsonRpc` | Eip7702Authorization |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | Eip7702Authorization |
+| `Esplora_Rest` | `Esplora_Rest` | ElementsAsset |
+| `Esplora_Rest` | `Esplora_Rest` | ElementsAsset_Timestamp |
+| `Esplora_Rest` | `Esplora_Rest` | ElementsIssuance |
+| `Constants_Internal` | `Constants_Internal` | ElementsNetwork |
+| `Esplora_Rest` | `Esplora_Rest` | ElementsNetwork |
+| `Esplora_Rest` | `Esplora_Rest` | ElementsPeg |
+| `Esplora_Rest` | `Esplora_Rest` | ElementsPeg_Timestamp |
+| `EnsMetadataService_Rest` | `EnsMetadataService_Rest` | EnsName |
+| `TheGraph_Graphql` | `TheGraph_Graphql` | EnsName |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EnsName |
+| `EnsMetadataService_Rest` | `EnsMetadataService_Rest` | EnsName_Timestamp |
+| `TheGraph_Graphql` | `TheGraph_Graphql` | EnsName_Timestamp |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EnsName_Timestamp |
+| `EnsMetadataService_Rest` | `EnsMetadataService_Rest` | EnsRecord |
+| `TheGraph_Graphql` | `TheGraph_Graphql` | EnsRecord |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EnsRecord |
+| `TheGraph_Graphql` | `TheGraph_Graphql` | EnsRecord_Timestamp |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EnsRecord_Timestamp |
+| `TheGraph_Graphql` | `TheGraph_Graphql` | EnsReverseRecord |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EnsReverseRecord |
+| `TheGraph_Graphql` | `TheGraph_Graphql` | EnsReverseRecord_Timestamp |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EnsReverseRecord_Timestamp |
+| `Blockscout_Rest` | `Blockscout_Rest` | Erc4337AccountFactory |
+| `Blockscout_Rest` | `Blockscout_Rest` | Erc4337AccountFactory_Timestamp |
+| `Blockscout_Rest` | `Blockscout_Rest` | Erc4337Bundler |
+| `Blockscout_Rest` | `Blockscout_Rest` | Erc4337Bundler_Timestamp |
+| `Blockscout_Rest` | `Blockscout_Rest` | Erc4337Paymaster |
+| `Blockscout_Rest` | `Blockscout_Rest` | Erc4337Paymaster_Timestamp |
+| `Blockscout_Rest` | `Blockscout_Rest` | Erc4337SmartAccount |
+| `Blockscout_Rest` | `Blockscout_Rest` | Erc4337SmartAccount_Timestamp |
+| `Blockscout_Rest` | `Blockscout_Rest` | Erc4626Vault |
+| `Defillama_OpenApi` | `Defillama_OpenApi` | Erc4626Vault |
+| `Etherscan_Rest` | `Etherscan_Rest` | Erc4626Vault |
+| `Sourcify_Rest` | `Sourcify_Rest` | Erc4626Vault |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | Erc4626Vault |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | Erc4626Vault_Block |
+| `Defillama_OpenApi` | `Defillama_OpenApi` | Erc4626Vault_Timestamp |
+| `Beacon_Rest` | `Beacon_Rest` | EthereumBeaconFinality_Timestamp |
+| `Beacon_Rest` | `Beacon_Rest` | EthereumConsensusUpgrade |
+| `Constants_Internal` | `Constants_Internal` | EthereumConsensusUpgrade |
+| `EthForks_Rest` | `EthForks_Rest` | EthereumConsensusUpgrade |
+| `Constants_Internal` | `Constants_Internal` | EthereumExecutionUpgrade |
+| `EthForks_Rest` | `EthForks_Rest` | EthereumExecutionUpgrade |
+| `EthereumSpecs_Github` | `EthereumSpecs_Github` | EthereumExecutionUpgrade |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EthereumExecutionUpgrade |
+| `Beacon_Rest` | `Beacon_Rest` | EthereumNetworkUpgrade |
+| `Constants_Internal` | `Constants_Internal` | EthereumNetworkUpgrade |
+| `EthForks_Rest` | `EthForks_Rest` | EthereumNetworkUpgrade |
+| `TheGraph_Graphql` | `TheGraph_Graphql` | EvmAccount |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EvmAccount |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EvmActorCoinAllowance |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EvmActorCoinAllowance_Block |
+| `Blobscan_Rest` | `Blobscan_Rest` | EvmBlob |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EvmBlob |
+| `Blockscout_Rest` | `Blockscout_Rest` | EvmBlock |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EvmBlock |
+| `ZeroGChain_JsonRpc` | `ZeroGChain_JsonRpc` | EvmBlock |
+| `Blockscout_Rest` | `Blockscout_Rest` | EvmCalldata |
+| `Etherscan_Rest` | `Etherscan_Rest` | EvmCalldata |
+| `Local_Internal` | `Local_Internal` | EvmCalldata |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EvmCalldata |
+| `Allium_Rest` | `Allium_Rest` | EvmCoinInstance |
+| `Blockscout_Rest` | `Blockscout_Rest` | EvmCoinInstance |
+| `Coingecko_Rest` | `Coingecko_Rest` | EvmCoinInstance |
+| `Constants_Internal` | `Constants_Internal` | EvmCoinInstance |
+| `Etherscan_Rest` | `Etherscan_Rest` | EvmCoinInstance |
+| `Lifi_Rest` | `Lifi_Rest` | EvmCoinInstance |
+| `Blockscout_Rest` | `Blockscout_Rest` | EvmContract |
+| `Constants_Internal` | `Constants_Internal` | EvmContract |
+| `Etherscan_Rest` | `Etherscan_Rest` | EvmContract |
+| `Sourcify_Rest` | `Sourcify_Rest` | EvmContract |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EvmContract |
+| `Sourcify_Rest` | `Sourcify_Rest` | EvmContractCompilation |
+| `Sourcify_Rest` | `Sourcify_Rest` | EvmContractSourceBundle |
+| `Sourcify_Rest` | `Sourcify_Rest` | EvmContractVerification |
+| `Openchain_Rest` | `Openchain_Rest` | EvmError |
+| `Openchain_Rest` | `Openchain_Rest` | EvmError_Timestamp |
+| `Blockscout_Rest` | `Blockscout_Rest` | EvmInternalTransfer |
+| `Etherscan_Rest` | `Etherscan_Rest` | EvmInternalTransfer |
+| `Blockscout_Rest` | `Blockscout_Rest` | EvmLog |
+| `Etherscan_Rest` | `Etherscan_Rest` | EvmLog |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EvmLog |
+| `Beacon_Rest` | `Beacon_Rest` | EvmNetwork |
+| `Blockscout_Rest` | `Blockscout_Rest` | EvmNetwork |
+| `Chainlist_Rest` | `Chainlist_Rest` | EvmNetwork |
+| `Constants_Internal` | `Constants_Internal` | EvmNetwork |
+| `EthereumLists_Rest` | `EthereumLists_Rest` | EvmNetwork |
+| `Etherscan_Rest` | `Etherscan_Rest` | EvmNetwork |
+| `L2Beat_Rest` | `L2Beat_Rest` | EvmNetwork |
+| `Lifi_Rest` | `Lifi_Rest` | EvmNetwork |
+| `MevRelay_Rest` | `MevRelay_Rest` | EvmNetwork |
+| `Superchain_Github` | `Superchain_Github` | EvmNetwork |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EvmNetwork |
+| `Blockscout_Rest` | `Blockscout_Rest` | EvmNetwork_GasEstimate_Timestamp |
+| `Etherscan_Rest` | `Etherscan_Rest` | EvmNetwork_GasEstimate_Timestamp |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EvmNetwork_GasFee_Block |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EvmNetwork_Timestamp |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EvmNetwork_Txpool_Timestamp |
+| `Allium_Rest` | `Allium_Rest` | EvmNetworkAccount |
+| `Blockscout_Rest` | `Blockscout_Rest` | EvmNetworkAccount |
+| `Etherscan_Rest` | `Etherscan_Rest` | EvmNetworkAccount |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EvmNetworkAccount |
+| `Allium_Rest` | `Allium_Rest` | EvmNetworkAccount_Timestamp |
+| `Blockscout_Rest` | `Blockscout_Rest` | EvmNetworkAccount_Timestamp |
+| `Etherscan_Rest` | `Etherscan_Rest` | EvmNetworkAccount_Timestamp |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EvmNetworkAccount_Timestamp |
+| `Allium_Rest` | `Allium_Rest` | EvmNetworkActorCoinBalance |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EvmNetworkActorCoinBalance |
+| `Allium_Rest` | `Allium_Rest` | EvmNetworkActorCoinBalance_EvmBlock |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EvmNetworkActorCoinBalance_EvmBlock |
+| `Allium_Rest` | `Allium_Rest` | EvmNetworkActorCoinBalance_Timestamp |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EvmNetworkActorCoinBalance_Timestamp |
+| `Chainlist_Rest` | `Chainlist_Rest` | EvmNetworkBridge |
+| `Constants_Internal` | `Constants_Internal` | EvmProtocol |
+| `Local_Internal` | `Local_Internal` | EvmProtocol |
+| `L2Beat_Rest` | `L2Beat_Rest` | EvmRollup |
+| `L2Beat_Rest` | `L2Beat_Rest` | EvmRollup_Timestamp |
+| `Openchain_Rest` | `Openchain_Rest` | EvmSelector |
+| `Openchain_Rest` | `Openchain_Rest` | EvmSelector_Timestamp |
+| `Blockscout_Rest` | `Blockscout_Rest` | EvmStorageRead_Timestamp |
+| `Etherscan_Rest` | `Etherscan_Rest` | EvmStorageRead_Timestamp |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EvmStorageRead_Timestamp |
+| `Blockscout_Rest` | `Blockscout_Rest` | EvmTokenTransfer |
+| `Etherscan_Rest` | `Etherscan_Rest` | EvmTokenTransfer |
+| `Openchain_Rest` | `Openchain_Rest` | EvmTopic |
+| `Openchain_Rest` | `Openchain_Rest` | EvmTopic_Timestamp |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EvmTrace |
+| `Blockscout_Rest` | `Blockscout_Rest` | EvmTransaction |
+| `Etherscan_Rest` | `Etherscan_Rest` | EvmTransaction |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | EvmTransaction |
+| `ZeroGChain_JsonRpc` | `ZeroGChain_JsonRpc` | EvmTransaction |
+| `Blockscout_Rest` | `Blockscout_Rest` | EvmUserOperation |
+| `Farcaster_Rest` | `Farcaster_Rest` | FarcasterCast |
+| `Neynar_Rest` | `Neynar_Rest` | FarcasterCast |
+| `Snapchain_Rest` | `Snapchain_Rest` | FarcasterCast |
+| `Neynar_Rest` | `Neynar_Rest` | FarcasterCast_Timestamp |
+| `Snapchain_Rest` | `Snapchain_Rest` | FarcasterCast_Timestamp |
+| `Farcaster_Rest` | `Farcaster_Rest` | FarcasterCastEmbed |
+| `Neynar_Rest` | `Neynar_Rest` | FarcasterCastEmbed |
+| `Snapchain_Rest` | `Snapchain_Rest` | FarcasterCastEmbed |
+| `Farcaster_Rest` | `Farcaster_Rest` | FarcasterChannel |
+| `Neynar_Rest` | `Neynar_Rest` | FarcasterChannel |
+| `Snapchain_Rest` | `Snapchain_Rest` | FarcasterChannel |
+| `Farcaster_Rest` | `Farcaster_Rest` | FarcasterChannel_Timestamp |
+| `Farcaster_Rest` | `Farcaster_Rest` | FarcasterFeed |
+| `Constants_Internal` | `Constants_Internal` | FarcasterNetwork |
+| `Farcaster_Rest` | `Farcaster_Rest` | FarcasterUser |
+| `Neynar_Rest` | `Neynar_Rest` | FarcasterUser |
+| `Snapchain_Rest` | `Snapchain_Rest` | FarcasterUser |
+| `Neynar_Rest` | `Neynar_Rest` | FarcasterUser_Timestamp |
+| `Snapchain_Rest` | `Snapchain_Rest` | FarcasterUser_Timestamp |
+| `Farcaster_Rest` | `Farcaster_Rest` | FarcasterVerifiedAddress |
+| `Neynar_Rest` | `Neynar_Rest` | FarcasterVerifiedAddress |
+| `Snapchain_Rest` | `Snapchain_Rest` | FarcasterVerifiedAddress |
+| `FedimintClient_Rpc` | `FedimintClient_Rpc` | FedimintFederation |
+| `FedimintGatewayd_Rest` | `FedimintGatewayd_Rest` | FedimintFederation |
+| `FedimintClient_Rpc` | `FedimintClient_Rpc` | FedimintFederation_Timestamp |
+| `FedimintGatewayd_Rest` | `FedimintGatewayd_Rest` | FedimintFederation_Timestamp |
+| `FedimintGatewayd_Rest` | `FedimintGatewayd_Rest` | FedimintGateway |
+| `FedimintGatewayd_Rest` | `FedimintGatewayd_Rest` | FedimintGateway_Timestamp |
+| `Filfox_Rest` | `Filfox_Rest` | FilecoinActor |
+| `Lotus_JsonRpc` | `Lotus_JsonRpc` | FilecoinActor |
+| `Filfox_Rest` | `Filfox_Rest` | FilecoinActor_Timestamp |
+| `Lotus_JsonRpc` | `Lotus_JsonRpc` | FilecoinActor_Timestamp |
+| `Filfox_Rest` | `Filfox_Rest` | FilecoinBlock |
+| `Lotus_JsonRpc` | `Lotus_JsonRpc` | FilecoinBlock |
+| `Filfox_Rest` | `Filfox_Rest` | FilecoinDeal |
+| `Lotus_JsonRpc` | `Lotus_JsonRpc` | FilecoinDeal |
+| `Filfox_Rest` | `Filfox_Rest` | FilecoinDeal_Timestamp |
+| `Lotus_JsonRpc` | `Lotus_JsonRpc` | FilecoinDeal_Timestamp |
+| `Filfox_Rest` | `Filfox_Rest` | FilecoinMessage |
+| `Lotus_JsonRpc` | `Lotus_JsonRpc` | FilecoinMessage |
+| `Filfox_Rest` | `Filfox_Rest` | FilecoinMessageReceipt |
+| `Lotus_JsonRpc` | `Lotus_JsonRpc` | FilecoinMessageReceipt |
+| `Filfox_Rest` | `Filfox_Rest` | FilecoinMiner |
+| `Lotus_JsonRpc` | `Lotus_JsonRpc` | FilecoinMiner |
+| `Filfox_Rest` | `Filfox_Rest` | FilecoinMiner_Timestamp |
+| `Lotus_JsonRpc` | `Lotus_JsonRpc` | FilecoinMiner_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | FilecoinNetwork |
+| `Filfox_Rest` | `Filfox_Rest` | FilecoinNetwork |
+| `Lotus_JsonRpc` | `Lotus_JsonRpc` | FilecoinNetwork |
+| `Lotus_JsonRpc` | `Lotus_JsonRpc` | FilecoinNetwork_Timestamp |
+| `Lotus_JsonRpc` | `Lotus_JsonRpc` | FilecoinSector |
+| `Lotus_JsonRpc` | `Lotus_JsonRpc` | FilecoinSector_Timestamp |
+| `Filfox_Rest` | `Filfox_Rest` | FilecoinTipset |
+| `Lotus_JsonRpc` | `Lotus_JsonRpc` | FilecoinTipset |
+| `Git_Local` | `Git_Local` | GitBlob |
+| `Git_Remote` | `Git_Remote` | GitBlob |
+| `Github_Git` | `Github_Git` | GitBlob |
+| `Gitlab_Rest` | `Gitlab_Rest` | GitBlob |
+| `Git_Local` | `Git_Local` | GitCommit |
+| `Git_Remote` | `Git_Remote` | GitCommit |
+| `Github_Git` | `Github_Git` | GitCommit |
+| `Gitlab_Rest` | `Gitlab_Rest` | GitCommit |
+| `Git_Local` | `Git_Local` | GitFetchObservation |
+| `Git_Remote` | `Git_Remote` | GitFetchObservation |
+| `Radicle_Remote` | `Radicle_Remote` | GitFetchObservation |
+| `ForgejoIssues_Rest` | `ForgejoIssues_Rest` | GitForgeIssue |
+| `Github_Rest` | `Github_Rest` | GitForgeIssue |
+| `Gitlab_Rest` | `Gitlab_Rest` | GitForgeIssue |
+| `GoogleAi_Rest` | `GoogleAi_Rest` | GitForgeIssue |
+| `HuggingFaceHub_Rest` | `HuggingFaceHub_Rest` | GitForgeIssue |
+| `ForgejoRepos_Rest` | `ForgejoRepos_Rest` | GitForgeMirror |
+| `Git_Local` | `Git_Local` | GitForgeMirror |
+| `Github_Rest` | `Github_Rest` | GitForgeMirror |
+| `Gitlab_Rest` | `Gitlab_Rest` | GitForgeMirror |
+| `ForgejoPulls_Rest` | `ForgejoPulls_Rest` | GitForgePullRequest |
+| `Github_Rest` | `Github_Rest` | GitForgePullRequest |
+| `Gitlab_Rest` | `Gitlab_Rest` | GitForgePullRequest |
+| `ForgejoReleases_Rest` | `ForgejoReleases_Rest` | GitForgeRelease |
+| `Github_Rest` | `Github_Rest` | GitForgeRelease |
+| `Gitlab_Rest` | `Gitlab_Rest` | GitForgeRelease |
+| `Git_Local` | `Git_Local` | GitLooseObject |
+| `Git_Local` | `Git_Local` | GitObject |
+| `Git_Remote` | `Git_Remote` | GitObject |
+| `Github_Git` | `Github_Git` | GitObject |
+| `Gitlab_Rest` | `Gitlab_Rest` | GitObject |
+| `Git_Local` | `Git_Local` | GitObjectVerification_Timestamp |
+| `Git_Local` | `Git_Local` | GitPackedObject |
+| `Git_Remote` | `Git_Remote` | GitPackedObject |
+| `Git_Local` | `Git_Local` | GitPackfile |
+| `Git_Remote` | `Git_Remote` | GitPackfile |
+| `Git_Local` | `Git_Local` | GitRef |
+| `Git_Remote` | `Git_Remote` | GitRef |
+| `Github_Git` | `Github_Git` | GitRef |
+| `Gitlab_Rest` | `Gitlab_Rest` | GitRef |
+| `Git_Local` | `Git_Local` | GitRefObservation_Timestamp |
+| `Git_Remote` | `Git_Remote` | GitRefObservation_Timestamp |
+| `Github_Git` | `Github_Git` | GitRefObservation_Timestamp |
+| `Gitlab_Rest` | `Gitlab_Rest` | GitRefObservation_Timestamp |
+| `Git_Local` | `Git_Local` | GitRefUpdate |
+| `Github_Rest` | `Github_Rest` | GitRefUpdate |
+| `Gitlab_Rest` | `Gitlab_Rest` | GitRefUpdate |
+| `Git_Local` | `Git_Local` | GitRemote |
+| `ForgejoRepos_Rest` | `ForgejoRepos_Rest` | GitRepository |
+| `Git_Local` | `Git_Local` | GitRepository |
+| `Github_Rest` | `Github_Rest` | GitRepository |
+| `Gitlab_Rest` | `Gitlab_Rest` | GitRepository |
+| `Git_Local` | `Git_Local` | GitSignature |
+| `Github_Git` | `Github_Git` | GitSignature |
+| `Gitlab_Rest` | `Gitlab_Rest` | GitSignature |
+| `SigstoreRekor_Rest` | `SigstoreRekor_Rest` | GitSignature |
+| `Git_Local` | `Git_Local` | GitTag |
+| `Git_Remote` | `Git_Remote` | GitTag |
+| `Github_Git` | `Github_Git` | GitTag |
+| `Gitlab_Rest` | `Gitlab_Rest` | GitTag |
+| `Git_Local` | `Git_Local` | GitTree |
+| `Git_Remote` | `Git_Remote` | GitTree |
+| `Github_Git` | `Github_Git` | GitTree |
+| `Gitlab_Rest` | `Gitlab_Rest` | GitTree |
+| `Git_Local` | `Git_Local` | GitTreeEntry |
+| `Github_Git` | `Github_Git` | GitTreeEntry |
+| `Gitlab_Rest` | `Gitlab_Rest` | GitTreeEntry |
+| `Git_Local` | `Git_Local` | GitTreePathResolution |
+| `Github_Rest` | `Github_Rest` | GitTreePathResolution |
+| `Gitlab_Rest` | `Gitlab_Rest` | GitTreePathResolution |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaAccount |
+| `HederaSdk_Grpc` | `HederaSdk_Grpc` | HederaAccount |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaAccount_Timestamp |
+| `HederaSdk_Grpc` | `HederaSdk_Grpc` | HederaAccount_Timestamp |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaAllowance |
+| `HederaSdk_Grpc` | `HederaSdk_Grpc` | HederaAllowance |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaAllowance_Timestamp |
+| `HederaSdk_Grpc` | `HederaSdk_Grpc` | HederaAllowance_Timestamp |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaBlock |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaContract |
+| `HederaSdk_Grpc` | `HederaSdk_Grpc` | HederaContract |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaContract_Timestamp |
+| `HederaSdk_Grpc` | `HederaSdk_Grpc` | HederaContract_Timestamp |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaContractAction |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaContractLog |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaContractResult |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaContractState_Timestamp |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaHbarTransfer |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaNetwork |
+| `HederaSdk_Grpc` | `HederaSdk_Grpc` | HederaNetwork |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaNetwork_Timestamp |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaNetworkExchangeRate_Timestamp |
+| `HederaSdk_Grpc` | `HederaSdk_Grpc` | HederaNetworkExchangeRate_Timestamp |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaNetworkFee_Timestamp |
+| `HederaSdk_Grpc` | `HederaSdk_Grpc` | HederaNetworkFee_Timestamp |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaNetworkStake_Timestamp |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaNetworkSupply_Timestamp |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaNft |
+| `HederaSdk_Grpc` | `HederaSdk_Grpc` | HederaNft |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaNft_Timestamp |
+| `HederaSdk_Grpc` | `HederaSdk_Grpc` | HederaNft_Timestamp |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaNode |
+| `HederaSdk_Grpc` | `HederaSdk_Grpc` | HederaNode |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaNode_Timestamp |
+| `HederaSdk_Grpc` | `HederaSdk_Grpc` | HederaNode_Timestamp |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaSchedule |
+| `HederaSdk_Grpc` | `HederaSdk_Grpc` | HederaSchedule |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaSchedule_Timestamp |
+| `HederaSdk_Grpc` | `HederaSdk_Grpc` | HederaSchedule_Timestamp |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaScheduleSignature |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaToken |
+| `HederaSdk_Grpc` | `HederaSdk_Grpc` | HederaToken |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaToken_Timestamp |
+| `HederaSdk_Grpc` | `HederaSdk_Grpc` | HederaToken_Timestamp |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaTokenAssociation |
+| `HederaSdk_Grpc` | `HederaSdk_Grpc` | HederaTokenAssociation |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaTokenAssociation_Timestamp |
+| `HederaSdk_Grpc` | `HederaSdk_Grpc` | HederaTokenAssociation_Timestamp |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaTokenCustomFee |
+| `HederaSdk_Grpc` | `HederaSdk_Grpc` | HederaTokenCustomFee |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaTokenTransfer |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaTopic |
+| `HederaSdk_Grpc` | `HederaSdk_Grpc` | HederaTopic |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaTopic_Timestamp |
+| `HederaSdk_Grpc` | `HederaSdk_Grpc` | HederaTopic_Timestamp |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaTopicMessage |
+| `HederaSdk_Grpc` | `HederaSdk_Grpc` | HederaTopicMessage |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | HederaTransaction |
+| `HederaSdk_Grpc` | `HederaSdk_Grpc` | HederaTransaction |
+| `Hyperliquid_JsonRpc` | `Hyperliquid_JsonRpc` | HyperliquidAccount |
+| `Hyperliquid_Rest` | `Hyperliquid_Rest` | HyperliquidAccount |
+| `Hyperliquid_Rest` | `Hyperliquid_Rest` | HyperliquidAccount_Timestamp |
+| `Hyperliquid_JsonRpc` | `Hyperliquid_JsonRpc` | HyperliquidBlock |
+| `Hyperliquid_Rest` | `Hyperliquid_Rest` | HyperliquidFill |
+| `Hyperliquid_Rest` | `Hyperliquid_Rest` | HyperliquidMarket_TimeInterval_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | HyperliquidNetwork |
+| `Hyperliquid_JsonRpc` | `Hyperliquid_JsonRpc` | HyperliquidNetwork |
+| `Hyperliquid_Rest` | `Hyperliquid_Rest` | HyperliquidNetwork |
+| `Hyperliquid_Rest` | `Hyperliquid_Rest` | HyperliquidNetwork_Timestamp |
+| `Hyperliquid_Rest` | `Hyperliquid_Rest` | HyperliquidOrder |
+| `Hyperliquid_Rest` | `Hyperliquid_Rest` | HyperliquidOrder_Timestamp |
+| `Hyperliquid_Rest` | `Hyperliquid_Rest` | HyperliquidOrderbook_Timestamp |
+| `Hyperliquid_Rest` | `Hyperliquid_Rest` | HyperliquidPerpMarket |
+| `Hyperliquid_Rest` | `Hyperliquid_Rest` | HyperliquidPerpMarket_Timestamp |
+| `Hyperliquid_Rest` | `Hyperliquid_Rest` | HyperliquidSpotAsset |
+| `Hyperliquid_Rest` | `Hyperliquid_Rest` | HyperliquidSpotAsset_Timestamp |
+| `Hyperliquid_Rest` | `Hyperliquid_Rest` | HyperliquidSpotPair |
+| `Hyperliquid_Rest` | `Hyperliquid_Rest` | HyperliquidSpotPair_Timestamp |
+| `Hyperliquid_JsonRpc` | `Hyperliquid_JsonRpc` | HyperliquidTransaction |
+| `Hyperliquid_JsonRpc` | `Hyperliquid_JsonRpc` | HyperliquidTransaction_Timestamp |
+| `Hyperliquid_Rest` | `Hyperliquid_Rest` | HyperliquidValidator |
+| `Hyperliquid_Rest` | `Hyperliquid_Rest` | HyperliquidValidator_Timestamp |
+| `Hyperliquid_Rest` | `Hyperliquid_Rest` | HyperliquidVault |
+| `Hyperliquid_Rest` | `Hyperliquid_Rest` | HyperliquidVault_Timestamp |
+| `Hyperliquid_Rest` | `Hyperliquid_Rest` | HyperliquidVaultEquity_Timestamp |
+| `CosmosChainRegistry_Github` | `CosmosChainRegistry_Github` | IbcChannel |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | IbcChannel |
+| `CronosExplorer_Rest` | `CronosExplorer_Rest` | IbcChannel |
+| `Mintscan_Rest` | `Mintscan_Rest` | IbcChannel |
+| `CosmosChainRegistry_Github` | `CosmosChainRegistry_Github` | IbcClient |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | IbcClient |
+| `CronosExplorer_Rest` | `CronosExplorer_Rest` | IbcClient |
+| `Mintscan_Rest` | `Mintscan_Rest` | IbcClient |
+| `CosmosChainRegistry_Github` | `CosmosChainRegistry_Github` | IbcConnection |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | IbcConnection |
+| `CronosExplorer_Rest` | `CronosExplorer_Rest` | IbcConnection |
+| `Mintscan_Rest` | `Mintscan_Rest` | IbcConnection |
+| `CosmosChainRegistry_Github` | `CosmosChainRegistry_Github` | IbcDenomTrace |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | IbcDenomTrace |
+| `CronosExplorer_Rest` | `CronosExplorer_Rest` | IbcDenomTrace |
+| `Mintscan_Rest` | `Mintscan_Rest` | IbcDenomTrace |
+| `Osmosis_LCD_Rest` | `Osmosis_LCD_Rest` | IbcDenomTrace |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | IbcPacket |
+| `CronosExplorer_Rest` | `CronosExplorer_Rest` | IbcPacket |
+| `Mintscan_Rest` | `Mintscan_Rest` | IbcPacket |
+| `IcDashboard_Canister` | `IcDashboard_Canister` | IcpCanister |
+| `InternetComputer_Canister` | `InternetComputer_Canister` | IcpCanister |
+| `InternetComputer_Http` | `InternetComputer_Http` | IcpCanister |
+| `IcDashboard_Canister` | `IcDashboard_Canister` | IcpCanister_Timestamp |
+| `InternetComputer_Canister` | `InternetComputer_Canister` | IcpCanister_Timestamp |
+| `InternetComputer_Http` | `InternetComputer_Http` | IcpCanister_Timestamp |
+| `IcDashboard_Canister` | `IcDashboard_Canister` | IcpCanisterLog_Timestamp |
+| `InternetComputer_Canister` | `InternetComputer_Canister` | IcpCanisterLog_Timestamp |
+| `IcDashboard_Canister` | `IcDashboard_Canister` | IcpCanisterMetadata |
+| `InternetComputer_Canister` | `InternetComputer_Canister` | IcpCanisterMetadata |
+| `InternetComputer_Http` | `InternetComputer_Http` | IcpCanisterMetadata |
+| `IcDashboard_Canister` | `IcDashboard_Canister` | IcpCanisterMetadata_Timestamp |
+| `InternetComputer_Canister` | `InternetComputer_Canister` | IcpCanisterMetadata_Timestamp |
+| `InternetComputer_Http` | `InternetComputer_Http` | IcpCanisterMetadata_Timestamp |
+| `IcDashboard_Canister` | `IcDashboard_Canister` | IcpCanisterMethod |
+| `InternetComputer_Canister` | `InternetComputer_Canister` | IcpCanisterMethod |
+| `InternetComputer_Http` | `InternetComputer_Http` | IcpCanisterMethod |
+| `IcDashboard_Canister` | `IcDashboard_Canister` | IcpCanisterMethod_Timestamp |
+| `InternetComputer_Canister` | `InternetComputer_Canister` | IcpCanisterMethod_Timestamp |
+| `InternetComputer_Http` | `InternetComputer_Http` | IcpCanisterMethod_Timestamp |
+| `InternetComputer_Canister` | `InternetComputer_Canister` | IcpCertifiedState |
+| `InternetComputer_Http` | `InternetComputer_Http` | IcpCertifiedState |
+| `IcDashboard_Canister` | `IcDashboard_Canister` | IcpLedgerAccount_Timestamp |
+| `InternetComputer_Canister` | `InternetComputer_Canister` | IcpLedgerAccount_Timestamp |
+| `InternetComputer_RosettaApi` | `InternetComputer_RosettaApi` | IcpLedgerAccount_Timestamp |
+| `IcDashboard_Canister` | `IcDashboard_Canister` | IcpLedgerBlock |
+| `InternetComputer_Canister` | `InternetComputer_Canister` | IcpLedgerBlock |
+| `InternetComputer_RosettaApi` | `InternetComputer_RosettaApi` | IcpLedgerBlock |
+| `IcDashboard_Canister` | `IcDashboard_Canister` | IcpLedgerCanister |
+| `InternetComputer_Canister` | `InternetComputer_Canister` | IcpLedgerCanister |
+| `InternetComputer_RosettaApi` | `InternetComputer_RosettaApi` | IcpLedgerCanister |
+| `IcDashboard_Canister` | `IcDashboard_Canister` | IcpLedgerCanister_Timestamp |
+| `InternetComputer_Canister` | `InternetComputer_Canister` | IcpLedgerCanister_Timestamp |
+| `InternetComputer_RosettaApi` | `InternetComputer_RosettaApi` | IcpLedgerCanister_Timestamp |
+| `IcDashboard_Canister` | `IcDashboard_Canister` | IcpLedgerTransaction |
+| `InternetComputer_Canister` | `InternetComputer_Canister` | IcpLedgerTransaction |
+| `InternetComputer_RosettaApi` | `InternetComputer_RosettaApi` | IcpLedgerTransaction |
+| `IcDashboard_Canister` | `IcDashboard_Canister` | IcpNetwork |
+| `InternetComputer_Canister` | `InternetComputer_Canister` | IcpNetwork |
+| `InternetComputer_Http` | `InternetComputer_Http` | IcpNetwork |
+| `InternetComputer_RosettaApi` | `InternetComputer_RosettaApi` | IcpNetwork |
+| `IcDashboard_Canister` | `IcDashboard_Canister` | IcpNetwork_Timestamp |
+| `InternetComputer_Canister` | `InternetComputer_Canister` | IcpNetwork_Timestamp |
+| `InternetComputer_Http` | `InternetComputer_Http` | IcpNetwork_Timestamp |
+| `InternetComputer_Canister` | `InternetComputer_Canister` | IcpRequestStatus |
+| `InternetComputer_Http` | `InternetComputer_Http` | IcpRequestStatus |
+| `InternetComputer_Canister` | `InternetComputer_Canister` | IcpRequestStatus_Timestamp |
+| `InternetComputer_Http` | `InternetComputer_Http` | IcpRequestStatus_Timestamp |
+| `IcDashboard_Canister` | `IcDashboard_Canister` | IcpSubnet |
+| `InternetComputer_Canister` | `InternetComputer_Canister` | IcpSubnet |
+| `IcDashboard_Canister` | `IcDashboard_Canister` | IcpSubnet_Timestamp |
+| `InternetComputer_Canister` | `InternetComputer_Canister` | IcpSubnet_Timestamp |
+| `InternetComputer_Http` | `InternetComputer_Http` | IcpSubnet_Timestamp |
+| `InternetComputer_Canister` | `InternetComputer_Canister` | IcpSubnetCanisterRange_Timestamp |
+| `InternetComputer_Http` | `InternetComputer_Http` | IcpSubnetCanisterRange_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | IpfsProtocol |
+| `Ipfs_Rest` | `Ipfs_Rest` | IpfsResource |
+| `Allium_Rest` | `Allium_Rest` | IssuerAction |
+| `Blockscout_Rest` | `Blockscout_Rest` | IssuerAction |
+| `Dune_Rest` | `Dune_Rest` | IssuerAction |
+| `Etherscan_Rest` | `Etherscan_Rest` | IssuerAction |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | IssuerAction |
+| `Helius_Rest` | `Helius_Rest` | IssuerAction |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | IssuerAction |
+| `Sourcify_Rest` | `Sourcify_Rest` | IssuerAction |
+| `TronGrid_Rest` | `TronGrid_Rest` | IssuerAction |
+| `TronScan_Rest` | `TronScan_Rest` | IssuerAction |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | IssuerAction |
+| `Allium_Rest` | `Allium_Rest` | IssuerPower |
+| `Blockscout_Rest` | `Blockscout_Rest` | IssuerPower |
+| `Dune_Rest` | `Dune_Rest` | IssuerPower |
+| `Etherscan_Rest` | `Etherscan_Rest` | IssuerPower |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | IssuerPower |
+| `Helius_Rest` | `Helius_Rest` | IssuerPower |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | IssuerPower |
+| `Sourcify_Rest` | `Sourcify_Rest` | IssuerPower |
+| `TronGrid_Rest` | `TronGrid_Rest` | IssuerPower |
+| `TronScan_Rest` | `TronScan_Rest` | IssuerPower |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | IssuerPower |
+| `KaspaNode_Grpc` | `KaspaNode_Grpc` | KaspaAcceptedTransaction |
+| `KaspaNode_Wrpc` | `KaspaNode_Wrpc` | KaspaAcceptedTransaction |
+| `KaspaExplorer_Rest` | `KaspaExplorer_Rest` | KaspaAddress |
+| `KaspaNode_Grpc` | `KaspaNode_Grpc` | KaspaAddress |
+| `KaspaNode_Rest` | `KaspaNode_Rest` | KaspaAddress |
+| `KaspaNode_Wrpc` | `KaspaNode_Wrpc` | KaspaAddress |
+| `KaspaExplorer_Rest` | `KaspaExplorer_Rest` | KaspaAddress_Timestamp |
+| `KaspaNode_Grpc` | `KaspaNode_Grpc` | KaspaAddress_Timestamp |
+| `KaspaNode_Rest` | `KaspaNode_Rest` | KaspaAddress_Timestamp |
+| `KaspaNode_Wrpc` | `KaspaNode_Wrpc` | KaspaAddress_Timestamp |
+| `KaspaExplorer_Rest` | `KaspaExplorer_Rest` | KaspaAddressUtxo_Timestamp |
+| `KaspaNode_Grpc` | `KaspaNode_Grpc` | KaspaAddressUtxo_Timestamp |
+| `KaspaNode_Rest` | `KaspaNode_Rest` | KaspaAddressUtxo_Timestamp |
+| `KaspaNode_Wrpc` | `KaspaNode_Wrpc` | KaspaAddressUtxo_Timestamp |
+| `KaspaExplorer_Rest` | `KaspaExplorer_Rest` | KaspaBlock |
+| `KaspaNode_Grpc` | `KaspaNode_Grpc` | KaspaBlock |
+| `KaspaNode_Rest` | `KaspaNode_Rest` | KaspaBlock |
+| `KaspaNode_Wrpc` | `KaspaNode_Wrpc` | KaspaBlock |
+| `KaspaExplorer_Rest` | `KaspaExplorer_Rest` | KaspaNetwork |
+| `KaspaNode_Grpc` | `KaspaNode_Grpc` | KaspaNetwork |
+| `KaspaNode_Rest` | `KaspaNode_Rest` | KaspaNetwork |
+| `KaspaNode_Wrpc` | `KaspaNode_Wrpc` | KaspaNetwork |
+| `KaspaExplorer_Rest` | `KaspaExplorer_Rest` | KaspaNetwork_Timestamp |
+| `KaspaNode_Grpc` | `KaspaNode_Grpc` | KaspaNetwork_Timestamp |
+| `KaspaNode_Rest` | `KaspaNode_Rest` | KaspaNetwork_Timestamp |
+| `KaspaNode_Wrpc` | `KaspaNode_Wrpc` | KaspaNetwork_Timestamp |
+| `KaspaExplorer_Rest` | `KaspaExplorer_Rest` | KaspaTransaction |
+| `KaspaNode_Grpc` | `KaspaNode_Grpc` | KaspaTransaction |
+| `KaspaNode_Rest` | `KaspaNode_Rest` | KaspaTransaction |
+| `KaspaNode_Wrpc` | `KaspaNode_Wrpc` | KaspaTransaction |
+| `KaspaNode_Grpc` | `KaspaNode_Grpc` | KaspaVirtualChain_Timestamp |
+| `KaspaNode_Wrpc` | `KaspaNode_Wrpc` | KaspaVirtualChain_Timestamp |
+| `Lens_Graphql` | `Lens_Graphql` | LensAccount |
+| `Lens_Graphql` | `Lens_Graphql` | LensAccount_Timestamp |
+| `Lens_Graphql` | `Lens_Graphql` | LensAccountManager |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | LensAccountManager |
+| `Lens_Graphql` | `Lens_Graphql` | LensFeed |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | LensFeed |
+| `Constants_Internal` | `Constants_Internal` | LensNetwork |
+| `Lens_Graphql` | `Lens_Graphql` | LensPost |
+| `Lens_Graphql` | `Lens_Graphql` | LensPost_Timestamp |
+| `Lens_Graphql` | `Lens_Graphql` | LensUsername |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | LensUsername |
+| `Lens_Graphql` | `Lens_Graphql` | LensUsernameNamespace |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | LensUsernameNamespace |
+| `Local_Internal` | `Local_Internal` | Leverage |
+| `Amboss_Graphql` | `Amboss_Graphql` | LightningChannel |
+| `LightningLnd_Rest` | `LightningLnd_Rest` | LightningChannel |
+| `LightningMempoolSpace_Rest` | `LightningMempoolSpace_Rest` | LightningChannel |
+| `Amboss_Graphql` | `Amboss_Graphql` | LightningChannel_Timestamp |
+| `LightningLnd_Rest` | `LightningLnd_Rest` | LightningChannel_Timestamp |
+| `LightningMempoolSpace_Rest` | `LightningMempoolSpace_Rest` | LightningChannel_Timestamp |
+| `Amboss_Graphql` | `Amboss_Graphql` | LightningNetwork |
+| `Constants_Internal` | `Constants_Internal` | LightningNetwork |
+| `LightningLnd_Rest` | `LightningLnd_Rest` | LightningNetwork |
+| `LightningMempoolSpace_Rest` | `LightningMempoolSpace_Rest` | LightningNetwork |
+| `Amboss_Graphql` | `Amboss_Graphql` | LightningNetwork_Timestamp |
+| `LightningLnd_Rest` | `LightningLnd_Rest` | LightningNetwork_Timestamp |
+| `LightningMempoolSpace_Rest` | `LightningMempoolSpace_Rest` | LightningNetwork_Timestamp |
+| `Amboss_Graphql` | `Amboss_Graphql` | LightningNode |
+| `LightningLnd_Rest` | `LightningLnd_Rest` | LightningNode |
+| `LightningMempoolSpace_Rest` | `LightningMempoolSpace_Rest` | LightningNode |
+| `Amboss_Graphql` | `Amboss_Graphql` | LightningNode_Timestamp |
+| `LightningLnd_Rest` | `LightningLnd_Rest` | LightningNode_Timestamp |
+| `LightningMempoolSpace_Rest` | `LightningMempoolSpace_Rest` | LightningNode_Timestamp |
+| `Dexscreener_OpenApi` | `Dexscreener_OpenApi` | LiquidityPool |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | LiquidityPool |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | LiquidityPool_Block |
+| `Dexscreener_OpenApi` | `Dexscreener_OpenApi` | LiquidityPool_Timestamp |
+| `Local_Internal` | `Local_Internal` | LiquidityPosition |
+| `TheGraph_Graphql` | `TheGraph_Graphql` | LiquidityPosition |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | LiquidityPosition |
+| `Local_Internal` | `Local_Internal` | LiquidityPosition_Block |
+| `TheGraph_Graphql` | `TheGraph_Graphql` | LiquidityPosition_Block |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | LiquidityPosition_Block |
+| `LitecoinCore_JsonRpc` | `LitecoinCore_JsonRpc` | LitecoinMwebBlock |
+| `LitecoinCore_JsonRpc` | `LitecoinCore_JsonRpc` | LitecoinMwebOutput |
+| `LitecoinCore_JsonRpc` | `LitecoinCore_JsonRpc` | LitecoinMwebPegIn |
+| `LitecoinCore_JsonRpc` | `LitecoinCore_JsonRpc` | LitecoinMwebPegOut |
+| `LitecoinCore_JsonRpc` | `LitecoinCore_JsonRpc` | LitecoinMwebTransaction |
+| `Constants_Internal` | `Constants_Internal` | LogosBlockchainNetwork |
+| `LogosBlockchainNode_Rest` | `LogosBlockchainNode_Rest` | LogosBlockchainNetwork |
+| `LogosBlockchainNode_Rest` | `LogosBlockchainNode_Rest` | LogosBlockchainNetwork_Timestamp |
+| `BitTorrent_MetadataExchange` | `BitTorrent_MetadataExchange` | MagnetLink |
+| `MagnetUri_Uri` | `MagnetUri_Uri` | MagnetLink |
+| `TransmissionRpc_JsonRpc` | `TransmissionRpc_JsonRpc` | MagnetLink |
+| `WebTorrent_Client` | `WebTorrent_Client` | MagnetLink |
+| `qBittorrentWebUi_Rest` | `qBittorrentWebUi_Rest` | MagnetLink |
+| `BitTorrent_MainlineDht` | `BitTorrent_MainlineDht` | MagnetResolution_Timestamp |
+| `BitTorrent_MetadataExchange` | `BitTorrent_MetadataExchange` | MagnetResolution_Timestamp |
+| `TransmissionRpc_JsonRpc` | `TransmissionRpc_JsonRpc` | MagnetResolution_Timestamp |
+| `WebTorrent_Client` | `WebTorrent_Client` | MagnetResolution_Timestamp |
+| `qBittorrentWebUi_Rest` | `qBittorrentWebUi_Rest` | MagnetResolution_Timestamp |
+| `CoinMarketCap_Rest` | `CoinMarketCap_Rest` | Market |
+| `Coingecko_OpenApi` | `Coingecko_OpenApi` | Market |
+| `Coingecko_Rest` | `Coingecko_Rest` | Market |
+| `Coinpaprika_OpenApi` | `Coinpaprika_OpenApi` | Market |
+| `Constants_Internal` | `Constants_Internal` | Market |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | Market |
+| `Coingecko_OpenApi` | `Coingecko_OpenApi` | MarketVenue |
+| `Coinpaprika_OpenApi` | `Coinpaprika_OpenApi` | MarketVenue |
+| `Constants_Internal` | `Constants_Internal` | MarketVenue |
+| `CoinMarketCap_Rest` | `CoinMarketCap_Rest` | Market_Derivative_Timestamp |
+| `Coingecko_OpenApi` | `Coingecko_OpenApi` | Market_Derivative_Timestamp |
+| `Coinpaprika_OpenApi` | `Coinpaprika_OpenApi` | Market_Derivative_Timestamp |
+| `TradingView_Rest` | `TradingView_Rest` | Market_Derivative_Timestamp |
+| `CoinMarketCap_Rest` | `CoinMarketCap_Rest` | Market_TimeInterval_Timestamp |
+| `Coingecko_OpenApi` | `Coingecko_OpenApi` | Market_TimeInterval_Timestamp |
+| `Coingecko_Rest` | `Coingecko_Rest` | Market_TimeInterval_Timestamp |
+| `Coinpaprika_OpenApi` | `Coinpaprika_OpenApi` | Market_TimeInterval_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | Market_TimeInterval_Timestamp |
+| `Blockscout_Rest` | `Blockscout_Rest` | Market_Timestamp |
+| `CoinMarketCap_Rest` | `CoinMarketCap_Rest` | Market_Timestamp |
+| `Coingecko_OpenApi` | `Coingecko_OpenApi` | Market_Timestamp |
+| `Coingecko_Rest` | `Coingecko_Rest` | Market_Timestamp |
+| `Coinpaprika_OpenApi` | `Coinpaprika_OpenApi` | Market_Timestamp |
+| `Defillama_OpenApi` | `Defillama_OpenApi` | Market_Timestamp |
+| `Defillama_Rest` | `Defillama_Rest` | Market_Timestamp |
+| `TradingView_Rest` | `TradingView_Rest` | Market_Timestamp |
+| `Blockscout_Rest` | `Blockscout_Rest` | MarketPrice |
+| `CoinMarketCap_Rest` | `CoinMarketCap_Rest` | MarketPrice |
+| `Coingecko_OpenApi` | `Coingecko_OpenApi` | MarketPrice |
+| `Coingecko_Rest` | `Coingecko_Rest` | MarketPrice |
+| `Coinpaprika_OpenApi` | `Coinpaprika_OpenApi` | MarketPrice |
+| `Constants_Internal` | `Constants_Internal` | MarketPrice |
+| `Defillama_OpenApi` | `Defillama_OpenApi` | MarketPrice |
+| `Defillama_Rest` | `Defillama_Rest` | MarketPrice |
+| `TradingView_Rest` | `TradingView_Rest` | MarketPrice |
+| `Local_Internal` | `Local_Internal` | Media |
+| `Local_Internal` | `Local_Internal` | MediaObject |
+| `MevRelay_Rest` | `MevRelay_Rest` | MevBuilder |
+| `MevRelay_Rest` | `MevRelay_Rest` | MevBuilder_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | MevRelay |
+| `MevRelay_Rest` | `MevRelay_Rest` | MevRelay_ProposerPayloadDelivered |
+| `MevRelay_Rest` | `MevRelay_Rest` | MevRelay_Timestamp |
+| `MoneroDaemonRpc_JsonRpc` | `MoneroDaemonRpc_JsonRpc` | MoneroBlock |
+| `ThreeXpl_Rest` | `ThreeXpl_Rest` | MoneroBlock |
+| `MoneroDaemonRpc_JsonRpc` | `MoneroDaemonRpc_JsonRpc` | MoneroKeyImage |
+| `Constants_Internal` | `Constants_Internal` | MoneroNetwork |
+| `MoneroDaemonRpc_JsonRpc` | `MoneroDaemonRpc_JsonRpc` | MoneroNetwork |
+| `MoneroDaemonRpc_JsonRpc` | `MoneroDaemonRpc_JsonRpc` | MoneroNetwork_Timestamp |
+| `MoneroDaemonRpc_JsonRpc` | `MoneroDaemonRpc_JsonRpc` | MoneroRing |
+| `MoneroDaemonRpc_JsonRpc` | `MoneroDaemonRpc_JsonRpc` | MoneroRingMember |
+| `MoneroDaemonRpc_JsonRpc` | `MoneroDaemonRpc_JsonRpc` | MoneroStealthOutput |
+| `MoneroDaemonRpc_JsonRpc` | `MoneroDaemonRpc_JsonRpc` | MoneroTransaction |
+| `AptosFullnode_Rest` | `AptosFullnode_Rest` | MoveFunction |
+| `AptosIndexer_Graphql` | `AptosIndexer_Graphql` | MoveFunction |
+| `Sui_Graphql` | `Sui_Graphql` | MoveFunction |
+| `Sui_Grpc` | `Sui_Grpc` | MoveFunction |
+| `Sui_JsonRpc` | `Sui_JsonRpc` | MoveFunction |
+| `AptosFullnode_Rest` | `AptosFullnode_Rest` | MoveModule |
+| `AptosIndexer_Graphql` | `AptosIndexer_Graphql` | MoveModule |
+| `Sui_Graphql` | `Sui_Graphql` | MoveModule |
+| `Sui_Grpc` | `Sui_Grpc` | MoveModule |
+| `Sui_JsonRpc` | `Sui_JsonRpc` | MoveModule |
+| `AptosFullnode_Rest` | `AptosFullnode_Rest` | MoveModule_Timestamp |
+| `AptosIndexer_Graphql` | `AptosIndexer_Graphql` | MoveModule_Timestamp |
+| `Sui_Graphql` | `Sui_Graphql` | MoveModule_Timestamp |
+| `Sui_Grpc` | `Sui_Grpc` | MoveModule_Timestamp |
+| `Sui_JsonRpc` | `Sui_JsonRpc` | MoveModule_Timestamp |
+| `AptosFullnode_Rest` | `AptosFullnode_Rest` | MoveStruct |
+| `AptosIndexer_Graphql` | `AptosIndexer_Graphql` | MoveStruct |
+| `Sui_Graphql` | `Sui_Graphql` | MoveStruct |
+| `Sui_Grpc` | `Sui_Grpc` | MoveStruct |
+| `Sui_JsonRpc` | `Sui_JsonRpc` | MoveStruct |
+| `NearRpc_JsonRpc` | `NearRpc_JsonRpc` | NearAccessKey |
+| `NearRpc_JsonRpc` | `NearRpc_JsonRpc` | NearAccessKey_Timestamp |
+| `NearBlocks_Rest` | `NearBlocks_Rest` | NearAccount |
+| `NearRpc_JsonRpc` | `NearRpc_JsonRpc` | NearAccount |
+| `NearBlocks_Rest` | `NearBlocks_Rest` | NearAccount_Timestamp |
+| `NearRpc_JsonRpc` | `NearRpc_JsonRpc` | NearAccount_Timestamp |
+| `NearBlocks_Rest` | `NearBlocks_Rest` | NearAction |
+| `NearRpc_JsonRpc` | `NearRpc_JsonRpc` | NearAction |
+| `NearBlocks_Rest` | `NearBlocks_Rest` | NearBlock |
+| `NearRpc_JsonRpc` | `NearRpc_JsonRpc` | NearBlock |
+| `NearRpc_JsonRpc` | `NearRpc_JsonRpc` | NearChunk |
+| `NearRpc_JsonRpc` | `NearRpc_JsonRpc` | NearContract |
+| `NearBlocks_Rest` | `NearBlocks_Rest` | NearContract_Timestamp |
+| `NearRpc_JsonRpc` | `NearRpc_JsonRpc` | NearContract_Timestamp |
+| `NearRpc_JsonRpc` | `NearRpc_JsonRpc` | NearContractStorageEntry |
+| `NearBlocks_Rest` | `NearBlocks_Rest` | NearExecutionOutcome |
+| `NearRpc_JsonRpc` | `NearRpc_JsonRpc` | NearExecutionOutcome |
+| `Constants_Internal` | `Constants_Internal` | NearNetwork |
+| `NearRpc_JsonRpc` | `NearRpc_JsonRpc` | NearNetwork |
+| `NearRpc_JsonRpc` | `NearRpc_JsonRpc` | NearNetwork_Timestamp |
+| `NearRpc_JsonRpc` | `NearRpc_JsonRpc` | NearReceipt |
+| `NearBlocks_Rest` | `NearBlocks_Rest` | NearTransaction |
+| `NearRpc_JsonRpc` | `NearRpc_JsonRpc` | NearTransaction |
+| `NearRpc_JsonRpc` | `NearRpc_JsonRpc` | NearValidator |
+| `NearRpc_JsonRpc` | `NearRpc_JsonRpc` | NearValidator_Timestamp |
+| `Chainlist_Rest` | `Chainlist_Rest` | Network |
+| `Constants_Internal` | `Constants_Internal` | Network |
+| `CosmosChainRegistry_Github` | `CosmosChainRegistry_Github` | Network |
+| `EthereumLists_Rest` | `EthereumLists_Rest` | Network |
+| `L2Beat_Rest` | `L2Beat_Rest` | Network |
+| `Lifi_Rest` | `Lifi_Rest` | Network |
+| `Superchain_Github` | `Superchain_Github` | Network |
+| `TrustWalletAssets_Github` | `TrustWalletAssets_Github` | Network |
+| `Constants_Internal` | `Constants_Internal` | NetworkStack |
+| `Arweave_Rest` | `Arweave_Rest` | Network_Timestamp |
+| `AvailExplorer_Rest` | `AvailExplorer_Rest` | Network_Timestamp |
+| `Avail_JsonRpc` | `Avail_JsonRpc` | Network_Timestamp |
+| `Beacon_Rest` | `Beacon_Rest` | Network_Timestamp |
+| `BitcoinCore_JsonRpc` | `BitcoinCore_JsonRpc` | Network_Timestamp |
+| `Bittensor_JsonRpc` | `Bittensor_JsonRpc` | Network_Timestamp |
+| `Celestia_JsonRpc` | `Celestia_JsonRpc` | Network_Timestamp |
+| `CometBft_Rest` | `CometBft_Rest` | Network_Timestamp |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | Network_Timestamp |
+| `Hyperliquid_JsonRpc` | `Hyperliquid_JsonRpc` | Network_Timestamp |
+| `LightningMempoolSpace_Rest` | `LightningMempoolSpace_Rest` | Network_Timestamp |
+| `Lotus_JsonRpc` | `Lotus_JsonRpc` | Network_Timestamp |
+| `MempoolSpace_Rest` | `MempoolSpace_Rest` | Network_Timestamp |
+| `MoneroDaemonRpc_JsonRpc` | `MoneroDaemonRpc_JsonRpc` | Network_Timestamp |
+| `NearRpc_JsonRpc` | `NearRpc_JsonRpc` | Network_Timestamp |
+| `QuilibriumNode_Grpc` | `QuilibriumNode_Grpc` | Network_Timestamp |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | Network_Timestamp |
+| `SubstrateSidecar_Rest` | `SubstrateSidecar_Rest` | Network_Timestamp |
+| `TronGrid_Rest` | `TronGrid_Rest` | Network_Timestamp |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | Network_Timestamp |
+| `ZeroGChain_JsonRpc` | `ZeroGChain_JsonRpc` | Network_Timestamp |
+| `Beacon_Rest` | `Beacon_Rest` | NetworkEndpointObservation_Timestamp |
+| `Chainlist_Rest` | `Chainlist_Rest` | NetworkEndpointObservation_Timestamp |
+| `CometBft_Rest` | `CometBft_Rest` | NetworkEndpointObservation_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | NetworkEndpointObservation_Timestamp |
+| `CosmosChainRegistry_Github` | `CosmosChainRegistry_Github` | NetworkEndpointObservation_Timestamp |
+| `CosmosSdk_Rest` | `CosmosSdk_Rest` | NetworkEndpointObservation_Timestamp |
+| `EthereumLists_Rest` | `EthereumLists_Rest` | NetworkEndpointObservation_Timestamp |
+| `Lotus_JsonRpc` | `Lotus_JsonRpc` | NetworkEndpointObservation_Timestamp |
+| `NearRpc_JsonRpc` | `NearRpc_JsonRpc` | NetworkEndpointObservation_Timestamp |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | NetworkEndpointObservation_Timestamp |
+| `Superchain_Github` | `Superchain_Github` | NetworkEndpointObservation_Timestamp |
+| `TronGrid_Rest` | `TronGrid_Rest` | NetworkEndpointObservation_Timestamp |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | NetworkEndpointObservation_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | NetworkUpgrade |
+| `Constants_Internal` | `Constants_Internal` | NetworkUpgrade_Timestamp |
+| `Blockscout_Rest` | `Blockscout_Rest` | NftCollection |
+| `Etherscan_Rest` | `Etherscan_Rest` | NftCollection |
+| `MetadataVision_Rest` | `MetadataVision_Rest` | NftCollection |
+| `OpenSea_Rest` | `OpenSea_Rest` | NftCollection |
+| `Reservoir_Rest` | `Reservoir_Rest` | NftCollection |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | NftCollection |
+| `Blockscout_Rest` | `Blockscout_Rest` | NftToken |
+| `Etherscan_Rest` | `Etherscan_Rest` | NftToken |
+| `Helius_Rest` | `Helius_Rest` | NftToken |
+| `MetadataVision_Rest` | `MetadataVision_Rest` | NftToken |
+| `OpenSea_Rest` | `OpenSea_Rest` | NftToken |
+| `Reservoir_Rest` | `Reservoir_Rest` | NftToken |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | NftToken |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | NftToken |
+| `NostrBand_Rest` | `NostrBand_Rest` | NostrArticle |
+| `NostrRelay_WebSocket` | `NostrRelay_WebSocket` | NostrArticle |
+| `Primal_Rest` | `Primal_Rest` | NostrArticle |
+| `Constants_Internal` | `Constants_Internal` | NostrNote |
+| `NostrBand_Rest` | `NostrBand_Rest` | NostrNote |
+| `NostrRelay_WebSocket` | `NostrRelay_WebSocket` | NostrNote |
+| `Primal_Rest` | `Primal_Rest` | NostrNote |
+| `Constants_Internal` | `Constants_Internal` | NostrNetwork |
+| `Constants_Internal` | `Constants_Internal` | NostrProfile |
+| `NostrBand_Rest` | `NostrBand_Rest` | NostrProfile |
+| `NostrRelay_WebSocket` | `NostrRelay_WebSocket` | NostrProfile |
+| `Primal_Rest` | `Primal_Rest` | NostrProfile |
+| `NostrBand_Rest` | `NostrBand_Rest` | NostrReaction |
+| `NostrRelay_WebSocket` | `NostrRelay_WebSocket` | NostrReaction |
+| `Primal_Rest` | `Primal_Rest` | NostrReaction |
+| `Constants_Internal` | `Constants_Internal` | NostrRelay |
+| `NostrBand_Rest` | `NostrBand_Rest` | NostrRelay |
+| `NostrRelay_Nip11_Http` | `NostrRelay_Nip11_Http` | NostrRelay |
+| `NostrBand_Rest` | `NostrBand_Rest` | NostrRelay_Timestamp |
+| `NostrRelay_Nip11_Http` | `NostrRelay_Nip11_Http` | NostrRelay_Timestamp |
+| `Primal_Rest` | `Primal_Rest` | NostrRelay_Timestamp |
+| `NostrBand_Rest` | `NostrBand_Rest` | NostrRepost |
+| `NostrRelay_WebSocket` | `NostrRelay_WebSocket` | NostrRepost |
+| `Primal_Rest` | `Primal_Rest` | NostrRepost |
+| `Blockscout_Rest` | `Blockscout_Rest` | OracleFeed |
+| `ChainlinkDataFeeds_AddressCatalog` | `ChainlinkDataFeeds_AddressCatalog` | OracleFeed |
+| `ChainlinkDataFeeds_Contracts` | `ChainlinkDataFeeds_Contracts` | OracleFeed |
+| `Constants_Internal` | `Constants_Internal` | OracleFeed |
+| `Etherscan_Rest` | `Etherscan_Rest` | OracleFeed |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | OracleFeed |
+| `Blockscout_Rest` | `Blockscout_Rest` | OracleFeed_Round |
+| `ChainlinkDataFeeds_Contracts` | `ChainlinkDataFeeds_Contracts` | OracleFeed_Round |
+| `Etherscan_Rest` | `Etherscan_Rest` | OracleFeed_Round |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | OracleFeed_Round |
+| `Blockscout_Rest` | `Blockscout_Rest` | OracleFeed_Timestamp |
+| `ChainlinkDataFeeds_Contracts` | `ChainlinkDataFeeds_Contracts` | OracleFeed_Timestamp |
+| `Etherscan_Rest` | `Etherscan_Rest` | OracleFeed_Timestamp |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | OracleFeed_Timestamp |
+| `PayjoinDirectory_Rest` | `PayjoinDirectory_Rest` | PayjoinDirectory |
+| `Local_Internal` | `Local_Internal` | PayjoinEndpoint |
+| `PayjoinOhttpRelay_Http` | `PayjoinOhttpRelay_Http` | PayjoinEndpoint |
+| `PayjoinReceiver_Http` | `PayjoinReceiver_Http` | PayjoinEndpoint |
+| `Local_Internal` | `Local_Internal` | PayjoinEndpoint_Timestamp |
+| `PayjoinOhttpRelay_Http` | `PayjoinOhttpRelay_Http` | PayjoinEndpoint_Timestamp |
+| `PayjoinReceiver_Http` | `PayjoinReceiver_Http` | PayjoinEndpoint_Timestamp |
+| `Allium_Rest` | `Allium_Rest` | Payout |
+| `Blockscout_Rest` | `Blockscout_Rest` | Payout |
+| `Dune_Rest` | `Dune_Rest` | Payout |
+| `Etherscan_Rest` | `Etherscan_Rest` | Payout |
+| `Lens_Graphql` | `Lens_Graphql` | Payout |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | Payout |
+| `Allium_Rest` | `Allium_Rest` | PayoutClaim_Timestamp |
+| `Blockscout_Rest` | `Blockscout_Rest` | PayoutClaim_Timestamp |
+| `Dune_Rest` | `Dune_Rest` | PayoutClaim_Timestamp |
+| `Etherscan_Rest` | `Etherscan_Rest` | PayoutClaim_Timestamp |
+| `Lens_Graphql` | `Lens_Graphql` | PayoutClaim_Timestamp |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | PayoutClaim_Timestamp |
+| `Polkadot_JsonRpc` | `Polkadot_JsonRpc` | PolkadotAccount |
+| `Subscan_Rest` | `Subscan_Rest` | PolkadotAccount |
+| `SubstrateSidecar_Rest` | `SubstrateSidecar_Rest` | PolkadotAccount |
+| `ThreeXpl_Rest` | `ThreeXpl_Rest` | PolkadotAccount |
+| `Polkadot_JsonRpc` | `Polkadot_JsonRpc` | PolkadotAccount_Timestamp |
+| `Subscan_Rest` | `Subscan_Rest` | PolkadotAccount_Timestamp |
+| `SubstrateSidecar_Rest` | `SubstrateSidecar_Rest` | PolkadotAccount_Timestamp |
+| `ThreeXpl_Rest` | `ThreeXpl_Rest` | PolkadotAccount_Timestamp |
+| `Polkadot_JsonRpc` | `Polkadot_JsonRpc` | PolkadotAsset |
+| `Subscan_Rest` | `Subscan_Rest` | PolkadotAsset |
+| `SubstrateSidecar_Rest` | `SubstrateSidecar_Rest` | PolkadotAsset |
+| `ThreeXpl_Rest` | `ThreeXpl_Rest` | PolkadotAsset |
+| `Polkadot_JsonRpc` | `Polkadot_JsonRpc` | PolkadotAsset_Timestamp |
+| `Subscan_Rest` | `Subscan_Rest` | PolkadotAsset_Timestamp |
+| `SubstrateSidecar_Rest` | `SubstrateSidecar_Rest` | PolkadotAsset_Timestamp |
+| `ThreeXpl_Rest` | `ThreeXpl_Rest` | PolkadotAsset_Timestamp |
+| `Polkadot_JsonRpc` | `Polkadot_JsonRpc` | PolkadotAssetBalance_Timestamp |
+| `Subscan_Rest` | `Subscan_Rest` | PolkadotAssetBalance_Timestamp |
+| `SubstrateSidecar_Rest` | `SubstrateSidecar_Rest` | PolkadotAssetBalance_Timestamp |
+| `ThreeXpl_Rest` | `ThreeXpl_Rest` | PolkadotAssetBalance_Timestamp |
+| `Polkadot_JsonRpc` | `Polkadot_JsonRpc` | PolkadotBlock |
+| `Subscan_Rest` | `Subscan_Rest` | PolkadotBlock |
+| `SubstrateSidecar_Rest` | `SubstrateSidecar_Rest` | PolkadotBlock |
+| `ThreeXpl_Rest` | `ThreeXpl_Rest` | PolkadotBlock |
+| `SubstrateSidecar_Rest` | `SubstrateSidecar_Rest` | PolkadotEvent |
+| `Subscan_Rest` | `Subscan_Rest` | PolkadotExtrinsic |
+| `SubstrateSidecar_Rest` | `SubstrateSidecar_Rest` | PolkadotExtrinsic |
+| `Constants_Internal` | `Constants_Internal` | PolkadotNetwork |
+| `Polkadot_JsonRpc` | `Polkadot_JsonRpc` | PolkadotNetwork |
+| `SubstrateSidecar_Rest` | `SubstrateSidecar_Rest` | PolkadotNetwork |
+| `Polkadot_JsonRpc` | `Polkadot_JsonRpc` | PolkadotNetwork_Timestamp |
+| `SubstrateSidecar_Rest` | `SubstrateSidecar_Rest` | PolkadotPallet |
+| `Polkadot_JsonRpc` | `Polkadot_JsonRpc` | PolkadotReferendum |
+| `Subscan_Rest` | `Subscan_Rest` | PolkadotReferendum |
+| `SubstrateSidecar_Rest` | `SubstrateSidecar_Rest` | PolkadotReferendum |
+| `Polkadot_JsonRpc` | `Polkadot_JsonRpc` | PolkadotReferendum_Timestamp |
+| `Subscan_Rest` | `Subscan_Rest` | PolkadotReferendum_Timestamp |
+| `SubstrateSidecar_Rest` | `SubstrateSidecar_Rest` | PolkadotReferendum_Timestamp |
+| `Polkadot_JsonRpc` | `Polkadot_JsonRpc` | PolkadotValidator |
+| `Subscan_Rest` | `Subscan_Rest` | PolkadotValidator |
+| `SubstrateSidecar_Rest` | `SubstrateSidecar_Rest` | PolkadotValidator |
+| `Polkadot_JsonRpc` | `Polkadot_JsonRpc` | PolkadotValidator_Era |
+| `Subscan_Rest` | `Subscan_Rest` | PolkadotValidator_Era |
+| `SubstrateSidecar_Rest` | `SubstrateSidecar_Rest` | PolkadotValidator_Era |
+| `PythBenchmarks_Rest` | `PythBenchmarks_Rest` | PythPriceFeed |
+| `PythHermes_Rest` | `PythHermes_Rest` | PythPriceFeed |
+| `PythPriceFeedsCatalog_Rest` | `PythPriceFeedsCatalog_Rest` | PythPriceFeed |
+| `Pyth_EvmContract` | `Pyth_EvmContract` | PythPriceFeed |
+| `Pyth_SolanaProgram` | `Pyth_SolanaProgram` | PythPriceFeed |
+| `PythBenchmarks_Rest` | `PythBenchmarks_Rest` | PythPriceFeed_Timestamp |
+| `PythHermes_Rest` | `PythHermes_Rest` | PythPriceFeed_Timestamp |
+| `Pyth_EvmContract` | `Pyth_EvmContract` | PythPriceFeed_Timestamp |
+| `Pyth_SolanaProgram` | `Pyth_SolanaProgram` | PythPriceFeed_Timestamp |
+| `QuilibriumNode_Grpc` | `QuilibriumNode_Grpc` | QuilibriumAccount |
+| `QuilibriumNode_Grpc` | `QuilibriumNode_Grpc` | QuilibriumFrame |
+| `QuilibriumNode_Grpc` | `QuilibriumNode_Grpc` | QuilibriumProver |
+| `QuilibriumNode_Grpc` | `QuilibriumNode_Grpc` | QuilibriumShard |
+| `RadicleCli_Local` | `RadicleCli_Local` | RadicleCollaborationEvent |
+| `Radicle_Local` | `Radicle_Local` | RadicleCollaborationEvent |
+| `RadicleCli_Local` | `RadicleCli_Local` | RadicleDelegate |
+| `Radicle_Local` | `Radicle_Local` | RadicleDelegate |
+| `RadicleCli_Local` | `RadicleCli_Local` | RadicleDiscussionComment |
+| `Radicle_Local` | `Radicle_Local` | RadicleDiscussionComment |
+| `RadicleCli_Local` | `RadicleCli_Local` | RadicleIdentityDocument |
+| `Radicle_Local` | `Radicle_Local` | RadicleIdentityDocument |
+| `Radicle_Remote` | `Radicle_Remote` | RadicleIdentityDocument |
+| `RadicleCli_Local` | `RadicleCli_Local` | RadicleIdentityRevision |
+| `Radicle_Local` | `Radicle_Local` | RadicleIdentityRevision |
+| `RadicleCli_Local` | `RadicleCli_Local` | RadicleIssue |
+| `Radicle_Local` | `Radicle_Local` | RadicleIssue |
+| `RadicleCli_Local` | `RadicleCli_Local` | RadiclePatch |
+| `Radicle_Local` | `Radicle_Local` | RadiclePatch |
+| `Radicle_Remote` | `Radicle_Remote` | RadiclePatch |
+| `RadicleCli_Local` | `RadicleCli_Local` | RadicleRepository |
+| `Radicle_Local` | `Radicle_Local` | RadicleRepository |
+| `Radicle_Remote` | `Radicle_Remote` | RadicleRepository |
+| `RadicleCli_Local` | `RadicleCli_Local` | RadicleSignedRef |
+| `Radicle_Local` | `Radicle_Local` | RadicleSignedRef |
+| `Radicle_Remote` | `Radicle_Remote` | RadicleSignedRef |
+| `RadicleCli_Local` | `RadicleCli_Local` | RadicleSignedRef_Timestamp |
+| `Radicle_Local` | `Radicle_Local` | RadicleSignedRef_Timestamp |
+| `Radicle_Remote` | `Radicle_Remote` | RadicleSignedRef_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | RedditComment |
+| `Reddit_PublicJson` | `Reddit_PublicJson` | RedditComment |
+| `Reddit_Rest` | `Reddit_Rest` | RedditComment |
+| `Reddit_PublicJson` | `Reddit_PublicJson` | RedditComment_Timestamp |
+| `Reddit_Rest` | `Reddit_Rest` | RedditComment_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | RedditLink |
+| `Reddit_PublicJson` | `Reddit_PublicJson` | RedditLink |
+| `Reddit_Rest` | `Reddit_Rest` | RedditLink |
+| `Reddit_PublicJson` | `Reddit_PublicJson` | RedditLink_Timestamp |
+| `Reddit_Rest` | `Reddit_Rest` | RedditLink_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | RedditNetwork |
+| `Constants_Internal` | `Constants_Internal` | RedditSubreddit |
+| `Reddit_PublicJson` | `Reddit_PublicJson` | RedditSubreddit |
+| `Reddit_Rest` | `Reddit_Rest` | RedditSubreddit |
+| `Reddit_PublicJson` | `Reddit_PublicJson` | RedditSubreddit_Timestamp |
+| `Reddit_Rest` | `Reddit_Rest` | RedditSubreddit_Timestamp |
+| `Allium_Rest` | `Allium_Rest` | RegulatedAssetProfile |
+| `Blockscout_Rest` | `Blockscout_Rest` | RegulatedAssetProfile |
+| `Dune_Rest` | `Dune_Rest` | RegulatedAssetProfile |
+| `Etherscan_Rest` | `Etherscan_Rest` | RegulatedAssetProfile |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | RegulatedAssetProfile |
+| `Helius_Rest` | `Helius_Rest` | RegulatedAssetProfile |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | RegulatedAssetProfile |
+| `Sourcify_Rest` | `Sourcify_Rest` | RegulatedAssetProfile |
+| `TronGrid_Rest` | `TronGrid_Rest` | RegulatedAssetProfile |
+| `TronScan_Rest` | `TronScan_Rest` | RegulatedAssetProfile |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | RegulatedAssetProfile |
+| `Allium_Rest` | `Allium_Rest` | RegulatedAssetProfile_Timestamp |
+| `Blockscout_Rest` | `Blockscout_Rest` | RegulatedAssetProfile_Timestamp |
+| `Dune_Rest` | `Dune_Rest` | RegulatedAssetProfile_Timestamp |
+| `Etherscan_Rest` | `Etherscan_Rest` | RegulatedAssetProfile_Timestamp |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | RegulatedAssetProfile_Timestamp |
+| `Helius_Rest` | `Helius_Rest` | RegulatedAssetProfile_Timestamp |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | RegulatedAssetProfile_Timestamp |
+| `Sourcify_Rest` | `Sourcify_Rest` | RegulatedAssetProfile_Timestamp |
+| `TronGrid_Rest` | `TronGrid_Rest` | RegulatedAssetProfile_Timestamp |
+| `TronScan_Rest` | `TronScan_Rest` | RegulatedAssetProfile_Timestamp |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | RegulatedAssetProfile_Timestamp |
+| `Blockscout_Rest` | `Blockscout_Rest` | RoyaltyRight_Timestamp |
+| `MetadataVision_Rest` | `MetadataVision_Rest` | RoyaltyRight_Timestamp |
+| `OpenSea_Rest` | `OpenSea_Rest` | RoyaltyRight_Timestamp |
+| `Reservoir_Rest` | `Reservoir_Rest` | RoyaltyRight_Timestamp |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | RoyaltyRight_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | RssFeed |
+| `Rss2Json_Rest` | `Rss2Json_Rest` | RssFeed |
+| `Rss_Rest` | `Rss_Rest` | RssFeed |
+| `Rss2Json_Rest` | `Rss2Json_Rest` | RssFeed_Timestamp |
+| `Rss_Rest` | `Rss_Rest` | RssFeed_Timestamp |
+| `Rss2Json_Rest` | `Rss2Json_Rest` | RssItem |
+| `Rss_Rest` | `Rss_Rest` | RssItem |
+| `Rss2Json_Rest` | `Rss2Json_Rest` | RssItem_Timestamp |
+| `Rss_Rest` | `Rss_Rest` | RssItem_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | RssNetwork |
+| `L2Beat_Rest` | `L2Beat_Rest` | ScalingDeploymentClaim |
+| `Superchain_Github` | `Superchain_Github` | ScalingDeploymentClaim |
+| `L2Beat_Rest` | `L2Beat_Rest` | ScalingDeploymentClaim_Timestamp |
+| `Superchain_Github` | `Superchain_Github` | ScalingDeploymentClaim_Timestamp |
+| `Helius_Rest` | `Helius_Rest` | SolanaAccount |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | SolanaAccount |
+| `ThreeXpl_Rest` | `ThreeXpl_Rest` | SolanaAccount |
+| `Helius_Rest` | `Helius_Rest` | SolanaAccount_Timestamp |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | SolanaAccount_Timestamp |
+| `ThreeXpl_Rest` | `ThreeXpl_Rest` | SolanaAccount_Timestamp |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | SolanaBlock |
+| `ThreeXpl_Rest` | `ThreeXpl_Rest` | SolanaBlock |
+| `Helius_Rest` | `Helius_Rest` | SolanaInstruction |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | SolanaInstruction |
+| `ThreeXpl_Rest` | `ThreeXpl_Rest` | SolanaInstruction |
+| `Constants_Internal` | `Constants_Internal` | SolanaNetwork |
+| `Helius_Rest` | `Helius_Rest` | SolanaNetwork |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | SolanaNetwork |
+| `ThreeXpl_Rest` | `ThreeXpl_Rest` | SolanaNetwork |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | SolanaNetwork_Timestamp |
+| `Helius_Rest` | `Helius_Rest` | SolanaProgram |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | SolanaProgram |
+| `ThreeXpl_Rest` | `ThreeXpl_Rest` | SolanaProgram |
+| `Helius_Rest` | `Helius_Rest` | SolanaTokenAccount |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | SolanaTokenAccount |
+| `ThreeXpl_Rest` | `ThreeXpl_Rest` | SolanaTokenAccount |
+| `Helius_Rest` | `Helius_Rest` | SolanaTokenAccount_Timestamp |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | SolanaTokenAccount_Timestamp |
+| `ThreeXpl_Rest` | `ThreeXpl_Rest` | SolanaTokenAccount_Timestamp |
+| `Helius_Rest` | `Helius_Rest` | SolanaTokenMint |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | SolanaTokenMint |
+| `ThreeXpl_Rest` | `ThreeXpl_Rest` | SolanaTokenMint |
+| `Helius_Rest` | `Helius_Rest` | SolanaTokenMint_Timestamp |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | SolanaTokenMint_Timestamp |
+| `ThreeXpl_Rest` | `ThreeXpl_Rest` | SolanaTokenMint_Timestamp |
+| `Helius_Rest` | `Helius_Rest` | SolanaTransaction |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | SolanaTransaction |
+| `ThreeXpl_Rest` | `ThreeXpl_Rest` | SolanaTransaction |
+| `Helius_Rest` | `Helius_Rest` | SolanaTransaction_Timestamp |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | SolanaTransaction_Timestamp |
+| `ThreeXpl_Rest` | `ThreeXpl_Rest` | SolanaTransaction_Timestamp |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | SolanaValidator |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | SolanaValidator_Timestamp |
+| `StellarExpert_Rest` | `StellarExpert_Rest` | SorobanContract |
+| `StellarRpc_JsonRpc` | `StellarRpc_JsonRpc` | SorobanContract |
+| `StellarExpert_Rest` | `StellarExpert_Rest` | SorobanContract_Timestamp |
+| `StellarRpc_JsonRpc` | `StellarRpc_JsonRpc` | SorobanContract_Timestamp |
+| `StellarExpert_Rest` | `StellarExpert_Rest` | SorobanContractStorageEntry |
+| `StellarRpc_JsonRpc` | `StellarRpc_JsonRpc` | SorobanContractStorageEntry |
+| `StellarExpert_Rest` | `StellarExpert_Rest` | SorobanContractStorageEntry_Timestamp |
+| `StellarRpc_JsonRpc` | `StellarRpc_JsonRpc` | SorobanContractStorageEntry_Timestamp |
+| `StellarExpert_Rest` | `StellarExpert_Rest` | SorobanWasm |
+| `StellarRpc_JsonRpc` | `StellarRpc_JsonRpc` | SorobanWasm |
+| `StellarExpert_Rest` | `StellarExpert_Rest` | SorobanWasm_Timestamp |
+| `StellarRpc_JsonRpc` | `StellarRpc_JsonRpc` | SorobanWasm_Timestamp |
+| `BitcoinBips_Github` | `BitcoinBips_Github` | SpecificationProposal |
+| `BitcoinCashChips_Gitlab` | `BitcoinCashChips_Gitlab` | SpecificationProposal |
+| `Caips_Github` | `Caips_Github` | SpecificationProposal |
+| `Constants_Internal` | `Constants_Internal` | SpecificationProposal |
+| `CosmosAdrs_Github` | `CosmosAdrs_Github` | SpecificationProposal |
+| `DogecoinDips_Github` | `DogecoinDips_Github` | SpecificationProposal |
+| `Ensips_Github` | `Ensips_Github` | SpecificationProposal |
+| `EthereumEips_Github` | `EthereumEips_Github` | SpecificationProposal |
+| `FilecoinFips_Github` | `FilecoinFips_Github` | SpecificationProposal |
+| `LitecoinLips_Github` | `LitecoinLips_Github` | SpecificationProposal |
+| `NearNeps_Github` | `NearNeps_Github` | SpecificationProposal |
+| `PolkadotRfcs_Github` | `PolkadotRfcs_Github` | SpecificationProposal |
+| `SolanaSimds_Github` | `SolanaSimds_Github` | SpecificationProposal |
+| `ZcashZips_Github` | `ZcashZips_Github` | SpecificationProposal |
+| `BitcoinBips_Github` | `BitcoinBips_Github` | SpecificationProposalKind |
+| `BitcoinCashChips_Gitlab` | `BitcoinCashChips_Gitlab` | SpecificationProposalKind |
+| `Caips_Github` | `Caips_Github` | SpecificationProposalKind |
+| `Constants_Internal` | `Constants_Internal` | SpecificationProposalKind |
+| `CosmosAdrs_Github` | `CosmosAdrs_Github` | SpecificationProposalKind |
+| `DogecoinDips_Github` | `DogecoinDips_Github` | SpecificationProposalKind |
+| `Ensips_Github` | `Ensips_Github` | SpecificationProposalKind |
+| `EthereumEips_Github` | `EthereumEips_Github` | SpecificationProposalKind |
+| `FilecoinFips_Github` | `FilecoinFips_Github` | SpecificationProposalKind |
+| `HyperliquidDocs_Rest` | `HyperliquidDocs_Rest` | SpecificationProposalKind |
+| `LitecoinLips_Github` | `LitecoinLips_Github` | SpecificationProposalKind |
+| `NearNeps_Github` | `NearNeps_Github` | SpecificationProposalKind |
+| `PolkadotRfcs_Github` | `PolkadotRfcs_Github` | SpecificationProposalKind |
+| `QuilibriumDocs_Rest` | `QuilibriumDocs_Rest` | SpecificationProposalKind |
+| `SolanaSimds_Github` | `SolanaSimds_Github` | SpecificationProposalKind |
+| `ZcashZips_Github` | `ZcashZips_Github` | SpecificationProposalKind |
+| `BitcoinBips_Github` | `BitcoinBips_Github` | SpecificationRealm |
+| `BitcoinCashChips_Gitlab` | `BitcoinCashChips_Gitlab` | SpecificationRealm |
+| `Caips_Github` | `Caips_Github` | SpecificationRealm |
+| `Constants_Internal` | `Constants_Internal` | SpecificationRealm |
+| `CosmosAdrs_Github` | `CosmosAdrs_Github` | SpecificationRealm |
+| `DogecoinDips_Github` | `DogecoinDips_Github` | SpecificationRealm |
+| `Ensips_Github` | `Ensips_Github` | SpecificationRealm |
+| `EthereumEips_Github` | `EthereumEips_Github` | SpecificationRealm |
+| `FilecoinFips_Github` | `FilecoinFips_Github` | SpecificationRealm |
+| `HyperliquidDocs_Rest` | `HyperliquidDocs_Rest` | SpecificationRealm |
+| `LitecoinLips_Github` | `LitecoinLips_Github` | SpecificationRealm |
+| `NearNeps_Github` | `NearNeps_Github` | SpecificationRealm |
+| `PolkadotRfcs_Github` | `PolkadotRfcs_Github` | SpecificationRealm |
+| `QuilibriumDocs_Rest` | `QuilibriumDocs_Rest` | SpecificationRealm |
+| `SolanaSimds_Github` | `SolanaSimds_Github` | SpecificationRealm |
+| `ZcashZips_Github` | `ZcashZips_Github` | SpecificationRealm |
+| `Juno_JsonRpc` | `Juno_JsonRpc` | StarknetAccount_Timestamp |
+| `Pathfinder_JsonRpc` | `Pathfinder_JsonRpc` | StarknetAccount_Timestamp |
+| `Starknet_JsonRpc` | `Starknet_JsonRpc` | StarknetAccount_Timestamp |
+| `Starkscan_Rest` | `Starkscan_Rest` | StarknetAccount_Timestamp |
+| `Voyager_Rest` | `Voyager_Rest` | StarknetAccount_Timestamp |
+| `Juno_JsonRpc` | `Juno_JsonRpc` | StarknetBlock |
+| `Pathfinder_JsonRpc` | `Pathfinder_JsonRpc` | StarknetBlock |
+| `Starknet_JsonRpc` | `Starknet_JsonRpc` | StarknetBlock |
+| `Starkscan_Rest` | `Starkscan_Rest` | StarknetBlock |
+| `Voyager_Rest` | `Voyager_Rest` | StarknetBlock |
+| `Juno_JsonRpc` | `Juno_JsonRpc` | StarknetClass |
+| `Pathfinder_JsonRpc` | `Pathfinder_JsonRpc` | StarknetClass |
+| `Starknet_JsonRpc` | `Starknet_JsonRpc` | StarknetClass |
+| `Starkscan_Rest` | `Starkscan_Rest` | StarknetClass |
+| `Voyager_Rest` | `Voyager_Rest` | StarknetClass |
+| `Juno_JsonRpc` | `Juno_JsonRpc` | StarknetContract |
+| `Pathfinder_JsonRpc` | `Pathfinder_JsonRpc` | StarknetContract |
+| `Starknet_JsonRpc` | `Starknet_JsonRpc` | StarknetContract |
+| `Starkscan_Rest` | `Starkscan_Rest` | StarknetContract |
+| `Voyager_Rest` | `Voyager_Rest` | StarknetContract |
+| `Starknet_JsonRpc` | `Starknet_JsonRpc` | StarknetEvent |
+| `Starkscan_Rest` | `Starkscan_Rest` | StarknetEvent |
+| `Voyager_Rest` | `Voyager_Rest` | StarknetEvent |
+| `Constants_Internal` | `Constants_Internal` | StarknetNetwork |
+| `Juno_JsonRpc` | `Juno_JsonRpc` | StarknetNetwork |
+| `L2Beat_Rest` | `L2Beat_Rest` | StarknetNetwork |
+| `Pathfinder_JsonRpc` | `Pathfinder_JsonRpc` | StarknetNetwork |
+| `Starknet_JsonRpc` | `Starknet_JsonRpc` | StarknetNetwork |
+| `Starkscan_Rest` | `Starkscan_Rest` | StarknetNetwork |
+| `Voyager_Rest` | `Voyager_Rest` | StarknetNetwork |
+| `Juno_JsonRpc` | `Juno_JsonRpc` | StarknetNetwork_Timestamp |
+| `Pathfinder_JsonRpc` | `Pathfinder_JsonRpc` | StarknetNetwork_Timestamp |
+| `Starknet_JsonRpc` | `Starknet_JsonRpc` | StarknetNetwork_Timestamp |
+| `Starkscan_Rest` | `Starkscan_Rest` | StarknetNetwork_Timestamp |
+| `Voyager_Rest` | `Voyager_Rest` | StarknetNetwork_Timestamp |
+| `Juno_JsonRpc` | `Juno_JsonRpc` | StarknetStorageEntry |
+| `Pathfinder_JsonRpc` | `Pathfinder_JsonRpc` | StarknetStorageEntry |
+| `Starknet_JsonRpc` | `Starknet_JsonRpc` | StarknetStorageEntry |
+| `Juno_JsonRpc` | `Juno_JsonRpc` | StarknetStorageEntry_Timestamp |
+| `Pathfinder_JsonRpc` | `Pathfinder_JsonRpc` | StarknetStorageEntry_Timestamp |
+| `Starknet_JsonRpc` | `Starknet_JsonRpc` | StarknetStorageEntry_Timestamp |
+| `Juno_JsonRpc` | `Juno_JsonRpc` | StarknetTransaction |
+| `Pathfinder_JsonRpc` | `Pathfinder_JsonRpc` | StarknetTransaction |
+| `Starknet_JsonRpc` | `Starknet_JsonRpc` | StarknetTransaction |
+| `Starkscan_Rest` | `Starkscan_Rest` | StarknetTransaction |
+| `Voyager_Rest` | `Voyager_Rest` | StarknetTransaction |
+| `Juno_JsonRpc` | `Juno_JsonRpc` | StarknetTransaction_Timestamp |
+| `Pathfinder_JsonRpc` | `Pathfinder_JsonRpc` | StarknetTransaction_Timestamp |
+| `Starknet_JsonRpc` | `Starknet_JsonRpc` | StarknetTransaction_Timestamp |
+| `Starkscan_Rest` | `Starkscan_Rest` | StarknetTransaction_Timestamp |
+| `Voyager_Rest` | `Voyager_Rest` | StarknetTransaction_Timestamp |
+| `StellarExpert_Rest` | `StellarExpert_Rest` | StellarAccount |
+| `StellarHorizon_Rest` | `StellarHorizon_Rest` | StellarAccount |
+| `StellarRpc_JsonRpc` | `StellarRpc_JsonRpc` | StellarAccount |
+| `StellarExpert_Rest` | `StellarExpert_Rest` | StellarAccount_Timestamp |
+| `StellarHorizon_Rest` | `StellarHorizon_Rest` | StellarAccount_Timestamp |
+| `StellarRpc_JsonRpc` | `StellarRpc_JsonRpc` | StellarAccount_Timestamp |
+| `StellarExpert_Rest` | `StellarExpert_Rest` | StellarAccountSigner |
+| `StellarHorizon_Rest` | `StellarHorizon_Rest` | StellarAccountSigner |
+| `StellarRpc_JsonRpc` | `StellarRpc_JsonRpc` | StellarAccountSigner |
+| `StellarExpert_Rest` | `StellarExpert_Rest` | StellarAccountSigner_Timestamp |
+| `StellarHorizon_Rest` | `StellarHorizon_Rest` | StellarAccountSigner_Timestamp |
+| `StellarRpc_JsonRpc` | `StellarRpc_JsonRpc` | StellarAccountSigner_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | StellarAsset |
+| `StellarExpert_Rest` | `StellarExpert_Rest` | StellarAsset |
+| `StellarHorizon_Rest` | `StellarHorizon_Rest` | StellarAsset |
+| `StellarToml_Rest` | `StellarToml_Rest` | StellarAsset |
+| `StellarExpert_Rest` | `StellarExpert_Rest` | StellarClaimableBalance |
+| `StellarHorizon_Rest` | `StellarHorizon_Rest` | StellarClaimableBalance |
+| `StellarRpc_JsonRpc` | `StellarRpc_JsonRpc` | StellarClaimableBalance |
+| `StellarExpert_Rest` | `StellarExpert_Rest` | StellarClaimableBalance_Timestamp |
+| `StellarHorizon_Rest` | `StellarHorizon_Rest` | StellarClaimableBalance_Timestamp |
+| `StellarRpc_JsonRpc` | `StellarRpc_JsonRpc` | StellarClaimableBalance_Timestamp |
+| `StellarExpert_Rest` | `StellarExpert_Rest` | StellarLedger |
+| `StellarHorizon_Rest` | `StellarHorizon_Rest` | StellarLedger |
+| `StellarRpc_JsonRpc` | `StellarRpc_JsonRpc` | StellarLedger |
+| `StellarExpert_Rest` | `StellarExpert_Rest` | StellarLiquidityPool |
+| `StellarHorizon_Rest` | `StellarHorizon_Rest` | StellarLiquidityPool |
+| `StellarRpc_JsonRpc` | `StellarRpc_JsonRpc` | StellarLiquidityPool |
+| `StellarExpert_Rest` | `StellarExpert_Rest` | StellarLiquidityPool_Timestamp |
+| `StellarHorizon_Rest` | `StellarHorizon_Rest` | StellarLiquidityPool_Timestamp |
+| `StellarRpc_JsonRpc` | `StellarRpc_JsonRpc` | StellarLiquidityPool_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | StellarNetwork |
+| `StellarExpert_Rest` | `StellarExpert_Rest` | StellarNetwork |
+| `StellarHorizon_Rest` | `StellarHorizon_Rest` | StellarNetwork |
+| `StellarRpc_JsonRpc` | `StellarRpc_JsonRpc` | StellarNetwork |
+| `StellarExpert_Rest` | `StellarExpert_Rest` | StellarNetwork_Timestamp |
+| `StellarHorizon_Rest` | `StellarHorizon_Rest` | StellarNetwork_Timestamp |
+| `StellarRpc_JsonRpc` | `StellarRpc_JsonRpc` | StellarNetwork_Timestamp |
+| `StellarExpert_Rest` | `StellarExpert_Rest` | StellarOffer |
+| `StellarHorizon_Rest` | `StellarHorizon_Rest` | StellarOffer |
+| `StellarRpc_JsonRpc` | `StellarRpc_JsonRpc` | StellarOffer |
+| `StellarExpert_Rest` | `StellarExpert_Rest` | StellarOffer_Timestamp |
+| `StellarHorizon_Rest` | `StellarHorizon_Rest` | StellarOffer_Timestamp |
+| `StellarRpc_JsonRpc` | `StellarRpc_JsonRpc` | StellarOffer_Timestamp |
+| `StellarExpert_Rest` | `StellarExpert_Rest` | StellarOperation |
+| `StellarHorizon_Rest` | `StellarHorizon_Rest` | StellarOperation |
+| `StellarRpc_JsonRpc` | `StellarRpc_JsonRpc` | StellarOperation |
+| `StellarExpert_Rest` | `StellarExpert_Rest` | StellarTrade |
+| `StellarHorizon_Rest` | `StellarHorizon_Rest` | StellarTrade |
+| `StellarExpert_Rest` | `StellarExpert_Rest` | StellarTransaction |
+| `StellarHorizon_Rest` | `StellarHorizon_Rest` | StellarTransaction |
+| `StellarRpc_JsonRpc` | `StellarRpc_JsonRpc` | StellarTransaction |
+| `StellarExpert_Rest` | `StellarExpert_Rest` | StellarTransaction_Timestamp |
+| `StellarHorizon_Rest` | `StellarHorizon_Rest` | StellarTransaction_Timestamp |
+| `StellarRpc_JsonRpc` | `StellarRpc_JsonRpc` | StellarTransaction_Timestamp |
+| `StellarExpert_Rest` | `StellarExpert_Rest` | StellarTrustline |
+| `StellarHorizon_Rest` | `StellarHorizon_Rest` | StellarTrustline |
+| `StellarRpc_JsonRpc` | `StellarRpc_JsonRpc` | StellarTrustline |
+| `StellarExpert_Rest` | `StellarExpert_Rest` | StellarTrustline_Timestamp |
+| `StellarHorizon_Rest` | `StellarHorizon_Rest` | StellarTrustline_Timestamp |
+| `StellarRpc_JsonRpc` | `StellarRpc_JsonRpc` | StellarTrustline_Timestamp |
+| `Sui_Graphql` | `Sui_Graphql` | SuiAccount |
+| `Sui_Grpc` | `Sui_Grpc` | SuiAccount |
+| `Sui_JsonRpc` | `Sui_JsonRpc` | SuiAccount |
+| `Sui_Graphql` | `Sui_Graphql` | SuiBalanceChange |
+| `Sui_Grpc` | `Sui_Grpc` | SuiBalanceChange |
+| `Sui_JsonRpc` | `Sui_JsonRpc` | SuiBalanceChange |
+| `Sui_Graphql` | `Sui_Graphql` | SuiCheckpoint |
+| `Sui_Grpc` | `Sui_Grpc` | SuiCheckpoint |
+| `Sui_JsonRpc` | `Sui_JsonRpc` | SuiCheckpoint |
+| `Sui_Graphql` | `Sui_Graphql` | SuiCoinBalance_Timestamp |
+| `Sui_Grpc` | `Sui_Grpc` | SuiCoinBalance_Timestamp |
+| `Sui_JsonRpc` | `Sui_JsonRpc` | SuiCoinBalance_Timestamp |
+| `Sui_Graphql` | `Sui_Graphql` | SuiCoinType |
+| `Sui_Grpc` | `Sui_Grpc` | SuiCoinType |
+| `Sui_JsonRpc` | `Sui_JsonRpc` | SuiCoinType |
+| `Sui_Graphql` | `Sui_Graphql` | SuiDynamicFieldEdge |
+| `Sui_Grpc` | `Sui_Grpc` | SuiDynamicFieldEdge |
+| `Sui_JsonRpc` | `Sui_JsonRpc` | SuiDynamicFieldEdge |
+| `Sui_Graphql` | `Sui_Graphql` | SuiDynamicFieldEdge_Timestamp |
+| `Sui_Grpc` | `Sui_Grpc` | SuiDynamicFieldEdge_Timestamp |
+| `Sui_JsonRpc` | `Sui_JsonRpc` | SuiDynamicFieldEdge_Timestamp |
+| `Sui_Graphql` | `Sui_Graphql` | SuiEvent |
+| `Sui_Grpc` | `Sui_Grpc` | SuiEvent |
+| `Sui_JsonRpc` | `Sui_JsonRpc` | SuiEvent |
+| `Constants_Internal` | `Constants_Internal` | SuiNetwork |
+| `Sui_Graphql` | `Sui_Graphql` | SuiNetwork |
+| `Sui_Grpc` | `Sui_Grpc` | SuiNetwork |
+| `Sui_JsonRpc` | `Sui_JsonRpc` | SuiNetwork |
+| `Sui_Graphql` | `Sui_Graphql` | SuiNetwork_Timestamp |
+| `Sui_Grpc` | `Sui_Grpc` | SuiNetwork_Timestamp |
+| `Sui_JsonRpc` | `Sui_JsonRpc` | SuiNetwork_Timestamp |
+| `Sui_Graphql` | `Sui_Graphql` | SuiObject |
+| `Sui_Grpc` | `Sui_Grpc` | SuiObject |
+| `Sui_JsonRpc` | `Sui_JsonRpc` | SuiObject |
+| `Sui_Graphql` | `Sui_Graphql` | SuiObjectChange |
+| `Sui_Grpc` | `Sui_Grpc` | SuiObjectChange |
+| `Sui_JsonRpc` | `Sui_JsonRpc` | SuiObjectChange |
+| `Sui_Graphql` | `Sui_Graphql` | SuiObjectVersion |
+| `Sui_Grpc` | `Sui_Grpc` | SuiObjectVersion |
+| `Sui_JsonRpc` | `Sui_JsonRpc` | SuiObjectVersion |
+| `Sui_Graphql` | `Sui_Graphql` | SuiPackage |
+| `Sui_Grpc` | `Sui_Grpc` | SuiPackage |
+| `Sui_JsonRpc` | `Sui_JsonRpc` | SuiPackage |
+| `Sui_Graphql` | `Sui_Graphql` | SuiPackageUpgrade |
+| `Sui_Grpc` | `Sui_Grpc` | SuiPackageUpgrade |
+| `Sui_JsonRpc` | `Sui_JsonRpc` | SuiPackageUpgrade |
+| `Sui_Graphql` | `Sui_Graphql` | SuiPackageVersion |
+| `Sui_Grpc` | `Sui_Grpc` | SuiPackageVersion |
+| `Sui_JsonRpc` | `Sui_JsonRpc` | SuiPackageVersion |
+| `Sui_Graphql` | `Sui_Graphql` | SuiProgrammableTransactionCommand |
+| `Sui_Grpc` | `Sui_Grpc` | SuiProgrammableTransactionCommand |
+| `Sui_JsonRpc` | `Sui_JsonRpc` | SuiProgrammableTransactionCommand |
+| `Sui_Graphql` | `Sui_Graphql` | SuiRegulatedCoinState_Timestamp |
+| `Sui_Grpc` | `Sui_Grpc` | SuiRegulatedCoinState_Timestamp |
+| `Sui_JsonRpc` | `Sui_JsonRpc` | SuiRegulatedCoinState_Timestamp |
+| `Sui_Graphql` | `Sui_Graphql` | SuiTransaction |
+| `Sui_Grpc` | `Sui_Grpc` | SuiTransaction |
+| `Sui_JsonRpc` | `Sui_JsonRpc` | SuiTransaction |
+| `Sui_Graphql` | `Sui_Graphql` | SuiTransaction_Timestamp |
+| `Sui_Grpc` | `Sui_Grpc` | SuiTransaction_Timestamp |
+| `Sui_JsonRpc` | `Sui_JsonRpc` | SuiTransaction_Timestamp |
+| `Local_Internal` | `Local_Internal` | SwapQuote |
+| `Lifi_Rest` | `Lifi_Rest` | SwapQuote_Timestamp |
+| `OneInchSwap_Rest` | `OneInchSwap_Rest` | SwapQuote_Timestamp |
+| `Paraswap_Rest` | `Paraswap_Rest` | SwapQuote_Timestamp |
+| `ZeroExSwap_Rest` | `ZeroExSwap_Rest` | SwapQuote_Timestamp |
+| `Lifi_Rest` | `Lifi_Rest` | SwapQuoteStep |
+| `OneInchSwap_Rest` | `OneInchSwap_Rest` | SwapQuoteStep |
+| `Paraswap_Rest` | `Paraswap_Rest` | SwapQuoteStep |
+| `ZeroExSwap_Rest` | `ZeroExSwap_Rest` | SwapQuoteStep |
+| `Constants_Internal` | `Constants_Internal` | SwarmProtocol |
+| `Swarm_Rest` | `Swarm_Rest` | SwarmResource |
+| `BetterCallDev_Rest` | `BetterCallDev_Rest` | TezosAccount |
+| `Conseil_Postgres` | `Conseil_Postgres` | TezosAccount |
+| `TezosDappetizer_Postgres` | `TezosDappetizer_Postgres` | TezosAccount |
+| `TezosNode_Rpc` | `TezosNode_Rpc` | TezosAccount |
+| `Tzkt_Rest` | `Tzkt_Rest` | TezosAccount |
+| `BetterCallDev_Rest` | `BetterCallDev_Rest` | TezosAccount_Timestamp |
+| `Conseil_Postgres` | `Conseil_Postgres` | TezosAccount_Timestamp |
+| `TezosDappetizer_Postgres` | `TezosDappetizer_Postgres` | TezosAccount_Timestamp |
+| `TezosNode_Rpc` | `TezosNode_Rpc` | TezosAccount_Timestamp |
+| `Tzkt_Rest` | `Tzkt_Rest` | TezosAccount_Timestamp |
+| `Conseil_Postgres` | `Conseil_Postgres` | TezosBaker |
+| `TezosDappetizer_Postgres` | `TezosDappetizer_Postgres` | TezosBaker |
+| `TezosNode_Rpc` | `TezosNode_Rpc` | TezosBaker |
+| `Tzkt_Rest` | `Tzkt_Rest` | TezosBaker |
+| `Conseil_Postgres` | `Conseil_Postgres` | TezosBaker_Cycle_Timestamp |
+| `TezosDappetizer_Postgres` | `TezosDappetizer_Postgres` | TezosBaker_Cycle_Timestamp |
+| `Tzkt_Rest` | `Tzkt_Rest` | TezosBaker_Cycle_Timestamp |
+| `Conseil_Postgres` | `Conseil_Postgres` | TezosBaker_Timestamp |
+| `TezosDappetizer_Postgres` | `TezosDappetizer_Postgres` | TezosBaker_Timestamp |
+| `TezosNode_Rpc` | `TezosNode_Rpc` | TezosBaker_Timestamp |
+| `Tzkt_Rest` | `Tzkt_Rest` | TezosBaker_Timestamp |
+| `Conseil_Postgres` | `Conseil_Postgres` | TezosBakingRight |
+| `TezosNode_Rpc` | `TezosNode_Rpc` | TezosBakingRight |
+| `Tzkt_Rest` | `Tzkt_Rest` | TezosBakingRight |
+| `Conseil_Postgres` | `Conseil_Postgres` | TezosBakingRight_Timestamp |
+| `TezosNode_Rpc` | `TezosNode_Rpc` | TezosBakingRight_Timestamp |
+| `Tzkt_Rest` | `Tzkt_Rest` | TezosBakingRight_Timestamp |
+| `BetterCallDev_Rest` | `BetterCallDev_Rest` | TezosBigMap |
+| `TezosDappetizer_Postgres` | `TezosDappetizer_Postgres` | TezosBigMap |
+| `TezosNode_Rpc` | `TezosNode_Rpc` | TezosBigMap |
+| `Tzkt_Rest` | `Tzkt_Rest` | TezosBigMap |
+| `BetterCallDev_Rest` | `BetterCallDev_Rest` | TezosBigMap_Timestamp |
+| `TezosDappetizer_Postgres` | `TezosDappetizer_Postgres` | TezosBigMap_Timestamp |
+| `Tzkt_Rest` | `Tzkt_Rest` | TezosBigMap_Timestamp |
+| `BetterCallDev_Rest` | `BetterCallDev_Rest` | TezosBigMapDiff |
+| `TezosDappetizer_Postgres` | `TezosDappetizer_Postgres` | TezosBigMapDiff |
+| `TezosNode_Rpc` | `TezosNode_Rpc` | TezosBigMapDiff |
+| `Tzkt_Rest` | `Tzkt_Rest` | TezosBigMapDiff |
+| `BetterCallDev_Rest` | `BetterCallDev_Rest` | TezosBigMapKey |
+| `TezosDappetizer_Postgres` | `TezosDappetizer_Postgres` | TezosBigMapKey |
+| `Tzkt_Rest` | `Tzkt_Rest` | TezosBigMapKey |
+| `BetterCallDev_Rest` | `BetterCallDev_Rest` | TezosBigMapKey_Timestamp |
+| `TezosDappetizer_Postgres` | `TezosDappetizer_Postgres` | TezosBigMapKey_Timestamp |
+| `TezosNode_Rpc` | `TezosNode_Rpc` | TezosBigMapKey_Timestamp |
+| `Tzkt_Rest` | `Tzkt_Rest` | TezosBigMapKey_Timestamp |
+| `BetterCallDev_Rest` | `BetterCallDev_Rest` | TezosBlock |
+| `Conseil_Postgres` | `Conseil_Postgres` | TezosBlock |
+| `TezosDappetizer_Postgres` | `TezosDappetizer_Postgres` | TezosBlock |
+| `TezosNode_Rpc` | `TezosNode_Rpc` | TezosBlock |
+| `Tzkt_Rest` | `Tzkt_Rest` | TezosBlock |
+| `BetterCallDev_Rest` | `BetterCallDev_Rest` | TezosContract |
+| `Conseil_Postgres` | `Conseil_Postgres` | TezosContract |
+| `TezosDappetizer_Postgres` | `TezosDappetizer_Postgres` | TezosContract |
+| `TezosNode_Rpc` | `TezosNode_Rpc` | TezosContract |
+| `Tzkt_Rest` | `Tzkt_Rest` | TezosContract |
+| `BetterCallDev_Rest` | `BetterCallDev_Rest` | TezosContract_Timestamp |
+| `TezosDappetizer_Postgres` | `TezosDappetizer_Postgres` | TezosContract_Timestamp |
+| `TezosNode_Rpc` | `TezosNode_Rpc` | TezosContract_Timestamp |
+| `Tzkt_Rest` | `Tzkt_Rest` | TezosContract_Timestamp |
+| `Conseil_Postgres` | `Conseil_Postgres` | TezosCycle |
+| `TezosDappetizer_Postgres` | `TezosDappetizer_Postgres` | TezosCycle |
+| `TezosNode_Rpc` | `TezosNode_Rpc` | TezosCycle |
+| `Tzkt_Rest` | `Tzkt_Rest` | TezosCycle |
+| `BetterCallDev_Rest` | `BetterCallDev_Rest` | TezosEntrypoint |
+| `TezosNode_Rpc` | `TezosNode_Rpc` | TezosEntrypoint |
+| `Tzkt_Rest` | `Tzkt_Rest` | TezosEntrypoint |
+| `BetterCallDev_Rest` | `BetterCallDev_Rest` | TezosInternalOperation |
+| `TezosDappetizer_Postgres` | `TezosDappetizer_Postgres` | TezosInternalOperation |
+| `TezosNode_Rpc` | `TezosNode_Rpc` | TezosInternalOperation |
+| `Tzkt_Rest` | `Tzkt_Rest` | TezosInternalOperation |
+| `BetterCallDev_Rest` | `BetterCallDev_Rest` | TezosMichelsonScript |
+| `Conseil_Postgres` | `Conseil_Postgres` | TezosMichelsonScript |
+| `TezosDappetizer_Postgres` | `TezosDappetizer_Postgres` | TezosMichelsonScript |
+| `TezosNode_Rpc` | `TezosNode_Rpc` | TezosMichelsonScript |
+| `Tzkt_Rest` | `Tzkt_Rest` | TezosMichelsonScript |
+| `BetterCallDev_Rest` | `BetterCallDev_Rest` | TezosNetwork |
+| `Conseil_Postgres` | `Conseil_Postgres` | TezosNetwork |
+| `TezosDappetizer_Postgres` | `TezosDappetizer_Postgres` | TezosNetwork |
+| `TezosNode_Rpc` | `TezosNode_Rpc` | TezosNetwork |
+| `Tzkt_Rest` | `Tzkt_Rest` | TezosNetwork |
+| `Conseil_Postgres` | `Conseil_Postgres` | TezosNetwork_Timestamp |
+| `TezosDappetizer_Postgres` | `TezosDappetizer_Postgres` | TezosNetwork_Timestamp |
+| `TezosNode_Rpc` | `TezosNode_Rpc` | TezosNetwork_Timestamp |
+| `Tzkt_Rest` | `Tzkt_Rest` | TezosNetwork_Timestamp |
+| `BetterCallDev_Rest` | `BetterCallDev_Rest` | TezosOperation |
+| `Conseil_Postgres` | `Conseil_Postgres` | TezosOperation |
+| `TezosDappetizer_Postgres` | `TezosDappetizer_Postgres` | TezosOperation |
+| `TezosNode_Rpc` | `TezosNode_Rpc` | TezosOperation |
+| `Tzkt_Rest` | `Tzkt_Rest` | TezosOperation |
+| `Conseil_Postgres` | `Conseil_Postgres` | TezosOperationGroup |
+| `TezosDappetizer_Postgres` | `TezosDappetizer_Postgres` | TezosOperationGroup |
+| `TezosNode_Rpc` | `TezosNode_Rpc` | TezosOperationGroup |
+| `Tzkt_Rest` | `Tzkt_Rest` | TezosOperationGroup |
+| `BetterCallDev_Rest` | `BetterCallDev_Rest` | TezosToken |
+| `TezosDappetizer_Postgres` | `TezosDappetizer_Postgres` | TezosToken |
+| `Tzkt_Rest` | `Tzkt_Rest` | TezosToken |
+| `BetterCallDev_Rest` | `BetterCallDev_Rest` | TezosToken_Timestamp |
+| `TezosDappetizer_Postgres` | `TezosDappetizer_Postgres` | TezosToken_Timestamp |
+| `TezosNode_Rpc` | `TezosNode_Rpc` | TezosToken_Timestamp |
+| `Tzkt_Rest` | `Tzkt_Rest` | TezosToken_Timestamp |
+| `BetterCallDev_Rest` | `BetterCallDev_Rest` | TezosTokenBalance_Timestamp |
+| `TezosDappetizer_Postgres` | `TezosDappetizer_Postgres` | TezosTokenBalance_Timestamp |
+| `Tzkt_Rest` | `Tzkt_Rest` | TezosTokenBalance_Timestamp |
+| `BetterCallDev_Rest` | `BetterCallDev_Rest` | TezosTokenTransfer |
+| `TezosDappetizer_Postgres` | `TezosDappetizer_Postgres` | TezosTokenTransfer |
+| `Tzkt_Rest` | `Tzkt_Rest` | TezosTokenTransfer |
+| `Arweave_Rest` | `Arweave_Rest` | TokenMetadataDocument |
+| `Blockscout_Rest` | `Blockscout_Rest` | TokenMetadataDocument |
+| `Constants_Internal` | `Constants_Internal` | TokenMetadataDocument |
+| `Etherscan_Rest` | `Etherscan_Rest` | TokenMetadataDocument |
+| `Helius_Rest` | `Helius_Rest` | TokenMetadataDocument |
+| `Ipfs_Rest` | `Ipfs_Rest` | TokenMetadataDocument |
+| `Lens_Graphql` | `Lens_Graphql` | TokenMetadataDocument |
+| `MetadataVision_Rest` | `MetadataVision_Rest` | TokenMetadataDocument |
+| `OpenSea_Rest` | `OpenSea_Rest` | TokenMetadataDocument |
+| `Reservoir_Rest` | `Reservoir_Rest` | TokenMetadataDocument |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | TokenMetadataDocument |
+| `Swarm_Rest` | `Swarm_Rest` | TokenMetadataDocument |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | TokenMetadataDocument |
+| `Blockscout_Rest` | `Blockscout_Rest` | TokenProgramExtension_Timestamp |
+| `Etherscan_Rest` | `Etherscan_Rest` | TokenProgramExtension_Timestamp |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode_Rest` | TokenProgramExtension_Timestamp |
+| `Helius_Rest` | `Helius_Rest` | TokenProgramExtension_Timestamp |
+| `MetaplexDAS_Rest` | `MetaplexDAS_Rest` | TokenProgramExtension_Timestamp |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | TokenProgramExtension_Timestamp |
+| `Sourcify_Rest` | `Sourcify_Rest` | TokenProgramExtension_Timestamp |
+| `TronGrid_Rest` | `TronGrid_Rest` | TokenProgramExtension_Timestamp |
+| `TronScan_Rest` | `TronScan_Rest` | TokenProgramExtension_Timestamp |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | TokenProgramExtension_Timestamp |
+| `TonApi_Rest` | `TonApi_Rest` | TonAccount |
+| `TonCenter_V2_Rest` | `TonCenter_V2_Rest` | TonAccount |
+| `TonCenter_V3_Rest` | `TonCenter_V3_Rest` | TonAccount |
+| `TonLiteServer_Adnl` | `TonLiteServer_Adnl` | TonAccount |
+| `Tonlib_JsonRpc` | `Tonlib_JsonRpc` | TonAccount |
+| `TonApi_Rest` | `TonApi_Rest` | TonAccount_Timestamp |
+| `TonCenter_V2_Rest` | `TonCenter_V2_Rest` | TonAccount_Timestamp |
+| `TonCenter_V3_Rest` | `TonCenter_V3_Rest` | TonAccount_Timestamp |
+| `TonLiteServer_Adnl` | `TonLiteServer_Adnl` | TonAccount_Timestamp |
+| `Tonlib_JsonRpc` | `Tonlib_JsonRpc` | TonAccount_Timestamp |
+| `TonApi_Rest` | `TonApi_Rest` | TonBlock |
+| `TonCenter_V2_Rest` | `TonCenter_V2_Rest` | TonBlock |
+| `TonCenter_V3_Rest` | `TonCenter_V3_Rest` | TonBlock |
+| `TonLiteServer_Adnl` | `TonLiteServer_Adnl` | TonBlock |
+| `Tonlib_JsonRpc` | `Tonlib_JsonRpc` | TonBlock |
+| `TonApi_Rest` | `TonApi_Rest` | TonContract |
+| `TonCenter_V3_Rest` | `TonCenter_V3_Rest` | TonContract |
+| `TonVerifier_Rest` | `TonVerifier_Rest` | TonContract |
+| `TonApi_Rest` | `TonApi_Rest` | TonContract_Timestamp |
+| `TonCenter_V3_Rest` | `TonCenter_V3_Rest` | TonContract_Timestamp |
+| `TonVerifier_Rest` | `TonVerifier_Rest` | TonContract_Timestamp |
+| `TonApi_Rest` | `TonApi_Rest` | TonContractGetMethod |
+| `TonCenter_V2_Rest` | `TonCenter_V2_Rest` | TonContractGetMethod |
+| `TonCenter_V3_Rest` | `TonCenter_V3_Rest` | TonContractGetMethod |
+| `TonVerifier_Rest` | `TonVerifier_Rest` | TonContractGetMethod |
+| `TonApi_Rest` | `TonApi_Rest` | TonContractGetMethod_Timestamp |
+| `TonCenter_V2_Rest` | `TonCenter_V2_Rest` | TonContractGetMethod_Timestamp |
+| `TonCenter_V3_Rest` | `TonCenter_V3_Rest` | TonContractGetMethod_Timestamp |
+| `TonVerifier_Rest` | `TonVerifier_Rest` | TonContractGetMethod_Timestamp |
+| `TonApi_Rest` | `TonApi_Rest` | TonJetton |
+| `TonCenter_V3_Rest` | `TonCenter_V3_Rest` | TonJetton |
+| `TonApi_Rest` | `TonApi_Rest` | TonJetton_Timestamp |
+| `TonCenter_V3_Rest` | `TonCenter_V3_Rest` | TonJetton_Timestamp |
+| `TonApi_Rest` | `TonApi_Rest` | TonJettonBalance_Timestamp |
+| `TonCenter_V3_Rest` | `TonCenter_V3_Rest` | TonJettonBalance_Timestamp |
+| `TonApi_Rest` | `TonApi_Rest` | TonJettonTransfer |
+| `TonCenter_V3_Rest` | `TonCenter_V3_Rest` | TonJettonTransfer |
+| `TonApi_Rest` | `TonApi_Rest` | TonMessage |
+| `TonCenter_V2_Rest` | `TonCenter_V2_Rest` | TonMessage |
+| `TonCenter_V3_Rest` | `TonCenter_V3_Rest` | TonMessage |
+| `TonLiteServer_Adnl` | `TonLiteServer_Adnl` | TonMessage |
+| `Tonlib_JsonRpc` | `Tonlib_JsonRpc` | TonMessage |
+| `Constants_Internal` | `Constants_Internal` | TonNetwork |
+| `TonApi_Rest` | `TonApi_Rest` | TonNetwork |
+| `TonCenter_V2_Rest` | `TonCenter_V2_Rest` | TonNetwork |
+| `TonCenter_V3_Rest` | `TonCenter_V3_Rest` | TonNetwork |
+| `TonLiteServer_Adnl` | `TonLiteServer_Adnl` | TonNetwork |
+| `Tonlib_JsonRpc` | `Tonlib_JsonRpc` | TonNetwork |
+| `TonApi_Rest` | `TonApi_Rest` | TonNetwork_Timestamp |
+| `TonCenter_V2_Rest` | `TonCenter_V2_Rest` | TonNetwork_Timestamp |
+| `TonCenter_V3_Rest` | `TonCenter_V3_Rest` | TonNetwork_Timestamp |
+| `TonLiteServer_Adnl` | `TonLiteServer_Adnl` | TonNetwork_Timestamp |
+| `Tonlib_JsonRpc` | `Tonlib_JsonRpc` | TonNetwork_Timestamp |
+| `TonApi_Rest` | `TonApi_Rest` | TonNftCollection |
+| `TonCenter_V3_Rest` | `TonCenter_V3_Rest` | TonNftCollection |
+| `TonApi_Rest` | `TonApi_Rest` | TonNftCollection_Timestamp |
+| `TonCenter_V3_Rest` | `TonCenter_V3_Rest` | TonNftCollection_Timestamp |
+| `TonApi_Rest` | `TonApi_Rest` | TonNftItem |
+| `TonCenter_V3_Rest` | `TonCenter_V3_Rest` | TonNftItem |
+| `TonApi_Rest` | `TonApi_Rest` | TonNftItem_Timestamp |
+| `TonCenter_V3_Rest` | `TonCenter_V3_Rest` | TonNftItem_Timestamp |
+| `TonApi_Rest` | `TonApi_Rest` | TonNftTransfer |
+| `TonCenter_V3_Rest` | `TonCenter_V3_Rest` | TonNftTransfer |
+| `TonApi_Rest` | `TonApi_Rest` | TonShard_Timestamp |
+| `TonCenter_V3_Rest` | `TonCenter_V3_Rest` | TonShard_Timestamp |
+| `TonLiteServer_Adnl` | `TonLiteServer_Adnl` | TonShard_Timestamp |
+| `Tonlib_JsonRpc` | `Tonlib_JsonRpc` | TonShard_Timestamp |
+| `TonApi_Rest` | `TonApi_Rest` | TonTrace |
+| `TonCenter_V3_Rest` | `TonCenter_V3_Rest` | TonTrace |
+| `TonApi_Rest` | `TonApi_Rest` | TonTrace_Timestamp |
+| `TonCenter_V3_Rest` | `TonCenter_V3_Rest` | TonTrace_Timestamp |
+| `TonApi_Rest` | `TonApi_Rest` | TonTransaction |
+| `TonCenter_V2_Rest` | `TonCenter_V2_Rest` | TonTransaction |
+| `TonCenter_V3_Rest` | `TonCenter_V3_Rest` | TonTransaction |
+| `TonLiteServer_Adnl` | `TonLiteServer_Adnl` | TonTransaction |
+| `Tonlib_JsonRpc` | `Tonlib_JsonRpc` | TonTransaction |
+| `TonApi_Rest` | `TonApi_Rest` | TonTransactionPhase |
+| `TonCenter_V3_Rest` | `TonCenter_V3_Rest` | TonTransactionPhase |
+| `TonLiteServer_Adnl` | `TonLiteServer_Adnl` | TonTransactionPhase |
+| `Tonlib_JsonRpc` | `Tonlib_JsonRpc` | TonTransactionPhase |
+| `TonApi_Rest` | `TonApi_Rest` | TonWorkchain |
+| `TonCenter_V3_Rest` | `TonCenter_V3_Rest` | TonWorkchain |
+| `TonLiteServer_Adnl` | `TonLiteServer_Adnl` | TonWorkchain |
+| `Tonlib_JsonRpc` | `Tonlib_JsonRpc` | TonWorkchain |
+| `Allium_Rest` | `Allium_Rest` | TransferRestriction |
+| `Blockscout_Rest` | `Blockscout_Rest` | TransferRestriction |
+| `Dune_Rest` | `Dune_Rest` | TransferRestriction |
+| `Etherscan_Rest` | `Etherscan_Rest` | TransferRestriction |
+| `Helius_Rest` | `Helius_Rest` | TransferRestriction |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | TransferRestriction |
+| `Sourcify_Rest` | `Sourcify_Rest` | TransferRestriction |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | TransferRestriction |
+| `Allium_Rest` | `Allium_Rest` | TransferRestrictionCheck_Timestamp |
+| `Blockscout_Rest` | `Blockscout_Rest` | TransferRestrictionCheck_Timestamp |
+| `Dune_Rest` | `Dune_Rest` | TransferRestrictionCheck_Timestamp |
+| `Etherscan_Rest` | `Etherscan_Rest` | TransferRestrictionCheck_Timestamp |
+| `Helius_Rest` | `Helius_Rest` | TransferRestrictionCheck_Timestamp |
+| `Solana_JsonRpc` | `Solana_JsonRpc` | TransferRestrictionCheck_Timestamp |
+| `Sourcify_Rest` | `Sourcify_Rest` | TransferRestrictionCheck_Timestamp |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | TransferRestrictionCheck_Timestamp |
+| `TronFullNode_Rest` | `TronFullNode_Rest` | TronAccount |
+| `TronGrid_Rest` | `TronGrid_Rest` | TronAccount |
+| `TronScan_Rest` | `TronScan_Rest` | TronAccount |
+| `TronSolidityNode_Rest` | `TronSolidityNode_Rest` | TronAccount |
+| `TronFullNode_Rest` | `TronFullNode_Rest` | TronAccount_Timestamp |
+| `TronGrid_Rest` | `TronGrid_Rest` | TronAccount_Timestamp |
+| `TronScan_Rest` | `TronScan_Rest` | TronAccount_Timestamp |
+| `TronSolidityNode_Rest` | `TronSolidityNode_Rest` | TronAccount_Timestamp |
+| `TronFullNode_Rest` | `TronFullNode_Rest` | TronAccountTokenBalance_Timestamp |
+| `TronGrid_Rest` | `TronGrid_Rest` | TronAccountTokenBalance_Timestamp |
+| `TronScan_Rest` | `TronScan_Rest` | TronAccountTokenBalance_Timestamp |
+| `TronSolidityNode_Rest` | `TronSolidityNode_Rest` | TronAccountTokenBalance_Timestamp |
+| `TronFullNode_Rest` | `TronFullNode_Rest` | TronBlock |
+| `TronGrid_Rest` | `TronGrid_Rest` | TronBlock |
+| `TronScan_Rest` | `TronScan_Rest` | TronBlock |
+| `TronSolidityNode_Rest` | `TronSolidityNode_Rest` | TronBlock |
+| `TronScan_Rest` | `TronScan_Rest` | TronContract |
+| `TronScan_Rest` | `TronScan_Rest` | TronContract_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | TronNetwork |
+| `TronGrid_Rest` | `TronGrid_Rest` | TronNetwork |
+| `TronGrid_Rest` | `TronGrid_Rest` | TronNetwork_Timestamp |
+| `TronScan_Rest` | `TronScan_Rest` | TronToken |
+| `TronGrid_Rest` | `TronGrid_Rest` | TronToken_Timestamp |
+| `TronScan_Rest` | `TronScan_Rest` | TronToken_Timestamp |
+| `TronScan_Rest` | `TronScan_Rest` | TronTokenTransfer |
+| `TronFullNode_Rest` | `TronFullNode_Rest` | TronTransaction |
+| `TronGrid_Rest` | `TronGrid_Rest` | TronTransaction |
+| `TronScan_Rest` | `TronScan_Rest` | TronTransaction |
+| `TronSolidityNode_Rest` | `TronSolidityNode_Rest` | TronTransaction |
+| `TronFullNode_Rest` | `TronFullNode_Rest` | TronTransactionReceipt |
+| `TronGrid_Rest` | `TronGrid_Rest` | TronTransactionReceipt |
+| `TronScan_Rest` | `TronScan_Rest` | TronTransactionReceipt |
+| `TronSolidityNode_Rest` | `TronSolidityNode_Rest` | TronTransactionReceipt |
+| `TronGrid_Rest` | `TronGrid_Rest` | TronWitness |
+| `TronFullNode_Rest` | `TronFullNode_Rest` | TronWitness_Timestamp |
+| `TronGrid_Rest` | `TronGrid_Rest` | TronWitness_Timestamp |
+| `TronSolidityNode_Rest` | `TronSolidityNode_Rest` | TronWitness_Timestamp |
+| `Allium_Rest` | `Allium_Rest` | TrustedIssuer |
+| `Blockscout_Rest` | `Blockscout_Rest` | TrustedIssuer |
+| `Dune_Rest` | `Dune_Rest` | TrustedIssuer |
+| `Etherscan_Rest` | `Etherscan_Rest` | TrustedIssuer |
+| `Sourcify_Rest` | `Sourcify_Rest` | TrustedIssuer |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | TrustedIssuer |
+| `Constants_Internal` | `Constants_Internal` | Url |
+| `MetadataVision_Rest` | `MetadataVision_Rest` | Url |
+| `MetadataVision_Rest` | `MetadataVision_Rest` | UrlPreview_Timestamp |
+| `Blockscout_Rest` | `Blockscout_Rest` | UsageRight_Timestamp |
+| `Etherscan_Rest` | `Etherscan_Rest` | UsageRight_Timestamp |
+| `Lens_Graphql` | `Lens_Graphql` | UsageRight_Timestamp |
+| `Local_Internal` | `Local_Internal` | UsageRight_Timestamp |
+| `OpenSea_Rest` | `OpenSea_Rest` | UsageRight_Timestamp |
+| `Reservoir_Rest` | `Reservoir_Rest` | UsageRight_Timestamp |
+| `Sourcify_Rest` | `Sourcify_Rest` | UsageRight_Timestamp |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | UsageRight_Timestamp |
+| `Blockchair_Rest` | `Blockchair_Rest` | UtxoAddress |
+| `Esplora_Rest` | `Esplora_Rest` | UtxoAddress |
+| `MempoolSpace_Rest` | `MempoolSpace_Rest` | UtxoAddress |
+| `Blockchair_Rest` | `Blockchair_Rest` | UtxoAddress_Timestamp |
+| `Esplora_Rest` | `Esplora_Rest` | UtxoAddress_Timestamp |
+| `MempoolSpace_Rest` | `MempoolSpace_Rest` | UtxoAddress_Timestamp |
+| `BitcoinCashNode_JsonRpc` | `BitcoinCashNode_JsonRpc` | UtxoBlock |
+| `BitcoinCore_JsonRpc` | `BitcoinCore_JsonRpc` | UtxoBlock |
+| `Blockchair_Rest` | `Blockchair_Rest` | UtxoBlock |
+| `DogecoinCore_JsonRpc` | `DogecoinCore_JsonRpc` | UtxoBlock |
+| `Esplora_Rest` | `Esplora_Rest` | UtxoBlock |
+| `LitecoinCore_JsonRpc` | `LitecoinCore_JsonRpc` | UtxoBlock |
+| `MempoolSpace_Rest` | `MempoolSpace_Rest` | UtxoBlock |
+| `Zcashd_JsonRpc` | `Zcashd_JsonRpc` | UtxoBlock |
+| `BitcoinCashNode_JsonRpc` | `BitcoinCashNode_JsonRpc` | UtxoInput |
+| `BitcoinCore_JsonRpc` | `BitcoinCore_JsonRpc` | UtxoInput |
+| `Blockchair_Rest` | `Blockchair_Rest` | UtxoInput |
+| `DogecoinCore_JsonRpc` | `DogecoinCore_JsonRpc` | UtxoInput |
+| `Esplora_Rest` | `Esplora_Rest` | UtxoInput |
+| `LitecoinCore_JsonRpc` | `LitecoinCore_JsonRpc` | UtxoInput |
+| `MempoolSpace_Rest` | `MempoolSpace_Rest` | UtxoInput |
+| `Zcashd_JsonRpc` | `Zcashd_JsonRpc` | UtxoInput |
+| `BitcoinCashNode_JsonRpc` | `BitcoinCashNode_JsonRpc` | UtxoNetwork |
+| `BitcoinCore_JsonRpc` | `BitcoinCore_JsonRpc` | UtxoNetwork |
+| `Blockchair_Rest` | `Blockchair_Rest` | UtxoNetwork |
+| `Constants_Internal` | `Constants_Internal` | UtxoNetwork |
+| `DogecoinCore_JsonRpc` | `DogecoinCore_JsonRpc` | UtxoNetwork |
+| `Esplora_Rest` | `Esplora_Rest` | UtxoNetwork |
+| `LitecoinCore_JsonRpc` | `LitecoinCore_JsonRpc` | UtxoNetwork |
+| `MempoolSpace_Rest` | `MempoolSpace_Rest` | UtxoNetwork |
+| `Zcashd_JsonRpc` | `Zcashd_JsonRpc` | UtxoNetwork |
+| `BitcoinCashNode_JsonRpc` | `BitcoinCashNode_JsonRpc` | UtxoNetwork_Timestamp |
+| `BitcoinCore_JsonRpc` | `BitcoinCore_JsonRpc` | UtxoNetwork_Timestamp |
+| `Blockchair_Rest` | `Blockchair_Rest` | UtxoNetwork_Timestamp |
+| `DogecoinCore_JsonRpc` | `DogecoinCore_JsonRpc` | UtxoNetwork_Timestamp |
+| `Esplora_Rest` | `Esplora_Rest` | UtxoNetwork_Timestamp |
+| `LitecoinCore_JsonRpc` | `LitecoinCore_JsonRpc` | UtxoNetwork_Timestamp |
+| `MempoolSpace_Rest` | `MempoolSpace_Rest` | UtxoNetwork_Timestamp |
+| `Zcashd_JsonRpc` | `Zcashd_JsonRpc` | UtxoNetwork_Timestamp |
+| `BitcoinCashNode_JsonRpc` | `BitcoinCashNode_JsonRpc` | UtxoOutput |
+| `BitcoinCore_JsonRpc` | `BitcoinCore_JsonRpc` | UtxoOutput |
+| `Blockchair_Rest` | `Blockchair_Rest` | UtxoOutput |
+| `DogecoinCore_JsonRpc` | `DogecoinCore_JsonRpc` | UtxoOutput |
+| `Esplora_Rest` | `Esplora_Rest` | UtxoOutput |
+| `LitecoinCore_JsonRpc` | `LitecoinCore_JsonRpc` | UtxoOutput |
+| `MempoolSpace_Rest` | `MempoolSpace_Rest` | UtxoOutput |
+| `Zcashd_JsonRpc` | `Zcashd_JsonRpc` | UtxoOutput |
+| `BitcoinCashNode_JsonRpc` | `BitcoinCashNode_JsonRpc` | UtxoTransaction |
+| `BitcoinCore_JsonRpc` | `BitcoinCore_JsonRpc` | UtxoTransaction |
+| `Blockchair_Rest` | `Blockchair_Rest` | UtxoTransaction |
+| `DogecoinCore_JsonRpc` | `DogecoinCore_JsonRpc` | UtxoTransaction |
+| `Esplora_Rest` | `Esplora_Rest` | UtxoTransaction |
+| `LitecoinCore_JsonRpc` | `LitecoinCore_JsonRpc` | UtxoTransaction |
+| `MempoolSpace_Rest` | `MempoolSpace_Rest` | UtxoTransaction |
+| `Zcashd_JsonRpc` | `Zcashd_JsonRpc` | UtxoTransaction |
+| `Constants_Internal` | `Constants_Internal` | XNetwork |
+| `Constants_Internal` | `Constants_Internal` | XPost |
+| `X_FxEmbed_Rest` | `X_FxEmbed_Rest` | XPost |
+| `X_Rest` | `X_Rest` | XPost |
+| `X_FxEmbed_Rest` | `X_FxEmbed_Rest` | XPost_Timestamp |
+| `X_Rest` | `X_Rest` | XPost_Timestamp |
+| `Bithomp_Rest` | `Bithomp_Rest` | XrplAccount |
+| `XrpScan_Rest` | `XrpScan_Rest` | XrplAccount |
+| `XrplClio_JsonRpc` | `XrplClio_JsonRpc` | XrplAccount |
+| `Xrpl_Rippled` | `Xrpl_Rippled` | XrplAccount |
+| `Bithomp_Rest` | `Bithomp_Rest` | XrplAccount_Timestamp |
+| `XrpScan_Rest` | `XrpScan_Rest` | XrplAccount_Timestamp |
+| `XrplClio_JsonRpc` | `XrplClio_JsonRpc` | XrplAccount_Timestamp |
+| `Xrpl_Rippled` | `Xrpl_Rippled` | XrplAccount_Timestamp |
+| `XrplClio_JsonRpc` | `XrplClio_JsonRpc` | XrplAmendment |
+| `Xrpl_Rippled` | `Xrpl_Rippled` | XrplAmendment |
+| `XrplClio_JsonRpc` | `XrplClio_JsonRpc` | XrplAmendment_Timestamp |
+| `Xrpl_Rippled` | `Xrpl_Rippled` | XrplAmendment_Timestamp |
+| `Bithomp_Rest` | `Bithomp_Rest` | XrplAmm |
+| `XrpScan_Rest` | `XrpScan_Rest` | XrplAmm |
+| `XrplClio_JsonRpc` | `XrplClio_JsonRpc` | XrplAmm |
+| `Xrpl_Rippled` | `Xrpl_Rippled` | XrplAmm |
+| `Bithomp_Rest` | `Bithomp_Rest` | XrplAmm_Timestamp |
+| `XrpScan_Rest` | `XrpScan_Rest` | XrplAmm_Timestamp |
+| `XrplClio_JsonRpc` | `XrplClio_JsonRpc` | XrplAmm_Timestamp |
+| `Xrpl_Rippled` | `Xrpl_Rippled` | XrplAmm_Timestamp |
+| `Bithomp_Rest` | `Bithomp_Rest` | XrplLedger |
+| `XrpScan_Rest` | `XrpScan_Rest` | XrplLedger |
+| `XrplClio_JsonRpc` | `XrplClio_JsonRpc` | XrplLedger |
+| `Xrpl_Rippled` | `Xrpl_Rippled` | XrplLedger |
+| `Bithomp_Rest` | `Bithomp_Rest` | XrplLedgerEntry |
+| `XrpScan_Rest` | `XrpScan_Rest` | XrplLedgerEntry |
+| `XrplClio_JsonRpc` | `XrplClio_JsonRpc` | XrplLedgerEntry |
+| `Xrpl_Rippled` | `Xrpl_Rippled` | XrplLedgerEntry |
+| `Bithomp_Rest` | `Bithomp_Rest` | XrplNetwork |
+| `Constants_Internal` | `Constants_Internal` | XrplNetwork |
+| `XrpScan_Rest` | `XrpScan_Rest` | XrplNetwork |
+| `XrplClio_JsonRpc` | `XrplClio_JsonRpc` | XrplNetwork |
+| `Xrpl_Rippled` | `Xrpl_Rippled` | XrplNetwork |
+| `XrpScan_Rest` | `XrpScan_Rest` | XrplNetwork_Timestamp |
+| `XrplClio_JsonRpc` | `XrplClio_JsonRpc` | XrplNetwork_Timestamp |
+| `Xrpl_Rippled` | `Xrpl_Rippled` | XrplNetwork_Timestamp |
+| `Bithomp_Rest` | `Bithomp_Rest` | XrplTransaction |
+| `XrpScan_Rest` | `XrpScan_Rest` | XrplTransaction |
+| `XrplClio_JsonRpc` | `XrplClio_JsonRpc` | XrplTransaction |
+| `Xrpl_Rippled` | `Xrpl_Rippled` | XrplTransaction |
+| `Bithomp_Rest` | `Bithomp_Rest` | XrplTransaction_Timestamp |
+| `XrpScan_Rest` | `XrpScan_Rest` | XrplTransaction_Timestamp |
+| `XrplClio_JsonRpc` | `XrplClio_JsonRpc` | XrplTransaction_Timestamp |
+| `Xrpl_Rippled` | `Xrpl_Rippled` | XrplTransaction_Timestamp |
+| `Bithomp_Rest` | `Bithomp_Rest` | XrplTrustline |
+| `XrpScan_Rest` | `XrpScan_Rest` | XrplTrustline |
+| `XrplClio_JsonRpc` | `XrplClio_JsonRpc` | XrplTrustline |
+| `Xrpl_Rippled` | `Xrpl_Rippled` | XrplTrustline |
+| `Bithomp_Rest` | `Bithomp_Rest` | XrplTrustline_Timestamp |
+| `XrpScan_Rest` | `XrpScan_Rest` | XrplTrustline_Timestamp |
+| `XrplClio_JsonRpc` | `XrplClio_JsonRpc` | XrplTrustline_Timestamp |
+| `Xrpl_Rippled` | `Xrpl_Rippled` | XrplTrustline_Timestamp |
+| `X_FxEmbed_Rest` | `X_FxEmbed_Rest` | XUser |
+| `X_Rest` | `X_Rest` | XUser |
+| `X_FxEmbed_Rest` | `X_FxEmbed_Rest` | XUser_Timestamp |
+| `X_Rest` | `X_Rest` | XUser_Timestamp |
+| `Youtube_Rest` | `Youtube_Rest` | YouTubeChannel |
+| `Piped_Rest` | `Piped_Rest` | YouTubeChannel_Timestamp |
+| `Youtube_Rest` | `Youtube_Rest` | YouTubeChannel_Timestamp |
+| `Piped_Rest` | `Piped_Rest` | YouTubeComment |
+| `Youtube_Rest` | `Youtube_Rest` | YouTubeComment |
+| `Piped_Rest` | `Piped_Rest` | YouTubeComment_Timestamp |
+| `Youtube_Rest` | `Youtube_Rest` | YouTubeComment_Timestamp |
+| `Piped_Rest` | `Piped_Rest` | YouTubePlaylist |
+| `Youtube_Rest` | `Youtube_Rest` | YouTubePlaylist |
+| `Piped_Rest` | `Piped_Rest` | YouTubePlaylist_Timestamp |
+| `Youtube_Rest` | `Youtube_Rest` | YouTubePlaylist_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | YouTubeNetwork |
+| `Piped_Rest` | `Piped_Rest` | YouTubeVideo |
+| `Youtube_Rest` | `Youtube_Rest` | YouTubeVideo |
+| `Piped_Rest` | `Piped_Rest` | YouTubeVideo_Timestamp |
+| `Youtube_Rest` | `Youtube_Rest` | YouTubeVideo_Timestamp |
+| `Zcashd_JsonRpc` | `Zcashd_JsonRpc` | ZcashShieldedAction |
+| `Zcashd_JsonRpc` | `Zcashd_JsonRpc` | ZcashShieldedPool |
+| `Zcashd_JsonRpc` | `Zcashd_JsonRpc` | ZcashShieldedPoolBlockState |
+| `ZeroGChainScan_Rest` | `ZeroGChainScan_Rest` | ZeroGConsensusNetwork |
+| `ZeroGChainScan_Rest` | `ZeroGChainScan_Rest` | ZeroGConsensusNetwork_Timestamp |
+| `ZeroGChainScan_Rest` | `ZeroGChainScan_Rest` | ZeroGDaNode |
+| `ZeroGStorageNode_JsonRpc` | `ZeroGStorageNode_JsonRpc` | ZeroGDaNode |
+| `ZeroGChainScan_Rest` | `ZeroGChainScan_Rest` | ZeroGDaQuorum |
+| `ZeroGStorageNode_JsonRpc` | `ZeroGStorageNode_JsonRpc` | ZeroGDaQuorum |
+| `ZeroGChainScan_Rest` | `ZeroGChainScan_Rest` | ZeroGDataBlob |
+| `ZeroGStorageNode_JsonRpc` | `ZeroGStorageNode_JsonRpc` | ZeroGDataBlob |
+| `ZeroGStorageScan_Rest` | `ZeroGStorageScan_Rest` | ZeroGDataBlob |
+| `ZeroGStorageNode_JsonRpc` | `ZeroGStorageNode_JsonRpc` | ZeroGDataChunk |
+| `ZeroGStorageScan_Rest` | `ZeroGStorageScan_Rest` | ZeroGDataChunk |
+| `ZeroGStorageNode_JsonRpc` | `ZeroGStorageNode_JsonRpc` | ZeroGKvEntry |
+| `ZeroGStorageScan_Rest` | `ZeroGStorageScan_Rest` | ZeroGKvEntry |
+| `Constants_Internal` | `Constants_Internal` | ZeroGNetwork |
+| `ZeroGChainScan_Rest` | `ZeroGChainScan_Rest` | ZeroGNetwork |
+| `ZeroGChain_JsonRpc` | `ZeroGChain_JsonRpc` | ZeroGNetwork |
+| `ZeroGStorageScan_Rest` | `ZeroGStorageScan_Rest` | ZeroGNetwork |
+| `ZeroGChain_JsonRpc` | `ZeroGChain_JsonRpc` | ZeroGNetwork_Timestamp |
+| `ZeroGStorageScan_Rest` | `ZeroGStorageScan_Rest` | ZeroGNetwork_Timestamp |
+| `ZeroGStorageNode_JsonRpc` | `ZeroGStorageNode_JsonRpc` | ZeroGServiceProvider |
+| `ZeroGStorageScan_Rest` | `ZeroGStorageScan_Rest` | ZeroGServiceProvider |
+| `ZeroGChain_JsonRpc` | `ZeroGChain_JsonRpc` | ZeroGServiceRequest |
+| `ZeroGStorageNode_JsonRpc` | `ZeroGStorageNode_JsonRpc` | ZeroGServiceRequest |
+| `ZeroGStorageScan_Rest` | `ZeroGStorageScan_Rest` | ZeroGServiceRequest |
+| `ZeroGChain_JsonRpc` | `ZeroGChain_JsonRpc` | ZeroGSettlementTrace |
+| `ZeroGStorageNode_JsonRpc` | `ZeroGStorageNode_JsonRpc` | ZeroGSettlementTrace |
+| `ZeroGStorageScan_Rest` | `ZeroGStorageScan_Rest` | ZeroGSettlementTrace |
+| `ZeroGChain_JsonRpc` | `ZeroGChain_JsonRpc` | ZeroGStorageLogEntry |
+| `ZeroGStorageScan_Rest` | `ZeroGStorageScan_Rest` | ZeroGStorageLogEntry |
+| `ZeroGStorageScan_Rest` | `ZeroGStorageScan_Rest` | ZeroGStorageNode |
+| `ZeroGStorageScan_Rest` | `ZeroGStorageScan_Rest` | ZeroGStorageNode_Timestamp |
+| `ZeroGStorageScan_Rest` | `ZeroGStorageScan_Rest` | ZeroGStorageProof |
+| `CroissantDocument_Local` | `CroissantDocument_Local` | _GlobalAiArtifactCatalog |
+| `CycloneDxDocument_Local` | `CycloneDxDocument_Local` | _GlobalAiArtifactCatalog |
+| `Github_Git` | `Github_Git` | _GlobalAiArtifactCatalog |
+| `Github_Rest` | `Github_Rest` | _GlobalAiArtifactCatalog |
+| `HuggingFaceHub_Rest` | `HuggingFaceHub_Rest` | _GlobalAiArtifactCatalog |
+| `Mlflow_Rest` | `Mlflow_Rest` | _GlobalAiArtifactCatalog |
+| `OciRegistry_Distribution` | `OciRegistry_Distribution` | _GlobalAiArtifactCatalog |
+| `OnnxArtifact_Local` | `OnnxArtifact_Local` | _GlobalAiArtifactCatalog |
+| `SpdxDocument_Local` | `SpdxDocument_Local` | _GlobalAiArtifactCatalog |
+| `CroissantDocument_Local` | `CroissantDocument_Local` | _GlobalAiArtifactCatalog_Timestamp |
+| `CycloneDxDocument_Local` | `CycloneDxDocument_Local` | _GlobalAiArtifactCatalog_Timestamp |
+| `HuggingFaceHub_Rest` | `HuggingFaceHub_Rest` | _GlobalAiArtifactCatalog_Timestamp |
+| `Mlflow_Rest` | `Mlflow_Rest` | _GlobalAiArtifactCatalog_Timestamp |
+| `OciRegistry_Distribution` | `OciRegistry_Distribution` | _GlobalAiArtifactCatalog_Timestamp |
+| `OnnxArtifact_Local` | `OnnxArtifact_Local` | _GlobalAiArtifactCatalog_Timestamp |
+| `SpdxDocument_Local` | `SpdxDocument_Local` | _GlobalAiArtifactCatalog_Timestamp |
+| `Anthropic_Rest` | `Anthropic_Rest` | _GlobalAiModelCatalog |
+| `AwsBedrock_Rest` | `AwsBedrock_Rest` | _GlobalAiModelCatalog |
+| `AzureAiFoundry_Rest` | `AzureAiFoundry_Rest` | _GlobalAiModelCatalog |
+| `Cohere_Rest` | `Cohere_Rest` | _GlobalAiModelCatalog |
+| `GoogleAi_Rest` | `GoogleAi_Rest` | _GlobalAiModelCatalog |
+| `HuggingFaceHub_Rest` | `HuggingFaceHub_Rest` | _GlobalAiModelCatalog |
+| `MistralAi_Rest` | `MistralAi_Rest` | _GlobalAiModelCatalog |
+| `Mlflow_Rest` | `Mlflow_Rest` | _GlobalAiModelCatalog |
+| `OpenAI_Rest` | `OpenAI_Rest` | _GlobalAiModelCatalog |
+| `Anthropic_Rest` | `Anthropic_Rest` | _GlobalAiModelCatalog_Timestamp |
+| `AwsBedrock_Rest` | `AwsBedrock_Rest` | _GlobalAiModelCatalog_Timestamp |
+| `AzureAiFoundry_Rest` | `AzureAiFoundry_Rest` | _GlobalAiModelCatalog_Timestamp |
+| `Cohere_Rest` | `Cohere_Rest` | _GlobalAiModelCatalog_Timestamp |
+| `GoogleAi_Rest` | `GoogleAi_Rest` | _GlobalAiModelCatalog_Timestamp |
+| `HuggingFaceHub_Rest` | `HuggingFaceHub_Rest` | _GlobalAiModelCatalog_Timestamp |
+| `MistralAi_Rest` | `MistralAi_Rest` | _GlobalAiModelCatalog_Timestamp |
+| `Mlflow_Rest` | `Mlflow_Rest` | _GlobalAiModelCatalog_Timestamp |
+| `OpenAI_Rest` | `OpenAI_Rest` | _GlobalAiModelCatalog_Timestamp |
+| `A2aWellKnown_Http` | `A2aWellKnown_Http` | _GlobalAgentNetwork |
+| `AcpRegistry_Rest` | `AcpRegistry_Rest` | _GlobalAgentNetwork |
+| `Eip8004Scan_Rest` | `Eip8004Scan_Rest` | _GlobalAgentNetwork |
+| `McpPackageRegistry_Rest` | `McpPackageRegistry_Rest` | _GlobalAgentNetwork |
+| `A2aWellKnown_Http` | `A2aWellKnown_Http` | _GlobalAgentNetwork_Timestamp |
+| `AcpRegistry_Rest` | `AcpRegistry_Rest` | _GlobalAgentNetwork_Timestamp |
+| `Eip8004Scan_Rest` | `Eip8004Scan_Rest` | _GlobalAgentNetwork_Timestamp |
+| `McpPackageRegistry_Rest` | `McpPackageRegistry_Rest` | _GlobalAgentNetwork_Timestamp |
+| `AcpRegistry_Rest` | `AcpRegistry_Rest` | AcpAgentProgram |
+| `Github_Git` | `Github_Git` | AcpAgentProgram |
+| `Github_Rest` | `Github_Rest` | AcpAgentProgram |
+| `AcpRegistry_Rest` | `AcpRegistry_Rest` | AcpAgentProgramVersion |
+| `Github_Git` | `Github_Git` | AcpAgentProgramVersion |
+| `Github_Rest` | `Github_Rest` | AcpAgentProgramVersion |
+| `AcpLocal_JsonRpc` | `AcpLocal_JsonRpc` | AcpAgentRuntime |
+| `Local_Internal` | `Local_Internal` | AcpAgentRuntime |
+| `AcpLocal_JsonRpc` | `AcpLocal_JsonRpc` | AcpAgentRuntime_Timestamp |
+| `AcpLocal_JsonRpc` | `AcpLocal_JsonRpc` | AcpFileOperation |
+| `AcpLocal_JsonRpc` | `AcpLocal_JsonRpc` | AcpMessage |
+| `AcpLocal_JsonRpc` | `AcpLocal_JsonRpc` | AcpMessagePart |
+| `AcpLocal_JsonRpc` | `AcpLocal_JsonRpc` | AcpPermissionRequest |
+| `AcpLocal_JsonRpc` | `AcpLocal_JsonRpc` | AcpPromptTurn |
+| `AcpLocal_JsonRpc` | `AcpLocal_JsonRpc` | AcpSession |
+| `AcpLocal_JsonRpc` | `AcpLocal_JsonRpc` | AcpSessionUpdate |
+| `AcpLocal_JsonRpc` | `AcpLocal_JsonRpc` | AcpTerminal |
+| `AcpLocal_JsonRpc` | `AcpLocal_JsonRpc` | AcpTerminal_Timestamp |
+| `AcpLocal_JsonRpc` | `AcpLocal_JsonRpc` | AcpToolCall |
+| `AcpLocal_JsonRpc` | `AcpLocal_JsonRpc` | AcpToolCall_Timestamp |
+| `A2aWellKnown_Http` | `A2aWellKnown_Http` | A2aAgentCard |
+| `Eip8004Scan_Rest` | `Eip8004Scan_Rest` | A2aAgentCard |
+| `A2aWellKnown_Http` | `A2aWellKnown_Http` | A2aAgentCard_Snapshot |
+| `A2aWellKnown_Http` | `A2aWellKnown_Http` | A2aAgentInterface |
+| `A2aWellKnown_Http` | `A2aWellKnown_Http` | A2aAgentService |
+| `A2aService_Http` | `A2aService_Http` | A2aAgentService_Timestamp |
+| `A2aWellKnown_Http` | `A2aWellKnown_Http` | A2aAgentService_Timestamp |
+| `A2aWellKnown_Http` | `A2aWellKnown_Http` | A2aAgentSkill |
+| `A2aService_Http` | `A2aService_Http` | A2aArtifact |
+| `A2aService_Http` | `A2aService_Http` | A2aMessage |
+| `A2aService_Http` | `A2aService_Http` | A2aMessagePart |
+| `A2aService_Http` | `A2aService_Http` | A2aPushNotificationConfig |
+| `A2aService_Http` | `A2aService_Http` | A2aTask |
+| `A2aService_Http` | `A2aService_Http` | A2aTask_Timestamp |
+| `A2aService_Http` | `A2aService_Http` | A2aTaskEvent |
+| `A2aWellKnown_Http` | `A2aWellKnown_Http` | AgentIdentityClaim |
+| `Eip8004Scan_Rest` | `Eip8004Scan_Rest` | AgentIdentityClaim |
+| `Github_Git` | `Github_Git` | AgentIdentityClaim |
+| `Github_Rest` | `Github_Rest` | AgentIdentityClaim |
+| `SigstoreRekor_Rest` | `SigstoreRekor_Rest` | AgentIdentityClaim |
+| `Eip8004Scan_Rest` | `Eip8004Scan_Rest` | AgentPaymentRequirement_Timestamp |
+| `X402_Http` | `X402_Http` | AgentPaymentRequirement_Timestamp |
+| `Arweave_Rest` | `Arweave_Rest` | AiArtifact |
+| `Github_Git` | `Github_Git` | AiArtifact |
+| `Github_Rest` | `Github_Rest` | AiArtifact |
+| `HuggingFaceHub_Rest` | `HuggingFaceHub_Rest` | AiArtifact |
+| `Ipfs_Rest` | `Ipfs_Rest` | AiArtifact |
+| `Mlflow_Rest` | `Mlflow_Rest` | AiArtifact |
+| `OciRegistry_Distribution` | `OciRegistry_Distribution` | AiArtifact |
+| `OnnxArtifact_Local` | `OnnxArtifact_Local` | AiArtifact |
+| `Github_Rest` | `Github_Rest` | AiArtifactAttestation |
+| `OciRegistry_Distribution` | `OciRegistry_Distribution` | AiArtifactAttestation |
+| `SigstoreRekor_Rest` | `SigstoreRekor_Rest` | AiArtifactAttestation |
+| `HuggingFaceHub_Rest` | `HuggingFaceHub_Rest` | AiBenchmark |
+| `Mlflow_Rest` | `Mlflow_Rest` | AiBenchmark |
+| `CroissantDocument_Local` | `CroissantDocument_Local` | AiDataset |
+| `HuggingFaceHub_Rest` | `HuggingFaceHub_Rest` | AiDataset |
+| `Mlflow_Rest` | `Mlflow_Rest` | AiDataset |
+| `A2aWellKnown_Http` | `A2aWellKnown_Http` | AiDocument |
+| `CroissantDocument_Local` | `CroissantDocument_Local` | AiDocument |
+| `CycloneDxDocument_Local` | `CycloneDxDocument_Local` | AiDocument |
+| `Eip8004Scan_Rest` | `Eip8004Scan_Rest` | AiDocument |
+| `Github_Git` | `Github_Git` | AiDocument |
+| `Github_Rest` | `Github_Rest` | AiDocument |
+| `HuggingFaceHub_Rest` | `HuggingFaceHub_Rest` | AiDocument |
+| `Mlflow_Rest` | `Mlflow_Rest` | AiDocument |
+| `OciRegistry_Distribution` | `OciRegistry_Distribution` | AiDocument |
+| `OnnxArtifact_Local` | `OnnxArtifact_Local` | AiDocument |
+| `SpdxDocument_Local` | `SpdxDocument_Local` | AiDocument |
+| `A2aWellKnown_Http` | `A2aWellKnown_Http` | AiDocumentClaim |
+| `CroissantDocument_Local` | `CroissantDocument_Local` | AiDocumentClaim |
+| `CycloneDxDocument_Local` | `CycloneDxDocument_Local` | AiDocumentClaim |
+| `Eip8004Scan_Rest` | `Eip8004Scan_Rest` | AiDocumentClaim |
+| `Github_Git` | `Github_Git` | AiDocumentClaim |
+| `Github_Rest` | `Github_Rest` | AiDocumentClaim |
+| `HuggingFaceHub_Rest` | `HuggingFaceHub_Rest` | AiDocumentClaim |
+| `Mlflow_Rest` | `Mlflow_Rest` | AiDocumentClaim |
+| `OciRegistry_Distribution` | `OciRegistry_Distribution` | AiDocumentClaim |
+| `OnnxArtifact_Local` | `OnnxArtifact_Local` | AiDocumentClaim |
+| `SpdxDocument_Local` | `SpdxDocument_Local` | AiDocumentClaim |
+| `HuggingFaceHub_Rest` | `HuggingFaceHub_Rest` | AiEvaluation_Timestamp |
+| `Mlflow_Rest` | `Mlflow_Rest` | AiEvaluation_Timestamp |
+| `Anthropic_Rest` | `Anthropic_Rest` | AiModel |
+| `AwsBedrock_Rest` | `AwsBedrock_Rest` | AiModel |
+| `AzureAiFoundry_Rest` | `AzureAiFoundry_Rest` | AiModel |
+| `Cohere_Rest` | `Cohere_Rest` | AiModel |
+| `GoogleAi_Rest` | `GoogleAi_Rest` | AiModel |
+| `MistralAi_Rest` | `MistralAi_Rest` | AiModel |
+| `OpenAI_Rest` | `OpenAI_Rest` | AiModel |
+| `Anthropic_Rest` | `Anthropic_Rest` | AiModelProvider |
+| `AwsBedrock_Rest` | `AwsBedrock_Rest` | AiModelProvider |
+| `AzureAiFoundry_Rest` | `AzureAiFoundry_Rest` | AiModelProvider |
+| `Cohere_Rest` | `Cohere_Rest` | AiModelProvider |
+| `GoogleAi_Rest` | `GoogleAi_Rest` | AiModelProvider |
+| `HuggingFaceHub_Rest` | `HuggingFaceHub_Rest` | AiModelProvider |
+| `MistralAi_Rest` | `MistralAi_Rest` | AiModelProvider |
+| `OpenAI_Rest` | `OpenAI_Rest` | AiModelProvider |
+| `HuggingFaceHub_Rest` | `HuggingFaceHub_Rest` | AiModelVersion |
+| `Mlflow_Rest` | `Mlflow_Rest` | AiModelVersion |
+| `OciRegistry_Distribution` | `OciRegistry_Distribution` | AiModelVersion |
+| `OnnxArtifact_Local` | `OnnxArtifact_Local` | AiModelVersion |
+| `Anthropic_Rest` | `Anthropic_Rest` | AiModel_Timestamp |
+| `AwsBedrock_Rest` | `AwsBedrock_Rest` | AiModel_Timestamp |
+| `AzureAiFoundry_Rest` | `AzureAiFoundry_Rest` | AiModel_Timestamp |
+| `Cohere_Rest` | `Cohere_Rest` | AiModel_Timestamp |
+| `GoogleAi_Rest` | `GoogleAi_Rest` | AiModel_Timestamp |
+| `MistralAi_Rest` | `MistralAi_Rest` | AiModel_Timestamp |
+| `OpenAI_Rest` | `OpenAI_Rest` | AiModel_Timestamp |
+| `Anthropic_Rest` | `Anthropic_Rest` | AiProviderApiOperation |
+| `AwsBedrock_Rest` | `AwsBedrock_Rest` | AiProviderApiOperation |
+| `AzureAiFoundry_Rest` | `AzureAiFoundry_Rest` | AiProviderApiOperation |
+| `Cohere_Rest` | `Cohere_Rest` | AiProviderApiOperation |
+| `GoogleAi_Rest` | `GoogleAi_Rest` | AiProviderApiOperation |
+| `MistralAi_Rest` | `MistralAi_Rest` | AiProviderApiOperation |
+| `OpenAI_Rest` | `OpenAI_Rest` | AiProviderApiOperation |
+| `Anthropic_Rest` | `Anthropic_Rest` | AiProviderApiOperation_Timestamp |
+| `AwsBedrock_Rest` | `AwsBedrock_Rest` | AiProviderApiOperation_Timestamp |
+| `AzureAiFoundry_Rest` | `AzureAiFoundry_Rest` | AiProviderApiOperation_Timestamp |
+| `Cohere_Rest` | `Cohere_Rest` | AiProviderApiOperation_Timestamp |
+| `GoogleAi_Rest` | `GoogleAi_Rest` | AiProviderApiOperation_Timestamp |
+| `MistralAi_Rest` | `MistralAi_Rest` | AiProviderApiOperation_Timestamp |
+| `OpenAI_Rest` | `OpenAI_Rest` | AiProviderApiOperation_Timestamp |
+| `Anthropic_Rest` | `Anthropic_Rest` | AiProviderCatalogEntry |
+| `AwsBedrock_Rest` | `AwsBedrock_Rest` | AiProviderCatalogEntry |
+| `AzureAiFoundry_Rest` | `AzureAiFoundry_Rest` | AiProviderCatalogEntry |
+| `Cohere_Rest` | `Cohere_Rest` | AiProviderCatalogEntry |
+| `GoogleAi_Rest` | `GoogleAi_Rest` | AiProviderCatalogEntry |
+| `HuggingFaceHub_Rest` | `HuggingFaceHub_Rest` | AiProviderCatalogEntry |
+| `MistralAi_Rest` | `MistralAi_Rest` | AiProviderCatalogEntry |
+| `Mlflow_Rest` | `Mlflow_Rest` | AiProviderCatalogEntry |
+| `OpenAI_Rest` | `OpenAI_Rest` | AiProviderCatalogEntry |
+| `Anthropic_Rest` | `Anthropic_Rest` | AiProviderCatalogEntry_Timestamp |
+| `AwsBedrock_Rest` | `AwsBedrock_Rest` | AiProviderCatalogEntry_Timestamp |
+| `AzureAiFoundry_Rest` | `AzureAiFoundry_Rest` | AiProviderCatalogEntry_Timestamp |
+| `Cohere_Rest` | `Cohere_Rest` | AiProviderCatalogEntry_Timestamp |
+| `GoogleAi_Rest` | `GoogleAi_Rest` | AiProviderCatalogEntry_Timestamp |
+| `HuggingFaceHub_Rest` | `HuggingFaceHub_Rest` | AiProviderCatalogEntry_Timestamp |
+| `MistralAi_Rest` | `MistralAi_Rest` | AiProviderCatalogEntry_Timestamp |
+| `Mlflow_Rest` | `Mlflow_Rest` | AiProviderCatalogEntry_Timestamp |
+| `OpenAI_Rest` | `OpenAI_Rest` | AiProviderCatalogEntry_Timestamp |
+| `A2aWellKnown_Http` | `A2aWellKnown_Http` | AiRelationshipClaim |
+| `CroissantDocument_Local` | `CroissantDocument_Local` | AiRelationshipClaim |
+| `CycloneDxDocument_Local` | `CycloneDxDocument_Local` | AiRelationshipClaim |
+| `Eip8004Scan_Rest` | `Eip8004Scan_Rest` | AiRelationshipClaim |
+| `Github_Git` | `Github_Git` | AiRelationshipClaim |
+| `Github_Rest` | `Github_Rest` | AiRelationshipClaim |
+| `HuggingFaceHub_Rest` | `HuggingFaceHub_Rest` | AiRelationshipClaim |
+| `Mlflow_Rest` | `Mlflow_Rest` | AiRelationshipClaim |
+| `OciRegistry_Distribution` | `OciRegistry_Distribution` | AiRelationshipClaim |
+| `OnnxArtifact_Local` | `OnnxArtifact_Local` | AiRelationshipClaim |
+| `SigstoreRekor_Rest` | `SigstoreRekor_Rest` | AiRelationshipClaim |
+| `SpdxDocument_Local` | `SpdxDocument_Local` | AiRelationshipClaim |
+| `Local_Internal` | `Local_Internal` | BlockheadAgentConnection |
+| `A2aService_Http` | `A2aService_Http` | BlockheadAgentConnection_Timestamp |
+| `Anthropic_Rest` | `Anthropic_Rest` | BlockheadAgentConnection_Timestamp |
+| `AwsBedrock_Rest` | `AwsBedrock_Rest` | BlockheadAgentConnection_Timestamp |
+| `AzureAiFoundry_Rest` | `AzureAiFoundry_Rest` | BlockheadAgentConnection_Timestamp |
+| `Cohere_Rest` | `Cohere_Rest` | BlockheadAgentConnection_Timestamp |
+| `GoogleAi_Rest` | `GoogleAi_Rest` | BlockheadAgentConnection_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadAgentConnection_Timestamp |
+| `McpConfigured_Protocol` | `McpConfigured_Protocol` | BlockheadAgentConnection_Timestamp |
+| `MistralAi_Rest` | `MistralAi_Rest` | BlockheadAgentConnection_Timestamp |
+| `OpenAI_Rest` | `OpenAI_Rest` | BlockheadAgentConnection_Timestamp |
+| `X402_Http` | `X402_Http` | BlockheadAgentConnection_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadAgentCredentialState |
+| `Local_Internal` | `Local_Internal` | BlockheadAgentCredentialState_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadAgentProgramInstall |
+| `Local_Internal` | `Local_Internal` | BlockheadAgentProgramInstall_Timestamp |
+| `Local_Internal` | `Local_Internal` | BlockheadAgentProviderCall |
+| `Local_Internal` | `Local_Internal` | BlockheadAgentProfile |
+| `Eip8004Scan_Rest` | `Eip8004Scan_Rest` | Eip8004AgentRegistration |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | Eip8004AgentRegistration |
+| `Eip8004Scan_Rest` | `Eip8004Scan_Rest` | Eip8004AgentRegistration_Timestamp |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | Eip8004AgentRegistration_Timestamp |
+| `Arweave_Rest` | `Arweave_Rest` | Eip8004AgentRegistrationFile |
+| `Eip8004Scan_Rest` | `Eip8004Scan_Rest` | Eip8004AgentRegistrationFile |
+| `Ipfs_Rest` | `Ipfs_Rest` | Eip8004AgentRegistrationFile |
+| `Eip8004Scan_Rest` | `Eip8004Scan_Rest` | Eip8004AgentServiceEndpoint |
+| `Eip8004Scan_Rest` | `Eip8004Scan_Rest` | Eip8004CrossRegistration |
+| `Eip8004Scan_Rest` | `Eip8004Scan_Rest` | Eip8004EndpointDomainVerification_Timestamp |
+| `Eip8004Scan_Rest` | `Eip8004Scan_Rest` | Eip8004ReputationFeedback_Timestamp |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | Eip8004ReputationFeedback_Timestamp |
+| `Eip8004Scan_Rest` | `Eip8004Scan_Rest` | Eip8004Validation_Timestamp |
+| `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | Eip8004Validation_Timestamp |
+| `McpConfigured_Protocol` | `McpConfigured_Protocol` | McpPrompt |
+| `McpConfigured_Protocol` | `McpConfigured_Protocol` | McpPromptResult |
+| `McpConfigured_Protocol` | `McpConfigured_Protocol` | McpResource |
+| `McpConfigured_Protocol` | `McpConfigured_Protocol` | McpResourceContent_Timestamp |
+| `McpConfigured_Protocol` | `McpConfigured_Protocol` | McpResourceTemplate |
+| `Eip8004Scan_Rest` | `Eip8004Scan_Rest` | McpServer |
+| `McpConfigured_Protocol` | `McpConfigured_Protocol` | McpServer |
+| `McpConfigured_Protocol` | `McpConfigured_Protocol` | McpServer_Timestamp |
+| `Github_Git` | `Github_Git` | McpServerPackage |
+| `Github_Rest` | `Github_Rest` | McpServerPackage |
+| `McpPackageRegistry_Rest` | `McpPackageRegistry_Rest` | McpServerPackage |
+| `Github_Git` | `Github_Git` | McpServerPackageVersion |
+| `Github_Rest` | `Github_Rest` | McpServerPackageVersion |
+| `McpPackageRegistry_Rest` | `McpPackageRegistry_Rest` | McpServerPackageVersion |
+| `OciRegistry_Distribution` | `OciRegistry_Distribution` | McpServerPackageVersion |
+| `McpConfigured_Protocol` | `McpConfigured_Protocol` | McpTool |
+| `McpConfigured_Protocol` | `McpConfigured_Protocol` | McpToolCall |
+| `McpConfigured_Protocol` | `McpConfigured_Protocol` | McpToolCall_Timestamp |
+
+## Providers
+
+| Provider | Label |
+|---|---|
+| `_Constants` | _Constants |
+| `Acp` | Acp |
+| `A2a` | A2a |
+| `Across` | Across |
+| `Algod` | Algod |
+| `AlgorandIndexer` | AlgorandIndexer |
+| `AlgorandWallet` | AlgorandWallet |
+| `Allium` | Allium |
+| `Amboss` | Amboss |
+| `Anthropic` | Anthropic |
+| `AptosAip62` | AptosAip62 |
+| `AptosFullnode` | AptosFullnode |
+| `AptosIndexer` | AptosIndexer |
+| `Arweave` | Arweave |
+| `AtprotoBsky` | AtprotoBsky |
+| `AtprotoBskySocial` | AtprotoBskySocial |
+| `AtprotoSync` | AtprotoSync |
+| `Avail` | Avail |
+| `AvailExplorer` | AvailExplorer |
+| `AvalancheInfo` | AvalancheInfo |
+| `AvalanchePlatformVm` | AvalanchePlatformVm |
+| `Avascan` | Avascan |
+| `Axelarscan` | Axelarscan |
+| `AwsBedrock` | AwsBedrock |
+| `AzureAiFoundry` | AzureAiFoundry |
+| `Beacon` | Beacon |
+| `BeaconchaIn` | BeaconchaIn |
+| `BetterCallDev` | BetterCallDev |
+| `BigDipper` | BigDipper |
+| `BinanceChainApi` | BinanceChainApi |
+| `BinanceChainExplorer` | BinanceChainExplorer |
+| `Bittensor` | Bittensor |
+| `Blobscan` | Blobscan |
+| `BitcoinBips` | BitcoinBips |
+| `BitcoinCashBcmr` | BitcoinCashBcmr |
+| `BitcoinCashChips` | BitcoinCashChips |
+| `BitcoinCashNode` | BitcoinCashNode |
+| `BitcoinCore` | BitcoinCore |
+| `BitTorrent` | BitTorrent |
+| `Bithomp` | Bithomp |
+| `Blockfrost` | Blockfrost |
+| `Blockchair` | Blockchair |
+| `Blockscout` | Blockscout |
+| `BnbBeaconArchive` | BnbBeaconArchive |
+| `BnbChainFusion` | BnbChainFusion |
+| `Caips` | Caips |
+| `CardanoCip30` | CardanoCip30 |
+| `CardanoDbSync` | CardanoDbSync |
+| `CardanoNode` | CardanoNode |
+| `CardanoBlockfrost` | CardanoBlockfrost |
+| `CardanoKoios` | CardanoKoios |
+| `Cardanoscan` | Cardanoscan |
+| `Chainlist` | Chainlist |
+| `Cashu` | Cashu |
+| `Celenium` | Celenium |
+| `Celestia` | Celestia |
+| `ChainlinkDataFeeds` | ChainlinkDataFeeds |
+| `CircleCctp` | CircleCctp |
+| `Coingecko` | Coingecko |
+| `CoinMarketCap` | CoinMarketCap |
+| `Coinpaprika` | Coinpaprika |
+| `Cohere` | Cohere |
+| `CodexNetworkPresets` | CodexNetworkPresets |
+| `CodexNode` | CodexNode |
+| `Conseil` | Conseil |
+| `CometBft` | CometBft |
+| `CosmosChainRegistry` | CosmosChainRegistry |
+| `CosmosAdrs` | CosmosAdrs |
+| `CosmosSdk` | CosmosSdk |
+| `CycloneDx` | CycloneDx |
+| `CronosExplorer` | CronosExplorer |
+| `Defillama` | Defillama |
+| `Dexscreener` | Dexscreener |
+| `Eip8004Scan` | Eip8004Scan |
+| `Eas` | Eas |
+| `EasScan` | EasScan |
+| `Dune` | Dune |
+| `DogecoinDips` | DogecoinDips |
+| `DogecoinCore` | DogecoinCore |
+| `Dydx` | Dydx |
+| `Erigon` | Erigon |
+| `Ensips` | Ensips |
+| `EthereumEips` | EthereumEips |
+| `EthereumLists` | EthereumLists |
+| `EthereumSpecs` | EthereumSpecs |
+| `Etherscan` | Etherscan |
+| `EigenExplorer` | EigenExplorer |
+| `EigenLayer` | EigenLayer |
+| `EigenLayerSubgraph` | EigenLayerSubgraph |
+| `EnsMetadataService` | EnsMetadataService |
+| `Esplora` | Esplora |
+| `EthForks` | EthForks |
+| `Farcaster` | Farcaster |
+| `Fedi` | Fedi |
+| `FedimintClient` | FedimintClient |
+| `FedimintGatewayd` | FedimintGatewayd |
+| `FilecoinFips` | FilecoinFips |
+| `Filfox` | Filfox |
+| `Freighter` | Freighter |
+| `Forgejo` | Forgejo |
+| `FxEmbed` | FxEmbed |
+| `Git` | Git |
+| `Github` | Github |
+| `Gitlab` | Gitlab |
+| `GoogleAi` | GoogleAi |
+| `HashConnect` | HashConnect |
+| `Helius` | Helius |
+| `HederaMirrorNode` | HederaMirrorNode |
+| `HederaWalletConnect` | HederaWalletConnect |
+| `HederaSdk` | HederaSdk |
+| `HuggingFace` | HuggingFace |
+| `Hyperliquid` | Hyperliquid |
+| `HyperliquidDocs` | HyperliquidDocs |
+| `InternetComputer` | InternetComputer |
+| `InternetIdentity` | InternetIdentity |
+| `Ipfs` | Ipfs |
+| `Juno` | Juno |
+| `Kabila` | Kabila |
+| `KaspaExplorer` | KaspaExplorer |
+| `KaspaNode` | KaspaNode |
+| `KaspaWalletCli` | KaspaWalletCli |
+| `KaspaWalletSdk` | KaspaWalletSdk |
+| `KaswareWallet` | KaswareWallet |
+| `Keplr` | Keplr |
+| `LibtorrentSession` | LibtorrentSession |
+| `Koios` | Koios |
+| `L2Beat` | L2Beat |
+| `LayerZeroScan` | LayerZeroScan |
+| `LedgerFilecoin` | LedgerFilecoin |
+| `Leap` | Leap |
+| `Lens` | Lens |
+| `Lifi` | Lifi |
+| `LitecoinCore` | LitecoinCore |
+| `LitecoinLips` | LitecoinLips |
+| `LightningLnd` | LightningLnd |
+| `LitecoinWalletRpc` | LitecoinWalletRpc |
+| `LightningMempoolSpace` | LightningMempoolSpace |
+| `Local` | Local |
+| `LogosBlockchainNode` | LogosBlockchainNode |
+| `LogosDocs` | LogosDocs |
+| `Lotus` | Lotus |
+| `MagnetUri` | MagnetUri |
+| `Mastodon` | Mastodon |
+| `Mcp` | Mcp |
+| `Magic` | Magic |
+| `Martian` | Martian |
+| `MetadataVision` | MetadataVision |
+| `MevRelay` | MevRelay |
+| `MetaplexDAS` | MetaplexDAS |
+| `MempoolSpace` | MempoolSpace |
+| `Mintscan` | Mintscan |
+| `MistralAi` | MistralAi |
+| `Mlflow` | Mlflow |
+| `MlCommons` | MlCommons |
+| `MoneroWalletRpc` | MoneroWalletRpc |
+| `NearBlocks` | NearBlocks |
+| `NearConnect` | NearConnect |
+| `NearNeps` | NearNeps |
+| `NearRpc` | NearRpc |
+| `NearWalletSelector` | NearWalletSelector |
+| `Neynar` | Neynar |
+| `Nfid` | Nfid |
+| `Nitro` | Nitro |
+| `Nodely` | Nodely |
+| `MoneroDaemonRpc` | MoneroDaemonRpc |
+| `NostrBand` | NostrBand |
+| `NostrRelay` | NostrRelay |
+| `Openchain` | Openchain |
+| `OpenAI` | OpenAI |
+| `OpenSea` | OpenSea |
+| `OciRegistry` | OciRegistry |
+| `Ogmios` | Ogmios |
+| `Onnx` | Onnx |
+| `OneInchSwap` | OneInchSwap |
+| `OsmosisLCD` | OsmosisLCD |
+| `Paraswap` | Paraswap |
+| `Pathfinder` | Pathfinder |
+| `Payjoin` | Payjoin |
+| `Petra` | Petra |
+| `PlugWallet` | PlugWallet |
+| `Polkadot` | Polkadot |
+| `PolkadotInjectedWeb3` | PolkadotInjectedWeb3 |
+| `PolkadotRfcs` | PolkadotRfcs |
+| `Pontem` | Pontem |
+| `Piped` | Piped |
+| `Primal` | Primal |
+| `Pyth` | Pyth |
+| `qBittorrentWebUi` | qBittorrentWebUi |
+| `QuilibriumNode` | QuilibriumNode |
+| `QuilibriumNodeMetrics` | QuilibriumNodeMetrics |
+| `QuilibriumNodeRpc` | QuilibriumNodeRpc |
+| `QuilibriumDocs` | QuilibriumDocs |
+| `Reddit` | Reddit |
+| `RedditPublic` | RedditPublic |
+| `Radicle` | Radicle |
+| `RadicleCli` | RadicleCli |
+| `RadicleNode` | RadicleNode |
+| `Reservoir` | Reservoir |
+| `Reth` | Reth |
+| `Rss` | Rss |
+| `Rss2Json` | Rss2Json |
+| `SigstoreRekor` | SigstoreRekor |
+| `Snapchain` | Snapchain |
+| `Solana` | Solana |
+| `SolanaMobileWalletAdapter` | SolanaMobileWalletAdapter |
+| `SolanaSimds` | SolanaSimds |
+| `Sourcify` | Sourcify |
+| `Spdx` | Spdx |
+| `Starknet` | Starknet |
+| `Starkscan` | Starkscan |
+| `StellarExpert` | StellarExpert |
+| `StellarHorizon` | StellarHorizon |
+| `StellarRpc` | StellarRpc |
+| `StellarToml` | StellarToml |
+| `StoicWallet` | StoicWallet |
+| `Subscan` | Subscan |
+| `SubstrateSidecar` | SubstrateSidecar |
+| `Sui` | Sui |
+| `Superchain` | Superchain |
+| `Swarm` | Swarm |
+| `TheGraph` | TheGraph |
+| `ThreeXpl` | ThreeXpl |
+| `TradingView` | TradingView |
+| `TonApi` | TonApi |
+| `TonCenter` | TonCenter |
+| `TonConnect` | TonConnect |
+| `Tonlib` | Tonlib |
+| `TonLiteServer` | TonLiteServer |
+| `TonVerifier` | TonVerifier |
+| `TronFullNode` | TronFullNode |
+| `TronGrid` | TronGrid |
+| `TronLink` | TronLink |
+| `TronScan` | TronScan |
+| `TronSolidityNode` | TronSolidityNode |
+| `TronTip1193` | TronTip1193 |
+| `TronTip6963` | TronTip6963 |
+| `TrustWalletAssets` | TrustWalletAssets |
+| `TezosDappetizer` | TezosDappetizer |
+| `TezosNode` | TezosNode |
+| `Transmission` | Transmission |
+| `Tzkt` | Tzkt |
+| `Voltaire` | Voltaire |
+| `Voyager` | Voyager |
+| `WalletConnect` | WalletConnect |
+| `WalletStandard` | WalletStandard |
+| `WakuNode` | WakuNode |
+| `WebTorrent` | WebTorrent |
+| `Wormholescan` | Wormholescan |
+| `X402` | X402 |
+| `X` | X |
+| `Xaman` | Xaman |
+| `XrpScan` | XrpScan |
+| `Xrpl` | Xrpl |
+| `XrplClio` | XrplClio |
+| `Xmtp` | Xmtp |
+| `Youtube` | Youtube |
+| `ZcashZips` | ZcashZips |
+| `ZcashClientBackend` | ZcashClientBackend |
+| `Zcashd` | Zcashd |
+| `ZcashLightwalletd` | ZcashLightwalletd |
+| `Zebra` | Zebra |
+| `ZeroExSwap` | ZeroExSwap |
+| `ZeroG` | ZeroG |
+
+## Sources
+
+| Source | Provider | Label |
+|---|---|---|
+| `Allium_Rest` | `Allium` | Allium_Rest |
+| `Amboss_Graphql` | `Amboss` | Amboss_Graphql |
+| `Anthropic_Rest` | `Anthropic` | Anthropic_Rest |
+| `A2aService_Http` | `A2aService` | A2aService_Http |
+| `A2aWellKnown_Http` | `A2aWellKnown` | A2aWellKnown_Http |
+| `AcpLocal_JsonRpc` | `AcpLocal` | AcpLocal_JsonRpc |
+| `AcpRegistry_Rest` | `AcpRegistry` | AcpRegistry_Rest |
+| `Across_Rest` | `Across` | Across_Rest |
+| `Algod_Rest` | `Algod` | Algod_Rest |
+| `AlgorandIndexer_Rest` | `AlgorandIndexer` | AlgorandIndexer_Rest |
+| `AlgorandWallet_WalletApi` | `AlgorandWallet` | AlgorandWallet_WalletApi |
+| `AptosAip62_WalletApi` | `AptosAip62` | AptosAip62_WalletApi |
+| `AptosFullnode_Rest` | `AptosFullnode` | AptosFullnode_Rest |
+| `AptosIndexer_Graphql` | `AptosIndexer` | AptosIndexer_Graphql |
+| `Arweave_Graphql` | `Arweave` | Arweave_Graphql |
+| `Arweave_Rest` | `Arweave` | Arweave_Rest |
+| `Atproto_Xrpc` | `Atproto` | Atproto_Xrpc |
+| `Atproto_BskySocial_Xrpc` | `Atproto` | Atproto_BskySocial_Xrpc |
+| `AtprotoSync_Xrpc` | `AtprotoSync` | AtprotoSync_Xrpc |
+| `Avail_JsonRpc` | `Avail` | Avail_JsonRpc |
+| `AvailExplorer_Rest` | `AvailExplorer` | AvailExplorer_Rest |
+| `AvalancheInfo_JsonRpc` | `AvalancheInfo` | AvalancheInfo_JsonRpc |
+| `AvalanchePlatformVm_JsonRpc` | `AvalanchePlatformVm` | AvalanchePlatformVm_JsonRpc |
+| `Avascan_Rest` | `Avascan` | Avascan_Rest |
+| `Axelarscan_Rest` | `Axelarscan` | Axelarscan_Rest |
+| `AwsBedrock_Rest` | `AwsBedrock` | AwsBedrock_Rest |
+| `AzureAiFoundry_Rest` | `AzureAiFoundry` | AzureAiFoundry_Rest |
+| `Beacon_Rest` | `Beacon` | Beacon_Rest |
+| `BeaconchaIn_Rest` | `BeaconchaIn` | BeaconchaIn_Rest |
+| `BetterCallDev_Rest` | `BetterCallDev` | BetterCallDev_Rest |
+| `BigDipper_Rest` | `BigDipper` | BigDipper_Rest |
+| `BinanceChainApi_Rest` | `BinanceChainApi` | BinanceChainApi_Rest |
+| `BinanceChainExplorer_Rest` | `BinanceChainExplorer` | BinanceChainExplorer_Rest |
+| `Bittensor_JsonRpc` | `Bittensor` | Bittensor_JsonRpc |
+| `BitcoinBips_Github` | `BitcoinBips` | BitcoinBips_Github |
+| `BitcoinCashBcmr_Github` | `BitcoinCashBcmr` | BitcoinCashBcmr_Github |
+| `BitcoinCashChips_Gitlab` | `BitcoinCashChips` | BitcoinCashChips_Gitlab |
+| `BitcoinCashNode_JsonRpc` | `BitcoinCashNode` | BitcoinCashNode_JsonRpc |
+| `BitcoinCore_JsonRpc` | `BitcoinCore` | BitcoinCore_JsonRpc |
+| `Bithomp_Rest` | `Bithomp` | Bithomp_Rest |
+| `BitTorrent_HttpTracker` | `BitTorrent` | BitTorrent_HttpTracker |
+| `BitTorrent_MainlineDht` | `BitTorrent` | BitTorrent_MainlineDht |
+| `BitTorrent_MetadataExchange` | `BitTorrent` | BitTorrent_MetadataExchange |
+| `BitTorrent_PeerWire` | `BitTorrent` | BitTorrent_PeerWire |
+| `BitTorrent_UdpTracker` | `BitTorrent` | BitTorrent_UdpTracker |
+| `BitTorrentMetainfo_File` | `BitTorrentMetainfo` | BitTorrentMetainfo_File |
+| `Blockfrost_Rest` | `Blockfrost` | Blockfrost_Rest |
+| `Blockchair_Rest` | `Blockchair` | Blockchair_Rest |
+| `Blobscan_Rest` | `Blobscan` | Blobscan_Rest |
+| `Blockscout_Rest` | `Blockscout` | Blockscout_Rest |
+| `BnbBeaconArchive_Rest` | `BnbBeaconArchive` | BnbBeaconArchive_Rest |
+| `BnbChainFusion_Rest` | `BnbChainFusion` | BnbChainFusion_Rest |
+| `Caips_Github` | `Caips` | Caips_Github |
+| `CaipNamespaces_Github` | `CaipNamespaces` | CaipNamespaces_Github |
+| `CardanoCip30_WalletApi` | `CardanoCip30` | CardanoCip30_WalletApi |
+| `CardanoDbSync_Postgres` | `CardanoDbSync` | CardanoDbSync_Postgres |
+| `CardanoNode_LocalStateQuery` | `CardanoNode` | CardanoNode_LocalStateQuery |
+| `CardanoBlockfrost_Rest` | `CardanoBlockfrost` | CardanoBlockfrost_Rest |
+| `CardanoKoios_Rest` | `CardanoKoios` | CardanoKoios_Rest |
+| `Cardanoscan_Rest` | `Cardanoscan` | Cardanoscan_Rest |
+| `Chainlist_Rest` | `Chainlist` | Chainlist_Rest |
+| `CashuMint_Rest` | `CashuMint` | CashuMint_Rest |
+| `Celenium_Rest` | `Celenium` | Celenium_Rest |
+| `Celestia_JsonRpc` | `Celestia` | Celestia_JsonRpc |
+| `ChainlinkDataFeeds_AddressCatalog` | `ChainlinkDataFeeds` | ChainlinkDataFeeds_AddressCatalog |
+| `ChainlinkDataFeeds_Contracts` | `ChainlinkDataFeeds` | ChainlinkDataFeeds_Contracts |
+| `CircleCctp_IrisApi` | `CircleCctp` | CircleCctp_IrisApi |
+| `CircleCctpContracts_Evm` | `CircleCctpContracts` | CircleCctpContracts_Evm |
+| `CircleCctpContracts_Solana` | `CircleCctpContracts` | CircleCctpContracts_Solana |
+| `CircleCctpContracts_Stellar` | `CircleCctpContracts` | CircleCctpContracts_Stellar |
+| `Coingecko_OpenApi` | `Coingecko` | Coingecko_OpenApi |
+| `Coingecko_Rest` | `Coingecko` | Coingecko_Rest |
+| `CoinMarketCap_Rest` | `CoinMarketCap` | CoinMarketCap_Rest |
+| `Coinpaprika_OpenApi` | `Coinpaprika` | Coinpaprika_OpenApi |
+| `Cohere_Rest` | `Cohere` | Cohere_Rest |
+| `CodexNetworkPresets_Github` | `CodexNetworkPresets` | CodexNetworkPresets_Github |
+| `CodexNode_Rest` | `CodexNode` | CodexNode_Rest |
+| `Conseil_Postgres` | `Conseil` | Conseil_Postgres |
+| `CometBft_Rest` | `CometBft` | CometBft_Rest |
+| `Constants_Internal` | `Constants` | Constants_Internal |
+| `CroissantDocument_Local` | `CroissantDocument` | CroissantDocument_Local |
+| `CosmosChainRegistry_Github` | `CosmosChainRegistry` | CosmosChainRegistry_Github |
+| `CosmosAdrs_Github` | `CosmosAdrs` | CosmosAdrs_Github |
+| `CosmosSdk_Rest` | `CosmosSdk` | CosmosSdk_Rest |
+| `CycloneDxDocument_Local` | `CycloneDxDocument` | CycloneDxDocument_Local |
+| `Defillama_OpenApi` | `Defillama` | Defillama_OpenApi |
+| `Defillama_Rest` | `Defillama` | Defillama_Rest |
+| `CronosExplorer_Rest` | `CronosExplorer` | CronosExplorer_Rest |
+| `Dexscreener_OpenApi` | `Dexscreener` | Dexscreener_OpenApi |
+| `Eip8004Scan_Rest` | `Eip8004Scan` | Eip8004Scan_Rest |
+| `EasScan_Graphql` | `EasScan` | EasScan_Graphql |
+| `EasContracts_Evm` | `EasContracts` | EasContracts_Evm |
+| `Dune_Rest` | `Dune` | Dune_Rest |
+| `DogecoinDips_Github` | `DogecoinDips` | DogecoinDips_Github |
+| `DogecoinCore_JsonRpc` | `DogecoinCore` | DogecoinCore_JsonRpc |
+| `DydxIndexer_Rest` | `DydxIndexer` | DydxIndexer_Rest |
+| `DydxValidator_Rest` | `DydxValidator` | DydxValidator_Rest |
+| `Ensips_Github` | `Ensips` | Ensips_Github |
+| `Erigon_JsonRpc` | `Erigon` | Erigon_JsonRpc |
+| `EthereumEips_Github` | `EthereumEips` | EthereumEips_Github |
+| `EthereumLists_Rest` | `EthereumLists` | EthereumLists_Rest |
+| `EthereumSpecs_Github` | `EthereumSpecs` | EthereumSpecs_Github |
+| `Etherscan_Rest` | `Etherscan` | Etherscan_Rest |
+| `EigenExplorer_Rest` | `EigenExplorer` | EigenExplorer_Rest |
+| `EigenLayerSubgraph_Graphql` | `EigenLayerSubgraph` | EigenLayerSubgraph_Graphql |
+| `EigenLayerContracts_Evm` | `EigenLayerContracts` | EigenLayerContracts_Evm |
+| `EnsMetadataService_Rest` | `EnsMetadataService` | EnsMetadataService_Rest |
+| `Esplora_Rest` | `Esplora` | Esplora_Rest |
+| `EthForks_Rest` | `EthForks` | EthForks_Rest |
+| `Farcaster_Rest` | `Farcaster` | Farcaster_Rest |
+| `Fedi_Rest` | `Fedi` | Fedi_Rest |
+| `FedimintClient_Rpc` | `FedimintClient` | FedimintClient_Rpc |
+| `FedimintGatewayd_Rest` | `FedimintGatewayd` | FedimintGatewayd_Rest |
+| `FilecoinFips_Github` | `FilecoinFips` | FilecoinFips_Github |
+| `Filfox_Rest` | `Filfox` | Filfox_Rest |
+| `Freighter_WalletApi` | `Freighter` | Freighter_WalletApi |
+| `ForgejoIssues_Rest` | `ForgejoIssues` | ForgejoIssues_Rest |
+| `ForgejoPulls_Rest` | `ForgejoPulls` | ForgejoPulls_Rest |
+| `ForgejoReleases_Rest` | `ForgejoReleases` | ForgejoReleases_Rest |
+| `ForgejoRepos_Rest` | `ForgejoRepos` | ForgejoRepos_Rest |
+| `Git_Local` | `Git` | Git_Local |
+| `Git_Remote` | `Git` | Git_Remote |
+| `Github_Git` | `Github` | Github_Git |
+| `Github_Rest` | `Github` | Github_Rest |
+| `Gitlab_Rest` | `Gitlab` | Gitlab_Rest |
+| `GoogleAi_Rest` | `GoogleAi` | GoogleAi_Rest |
+| `HashConnect_WalletApi` | `HashConnect` | HashConnect_WalletApi |
+| `Helius_Rest` | `Helius` | Helius_Rest |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode` | HederaMirrorNode_Rest |
+| `HederaWalletConnect_SignClient` | `HederaWalletConnect` | HederaWalletConnect_SignClient |
+| `HederaSdk_Grpc` | `HederaSdk` | HederaSdk_Grpc |
+| `HuggingFaceHub_Rest` | `HuggingFaceHub` | HuggingFaceHub_Rest |
+| `Hyperliquid_JsonRpc` | `Hyperliquid` | Hyperliquid_JsonRpc |
+| `HyperliquidDocs_Rest` | `HyperliquidDocs` | HyperliquidDocs_Rest |
+| `Hyperliquid_Rest` | `Hyperliquid` | Hyperliquid_Rest |
+| `IcDashboard_Canister` | `IcDashboard` | IcDashboard_Canister |
+| `Ipfs_Rest` | `Ipfs` | Ipfs_Rest |
+| `InternetComputer_Canister` | `InternetComputer` | InternetComputer_Canister |
+| `InternetComputer_Http` | `InternetComputer` | InternetComputer_Http |
+| `InternetComputer_RosettaApi` | `InternetComputer` | InternetComputer_RosettaApi |
+| `InternetComputer_WalletApi` | `InternetComputer` | InternetComputer_WalletApi |
+| `InternetIdentity_Delegation` | `InternetIdentity` | InternetIdentity_Delegation |
+| `Juno_JsonRpc` | `Juno` | Juno_JsonRpc |
+| `Kabila_WalletConnect` | `Kabila` | Kabila_WalletConnect |
+| `KaspaExplorer_Rest` | `KaspaExplorer` | KaspaExplorer_Rest |
+| `KaspaNode_Grpc` | `KaspaNode` | KaspaNode_Grpc |
+| `KaspaNode_Rest` | `KaspaNode` | KaspaNode_Rest |
+| `KaspaNode_Wrpc` | `KaspaNode` | KaspaNode_Wrpc |
+| `KaspaWalletCli_WalletApi` | `KaspaWalletCli` | KaspaWalletCli_WalletApi |
+| `KaspaWalletSdk_WalletApi` | `KaspaWalletSdk` | KaspaWalletSdk_WalletApi |
+| `KaswareWallet_WalletApi` | `KaswareWallet` | KaswareWallet_WalletApi |
+| `Keplr_WalletApi` | `Keplr` | Keplr_WalletApi |
+| `Koios_Rest` | `Koios` | Koios_Rest |
+| `L2Beat_Rest` | `L2Beat` | L2Beat_Rest |
+| `LayerZeroScan_Rest` | `LayerZeroScan` | LayerZeroScan_Rest |
+| `LedgerFilecoin_WalletApi` | `LedgerFilecoin` | LedgerFilecoin_WalletApi |
+| `Leap_WalletApi` | `Leap` | Leap_WalletApi |
+| `Lens_Graphql` | `Lens` | Lens_Graphql |
+| `Lifi_Rest` | `Lifi` | Lifi_Rest |
+| `LifiStatus_Rest` | `LifiStatus` | LifiStatus_Rest |
+| `LibtorrentSession_Rest` | `LibtorrentSession` | LibtorrentSession_Rest |
+| `LitecoinCore_JsonRpc` | `LitecoinCore` | LitecoinCore_JsonRpc |
+| `LitecoinLips_Github` | `LitecoinLips` | LitecoinLips_Github |
+| `LightningLnd_Grpc` | `LightningLnd` | LightningLnd_Grpc |
+| `LightningLnd_Rest` | `LightningLnd` | LightningLnd_Rest |
+| `LitecoinWalletRpc_JsonRpc` | `LitecoinWalletRpc` | LitecoinWalletRpc_JsonRpc |
+| `LightningMempoolSpace_Rest` | `LightningMempoolSpace` | LightningMempoolSpace_Rest |
+| `Local_Internal` | `Local` | Local_Internal |
+| `LogosBlockchainNode_Rest` | `LogosBlockchainNode` | LogosBlockchainNode_Rest |
+| `LogosDocs_Rest` | `LogosDocs` | LogosDocs_Rest |
+| `Lotus_JsonRpc` | `Lotus` | Lotus_JsonRpc |
+| `MagnetUri_Uri` | `MagnetUri` | MagnetUri_Uri |
+| `Mastodon_Rest` | `Mastodon` | Mastodon_Rest |
+| `McpConfigured_Protocol` | `McpConfigured` | McpConfigured_Protocol |
+| `McpPackageRegistry_Rest` | `McpPackageRegistry` | McpPackageRegistry_Rest |
+| `Magic_HederaWalletApi` | `Magic` | Magic_HederaWalletApi |
+| `MetadataVision_Rest` | `MetadataVision` | MetadataVision_Rest |
+| `Martian_WalletApi` | `Martian` | Martian_WalletApi |
+| `MevRelay_Rest` | `MevRelay` | MevRelay_Rest |
+| `MetaplexDAS_Rest` | `MetaplexDAS` | MetaplexDAS_Rest |
+| `MempoolSpace_Rest` | `MempoolSpace` | MempoolSpace_Rest |
+| `Mintscan_Rest` | `Mintscan` | Mintscan_Rest |
+| `MistralAi_Rest` | `MistralAi` | MistralAi_Rest |
+| `Mlflow_Rest` | `Mlflow` | Mlflow_Rest |
+| `MoneroDaemonRpc_JsonRpc` | `MoneroDaemonRpc` | MoneroDaemonRpc_JsonRpc |
+| `MoneroWalletRpc_JsonRpc` | `MoneroWalletRpc` | MoneroWalletRpc_JsonRpc |
+| `NearBlocks_Rest` | `NearBlocks` | NearBlocks_Rest |
+| `NearConnect_WalletApi` | `NearConnect` | NearConnect_WalletApi |
+| `NearNeps_Github` | `NearNeps` | NearNeps_Github |
+| `NearRpc_JsonRpc` | `NearRpc` | NearRpc_JsonRpc |
+| `NearWalletSelector_WalletApi` | `NearWalletSelector` | NearWalletSelector_WalletApi |
+| `Neynar_Rest` | `Neynar` | Neynar_Rest |
+| `Nfid_WalletApi` | `Nfid` | Nfid_WalletApi |
+| `Nitro_ClientStore` | `Nitro` | Nitro_ClientStore |
+| `Nitro_NodeRpc` | `Nitro` | Nitro_NodeRpc |
+| `Nodely_Algod_Rest` | `Nodely` | Nodely_Algod_Rest |
+| `Nodely_AlgorandIndexer_Rest` | `Nodely` | Nodely_AlgorandIndexer_Rest |
+| `NostrBand_Rest` | `NostrBand` | NostrBand_Rest |
+| `NostrRelay_Nip11_Http` | `NostrRelay` | NostrRelay_Nip11_Http |
+| `NostrRelay_WebSocket` | `NostrRelay` | NostrRelay_WebSocket |
+| `Openchain_Rest` | `Openchain` | Openchain_Rest |
+| `OpenAI_Rest` | `OpenAI` | OpenAI_Rest |
+| `OpenSea_Rest` | `OpenSea` | OpenSea_Rest |
+| `OciRegistry_Distribution` | `OciRegistry` | OciRegistry_Distribution |
+| `Ogmios_JsonRpc` | `Ogmios` | Ogmios_JsonRpc |
+| `OnnxArtifact_Local` | `OnnxArtifact` | OnnxArtifact_Local |
+| `OneInchSwap_Rest` | `OneInchSwap` | OneInchSwap_Rest |
+| `Osmosis_LCD_Rest` | `Osmosis` | Osmosis_LCD_Rest |
+| `Paraswap_Rest` | `Paraswap` | Paraswap_Rest |
+| `Pathfinder_JsonRpc` | `Pathfinder` | Pathfinder_JsonRpc |
+| `PayjoinDirectory_Rest` | `PayjoinDirectory` | PayjoinDirectory_Rest |
+| `PayjoinOhttpRelay_Http` | `PayjoinOhttpRelay` | PayjoinOhttpRelay_Http |
+| `PayjoinReceiver_Http` | `PayjoinReceiver` | PayjoinReceiver_Http |
+| `Petra_WalletApi` | `Petra` | Petra_WalletApi |
+| `PlugWallet_WalletApi` | `PlugWallet` | PlugWallet_WalletApi |
+| `Polkadot_JsonRpc` | `Polkadot` | Polkadot_JsonRpc |
+| `PolkadotInjectedWeb3_WalletApi` | `PolkadotInjectedWeb3` | PolkadotInjectedWeb3_WalletApi |
+| `PolkadotRfcs_Github` | `PolkadotRfcs` | PolkadotRfcs_Github |
+| `Pontem_WalletApi` | `Pontem` | Pontem_WalletApi |
+| `Piped_Rest` | `Piped` | Piped_Rest |
+| `Primal_Rest` | `Primal` | Primal_Rest |
+| `Pyth_EvmContract` | `Pyth` | Pyth_EvmContract |
+| `PythBenchmarks_Rest` | `PythBenchmarks` | PythBenchmarks_Rest |
+| `PythHermes_Rest` | `PythHermes` | PythHermes_Rest |
+| `PythPriceFeedsCatalog_Rest` | `PythPriceFeedsCatalog` | PythPriceFeedsCatalog_Rest |
+| `Pyth_SolanaProgram` | `Pyth` | Pyth_SolanaProgram |
+| `qBittorrentWebUi_Rest` | `qBittorrentWebUi` | qBittorrentWebUi_Rest |
+| `QuilibriumNode_Grpc` | `QuilibriumNode` | QuilibriumNode_Grpc |
+| `QuilibriumNodeRpc_Grpc` | `QuilibriumNodeRpc` | QuilibriumNodeRpc_Grpc |
+| `QuilibriumNodeMetrics_Prometheus` | `QuilibriumNodeMetrics` | QuilibriumNodeMetrics_Prometheus |
+| `QuilibriumDocs_Rest` | `QuilibriumDocs` | QuilibriumDocs_Rest |
+| `Reddit_Rest` | `Reddit` | Reddit_Rest |
+| `Reddit_PublicJson` | `Reddit` | Reddit_PublicJson |
+| `Radicle_Local` | `Radicle` | Radicle_Local |
+| `Radicle_Remote` | `Radicle` | Radicle_Remote |
+| `RadicleCli_Local` | `RadicleCli` | RadicleCli_Local |
+| `RadicleNode_Control` | `RadicleNode` | RadicleNode_Control |
+| `Reservoir_Rest` | `Reservoir` | Reservoir_Rest |
+| `Reth_JsonRpc` | `Reth` | Reth_JsonRpc |
+| `Rss_Rest` | `Rss` | Rss_Rest |
+| `Rss2Json_Rest` | `Rss2Json` | Rss2Json_Rest |
+| `SigstoreRekor_Rest` | `SigstoreRekor` | SigstoreRekor_Rest |
+| `Snapchain_Rest` | `Snapchain` | Snapchain_Rest |
+| `Solana_JsonRpc` | `Solana` | Solana_JsonRpc |
+| `SolanaMobileWalletAdapter_WalletApi` | `SolanaMobileWalletAdapter` | SolanaMobileWalletAdapter_WalletApi |
+| `SolanaSimds_Github` | `SolanaSimds` | SolanaSimds_Github |
+| `Sourcify_Rest` | `Sourcify` | Sourcify_Rest |
+| `SpdxDocument_Local` | `SpdxDocument` | SpdxDocument_Local |
+| `Starknet_JsonRpc` | `Starknet` | Starknet_JsonRpc |
+| `Starkscan_Rest` | `Starkscan` | Starkscan_Rest |
+| `StellarExpert_Rest` | `StellarExpert` | StellarExpert_Rest |
+| `StellarHorizon_Rest` | `StellarHorizon` | StellarHorizon_Rest |
+| `StellarRpc_JsonRpc` | `StellarRpc` | StellarRpc_JsonRpc |
+| `StellarToml_Rest` | `StellarToml` | StellarToml_Rest |
+| `StoicWallet_WalletApi` | `StoicWallet` | StoicWallet_WalletApi |
+| `Subscan_Rest` | `Subscan` | Subscan_Rest |
+| `SubstrateSidecar_Rest` | `SubstrateSidecar` | SubstrateSidecar_Rest |
+| `Sui_Graphql` | `Sui` | Sui_Graphql |
+| `Sui_Grpc` | `Sui` | Sui_Grpc |
+| `Sui_JsonRpc` | `Sui` | Sui_JsonRpc |
+| `Superchain_Github` | `Superchain` | Superchain_Github |
+| `Swarm_Rest` | `Swarm` | Swarm_Rest |
+| `TheGraph_Graphql` | `TheGraph` | TheGraph_Graphql |
+| `ThreeXpl_Rest` | `ThreeXpl` | ThreeXpl_Rest |
+| `TradingView_Rest` | `TradingView` | TradingView_Rest |
+| `TonApi_Rest` | `TonApi` | TonApi_Rest |
+| `TonCenter_V2_Rest` | `TonCenter` | TonCenter_V2_Rest |
+| `TonCenter_V3_Rest` | `TonCenter` | TonCenter_V3_Rest |
+| `TonConnect_WalletApi` | `TonConnect` | TonConnect_WalletApi |
+| `Tonlib_JsonRpc` | `Tonlib` | Tonlib_JsonRpc |
+| `TonLiteServer_Adnl` | `TonLiteServer` | TonLiteServer_Adnl |
+| `TonVerifier_Rest` | `TonVerifier` | TonVerifier_Rest |
+| `TronFullNode_Rest` | `TronFullNode` | TronFullNode_Rest |
+| `TronGrid_Rest` | `TronGrid` | TronGrid_Rest |
+| `TronLink_WalletApi` | `TronLink` | TronLink_WalletApi |
+| `TronScan_Rest` | `TronScan` | TronScan_Rest |
+| `TronSolidityNode_Rest` | `TronSolidityNode` | TronSolidityNode_Rest |
+| `TronTip1193_WalletApi` | `TronTip1193` | TronTip1193_WalletApi |
+| `TronTip6963_WalletApi` | `TronTip6963` | TronTip6963_WalletApi |
+| `TrustWalletAssets_Github` | `TrustWalletAssets` | TrustWalletAssets_Github |
+| `TezosDappetizer_Postgres` | `TezosDappetizer` | TezosDappetizer_Postgres |
+| `TezosNode_Rpc` | `TezosNode` | TezosNode_Rpc |
+| `TransmissionRpc_JsonRpc` | `TransmissionRpc` | TransmissionRpc_JsonRpc |
+| `Tzkt_Rest` | `Tzkt` | Tzkt_Rest |
+| `Voltaire_JsonRpc` | `Voltaire` | Voltaire_JsonRpc |
+| `Voyager_Rest` | `Voyager` | Voyager_Rest |
+| `WalletConnect_SignClient` | `WalletConnect` | WalletConnect_SignClient |
+| `WalletStandard_WalletApi` | `WalletStandard` | WalletStandard_WalletApi |
+| `WakuNode_Rest` | `WakuNode` | WakuNode_Rest |
+| `WebTorrent_Client` | `WebTorrent` | WebTorrent_Client |
+| `WebTorrent_Dht` | `WebTorrent` | WebTorrent_Dht |
+| `WebTorrent_Tracker` | `WebTorrent` | WebTorrent_Tracker |
+| `Wormholescan_Rest` | `Wormholescan` | Wormholescan_Rest |
+| `X402_Http` | `X402` | X402_Http |
+| `X_FxEmbed_Rest` | `X` | X_FxEmbed_Rest |
+| `X_Rest` | `X` | X_Rest |
+| `Xaman_Api` | `Xaman` | Xaman_Api |
+| `XrpScan_Rest` | `XrpScan` | XrpScan_Rest |
+| `Xrpl_Rippled` | `Xrpl` | Xrpl_Rippled |
+| `XrplClio_JsonRpc` | `XrplClio` | XrplClio_JsonRpc |
+| `Xmtp_BrowserSdk` | `Xmtp` | Xmtp_BrowserSdk |
+| `Xmtp_NodeSdk` | `Xmtp` | Xmtp_NodeSdk |
+| `Youtube_Rest` | `Youtube` | Youtube_Rest |
+| `ZcashZips_Github` | `ZcashZips` | ZcashZips_Github |
+| `ZcashClientBackend_Local` | `ZcashClientBackend` | ZcashClientBackend_Local |
+| `Zcashd_JsonRpc` | `Zcashd` | Zcashd_JsonRpc |
+| `ZcashdWallet_JsonRpc` | `ZcashdWallet` | ZcashdWallet_JsonRpc |
+| `ZcashLightwalletd_Grpc` | `ZcashLightwalletd` | ZcashLightwalletd_Grpc |
+| `Zebra_JsonRpc` | `Zebra` | Zebra_JsonRpc |
+| `ZeroGChain_JsonRpc` | `ZeroGChain` | ZeroGChain_JsonRpc |
+| `ZeroGChainScan_Rest` | `ZeroGChainScan` | ZeroGChainScan_Rest |
+| `ZeroGStorageNode_JsonRpc` | `ZeroGStorageNode` | ZeroGStorageNode_JsonRpc |
+| `ZeroGStorageScan_Rest` | `ZeroGStorageScan` | ZeroGStorageScan_Rest |
+| `ZeroExSwap_Rest` | `ZeroExSwap` | ZeroExSwap_Rest |
+
+## Runtime Bindings
+
+| Source | Provider | Target | Wire | API | Delivery | Operations | Artifacts | Endpoints |
+|---|---|---|---|---|---|---|---|---|
+| `A2aWellKnown_Http` | `A2a` | Global:a2a-well-known | HttpRest | A2aProtocol | RemoteQuery | AgentCapabilityCatalog | 1 | 1 |
+| `A2aService_Http` | `A2a` | Global:a2a-service | HttpRest | A2aProtocol | RemoteQuery | AgentRuntimeInvocation | 1 | 1 |
+| `AcpLocal_JsonRpc` | `Acp` | LocalDevice:acp-local | JsonRpc2 | AcpProtocol | LocalOnly | AgentCapabilityCatalog, AgentRuntimeInvocation | 0 | 1 |
+| `AcpRegistry_Rest` | `Acp` | Global:acp-registry | HttpRest | RestJson | RemoteQuery | AgentCapabilityCatalog, AiArtifactCatalog, RepositoryMetadata | 1 | 1 |
+| `Across_Rest` | `Across` | Global:across-api | HttpRest | RestJson | HttpProxy | GenericRead | 0 | 1 |
+| `Algod_Rest` | `Algod` | Caip2Network:algorand-algod | HttpRest | RestJson | RemoteQuery | GenericRead | 0 | 1 |
+| `AlgorandIndexer_Rest` | `AlgorandIndexer` | Caip2Network:algorand-indexer | HttpRest | RestJson | RemoteQuery | GenericRead | 0 | 1 |
+| `AlgorandWallet_WalletApi` | `AlgorandWallet` | LocalDevice:algorand-wallet | WalletProvider | WalletApi | BrowserDirect | WalletAccountRead, WalletSign | 0 | 1 |
+| `Allium_Rest` | `Allium` | Global:api | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `Amboss_Graphql` | `Amboss` | Global:amboss-space | Graphql | GraphqlHttp | ServerOnly | GenericRead | 3 | 1 |
+| `Anthropic_Rest` | `Anthropic` | Global:anthropic-api | HttpRest | RestJson | RemoteQuery | AiModelCatalog, AiProviderOperationCatalog, GenericRead | 0 | 1 |
+| `AptosAip62_WalletApi` | `AptosAip62` | LocalDevice:aptos-aip62-wallet | WalletProvider | WalletApi | BrowserDirect | WalletAccountRead, WalletSign | 0 | 1 |
+| `AptosFullnode_Rest` | `AptosFullnode` | Caip2Network:aptos-fullnode | HttpRest | RestJson | RemoteQuery | GenericRead | 0 | 1 |
+| `AptosIndexer_Graphql` | `AptosIndexer` | Caip2Network:aptos | Graphql | GraphqlHttp | RemoteQuery | GenericRead | 2 | 1 |
+| `Arweave_Rest` | `Arweave` | ContentAddressScheme:arweave | HttpRest | ArweaveGateway | BrowserDirect | ContentGatewayRead | 1 | 2 |
+| `Arweave_Graphql` | `Arweave` | ContentAddressScheme:arweave | Graphql | GraphqlHttp | BrowserDirect | GenericRead | 0 | 1 |
+| `Atproto_Xrpc` | `AtprotoBsky` | Global:bsky-public-appview | Xrpc | XrpcLexicon | HttpProxy | GenericRead | 2 | 1 |
+| `Atproto_BskySocial_Xrpc` | `AtprotoBskySocial` | Global:bsky-social-appview | Xrpc | XrpcLexicon | HttpProxy | GenericRead | 2 | 1 |
+| `AtprotoSync_Xrpc` | `AtprotoSync` | Feed:atproto-sync | Xrpc | AtprotoSync | RemoteLive | GenericRead, GenericSubscribe | 0 | 2 |
+| `Avail_JsonRpc` | `Avail` | Caip2Network:avail | JsonRpc2 | SubstrateJsonRpc | RemoteQuery | GenericRead | 0 | 1 |
+| `AvailExplorer_Rest` | `AvailExplorer` | Caip2Network:avail | HttpRest | AvailExplorerApi | RemoteQuery | GenericRead | 0 | 1 |
+| `AvalancheInfo_JsonRpc` | `AvalancheInfo` | Caip2Network:avalanche-p-chain | JsonRpc2 | JsonRpcApi | HttpProxy | GenericRead | 0 | 1 |
+| `AvalanchePlatformVm_JsonRpc` | `AvalanchePlatformVm` | Caip2Network:avalanche-p-chain | JsonRpc2 | JsonRpcApi | HttpProxy | GenericRead | 0 | 1 |
+| `Avascan_Rest` | `Avascan` | Global:avascan-api | HttpRest | RestJson | HttpProxy | GenericRead | 0 | 1 |
+| `AwsBedrock_Rest` | `AwsBedrock` | Global:aws-bedrock | HttpRest | RestJson | RemoteQuery | AiModelCatalog, AiProviderOperationCatalog | 0 | 1 |
+| `Axelarscan_Rest` | `Axelarscan` | Global:axelarscan-api | HttpRest | RestJson | HttpProxy | GenericRead | 0 | 1 |
+| `AzureAiFoundry_Rest` | `AzureAiFoundry` | Global:azure-ai-foundry | HttpRest | RestJson | RemoteQuery | AiModelCatalog, AiProviderOperationCatalog | 0 | 1 |
+| `Beacon_Rest` | `Beacon` | Eip155Chain:1 | HttpRest | EthereumBeaconRest | BrowserDirect | GenericRead | 3 | 1 |
+| `Beacon_Rest` | `Beacon` | Eip155Chain:11155111 | HttpRest | EthereumBeaconRest | BrowserDirect | GenericRead | 3 | 1 |
+| `Beacon_Rest` | `Beacon` | Eip155Chain:17000 | HttpRest | EthereumBeaconRest | BrowserDirect | GenericRead | 3 | 1 |
+| `BeaconchaIn_Rest` | `BeaconchaIn` | Eip155Chain:1 | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `BeaconchaIn_Rest` | `BeaconchaIn` | Eip155Chain:17000 | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `BeaconchaIn_Rest` | `BeaconchaIn` | Eip155Chain:560048 | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `BetterCallDev_Rest` | `BetterCallDev` | Global:better-call-dev-api | HttpRest | RestJson | HttpProxy | GenericRead | 0 | 1 |
+| `BigDipper_Rest` | `BigDipper` | Global:big-dipper-api | HttpRest | RestJson | HttpProxy | GenericRead | 0 | 1 |
+| `BinanceChainApi_Rest` | `BinanceChainApi` | Global:binance-chain-api | HttpRest | RestJson | HttpProxy | GenericRead | 0 | 1 |
+| `BinanceChainExplorer_Rest` | `BinanceChainExplorer` | Global:binance-chain-explorer | HttpRest | RestJson | HttpProxy | GenericRead | 0 | 1 |
+| `BitTorrentMetainfo_File` | `BitTorrent` | TorrentSwarm:metainfo-file | Bencode | BitTorrentClient | LocalOnly | RepositoryMetadata | 0 | 1 |
+| `BitTorrent_HttpTracker` | `BitTorrent` | TorrentSwarm:http-tracker | RawHttp | BitTorrentTracker | RemoteQuery | BitTorrentAnnounce | 0 | 1 |
+| `BitTorrent_UdpTracker` | `BitTorrent` | TorrentSwarm:udp-tracker | Bencode | BitTorrentTracker | ServerOnly | BitTorrentAnnounce | 0 | 1 |
+| `BitTorrent_MainlineDht` | `BitTorrent` | TorrentSwarm:mainline-dht | Bencode | BitTorrentDht | ServerOnly | BitTorrentDhtLookup | 0 | 1 |
+| `BitTorrent_MetadataExchange` | `BitTorrent` | TorrentSwarm:metadata-exchange | Bencode | BitTorrentClient | ServerOnly | RepositoryMetadata | 0 | 1 |
+| `BitTorrent_PeerWire` | `BitTorrent` | TorrentSwarm:peer-wire | Bencode | BitTorrentClient | ServerOnly | GenericRead | 0 | 1 |
+| `BitcoinBips_Github` | `BitcoinBips` | GitRepository:bitcoin/bips@master: | HttpRest | GithubContentsApi | BrowserDirect | GithubRepositoryContents | 0 | 2 |
+| `BitcoinCashBcmr_Github` | `BitcoinCashBcmr` | Global:BitcoinCashBcmr | HttpRest | GithubContentsApi | BrowserDirect | GithubRepositoryContents | 0 | 2 |
+| `BitcoinCashChips_Gitlab` | `BitcoinCashChips` | GitRepository:gitlab:23431309@master: | HttpRest | GitObject | HttpProxy | GithubRepositoryContents | 0 | 1 |
+| `BitcoinCashNode_JsonRpc` | `BitcoinCashNode` | Caip2Network:bip122:000000000000000000651ef99cb9fcbe | JsonRpc2 | BitcoinJsonRpc | LocalOnly | GenericRead | 0 | 1 |
+| `BitcoinCore_JsonRpc` | `BitcoinCore` | Caip2Network:bip122:000000000019d6689c085ae165831e93 | JsonRpc2 | BitcoinJsonRpc | LocalOnly | GenericRead | 0 | 1 |
+| `Bithomp_Rest` | `Bithomp` | Global:bithomp-api | HttpRest | RestJson | HttpProxy | GenericRead | 0 | 1 |
+| `Bittensor_JsonRpc` | `Bittensor` | Caip2Network:bittensor:finney | JsonRpc2 | SubstrateJsonRpc | HttpProxy | GenericRead | 1 | 2 |
+| `Blobscan_Rest` | `Blobscan` | Eip155Chain:1 | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `Blobscan_Rest` | `Blobscan` | Eip155Chain:11155111 | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `Blobscan_Rest` | `Blobscan` | Eip155Chain:100 | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `Blobscan_Rest` | `Blobscan` | Eip155Chain:560048 | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `Blockchair_Rest` | `Blockchair` | Global:blockchair | HttpRest | RestJson | HttpProxy | GenericRead | 0 | 1 |
+| `Blockfrost_Rest` | `Blockfrost` | Caip2Network:blockfrost-cardano-mainnet | HttpRest | OpenApiHttp | ServerOnly | GenericRead | 3 | 1 |
+| `Blockscout_Rest` | `Blockscout` | Eip155Chain:1 | HttpRest | BlockscoutRestV2 | HttpProxy | GenericRead, BlockscoutAccountAbstraction | 0 | 1 |
+| `Blockscout_Rest` | `Blockscout` | Eip155Chain:1 | HttpRest | EtherscanModuleAction | HttpProxy | EtherscanAccountModule, EtherscanContractModule | 0 | 1 |
+| `Blockscout_Rest` | `Blockscout` | Eip155Chain:10 | HttpRest | BlockscoutRestV2 | HttpProxy | GenericRead, BlockscoutAccountAbstraction | 0 | 1 |
+| `Blockscout_Rest` | `Blockscout` | Eip155Chain:10 | HttpRest | EtherscanModuleAction | HttpProxy | EtherscanAccountModule, EtherscanContractModule | 0 | 1 |
+| `Blockscout_Rest` | `Blockscout` | Eip155Chain:100 | HttpRest | BlockscoutRestV2 | HttpProxy | GenericRead, BlockscoutAccountAbstraction | 0 | 1 |
+| `Blockscout_Rest` | `Blockscout` | Eip155Chain:100 | HttpRest | EtherscanModuleAction | HttpProxy | EtherscanAccountModule, EtherscanContractModule | 0 | 1 |
+| `Blockscout_Rest` | `Blockscout` | Eip155Chain:137 | HttpRest | BlockscoutRestV2 | HttpProxy | GenericRead, BlockscoutAccountAbstraction | 0 | 1 |
+| `Blockscout_Rest` | `Blockscout` | Eip155Chain:137 | HttpRest | EtherscanModuleAction | HttpProxy | EtherscanAccountModule, EtherscanContractModule | 0 | 1 |
+| `Blockscout_Rest` | `Blockscout` | Eip155Chain:8453 | HttpRest | BlockscoutRestV2 | HttpProxy | GenericRead, BlockscoutAccountAbstraction | 0 | 1 |
+| `Blockscout_Rest` | `Blockscout` | Eip155Chain:8453 | HttpRest | EtherscanModuleAction | HttpProxy | EtherscanAccountModule, EtherscanContractModule | 0 | 1 |
+| `Blockscout_Rest` | `Blockscout` | Eip155Chain:42161 | HttpRest | BlockscoutRestV2 | HttpProxy | GenericRead, BlockscoutAccountAbstraction | 0 | 1 |
+| `Blockscout_Rest` | `Blockscout` | Eip155Chain:42161 | HttpRest | EtherscanModuleAction | HttpProxy | EtherscanAccountModule, EtherscanContractModule | 0 | 1 |
+| `Blockscout_Rest` | `Blockscout` | Eip155Chain:11155111 | HttpRest | BlockscoutRestV2 | HttpProxy | GenericRead, BlockscoutAccountAbstraction | 0 | 1 |
+| `Blockscout_Rest` | `Blockscout` | Eip155Chain:11155111 | HttpRest | EtherscanModuleAction | HttpProxy | EtherscanAccountModule, EtherscanContractModule | 0 | 1 |
+| `BnbBeaconArchive_Rest` | `BnbBeaconArchive` | Global:bnb-beacon-archive | HttpRest | RestJson | HttpProxy | GenericRead | 0 | 1 |
+| `BnbChainFusion_Rest` | `BnbChainFusion` | Global:bnb-chain-fusion | HttpRest | RestJson | HttpProxy | GenericRead | 0 | 1 |
+| `Caips_Github` | `Caips` | GitRepository:ChainAgnostic/CAIPs@main:CAIPs | HttpRest | GithubContentsApi | BrowserDirect | GithubRepositoryContents | 0 | 2 |
+| `CaipNamespaces_Github` | `Caips` | GitRepository:ChainAgnostic/namespaces@main:namespaces | HttpRest | GithubContentsApi | BrowserDirect | GithubRepositoryContents | 0 | 2 |
+| `CardanoBlockfrost_Rest` | `CardanoBlockfrost` | Caip2Network:cardano-blockfrost-mainnet | HttpRest | OpenApiHttp | ServerOnly | GenericRead | 3 | 1 |
+| `CardanoCip30_WalletApi` | `CardanoCip30` | LocalDevice:cardano-cip30-wallet | WalletProvider | WalletApi | BrowserDirect | WalletAccountRead, WalletSign | 0 | 1 |
+| `CardanoDbSync_Postgres` | `CardanoDbSync` | SqlDataset:cardano-db-sync | Sql | Postgres | ServerOnly | GenericRead | 0 | 1 |
+| `CardanoKoios_Rest` | `CardanoKoios` | Caip2Network:cardano-koios-mainnet | HttpRest | RestJson | HttpProxy | GenericRead | 0 | 1 |
+| `CardanoNode_LocalStateQuery` | `CardanoNode` | Caip2Network:cardano | InProcess | CardanoLocalStateQuery | ServerOnly | GenericRead | 0 | 1 |
+| `Cardanoscan_Rest` | `Cardanoscan` | Global:cardanoscan-api | HttpRest | RestJson | HttpProxy | GenericRead | 0 | 1 |
+| `CashuMint_Rest` | `Cashu` | Global:https://8333.space:3338 | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `Celenium_Rest` | `Celenium` | Global:celenium-api | HttpRest | RestJson | HttpProxy | GenericRead | 0 | 1 |
+| `Celestia_JsonRpc` | `Celestia` | Caip2Network:celestia | JsonRpc2 | CelestiaNodeJsonRpc | RemoteQuery | GenericRead | 0 | 1 |
+| `ChainlinkDataFeeds_AddressCatalog` | `ChainlinkDataFeeds` | Eip155Chain:configured-chain | InProcess | CatalogRows | BrowserDirect | GenericRead | 0 | 1 |
+| `ChainlinkDataFeeds_Contracts` | `ChainlinkDataFeeds` | Eip155Chain:configured-chain | InProcess | CatalogRows | BrowserDirect | GenericRead | 0 | 1 |
+| `Chainlist_Rest` | `Chainlist` | Global:rpcs-json | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `CircleCctp_IrisApi` | `CircleCctp` | Global:circle-cctp-iris-api | HttpRest | RestJson | RemoteQuery | GenericRead | 0 | 1 |
+| `CircleCctpContracts_Evm` | `CircleCctp` | Eip155Chain:configured-chain | InProcess | CatalogRows | BrowserDirect | GenericRead | 0 | 1 |
+| `CircleCctpContracts_Solana` | `CircleCctp` | Caip2Network:solana | InProcess | CatalogRows | BrowserDirect | GenericRead | 0 | 1 |
+| `CircleCctpContracts_Stellar` | `CircleCctp` | Caip2Network:stellar | InProcess | CatalogRows | BrowserDirect | GenericRead | 0 | 1 |
+| `CodexNetworkPresets_Github` | `CodexNetworkPresets` | GitRepository:codex-storage-network/codex-network-presets@master | HttpRest | GithubContentsApi | BrowserDirect | GithubRepositoryContents, RepositoryMetadata | 0 | 2 |
+| `CodexNode_Rest` | `CodexNode` | Global:codex-node-api | HttpRest | RestJson | RemoteQuery | GenericRead | 0 | 1 |
+| `Cohere_Rest` | `Cohere` | Global:cohere-api | HttpRest | RestJson | RemoteQuery | AiModelCatalog, AiProviderOperationCatalog, GenericRead | 0 | 1 |
+| `CoinMarketCap_Rest` | `CoinMarketCap` | Global:pro-api | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `Coingecko_OpenApi` | `Coingecko` | Global:coingecko-demo | HttpRest | OpenApiHttp | HttpProxy | GenericRead | 3 | 1 |
+| `Coingecko_Rest` | `Coingecko` | Global:coingecko-rest-v3 | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `Coinpaprika_OpenApi` | `Coinpaprika` | Global:coinpaprika-openapi | HttpRest | OpenApiHttp | HttpProxy | GenericRead | 3 | 2 |
+| `CometBft_Rest` | `CometBft` | Caip2Network:cosmos:cosmoshub-4 | HttpRest | RestJson | BrowserDirect | GenericRead | 1 | 1 |
+| `Conseil_Postgres` | `Conseil` | SqlDataset:conseil | Sql | Postgres | ServerOnly | GenericRead | 0 | 1 |
+| `Constants_Internal` | `_Constants` | Global:checked-in-catalog | InProcess | CatalogRows | BrowserDirect | GenericRead | 0 | 1 |
+| `CosmosAdrs_Github` | `CosmosAdrs` | GitRepository:cosmos/cosmos-sdk@main:docs/architecture | HttpRest | GithubContentsApi | BrowserDirect | GithubRepositoryContents | 0 | 2 |
+| `CosmosChainRegistry_Github` | `CosmosChainRegistry` | GitRepository:cosmos/chain-registry@master: | HttpRest | GithubContentsApi | BrowserDirect | GithubRepositoryContents | 0 | 2 |
+| `CosmosSdk_Rest` | `CosmosSdk` | Caip2Network:cosmos:cosmoshub-4 | HttpRest | RestJson | BrowserDirect | GenericRead | 1 | 1 |
+| `CronosExplorer_Rest` | `CronosExplorer` | Global:cronos-explorer-api | HttpRest | RestJson | RemoteQuery | GenericRead | 0 | 1 |
+| `CycloneDxDocument_Local` | `CycloneDx` | LocalDevice:cyclonedx-document | LocalFile | LocalParser | LocalOnly | AiArtifactCatalog, DocumentClaimExtraction | 0 | 1 |
+| `Defillama_OpenApi` | `Defillama` | Global:coins-openapi | HttpRest | OpenApiHttp | HttpProxy | GenericRead | 3 | 2 |
+| `Defillama_Rest` | `Defillama` | Global:coins-pro-rest | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `Dexscreener_OpenApi` | `Dexscreener` | Global:dexscreener-openapi | HttpRest | OpenApiHttp | HttpProxy | GenericRead | 3 | 1 |
+| `DogecoinCore_JsonRpc` | `DogecoinCore` | Caip2Network:bip122:1a91e3dace36e2be3bf030a65679fe82 | JsonRpc2 | BitcoinJsonRpc | LocalOnly | GenericRead | 0 | 1 |
+| `DogecoinDips_Github` | `DogecoinDips` | GitRepository:dogecoin/dips@master: | HttpRest | GithubContentsApi | BrowserDirect | GithubRepositoryContents | 0 | 2 |
+| `Dune_Rest` | `Dune` | Global:api | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `DydxIndexer_Rest` | `Dydx` | Caip2Network:dydx-chain | HttpRest | DydxIndexerRest | RemoteQuery | GenericRead | 0 | 1 |
+| `DydxValidator_Rest` | `Dydx` | Caip2Network:dydx-chain | HttpRest | CosmosLcdApi | RemoteQuery | GenericRead | 0 | 1 |
+| `EasContracts_Evm` | `Eas` | Eip155Chain:configured-chain | InProcess | CatalogRows | BrowserDirect | GenericRead | 0 | 1 |
+| `EasScan_Graphql` | `EasScan` | Global:eas-scan | Graphql | GraphqlHttp | RemoteQuery | GenericRead | 1 | 1 |
+| `EigenExplorer_Rest` | `EigenExplorer` | Global:eigen-explorer-api | HttpRest | RestJson | RemoteQuery | GenericRead | 0 | 1 |
+| `EigenLayerContracts_Evm` | `EigenLayer` | Eip155Chain:configured-chain | InProcess | CatalogRows | BrowserDirect | GenericRead | 0 | 1 |
+| `EigenLayerSubgraph_Graphql` | `EigenLayerSubgraph` | Global:eigenlayer-subgraph | Graphql | GraphqlHttp | RemoteQuery | GenericRead | 1 | 1 |
+| `Eip8004Scan_Rest` | `Eip8004Scan` | Global:eip8004-agents | HttpRest | RestJson | BrowserDirect | GenericRead | 1 | 1 |
+| `EnsMetadataService_Rest` | `EnsMetadataService` | Global:ens-metadata-service | HttpRest | RestJson | RemoteQuery | GenericRead | 0 | 1 |
+| `Ensips_Github` | `Ensips` | GitRepository:ensdomains/ensips@master:ensips | HttpRest | GithubContentsApi | BrowserDirect | GithubRepositoryContents | 0 | 2 |
+| `Erigon_JsonRpc` | `Erigon` | Eip155Chain:configured-chain | JsonRpc2 | EvmExecutionJsonRpc | LocalOnly | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Esplora_Rest` | `Esplora` | Caip2Network:bip122:000000000019d6689c085ae165831e93 | HttpRest | RestJson | BrowserDirect | GenericRead | 0 | 1 |
+| `Esplora_Rest` | `Esplora` | Caip2Network:liquid | HttpRest | RestJson | BrowserDirect | GenericRead | 0 | 1 |
+| `EthForks_Rest` | `EthForks` | Global:eth-forks | HttpRest | RestJson | HttpProxy | GenericRead, RepositoryMetadata | 0 | 1 |
+| `EthereumEips_Github` | `EthereumEips` | GitRepository:ethereum/EIPs@master:EIPS | HttpRest | GithubContentsApi | BrowserDirect | GithubRepositoryContents | 0 | 2 |
+| `EthereumEips_Github` | `EthereumEips` | GitRepository:ethereum/ercs@master:ERCS | HttpRest | GithubContentsApi | BrowserDirect | GithubRepositoryContents | 0 | 2 |
+| `EthereumLists_Rest` | `EthereumLists` | Global:chains | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 2 |
+| `EthereumSpecs_Github` | `EthereumSpecs` | GitRepository:ethereum/* | HttpRest | GithubContentsApi | BrowserDirect | GithubRepositoryContents | 0 | 2 |
+| `Etherscan_Rest` | `Etherscan` | Global:etherscan-v2 | HttpRest | EtherscanModuleAction | HttpProxy | EtherscanAccountModule, EtherscanContractModule, EvmRpcCore | 1 | 1 |
+| `Farcaster_Rest` | `Farcaster` | Global:client-api | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 3 |
+| `Fedi_Rest` | `Fedi` | Global:fosstodon | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `FedimintClient_Rpc` | `FedimintClient` | LocalDevice:configured-fedimint-client | JsonRpc2 | JsonRpcApi | LocalOnly | GenericRead | 0 | 1 |
+| `FedimintGatewayd_Rest` | `FedimintGatewayd` | LocalDevice:configured-fedimint-gatewayd | HttpRest | FedimintGatewaydApi | ServerOnly | GenericRead | 0 | 1 |
+| `FilecoinFips_Github` | `FilecoinFips` | GitRepository:filecoin-project/FIPs@master:FIPS | HttpRest | GithubContentsApi | BrowserDirect | GithubRepositoryContents | 0 | 2 |
+| `Filfox_Rest` | `Filfox` | Global:api | HttpRest | RestJson | BrowserDirect | GenericRead | 1 | 1 |
+| `ForgejoRepos_Rest` | `Forgejo` | Global:forgejo-repositories | HttpRest | ForgejoRestApi | RemoteQuery | GitRepositoryContents, RepositoryMetadata | 0 | 1 |
+| `ForgejoIssues_Rest` | `Forgejo` | Global:forgejo-issues | HttpRest | ForgejoRestApi | RemoteQuery | IssueTracking | 0 | 1 |
+| `ForgejoPulls_Rest` | `Forgejo` | Global:forgejo-pulls | HttpRest | ForgejoRestApi | RemoteQuery | PullRequestReview | 0 | 1 |
+| `ForgejoReleases_Rest` | `Forgejo` | Global:forgejo-releases | HttpRest | ForgejoRestApi | RemoteQuery | ReleaseMetadata | 0 | 1 |
+| `Freighter_WalletApi` | `Freighter` | LocalDevice:freighter | WalletProvider | WalletApi | BrowserDirect | WalletAccountRead, WalletSign | 0 | 1 |
+| `X_FxEmbed_Rest` | `FxEmbed` | Global:fxembed-api | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `Git_Local` | `Git` | GitRepository:local-git-repository | Git | GitObject | LocalOnly | GitRepositoryContents, RepositoryMetadata | 0 | 1 |
+| `Git_Remote` | `Git` | GitRepository:remote-git-repository | Git | GitObject | ServerOnly | GitRepositoryContents, RepositoryMetadata | 0 | 1 |
+| `Github_Rest` | `Github` | Global:github-rest | HttpRest | GithubRestApi | BrowserDirect | GitRepositoryContents, IssueTracking, PullRequestReview, ReleaseMetadata, RepositoryMetadata | 0 | 2 |
+| `Github_Git` | `Github` | GitRepository:github-git | Git | GitObject | ServerOnly | GitRepositoryContents, RepositoryMetadata | 0 | 1 |
+| `Gitlab_Rest` | `Gitlab` | Global:gitlab-rest | HttpRest | GitlabRestApi | HttpProxy | GitRepositoryContents, IssueTracking, PullRequestReview, ReleaseMetadata, RepositoryMetadata | 0 | 1 |
+| `GoogleAi_Rest` | `GoogleAi` | Global:google-ai-api | HttpRest | RestJson | RemoteQuery | AiModelCatalog, AiProviderOperationCatalog, GenericRead | 0 | 1 |
+| `HashConnect_WalletApi` | `HashConnect` | LocalDevice:hashconnect | WalletProvider | WalletApi | BrowserDirect | WalletAccountRead, WalletSign | 0 | 1 |
+| `HederaMirrorNode_Rest` | `HederaMirrorNode` | Global:hedera-mainnet-mirror-node | HttpRest | RestJson | HttpProxy | GenericRead | 0 | 1 |
+| `HederaSdk_Grpc` | `HederaSdk` | Caip2Network:hedera | Grpc | GrpcService | ServerOnly | GenericRead | 2 | 1 |
+| `HederaWalletConnect_SignClient` | `HederaWalletConnect` | LocalDevice:hedera-walletconnect | WalletProvider | WalletApi | BrowserDirect | WalletAccountRead, WalletSign | 0 | 1 |
+| `Helius_Rest` | `Helius` | Caip2Network:solana:mainnet | HttpRest | RestJson | BrowserDirect | GenericRead | 1 | 1 |
+| `HuggingFaceHub_Rest` | `HuggingFace` | Global:huggingface-hub | HttpRest | RestJson | RemoteQuery | AiArtifactCatalog, RepositoryMetadata, GenericRead | 0 | 1 |
+| `Hyperliquid_Rest` | `Hyperliquid` | Caip2Network:eip155:999 | HttpRest | RestJson | BrowserDirect | GenericRead | 1 | 1 |
+| `Hyperliquid_JsonRpc` | `Hyperliquid` | Eip155Chain:999 | JsonRpc2 | EvmExecutionJsonRpc | BrowserDirect | EvmRpcCore | 2 | 1 |
+| `HyperliquidDocs_Rest` | `HyperliquidDocs` | Global:hyperliquid-docs | RawHttp | StaticWebsite | BrowserDirect | GenericRead | 0 | 1 |
+| `IcDashboard_Canister` | `InternetComputer` | Canister:ic-dashboard | Canister | IcCanister | RemoteQuery | GenericRead | 0 | 1 |
+| `InternetComputer_Canister` | `InternetComputer` | Canister:configured-canister | Canister | IcCanister | RemoteQuery | GenericRead | 0 | 1 |
+| `InternetComputer_Http` | `InternetComputer` | Global:internet-computer-boundary | RawHttp | CertifiedHttpGateway | RemoteQuery | GenericRead | 0 | 1 |
+| `InternetComputer_RosettaApi` | `InternetComputer` | Caip2Network:icp | HttpRest | RosettaApi | RemoteQuery | GenericRead | 0 | 1 |
+| `InternetComputer_WalletApi` | `InternetComputer` | LocalDevice:user-session | WalletProvider | WalletApi | LocalOnly | WalletAccountRead, WalletSign | 0 | 1 |
+| `InternetIdentity_Delegation` | `InternetIdentity` | LocalDevice:user-session | WalletProvider | WalletApi | LocalOnly | WalletAccountRead, WalletSign | 0 | 1 |
+| `Ipfs_Rest` | `Ipfs` | ContentAddressScheme:ipfs | HttpRest | IpfsGateway | HttpProxy | ContentGatewayRead | 0 | 2 |
+| `Juno_JsonRpc` | `Juno` | Caip2Network:starknet | JsonRpc2 | StarknetJsonRpc | RemoteQuery | GenericRead | 0 | 1 |
+| `Kabila_WalletConnect` | `Kabila` | LocalDevice:kabila-walletconnect | WalletProvider | WalletApi | BrowserDirect | WalletAccountRead, WalletSign | 0 | 1 |
+| `KaspaExplorer_Rest` | `KaspaExplorer` | Global:kaspa-explorer-api | HttpRest | RestJson | RemoteQuery | GenericRead | 0 | 1 |
+| `KaspaNode_Grpc` | `KaspaNode` | Caip2Network:kaspa | Grpc | GrpcService | ServerOnly | GenericRead | 2 | 1 |
+| `KaspaNode_Rest` | `KaspaNode` | Caip2Network:kaspa | HttpRest | KaspaRestApi | RemoteQuery | GenericRead | 0 | 1 |
+| `KaspaNode_Wrpc` | `KaspaNode` | Caip2Network:kaspa | Wrpc | KaspaWrpcApi | RemoteQuery | GenericRead | 0 | 1 |
+| `KaspaWalletCli_WalletApi` | `KaspaWalletCli` | LocalDevice:kaspa-wallet-cli | WalletProvider | WalletApi | LocalOnly | WalletAccountRead, WalletSign | 0 | 1 |
+| `KaspaWalletSdk_WalletApi` | `KaspaWalletSdk` | LocalDevice:kaspa-wallet-sdk | WalletProvider | WalletApi | LocalOnly | WalletAccountRead, WalletSign | 0 | 1 |
+| `KaswareWallet_WalletApi` | `KaswareWallet` | LocalDevice:kasware-wallet | WalletProvider | WalletApi | BrowserDirect | WalletAccountRead, WalletSign | 0 | 1 |
+| `Keplr_WalletApi` | `Keplr` | LocalDevice:keplr | WalletProvider | WalletApi | BrowserDirect | WalletAccountRead, WalletSign | 0 | 1 |
+| `Koios_Rest` | `Koios` | Caip2Network:cardano | HttpRest | RestJson | HttpProxy | GenericRead | 0 | 1 |
+| `L2Beat_Rest` | `L2Beat` | Global:scaling-summary | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `LayerZeroScan_Rest` | `LayerZeroScan` | Global:layerzero-scan-api | HttpRest | RestJson | RemoteQuery | GenericRead | 0 | 1 |
+| `Leap_WalletApi` | `Leap` | LocalDevice:leap | WalletProvider | WalletApi | BrowserDirect | WalletAccountRead, WalletSign | 0 | 1 |
+| `LedgerFilecoin_WalletApi` | `LedgerFilecoin` | LocalDevice:ledger-filecoin | WalletProvider | WalletApi | BrowserDirect | WalletAccountRead, WalletSign | 0 | 1 |
+| `Lens_Graphql` | `Lens` | Global:lens-protocol | Graphql | GraphqlHttp | HttpProxy | GenericRead | 3 | 2 |
+| `LibtorrentSession_Rest` | `LibtorrentSession` | LocalDevice:configured-libtorrent-session | HttpRest | BitTorrentClient | ServerOnly | GenericRead | 0 | 1 |
+| `LifiStatus_Rest` | `Lifi` | Global:lifi-status | HttpRest | OpenApiHttp | HttpProxy | GenericRead | 0 | 1 |
+| `Lifi_Rest` | `Lifi` | Global:lifi | HttpRest | RestJson | HttpProxy | GenericRead | 2 | 2 |
+| `LightningLnd_Grpc` | `LightningLnd` | LocalDevice:configured-lnd-node | Grpc | GrpcService | ServerOnly | GenericRead, WalletAccountRead | 0 | 1 |
+| `LightningLnd_Rest` | `LightningLnd` | LocalDevice:lnd | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 4 |
+| `LightningMempoolSpace_Rest` | `LightningMempoolSpace` | Caip2Network:lightning:mainnet | HttpRest | RestJson | BrowserDirect | GenericRead | 1 | 1 |
+| `LitecoinCore_JsonRpc` | `LitecoinCore` | Caip2Network:bip122:12a765e31ffd4059bada1e25190f6e98 | JsonRpc2 | BitcoinJsonRpc | LocalOnly | GenericRead | 0 | 1 |
+| `LitecoinLips_Github` | `LitecoinLips` | GitRepository:litecoin-project/lips@master: | HttpRest | GithubContentsApi | BrowserDirect | GithubRepositoryContents | 0 | 2 |
+| `LitecoinWalletRpc_JsonRpc` | `LitecoinWalletRpc` | LocalDevice:wallet-rpc | JsonRpc2 | JsonRpcApi | LocalOnly | WalletAccountRead, WalletSign | 0 | 1 |
+| `Local_Internal` | `Local` | Global:internal-catalog | InProcess | CatalogRows | BrowserDirect | GenericRead | 0 | 1 |
+| `LogosBlockchainNode_Rest` | `LogosBlockchainNode` | Caip2Network:logos | HttpRest | RestJson | RemoteQuery | GenericRead | 0 | 1 |
+| `LogosDocs_Rest` | `LogosDocs` | Global:docs | HttpRest | RestJson | BrowserDirect | GenericRead | 1 | 1 |
+| `Lotus_JsonRpc` | `Lotus` | Caip2Network:fil:mainnet | JsonRpc2 | FilecoinLotusJsonRpc | BrowserDirect | GenericRead | 1 | 1 |
+| `Lotus_JsonRpc` | `Lotus` | LocalDevice:local-lotus | JsonRpc2 | FilecoinLotusJsonRpc | LocalOnly | GenericRead | 1 | 1 |
+| `Magic_HederaWalletApi` | `Magic` | LocalDevice:magic-hedera | WalletProvider | WalletApi | BrowserDirect | WalletAccountRead, WalletSign | 0 | 1 |
+| `MagnetUri_Uri` | `MagnetUri` | TorrentSwarm:magnet-uri | Uri | UriScheme | BrowserDirect | BitTorrentDhtLookup | 0 | 1 |
+| `Martian_WalletApi` | `Martian` | LocalDevice:martian | WalletProvider | WalletApi | BrowserDirect | WalletAccountRead, WalletSign | 0 | 1 |
+| `Mastodon_Rest` | `Mastodon` | Global:mastodon-social | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `McpConfigured_Protocol` | `Mcp` | LocalDevice:mcp-configured | JsonRpc2 | McpProtocol | LocalOnly | AgentCapabilityCatalog, AgentRuntimeInvocation | 0 | 1 |
+| `McpPackageRegistry_Rest` | `Mcp` | Global:mcp-package-registry | HttpRest | RestJson | RemoteQuery | AgentCapabilityCatalog, AiArtifactCatalog, RepositoryMetadata | 0 | 1 |
+| `MempoolSpace_Rest` | `MempoolSpace` | Caip2Network:bip122:000000000019d6689c085ae165831e93 | HttpRest | RestJson | BrowserDirect | GenericRead | 0 | 1 |
+| `MetadataVision_Rest` | `MetadataVision` | Global:open-graph | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `MetaplexDAS_Rest` | `MetaplexDAS` | Global:metaplex-das-api | HttpRest | RestJson | RemoteQuery | GenericRead | 0 | 1 |
+| `MevRelay_Rest` | `MevRelay` | Feed:boost-relay.flashbots.net | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `MevRelay_Rest` | `MevRelay` | Feed:relay.ultrasound.money | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `MevRelay_Rest` | `MevRelay` | Feed:builder-relay-sepolia.flashbots.net | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `Mintscan_Rest` | `Mintscan` | Global:mintscan-api | HttpRest | RestJson | RemoteQuery | GenericRead | 0 | 1 |
+| `MistralAi_Rest` | `MistralAi` | Global:mistral-api | HttpRest | RestJson | RemoteQuery | AiModelCatalog, AiProviderOperationCatalog, GenericRead | 0 | 1 |
+| `CroissantDocument_Local` | `MlCommons` | LocalDevice:croissant-document | LocalFile | LocalParser | LocalOnly | AiDatasetMetadata, DocumentClaimExtraction | 0 | 1 |
+| `Mlflow_Rest` | `Mlflow` | Global:configured-mlflow-tracking-server | HttpRest | RestJson | RemoteQuery | AiArtifactCatalog, GenericRead | 0 | 1 |
+| `MoneroDaemonRpc_JsonRpc` | `MoneroDaemonRpc` | Caip2Network:monero:mainnet | JsonRpc2 | MoneroDaemonJsonRpc | HttpProxy | GenericRead | 1 | 2 |
+| `MoneroDaemonRpc_JsonRpc` | `MoneroDaemonRpc` | LocalDevice:local-monerod | JsonRpc2 | MoneroDaemonJsonRpc | LocalOnly | GenericRead | 1 | 1 |
+| `MoneroWalletRpc_JsonRpc` | `MoneroWalletRpc` | LocalDevice:wallet-rpc | JsonRpc2 | JsonRpcApi | LocalOnly | WalletAccountRead, WalletSign | 0 | 1 |
+| `NearBlocks_Rest` | `NearBlocks` | Caip2Network:near:mainnet | HttpRest | RestJson | BrowserDirect | GenericRead | 1 | 1 |
+| `NearConnect_WalletApi` | `NearConnect` | LocalDevice:near-connect | WalletProvider | WalletApi | BrowserDirect | WalletAccountRead, WalletSign | 0 | 1 |
+| `NearNeps_Github` | `NearNeps` | GitRepository:near/NEPs@master:neps | HttpRest | GithubContentsApi | BrowserDirect | GithubRepositoryContents | 0 | 2 |
+| `NearRpc_JsonRpc` | `NearRpc` | Caip2Network:near:mainnet | JsonRpc2 | JsonRpcApi | HttpProxy | GenericRead | 1 | 1 |
+| `NearWalletSelector_WalletApi` | `NearWalletSelector` | LocalDevice:near-wallet-selector | WalletProvider | WalletApi | BrowserDirect | WalletAccountRead, WalletSign | 0 | 1 |
+| `Neynar_Rest` | `Neynar` | Global:api | HttpRest | OpenApiHttp | HttpProxy | GenericRead | 3 | 1 |
+| `Nfid_WalletApi` | `Nfid` | LocalDevice:nfid | WalletProvider | WalletApi | BrowserDirect | WalletAccountRead, WalletSign | 0 | 1 |
+| `Nitro_ClientStore` | `Nitro` | LocalDevice:nitro-client-store | InProcess | LocalStateStore | LocalOnly | GenericRead | 0 | 1 |
+| `Nitro_NodeRpc` | `Nitro` | LocalDevice:nitro-node | HttpRest | RestJson | ServerOnly | GenericRead | 0 | 1 |
+| `Nodely_Algod_Rest` | `Nodely` | Caip2Network:algorand-algod | HttpRest | RestJson | HttpProxy | GenericRead | 0 | 1 |
+| `Nodely_AlgorandIndexer_Rest` | `Nodely` | Caip2Network:algorand-indexer | HttpRest | RestJson | HttpProxy | GenericRead | 0 | 1 |
+| `NostrBand_Rest` | `NostrBand` | Global:api | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `NostrRelay_Nip11_Http` | `NostrRelay` | Feed:nostr-relay-nip11 | HttpRest | NostrRelay | RemoteQuery | NostrRelayRead | 1 | 1 |
+| `NostrRelay_WebSocket` | `NostrRelay` | Feed:nostr-relay-websocket | JsonRpc2 | NostrRelay | RemoteLive | NostrRelayRead, GenericSubscribe | 1 | 1 |
+| `OciRegistry_Distribution` | `OciRegistry` | Global:oci-registry | OciDistribution | OciDistributionApi | RemoteQuery | SoftwareArtifactRegistry, RepositoryMetadata | 0 | 1 |
+| `Ogmios_JsonRpc` | `Ogmios` | Caip2Network:cardano | JsonRpc2 | JsonRpcApi | RemoteQuery | GenericRead | 0 | 1 |
+| `OneInchSwap_Rest` | `OneInchSwap` | Global:one-inch-swap-api | HttpRest | RestJson | ServerOnly | GenericRead | 0 | 1 |
+| `OnnxArtifact_Local` | `Onnx` | LocalDevice:onnx-artifact | LocalFile | LocalParser | LocalOnly | AiArtifactCatalog, DocumentClaimExtraction | 0 | 1 |
+| `OpenAI_Rest` | `OpenAI` | Global:openai-api | HttpRest | RestJson | RemoteQuery | AiModelCatalog, AiProviderOperationCatalog, GenericRead | 0 | 1 |
+| `OpenSea_Rest` | `OpenSea` | Global:opensea-api | HttpRest | OpenApiHttp | ServerOnly | GenericRead | 3 | 1 |
+| `Openchain_Rest` | `Openchain` | Global:evm-signatures | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 2 |
+| `Osmosis_LCD_Rest` | `OsmosisLCD` | Caip2Network:cosmos | HttpRest | CosmosLcdApi | RemoteQuery | GenericRead | 0 | 1 |
+| `Paraswap_Rest` | `Paraswap` | Global:paraswap-api | HttpRest | RestJson | HttpProxy | GenericRead | 0 | 1 |
+| `Pathfinder_JsonRpc` | `Pathfinder` | Caip2Network:starknet | JsonRpc2 | StarknetJsonRpc | RemoteQuery | GenericRead | 0 | 1 |
+| `PayjoinOhttpRelay_Http` | `Payjoin` | Global:ohttp-relay | RawHttp | RestJson | RemoteQuery | GenericRead | 0 | 1 |
+| `PayjoinReceiver_Http` | `Payjoin` | Global:receiver | RawHttp | RestJson | RemoteQuery | GenericRead | 0 | 1 |
+| `PayjoinDirectory_Rest` | `Payjoin` | Global:directory | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 3 |
+| `Petra_WalletApi` | `Petra` | LocalDevice:petra | WalletProvider | WalletApi | BrowserDirect | WalletAccountRead, WalletSign | 0 | 1 |
+| `Piped_Rest` | `Piped` | Global:piped-api | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `PlugWallet_WalletApi` | `PlugWallet` | LocalDevice:plug-wallet | WalletProvider | WalletApi | BrowserDirect | WalletAccountRead, WalletSign | 0 | 1 |
+| `Polkadot_JsonRpc` | `Polkadot` | Caip2Network:polkadot:91b171bb158e2d3848fa23a9f1c25182 | JsonRpc2 | SubstrateJsonRpc | BrowserDirect | GenericRead | 1 | 1 |
+| `PolkadotInjectedWeb3_WalletApi` | `PolkadotInjectedWeb3` | LocalDevice:polkadot-injected-web3 | WalletProvider | WalletApi | BrowserDirect | WalletAccountRead, WalletSign | 0 | 1 |
+| `PolkadotRfcs_Github` | `PolkadotRfcs` | GitRepository:polkadot-fellows/RFCs@main:text | HttpRest | GithubContentsApi | BrowserDirect | GithubRepositoryContents | 0 | 2 |
+| `Pontem_WalletApi` | `Pontem` | LocalDevice:pontem | WalletProvider | WalletApi | BrowserDirect | WalletAccountRead, WalletSign | 0 | 1 |
+| `Primal_Rest` | `Primal` | Global:primal-api | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `Pyth_EvmContract` | `Pyth` | Eip155Chain:configured-chain | InProcess | CatalogRows | BrowserDirect | GenericRead | 0 | 1 |
+| `Pyth_SolanaProgram` | `Pyth` | Caip2Network:solana | InProcess | CatalogRows | BrowserDirect | GenericRead | 0 | 1 |
+| `PythHermes_Rest` | `Pyth` | Global:pyth-hermes | HttpRest | RestJson | HttpProxy | GenericRead | 0 | 1 |
+| `PythBenchmarks_Rest` | `Pyth` | Global:pyth-benchmarks | HttpRest | RestJson | HttpProxy | GenericRead | 0 | 1 |
+| `PythPriceFeedsCatalog_Rest` | `Pyth` | Global:pyth-price-feeds-catalog | HttpRest | RestJson | HttpProxy | GenericRead | 0 | 1 |
+| `QuilibriumDocs_Rest` | `QuilibriumDocs` | Global:docs | HttpRest | RestJson | BrowserDirect | GenericRead | 0 | 2 |
+| `QuilibriumNode_Grpc` | `QuilibriumNode` | Caip2Network:quilibrium | Grpc | GrpcService | ServerOnly | GenericRead | 1 | 1 |
+| `QuilibriumNodeMetrics_Prometheus` | `QuilibriumNodeMetrics` | LocalDevice:configured-quilibrium-node | Prometheus | PrometheusText | ServerOnly | GenericRead | 0 | 1 |
+| `QuilibriumNodeRpc_Grpc` | `QuilibriumNodeRpc` | Caip2Network:quilibrium | Grpc | GrpcService | ServerOnly | GenericRead | 1 | 1 |
+| `Radicle_Local` | `Radicle` | GitRepository:configured-radicle-repository | LocalFile | GitObject | LocalOnly | GitRepositoryContents, RepositoryMetadata | 0 | 1 |
+| `Radicle_Remote` | `Radicle` | GitRepository:configured-radicle-repository | HttpRest | RestJson | RemoteQuery | RepositoryMetadata | 0 | 1 |
+| `RadicleCli_Local` | `RadicleCli` | LocalDevice:radicle-cli | InProcess | LocalParser | LocalOnly | RepositoryMetadata | 0 | 1 |
+| `RadicleNode_Control` | `RadicleNode` | LocalDevice:radicle-node | HttpRest | RestJson | ServerOnly | RepositoryMetadata | 0 | 1 |
+| `Reddit_Rest` | `Reddit` | Global:oauth-api | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 2 |
+| `Reddit_PublicJson` | `RedditPublic` | Global:reddit-public-json | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `Reservoir_Rest` | `Reservoir` | Global:reservoir-api | HttpRest | RestJson | ServerOnly | GenericRead | 0 | 1 |
+| `Reth_JsonRpc` | `Reth` | Eip155Chain:configured-chain | JsonRpc2 | EvmExecutionJsonRpc | LocalOnly | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Rss_Rest` | `Rss` | Feed:https://hnrss.org | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `Rss_Rest` | `Rss` | Feed:https://feeds.bbci.co.uk | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `Rss2Json_Rest` | `Rss2Json` | Global:rss2json | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `SigstoreRekor_Rest` | `SigstoreRekor` | Global:transparency-log | HttpRest | SigstoreRekorApi | RemoteQuery | AiArtifactCatalog, GenericRead | 0 | 1 |
+| `Snapchain_Rest` | `Snapchain` | Global:farcaster-snapchain | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 4 |
+| `Solana_JsonRpc` | `Solana` | Caip2Network:solana:mainnet | JsonRpc2 | SolanaJsonRpc | HttpProxy | GenericRead | 1 | 1 |
+| `Solana_JsonRpc` | `Solana` | Caip2Network:solana:mainnet | JsonRpc2 | SolanaJsonRpc | RemoteLive | GenericSubscribe | 1 | 1 |
+| `SolanaMobileWalletAdapter_WalletApi` | `SolanaMobileWalletAdapter` | LocalDevice:solana-mobile-wallet-adapter | WalletProvider | WalletApi | BrowserDirect | WalletAccountRead, WalletSign | 0 | 1 |
+| `SolanaSimds_Github` | `SolanaSimds` | GitRepository:solana-foundation/solana-improvement-documents@main:proposals | HttpRest | GithubContentsApi | BrowserDirect | GithubRepositoryContents | 0 | 2 |
+| `Sourcify_Rest` | `Sourcify` | Global:repository | HttpRest | SourcifyRestV2 | HttpProxy | GenericRead | 1 | 1 |
+| `SpdxDocument_Local` | `Spdx` | LocalDevice:spdx-document | LocalFile | LocalParser | LocalOnly | AiArtifactCatalog, DocumentClaimExtraction | 0 | 1 |
+| `Starknet_JsonRpc` | `Starknet` | Caip2Network:starknet | JsonRpc2 | StarknetJsonRpc | RemoteQuery | GenericRead | 0 | 1 |
+| `Starkscan_Rest` | `Starkscan` | Global:starkscan-api | HttpRest | RestJson | RemoteQuery | GenericRead | 0 | 1 |
+| `StellarExpert_Rest` | `StellarExpert` | Global:stellar-expert-api | HttpRest | RestJson | HttpProxy | GenericRead | 0 | 1 |
+| `StellarHorizon_Rest` | `StellarHorizon` | Global:stellar-public-horizon | HttpRest | RestJson | HttpProxy | GenericRead | 0 | 1 |
+| `StellarRpc_JsonRpc` | `StellarRpc` | Caip2Network:stellar | JsonRpc2 | JsonRpcApi | RemoteQuery | GenericRead | 0 | 1 |
+| `StellarToml_Rest` | `StellarToml` | Global:stellar-toml | HttpRest | RestJson | RemoteQuery | GenericRead | 0 | 1 |
+| `StoicWallet_WalletApi` | `StoicWallet` | LocalDevice:stoic-wallet | WalletProvider | WalletApi | BrowserDirect | WalletAccountRead, WalletSign | 0 | 1 |
+| `Subscan_Rest` | `Subscan` | Caip2Network:polkadot:91b171bb158e2d3848fa23a9f1c25182 | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `SubstrateSidecar_Rest` | `SubstrateSidecar` | LocalDevice:substrate-sidecar | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `Sui_Graphql` | `Sui` | Caip2Network:sui | Graphql | GraphqlHttp | RemoteQuery | GenericRead | 1 | 1 |
+| `Sui_Grpc` | `Sui` | Caip2Network:sui | Grpc | GrpcService | ServerOnly | GenericRead | 0 | 1 |
+| `Sui_JsonRpc` | `Sui` | Caip2Network:sui | JsonRpc2 | JsonRpcApi | RemoteQuery | GenericRead | 0 | 1 |
+| `Superchain_Github` | `Superchain` | GitRepository:ethereum-optimism/superchain-registry@main:chainList.json | HttpRest | GithubContentsApi | BrowserDirect | GithubRepositoryContents | 0 | 2 |
+| `Swarm_Rest` | `Swarm` | ContentAddressScheme:swarm | HttpRest | SwarmGateway | HttpProxy | ContentGatewayRead | 0 | 2 |
+| `TezosDappetizer_Postgres` | `TezosDappetizer` | SqlDataset:configured-dataset | Sql | Postgres | ServerOnly | GenericRead | 0 | 1 |
+| `TezosNode_Rpc` | `TezosNode` | Caip2Network:tezos | HttpRest | TezosNodeRpc | RemoteQuery | GenericRead | 0 | 1 |
+| `TheGraph_Graphql` | `TheGraph` | Global:ens-subgraph | Graphql | GraphqlHttp | HttpProxy | GenericRead | 4 | 1 |
+| `ThreeXpl_Rest` | `ThreeXpl` | Global:json-api | HttpRest | RestJson | BrowserDirect | GenericRead | 1 | 2 |
+| `TonApi_Rest` | `TonApi` | Global:tonapi | HttpRest | RestJson | RemoteQuery | GenericRead | 0 | 1 |
+| `TonCenter_V2_Rest` | `TonCenter` | Global:toncenter-v2 | HttpRest | RestJson | RemoteQuery | GenericRead | 0 | 1 |
+| `TonCenter_V3_Rest` | `TonCenter` | Global:toncenter-v3 | HttpRest | RestJson | RemoteQuery | GenericRead | 0 | 1 |
+| `TonConnect_WalletApi` | `TonConnect` | LocalDevice:tonconnect | WalletProvider | WalletApi | BrowserDirect | WalletAccountRead, WalletSign | 0 | 1 |
+| `TonLiteServer_Adnl` | `TonLiteServer` | Caip2Network:ton | Adnl | TonLiteServerAdnl | ServerOnly | GenericRead | 0 | 1 |
+| `TonVerifier_Rest` | `TonVerifier` | Global:ton-verifier | HttpRest | RestJson | RemoteQuery | GenericRead | 0 | 1 |
+| `Tonlib_JsonRpc` | `Tonlib` | Caip2Network:ton | JsonRpc2 | JsonRpcApi | RemoteQuery | GenericRead | 0 | 1 |
+| `TradingView_Rest` | `TradingView` | Global:crypto-scanner | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `TransmissionRpc_JsonRpc` | `Transmission` | LocalDevice:configured-transmission-client | HttpRest | BitTorrentClient | LocalOnly | GenericRead | 0 | 1 |
+| `TronFullNode_Rest` | `TronFullNode` | LocalDevice:tron-full-node | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `TronGrid_Rest` | `TronGrid` | Caip2Network:tron:mainnet | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `TronLink_WalletApi` | `TronLink` | LocalDevice:tronlink | WalletProvider | WalletApi | BrowserDirect | WalletAccountRead, WalletSign | 0 | 1 |
+| `TronScan_Rest` | `TronScan` | Caip2Network:tron:mainnet | HttpRest | RestJson | BrowserDirect | GenericRead | 1 | 1 |
+| `TronSolidityNode_Rest` | `TronSolidityNode` | LocalDevice:tron-solidity-node | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `TronTip1193_WalletApi` | `TronTip1193` | LocalDevice:tron-tip1193 | WalletProvider | WalletApi | BrowserDirect | WalletAccountRead, WalletSign | 0 | 1 |
+| `TronTip6963_WalletApi` | `TronTip6963` | LocalDevice:tron-tip6963 | WalletProvider | WalletApi | BrowserDirect | WalletAccountRead, WalletSign | 0 | 1 |
+| `TrustWalletAssets_Github` | `TrustWalletAssets` | GitRepository:trustwallet/assets@master:blockchains | HttpRest | GithubContentsApi | BrowserDirect | GithubRepositoryContents | 0 | 2 |
+| `Tzkt_Rest` | `Tzkt` | Global:tzkt-api | HttpRest | RestJson | HttpProxy | GenericRead | 0 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:1 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 6 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:1 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 4 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:10 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:10 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:50 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:50 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:51 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:51 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:56 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:56 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:130 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:130 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:137 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:137 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:143 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:143 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:146 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:146 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:300 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:300 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:324 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:324 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:480 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:480 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:998 | JsonRpc2 | EvmExecutionJsonRpc | BrowserDirect | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:998 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:999 | JsonRpc2 | EvmExecutionJsonRpc | BrowserDirect | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:999 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:1301 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:1301 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:1328 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:1328 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:1329 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:1329 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:4801 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:4801 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:8453 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 2 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:8453 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 2 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:10143 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:10143 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:14601 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:14601 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:42161 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:42161 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:42220 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:42220 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:43113 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:43113 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:43114 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:43114 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:57073 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:57073 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:59141 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:59141 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:59144 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:59144 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:80002 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:80002 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:81224 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:81224 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:84532 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:84532 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:98866 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:98866 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:98867 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:98867 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:421614 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:421614 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:763373 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:763373 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:812242 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:812242 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:5042002 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:5042002 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:11142220 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:11142220 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:11155111 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:11155111 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:11155420 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | 2 | 1 |
+| `Voltaire_JsonRpc` | `Voltaire` | Eip155Chain:11155420 | JsonRpc2 | EvmExecutionJsonRpc | RemoteLive | EvmRpcSubscribe | 2 | 1 |
+| `Voyager_Rest` | `Voyager` | Global:voyager-api | HttpRest | RestJson | RemoteQuery | GenericRead | 0 | 1 |
+| `WakuNode_Rest` | `WakuNode` | LocalDevice:waku-node | HttpRest | RestJson | LocalOnly | GenericRead, GenericSubscribe | 0 | 1 |
+| `WalletConnect_SignClient` | `WalletConnect` | LocalDevice:walletconnect-sign-client | WalletProvider | WalletApi | BrowserDirect | WalletAccountRead, WalletSign | 0 | 1 |
+| `WalletStandard_WalletApi` | `WalletStandard` | LocalDevice:wallet-standard | WalletProvider | WalletApi | BrowserDirect | WalletAccountRead, WalletSign | 0 | 1 |
+| `WebTorrent_Client` | `WebTorrent` | LocalDevice:webtorrent-client | InProcess | WebTorrentApi | BrowserDirect | GenericRead, BitTorrentAnnounce | 0 | 1 |
+| `WebTorrent_Dht` | `WebTorrent` | TorrentSwarm:webtorrent-dht | InProcess | BitTorrentDht | BrowserDirect | BitTorrentDhtLookup | 0 | 1 |
+| `WebTorrent_Tracker` | `WebTorrent` | TorrentSwarm:webtorrent-tracker | WebSocketMessages | BitTorrentTracker | RemoteLive | BitTorrentAnnounce, GenericSubscribe | 0 | 1 |
+| `Wormholescan_Rest` | `Wormholescan` | Global:wormholescan-api | HttpRest | RestJson | RemoteQuery | GenericRead | 0 | 1 |
+| `X_Rest` | `X` | Global:api-v2 | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `X402_Http` | `X402` | Global:x402-http | RawHttp | X402Protocol | RemoteQuery | PaymentNegotiation, GenericRead | 0 | 1 |
+| `Xaman_Api` | `Xaman` | LocalDevice:xaman | WalletProvider | WalletApi | BrowserDirect | WalletAccountRead, WalletSign | 0 | 1 |
+| `Xmtp_BrowserSdk` | `Xmtp` | Global:xmtp | InProcess | XmtpClientApi | BrowserDirect | GenericRead, GenericSubscribe | 0 | 1 |
+| `Xmtp_NodeSdk` | `Xmtp` | Global:xmtp | InProcess | XmtpClientApi | ServerOnly | GenericRead, GenericSubscribe | 0 | 1 |
+| `XrpScan_Rest` | `XrpScan` | Global:xrpscan-api | HttpRest | RestJson | HttpProxy | GenericRead | 0 | 1 |
+| `Xrpl_Rippled` | `Xrpl` | Caip2Network:xrpl | JsonRpc2 | JsonRpcApi | RemoteQuery | GenericRead | 0 | 1 |
+| `XrplClio_JsonRpc` | `XrplClio` | Caip2Network:xrpl | JsonRpc2 | JsonRpcApi | RemoteQuery | GenericRead | 0 | 1 |
+| `XrplClio_JsonRpc` | `XrplClio` | Caip2Network:xrpl | JsonRpc2 | JsonRpcApi | RemoteLive | GenericRead, GenericSubscribe | 0 | 1 |
+| `Youtube_Rest` | `Youtube` | Global:data-api-v3 | HttpRest | RestJson | HttpProxy | GenericRead | 2 | 1 |
+| `ZcashClientBackend_Local` | `ZcashClientBackend` | LocalDevice:zcash-client-backend | LocalFile | LocalStateStore | LocalOnly | GenericRead | 0 | 1 |
+| `ZcashLightwalletd_Grpc` | `ZcashLightwalletd` | Caip2Network:zcash | Grpc | GrpcService | ServerOnly | GenericRead | 2 | 1 |
+| `ZcashZips_Github` | `ZcashZips` | GitRepository:zcash/zips@master:zips | HttpRest | GithubContentsApi | BrowserDirect | GithubRepositoryContents | 0 | 2 |
+| `Zcashd_JsonRpc` | `Zcashd` | Caip2Network:bip122:00040fe8ec8471911baa1db1266ea15d | JsonRpc2 | BitcoinJsonRpc | LocalOnly | GenericRead | 0 | 1 |
+| `ZcashdWallet_JsonRpc` | `Zcashd` | LocalDevice:wallet-rpc | JsonRpc2 | JsonRpcApi | LocalOnly | WalletAccountRead, WalletSign | 0 | 1 |
+| `Zebra_JsonRpc` | `Zebra` | Caip2Network:bip122:00040fe8ec8471911baa1db1266ea15d | JsonRpc2 | BitcoinJsonRpc | LocalOnly | GenericRead | 0 | 1 |
+| `ZeroExSwap_Rest` | `ZeroExSwap` | Global:zero-ex-swap-api | HttpRest | RestJson | ServerOnly | GenericRead | 0 | 1 |
+| `ZeroGChain_JsonRpc` | `ZeroG` | Eip155Chain:16661 | JsonRpc2 | EvmExecutionJsonRpc | HttpProxy | EvmRpcCore | 2 | 1 |
+| `ZeroGChainScan_Rest` | `ZeroG` | Eip155Chain:16661 | HttpRest | RestJson | BrowserDirect | GenericRead | 1 | 1 |
+| `ZeroGStorageNode_JsonRpc` | `ZeroG` | LocalDevice:local-0g-storage-node | JsonRpc2 | JsonRpcApi | LocalOnly | GenericRead | 1 | 1 |
+| `ZeroGStorageScan_Rest` | `ZeroG` | Global:0g-storage-scan | HttpRest | RestJson | BrowserDirect | GenericRead | 1 | 1 |
+| `qBittorrentWebUi_Rest` | `qBittorrentWebUi` | LocalDevice:configured-qbittorrent-client | HttpRest | BitTorrentClient | LocalOnly | GenericRead | 0 | 1 |
+
+## Runtime Artifacts
+
+| Source | Kind | Path | Generated |
+|---|---|---|---|
+| `A2aWellKnown_Http` | HandwrittenTypes | `src/sources/A2a/Http/types.ts` | no |
+| `A2aService_Http` | HandwrittenTypes | `src/sources/A2a/Http/types.ts` | no |
+| `AcpRegistry_Rest` | HandwrittenTypes | `src/sources/Acp/Rest/types.ts` | no |
+| `Allium_Rest` | HandwrittenTypes | `src/sources/Allium/Rest/types.ts` | no |
+| `Amboss_Graphql` | GraphqlSchema | `src/sources/Amboss/Graphql/schema.graphql` | yes |
+| `Amboss_Graphql` | GenerationManifest | `src/sources/Amboss/Graphql/schema-source.ts` | no |
+| `Amboss_Graphql` | GraphqlTypes | `src/sources/Amboss/Graphql/graphql-env.d.ts` | yes |
+| `AptosIndexer_Graphql` | GraphqlSchema | `src/sources/AptosIndexer/Graphql/introspection.json` | no |
+| `AptosIndexer_Graphql` | GenerationManifest | `src/sources/AptosIndexer/Graphql/schema-source.ts` | no |
+| `Arweave_Rest` | HandwrittenTypes | `src/sources/Arweave/Rest/types.ts` | no |
+| `Atproto_Xrpc` | Lexicon | `src/sources/AtprotoBsky/Lexicon` | no |
+| `Atproto_Xrpc` | GenerationManifest | `src/sources/AtprotoBsky/Lexicon/schema-source.ts` | no |
+| `Atproto_BskySocial_Xrpc` | Lexicon | `src/sources/AtprotoBskySocial/Lexicon` | no |
+| `Atproto_BskySocial_Xrpc` | GenerationManifest | `src/sources/AtprotoBskySocial/Lexicon/schema-source.ts` | no |
+| `Beacon_Rest` | OpenApiSpec | `src/sources/Beacon/OpenApi/beacon-node-oapi.yaml` | no |
+| `Beacon_Rest` | GenerationManifest | `src/sources/Beacon/OpenApi/schema-source.ts` | no |
+| `Beacon_Rest` | OpenApiTypes | `src/sources/Beacon/OpenApi/openapi.d.ts` | yes |
+| `Beacon_Rest` | OpenApiSpec | `src/sources/Beacon/OpenApi/beacon-node-oapi.yaml` | no |
+| `Beacon_Rest` | GenerationManifest | `src/sources/Beacon/OpenApi/schema-source.ts` | no |
+| `Beacon_Rest` | OpenApiTypes | `src/sources/Beacon/OpenApi/openapi.d.ts` | yes |
+| `Beacon_Rest` | OpenApiSpec | `src/sources/Beacon/OpenApi/beacon-node-oapi.yaml` | no |
+| `Beacon_Rest` | GenerationManifest | `src/sources/Beacon/OpenApi/schema-source.ts` | no |
+| `Beacon_Rest` | OpenApiTypes | `src/sources/Beacon/OpenApi/openapi.d.ts` | yes |
+| `BeaconchaIn_Rest` | HandwrittenTypes | `src/sources/BeaconchaIn/Rest/types.ts` | no |
+| `BeaconchaIn_Rest` | HandwrittenTypes | `src/sources/BeaconchaIn/Rest/types.ts` | no |
+| `BeaconchaIn_Rest` | HandwrittenTypes | `src/sources/BeaconchaIn/Rest/types.ts` | no |
+| `Bittensor_JsonRpc` | HandwrittenTypes | `src/sources/Bittensor/JsonRpc/types.ts` | no |
+| `Blobscan_Rest` | HandwrittenTypes | `src/sources/Blobscan/Rest/types.ts` | no |
+| `Blobscan_Rest` | HandwrittenTypes | `src/sources/Blobscan/Rest/types.ts` | no |
+| `Blobscan_Rest` | HandwrittenTypes | `src/sources/Blobscan/Rest/types.ts` | no |
+| `Blobscan_Rest` | HandwrittenTypes | `src/sources/Blobscan/Rest/types.ts` | no |
+| `Blockfrost_Rest` | OpenApiSpec | `src/sources/Blockfrost/OpenApi/openapi.yaml` | no |
+| `Blockfrost_Rest` | GenerationManifest | `src/sources/Blockfrost/OpenApi/schema-source.ts` | no |
+| `Blockfrost_Rest` | OpenApiTypes | `src/sources/Blockfrost/OpenApi/openapi.d.ts` | yes |
+| `CardanoBlockfrost_Rest` | OpenApiSpec | `src/sources/CardanoBlockfrost/OpenApi/openapi.yaml` | no |
+| `CardanoBlockfrost_Rest` | GenerationManifest | `src/sources/CardanoBlockfrost/OpenApi/schema-source.ts` | no |
+| `CardanoBlockfrost_Rest` | OpenApiTypes | `src/sources/CardanoBlockfrost/OpenApi/openapi.d.ts` | yes |
+| `CashuMint_Rest` | HandwrittenTypes | `src/sources/Cashu/Mint/Rest/types.ts` | no |
+| `Chainlist_Rest` | HandwrittenTypes | `src/sources/Chainlist/Rest/types.ts` | no |
+| `CoinMarketCap_Rest` | HandwrittenTypes | `src/sources/CoinMarketCap/Rest/types.ts` | no |
+| `Coingecko_OpenApi` | OpenApiSpec | `src/sources/Coingecko/OpenApi/coingecko-demo.json` | no |
+| `Coingecko_OpenApi` | GenerationManifest | `src/sources/Coingecko/OpenApi/schema-source.ts` | no |
+| `Coingecko_OpenApi` | OpenApiTypes | `src/sources/Coingecko/OpenApi/openapi.d.ts` | yes |
+| `Coingecko_Rest` | HandwrittenTypes | `src/sources/Coingecko/Rest/types.ts` | no |
+| `Coinpaprika_OpenApi` | OpenApiSpec | `src/sources/Coinpaprika/OpenApi/openapi.yml` | no |
+| `Coinpaprika_OpenApi` | GenerationManifest | `src/sources/Coinpaprika/OpenApi/schema-source.ts` | no |
+| `Coinpaprika_OpenApi` | OpenApiTypes | `src/sources/Coinpaprika/OpenApi/openapi.d.ts` | yes |
+| `CometBft_Rest` | HandwrittenTypes | `src/sources/CometBft/Rest/types.ts` | no |
+| `CosmosSdk_Rest` | HandwrittenTypes | `src/sources/CosmosSdk/Rest/types.ts` | no |
+| `Defillama_OpenApi` | OpenApiSpec | `src/sources/Defillama/OpenApi/openapi.json` | no |
+| `Defillama_OpenApi` | GenerationManifest | `src/sources/Defillama/OpenApi/schema-source.ts` | no |
+| `Defillama_OpenApi` | OpenApiTypes | `src/sources/Defillama/OpenApi/openapi.d.ts` | yes |
+| `Defillama_Rest` | HandwrittenTypes | `src/sources/Defillama/Rest/types.ts` | no |
+| `Dexscreener_OpenApi` | OpenApiSpec | `src/sources/Dexscreener/OpenApi/openapi.yml` | no |
+| `Dexscreener_OpenApi` | GenerationManifest | `src/sources/Dexscreener/OpenApi/schema-source.ts` | no |
+| `Dexscreener_OpenApi` | OpenApiTypes | `src/sources/Dexscreener/OpenApi/openapi.d.ts` | yes |
+| `Dune_Rest` | HandwrittenTypes | `src/sources/Dune/Rest/types.ts` | no |
+| `EasScan_Graphql` | HandwrittenTypes | `src/sources/EasScan/Graphql/types.ts` | no |
+| `EigenLayerSubgraph_Graphql` | HandwrittenTypes | `src/sources/EigenLayerSubgraph/Graphql/types.ts` | no |
+| `Eip8004Scan_Rest` | HandwrittenTypes | `src/sources/Eip8004Scan/Rest/types.ts` | no |
+| `Erigon_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Erigon_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `EthereumLists_Rest` | HandwrittenTypes | `src/sources/EthereumLists/Rest/types.ts` | no |
+| `Etherscan_Rest` | HandwrittenTypes | `src/sources/Etherscan/Rest/types.ts` | no |
+| `Farcaster_Rest` | HandwrittenTypes | `src/sources/Farcaster/Rest/types.ts` | no |
+| `Fedi_Rest` | HandwrittenTypes | `src/sources/Mastodon/Rest/types.ts` | no |
+| `Filfox_Rest` | HandwrittenTypes | `src/sources/Filfox/Rest/types.ts` | no |
+| `X_FxEmbed_Rest` | HandwrittenTypes | `src/sources/FxEmbed/Rest/types.ts` | no |
+| `HederaSdk_Grpc` | Proto | `src/sources/HederaSdk/Grpc/proto` | no |
+| `HederaSdk_Grpc` | GenerationManifest | `src/sources/HederaSdk/Grpc/schema-source.ts` | no |
+| `Helius_Rest` | HandwrittenTypes | `src/sources/Helius/Rest/types.ts` | no |
+| `Hyperliquid_Rest` | HandwrittenTypes | `src/sources/Hyperliquid/Rest/types.ts` | no |
+| `Hyperliquid_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Hyperliquid_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `KaspaNode_Grpc` | Proto | `src/sources/KaspaNode/Grpc/proto` | no |
+| `KaspaNode_Grpc` | GenerationManifest | `src/sources/KaspaNode/Grpc/schema-source.ts` | no |
+| `L2Beat_Rest` | HandwrittenTypes | `src/sources/L2Beat/Rest/types.ts` | no |
+| `Lens_Graphql` | GraphqlSchema | `src/sources/Lens/Graphql/schema.graphql` | no |
+| `Lens_Graphql` | GenerationManifest | `src/sources/Lens/Graphql/schema-source.ts` | no |
+| `Lens_Graphql` | GraphqlTypes | `src/sources/Lens/Graphql/graphql-env.d.ts` | yes |
+| `Lifi_Rest` | OpenApiSpec | `src/sources/Lifi/OpenApi/openapi.yaml` | no |
+| `Lifi_Rest` | GenerationManifest | `src/sources/Lifi/OpenApi/schema-source.ts` | no |
+| `LightningLnd_Rest` | HandwrittenTypes | `src/sources/LightningLnd/Rest/types.ts` | no |
+| `LightningMempoolSpace_Rest` | HandwrittenTypes | `src/sources/LightningMempoolSpace/Rest/types.ts` | no |
+| `LogosDocs_Rest` | HandwrittenTypes | `src/sources/LogosDocs/Rest/types.ts` | no |
+| `Lotus_JsonRpc` | HandwrittenTypes | `src/sources/Lotus/JsonRpc/types.ts` | no |
+| `Lotus_JsonRpc` | HandwrittenTypes | `src/sources/Lotus/JsonRpc/types.ts` | no |
+| `Mastodon_Rest` | HandwrittenTypes | `src/sources/Mastodon/Rest/types.ts` | no |
+| `MetadataVision_Rest` | HandwrittenTypes | `src/sources/MetadataVision/Rest/types.ts` | no |
+| `MevRelay_Rest` | HandwrittenTypes | `src/sources/MevRelay/Rest/types.ts` | no |
+| `MevRelay_Rest` | HandwrittenTypes | `src/sources/MevRelay/Rest/types.ts` | no |
+| `MevRelay_Rest` | HandwrittenTypes | `src/sources/MevRelay/Rest/types.ts` | no |
+| `MoneroDaemonRpc_JsonRpc` | HandwrittenTypes | `src/sources/MoneroDaemonRpc/JsonRpc/types.ts` | no |
+| `MoneroDaemonRpc_JsonRpc` | HandwrittenTypes | `src/sources/MoneroDaemonRpc/JsonRpc/types.ts` | no |
+| `NearBlocks_Rest` | HandwrittenTypes | `src/sources/NearBlocks/Rest/types.ts` | no |
+| `NearRpc_JsonRpc` | HandwrittenTypes | `src/sources/NearRpc/JsonRpc/types.ts` | no |
+| `Neynar_Rest` | OpenApiSpec | `src/sources/Neynar/OpenApi/openapi.yaml` | no |
+| `Neynar_Rest` | GenerationManifest | `src/sources/Neynar/OpenApi/schema-source.ts` | no |
+| `Neynar_Rest` | OpenApiTypes | `src/sources/Neynar/OpenApi/openapi.d.ts` | yes |
+| `NostrBand_Rest` | HandwrittenTypes | `src/sources/NostrBand/Rest/types.ts` | no |
+| `NostrRelay_Nip11_Http` | HandwrittenTypes | `src/sources/NostrRelay/Http/types.ts` | no |
+| `NostrRelay_WebSocket` | HandwrittenTypes | `src/sources/NostrRelay/WebSocket/types.ts` | no |
+| `OpenSea_Rest` | OpenApiSpec | `src/sources/OpenSea/OpenApi/openapi.json` | no |
+| `OpenSea_Rest` | GenerationManifest | `src/sources/OpenSea/OpenApi/schema-source.ts` | no |
+| `OpenSea_Rest` | OpenApiTypes | `src/sources/OpenSea/OpenApi/openapi.d.ts` | yes |
+| `Openchain_Rest` | HandwrittenTypes | `src/sources/Openchain/Rest/types.ts` | no |
+| `PayjoinDirectory_Rest` | HandwrittenTypes | `src/sources/Payjoin/Directory/Rest/queries.ts` | no |
+| `Piped_Rest` | HandwrittenTypes | `src/sources/Piped/Rest/types.ts` | no |
+| `Polkadot_JsonRpc` | HandwrittenTypes | `src/sources/Polkadot/JsonRpc/types.ts` | no |
+| `Primal_Rest` | HandwrittenTypes | `src/sources/Primal/Rest/types.ts` | no |
+| `QuilibriumNode_Grpc` | HandwrittenTypes | `src/sources/QuilibriumNode/Grpc/types.ts` | no |
+| `QuilibriumNodeRpc_Grpc` | HandwrittenTypes | `src/sources/QuilibriumNodeRpc/Grpc/types.ts` | no |
+| `Reddit_Rest` | HandwrittenTypes | `src/sources/Reddit/Rest/types.ts` | no |
+| `Reddit_PublicJson` | HandwrittenTypes | `src/sources/RedditPublic/Rest/types.ts` | no |
+| `Reth_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Reth_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Rss_Rest` | HandwrittenTypes | `src/sources/Rss/Rest/types.ts` | no |
+| `Rss_Rest` | HandwrittenTypes | `src/sources/Rss/Rest/types.ts` | no |
+| `Rss2Json_Rest` | HandwrittenTypes | `src/sources/Rss2Json/Rest/types.ts` | no |
+| `Snapchain_Rest` | HandwrittenTypes | `src/sources/Snapchain/Rest/types.ts` | no |
+| `Solana_JsonRpc` | HandwrittenTypes | `src/sources/Solana/JsonRpc/types.ts` | no |
+| `Solana_JsonRpc` | HandwrittenTypes | `src/sources/Solana/JsonRpc/types.ts` | no |
+| `Sourcify_Rest` | HandwrittenTypes | `src/sources/Sourcify/Rest/types.ts` | no |
+| `Subscan_Rest` | HandwrittenTypes | `src/sources/Subscan/Rest/types.ts` | no |
+| `SubstrateSidecar_Rest` | HandwrittenTypes | `src/sources/SubstrateSidecar/Rest/types.ts` | no |
+| `Sui_Graphql` | HandwrittenTypes | `src/sources/Sui/Graphql/types.ts` | no |
+| `TheGraph_Graphql` | GraphqlSchema | `src/sources/TheGraph/Graphql/Ens/schema.graphql` | no |
+| `TheGraph_Graphql` | GraphqlSchema | `src/sources/TheGraph/Graphql/Ens/schema.patch.graphql` | no |
+| `TheGraph_Graphql` | GenerationManifest | `src/sources/TheGraph/Graphql/Ens/schema-source.ts` | no |
+| `TheGraph_Graphql` | GraphqlTypes | `src/sources/TheGraph/Graphql/Ens/graphql-env.d.ts` | yes |
+| `ThreeXpl_Rest` | HandwrittenTypes | `src/sources/ThreeXpl/Rest/types.ts` | no |
+| `TradingView_Rest` | HandwrittenTypes | `src/sources/TradingView/Rest/types.ts` | no |
+| `TronFullNode_Rest` | HandwrittenTypes | `src/sources/TronGrid/Rest/types.ts` | no |
+| `TronGrid_Rest` | HandwrittenTypes | `src/sources/TronGrid/Rest/types.ts` | no |
+| `TronScan_Rest` | HandwrittenTypes | `src/sources/TronScan/Rest/types.ts` | no |
+| `TronSolidityNode_Rest` | HandwrittenTypes | `src/sources/TronGrid/Rest/types.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `Voltaire_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `Voltaire_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `X_Rest` | HandwrittenTypes | `src/sources/X/Rest/types.ts` | no |
+| `Youtube_Rest` | GoogleDiscovery | `src/sources/Youtube/Discovery/youtube-v3.json` | no |
+| `Youtube_Rest` | GenerationManifest | `src/sources/Youtube/Discovery/schema-source.ts` | no |
+| `ZcashLightwalletd_Grpc` | Proto | `src/sources/ZcashLightwalletd/Grpc/proto` | no |
+| `ZcashLightwalletd_Grpc` | GenerationManifest | `src/sources/ZcashLightwalletd/Grpc/schema-source.ts` | no |
+| `ZeroGChain_JsonRpc` | OpenRpcSpec | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src` | no |
+| `ZeroGChain_JsonRpc` | GenerationManifest | `src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts` | no |
+| `ZeroGChainScan_Rest` | HandwrittenTypes | `src/sources/ZeroG/ChainScan/Rest/types.ts` | no |
+| `ZeroGStorageNode_JsonRpc` | HandwrittenTypes | `src/sources/ZeroG/StorageNode/JsonRpc/types.ts` | no |
+| `ZeroGStorageScan_Rest` | HandwrittenTypes | `src/sources/ZeroG/StorageScan/Rest/types.ts` | no |

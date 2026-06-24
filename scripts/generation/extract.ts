@@ -755,14 +755,23 @@ const extractResolverFacts = (files: readonly WitnessFile[]) => (
 					}, 'resolver-registry-scan', lineIndex + 1)
 				}),
 				...linesOf(file.path).flatMap((line, lineIndex) => {
-					const coverageRowMatch = line.match(/^\| `([^`]+)` \| ([^|]+) \|/)
+					const coverageRowCells = line
+						.split('|')
+						.slice(1, -1)
+						.map((cell) => cell.trim())
+					const coverageSourceMatch = coverageRowCells[0]?.match(/^`([^`]+)`$/)
 
-					if (!coverageRowMatch)
+					if (!coverageSourceMatch || coverageRowCells.length !== 7)
 						return []
 
-					return fact(file, 'resolver.coverage-row', coverageRowMatch[1], {
-						source: coverageRowMatch[1],
-						status: coverageRowMatch[2].trim(),
+					return fact(file, 'resolver.coverage-row', coverageSourceMatch[1], {
+						source: coverageSourceMatch[1],
+						status: coverageRowCells[1],
+						providerBinding: coverageRowCells[2],
+						resolverFile: coverageRowCells[3],
+						sourceRuntimeArtifacts: coverageRowCells[4],
+						schemaEntitiesTouched: coverageRowCells[5],
+						actionValidationRisk: coverageRowCells[6],
 					}, 'resolver-coverage-table', lineIndex + 1)
 				}),
 				...linesOf(file.path).flatMap((line, lineIndex) => {
