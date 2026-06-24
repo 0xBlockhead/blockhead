@@ -9,50 +9,83 @@
 
 	// State
 	const view = {
-		closed: [
-			'sessionId',
+	closed: [
+		{
+			label: 'session id',
+		},
+		{
+			label: 'runtime',
+		},
+		{
+			label: 'workspace',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'session id',
+				},
+				{
+					label: 'runtime',
+				},
+				{
+					label: 'created/closed/deleted at',
+				},
+				{
+					label: 'workspace URI',
+				},
+			],
+			[
+				'mode',
+				'listed',
+				'status',
+				{
+					label: 'loaded-from session',
+				},
+				{
+					label: 'prompt turn/update/terminal refs',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'sessionId',
-					'createdAt',
-					'closedAt',
-					'deletedAt',
-					'loadedFromSessionId',
-					'workspaceUri',
-					'mode',
-					'listed',
-					'status',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Prompt turns',
+				items: [
+					{
+						label: 'AcpPromptTurn list',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'prompt turns',
-					when: 'open',
-					items: [
-						'$$promptTurns',
-					],
-				},
-				{
-					label: 'updates',
-					when: 'open',
-					items: [
-						'$$updates',
-					],
-				},
-				{
-					label: 'terminals',
-					when: 'open',
-					items: [
-						'$$terminals',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Updates',
+				items: [
+					{
+						label: 'AcpSessionUpdate list',
+					},
+				],
+			},
+			{
+				label: 'Terminals',
+				items: [
+					{
+						label: 'AcpTerminal list',
+					},
+				],
+			},
+			{
+				label: 'Runtime',
+				items: [
+					{
+						label: 'AcpAgentRuntime',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -1,15 +1,17 @@
 import { existsSync } from 'node:fs'
 
+import { APP } from '../../APP.ts'
 import { extract } from './extract.ts'
 import { factsToSelectorRouteMappings } from './assemble-app.ts'
 import { readText, writeJsonl, writeText } from './files.ts'
 import { inventoryWitnesses, roleCounts } from './inventory.ts'
 import {
 	conceptRowsFromFacts,
-	decisionRowsFromFacts,
-	patternRowsFromFacts,
+	decisionRowsFromApp,
+	patternRowsFromApp,
 } from './normalize.ts'
 import { generatedOwnership, ownershipSummary, staleGeneratedFiles } from './ownership.ts'
+import type { GeneratedOwnership } from './ownership.ts'
 import type { EvidenceFact } from './types.ts'
 
 type SchemaSelectorFact = EvidenceFact & {
@@ -64,9 +66,7 @@ const schemaSelectorKey = (selector: SchemaSelectorFact) => `${selector.value.en
 const routeSelectorKey = (mapping: SelectorRouteMapping) => `${mapping.entity}:${mapping.fields.join('+')}`
 
 const routeFamilyForSelectorMapping = (mapping: SelectorRouteMapping) => (
-	mapping.outcome === 'collision-disambiguated' ?
-		'collision-disambiguated'
-	: mapping.outcome === 'unresolved' || mapping.unresolved.some((issue) => !issue.startsWith('path-conflict:')) ?
+	mapping.outcome === 'unresolved' || mapping.unresolved.length > 0 ?
 		'unresolved'
 	: mapping.visiblePath?.includes('/by/$') || mapping.visiblePath?.includes('/by/by-') ?
 		'raw-selector-fallback'
@@ -181,6 +181,199 @@ const duplicatedHubRootRouteViolations = () => (
 		}))
 )
 
+const selectorMappingRoutePatternViolations = (
+	mappings: readonly SelectorRouteMapping[]
+) => (
+	mappings.flatMap((mapping) => {
+		const path = mapping.path ?? ''
+		const visiblePath = mapping.visiblePath ?? ''
+		return [
+			...(
+				/(^|\/)([a-z][a-z-]+)s\/\2(\/|$)/.test(path) || /(^|\/)([a-z][a-z-]+)s\/\2(\/|$)/.test(visiblePath) ?
+					[{
+						path: mapping.path ?? mapping.visiblePath ?? `${mapping.entity}:${mapping.selector}`,
+						line: 0,
+						text: 'selector mapping has adjacent plural/singular route path segment',
+					}]
+				:
+					[]
+			),
+			...(
+				path.includes('/by/$')
+				|| path.includes('/by/by-')
+				|| path.includes('/by/evm-coin-instance-evm-coin-instance-tool-key/')
+				|| /\/by\/[^/]+-[2-9](\/|$)/.test(path)
+				|| visiblePath.includes('/by/$')
+				|| visiblePath.includes('/by/by-')
+				|| visiblePath.includes('/by/evm-coin-instance-evm-coin-instance-tool-key/')
+				|| /\/by\/[^/]+-[2-9](\/|$)/.test(visiblePath) ?
+					[{
+						path: mapping.path ?? mapping.visiblePath ?? `${mapping.entity}:${mapping.selector}`,
+						line: 0,
+						text: 'selector mapping has raw selector discriminator route path',
+					}]
+				:
+					[]
+			),
+			...(
+				mapping.entity !== 'Network' && (
+					path.includes('[caip2=networkCaip2]')
+					|| visiblePath.includes('[caip2=networkCaip2]')
+				) ?
+					[{
+						path: mapping.path ?? mapping.visiblePath ?? `${mapping.entity}:${mapping.selector}`,
+						line: 0,
+						text: 'selector mapping uses generic network CAIP-2 matcher for protocol-specific entity',
+					}]
+				:
+					[]
+			),
+			...(
+				path.includes('/data/data/')
+				|| path.includes('/global/global/')
+				|| path.includes('/data/data.')
+				|| path.includes('/global/global.')
+				|| visiblePath.includes('/data/data/')
+				|| visiblePath.includes('/global/global/')
+				|| visiblePath.includes('/data/data.')
+				|| visiblePath.includes('/global/global.') ?
+					[{
+						path: mapping.path ?? mapping.visiblePath ?? `${mapping.entity}:${mapping.selector}`,
+						line: 0,
+						text: 'selector mapping has duplicated hub root route path',
+					}]
+				:
+					[]
+			),
+			...mapping.unresolved
+				.filter((issue) => issue.startsWith('path-conflict:'))
+				.map((issue) => ({
+					path: mapping.path ?? mapping.visiblePath ?? `${mapping.entity}:${mapping.selector}`,
+					line: 0,
+					text: `selector mapping has unresolved ${issue}`,
+				})),
+		]
+	})
+)
+
+type ViewQualityIssue = {
+	entity: string
+	kind:
+		| 'flat-dl'
+		| 'label-only-content'
+		| 'missing-summary'
+		| 'missing-list-contract'
+		| 'hand-owned-parity-target'
+	severity: 'high' | 'medium' | 'low'
+	detail: string
+}
+
+type AppViewDeclaration = {
+	summary?: unknown
+	media?: unknown
+	list?: unknown
+	lists?: unknown[]
+	latest?: unknown[]
+	metrics?: unknown[]
+	panels?: unknown[]
+	renderers?: unknown[]
+	content?: {
+		dl?: unknown[][]
+	}
+	details?: {
+		tabs?: {
+			label: string
+			items?: unknown[]
+		}[]
+	}
+}
+
+const viewQualityIssues = (
+	ownershipRows: readonly GeneratedOwnership[]
+): ViewQualityIssue[] => (
+	APP.schema.entities.flatMap((entity) => {
+		const view = JSON.parse(entity.view ?? '{}') as AppViewDeclaration
+		const dlGroups = view.content?.dl ?? []
+		const flatDlGroups = dlGroups.filter((group) => group.length >= 8)
+		const labelOnlyItems = dlGroups
+			.flat()
+			.filter((item) => (
+				item !== null
+				&& typeof item === 'object'
+				&& 'label' in item
+				&& !('field' in item)
+			))
+		const hasCuratedCapability = (
+			view.summary !== undefined
+			|| view.media !== undefined
+			|| view.latest !== undefined
+			|| view.metrics !== undefined
+			|| view.panels !== undefined
+			|| view.renderers !== undefined
+		)
+		const hasListRefField = entity.fields.some((field) => field.name.startsWith('$$'))
+		const hasListContract = view.list !== undefined || (view.lists?.length ?? 0) > 0
+		const entityView = APP.views.entityViews.find((viewRow) => viewRow.entity === entity.name && viewRow.kind === 'singular')
+		const generatedView = (
+			entityView !== undefined
+			&& ownershipRows.some((row) => row.kind === 'view' && row.activePath === entityView.file && row.ownership === 'generated')
+		)
+
+		return [
+			...flatDlGroups.map((group) => ({
+				entity: entity.name,
+				kind: 'flat-dl' as const,
+				severity: hasCuratedCapability ? 'high' as const : 'medium' as const,
+				detail: `single projected dl group has ${group.length} items`,
+			})),
+			...(
+				labelOnlyItems.length >= Math.max(4, dlGroups.flat().length / 2) ?
+					[{
+						entity: entity.name,
+						kind: 'label-only-content' as const,
+						severity: 'medium' as const,
+						detail: `${labelOnlyItems.length} content items are labels without executable field bindings`,
+					}]
+				:
+					[]
+			),
+			...(
+				hasCuratedCapability && view.summary === undefined && view.media === undefined ?
+					[{
+						entity: entity.name,
+						kind: 'missing-summary' as const,
+						severity: 'medium' as const,
+						detail: 'view declares richer capabilities but no summary/media title contract',
+					}]
+				:
+					[]
+			),
+			...(
+				hasListRefField && !hasListContract ?
+					[{
+						entity: entity.name,
+						kind: 'missing-list-contract' as const,
+						severity: 'low' as const,
+						detail: 'entity has many-reference fields but no APP list contract',
+					}]
+				:
+					[]
+			),
+			...(
+				entityView !== undefined && !generatedView ?
+					[{
+						entity: entity.name,
+						kind: 'hand-owned-parity-target' as const,
+						severity: 'high' as const,
+						detail: 'hand-owned view needs an explicit APP parity target before generation can subsume it',
+					}]
+				:
+					[]
+			),
+		]
+	})
+)
+
 export const audit = async () => {
 	await extract()
 
@@ -201,19 +394,20 @@ export const audit = async () => {
 	const ownershipRows = generatedOwnership()
 	const summary = ownershipSummary(ownershipRows)
 	const staleGeneratedRows = staleGeneratedFiles()
+	const unknownFiles = files.filter((file) => file.role === 'unknown')
+	const patternRows = patternRowsFromApp(APP)
+	const conceptRows = conceptRowsFromFacts(facts)
+	const decisionRows = decisionRowsFromApp(APP, facts)
+	const schemaSelectors = facts
+		.filter((fact): fact is SchemaSelectorFact => fact.kind === 'schema.selector-member' && fact.sourceFile.startsWith('src/schema/'))
+	const routeSelectorMappings = factsToSelectorRouteMappings(facts)
 	const routePatternViolations = [
 		...thingsThingPatternViolations(),
 		...rawSelectorRouteViolations(),
 		...protocolIncompatibleNetworkRouteViolations(),
 		...duplicatedHubRootRouteViolations(),
+		...selectorMappingRoutePatternViolations(routeSelectorMappings),
 	]
-	const unknownFiles = files.filter((file) => file.role === 'unknown')
-	const patternRows = patternRowsFromFacts(facts)
-	const conceptRows = conceptRowsFromFacts(facts)
-	const decisionRows = decisionRowsFromFacts(facts)
-	const schemaSelectors = facts
-		.filter((fact): fact is SchemaSelectorFact => fact.kind === 'schema.selector-member' && fact.sourceFile.startsWith('src/schema/'))
-	const routeSelectorMappings = factsToSelectorRouteMappings(facts)
 	const routeSelectorMappingKeys = new Set(routeSelectorMappings.map(routeSelectorKey))
 	const unmappedSelectors = schemaSelectors
 		.filter((selector) => !routeSelectorMappingKeys.has(schemaSelectorKey(selector)))
@@ -257,6 +451,7 @@ export const audit = async () => {
 		importedSymbols: transform.value.importedSymbols,
 		sourceFile: transform.sourceFile,
 	}))
+	const viewQualityRows = viewQualityIssues(ownershipRows)
 
 	writeJsonl('.generated/ledgers/schema.jsonl', facts.filter((fact) => fact.kind.startsWith('schema.')))
 	writeJsonl('.generated/ledgers/views.jsonl', facts.filter((fact) => fact.kind.startsWith('view.')))
@@ -270,6 +465,7 @@ export const audit = async () => {
 	writeJsonl('.generated/ledgers/resolvers.jsonl', facts.filter((fact) => fact.kind.startsWith('resolver.')))
 	writeJsonl('.generated/ledgers/invariants.jsonl', facts.filter((fact) => fact.kind.startsWith('invariant.')))
 	writeJsonl('.generated/ledgers/view-fidelity.jsonl', facts.filter((fact) => fact.kind === 'view.capability' || fact.kind === 'view.reference'))
+	writeJsonl('.generated/ledgers/view-quality.jsonl', viewQualityRows)
 	writeJsonl('.generated/ledgers/probes.jsonl', facts.filter((fact) => fact.kind.startsWith('test.')))
 	writeJsonl('.generated/ledgers/patterns.jsonl', patternRows)
 	writeJsonl('.generated/ledgers/concepts.jsonl', conceptRows)
@@ -306,6 +502,7 @@ export const audit = async () => {
 		`Unknown files: ${unknownFiles.length}`,
 		`Boundary violations: ${boundaryViolations.length}`,
 		`Route pattern violations: ${routePatternViolations.length}`,
+		`View quality issues: ${viewQualityRows.length}`,
 		`Stale generated files: ${staleGeneratedRows.length}`,
 		`Generated-owned rows: ${summary.generated}`,
 		`Hand-owned rows preserved: ${summary.handOwned}`,
@@ -320,6 +517,14 @@ export const audit = async () => {
 		'## Route Pattern Violations',
 		'',
 		...(routePatternViolations.length === 0 ? ['None'] : routePatternViolations.map((violation) => `- ${violation.path}`)),
+		'',
+		'## View Quality Issues',
+		'',
+		...(viewQualityRows.length === 0 ? ['None'] : [
+			...Object.entries(Object.groupBy(viewQualityRows, (row) => row.kind))
+				.sort(([left], [right]) => left.localeCompare(right))
+				.map(([kind, rows]) => `- ${kind}: ${rows?.length ?? 0}`),
+		]),
 		'',
 		'## Stale Generated Files',
 		'',
@@ -338,6 +543,38 @@ export const audit = async () => {
 		...Object.entries(Object.groupBy(routeLoaderTransformFamilies, (row) => row.family))
 			.sort(([left], [right]) => left.localeCompare(right))
 			.map(([family, rows]) => `- ${family}: ${rows?.length ?? 0}`),
+	].join('\n'))
+
+	writeText('.generated/reports/view-quality.md', [
+		'# View Quality',
+		'',
+		...Object.entries(Object.groupBy(viewQualityRows, (row) => row.kind))
+			.sort(([left], [right]) => left.localeCompare(right))
+			.map(([kind, rows]) => `- ${kind}: ${rows?.length ?? 0}`),
+		'',
+		'## High Severity',
+		'',
+		...(
+			viewQualityRows.filter((row) => row.severity === 'high').length === 0 ?
+				['None']
+			:
+				viewQualityRows
+					.filter((row) => row.severity === 'high')
+					.slice(0, 200)
+					.map((row) => `- ${row.entity}: ${row.kind} — ${row.detail}`)
+		),
+		'',
+		'## Medium Severity Sample',
+		'',
+		...(
+			viewQualityRows.filter((row) => row.severity === 'medium').length === 0 ?
+				['None']
+			:
+				viewQualityRows
+					.filter((row) => row.severity === 'medium')
+					.slice(0, 200)
+					.map((row) => `- ${row.entity}: ${row.kind} — ${row.detail}`)
+		),
 	].join('\n'))
 
 	writeText('.generated/reports/patterns.md', [
@@ -368,11 +605,17 @@ export const audit = async () => {
 	].join('\n'))
 
 	writeText('.generated/reports/decisions.md', [
-		'# Provisional Decisions',
+		'# Product Decisions',
 		'',
 		...Object.entries(Object.groupBy(decisionRows, (row) => row.decision))
 			.sort(([left], [right]) => left.localeCompare(right))
 			.map(([decision, rows]) => `- ${decision}: ${rows?.length ?? 0}`),
+		'',
+		'## Areas',
+		'',
+		...Object.entries(Object.groupBy(decisionRows, (row) => row.area))
+			.sort(([left], [right]) => left.localeCompare(right))
+			.map(([area, rows]) => `- ${area}: ${rows?.length ?? 0}`),
 	].join('\n'))
 
 	if (unknownFiles.length > 0 || boundaryViolations.length > 0 || routePatternViolations.length > 0 || unmappedSelectors.length > 0 || unresolvedSelectorMappings.length > 0) {

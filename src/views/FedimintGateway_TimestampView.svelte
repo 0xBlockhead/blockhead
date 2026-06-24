@@ -9,30 +9,106 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
+	closed: [
+		{
+			label: 'gateway',
+		},
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'gateway',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'reachability',
+				},
+				{
+					label: 'online state',
+				},
+				'version',
+				{
+					label: 'Lightning alias',
+				},
+				{
+					label: 'routing-fee summary',
+				},
+				{
+					label: 'federation count',
+				},
+				{
+					label: 'Lightning balance',
+				},
+				{
+					label: 'ecash balance',
+				},
+				{
+					label: 'on-chain balance',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'reachable',
-					'online',
-					'version',
-					'lightningAlias',
-					'routingFeesJson',
-					'federationsCount',
-					'lightningBalanceMsat',
-					'ecashBalanceMsat',
-					'onchainBalanceSats',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Gateway',
+				items: [
+					{
+						label: 'parent Fedimint gateway',
+					},
+				],
+			},
+			{
+				label: 'Federations',
+				items: [
+					{
+						label: 'federation ids/status known to the gateway',
+					},
+				],
+			},
+			{
+				label: 'Lightning',
+				items: [
+					{
+						label: 'alias',
+					},
+					{
+						label: 'routing fees',
+					},
+					{
+						label: 'balances',
+					},
 					'channelsJson',
+				],
+			},
+			{
+				label: 'Payments',
+				items: [
 					'paymentSummaryJson',
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Source',
+				items: [
+					{
+						label: 'endpoint',
+					},
+					{
+						label: 'freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

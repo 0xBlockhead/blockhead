@@ -9,47 +9,82 @@
 
 	// State
 	const view = {
-		closed: [
-			'scope',
+	closed: [
+		{
+			label: 'protocol',
+		},
+		{
+			label: 'registry',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'protocol',
+				},
+				{
+					label: 'registry',
+				},
+				{
+					label: 'home URL',
+				},
+				{
+					label: 'docs URL',
+				},
+				'topology',
+				{
+					label: 'topic count',
+				},
+				{
+					label: 'selector count',
+				},
+				{
+					label: 'error count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'scope',
-					'protocolName',
-					'homeUrl',
-					'docsUrl',
-					'registryLabel',
-					'topology',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Topics',
+				items: [
+					{
+						label: 'EvmTopic rows',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'evm topics',
-					when: 'open',
-					items: [
-						'$$evmTopics',
-					],
-				},
-				{
-					label: 'evm selectors',
-					when: 'open',
-					items: [
-						'$$evmSelectors',
-					],
-				},
-				{
-					label: 'evm errors',
-					when: 'open',
-					items: [
-						'$$evmErrors',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Selectors',
+				items: [
+					{
+						label: 'EvmSelector rows',
+					},
+				],
+			},
+			{
+				label: 'Errors',
+				items: [
+					{
+						label: 'EvmError rows',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'local signature catalogs',
+					},
+					{
+						label: 'OpenChain lookup context',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

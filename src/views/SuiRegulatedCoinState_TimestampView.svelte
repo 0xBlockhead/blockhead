@@ -9,25 +9,101 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'denyCapObjectId',
-					'denyListObjectId',
-					'globalPause',
-					'denyListEpoch',
-					'deniedAddressCount',
-					'authoritySelector',
-				],
-			],
+	closed: [
+		{
+			label: 'coin type',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		{
+			label: 'global pause',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'coin type',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'global pause',
+				},
+				{
+					label: 'deny-list epoch',
+				},
+			],
+			[
+				{
+					label: 'deny cap object',
+				},
+				{
+					label: 'deny list object',
+				},
+				{
+					label: 'denied address count',
+				},
+				{
+					label: 'authority selector',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Coin type',
+				items: [
+					{
+						label: 'parent Sui coin type',
+					},
+				],
+			},
+			{
+				label: 'Deny-cap object',
+				items: [
+					{
+						label: 'Sui object when resolved',
+					},
+				],
+			},
+			{
+				label: 'Authority',
+				items: [
+					{
+						label: 'Sui account or object owner when resolved',
+					},
+				],
+			},
+			{
+				label: 'Eligibility',
+				items: [
+					{
+						label: 'asset eligibility rows derived from deny-list checks',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'regulated coin deny-cap object',
+					},
+					{
+						label: 'deny-list dynamic fields',
+					},
+					{
+						label: 'GraphQL/object payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

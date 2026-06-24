@@ -9,42 +9,55 @@
 
 	// State
 	const view = {
-		closed: [
-			'scope',
+	closed: [
+		'scope',
+		'$$timestamps',
+		'$$sourceWindowUsers',
+	],
+	content: {
+		dl: [
+			[
+				'scope',
+				'$$timestamps',
+			],
+			[
+				'$$sourceWindowUsers',
+				'$$sourceWindowPosts',
+			],
 		],
-		content: {
-			dl: [
-				[
-					'scope',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Source-window rows',
+				items: [
+					'$$sourceWindowUsers',
+					'$$sourceWindowPosts',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'source window users',
-					when: 'open',
-					items: [
-						'$$sourceWindowUsers',
-					],
-				},
-				{
-					label: 'source window posts',
-					when: 'open',
-					items: [
-						'$$sourceWindowPosts',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Hub observations',
+				items: [
+					'$$timestamps',
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'SourceBinding.Constants_Internal',
+					},
+					{
+						label: 'SourceBinding.X_FxEmbed_Rest',
+					},
+					{
+						label: 'SourceBinding.X_Rest',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

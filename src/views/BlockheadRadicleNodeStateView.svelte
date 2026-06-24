@@ -9,61 +9,109 @@
 
 	// State
 	const view = {
-		closed: [
-			'connectionId',
-			'nodeId',
+	closed: [
+		{
+			label: 'connection id',
+		},
+		{
+			label: 'node id',
+		},
+		{
+			label: 'DID',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'connection id',
+				},
+				{
+					label: 'node id',
+				},
+				{
+					label: 'DID',
+				},
+				{
+					label: 'public key',
+				},
+				{
+					label: 'home path',
+				},
+				{
+					label: 'latest alias',
+				},
+				{
+					label: 'latest address counts',
+				},
+				{
+					label: 'latest node version',
+				},
+				{
+					label: 'latest policy',
+				},
+				{
+					label: 'peer count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'connectionId',
-					'nodeId',
-					'did',
-					'publicKey',
-					'homePath',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'State observations',
+				items: [
+					{
+						label: 'timestamped connected-node profile/config observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'peers',
-					when: 'open',
-					items: [
-						'$$peers',
-					],
-				},
-				{
-					label: 'inventory timestamps',
-					when: 'open',
-					items: [
-						'$$inventoryTimestamps',
-					],
-				},
-				{
-					label: 'seed observations',
-					when: 'open',
-					items: [
-						'$$seedObservations',
-					],
-				},
-				{
-					label: 'sync sessions',
-					when: 'open',
-					items: [
-						'$$syncSessions',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Peers',
+				items: [
+					{
+						label: 'locally observed peer rows',
+					},
+				],
+			},
+			{
+				label: 'Inventory',
+				items: [
+					{
+						label: 'timestamped inventory/gossip observations',
+					},
+				],
+			},
+			{
+				label: 'Seed observations',
+				items: [
+					{
+						label: 'repository seeding/advertisement observations',
+					},
+				],
+			},
+			{
+				label: 'Sync sessions',
+				items: [
+					{
+						label: 'local sync/fetch sessions',
+					},
+				],
+			},
+			{
+				label: 'Local storage',
+				items: [
+					{
+						label: 'home path',
+					},
+					{
+						label: 'redacted local-node config',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

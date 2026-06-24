@@ -9,25 +9,86 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'deliveredPayloadCount',
-					'deliveredValueWei',
-					'relayCount',
-					'windowStartSlot',
-					'windowEndSlot',
-					'sampleLimit',
-				],
-			],
+	closed: [
+		{
+			label: 'builder',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'builder',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'delivered-payload count',
+				},
+				{
+					label: 'delivered value',
+				},
+				{
+					label: 'relay count',
+				},
+				{
+					label: 'slot window',
+				},
+				{
+					label: 'sample limit',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Builder',
+				items: [
+					{
+						label: 'parent MEV builder',
+					},
+				],
+			},
+			{
+				label: 'Delivered payloads',
+				items: [
+					{
+						label: 'delivered-payload rows filtered to the same builder/window',
+					},
+				],
+			},
+			{
+				label: 'Relays',
+				items: [
+					{
+						label: 'relay hosts included in the observation',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'relay API parameters',
+					},
+					{
+						label: 'pagination/limit',
+					},
+					{
+						label: 'any aggregator freshness metadata',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

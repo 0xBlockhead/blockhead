@@ -9,32 +9,85 @@
 
 	// State
 	const view = {
-		closed: [
-			'cycle',
-		],
-		content: {
-			dl: [
-				[
-					'cycle',
-					'firstLevel',
-					'lastLevel',
-					'snapshotLevel',
-					'randomSeed',
-				],
-			],
+	closed: [
+		'cycle',
+		{
+			label: 'first/last level',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'snapshot level',
+		},
+	],
+	content: {
+		dl: [
+			[
+				'cycle',
 				{
-					label: 'baker timestamps',
-					when: 'open',
-					items: [
-						'$$bakerTimestamps',
-					],
+					label: 'first/last level',
+				},
+				{
+					label: 'snapshot level',
+				},
+				{
+					label: 'random seed presence',
+				},
+				{
+					label: 'baker count',
+				},
+				{
+					label: 'rights count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Bakers',
+				items: [
+					{
+						label: 'cycle-bounded baker observations',
+					},
+				],
+			},
+			{
+				label: 'Rights',
+				items: [
+					{
+						label: 'baking/attestation rights in this cycle',
+					},
+				],
+			},
+			{
+				label: 'Blocks',
+				items: [
+					{
+						label: 'blocks filtered by cycle',
+					},
+				],
+			},
+			{
+				label: 'Rewards/statistics',
+				items: [
+					{
+						label: 'cycle reward',
+					},
+					{
+						label: 'baker performance rows',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'cycle payloads',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

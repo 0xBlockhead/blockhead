@@ -9,33 +9,85 @@
 
 	// State
 	const view = {
-		closed: [
-			'tableHandle',
-			'keyHash',
-		],
-		content: {
-			dl: [
-				[
-					'tableHandle',
-					'keyHash',
-					'key',
-					'keyType',
-					'valueType',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'table handle',
+		},
+		{
+			label: 'key hash',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'network',
+				},
+				{
+					label: 'table handle',
+				},
+				{
+					label: 'key hash',
+				},
+				{
+					label: 'key type',
+				},
+				{
+					label: 'value type',
+				},
+				{
+					label: 'key summary',
+				},
+				{
+					label: 'latest value/hash summary',
+				},
+				{
+					label: 'latest ledger version/source',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Value observations',
+				items: [
+					{
+						label: 'ledger-versioned table item values',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Aptos network',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'table item request body',
+					},
+					{
+						label: 'response',
+					},
+					{
+						label: 'pruning/freshness status',
+					},
+					{
+						label: 'indexer coordinates',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

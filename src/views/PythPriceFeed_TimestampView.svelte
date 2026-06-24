@@ -9,32 +9,102 @@
 
 	// State
 	const view = {
-		closed: [
-			'publishTimeMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'publishTimeMs',
-					'source',
-					'observedAtMs',
-					'price',
-					'conf',
-					'expo',
-					'emaPrice',
-					'emaConf',
-					'vaa',
-					'updateDataHash',
-					'slot',
-					'sequence',
-					'onChainNetwork',
-					'onChainContract',
-					'stale',
-				],
-			],
+	closed: [
+		{
+			label: 'feed',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'publish time',
+		},
+		'price',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'feed',
+				},
+				{
+					label: 'publish time',
+				},
+				'source',
+				{
+					label: 'observed time',
+				},
+				'price',
+				{
+					label: 'confidence',
+				},
+				{
+					label: 'exponent',
+				},
+				{
+					label: 'EMA price/confidence',
+				},
+			],
+			[
+				{
+					label: 'VAA/update hash',
+				},
+				'slot',
+				'sequence',
+				{
+					label: 'on-chain network/contract',
+				},
+				{
+					label: 'stale flag',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Feed',
+				items: [
+					{
+						label: 'parent Pyth price feed',
+					},
+				],
+			},
+			{
+				label: 'Price payload',
+				items: [
+					{
+						label: 'raw price/conf/expo and EMA fields',
+					},
+				],
+			},
+			{
+				label: 'Update proof',
+				items: [
+					{
+						label: 'VAA/update bytes hash',
+					},
+					{
+						label: 'Hermes response metadata',
+					},
+				],
+			},
+			{
+				label: 'On-chain state',
+				items: [
+					{
+						label: 'contract/program read coordinates when source is on-chain',
+					},
+				],
+			},
+			{
+				label: 'Benchmarks',
+				items: [
+					{
+						label: 'historical benchmark source context',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

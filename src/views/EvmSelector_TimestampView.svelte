@@ -9,23 +9,75 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'signatures',
-					'filteredSignatureCount',
-					'verifiedCandidateCount',
-					'reachable',
-				],
-			],
+	closed: [
+		{
+			label: 'selector',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'selector',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				'reachable',
+			],
+			[
+				{
+					label: 'candidate signatures',
+				},
+				{
+					label: 'filtered signature count',
+				},
+				{
+					label: 'verified candidate count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Selector',
+				items: [
+					{
+						label: 'parent EvmSelector hash row',
+					},
+				],
+			},
+			{
+				label: 'Candidates',
+				items: [
+					{
+						label: 'candidate function signatures',
+					},
+					{
+						label: 'ambiguity warnings',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Openchain lookup response',
+					},
+					{
+						label: 'fallback catalog behavior',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

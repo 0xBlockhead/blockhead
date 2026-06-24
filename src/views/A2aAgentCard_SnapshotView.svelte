@@ -9,60 +9,96 @@
 
 	// State
 	const view = {
-		closed: [
-			'contentHashAlgorithm',
-			'contentHash',
+	closed: [
+		{
+			label: 'card',
+		},
+		{
+			label: 'content hash',
+		},
+		{
+			label: 'name/version',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'card',
+				},
+				{
+					label: 'content hash algorithm/hash',
+				},
+				{
+					label: 'fetched at',
+				},
+				{
+					label: 'snapshot kind',
+				},
+			],
+			[
+				'name',
+				'version',
+				{
+					label: 'protocol version',
+				},
+				{
+					label: 'provider',
+				},
+				{
+					label: 'preferred transport',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'contentHashAlgorithm',
-					'contentHash',
-					'fetchedAt',
-					'snapshotKind',
-					'name',
-					'description',
-					'version',
-					'protocolVersion',
-					'providerName',
-					'providerUrl',
-					'preferredTransport',
-					'defaultInputModes',
-					'defaultOutputModes',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Interfaces',
+				items: [
+					{
+						label: 'A2aAgentInterface list',
+					},
+				],
+			},
+			{
+				label: 'Services',
+				items: [
+					{
+						label: 'A2aAgentService list',
+					},
+				],
+			},
+			{
+				label: 'Skills',
+				items: [
+					{
+						label: 'A2aAgentSkill list',
+					},
+				],
+			},
+			{
+				label: 'Capabilities',
+				items: [
 					'capabilities',
 					'extensions',
-					'securitySchemes',
-					'security',
+				],
+			},
+			{
+				label: 'Security',
+				items: [
+					{
+						label: 'security schemes',
+					},
+					{
+						label: 'security requirements',
+					},
 					'signatures',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'interfaces',
-					when: 'open',
-					items: [
-						'$$interfaces',
-					],
-				},
-				{
-					label: 'services',
-					when: 'open',
-					items: [
-						'$$services',
-					],
-				},
-				{
-					label: 'skills',
-					when: 'open',
-					items: [
-						'$$skills',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

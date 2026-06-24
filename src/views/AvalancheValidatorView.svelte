@@ -9,38 +9,111 @@
 
 	// State
 	const view = {
-		closed: [
-			'nodeId',
-			'subnetId',
-			'startTimeMs',
-		],
-		content: {
-			dl: [
-				[
-					'nodeId',
-					'subnetId',
-					'startTimeMs',
-					'endTimeMs',
-					'stakeAmountNavax',
-					'txId',
-					'rewardOwnerAddresses',
-					'potentialRewardNavax',
-					'delegationFeePercent',
-				],
-			],
+	closed: [
+		{
+			label: 'node id',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'subnet',
+		},
+		{
+			label: 'start/end time',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'node id',
+				},
+				{
+					label: 'subnet',
+				},
+				{
+					label: 'start/end time',
+				},
+				{
+					label: 'stake',
+				},
+				{
+					label: 'delegation fee',
+				},
+				{
+					label: 'reward owner count',
+				},
+				{
+					label: 'validation transaction id',
+				},
+				{
+					label: 'latest uptime/connected observation',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Delegators',
+				items: [
+					{
+						label: 'delegations under this validation interval',
+					},
+				],
+			},
+			{
+				label: 'Validation transaction',
+				items: [
+					{
+						label: 'P-Chain validation transaction when resolved',
+					},
+				],
+			},
+			{
+				label: 'Reward owners',
+				items: [
+					{
+						label: 'reward owner address list',
+					},
+				],
+			},
+			{
+				label: 'Subnet',
+				items: [
+					{
+						label: 'parent subnet',
+					},
+				],
+			},
+			{
+				label: 'Linked network',
+				items: [
+					{
+						label: 'member chain/network context',
+					},
+				],
+			},
+			{
+				label: 'Validator observations',
+				items: [
+					{
+						label: 'timestamped connected/uptime/source observations',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'validator set payload',
+					},
+					{
+						label: 'uptime payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

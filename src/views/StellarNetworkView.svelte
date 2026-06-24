@@ -9,96 +9,136 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[
-					'passphrase',
+	closed: [
+		{
+			label: 'linked Network',
+		},
+		{
+			label: 'network passphrase',
+		},
+		{
+			label: 'latest network observation',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'linked Network',
+				},
+				{
+					label: 'network passphrase',
+				},
+				{
+					label: 'latest ledger/protocol observation',
+				},
+				{
+					label: 'base fee/reserve observation',
+				},
+			],
+			[
+				{
+					label: 'native XLM asset',
+				},
+				{
+					label: 'bounded contract/liquidity-pool/account/transaction windows',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Network snapshots',
+				items: [
+					{
+						label: 'timestamped network observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'ledgers',
-					when: 'open',
-					items: [
-						'$$ledgers',
-					],
-				},
-				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
-				},
-				{
-					label: 'operations',
-					when: 'open',
-					items: [
-						'$$operations',
-					],
-				},
-				{
-					label: 'accounts',
-					when: 'open',
-					items: [
-						'$$accounts',
-					],
-				},
-				{
-					label: 'assets',
-					when: 'open',
-					items: [
-						'$$assets',
-					],
-				},
-				{
-					label: 'claimable balances',
-					when: 'open',
-					items: [
-						'$$claimableBalances',
-					],
-				},
-				{
-					label: 'contracts',
-					when: 'open',
-					items: [
-						'$$contracts',
-					],
-				},
-				{
-					label: 'liquidity pools',
-					when: 'open',
-					items: [
-						'$$liquidityPools',
-					],
-				},
-				{
-					label: 'offers',
-					when: 'open',
-					items: [
-						'$$offers',
-					],
-				},
-				{
-					label: 'trades',
-					when: 'open',
-					items: [
-						'$$trades',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Ledgers',
+				items: [
+					{
+						label: 'Stellar ledger rows',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'Stellar transaction rows',
+					},
+				],
+			},
+			{
+				label: 'Operations',
+				items: [
+					{
+						label: 'Stellar operation rows',
+					},
+				],
+			},
+			{
+				label: 'Accounts',
+				items: [
+					{
+						label: 'Stellar account rows',
+					},
+				],
+			},
+			{
+				label: 'Assets',
+				items: [
+					{
+						label: 'Stellar asset rows',
+					},
+				],
+			},
+			{
+				label: 'Claimable balances',
+				items: [
+					{
+						label: 'Stellar claimable balance rows',
+					},
+				],
+			},
+			{
+				label: 'Liquidity pools',
+				items: [
+					{
+						label: 'Stellar liquidity pool rows',
+					},
+				],
+			},
+			{
+				label: 'Offers',
+				items: [
+					{
+						label: 'Stellar offer rows',
+					},
+				],
+			},
+			{
+				label: 'Trades',
+				items: [
+					{
+						label: 'Stellar trade rows',
+					},
+				],
+			},
+			{
+				label: 'Soroban contracts',
+				items: [
+					{
+						label: 'Soroban contract rows',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

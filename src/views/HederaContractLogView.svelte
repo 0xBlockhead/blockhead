@@ -9,22 +9,82 @@
 
 	// State
 	const view = {
-		closed: [
-			'logIndex',
-		],
-		content: {
-			dl: [
-				[
-					'consensusTimestamp',
-					'logIndex',
-					'address',
-					'bloom',
-					'data',
-					'topics',
-				],
-			],
+	closed: [
+		{
+			label: 'contract/result',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'consensus timestamp',
+		},
+		{
+			label: 'log index',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'contract/result',
+				},
+				{
+					label: 'consensus timestamp',
+				},
+				{
+					label: 'log index',
+				},
+				'address',
+				{
+					label: 'topic count',
+				},
+				{
+					label: 'data presence',
+				},
+				{
+					label: 'bloom presence',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Result',
+				items: [
+					{
+						label: 'parent Hedera contract result',
+					},
+				],
+			},
+			{
+				label: 'Contract',
+				items: [
+					{
+						label: 'emitting Hedera contract',
+					},
+				],
+			},
+			{
+				label: 'Topics/data',
+				items: [
+					{
+						label: 'topic list',
+					},
+					{
+						label: 'data hex',
+					},
+				],
+			},
+			{
+				label: 'Bloom',
+				items: [
+					{
+						label: 'bloom/filter evidence',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

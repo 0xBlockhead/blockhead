@@ -9,25 +9,75 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'ledgerCoordinateKind',
-					'ledgerCoordinateValue',
-					'canHold',
-					'canSend',
-					'canReceive',
-					'reasons',
-				],
-			],
+	closed: [
+		{
+			label: 'asset instance',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'account',
+		},
+		{
+			label: 'observed time',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'asset instance',
+				},
+				{
+					label: 'account',
+				},
+				{
+					label: 'observed time',
+				},
+				'source',
+				{
+					label: 'ledger coordinate',
+				},
+				{
+					label: 'can-hold/can-send/can-receive flags',
+				},
+				'reasons',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Asset',
+				items: [
+					{
+						label: 'parent asset instance',
+					},
+				],
+			},
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'subject account',
+					},
+				],
+			},
+			{
+				label: 'Evidence',
+				items: [
+					{
+						label: 'source payload',
+					},
+					{
+						label: 'simulated transfer/restriction call result',
+					},
+					{
+						label: 'ledger coordinate when source-bound',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

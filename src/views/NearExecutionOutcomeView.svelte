@@ -9,30 +9,81 @@
 
 	// State
 	const view = {
-		closed: [
-			'outcomeId',
-		],
-		content: {
-			dl: [
-				[
-					'outcomeId',
-					'status',
-					'gasBurnt',
-				],
-			],
+	closed: [
+		{
+			label: 'transaction',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'outcome id',
+		},
+		'status',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'receipts',
-					when: 'open',
-					items: [
-						'$$receipts',
-					],
+					label: 'transaction',
+				},
+				{
+					label: 'outcome id',
+				},
+				'status',
+				{
+					label: 'gas burnt',
+				},
+				{
+					label: 'spawned receipt count',
+				},
+				{
+					label: 'status payload',
+				},
+				{
+					label: 'gas/profile evidence',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transaction',
+				items: [
+					{
+						label: 'NearTransaction',
+					},
+				],
+			},
+			{
+				label: 'Outcome',
+				items: [
+					{
+						label: 'outcome id',
+					},
+					'status',
+					{
+						label: 'gas burnt',
+					},
+				],
+			},
+			{
+				label: 'Receipts',
+				items: [
+					{
+						label: 'NearReceipt list',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'NEAR transaction status outcome payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

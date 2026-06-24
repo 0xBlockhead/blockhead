@@ -9,39 +9,80 @@
 
 	// State
 	const view = {
-		closed: [
-			'workchain',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'workchain id',
+		},
+		'label',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'workchain id',
+				},
+				'label',
+				{
+					label: 'address format',
+				},
+				{
+					label: 'transaction format',
+				},
+				{
+					label: 'VM',
+				},
+				{
+					label: 'shard count',
+				},
+				{
+					label: 'block count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'workchain',
-					'label',
-					'addressFormat',
-					'transactionFormat',
-					'virtualMachine',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Shard history',
+				items: [
+					{
+						label: 'shard/block observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'shards',
-					when: 'open',
-					items: [
-						'$$shards',
-					],
-				},
-				{
-					label: 'blocks',
-					when: 'open',
-					items: [
-						'$$blocks',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Blocks',
+				items: [
+					{
+						label: 'blocks for this workchain',
+					},
+				],
+			},
+			{
+				label: 'Accounts',
+				items: [
+					{
+						label: 'accounts filtered by workchain',
+					},
+				],
+			},
+			{
+				label: 'Messages',
+				items: [
+					{
+						label: 'messages touching this workchain',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

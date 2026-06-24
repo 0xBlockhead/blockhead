@@ -9,24 +9,67 @@
 
 	// State
 	const view = {
-		closed: [
-			'id',
-		],
-		content: {
-			dl: [
-				[
-					'id',
-					'peerId',
-					'displayName',
-					'joinedAt',
-					'lastSeenAt',
-					'connectedAt',
-					'disconnectedAt',
-					'isConnected',
-				],
-			],
+	closed: [
+		{
+			label: 'display name',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'peer id',
+		},
+		{
+			label: 'room',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'display name',
+				},
+				{
+					label: 'peer id',
+				},
+				{
+					label: 'room',
+				},
+				{
+					label: 'connected flag',
+				},
+				{
+					label: 'joined/last seen/connected/disconnected timestamps',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Room',
+				items: [
+					{
+						label: 'parent local room',
+					},
+				],
+			},
+			{
+				label: 'Shared addresses',
+				items: [
+					{
+						label: 'shared-address rows scoped to peer',
+					},
+				],
+			},
+			{
+				label: 'Transfer requests',
+				items: [
+					{
+						label: 'peer-scoped transfer request rows when linked',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

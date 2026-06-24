@@ -9,29 +9,88 @@
 
 	// State
 	const view = {
-		closed: [
-			'validatorIndex',
-		],
-		content: {
-			dl: [
-				[
-					'validatorIndex',
-					'pubkey',
-				],
-			],
+	closed: [
+		{
+			label: 'validator index',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'pubkey when resolved',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'validator index',
+				},
+				{
+					label: 'pubkey when resolved',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			[
+				{
+					label: 'latest validator observation',
+				},
+				{
+					label: 'balance',
+				},
+				{
+					label: 'effective balance',
+				},
+				{
+					label: 'status',
+				},
+				{
+					label: 'slashed flag',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Validator observations',
+				items: [
+					{
+						label: 'state-scoped validator observations',
+					},
+				],
+			},
+			{
+				label: 'Withdrawals',
+				items: [
+					{
+						label: 'withdrawals for this validator when sourceable',
+					},
+				],
+			},
+			{
+				label: 'Committees',
+				items: [
+					{
+						label: 'committee rows containing the validator index when bounded by slot/period',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent EVM network consensus context',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: '/eth/v1/beacon/states/{state_id}/validators/{validator_id}',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

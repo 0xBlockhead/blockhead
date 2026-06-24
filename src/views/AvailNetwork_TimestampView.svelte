@@ -9,27 +9,82 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'latestBlockNumber',
-					'latestBlockHash',
-					'finalizedBlockNumber',
-					'finalizedBlockHash',
-					'health',
-					'syncing',
-					'appIdCount',
-					'dataSubmissionCount',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		{
+			label: 'latest block',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'latest block number/hash',
+				},
+				{
+					label: 'finalized block number/hash',
+				},
+				{
+					label: 'health/syncing',
+				},
+			],
+			[
+				{
+					label: 'app id count',
+				},
+				{
+					label: 'data submission count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Avail network',
+					},
+				],
+			},
+			{
+				label: 'Latest block',
+				items: [
+					{
+						label: 'latest block when resolved',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'system health/status',
+					},
+					{
+						label: 'chain header/finality RPC',
+					},
+					{
+						label: 'indexer summary freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

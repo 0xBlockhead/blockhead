@@ -9,47 +9,66 @@
 
 	// State
 	const view = {
-		closed: [
-			'domain',
+	closed: [
+		{
+			label: 'provider id/domain',
+		},
+		'label',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'provider id',
+				},
+				'domain',
+				'label',
+				{
+					label: 'organization kind',
+				},
+			],
+			[
+				{
+					label: 'homepage',
+				},
+				{
+					label: 'docs',
+				},
+				{
+					label: 'catalog/model/operation refs',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'domain',
-					'providerId',
-					'label',
-					'organizationKind',
-					'homepageUrl',
-					'docsUrl',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Catalog entries',
+				items: [
+					{
+						label: 'AiProviderCatalogEntry list',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'catalog entries',
-					when: 'open',
-					items: [
-						'$$catalogEntries',
-					],
-				},
-				{
-					label: 'api operations',
-					when: 'open',
-					items: [
-						'$$apiOperations',
-					],
-				},
-				{
-					label: 'models',
-					when: 'open',
-					items: [
-						'$$models',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Models',
+				items: [
+					{
+						label: 'AiModel list',
+					},
+				],
+			},
+			{
+				label: 'API operations',
+				items: [
+					{
+						label: 'AiProviderApiOperation list',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

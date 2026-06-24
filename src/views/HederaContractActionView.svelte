@@ -9,28 +9,83 @@
 
 	// State
 	const view = {
-		closed: [
-			'callDepth',
-			'callIndex',
-		],
-		content: {
-			dl: [
-				[
-					'callDepth',
-					'callIndex',
-					'callType',
-					'fromAddress',
-					'toAddress',
-					'gas',
-					'gasUsed',
-					'valueTinybar',
-					'input',
-					'output',
-					'error',
-				],
-			],
+	closed: [
+		{
+			label: 'result',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'call depth/index',
+		},
+		{
+			label: 'call type',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'result',
+				},
+				{
+					label: 'call depth/index',
+				},
+				{
+					label: 'call type',
+				},
+				{
+					label: 'from address',
+				},
+				{
+					label: 'to address',
+				},
+				'gas',
+				{
+					label: 'gas used',
+				},
+				{
+					label: 'value',
+				},
+				'error',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Result',
+				items: [
+					{
+						label: 'parent Hedera contract result',
+					},
+				],
+			},
+			{
+				label: 'From/To',
+				items: [
+					{
+						label: 'Hedera contract or EVM account when resolved',
+					},
+				],
+			},
+			{
+				label: 'Payload',
+				items: [
+					{
+						label: 'input/output hex',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'action trace payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

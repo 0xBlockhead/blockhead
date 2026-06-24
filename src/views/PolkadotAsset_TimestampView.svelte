@@ -9,32 +9,82 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'blockNumber',
-					'blockHash',
-					'supply',
-					'holderCount',
-					'status',
-					'symbol',
-					'name',
-					'decimals',
-					'existentialDepositPlancks',
-					'owner',
-					'issuer',
-					'admin',
-					'freezer',
-				],
-			],
+	closed: [
+		{
+			label: 'asset',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'timestamp',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'asset',
+				},
+				{
+					label: 'timestamp',
+				},
+				'source',
+				{
+					label: 'block number/hash',
+				},
+				'supply',
+				{
+					label: 'holder count',
+				},
+				'status',
+				{
+					label: 'metadata',
+				},
+				{
+					label: 'existential deposit',
+				},
+				{
+					label: 'role accounts',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Asset',
+				items: [
+					{
+						label: 'parent Polkadot asset',
+					},
+				],
+			},
+			{
+				label: 'Role accounts',
+				items: [
+					{
+						label: 'Polkadot account refs when resolved',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'runtime storage/indexer asset payload',
+					},
+				],
+			},
+			{
+				label: 'Balances',
+				items: [
+					{
+						label: 'account-balance observations at the same source/block when available',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

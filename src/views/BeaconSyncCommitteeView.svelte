@@ -9,18 +9,57 @@
 
 	// State
 	const view = {
-		closed: [
-			'period',
-		],
-		content: {
-			dl: [
-				[
-					'period',
-					'validatorIndices',
-				],
-			],
+	closed: [
+		{
+			label: 'sync committee period',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'sync committee period',
+				},
+			],
+			[
+				{
+					label: 'validator count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Period',
+				items: [
+					{
+						label: 'sync committee period',
+					},
+				],
+			},
+			{
+				label: 'Validators',
+				items: [
+					{
+						label: 'validator index list',
+					},
+					{
+						label: 'validator count',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'beacon sync committee endpoint payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

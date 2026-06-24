@@ -9,57 +9,103 @@
 
 	// State
 	const view = {
-		closed: [
-			'$base',
-			'$quote',
-			'$marketVenue',
-			'marketKind',
+	closed: [
+		{
+			label: 'kind',
+		},
+		{
+			label: 'venue',
+		},
+		{
+			label: 'latest derivative observation for non-spot markets',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'kind',
+				},
+				{
+					label: 'venue id/label',
+				},
+				{
+					label: 'latest derivative observation for non-spot markets',
+				},
+				{
+					label: 'base asset',
+				},
+				{
+					label: 'quote asset',
+				},
+			],
+			[
+				{
+					label: 'provider exchange id mappings',
+				},
+				{
+					label: 'quote stream count',
+				},
+				{
+					label: 'OHLC interval count',
+				},
+				{
+					label: 'derivative observation count',
+				},
+				{
+					label: 'oracle feed count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'$base',
-					'$quote',
-					'$marketVenue',
-					'marketKind',
-					'venueLabel',
-					'providerExchangeIds',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Quote streams',
+				items: [
+					{
+						label: 'MarketPrice rows',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'market prices',
-					when: 'open',
-					items: [
-						'$$marketPrices',
-					],
-				},
-				{
-					label: 'market time interval timestamps',
-					when: 'open',
-					items: [
-						'$$marketTimeIntervalTimestamps',
-					],
-				},
-				{
-					label: 'derivative timestamps',
-					when: 'open',
-					items: [
-						'$$derivativeTimestamps',
-					],
-				},
-				{
-					label: 'oracle feeds',
-					when: 'open',
-					items: [
-						'$$oracleFeeds',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'OHLC',
+				items: [
+					{
+						label: 'Market_TimeInterval_Timestamp history grouped by interval',
+					},
+				],
+			},
+			{
+				label: 'Derivative observations',
+				items: [
+					{
+						label: 'Market_Derivative_Timestamp list for non-spot markets',
+					},
+				],
+			},
+			{
+				label: 'Oracle feeds',
+				items: [
+					{
+						label: 'linked OracleFeed rows',
+					},
+				],
+			},
+			{
+				label: 'Source mappings',
+				items: [
+					{
+						label: 'provider exchange ids',
+					},
+					{
+						label: 'provider pair/feed ids stay on timestamp rows',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

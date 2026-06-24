@@ -9,24 +9,112 @@
 
 	// State
 	const view = {
-		closed: [
-			'tradeId',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'tradeId',
-					'source',
-					'ledgerCloseTimeMs',
-					'baseAmount',
-					'counterAmount',
-					'priceNumerator',
-					'priceDenominator',
-				],
-			],
+	closed: [
+		{
+			label: 'trade id',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'asset pair',
+		},
+		{
+			label: 'amounts',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'trade id',
+				},
+				'source',
+				{
+					label: 'ledger close time',
+				},
+				{
+					label: 'asset pair',
+				},
+				{
+					label: 'base/counter amounts',
+				},
+				{
+					label: 'price',
+				},
+			],
+			[
+				{
+					label: 'base/counter accounts',
+				},
+				{
+					label: 'base/counter offers',
+				},
+				{
+					label: 'liquidity pool links',
+				},
+				{
+					label: 'transaction/operation',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Accounts',
+				items: [
+					{
+						label: 'base/counter Stellar accounts',
+					},
+				],
+			},
+			{
+				label: 'Assets',
+				items: [
+					{
+						label: 'base/counter Stellar assets',
+					},
+				],
+			},
+			{
+				label: 'Offers',
+				items: [
+					{
+						label: 'base/counter Stellar offers',
+					},
+				],
+			},
+			{
+				label: 'Liquidity pools',
+				items: [
+					{
+						label: 'Stellar liquidity pool when pool-backed',
+					},
+				],
+			},
+			{
+				label: 'Transaction',
+				items: [
+					{
+						label: 'Stellar transaction',
+					},
+					{
+						label: 'Stellar operation',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Horizon trade object',
+					},
+					{
+						label: 'indexer enrichment',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,36 +9,75 @@
 
 	// State
 	const view = {
-		closed: [
-			'benchmarkId',
-		],
-		content: {
-			dl: [
-				[
-					'benchmarkId',
-					'benchmarkUri',
-					'source',
-					'sourceBenchmarkId',
-					'label',
-					'taskType',
-					'metricName',
-					'metricType',
-					'license',
-				],
-			],
+	closed: [
+		{
+			label: 'benchmark id/URI',
 		},
-		details: {
-			tabs: [
+		'label',
+		{
+			label: 'task type',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'documents',
-					when: 'open',
-					items: [
-						'$$documents',
-					],
+					label: 'benchmark id',
+				},
+				{
+					label: 'benchmark URI',
+				},
+				{
+					label: 'source benchmark id',
+				},
+				'label',
+			],
+			[
+				{
+					label: 'task type',
+				},
+				{
+					label: 'metric name/type',
+				},
+				{
+					label: 'dataset ref',
+				},
+				'license',
+				{
+					label: 'document refs',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Dataset',
+				items: [
+					{
+						label: 'AiDataset',
+					},
+				],
+			},
+			{
+				label: 'Evaluations',
+				items: [
+					{
+						label: 'AiEvaluation_Timestamp list',
+					},
+				],
+			},
+			{
+				label: 'Documents',
+				items: [
+					{
+						label: 'AiDocument list',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

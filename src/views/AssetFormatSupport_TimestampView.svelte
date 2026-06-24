@@ -9,31 +9,112 @@
 
 	// State
 	const view = {
-		closed: [
-			'formatId',
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'formatId',
-					'timestampMs',
-					'source',
-					'confidence',
-					'evidenceKind',
-					'ledgerCoordinateKind',
-					'ledgerCoordinateValue',
-					'interfaceId',
-					'programId',
-					'moduleId',
-					'contractAddress',
-					'tokenProgram',
-					'notes',
-				],
-			],
+	closed: [
+		{
+			label: 'asset instance',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'format id',
+		},
+		'confidence',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'asset instance',
+				},
+				{
+					label: 'format id',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				'confidence',
+				{
+					label: 'evidence kind',
+				},
+				{
+					label: 'ledger coordinate',
+				},
+			],
+			[
+				{
+					label: 'interface id',
+				},
+				{
+					label: 'program/module/contract/token program',
+				},
+				'notes',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Asset',
+				items: [
+					{
+						label: 'parent asset instance',
+					},
+				],
+			},
+			{
+				label: 'Format semantics',
+				items: [
+					{
+						label: 'formatId enum/catalog label',
+					},
+					{
+						label: 'standard/spec reference from constants',
+					},
+				],
+			},
+			{
+				label: 'Extensions',
+				items: [
+					{
+						label: 'TokenProgramExtension_Timestamp observations filtered by asset',
+					},
+				],
+			},
+			{
+				label: 'Regulated controls',
+				items: [
+					{
+						label: 'regulated asset profile when format implies compliance/issuer controls',
+					},
+				],
+			},
+			{
+				label: 'Class/object rows',
+				items: [
+					{
+						label: 'class/object rows when format implies slot/partition/token id/object identity',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'supportsInterface or ABI evidence',
+					},
+					{
+						label: 'program owner/account data',
+					},
+					{
+						label: 'module/resource type',
+					},
+					{
+						label: 'indexer classification',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

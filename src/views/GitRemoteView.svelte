@@ -9,21 +9,68 @@
 
 	// State
 	const view = {
-		closed: [
-			'remoteName',
-		],
-		content: {
-			dl: [
-				[
-					'remoteName',
-					'url',
-					'transportKind',
-					'hostKind',
-					'source',
-				],
-			],
+	closed: [
+		{
+			label: 'repository',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'remote name',
+		},
+		{
+			label: 'URL',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'repository',
+				},
+				{
+					label: 'remote name',
+				},
+				{
+					label: 'URL',
+				},
+				{
+					label: 'transport kind',
+				},
+				{
+					label: 'host kind',
+				},
+				'source',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Fetches',
+				items: [
+					{
+						label: 'fetch observations for this remote',
+					},
+				],
+			},
+			{
+				label: 'Forge mirror',
+				items: [
+					{
+						label: 'forge mirror when URL resolves to one',
+					},
+				],
+			},
+			{
+				label: 'Repository',
+				items: [
+					{
+						label: 'parent Git repository',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

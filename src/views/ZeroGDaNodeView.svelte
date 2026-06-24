@@ -9,18 +9,65 @@
 
 	// State
 	const view = {
-		closed: [
-			'nodeId',
-		],
-		content: {
-			dl: [
-				[
-					'nodeId',
-					'endpoint',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'node id',
+		},
+		{
+			label: 'quorum',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'node id',
+				},
+				{
+					label: 'quorum',
+				},
+				{
+					label: 'operator',
+				},
+				'endpoint',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Quorum',
+				items: [
+					{
+						label: 'linked DA quorum',
+					},
+				],
+			},
+			{
+				label: 'Operator',
+				items: [
+					{
+						label: 'operator EVM account when resolved',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent 0G network',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

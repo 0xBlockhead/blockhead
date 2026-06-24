@@ -9,30 +9,89 @@
 
 	// State
 	const view = {
-		closed: [
-			'liquidityPoolId',
-		],
-		content: {
-			dl: [
-				[
-					'liquidityPoolId',
-					'poolType',
-					'feeBps',
-				],
-			],
+	closed: [
+		{
+			label: 'liquidity pool id',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'pool type',
+		},
+		{
+			label: 'asset pair',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'liquidity pool id',
+				},
+				{
+					label: 'pool type',
+				},
+				{
+					label: 'asset pair',
+				},
+				{
+					label: 'fee bps',
+				},
+				{
+					label: 'latest reserve/share observation',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Snapshots',
+				items: [
+					{
+						label: 'timestamped pool reserve/share observations',
+					},
+				],
+			},
+			{
+				label: 'Assets',
+				items: [
+					{
+						label: 'asset pair',
+					},
+				],
+			},
+			{
+				label: 'Operations',
+				items: [
+					{
+						label: 'deposit/withdraw/trade operation effects',
+					},
+				],
+			},
+			{
+				label: 'Trustlines',
+				items: [
+					{
+						label: 'pool share trustlines when indexed',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Horizon liquidity-pool object',
+					},
+					{
+						label: 'RPC ledger entry',
+					},
+					{
+						label: 'indexer pool payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

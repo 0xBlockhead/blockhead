@@ -9,54 +9,127 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[
-					'protocolName',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'protocol name',
+		},
+		{
+			label: 'operator/AVS counts',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'protocol name',
+				},
+				{
+					label: 'delegation manager',
+				},
+				{
+					label: 'strategy manager',
+				},
+				{
+					label: 'AVS directory',
+				},
+			],
+			[
+				{
+					label: 'allocation manager',
+				},
+				{
+					label: 'rewards coordinator',
+				},
+				{
+					label: 'slasher',
+				},
+				{
+					label: 'operator count',
+				},
+				{
+					label: 'AVS count',
+				},
+				{
+					label: 'strategy count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Operators',
+				items: [
+					{
+						label: 'EigenLayer operator rows',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'operators',
-					when: 'open',
-					items: [
-						'$$operators',
-					],
-				},
-				{
-					label: 'avss',
-					when: 'open',
-					items: [
-						'$$avss',
-					],
-				},
-				{
-					label: 'strategies',
-					when: 'open',
-					items: [
-						'$$strategies',
-					],
-				},
-				{
-					label: 'rewards',
-					when: 'open',
-					items: [
-						'$$rewards',
-					],
-				},
-				{
-					label: 'slashing events',
-					when: 'open',
-					items: [
-						'$$slashingEvents',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'AVSs',
+				items: [
+					{
+						label: 'EigenLayer AVS rows',
+					},
+				],
+			},
+			{
+				label: 'Strategies',
+				items: [
+					{
+						label: 'EigenLayer strategy rows',
+					},
+				],
+			},
+			{
+				label: 'Delegations',
+				items: [
+					{
+						label: 'delegation observations',
+					},
+				],
+			},
+			{
+				label: 'Allocations',
+				items: [
+					{
+						label: 'allocation observations',
+					},
+				],
+			},
+			{
+				label: 'Rewards',
+				items: [
+					{
+						label: 'reward observations',
+					},
+				],
+			},
+			{
+				label: 'Slashing',
+				items: [
+					{
+						label: 'slashing events',
+					},
+				],
+			},
+			{
+				label: 'Contracts',
+				items: [
+					{
+						label: 'linked EVM contract rows for core deployments',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

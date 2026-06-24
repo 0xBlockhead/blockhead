@@ -9,39 +9,78 @@
 
 	// State
 	const view = {
-		closed: [
-			'playlistId',
+	closed: [
+		{
+			label: 'playlist id',
+		},
+		{
+			label: 'latest title',
+		},
+		{
+			label: 'latest description',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'playlist id',
+				},
+				{
+					label: 'channel',
+				},
+				{
+					label: 'published date',
+				},
+				{
+					label: 'latest title',
+				},
+				{
+					label: 'latest description',
+				},
+				{
+					label: 'latest item-count snapshot',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'playlistId',
-					'title',
-					'description',
-					'publishedAt',
-					'publishedAtMs',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest metadata',
+				items: [
+					{
+						label: 'latest playlist metadata observation',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'videos',
-					when: 'open',
-					items: [
-						'$$videos',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Videos',
+				items: [
+					{
+						label: 'playlist videos',
+					},
+				],
+			},
+			{
+				label: 'Channel',
+				items: [
+					{
+						label: 'owning channel',
+					},
+				],
+			},
+			{
+				label: 'Metric snapshots',
+				items: [
+					{
+						label: 'playlist metric observations',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

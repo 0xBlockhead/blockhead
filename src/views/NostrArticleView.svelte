@@ -9,27 +9,88 @@
 
 	// State
 	const view = {
-		closed: [
-			'kind',
-			'pubkey',
-			'identifier',
-		],
-		content: {
-			dl: [
-				[
-					'pubkey',
-					'identifier',
-					'kind',
-					'title',
-					'summary',
-					'imageUrl',
-					'content',
-					'publishedAt',
-					'tags',
-				],
-			],
+	display: [
+		{
+			field: 'content',
+			kind: 'markdown',
+			slot: 'NostrArticleMarkdown',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+	],
+	panels: [
+		{
+			id: 'article',
+			label: 'Article',
+			kind: 'media',
+			defer: 'open',
+			slot: 'NostrArticleContent',
+		},
+	],
+	closed: [
+		{
+			label: 'coordinate kind/pubkey/identifier',
+		},
+		'title',
+		{
+			label: 'author',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'coordinate kind/pubkey/identifier',
+				},
+				'title',
+				{
+					label: 'author',
+				},
+				'publishedAt',
+				{
+					label: 'image URL',
+				},
+				{
+					label: 'tag count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Content',
+				items: [
+					{
+						label: 'rendered content/summary',
+					},
+				],
+			},
+			{
+				label: 'Author',
+				items: [
+					{
+						label: 'author Nostr profile',
+					},
+				],
+			},
+			{
+				label: 'Raw event',
+				items: [
+					{
+						label: 'kind/pubkey/tags/signature/source relays',
+					},
+				],
+			},
+			{
+				label: 'Relay evidence',
+				items: [
+					{
+						label: 'relay URLs or indexer payloads that returned the current addressable event',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

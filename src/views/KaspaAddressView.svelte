@@ -9,42 +9,82 @@
 
 	// State
 	const view = {
-		closed: [
-			'address',
+	closed: [
+		{
+			label: 'network',
+		},
+		'address',
+		{
+			label: 'latest balance',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				'address',
+				{
+					label: 'latest balance',
+				},
+				{
+					label: 'latest UTXO count',
+				},
+				{
+					label: 'transaction count',
+				},
+				{
+					label: 'source freshness',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'address',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'Kaspa transaction rows involving this address',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
-				},
-				{
-					label: 'utxos',
-					when: 'open',
-					items: [
-						'$$utxos',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'UTXOs',
+				items: [
+					{
+						label: 'address UTXO observations grouped by outpoint',
+					},
+				],
+			},
+			{
+				label: 'Balance snapshots',
+				items: [
+					{
+						label: 'timestamped balance observations',
+					},
+				],
+			},
+			{
+				label: 'Related outputs',
+				items: [
+					{
+						label: 'resolved UTXO outputs',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'node/indexer address payloads',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

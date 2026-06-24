@@ -9,23 +9,70 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'name',
-					'baseAssetId',
-					'quoteAssetId',
-					'isCanonical',
-				],
-			],
+	closed: [
+		{
+			label: 'spot pair',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'spot pair',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				'name',
+				{
+					label: 'base asset id',
+				},
+				{
+					label: 'quote asset id',
+				},
+				{
+					label: 'canonical flag',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Spot pair',
+				items: [
+					{
+						label: 'parent spot pair',
+					},
+				],
+			},
+			{
+				label: 'Assets',
+				items: [
+					{
+						label: 'base asset ref',
+					},
+					{
+						label: 'quote asset ref',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'raw spotMeta.universe row',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

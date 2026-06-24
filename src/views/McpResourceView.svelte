@@ -9,34 +9,69 @@
 
 	// State
 	const view = {
-		closed: [
-			'uri',
-		],
-		content: {
-			dl: [
-				[
-					'uri',
-					'name',
-					'title',
-					'description',
-					'mimeType',
-					'annotations',
-					'subscribed',
-				],
-			],
+	closed: [
+		{
+			label: 'server',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'URI',
+		},
+		'name',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'content timestamps',
-					when: 'open',
-					items: [
-						'$$contentTimestamps',
-					],
+					label: 'server',
+				},
+				{
+					label: 'URI',
+				},
+				'name',
+				'title',
+			],
+			[
+				'description',
+				{
+					label: 'mime type',
+				},
+				'subscribed',
+				'annotations',
+				{
+					label: 'content refs',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Server',
+				items: [
+					{
+						label: 'McpServer',
+					},
+				],
+			},
+			{
+				label: 'Content',
+				items: [
+					{
+						label: 'McpResourceContent_Timestamp list',
+					},
+				],
+			},
+			{
+				label: 'Annotations',
+				items: [
+					{
+						label: 'annotations JSON',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

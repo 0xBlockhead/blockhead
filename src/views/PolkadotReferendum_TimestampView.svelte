@@ -9,29 +9,86 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'blockNumber',
-					'blockHash',
-					'status',
-					'decidedAtBlockNumber',
-					'confirmationStartedAtBlockNumber',
-					'enactmentAtBlockNumber',
-					'ayeVotes',
-					'nayVotes',
-					'support',
-					'approval',
-				],
-			],
+	closed: [
+		{
+			label: 'referendum',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'status',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'referendum',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'block number/hash',
+				},
+				'status',
+				{
+					label: 'decided/confirmation/enactment blocks',
+				},
+			],
+			[
+				{
+					label: 'aye/nay votes',
+				},
+				'support',
+				'approval',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Referendum',
+				items: [
+					{
+						label: 'parent Polkadot referendum',
+					},
+				],
+			},
+			{
+				label: 'Lifecycle',
+				items: [
+					'status',
+					{
+						label: 'decision/confirmation/enactment coordinates',
+					},
+				],
+			},
+			{
+				label: 'Tally',
+				items: [
+					{
+						label: 'aye/nay/support/approval fields',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'runtime storage payload',
+					},
+					{
+						label: 'Subscan governance payload',
+					},
+					{
+						label: 'block context',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

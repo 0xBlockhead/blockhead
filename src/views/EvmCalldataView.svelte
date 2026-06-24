@@ -9,17 +9,61 @@
 
 	// State
 	const view = {
-		closed: [
-			'hex',
-		],
-		content: {
-			dl: [
-				[
-					'hex',
-				],
-			],
+	closed: [
+		{
+			label: 'raw hex',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'contract call data length in bytes',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'raw hex',
+				},
+				{
+					label: 'contract call data length in bytes',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Bytes',
+				items: [
+					{
+						label: 'raw call/input data',
+					},
+				],
+			},
+			{
+				label: 'Usage',
+				items: [
+					{
+						label: 'transaction input',
+					},
+					{
+						label: 'trace input',
+					},
+					{
+						label: 'locally composed call payload',
+					},
+				],
+			},
+			{
+				label: 'Decode context',
+				items: [
+					{
+						label: 'ABI/interface context required before argument interpretation',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

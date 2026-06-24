@@ -9,31 +9,88 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'ownerAddress',
-					'nextItemIndex',
-					'name',
-					'description',
-					'imageUrl',
-					'metadataUri',
-					'content',
-					'itemCount',
-					'codeHash',
-					'dataHash',
-					'verification',
-					'lastTransactionLt',
-				],
-			],
+	closed: [
+		{
+			label: 'collection',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'collection',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'owner address',
+				},
+				{
+					label: 'next item index',
+				},
+				'name',
+				{
+					label: 'image/metadata URI',
+				},
+				{
+					label: 'item count',
+				},
+				{
+					label: 'code/data hashes',
+				},
+				'verification',
+				{
+					label: 'last transaction lt',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Collection',
+				items: [
+					{
+						label: 'parent collection identity',
+					},
+				],
+			},
+			{
+				label: 'Metadata/content',
+				items: [
+					{
+						label: 'description/content JSON',
+					},
+					{
+						label: 'URI evidence',
+					},
+				],
+			},
+			{
+				label: 'Items',
+				items: [
+					{
+						label: 'items observed from the same source/page',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'raw collection/get-method/indexer payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,54 +9,94 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[
-					'chainId',
+	closed: [
+		{
+			label: 'linked Network',
+		},
+		{
+			label: 'chain id',
+		},
+		{
+			label: 'latest head observation',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'linked Network',
+				},
+				{
+					label: 'chain id',
+				},
+				{
+					label: 'latest head/sync observation',
+				},
+				{
+					label: 'bounded block count',
+				},
+				{
+					label: 'bounded contract/class/transaction counts',
+				},
+				{
+					label: 'L2Beat deployment mapping when source-backed',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Blocks',
+				items: [
+					{
+						label: 'Starknet block rows',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'blocks',
-					when: 'open',
-					items: [
-						'$$blocks',
-					],
-				},
-				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
-				},
-				{
-					label: 'contracts',
-					when: 'open',
-					items: [
-						'$$contracts',
-					],
-				},
-				{
-					label: 'classes',
-					when: 'open',
-					items: [
-						'$$classes',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'Starknet transaction rows',
+					},
+				],
+			},
+			{
+				label: 'Contracts',
+				items: [
+					{
+						label: 'Starknet contract rows',
+					},
+				],
+			},
+			{
+				label: 'Classes',
+				items: [
+					{
+						label: 'Starknet class rows',
+					},
+				],
+			},
+			{
+				label: 'Network observations',
+				items: [
+					{
+						label: 'timestamped head/sync observations',
+					},
+				],
+			},
+			{
+				label: 'Scaling',
+				items: [
+					{
+						label: 'ScalingDeploymentClaim mapping when source-backed',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

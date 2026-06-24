@@ -9,34 +9,132 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'latestBlockHeight',
-					'latestBlockHash',
-					'latestBlockTimeMs',
-					'latestBlockTransactionCount',
-					'chainId',
-					'nodeNetwork',
-					'applicationName',
-					'applicationVersion',
-					'cosmosSdkVersion',
-					'isSyncing',
-					'validatorCount',
-					'bondedValidatorCount',
-					'bondedTokens',
-					'notBondedTokens',
-					'governanceProposalCount',
-				],
-			],
+	closed: [
+		{
+			label: 'timestamp',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'source',
+		{
+			label: 'latest block height/hash/time',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'timestamp',
+				},
+				'source',
+				{
+					label: 'latest block height',
+				},
+				{
+					label: 'latest block hash',
+				},
+				{
+					label: 'latest block time',
+				},
+				{
+					label: 'sync state',
+				},
+			],
+			[
+				{
+					label: 'latest block transaction count',
+				},
+				{
+					label: 'chain id',
+				},
+				{
+					label: 'app/version',
+				},
+				{
+					label: 'Cosmos SDK version',
+				},
+				{
+					label: 'validator counts',
+				},
+				{
+					label: 'bonded/not-bonded tokens',
+				},
+				{
+					label: 'governance proposal count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Head',
+				items: [
+					{
+						label: 'latest block fields',
+					},
+				],
+			},
+			{
+				label: 'App/node',
+				items: [
+					{
+						label: 'chain id',
+					},
+					{
+						label: 'node network',
+					},
+					{
+						label: 'app',
+					},
+					{
+						label: 'SDK versions',
+					},
+					{
+						label: 'sync',
+					},
+				],
+			},
+			{
+				label: 'Staking',
+				items: [
+					{
+						label: 'bounded validator counts',
+					},
+					{
+						label: 'staking pool tokens',
+					},
+				],
+			},
+			{
+				label: 'Governance',
+				items: [
+					{
+						label: 'bounded proposal count',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'latest block',
+					},
+					{
+						label: 'node_info',
+					},
+					{
+						label: 'syncing',
+					},
+					{
+						label: 'staking validators/pool',
+					},
+					{
+						label: 'gov proposals',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

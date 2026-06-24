@@ -9,28 +9,75 @@
 
 	// State
 	const view = {
-		closed: [
-			'realm',
-			'category',
-			'number',
-		],
-		content: {
-			dl: [
-				[
-					'realm',
-					'category',
-					'number',
-					'realmLabel',
-					'categoryLabel',
-					'categoryLabelPlural',
-					'documentCategory',
-					'documentTitle',
-					'documentStatus',
-					'documentBody',
-				],
+	closed: [
+		'realm',
+		'category',
+		'number',
+	],
+	content: {
+		dl: [
+			[
+				'realm',
+				'category',
+				'number',
+				{
+					label: 'realm/category labels',
+				},
+				{
+					label: 'title',
+				},
+				{
+					label: 'status',
+				},
+				{
+					label: 'document category',
+				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Body',
+				items: [
+					{
+						label: 'rendered proposal markdown/rst/mediawiki/document text',
+					},
+				],
+			},
+			{
+				label: 'Proposal family',
+				items: [
+					{
+						label: 'realm/category filter labels derived from fields',
+					},
+				],
+			},
+			{
+				label: 'Linked upgrades',
+				items: [
+					{
+						label: 'upgrade rows only when an explicit catalog/source maps the proposal',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'upstream repository/API path',
+					},
+					{
+						label: 'file path or synthetic index',
+					},
+					{
+						label: 'fetch freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

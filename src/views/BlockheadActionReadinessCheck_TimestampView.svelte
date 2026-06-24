@@ -9,26 +9,66 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'status',
-					'observedAmount',
-					'requiredAmount',
-					'deficitAmount',
-					'observedCapabilityStatus',
-					'sourcePayloadHash',
-					'error',
-				],
-			],
+	closed: [
+		{
+			label: 'readiness check',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'status',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'readiness check',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				'status',
+				{
+					label: 'observed amount',
+				},
+				{
+					label: 'required amount',
+				},
+				{
+					label: 'deficit amount',
+				},
+				{
+					label: 'observed capability status',
+				},
+				{
+					label: 'source payload hash',
+				},
+				'error',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Readiness check',
+				items: [
+					{
+						label: 'BlockheadActionReadinessCheckView',
+					},
+				],
+			},
+			{
+				label: 'Canonical evidence',
+				items: [
+					{
+						label: 'balance/allowance/capability rows when resolved outside this local artifact',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

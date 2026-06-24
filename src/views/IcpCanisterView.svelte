@@ -9,63 +9,119 @@
 
 	// State
 	const view = {
-		closed: [
-			'canisterId',
+	closed: [
+		{
+			label: 'canister id',
+		},
+		{
+			label: 'latest subnet',
+		},
+		{
+			label: 'latest canister kind',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'canister id',
+				},
+				{
+					label: 'latest subnet',
+				},
+				{
+					label: 'latest canister kind',
+				},
+				{
+					label: 'latest module hash',
+				},
+				{
+					label: 'latest status',
+				},
+				{
+					label: 'cycles balance',
+				},
+				{
+					label: 'controller count',
+				},
+				{
+					label: 'method count',
+				},
+				{
+					label: 'certified-state count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'canisterId',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Methods',
+				items: [
+					{
+						label: 'callable method/interface rows',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'methods',
-					when: 'open',
-					items: [
-						'$$methods',
-					],
-				},
-				{
-					label: 'metadatases',
-					when: 'open',
-					items: [
-						'$$metadata',
-					],
-				},
-				{
-					label: 'logs',
-					when: 'open',
-					items: [
-						'$$logs',
-					],
-				},
-				{
-					label: 'certified states',
-					when: 'open',
-					items: [
-						'$$certifiedStates',
-					],
-				},
-				{
-					label: 'request statuses',
-					when: 'open',
-					items: [
-						'$$requestStatuses',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Metadata',
+				items: [
+					{
+						label: 'public custom-section metadata rows',
+					},
+				],
+			},
+			{
+				label: 'Certified states',
+				items: [
+					{
+						label: 'certificate/witness rows',
+					},
+				],
+			},
+			{
+				label: 'Request statuses',
+				items: [
+					{
+						label: 'ingress request-status rows',
+					},
+				],
+			},
+			{
+				label: 'Logs',
+				items: [
+					{
+						label: 'caller-authorized log observations',
+					},
+				],
+			},
+			{
+				label: 'Lifecycle/state history',
+				items: [
+					{
+						label: 'timestamped canister status/settings observations',
+					},
+				],
+			},
+			{
+				label: 'Ledger surface',
+				items: [
+					{
+						label: 'ledger canister row when canister exposes ledger methods',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'canister info/status payloads',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

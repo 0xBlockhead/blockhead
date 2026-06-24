@@ -9,26 +9,91 @@
 
 	// State
 	const view = {
-		closed: [
-			'checkpointSequence',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'checkpointSequence',
-					'source',
-					'timestampMs',
-					'status',
-					'gasBudget',
-					'gasPrice',
-					'gasUsed',
-					'effectsDigest',
-					'confirmedLocalExecution',
-				],
-			],
+	closed: [
+		{
+			label: 'transaction',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'checkpoint sequence',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'transaction',
+				},
+				{
+					label: 'checkpoint sequence',
+				},
+				'source',
+				{
+					label: 'observation time',
+				},
+				'status',
+				{
+					label: 'confirmed local execution',
+				},
+			],
+			[
+				{
+					label: 'gas budget',
+				},
+				{
+					label: 'gas price',
+				},
+				{
+					label: 'gas used summary',
+				},
+				{
+					label: 'effects digest',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transaction',
+				items: [
+					{
+						label: 'parent Sui transaction',
+					},
+				],
+			},
+			{
+				label: 'Effects',
+				items: [
+					'status',
+					{
+						label: 'gas used',
+					},
+					{
+						label: 'effects digest',
+					},
+					{
+						label: 'local execution flag',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'sui_getTransactionBlock/GraphQL transaction block payload',
+					},
+					{
+						label: 'options used',
+					},
+					{
+						label: 'indexer freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

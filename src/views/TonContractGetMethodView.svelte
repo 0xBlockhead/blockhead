@@ -9,28 +9,67 @@
 
 	// State
 	const view = {
-		closed: [
-			'methodName',
-		],
-		content: {
-			dl: [
-				[
-					'methodName',
-				],
-			],
+	closed: [
+		{
+			label: 'contract',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'method name',
+		},
+		{
+			label: 'latest method id/schema',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'contract',
+				},
+				{
+					label: 'method name',
+				},
+				{
+					label: 'latest method id/schema availability',
+				},
+				{
+					label: 'latest invocation exit/result summary',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Contract',
+				items: [
+					{
+						label: 'parent contract identity',
+					},
+				],
+			},
+			{
+				label: 'Schema/history',
+				items: [
+					{
+						label: 'method schema and invocation snapshots',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'callable surface',
+					},
+					{
+						label: 'verifier payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

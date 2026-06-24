@@ -9,22 +9,76 @@
 
 	// State
 	const view = {
-		closed: [
-			'inputIndex',
-		],
-		content: {
-			dl: [
-				[
-					'inputIndex',
-					'assetEntropy',
-					'assetBlindingNonce',
-					'issuedAmount',
-					'tokenAmount',
-					'isReissuance',
-				],
-			],
+	closed: [
+		{
+			label: 'transaction input',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'asset',
+		},
+		{
+			label: 'reissuance token asset',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'transaction input',
+				},
+				{
+					label: 'asset',
+				},
+				{
+					label: 'reissuance token asset',
+				},
+				{
+					label: 'issued amount',
+				},
+				{
+					label: 'token amount',
+				},
+				{
+					label: 'reissuance flag',
+				},
+				{
+					label: 'entropy',
+				},
+				{
+					label: 'blinding nonce',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transaction',
+				items: [
+					{
+						label: 'parent UTXO transaction',
+					},
+				],
+			},
+			{
+				label: 'Asset',
+				items: [
+					{
+						label: 'issued Elements asset',
+					},
+				],
+			},
+			{
+				label: 'Reissuance token',
+				items: [
+					{
+						label: 'reissuance token Elements asset',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

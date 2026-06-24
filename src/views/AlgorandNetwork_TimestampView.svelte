@@ -9,23 +9,78 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'latestRound',
-					'catchpoint',
-					'genesisHash',
-					'protocolVersion',
-				],
-			],
+	closed: [
+		{
+			label: 'latest round',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'protocol version',
+		},
+		{
+			label: 'genesis hash',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'latest round',
+				},
+				{
+					label: 'protocol version',
+				},
+				{
+					label: 'genesis hash',
+				},
+				'catchpoint',
+				'source',
+				{
+					label: 'observation time',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'AlgorandNetwork',
+					},
+				],
+			},
+			{
+				label: 'Node status',
+				items: [
+					{
+						label: 'latest round',
+					},
+					'catchpoint',
+					{
+						label: 'protocol version',
+					},
+				],
+			},
+			{
+				label: 'Genesis',
+				items: [
+					{
+						label: 'genesis hash',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'algod/indexer status payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

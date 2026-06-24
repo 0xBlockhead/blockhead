@@ -9,31 +9,63 @@
 
 	// State
 	const view = {
-		closed: [
-			'policyId',
-			'assetName',
-		],
-		content: {
-			dl: [
-				[
-					'policyId',
-					'assetName',
-					'fingerprint',
-				],
-			],
+	closed: [
+		{
+			label: 'policy id',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'asset name',
+		},
+		'fingerprint',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'policy id',
+				},
+				{
+					label: 'asset name',
+				},
+				'fingerprint',
+				{
+					label: 'latest supply/holder snapshot',
+				},
+				{
+					label: 'metadata summary',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Snapshots',
+				items: [
+					{
+						label: 'timestamped native-asset supply/metadata observations',
+					},
+				],
+			},
+			{
+				label: 'UTXOs',
+				items: [
+					{
+						label: 'transaction outputs containing the asset',
+					},
+				],
+			},
+			{
+				label: 'Metadata',
+				items: [
+					{
+						label: 'CIP-25/CIP-68/source metadata',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

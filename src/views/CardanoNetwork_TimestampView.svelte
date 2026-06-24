@@ -9,24 +9,78 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
+	closed: [
+		{
+			label: 'latest slot',
+		},
+		{
+			label: 'block number',
+		},
+		'epoch',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'latest slot',
+				},
+				{
+					label: 'block number',
+				},
+				'epoch',
+				'era',
+				{
+					label: 'sync progress',
+				},
+				'source',
+				{
+					label: 'observation time',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'latestSlot',
-					'latestBlockNo',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'CardanoNetwork',
+					},
+				],
+			},
+			{
+				label: 'Tip',
+				items: [
+					{
+						label: 'latest slot',
+					},
+					{
+						label: 'latest block number',
+					},
 					'epoch',
 					'era',
-					'syncProgress',
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Node sync',
+				items: [
+					{
+						label: 'sync progress',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Blockfrost/Koios/Ogmios/local-state-query payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

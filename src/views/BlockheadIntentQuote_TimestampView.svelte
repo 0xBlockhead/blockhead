@@ -9,28 +9,84 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'quoteId',
-					'solverId',
-					'validUntil',
-					'estimatedFillSeconds',
-					'inputPreview',
-					'outputPreview',
-					'quotePayloadHash',
-					'integrityChecksum',
-					'error',
-				],
-			],
+	closed: [
+		{
+			label: 'quote',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+		{
+			label: 'quote id/solver',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'quote',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'quote id',
+				},
+				{
+					label: 'solver id',
+				},
+				{
+					label: 'valid until',
+				},
+				{
+					label: 'estimated fill seconds',
+				},
+				{
+					label: 'quote payload hash',
+				},
+				'error',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Quote request',
+				items: [
+					{
+						label: 'BlockheadIntentQuoteView',
+					},
+				],
+			},
+			{
+				label: 'Preview',
+				items: [
+					{
+						label: 'provider input/output preview',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'backend-specific quote payload retained only when needed',
+					},
+				],
+			},
+			{
+				label: 'Integrity',
+				items: [
+					{
+						label: 'checksum/expiry/source freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

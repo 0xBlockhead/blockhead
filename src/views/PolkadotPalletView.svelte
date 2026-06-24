@@ -9,18 +9,61 @@
 
 	// State
 	const view = {
-		closed: [
-			'palletName',
-		],
-		content: {
-			dl: [
-				[
-					'palletName',
-					'index',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'pallet name',
+		},
+		{
+			label: 'pallet index',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'pallet name',
+				},
+				{
+					label: 'pallet index',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Extrinsics',
+				items: [
+					{
+						label: 'extrinsics by pallet when indexed',
+					},
+				],
+			},
+			{
+				label: 'Events',
+				items: [
+					{
+						label: 'events by pallet when indexed',
+					},
+				],
+			},
+			{
+				label: 'Runtime metadata',
+				items: [
+					{
+						label: 'source metadata fields',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

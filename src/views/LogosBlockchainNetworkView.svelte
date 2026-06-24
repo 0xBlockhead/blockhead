@@ -9,24 +9,86 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[],
-			],
+	closed: [
+		{
+			label: 'linked Network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'latest height',
+		},
+		{
+			label: 'latest mode',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'linked Network',
+				},
+				{
+					label: 'latest height/slot',
+				},
+				{
+					label: 'latest tip/LIB',
+				},
+				{
+					label: 'latest mode',
+				},
+				{
+					label: 'source coverage',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Consensus status',
+				items: [
+					{
+						label: 'latest timestamped consensus observation',
+					},
+				],
+			},
+			{
+				label: 'Status history',
+				items: [
+					{
+						label: 'timestamped consensus observations',
+					},
+				],
+			},
+			{
+				label: 'Connected nodes',
+				items: [
+					{
+						label: 'BlockheadLogosBlockchainNodeState rows',
+					},
+				],
+			},
+			{
+				label: 'Wallet keys',
+				items: [
+					{
+						label: 'BlockheadLogosBlockchainWalletKeyState rows known to connected nodes',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'checked-in network constants',
+					},
+					{
+						label: 'Logos Blockchain local REST API',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,30 +9,75 @@
 
 	// State
 	const view = {
-		closed: [
-			'providerId',
-		],
-		content: {
-			dl: [
-				[
-					'providerId',
-					'serviceKind',
-					'verificationMethod',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'provider id',
+		},
+		{
+			label: 'service kind',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'requests',
-					when: 'open',
-					items: [
-						'$$requests',
-					],
+					label: 'network',
+				},
+				{
+					label: 'provider id',
+				},
+				{
+					label: 'service kind',
+				},
+				{
+					label: 'operator',
+				},
+				{
+					label: 'verification method',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Requests',
+				items: [
+					{
+						label: 'service request rows scoped to this provider',
+					},
+				],
+			},
+			{
+				label: 'Operator',
+				items: [
+					{
+						label: 'operator EVM account when resolved',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent 0G network',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'registry/indexer/connected-node provider id payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

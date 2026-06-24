@@ -9,27 +9,87 @@
 
 	// State
 	const view = {
-		closed: [
-			'outpointTransactionId',
-			'outpointIndex',
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'outpointTransactionId',
-					'outpointIndex',
-					'timestampMs',
-					'source',
-					'amountSompi',
-					'scriptPublicKey',
-					'blockDaaScore',
-					'isCoinbase',
-				],
-			],
+	closed: [
+		{
+			label: 'address',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'outpoint transaction id',
+		},
+		{
+			label: 'outpoint index',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'address',
+				},
+				{
+					label: 'outpoint transaction id',
+				},
+				{
+					label: 'outpoint index',
+				},
+				{
+					label: 'observed time/source',
+				},
+				{
+					label: 'amount',
+				},
+				{
+					label: 'block DAA score',
+				},
+				{
+					label: 'coinbase flag',
+				},
+				{
+					label: 'output ref',
+				},
+				{
+					label: 'spending transaction when known',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Address',
+				items: [
+					{
+						label: 'parent Kaspa address',
+					},
+				],
+			},
+			{
+				label: 'Output',
+				items: [
+					{
+						label: 'linked UTXO output',
+					},
+				],
+			},
+			{
+				label: 'Spending transaction',
+				items: [
+					{
+						label: 'Kaspa transaction when spent',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'getUtxosByAddresses or indexer UTXO payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

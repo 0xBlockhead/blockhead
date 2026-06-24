@@ -9,34 +9,121 @@
 
 	// State
 	const view = {
-		closed: [
-			'epoch',
-			'source',
+	closed: [
+		{
+			label: 'pool',
+		},
+		'epoch',
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'pool',
+				},
+				'epoch',
+				'source',
+				{
+					label: 'observation time',
+				},
+				'slot',
+				'pledge',
+				'margin',
+				{
+					label: 'fixed cost',
+				},
+				{
+					label: 'reward account',
+				},
+				{
+					label: 'owner count',
+				},
+				{
+					label: 'metadata URL/hash',
+				},
+			],
+			[
+				{
+					label: 'live/active stake',
+				},
+				{
+					label: 'delegator count',
+				},
+				{
+					label: 'block count',
+				},
+				'saturation',
+				{
+					label: 'retired flag',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'epoch',
-					'source',
-					'timestampMs',
-					'slot',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Stake pool',
+				items: [
+					{
+						label: 'CardanoStakePool',
+					},
+				],
+			},
+			{
+				label: 'Registration/economics',
+				items: [
 					'pledge',
 					'margin',
-					'fixedCostLovelace',
-					'rewardAccount',
+					{
+						label: 'fixed cost',
+					},
+					{
+						label: 'reward account',
+					},
 					'owners',
-					'metadataUrl',
-					'metadataHash',
-					'liveStake',
-					'activeStake',
-					'delegatorCount',
-					'blockCount',
-					'saturation',
-					'retired',
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Metadata',
+				items: [
+					{
+						label: 'metadata URL',
+					},
+					{
+						label: 'metadata hash',
+					},
+				],
+			},
+			{
+				label: 'Performance/stake',
+				items: [
+					{
+						label: 'live/active stake',
+					},
+					{
+						label: 'delegator count',
+					},
+					{
+						label: 'block count',
+					},
+					'saturation',
+					{
+						label: 'retired flag',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'epoch-scoped pool payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

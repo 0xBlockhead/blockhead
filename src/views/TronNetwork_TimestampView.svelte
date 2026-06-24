@@ -9,31 +9,114 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'latestBlockHeight',
-					'latestBlockHash',
-					'latestBlockTimeMs',
-					'latestBlockTransactionCount',
-					'witnessCount',
-					'activeWitnessCount',
-					'nodeBlockHeight',
-					'solidityBlockHeight',
-					'currentPeerCount',
-					'maintenanceIntervalMs',
-					'transactionFeeSun',
-					'createAccountFeeSun',
-				],
-			],
+	closed: [
+		{
+			label: 'observation time',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'source',
+		{
+			label: 'latest block height/hash/time',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'latest block height/hash/time/transaction count',
+				},
+			],
+			[
+				{
+					label: 'witness counts',
+				},
+				{
+					label: 'node/solidity heights',
+				},
+				{
+					label: 'peer count',
+				},
+				{
+					label: 'maintenance interval',
+				},
+				{
+					label: 'transaction fee',
+				},
+				{
+					label: 'create-account fee',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'TronNetwork',
+					},
+				],
+			},
+			{
+				label: 'Head',
+				items: [
+					{
+						label: 'latest block height/hash/time/transaction count',
+					},
+					{
+						label: 'node/solidity heights',
+					},
+				],
+			},
+			{
+				label: 'Witnesses',
+				items: [
+					{
+						label: 'witness count',
+					},
+					{
+						label: 'active witness count',
+					},
+				],
+			},
+			{
+				label: 'Fees/maintenance',
+				items: [
+					{
+						label: 'maintenance interval',
+					},
+					{
+						label: 'transaction fee',
+					},
+					{
+						label: 'create-account fee',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'TronGrid wallet/getnowblock',
+					},
+					{
+						label: 'wallet/listwitnesses',
+					},
+					{
+						label: 'wallet/getnodeinfo',
+					},
+					{
+						label: 'wallet/getchainparameters',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,25 +9,84 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'ledgerSequence',
-					'sequence',
-					'nativeBalance',
-					'subentryCount',
-					'thresholds',
-					'signerCount',
-				],
-			],
+	closed: [
+		{
+			label: 'native balance',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'sequence',
+		{
+			label: 'ledger sequence',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'native balance',
+				},
+				'sequence',
+				{
+					label: 'ledger sequence',
+				},
+				{
+					label: 'subentry count',
+				},
+				{
+					label: 'signer count',
+				},
+				'thresholds',
+				'source',
+				{
+					label: 'observation time',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'StellarAccount',
+					},
+				],
+			},
+			{
+				label: 'Ledger state',
+				items: [
+					{
+						label: 'native balance',
+					},
+					'sequence',
+					{
+						label: 'ledger sequence',
+					},
+				],
+			},
+			{
+				label: 'Account config',
+				items: [
+					{
+						label: 'subentry count',
+					},
+					{
+						label: 'signer count',
+					},
+					'thresholds',
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Horizon/RPC/explorer account payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

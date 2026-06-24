@@ -9,35 +9,108 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
+	closed: [
+		{
+			label: 'mint',
+		},
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'mint',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'reachability',
+				},
+				{
+					label: 'server time',
+				},
+				'version',
+				'pubkey',
+			],
+			[
+				{
+					label: 'supported NUT count',
+				},
+				{
+					label: 'mint method summary',
+				},
+				{
+					label: 'melt method summary',
+				},
+				{
+					label: 'contact/url availability',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'reachable',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Mint',
+				items: [
+					{
+						label: 'parent Cashu mint',
+					},
+				],
+			},
+			{
+				label: 'Operator metadata',
+				items: [
 					'name',
-					'pubkey',
-					'version',
-					'description',
-					'descriptionLong',
-					'motd',
-					'iconUrl',
-					'tosUrl',
-					'serverTimeMs',
+					{
+						label: 'descriptions',
+					},
+					{
+						label: 'icon',
+					},
+					{
+						label: 'TOS',
+					},
 					'contactJson',
 					'urls',
-					'nutsJson',
+				],
+			},
+			{
+				label: 'Capabilities',
+				items: [
+					'supportedNutNumbers',
 					'mintMethodsJson',
 					'meltMethodsJson',
-					'supportedNutNumbers',
+					'nutsJson',
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Keysets',
+				items: [
+					{
+						label: 'public keysets advertised by the mint',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'GET /v1/info response',
+					},
+					{
+						label: 'fetch status',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

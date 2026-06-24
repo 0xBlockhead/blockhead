@@ -9,22 +9,78 @@
 
 	// State
 	const view = {
-		closed: [
-			'eventId',
-		],
-		content: {
-			dl: [
-				[
-					'eventId',
-					'kind',
-					'pubkey',
-					'createdAt',
-					'tags',
-					'repostedEventId',
-				],
-			],
+	closed: [
+		{
+			label: 'event id',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'kind',
+		{
+			label: 'author',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'event id',
+				},
+				'kind',
+				{
+					label: 'author',
+				},
+				'createdAt',
+				{
+					label: 'reposted event id',
+				},
+				{
+					label: 'reposted note',
+				},
+				{
+					label: 'reposted article',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Reposted target',
+				items: [
+					{
+						label: 'target note or article',
+					},
+				],
+			},
+			{
+				label: 'Author',
+				items: [
+					{
+						label: 'author Nostr profile',
+					},
+				],
+			},
+			{
+				label: 'Raw event',
+				items: [
+					{
+						label: 'kind/pubkey/tags/signature/source relays',
+					},
+				],
+			},
+			{
+				label: 'Relay evidence',
+				items: [
+					{
+						label: 'filters',
+					},
+					{
+						label: 'relays/indexers that returned the repost',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

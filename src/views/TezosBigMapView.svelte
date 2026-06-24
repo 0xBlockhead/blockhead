@@ -9,45 +9,82 @@
 
 	// State
 	const view = {
-		closed: [
-			'bigMapId',
+	closed: [
+		{
+			label: 'contract',
+		},
+		{
+			label: 'big-map id',
+		},
+		'path',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'contract',
+				},
+				{
+					label: 'big-map id',
+				},
+				'path',
+				{
+					label: 'key type',
+				},
+				{
+					label: 'value type',
+				},
+				{
+					label: 'latest active/key/update counts',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'bigMapId',
-					'path',
-					'keyType',
-					'valueType',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Keys',
+				items: [
+					{
+						label: 'big-map key rows',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'keys',
-					when: 'open',
-					items: [
-						'$$keys',
-					],
-				},
-				{
-					label: 'updates',
-					when: 'open',
-					items: [
-						'$$updates',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Updates',
+				items: [
+					{
+						label: 'big-map diff rows',
+					},
+				],
+			},
+			{
+				label: 'State history',
+				items: [
+					{
+						label: 'level/source big-map state observations',
+					},
+				],
+			},
+			{
+				label: 'Contract',
+				items: [
+					{
+						label: 'parent Tezos contract',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'node/indexer big-map payloads',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

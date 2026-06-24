@@ -9,28 +9,95 @@
 
 	// State
 	const view = {
-		closed: [
-			'nodeId',
-		],
-		content: {
-			dl: [
-				[
-					'nodeId',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'node id',
+		},
+		{
+			label: 'latest node account',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'network',
+				},
+				{
+					label: 'node id',
+				},
+				{
+					label: 'latest node account',
+				},
+				{
+					label: 'latest endpoint count',
+				},
+				{
+					label: 'latest stake',
+				},
+				{
+					label: 'rewarded/not-rewarded stake',
+				},
+				{
+					label: 'min/max stake',
+				},
+				{
+					label: 'deleted flag',
+				},
+				{
+					label: 'timestamp count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest state',
+				items: [
+					{
+						label: 'latest node/address-book observation',
+					},
+				],
+			},
+			{
+				label: 'State history',
+				items: [
+					{
+						label: 'timestamped node/address-book observations',
+					},
+				],
+			},
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'node Hedera account from latest state',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Hedera network',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'registered-node/address-book payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

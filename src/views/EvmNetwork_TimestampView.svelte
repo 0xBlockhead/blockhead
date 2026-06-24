@@ -9,20 +9,63 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'blockHeight',
-				],
-			],
+	closed: [
+		{
+			label: 'chain/head height',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'chain/head height',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'endpoint freshness',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent EVM network',
+					},
+				],
+			},
+			{
+				label: 'Head block',
+				items: [
+					{
+						label: 'EVM block when blockHeight resolves',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'execution RPC head/block-number response',
+					},
+					{
+						label: 'endpoint freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

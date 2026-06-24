@@ -9,21 +9,80 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'verified',
-					'resolverSelector',
-				],
-			],
+	closed: [
+		{
+			label: 'reverse record',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'reverse record',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'verified flag',
+				},
+				{
+					label: 'reverse resolver selector',
+				},
+				{
+					label: 'forward resolver selector',
+				},
+				{
+					label: 'check result',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Reverse record',
+				items: [
+					{
+						label: 'parent ENS reverse record',
+					},
+				],
+			},
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'linked account',
+					},
+				],
+			},
+			{
+				label: 'Name',
+				items: [
+					{
+						label: 'claimed ENS name',
+					},
+				],
+			},
+			{
+				label: 'Raw evidence',
+				items: [
+					{
+						label: 'resolver calls',
+					},
+					{
+						label: 'block/source context',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

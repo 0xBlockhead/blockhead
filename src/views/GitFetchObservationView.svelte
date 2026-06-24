@@ -9,28 +9,85 @@
 
 	// State
 	const view = {
-		closed: [
-			'remoteName',
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'remoteName',
-					'timestampMs',
-					'source',
-					'protocolVersion',
-					'advertisedRefs',
-					'wantedObjects',
-					'receivedObjects',
-					'packfileHash',
-					'status',
-					'error',
-				],
-			],
+	closed: [
+		{
+			label: 'repository',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'remote name',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'repository',
+				},
+				{
+					label: 'remote name',
+				},
+				'source',
+				{
+					label: 'timestamp',
+				},
+				'status',
+				{
+					label: 'protocol version',
+				},
+				{
+					label: 'advertised ref count',
+				},
+				{
+					label: 'wanted object count',
+				},
+				{
+					label: 'received object count',
+				},
+				{
+					label: 'packfile hash',
+				},
+				'error',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Repository',
+				items: [
+					{
+						label: 'parent Git repository',
+					},
+				],
+			},
+			{
+				label: 'Remote',
+				items: [
+					{
+						label: 'repository remote config',
+					},
+				],
+			},
+			{
+				label: 'Packfile',
+				items: [
+					{
+						label: 'captured packfile when available',
+					},
+				],
+			},
+			{
+				label: 'Raw exchange',
+				items: [
+					{
+						label: 'protocol request/response summary',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

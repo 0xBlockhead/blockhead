@@ -9,50 +9,138 @@
 
 	// State
 	const view = {
-		closed: [
-			'source',
-			'quoteRequestHash',
-			'timestampMs',
-		],
-		content: {
-			dl: [
-				[
-					'source',
-					'quoteRequestHash',
-					'timestampMs',
-					'amountIn',
-					'slippage',
-					'fromAddress',
-					'toAddress',
-					'providerQuoteId',
-					'amountOut',
-					'amountOutMin',
-					'priceImpact',
-					'estimatedGas',
-					'estimatedGasUsd',
-					'allowanceTarget',
-					'transactionTo',
-					'transactionDataHash',
-					'value',
-					'validUntilMs',
-					'blockNumber',
-					'status',
-					'error',
-				],
-			],
+	closed: [
+		{
+			label: 'source/request hash',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'observation time',
+		},
+		{
+			label: 'network',
+		},
+	],
+	content: {
+		dl: [
+			[
+				'source',
 				{
-					label: 'steps',
-					when: 'open',
-					items: [
-						'$$steps',
-					],
+					label: 'request hash',
+				},
+				{
+					label: 'observation time',
+				},
+				{
+					label: 'network',
+				},
+				{
+					label: 'token in/out',
+				},
+				{
+					label: 'amount in',
+				},
+				'slippage',
+				{
+					label: 'from/to addresses',
+				},
+				{
+					label: 'intent',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			[
+				{
+					label: 'provider quote id',
+				},
+				{
+					label: 'amount out',
+				},
+				{
+					label: 'minimum amount out',
+				},
+				{
+					label: 'price impact',
+				},
+				{
+					label: 'gas estimate',
+				},
+				{
+					label: 'gas USD',
+				},
+				{
+					label: 'allowance target',
+				},
+				{
+					label: 'transaction target',
+				},
+				{
+					label: 'calldata hash',
+				},
+				'value',
+				{
+					label: 'valid-until time',
+				},
+				{
+					label: 'block number',
+				},
+				'status',
+				'error',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Steps',
+				items: [
+					{
+						label: 'quote-scoped route steps',
+					},
+				],
+			},
+			{
+				label: 'Tokens',
+				items: [
+					{
+						label: 'input/output EVM coin instances',
+					},
+				],
+			},
+			{
+				label: 'Session intent',
+				items: [
+					{
+						label: 'BlockheadSwapIntent when linked',
+					},
+				],
+			},
+			{
+				label: 'Transaction request',
+				items: [
+					{
+						label: 'target/value/calldata hash/allowance target',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'aggregator response',
+					},
+					{
+						label: 'request parameters',
+					},
+					{
+						label: 'block number',
+					},
+					{
+						label: 'error payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

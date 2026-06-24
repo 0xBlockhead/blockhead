@@ -9,24 +9,83 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'executedTimestamp',
-					'deleted',
-					'expirationTime',
-					'waitForExpiry',
-					'signatureCount',
-				],
-			],
+	closed: [
+		{
+			label: 'schedule',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'schedule',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'executed timestamp',
+				},
+				{
+					label: 'deleted flag',
+				},
+				{
+					label: 'expiration',
+				},
+				{
+					label: 'wait-for-expiry',
+				},
+				{
+					label: 'signature count',
+				},
+				{
+					label: 'execution transaction',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Schedule',
+				items: [
+					{
+						label: 'parent Hedera schedule',
+					},
+				],
+			},
+			{
+				label: 'Signatures',
+				items: [
+					{
+						label: 'schedule signatures near the same observation',
+					},
+				],
+			},
+			{
+				label: 'Execution transaction',
+				items: [
+					{
+						label: 'executed Hedera transaction',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'raw schedule payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

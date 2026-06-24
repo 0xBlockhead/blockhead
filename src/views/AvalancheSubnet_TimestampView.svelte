@@ -9,24 +9,83 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'validatorCount',
-					'delegatorCount',
-					'totalStakeNavax',
-					'chainCount',
-					'pendingValidatorCount',
-				],
-			],
+	closed: [
+		{
+			label: 'subnet',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observed time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'subnet',
+				},
+				{
+					label: 'observed time',
+				},
+				'source',
+				{
+					label: 'validator count',
+				},
+				{
+					label: 'delegator count',
+				},
+				{
+					label: 'total stake',
+				},
+				{
+					label: 'chain count',
+				},
+				{
+					label: 'pending validator count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Subnet',
+				items: [
+					{
+						label: 'parent subnet',
+					},
+				],
+			},
+			{
+				label: 'Validators',
+				items: [
+					{
+						label: 'validator rows for the observation when sourceable',
+					},
+				],
+			},
+			{
+				label: 'Delegators',
+				items: [
+					{
+						label: 'delegator rows for the observation when sourceable',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'freshness',
+					},
+					{
+						label: 'raw validator-set payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

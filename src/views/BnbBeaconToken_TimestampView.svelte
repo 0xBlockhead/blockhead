@@ -9,24 +9,82 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'totalSupply',
-					'mintable',
-					'contractAddress',
-					'holderCount',
-					'transferCount',
-				],
-			],
+	closed: [
+		{
+			label: 'token',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		{
+			label: 'total supply',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'token',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'total supply',
+				},
+				{
+					label: 'mintable flag',
+				},
+				{
+					label: 'mapped contract address',
+				},
+			],
+			[
+				{
+					label: 'holder count',
+				},
+				{
+					label: 'transfer count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Token',
+				items: [
+					{
+						label: 'parent BNB Beacon token',
+					},
+				],
+			},
+			{
+				label: 'Migrations',
+				items: [
+					{
+						label: 'migration records near the same source/window',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'archived token metadata',
+					},
+					{
+						label: 'explorer/indexer token stats',
+					},
+					{
+						label: 'fusion mapping payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

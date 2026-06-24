@@ -9,22 +9,70 @@
 
 	// State
 	const view = {
-		closed: [
-			'blockNumber',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'blockNumber',
-					'source',
-					'nonce',
-					'classHash',
-					'found',
-				],
-			],
+	closed: [
+		{
+			label: 'contract',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'block number',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'contract',
+				},
+				{
+					label: 'block number',
+				},
+				'source',
+				'nonce',
+				{
+					label: 'class hash',
+				},
+				{
+					label: 'found state',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Contract',
+				items: [
+					{
+						label: 'parent Starknet contract',
+					},
+				],
+			},
+			{
+				label: 'Class',
+				items: [
+					{
+						label: 'Starknet class when classHash resolves',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'starknet_getNonce',
+					},
+					{
+						label: 'starknet_getClassHashAt',
+					},
+					{
+						label: 'indexer account payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

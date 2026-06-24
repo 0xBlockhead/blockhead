@@ -9,26 +9,90 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'spent',
-					'spendTransactionId',
-					'spentAtHeight',
-					'confirmations',
-					'witnessAvailable',
-					'lastScannedHeight',
-					'lastScannedAt',
-				],
-			],
+	closed: [
+		{
+			label: 'note state',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'note state',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'spent state',
+				},
+				{
+					label: 'spend transaction id',
+				},
+				{
+					label: 'spent height',
+				},
+				'confirmations',
+				{
+					label: 'witness availability',
+				},
+				{
+					label: 'last scanned height',
+				},
+				{
+					label: 'last scanned time',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Note',
+				items: [
+					{
+						label: 'parent local Zcash note state',
+					},
+				],
+			},
+			{
+				label: 'Wallet',
+				items: [
+					{
+						label: 'parent local Zcash wallet state',
+					},
+				],
+			},
+			{
+				label: 'Public action',
+				items: [
+					{
+						label: 'linked public shielded action when available',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'zcashd wallet',
+					},
+					{
+						label: 'lightwalletd compact block/subtree',
+					},
+					{
+						label: 'or local SDK wallet-store payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,22 +9,70 @@
 
 	// State
 	const view = {
-		closed: [
-			'apiHost',
-			'fromDomain',
-			'toDomain',
-		],
-		content: {
-			dl: [
-				[
-					'apiHost',
-					'fromDomain',
-					'toDomain',
-					'rows',
-				],
-			],
+	closed: [
+		{
+			label: 'API host',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'from domain',
+		},
+		{
+			label: 'to domain',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'API host',
+				},
+				{
+					label: 'from domain',
+				},
+				{
+					label: 'to domain',
+				},
+				{
+					label: 'fee-row count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Fee rows',
+				items: [
+					{
+						label: 'finality threshold',
+					},
+					{
+						label: 'minimum fee',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Iris API host',
+					},
+					{
+						label: 'from/to numeric domain query',
+					},
+				],
+			},
+			{
+				label: 'Target model',
+				items: [
+					{
+						label: 'CctpBurnFee_Timestamp when timestamp schema exists',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

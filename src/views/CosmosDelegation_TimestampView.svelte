@@ -9,24 +9,72 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'shares',
-					'balanceAmount',
-					'balanceDenom',
-					'rewardAmount',
-					'rewardDenom',
-				],
-			],
+	closed: [
+		{
+			label: 'delegation',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'delegation',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				'shares',
+				{
+					label: 'delegated balance',
+				},
+				{
+					label: 'reward amount when sourced',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Delegation',
+				items: [
+					{
+						label: 'parent Cosmos delegation',
+					},
+				],
+			},
+			{
+				label: 'Delegator',
+				items: [
+					{
+						label: 'delegator Cosmos account',
+					},
+				],
+			},
+			{
+				label: 'Validator',
+				items: [
+					{
+						label: 'validator receiving delegated stake',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'staking/distribution payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

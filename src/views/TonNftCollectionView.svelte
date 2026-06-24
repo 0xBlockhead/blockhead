@@ -9,42 +9,91 @@
 
 	// State
 	const view = {
-		closed: [
-			'collectionAddress',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'collection address',
+		},
+		{
+			label: 'account',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'collection address',
+				},
+				{
+					label: 'account',
+				},
+				{
+					label: 'latest owner/metadata/item-count observation',
+				},
+				{
+					label: 'item/transfer/timestamp windows',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'collectionAddress',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'collection contract account',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'items',
-					when: 'open',
-					items: [
-						'$$items',
-					],
-				},
-				{
-					label: 'transfers',
-					when: 'open',
-					items: [
-						'$$transfers',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Latest state',
+				items: [
+					{
+						label: 'latest collection-state observation',
+					},
+				],
+			},
+			{
+				label: 'History',
+				items: [
+					{
+						label: 'collection-state observation history',
+					},
+				],
+			},
+			{
+				label: 'Items',
+				items: [
+					{
+						label: 'collection item contracts',
+					},
+				],
+			},
+			{
+				label: 'Transfers',
+				items: [
+					{
+						label: 'decoded item transfer effects',
+					},
+				],
+			},
+			{
+				label: 'Contract',
+				items: [
+					{
+						label: 'contract classification when interface detection resolves',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

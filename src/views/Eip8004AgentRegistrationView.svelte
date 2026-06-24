@@ -9,41 +9,79 @@
 
 	// State
 	const view = {
-		closed: [
-			'namespace',
-			'chainId',
-			'identityRegistry',
-			'agentId',
+	closed: [
+		'namespace',
+		{
+			label: 'chain/registry',
+		},
+		{
+			label: 'agent id',
+		},
+	],
+	content: {
+		dl: [
+			[
+				'namespace',
+				{
+					label: 'chain id',
+				},
+				{
+					label: 'identity registry',
+				},
+				{
+					label: 'agent id',
+				},
+			],
+			[
+				{
+					label: 'EVM NFT ref',
+				},
+				{
+					label: 'latest registry observation',
+				},
+				{
+					label: 'file refs',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'namespace',
-					'chainId',
-					'identityRegistry',
-					'agentId',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Registry observations',
+				items: [
+					{
+						label: 'Eip8004AgentRegistration_Timestamp list',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'files',
-					when: 'open',
-					items: [
-						'$$files',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Registration files',
+				items: [
+					{
+						label: 'Eip8004AgentRegistrationFile list',
+					},
+				],
+			},
+			{
+				label: 'EVM NFT',
+				items: [
+					{
+						label: 'EvmNft',
+					},
+				],
+			},
+			{
+				label: 'Claims',
+				items: [
+					{
+						label: 'AiRelationshipClaim list',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,42 +9,108 @@
 
 	// State
 	const view = {
-		closed: [
-			'publicKey',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'public key',
+		},
+		{
+			label: 'latest observed alias/color/capacity/channel count',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'public key',
+				},
+				{
+					label: 'latest observed alias/color/capacity/channel count',
+				},
+				{
+					label: 'latest location/address summary',
+				},
+				{
+					label: 'channel count',
+				},
+				{
+					label: 'local-node-state count when connected',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'publicKey',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Channels',
+				items: [
+					{
+						label: 'public channels connected to this node',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'channels',
-					when: 'open',
-					items: [
-						'$$channels',
-					],
-				},
-				{
-					label: 'local node states',
-					when: 'open',
-					items: [
-						'$$localNodeStates',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Public observations',
+				items: [
+					{
+						label: 'timestamped graph/node observations',
+					},
+				],
+			},
+			{
+				label: 'Location',
+				items: [
+					{
+						label: 'country/city',
+					},
+					{
+						label: 'source labels',
+					},
+				],
+			},
+			{
+				label: 'Addresses',
+				items: [
+					{
+						label: 'advertised network addresses from timestamp observations',
+					},
+				],
+			},
+			{
+				label: 'Local node state',
+				items: [
+					{
+						label: 'BlockheadLightningNodeState when connected locally',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Lightning network',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'public graph',
+					},
+					{
+						label: 'LND node payloads',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

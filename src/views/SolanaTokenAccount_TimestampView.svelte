@@ -9,31 +9,94 @@
 
 	// State
 	const view = {
-		closed: [
-			'slot',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'slot',
-					'source',
-					'timestampMs',
-					'amount',
-					'decimals',
-					'uiAmountString',
-					'state',
-					'isNative',
-					'delegatedAmount',
-					'rentExemptReserveLamports',
-					'ownerPubkey',
-					'mintAddress',
-					'delegatePubkey',
-					'closeAuthorityPubkey',
-				],
-			],
+	closed: [
+		{
+			label: 'token account',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'slot',
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'token account',
+				},
+				'slot',
+				'source',
+				{
+					label: 'timestamp',
+				},
+				'amount',
+				'decimals',
+				{
+					label: 'display amount',
+				},
+				'state',
+				{
+					label: 'native flag',
+				},
+				{
+					label: 'delegated amount',
+				},
+				{
+					label: 'rent reserve',
+				},
+				{
+					label: 'owner',
+				},
+				{
+					label: 'mint',
+				},
+				{
+					label: 'delegate',
+				},
+				{
+					label: 'close authority',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Token account',
+				items: [
+					{
+						label: 'parent Solana token account',
+					},
+				],
+			},
+			{
+				label: 'Mint',
+				items: [
+					{
+						label: 'parent Solana token mint',
+					},
+				],
+			},
+			{
+				label: 'Owner/delegate/close authority',
+				items: [
+					{
+						label: 'Solana account refs',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'jsonParsed token account payload',
+					},
+					{
+						label: 'RPC context',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,29 +9,86 @@
 
 	// State
 	const view = {
-		closed: [
-			'nodeId',
-			'txId',
-			'observedAtMs',
-		],
-		content: {
-			dl: [
-				[
-					'nodeId',
-					'txId',
-					'observedAtMs',
-					'sender',
-					'transactionType',
-					'fee',
-					'firstValidRound',
-					'lastValidRound',
-					'group',
-					'poolPriority',
-					'payload',
-				],
-			],
+	closed: [
+		{
+			label: 'node id',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'tx id',
+		},
+		{
+			label: 'observed time',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'node id',
+				},
+				{
+					label: 'tx id',
+				},
+				{
+					label: 'observed time',
+				},
+				{
+					label: 'network',
+				},
+				'sender',
+				{
+					label: 'transaction type',
+				},
+				'fee',
+				{
+					label: 'validity round range',
+				},
+				{
+					label: 'group id',
+				},
+				{
+					label: 'pool priority',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Payload',
+				items: [
+					{
+						label: 'pending transaction JSON/msgpack summary',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'linked Algorand network',
+					},
+				],
+			},
+			{
+				label: 'Group',
+				items: [
+					{
+						label: 'sibling pending transactions with the same group id',
+					},
+				],
+			},
+			{
+				label: 'Confirmation',
+				items: [
+					{
+						label: 'confirmed Algorand transaction when the tx id resolves on-chain',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

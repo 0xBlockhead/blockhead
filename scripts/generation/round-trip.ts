@@ -65,7 +65,6 @@ type ExpectedApp = {
 			file: string
 			capabilities: string[]
 			sourceText: string
-			sourceFile: string
 		}[]
 	}
 	routes: {
@@ -85,7 +84,6 @@ type ExpectedApp = {
 			importedSymbols: string[]
 			selectorExpression: string
 			simpleDirectParamShape: boolean
-			sourceFile: string
 		}[]
 		selectorMappings: {
 			entity: string
@@ -286,7 +284,10 @@ const semanticRoundTrip = () => {
 			member: row.value.member as string | undefined,
 			value: row.value.value as string | undefined,
 		}))
-	const expectedLoaderTransforms = app.routes.loaderTransforms
+	const expectedLoaderTransforms = app.routes.loaderTransforms.map((row) => ({
+		...row,
+		sourceFile: `src/routes/${row.routePath}/+page.ts`,
+	}))
 	const ledgerLoaderTransforms = routeRows
 		.filter((row) => row.kind === 'route.loader-selector-transform')
 		.map((row) => ({
@@ -323,7 +324,7 @@ const semanticRoundTrip = () => {
 		viewName: row.viewName,
 		file: row.file,
 		capabilities: [...row.capabilities].sort(),
-		sourceFile: row.sourceFile,
+		sourceFile: row.file,
 	}))
 	const sourceEnumRows = sourceRows.filter((row) => row.kind === 'source.enum-member')
 	const ledgerProviderRows = sourceEnumRows

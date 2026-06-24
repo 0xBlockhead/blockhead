@@ -9,29 +9,64 @@
 
 	// State
 	const view = {
-		closed: [
-			'marketVenueId',
-		],
-		content: {
-			dl: [
-				[
-					'marketVenueId',
-					'label',
-				],
-			],
+	lists: [
+		{
+			id: 'markets',
+			label: 'Markets',
+			field: '$$markets',
+			slot: 'MarketsList',
 		},
-		details: {
-			tabs: [
+	],
+	slots: [
+		{
+			slot: 'MarketsList',
+			label: 'venue markets list',
+			for: 'Details',
+		},
+	],
+	closed: [
+		{
+			label: 'venue id',
+		},
+		'label',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'markets',
-					when: 'open',
-					items: [
-						'$$markets',
-					],
+					label: 'venue id',
+				},
+				'label',
+				{
+					label: 'market count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Markets',
+				items: [
+					{
+						label: 'Market rows for this venue',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'checked-in venue catalog',
+					},
+					{
+						label: 'provider exchange mappings',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

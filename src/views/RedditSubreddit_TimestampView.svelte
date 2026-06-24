@@ -9,21 +9,75 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'subscriberCount',
-					'activeUserCount',
-				],
-			],
+	closed: [
+		{
+			label: 'subreddit',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time/source',
+		},
+		{
+			label: 'subscriber count',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'subreddit',
+				},
+				{
+					label: 'observation time/source',
+				},
+				{
+					label: 'subscriber count',
+				},
+				{
+					label: 'active-user count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Subreddit',
+				items: [
+					{
+						label: 'RedditSubreddit',
+					},
+				],
+			},
+			{
+				label: 'Audience counters',
+				items: [
+					{
+						label: 'subscriber count',
+					},
+					{
+						label: 'active-user count',
+					},
+				],
+			},
+			{
+				label: 'History',
+				items: [
+					{
+						label: 'RedditSubreddit_Timestamp list',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Reddit subreddit/about payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

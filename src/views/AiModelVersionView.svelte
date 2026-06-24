@@ -9,38 +9,85 @@
 
 	// State
 	const view = {
-		closed: [
-			'versionId',
-		],
-		content: {
-			dl: [
-				[
-					'versionId',
-					'huggingFaceRepo',
-					'revision',
-					'mlflowRegisteredModelName',
-					'mlflowModelVersion',
-					'onnxIrVersion',
-					'onnxOpsetImports',
-					'createdAt',
-					'trainingCutoff',
-					'quantization',
-					'fineTuneKind',
-				],
-			],
+	closed: [
+		{
+			label: 'model/version or artifact',
 		},
-		details: {
-			tabs: [
+		'revision',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'documents',
-					when: 'open',
-					items: [
-						'$$documents',
-					],
+					label: 'model',
+				},
+				{
+					label: 'version id',
+				},
+				{
+					label: 'artifact',
+				},
+				{
+					label: 'HF repo/revision',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			[
+				{
+					label: 'MLflow registered model/version',
+				},
+				{
+					label: 'ONNX IR/opsets',
+				},
+				{
+					label: 'created at',
+				},
+				{
+					label: 'training cutoff',
+				},
+				'quantization',
+				{
+					label: 'fine-tune kind',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Model',
+				items: [
+					{
+						label: 'AiModel when present',
+					},
+				],
+			},
+			{
+				label: 'Artifact',
+				items: [
+					{
+						label: 'AiArtifact when present',
+					},
+				],
+			},
+			{
+				label: 'Documents',
+				items: [
+					{
+						label: 'AiDocument list',
+					},
+				],
+			},
+			{
+				label: 'Relationships',
+				items: [
+					{
+						label: 'AiRelationshipClaim list',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

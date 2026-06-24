@@ -9,35 +9,75 @@
 
 	// State
 	const view = {
-		closed: [
-			'accountId',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'account id',
+		},
+		{
+			label: 'latest nonce/native-balance summary',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'account id',
+				},
+				{
+					label: 'latest nonce/native-balance summary',
+				},
+				{
+					label: 'asset-balance snapshot count',
+				},
+				{
+					label: 'timestamp count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'accountId',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Balance history',
+				items: [
+					{
+						label: 'timestamped account-state observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'asset balance timestamps',
-					when: 'open',
-					items: [
-						'$$assetBalanceTimestamps',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Asset balances',
+				items: [
+					{
+						label: 'asset balance observations grouped by asset',
+					},
+				],
+			},
+			{
+				label: 'Extrinsics',
+				items: [
+					{
+						label: 'signed Polkadot extrinsics when indexed',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'node/indexer account payload fields',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

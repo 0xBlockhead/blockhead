@@ -9,101 +9,133 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[],
-			],
+	closed: [
+		{
+			label: 'linked Network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'latest era',
+		},
+		{
+			label: 'latest slot/block/epoch snapshot',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'blocks',
-					when: 'open',
-					items: [
-						'$$blocks',
-					],
+					label: 'linked Network',
 				},
 				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
+					label: 'latest era',
 				},
 				{
-					label: 'addresses',
-					when: 'open',
-					items: [
-						'$$addresses',
-					],
+					label: 'latest slot/block/epoch snapshot',
 				},
 				{
-					label: 'stake credentials',
-					when: 'open',
-					items: [
-						'$$stakeCredentials',
-					],
+					label: 'sync progress',
 				},
 				{
-					label: 'stake pools',
-					when: 'open',
-					items: [
-						'$$stakePools',
-					],
+					label: 'native ADA asset',
 				},
 				{
-					label: 'd reps',
-					when: 'open',
-					items: [
-						'$$dReps',
-					],
+					label: 'DRep count',
 				},
 				{
-					label: 'governance proposals',
-					when: 'open',
-					items: [
-						'$$governanceProposals',
-					],
+					label: 'governance proposal count',
 				},
 				{
-					label: 'assets',
-					when: 'open',
-					items: [
-						'$$assets',
-					],
-				},
-				{
-					label: 'protocol parameter epochs',
-					when: 'open',
-					items: [
-						'$$protocolParameterEpochs',
-					],
-				},
-				{
-					label: 'constitution epochs',
-					when: 'open',
-					items: [
-						'$$constitutionEpochs',
-					],
-				},
-				{
-					label: 'committee epochs',
-					when: 'open',
-					items: [
-						'$$committeeEpochs',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'stake pool count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Blocks',
+				items: [
+					{
+						label: 'Cardano blocks',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'Cardano transactions',
+					},
+				],
+			},
+			{
+				label: 'Addresses',
+				items: [
+					{
+						label: 'Cardano addresses',
+					},
+				],
+			},
+			{
+				label: 'Stake credentials',
+				items: [
+					{
+						label: 'Cardano stake credentials',
+					},
+				],
+			},
+			{
+				label: 'Stake pools',
+				items: [
+					{
+						label: 'Cardano stake pools',
+					},
+				],
+			},
+			{
+				label: 'Governance',
+				items: [
+					{
+						label: 'DReps',
+					},
+					{
+						label: 'governance proposals',
+					},
+					{
+						label: 'committee epoch observations',
+					},
+					{
+						label: 'constitution epoch observations',
+					},
+				],
+			},
+			{
+				label: 'Native assets',
+				items: [
+					{
+						label: 'Cardano native assets',
+					},
+				],
+			},
+			{
+				label: 'Protocol parameters',
+				items: [
+					{
+						label: 'epoch-bounded protocol parameter rows',
+					},
+				],
+			},
+			{
+				label: 'Network snapshots',
+				items: [
+					{
+						label: 'timestamped network tip/sync observations',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

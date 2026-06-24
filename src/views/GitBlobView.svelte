@@ -9,33 +9,70 @@
 
 	// State
 	const view = {
-		closed: [
-			'objectId',
-			'objectFormat',
-		],
-		content: {
-			dl: [
-				[
-					'objectId',
-					'objectFormat',
-					'mime',
-					'byteSize',
-					'textSample',
-				],
-			],
+	closed: [
+		{
+			label: 'object id',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'object format',
+		},
+		{
+			label: 'object link',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'paths',
-					when: 'open',
-					items: [
-						'$$paths',
-					],
+					label: 'object id',
+				},
+				{
+					label: 'object format',
+				},
+				{
+					label: 'object link',
+				},
+				{
+					label: 'byte size',
+				},
+				{
+					label: 'MIME',
+				},
+				{
+					label: 'text sample when safe',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Paths',
+				items: [
+					{
+						label: 'tree entries that reference this blob',
+					},
+				],
+			},
+			{
+				label: 'Object',
+				items: [
+					{
+						label: 'parent Git object',
+					},
+				],
+			},
+			{
+				label: 'Content preview',
+				items: [
+					{
+						label: 'local byte preview when available',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,33 +9,74 @@
 
 	// State
 	const view = {
-		closed: [
-			'address',
-		],
-		content: {
-			dl: [
-				[
-					'address',
-					'owner',
-					'name',
-					'description',
-					'createdAt',
-					'rules',
-				],
-			],
+	closed: [
+		{
+			label: 'feed address',
 		},
-		details: {
-			tabs: [
+		'owner',
+		'name',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'posts',
-					when: 'open',
-					items: [
-						'$$posts',
-					],
+					label: 'feed address',
+				},
+				'owner',
+				'name',
+				'description',
+				{
+					label: 'created time',
+				},
+				{
+					label: 'rule summary',
+				},
+				{
+					label: 'post count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Posts',
+				items: [
+					{
+						label: 'posts published to this feed',
+					},
+				],
+			},
+			{
+				label: 'Owner',
+				items: [
+					{
+						label: 'owner EVM account when resolved',
+					},
+				],
+			},
+			{
+				label: 'Rules',
+				items: [
+					{
+						label: 'feed rules JSON',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'feed GraphQL payload',
+					},
+					{
+						label: 'feed contract events when available',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

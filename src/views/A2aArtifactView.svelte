@@ -9,31 +9,68 @@
 
 	// State
 	const view = {
-		closed: [
-			'artifactId',
-		],
-		content: {
-			dl: [
-				[
-					'artifactId',
-					'name',
-					'description',
-					'createdAt',
-				],
-			],
+	closed: [
+		{
+			label: 'task',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'artifact id',
+		},
+		'name',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'parts',
-					when: 'open',
-					items: [
-						'$$parts',
-					],
+					label: 'task',
+				},
+				{
+					label: 'artifact id',
+				},
+				'name',
+				{
+					label: 'created at',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			[
+				{
+					label: 'AI artifact ref',
+				},
+				{
+					label: 'part refs',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Task',
+				items: [
+					{
+						label: 'A2aTask',
+					},
+				],
+			},
+			{
+				label: 'Parts',
+				items: [
+					{
+						label: 'A2aMessagePart list',
+					},
+				],
+			},
+			{
+				label: 'Artifact',
+				items: [
+					{
+						label: 'AiArtifact when materialized',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

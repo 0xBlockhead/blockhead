@@ -9,36 +9,87 @@
 
 	// State
 	const view = {
-		closed: [
-			'mintUrl',
-		],
-		content: {
-			dl: [
-				[
-					'mintUrl',
-					'name',
-					'pubkey',
-					'version',
-					'description',
-					'motd',
-					'iconUrl',
-					'tosUrl',
-					'timeMs',
-				],
-			],
+	closed: [
+		{
+			label: 'mint URL',
 		},
-		details: {
-			tabs: [
+		'name',
+		'pubkey',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'keysets',
-					when: 'open',
-					items: [
-						'$$keysets',
-					],
+					label: 'mint URL',
+				},
+				'name',
+				'pubkey',
+				'version',
+				{
+					label: 'server time',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			[
+				{
+					label: 'keyset count',
+				},
+				{
+					label: 'MOTD',
+				},
+				{
+					label: 'icon/TOS availability',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Keysets',
+				items: [
+					{
+						label: 'public CashuKeyset rows',
+					},
+				],
+			},
+			{
+				label: 'Operator metadata',
+				items: [
+					'name',
+					'description',
+					{
+						label: 'MOTD',
+					},
+					{
+						label: 'icon',
+					},
+					{
+						label: 'TOS',
+					},
+				],
+			},
+			{
+				label: 'Capability target',
+				items: [
+					{
+						label: 'CashuMint_Timestamp when timestamp schema exists',
+					},
+				],
+			},
+			{
+				label: 'Endpoint/source',
+				items: [
+					{
+						label: 'normalized endpoint URL',
+					},
+					{
+						label: 'source freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

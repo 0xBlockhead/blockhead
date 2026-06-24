@@ -9,30 +9,64 @@
 
 	// State
 	const view = {
-		closed: [
-			'objectId',
-			'objectFormat',
-		],
-		content: {
-			dl: [
-				[
-					'objectId',
-					'objectFormat',
-				],
-			],
+	closed: [
+		{
+			label: 'object id',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'object format',
+		},
+		{
+			label: 'object link',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'entries',
-					when: 'open',
-					items: [
-						'$$entries',
-					],
+					label: 'object id',
+				},
+				{
+					label: 'object format',
+				},
+				{
+					label: 'object link',
+				},
+				{
+					label: 'entry count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Entries',
+				items: [
+					{
+						label: 'tree entries grouped by file/tree/symlink/submodule modes',
+					},
+				],
+			},
+			{
+				label: 'Object',
+				items: [
+					{
+						label: 'parent Git object',
+					},
+				],
+			},
+			{
+				label: 'Commits',
+				items: [
+					{
+						label: 'commits whose root tree matches when available',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

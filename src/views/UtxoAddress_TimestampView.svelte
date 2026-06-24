@@ -9,27 +9,86 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'balanceSats',
-					'fundedOutputCount',
-					'fundedValueSats',
-					'spentOutputCount',
-					'spentValueSats',
-					'transactionCount',
-					'unspentOutputCount',
-					'mempoolTransactionCount',
-				],
-			],
+	closed: [
+		{
+			label: 'address',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'address',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'confirmed balance',
+				},
+				{
+					label: 'funded/spent output counts',
+				},
+				{
+					label: 'values',
+				},
+				{
+					label: 'transaction count',
+				},
+				{
+					label: 'unspent output count',
+				},
+				{
+					label: 'mempool transaction count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Address',
+				items: [
+					{
+						label: 'parent address projection',
+					},
+				],
+			},
+			{
+				label: 'UTXOs',
+				items: [
+					{
+						label: 'unspent outputs when source payload includes them',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'transaction history when source payload includes it',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'address stats payload',
+					},
+					{
+						label: 'pagination cursor/range',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

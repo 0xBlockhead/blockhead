@@ -9,28 +9,95 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-			'subjectKey',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'subjectKey',
-					'amount',
-					'canTransfer',
-					'reason',
-					'ledgerCoordinateKind',
-					'ledgerCoordinateValue',
-					'validFromMs',
-					'validToMs',
-				],
-			],
+	closed: [
+		{
+			label: 'restriction',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		{
+			label: 'subject',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'restriction',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'subject key',
+				},
+				{
+					label: 'account',
+				},
+				'amount',
+			],
+			[
+				{
+					label: 'can transfer',
+				},
+				'reason',
+				{
+					label: 'ledger coordinate',
+				},
+				{
+					label: 'validity window',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Restriction',
+				items: [
+					{
+						label: 'parent restriction rule',
+					},
+				],
+			},
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'scoped account when resolved',
+					},
+				],
+			},
+			{
+				label: 'Eligibility',
+				items: [
+					{
+						label: 'materialized account/asset eligibility row',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'canTransfer/isVerified call',
+					},
+					{
+						label: 'transfer-hook simulation',
+					},
+					{
+						label: 'account-set membership',
+					},
+					{
+						label: 'event/indexer payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

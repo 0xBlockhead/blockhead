@@ -9,33 +9,84 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[
-					'rpcEndpoints',
+	closed: [
+		{
+			label: 'parent network',
+		},
+		{
+			label: 'latest head snapshot',
+		},
+		{
+			label: 'environment',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'parent network',
+				},
+				{
+					label: 'latest head snapshot',
+				},
+				{
+					label: 'environment',
+				},
+				{
+					label: 'native asset count',
+				},
+				{
+					label: 'RPC endpoint count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Monero',
+				items: [
+					{
+						label: 'Blocks',
+					},
+					{
+						label: 'Network snapshots',
+					},
+					{
+						label: 'Endpoints',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'blocks',
-					when: 'open',
-					items: [
-						'$$blocks',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Assets',
+				items: [
+					{
+						label: 'native coin',
+					},
+				],
+			},
+			{
+				label: 'Resources',
+				items: [
+					{
+						label: 'faucets',
+					},
+					{
+						label: 'block explorers',
+					},
+				],
+			},
+			{
+				label: 'Local wallets',
+				items: [
+					{
+						label: 'BlockheadMoneroWalletState list when local wallet state exists',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

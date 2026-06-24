@@ -9,65 +9,103 @@
 
 	// State
 	const view = {
-		closed: [
-			'networkId',
+	closed: [
+		{
+			label: 'network id',
+		},
+		{
+			label: 'protocol kind',
+		},
+		{
+			label: 'latest discovery coverage',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network id',
+				},
+				'label',
+				{
+					label: 'protocol kind',
+				},
+				{
+					label: 'latest observation',
+				},
+			],
+			[
+				{
+					label: 'ACP programs',
+				},
+				{
+					label: 'A2A cards',
+				},
+				{
+					label: 'MCP servers',
+				},
+				{
+					label: 'EIP-8004 registrations',
+				},
+				{
+					label: 'Blockhead profiles',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'networkId',
-					'label',
-					'protocolKind',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'ACP',
+				items: [
+					{
+						label: 'AcpAgentProgram list',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'acp programs',
-					when: 'open',
-					items: [
-						'$$acpPrograms',
-					],
-				},
-				{
-					label: 'a2a cards',
-					when: 'open',
-					items: [
-						'$$a2aCards',
-					],
-				},
-				{
-					label: 'mcp servers',
-					when: 'open',
-					items: [
-						'$$mcpServers',
-					],
-				},
-				{
-					label: 'eip8004 registrations',
-					when: 'open',
-					items: [
-						'$$eip8004Registrations',
-					],
-				},
-				{
-					label: 'blockhead profiles',
-					when: 'open',
-					items: [
-						'$$blockheadProfiles',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'A2A',
+				items: [
+					{
+						label: 'A2aAgentCard/A2aAgentService lists',
+					},
+				],
+			},
+			{
+				label: 'MCP',
+				items: [
+					{
+						label: 'McpServer list',
+					},
+				],
+			},
+			{
+				label: 'EIP-8004',
+				items: [
+					{
+						label: 'Eip8004AgentRegistration list',
+					},
+				],
+			},
+			{
+				label: 'Local profiles',
+				items: [
+					{
+						label: 'BlockheadAgentProfile list',
+					},
+				],
+			},
+			{
+				label: 'Observations',
+				items: [
+					{
+						label: '_GlobalAgentNetwork_Timestamp list',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

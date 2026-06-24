@@ -9,30 +9,107 @@
 
 	// State
 	const view = {
-		closed: [
-			'nodeId',
-			'messageCid',
-			'observedAtMs',
-		],
-		content: {
-			dl: [
-				[
-					'nodeId',
-					'messageCid',
-					'observedAtMs',
-					'nonce',
-					'method',
-					'valueAttoFil',
-					'gasLimit',
-					'gasFeeCapAttoFil',
-					'gasPremiumAttoFil',
-					'signatureType',
-					'local',
-					'payload',
-				],
-			],
+	closed: [
+		{
+			label: 'node id',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'message CID',
+		},
+		{
+			label: 'observation time',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'node id',
+				},
+				{
+					label: 'message CID',
+				},
+				{
+					label: 'observation time',
+				},
+				{
+					label: 'network',
+				},
+				{
+					label: 'from actor',
+				},
+				{
+					label: 'to actor',
+				},
+				'nonce',
+				'method',
+				{
+					label: 'value',
+				},
+				{
+					label: 'gas limit',
+				},
+				{
+					label: 'fee cap',
+				},
+				{
+					label: 'gas premium',
+				},
+				{
+					label: 'signature type',
+				},
+				{
+					label: 'local flag',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Message',
+				items: [
+					{
+						label: 'Filecoin message when the pending message can be normalized',
+					},
+				],
+			},
+			{
+				label: 'Actors',
+				items: [
+					{
+						label: 'from/to Filecoin actor refs',
+					},
+				],
+			},
+			{
+				label: 'Payload',
+				items: [
+					{
+						label: 'signed message JSON',
+					},
+					{
+						label: 'signature metadata',
+					},
+				],
+			},
+			{
+				label: 'Node state',
+				items: [
+					{
+						label: 'source node',
+					},
+					{
+						label: 'local queue status',
+					},
+					{
+						label: 'observation freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,24 +9,78 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[],
-			],
+	closed: [
+		{
+			label: 'account',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'asset',
+		},
+		{
+			label: 'latest trustline observation',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'account',
+				},
+				{
+					label: 'asset',
+				},
+				{
+					label: 'latest balance/limit/liability observation',
+				},
+				{
+					label: 'latest authorization/clawback observation',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Snapshots',
+				items: [
+					{
+						label: 'timestamped trustline ledger-state observations',
+					},
+				],
+			},
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'parent Stellar account',
+					},
+				],
+			},
+			{
+				label: 'Asset',
+				items: [
+					{
+						label: 'trusted Stellar asset',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Horizon balances array',
+					},
+					{
+						label: 'RPC trustline ledger entry',
+					},
+					{
+						label: 'indexer account asset payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

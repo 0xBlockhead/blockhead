@@ -9,24 +9,71 @@
 
 	// State
 	const view = {
-		closed: [
-			'objectId',
-			'objectFormat',
-			'byteSource',
-		],
-		content: {
-			dl: [
-				[
-					'objectId',
-					'objectFormat',
-					'byteSource',
-					'path',
-					'compressedSizeBytes',
-					'observedAtMs',
-				],
-			],
+	closed: [
+		{
+			label: 'object id',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'object format',
+		},
+		{
+			label: 'byte source',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'object id',
+				},
+				{
+					label: 'object format',
+				},
+				{
+					label: 'byte source',
+				},
+				'path',
+				{
+					label: 'compressed size',
+				},
+				{
+					label: 'observed timestamp',
+				},
+				{
+					label: 'object link',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Object',
+				items: [
+					{
+						label: 'parsed Git object when bytes verify',
+					},
+				],
+			},
+			{
+				label: 'Verification',
+				items: [
+					{
+						label: 'timestamped byte/object-id verification observations',
+					},
+				],
+			},
+			{
+				label: 'Storage evidence',
+				items: [
+					{
+						label: 'local clone/object-directory context',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

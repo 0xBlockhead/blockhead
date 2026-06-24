@@ -9,22 +9,64 @@
 
 	// State
 	const view = {
-		closed: [
-			'index',
-		],
-		content: {
-			dl: [
-				[
-					'index',
-					'url',
-					'title',
-					'description',
-					'iconUrl',
-					'quotedPreviewText',
-				],
-			],
+	closed: [
+		{
+			label: 'parent cast',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'embed index',
+		},
+		{
+			label: 'URL',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'parent cast',
+				},
+				{
+					label: 'embed index',
+				},
+				{
+					label: 'URL',
+				},
+				{
+					label: 'embedded cast',
+				},
+				'title',
+				'description',
+				{
+					label: 'icon URL/media',
+				},
+				{
+					label: 'quoted preview text',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Embedded cast',
+				items: [
+					{
+						label: 'quoted/embedded cast when present',
+					},
+				],
+			},
+			{
+				label: 'URL preview',
+				items: [
+					{
+						label: 'resolved URL metadata and embedded media fields',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

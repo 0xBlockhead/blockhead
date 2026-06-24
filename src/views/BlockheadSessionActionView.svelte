@@ -9,64 +9,148 @@
 
 	// State
 	const view = {
-		closed: [
-			'sessionId',
-			'actionId',
+	actions: [
+		{
+			id: 'reveal-action-params',
+			label: 'Reveal action parameters',
+			kind: 'reveal',
+			field: 'actionParams',
+		},
+		{
+			id: 'delete-action',
+			label: 'Delete action',
+			kind: 'deleteLocal',
+			slot: 'DeleteSessionAction',
+		},
+	],
+	forms: [
+		{
+			id: 'edit-params',
+			label: 'Edit parameters',
+			kind: 'createLocal',
+			fields: [
+				{
+					name: 'actionParams',
+					label: 'Action parameters',
+					kind: 'textarea',
+				},
+			],
+			slot: 'EditActionParamsForm',
+		},
+	],
+	closed: [
+		{
+			label: 'session',
+		},
+		{
+			label: 'action id',
+		},
+		{
+			label: 'sequence index',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'session',
+				},
+				{
+					label: 'action id',
+				},
+				{
+					label: 'sequence index',
+				},
+				{
+					label: 'action type',
+				},
+				{
+					label: 'selected protocol',
+				},
+				{
+					label: 'created/updated timestamps',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'sessionId',
-					'actionId',
-					'indexInSequence',
-					'actionType',
-					'selectedProtocol',
-					'actionParams',
-					'createdAt',
-					'updatedAt',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Typed intent',
+				items: [
+					{
+						label: 'BlockheadSwapIntent',
+					},
+					{
+						label: 'BlockheadBridgeIntent',
+					},
+					{
+						label: 'BlockheadTransferIntent',
+					},
+					{
+						label: 'or future typed local intent row',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'readiness checks',
-					when: 'open',
-					items: [
-						'$$readinessChecks',
-					],
-				},
-				{
-					label: 'quotes',
-					when: 'open',
-					items: [
-						'$$quotes',
-					],
-				},
-				{
-					label: 'orders',
-					when: 'open',
-					items: [
-						'$$orders',
-					],
-				},
-				{
-					label: 'wallet requests',
-					when: 'open',
-					items: [
-						'$$walletRequests',
-					],
-				},
-				{
-					label: 'outcomes',
-					when: 'open',
-					items: [
-						'$$outcomes',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Readiness',
+				items: [
+					{
+						label: 'BlockheadActionReadinessCheck list',
+					},
+				],
+			},
+			{
+				label: 'Quotes',
+				items: [
+					{
+						label: 'BlockheadIntentQuote list when signed-order/filler-market backed',
+					},
+				],
+			},
+			{
+				label: 'Orders',
+				items: [
+					{
+						label: 'BlockheadIntentOrder list when submitted',
+					},
+				],
+			},
+			{
+				label: 'Wallet requests',
+				items: [
+					{
+						label: 'BlockheadWalletRequest list when signing/submission is requested',
+					},
+				],
+			},
+			{
+				label: 'Outcomes',
+				items: [
+					{
+						label: 'BlockheadActionOutcome list',
+					},
+				],
+			},
+			{
+				label: 'Raw params',
+				items: [
+					{
+						label: 'actionParams fallback/debug payload',
+					},
+				],
+			},
+			{
+				label: 'Session',
+				items: [
+					{
+						label: 'parent local session',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

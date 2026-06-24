@@ -9,20 +9,60 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'userOperationsCount',
-				],
-			],
+	closed: [
+		{
+			label: 'bundler',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'bundler',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'indexed user-operation count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Bundler',
+				items: [
+					{
+						label: 'parent ERC-4337 bundler',
+					},
+				],
+			},
+			{
+				label: 'User operations',
+				items: [
+					{
+						label: 'user operations for the same source scope',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Blockscout bundler detail/list payload fields such as total_ops',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

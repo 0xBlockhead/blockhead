@@ -9,37 +9,85 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'name',
-					'description',
-					'software',
-					'version',
-					'supportedNips',
-					'limitation',
-					'fees',
-					'paymentsUrl',
-					'termsOfServiceUrl',
-					'iconUrl',
-					'bannerUrl',
-					'pubkey',
-					'isPaid',
-					'activeUsers',
-					'eventsPerDay',
-					'rank',
-					'reachable',
-					'error',
-				],
-			],
+	closed: [
+		{
+			label: 'relay',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'relay',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'software/version',
+				},
+				{
+					label: 'supported NIP count',
+				},
+				{
+					label: 'paid/restricted flags',
+				},
+				{
+					label: 'active users',
+				},
+				{
+					label: 'events per day',
+				},
+				'rank',
+				{
+					label: 'reachability',
+				},
+				'error',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'NIP-11 document',
+				items: [
+					{
+						label: 'metadata/limitations/fees',
+					},
+				],
+			},
+			{
+				label: 'Indexer metrics',
+				items: [
+					{
+						label: 'active users/events/rank',
+					},
+				],
+			},
+			{
+				label: 'Relay',
+				items: [
+					{
+						label: 'parent Nostr relay',
+					},
+				],
+			},
+			{
+				label: 'Raw evidence',
+				items: [
+					{
+						label: 'JSON document or indexer payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,24 +9,90 @@
 
 	// State
 	const view = {
-		closed: [
-			'eventId',
-		],
-		content: {
-			dl: [
-				[
-					'eventId',
-					'eventKind',
-					'authorDid',
-					'subjectSelector',
-					'payloadHash',
-					'payloadObjectId',
-					'timestampMs',
-					'verificationStatus',
-				],
-			],
+	closed: [
+		{
+			label: 'repository',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'event id',
+		},
+		{
+			label: 'event kind',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'repository',
+				},
+				{
+					label: 'event id',
+				},
+				{
+					label: 'event kind',
+				},
+				{
+					label: 'author DID',
+				},
+				{
+					label: 'subject selector',
+				},
+				{
+					label: 'timestamp',
+				},
+				{
+					label: 'verification status',
+				},
+				{
+					label: 'payload hash/object id',
+				},
+				{
+					label: 'linked Git commit',
+				},
+				{
+					label: 'payload object',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Repository',
+				items: [
+					{
+						label: 'parent Radicle repository',
+					},
+				],
+			},
+			{
+				label: 'Subject',
+				items: [
+					{
+						label: 'issue/patch/comment by selector',
+					},
+				],
+			},
+			{
+				label: 'Payload',
+				items: [
+					{
+						label: 'Git object or commit payload',
+					},
+				],
+			},
+			{
+				label: 'Timeline',
+				items: [
+					{
+						label: 'sibling events for the same subject',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

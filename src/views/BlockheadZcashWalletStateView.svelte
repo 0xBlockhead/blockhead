@@ -9,48 +9,117 @@
 
 	// State
 	const view = {
-		closed: [
-			'walletId',
+	closed: [
+		{
+			label: 'wallet id',
+		},
+		{
+			label: 'network',
+		},
+		{
+			label: 'account index',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'wallet id',
+				},
+				{
+					label: 'network',
+				},
+				{
+					label: 'account index',
+				},
+				{
+					label: 'unified address',
+				},
+				{
+					label: 'transparent/Sapling/Orchard address availability',
+				},
+				{
+					label: 'birthday height',
+				},
+				{
+					label: 'latest total balance',
+				},
+				{
+					label: 'latest spendable balance',
+				},
+				{
+					label: 'latest verified balance',
+				},
+				{
+					label: 'latest scan height',
+				},
+				{
+					label: 'latest recovery state',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'walletId',
-					'accountIndex',
-					'unifiedAddress',
-					'transparentAddress',
-					'saplingAddress',
-					'orchardAddress',
-					'birthdayHeight',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest state',
+				items: [
+					{
+						label: 'latest wallet-state observation',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'viewing keys',
-					when: 'open',
-					items: [
-						'$$viewingKeys',
-					],
-				},
-				{
-					label: 'notes',
-					when: 'open',
-					items: [
-						'$$notes',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'State history',
+				items: [
+					{
+						label: 'timestamped wallet-state observations',
+					},
+				],
+			},
+			{
+				label: 'Viewing keys',
+				items: [
+					{
+						label: 'local Zcash viewing keys',
+					},
+				],
+			},
+			{
+				label: 'Notes',
+				items: [
+					{
+						label: 'local Zcash note states grouped by pool',
+					},
+				],
+			},
+			{
+				label: 'Pools',
+				items: [
+					{
+						label: 'Sapling/Orchard balance summaries from wallet timestamp fields',
+					},
+				],
+			},
+			{
+				label: 'Transparent state',
+				items: [
+					{
+						label: 'linked UTXO address/transaction rows when resolved',
+					},
+				],
+			},
+			{
+				label: 'Recovery',
+				items: [
+					{
+						label: 'local scan/recovery status',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,37 +9,88 @@
 
 	// State
 	const view = {
-		closed: [
-			'tokenId',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'token id',
+		},
+		'standard',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'token id',
+				},
+				'standard',
+				{
+					label: 'owner',
+				},
+				{
+					label: 'contract',
+				},
+				{
+					label: 'creation timestamp',
+				},
+				{
+					label: 'latest metadata/supply/holder/transfer summary',
+				},
+				{
+					label: 'latest observation time',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'tokenId',
-					'standard',
-					'createdTimestampMs',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Token observations',
+				items: [
+					{
+						label: 'token metadata and metric observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'account balance timestamps',
-					when: 'open',
-					items: [
-						'$$accountBalanceTimestamps',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Account balances',
+				items: [
+					{
+						label: 'account-token balance observations when source-scoped',
+					},
+				],
+			},
+			{
+				label: 'Contract',
+				items: [
+					{
+						label: 'contract identity when contract-backed',
+					},
+				],
+			},
+			{
+				label: 'Owner',
+				items: [
+					{
+						label: 'owner account identity',
+					},
+				],
+			},
+			{
+				label: 'Transfers',
+				items: [
+					{
+						label: 'token transfers when scoped by transaction/account source context',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

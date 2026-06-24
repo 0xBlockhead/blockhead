@@ -9,28 +9,97 @@
 
 	// State
 	const view = {
-		closed: [
-			'pairIndex',
-		],
-		content: {
-			dl: [
-				[
-					'pairIndex',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'pair index',
+		},
+		{
+			label: 'base asset',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'network',
+				},
+				{
+					label: 'pair index',
+				},
+				{
+					label: 'base asset',
+				},
+				{
+					label: 'quote asset',
+				},
+				{
+					label: 'latest pair name',
+				},
+				{
+					label: 'latest canonical flag',
+				},
+				{
+					label: 'timestamp count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest state',
+				items: [
+					{
+						label: 'latest spot-pair universe observation',
+					},
+				],
+			},
+			{
+				label: 'State history',
+				items: [
+					{
+						label: 'timestamped spot-pair universe observations',
+					},
+				],
+			},
+			{
+				label: 'Base asset',
+				items: [
+					{
+						label: 'linked HyperCore base asset',
+					},
+				],
+			},
+			{
+				label: 'Quote asset',
+				items: [
+					{
+						label: 'linked HyperCore quote asset',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Hyperliquid network',
+					},
+				],
+			},
+			{
+				label: 'Related market',
+				items: [
+					{
+						label: 'generic market row only when a separate venue/base/quote selector maps this pair to market identity',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

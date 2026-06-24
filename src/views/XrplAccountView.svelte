@@ -9,49 +9,63 @@
 
 	// State
 	const view = {
-		closed: [
-			'account',
+	closed: [
+		{
+			label: 'classic address',
+		},
+		{
+			label: 'latest XRP balance/owner count/sequence snapshot',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'classic address',
+				},
+				{
+					label: 'latest XRP balance/owner count/sequence snapshot',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'account',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Ledger entries',
+				items: [
+					{
+						label: 'ledger objects for account',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'ledger entries',
-					when: 'open',
-					items: [
-						'$$ledgerEntries',
-					],
-				},
-				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
-				},
-				{
-					label: 'trustlines',
-					when: 'open',
-					items: [
-						'$$trustlines',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'account transactions',
+					},
+				],
+			},
+			{
+				label: 'Trust lines',
+				items: [
+					{
+						label: 'trust lines',
+					},
+				],
+			},
+			{
+				label: 'Account snapshots',
+				items: [
+					{
+						label: 'ledger-indexed account observations',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,63 +9,93 @@
 
 	// State
 	const view = {
-		closed: [
-			'accountId',
+	closed: [
+		{
+			label: 'account id',
+		},
+		{
+			label: 'latest account snapshot',
+		},
+		{
+			label: 'bounded activity',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'account id',
+				},
+				{
+					label: 'latest sequence/native-balance observation',
+				},
+				{
+					label: 'subentry/signer/threshold observation',
+				},
+			],
+			[
+				{
+					label: 'trustline/offer/trade/transaction windows',
+				},
+				{
+					label: 'signer rows',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'accountId',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Account snapshots',
+				items: [
+					{
+						label: 'timestamped account ledger-state observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'trustlines',
-					when: 'open',
-					items: [
-						'$$trustlines',
-					],
-				},
-				{
-					label: 'offers',
-					when: 'open',
-					items: [
-						'$$offers',
-					],
-				},
-				{
-					label: 'trades',
-					when: 'open',
-					items: [
-						'$$trades',
-					],
-				},
-				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
-				},
-				{
-					label: 'signers',
-					when: 'open',
-					items: [
-						'$$signers',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Trustlines',
+				items: [
+					{
+						label: 'account trustlines',
+					},
+				],
+			},
+			{
+				label: 'Offers',
+				items: [
+					{
+						label: 'account SDEX offers',
+					},
+				],
+			},
+			{
+				label: 'Trades',
+				items: [
+					{
+						label: 'account trades',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'account transaction windows',
+					},
+				],
+			},
+			{
+				label: 'Signers',
+				items: [
+					{
+						label: 'account signer rows',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

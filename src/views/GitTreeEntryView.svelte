@@ -9,20 +9,62 @@
 
 	// State
 	const view = {
-		closed: [
-			'path',
-		],
-		content: {
-			dl: [
-				[
-					'path',
-					'mode',
-					'objectId',
-					'objectKind',
-				],
-			],
+	closed: [
+		{
+			label: 'tree',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'path',
+		'mode',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'tree',
+				},
+				'path',
+				'mode',
+				{
+					label: 'object id',
+				},
+				{
+					label: 'object kind',
+				},
+				{
+					label: 'object link',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Parent tree',
+				items: [
+					{
+						label: 'parent Git tree',
+					},
+				],
+			},
+			{
+				label: 'Target object',
+				items: [
+					{
+						label: 'target Git object',
+					},
+				],
+			},
+			{
+				label: 'Blob/tree/tag/commit body',
+				items: [
+					{
+						label: 'typed object body when resolved',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

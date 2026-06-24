@@ -9,38 +9,72 @@
 
 	// State
 	const view = {
-		closed: [
-			'datasetUri',
-		],
-		content: {
-			dl: [
-				[
-					'datasetUri',
-					'huggingFaceDatasetId',
-					'revision',
-					'source',
-					'datasetName',
-					'datasetDigest',
-					'label',
-					'license',
-					'modality',
-					'version',
-					'isLiveDataset',
-				],
-			],
+	closed: [
+		{
+			label: 'dataset selector',
 		},
-		details: {
-			tabs: [
+		'label',
+		'modality',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'documents',
-					when: 'open',
-					items: [
-						'$$documents',
-					],
+					label: 'dataset URI',
+				},
+				{
+					label: 'HF dataset id/revision',
+				},
+				{
+					label: 'source dataset name/digest',
+				},
+				{
+					label: 'artifact',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			[
+				'label',
+				'license',
+				'version',
+				{
+					label: 'live dataset',
+				},
+				'modality',
+				{
+					label: 'document refs',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Documents',
+				items: [
+					{
+						label: 'AiDocument list',
+					},
+				],
+			},
+			{
+				label: 'Benchmarks',
+				items: [
+					{
+						label: 'AiBenchmark list',
+					},
+				],
+			},
+			{
+				label: 'Artifacts',
+				items: [
+					{
+						label: 'AiArtifact when present',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

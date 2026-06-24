@@ -9,28 +9,56 @@
 
 	// State
 	const view = {
-		closed: [
-			'group',
-		],
-		content: {
-			dl: [
-				[
-					'group',
-				],
-			],
+	closed: [
+		{
+			label: 'group id',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'transaction count',
+		},
+		{
+			label: 'network',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
+					label: 'group id',
+				},
+				{
+					label: 'transaction count',
+				},
+				{
+					label: 'network',
+				},
+				{
+					label: 'member transaction rounds when available',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'transactions in group order',
+					},
+				],
+			},
+			{
+				label: 'Round context',
+				items: [
+					{
+						label: 'derive confirmation round from member transactions rather than group identity',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

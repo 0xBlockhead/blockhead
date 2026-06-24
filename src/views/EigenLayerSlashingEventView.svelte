@@ -9,26 +9,101 @@
 
 	// State
 	const view = {
-		closed: [
-			'transactionHash',
-			'logIndex',
-		],
-		content: {
-			dl: [
-				[
-					'transactionHash',
-					'logIndex',
-					'source',
-					'slashId',
-					'slashedShares',
-					'slashedAmount',
-					'reason',
-					'blockNumber',
-					'timestampMs',
-				],
-			],
+	closed: [
+		{
+			label: 'operator',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'AVS',
+		},
+		{
+			label: 'slashed shares',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'operator',
+				},
+				{
+					label: 'AVS',
+				},
+				{
+					label: 'strategy',
+				},
+				{
+					label: 'transaction/log',
+				},
+				{
+					label: 'source slash id',
+				},
+				{
+					label: 'block/timestamp',
+				},
+			],
+			[
+				{
+					label: 'slashed shares',
+				},
+				{
+					label: 'slashed amount',
+				},
+				'reason',
+				{
+					label: 'network',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Operator',
+				items: [
+					{
+						label: 'EigenLayer operator',
+					},
+				],
+			},
+			{
+				label: 'AVS',
+				items: [
+					{
+						label: 'EigenLayer AVS',
+					},
+				],
+			},
+			{
+				label: 'Strategy',
+				items: [
+					{
+						label: 'EigenLayer strategy',
+					},
+				],
+			},
+			{
+				label: 'Transaction',
+				items: [
+					{
+						label: 'EVM transaction when transaction hash resolves',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'slashing/allocation-manager event logs',
+					},
+					{
+						label: 'explorer/indexer payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

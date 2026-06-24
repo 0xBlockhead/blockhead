@@ -9,31 +9,69 @@
 
 	// State
 	const view = {
-		closed: [
-			'dataRoot',
-		],
-		content: {
-			dl: [
-				[
-					'dataRoot',
-					'sizeBytes',
-					'erasureCodingScheme',
-					'aggregatedSignature',
-				],
-			],
-		},
-		details: {
-			tabs: [
+	closed: [
+		'sizeBytes',
+		'erasureCodingScheme',
+		'aggregatedSignature',
+	],
+	content: {
+		dl: [
+			[
+				'sizeBytes',
+				'erasureCodingScheme',
+				'aggregatedSignature',
 				{
-					label: 'chunks',
-					when: 'open',
-					items: [
-						'$$chunks',
-					],
+					label: 'consensus network',
+				},
+				{
+					label: 'DA quorum',
+				},
+				{
+					label: 'storage log entry when present',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Consensus/DA',
+				items: [
+					{
+						label: 'ZeroGConsensusNetwork',
+					},
+					{
+						label: 'ZeroGDaQuorum',
+					},
+				],
+			},
+			{
+				label: 'Chunks',
+				items: [
+					{
+						label: 'ZeroGDataChunk list',
+					},
+				],
+			},
+			{
+				label: 'Storage log',
+				items: [
+					{
+						label: 'ZeroGStorageLogEntry when present',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: '0G ChainScan/storage scan/storage node payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

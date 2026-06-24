@@ -9,43 +9,78 @@
 
 	// State
 	const view = {
-		closed: [
-			'address',
+	closed: [
+		{
+			label: 'network',
+		},
+		'address',
+		'name',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				'address',
+				'name',
+				{
+					label: 'contract ref',
+				},
+				{
+					label: 'latest balance/resource/activity summary',
+				},
+				{
+					label: 'token-balance snapshot count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'address',
-					'name',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'State observations',
+				items: [
+					{
+						label: 'account/resource snapshots',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'token balance timestamps',
-					when: 'open',
-					items: [
-						'$$tokenBalanceTimestamps',
-					],
-				},
-				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Token balances',
+				items: [
+					{
+						label: 'token balance snapshots grouped by token',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'TRON transactions',
+					},
+				],
+			},
+			{
+				label: 'Contract',
+				items: [
+					{
+						label: 'contract identity when the latest snapshot or source ref marks it as a contract',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent TRON network',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,57 +9,102 @@
 
 	// State
 	const view = {
-		closed: [
-			'slot',
+	closed: [
+		{
+			label: 'slot number',
+		},
+		'epoch',
+		{
+			label: 'block root',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'slot number',
+				},
+				'epoch',
+				{
+					label: 'proposer index',
+				},
+				{
+					label: 'canonical flag',
+				},
+			],
+			[
+				{
+					label: 'block root',
+				},
+				{
+					label: 'parent root',
+				},
+				{
+					label: 'state root',
+				},
+				{
+					label: 'body root',
+				},
+				'signature',
+			],
 		],
-		content: {
-			dl: [
-				[
-					'slot',
-					'epoch',
-					'proposerIndex',
-					'root',
-					'parentRoot',
-					'stateRoot',
-					'bodyRoot',
-					'canonical',
-					'signature',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Committees',
+				items: [
+					{
+						label: 'committee assignments for this slot',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'beacon committees',
-					when: 'open',
-					items: [
-						'$$beaconCommittees',
-					],
-				},
-				{
-					label: 'beacon attestations',
-					when: 'open',
-					items: [
-						'$$beaconAttestations',
-					],
-				},
-				{
-					label: 'beacon withdrawals',
-					when: 'open',
-					items: [
-						'$$beaconWithdrawals',
-					],
-				},
-				{
-					label: 'beacon slashings',
-					when: 'open',
-					items: [
-						'$$beaconSlashings',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Attestations',
+				items: [
+					{
+						label: 'attestations included in this slot',
+					},
+				],
+			},
+			{
+				label: 'Withdrawals',
+				items: [
+					{
+						label: 'withdrawals included in this slot',
+					},
+				],
+			},
+			{
+				label: 'Slashings',
+				items: [
+					{
+						label: 'attester/proposer slashings included in this slot',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent EVM network consensus context',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: '/eth/v1/beacon/headers/{block_id}',
+					},
+					{
+						label: '/eth/v2/beacon/blocks/{block_id}',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

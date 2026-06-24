@@ -9,25 +9,80 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'blockHeight',
-					'blockHash',
-					'codeHash',
-					'codeSizeBytes',
-					'codeBase64',
-					'deployerTransactionHash',
-				],
-			],
+	closed: [
+		{
+			label: 'contract',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'contract',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'block height/hash',
+				},
+				{
+					label: 'code hash',
+				},
+				{
+					label: 'code size',
+				},
+				{
+					label: 'code byte availability',
+				},
+				{
+					label: 'deployer transaction hash',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Contract',
+				items: [
+					{
+						label: 'parent NEAR contract',
+					},
+				],
+			},
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'NEAR account through the contract account id',
+					},
+				],
+			},
+			{
+				label: 'Deployment',
+				items: [
+					{
+						label: 'transaction/action when indexed',
+					},
+				],
+			},
+			{
+				label: 'Code bytes',
+				items: [
+					{
+						label: 'redacted or downloadable base64 payload when source-backed',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

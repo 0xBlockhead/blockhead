@@ -9,39 +9,72 @@
 
 	// State
 	const view = {
-		closed: [
-			'fullname',
+	closed: [
+		'fullname',
+		'body',
+		'author',
+	],
+	content: {
+		dl: [
+			[
+				'fullname',
+				'body',
+				'author',
+				{
+					label: 'created time',
+				},
+				{
+					label: 'parent comment',
+				},
+				{
+					label: 'link',
+				},
+				{
+					label: 'latest score snapshot',
+				},
+				{
+					label: 'derived nesting depth',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'fullname',
-					'body',
-					'author',
-					'createdAt',
-					'depth',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Replies',
+				items: [
+					{
+						label: 'reply comments returned by the tree traversal',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'replies',
-					when: 'open',
-					items: [
-						'$$replies',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Parent',
+				items: [
+					{
+						label: 'parent Reddit comment',
+					},
+				],
+			},
+			{
+				label: 'Submission',
+				items: [
+					{
+						label: 'parent Reddit link',
+					},
+				],
+			},
+			{
+				label: 'Metric snapshots',
+				items: [
+					{
+						label: 'timestamped score observations',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

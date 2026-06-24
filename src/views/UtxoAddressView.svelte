@@ -9,42 +9,65 @@
 
 	// State
 	const view = {
-		closed: [
-			'address',
+	closed: [
+		{
+			label: 'network',
+		},
+		'address',
+		{
+			label: 'latest balance/activity summary when present',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				'address',
+				{
+					label: 'latest balance/activity summary when present',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'address',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Stats',
+				items: [
+					{
+						label: 'address statistic observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'outputs',
-					when: 'open',
-					items: [
-						'$$outputs',
-					],
-				},
-				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Outputs',
+				items: [
+					{
+						label: 'spendable outputs when source exposes them',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'address history when source exposes it',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent network and UTXO-family projection',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

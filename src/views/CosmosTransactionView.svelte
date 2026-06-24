@@ -9,41 +9,123 @@
 
 	// State
 	const view = {
-		closed: [
-			'txHash',
-		],
-		content: {
-			dl: [
-				[
-					'txHash',
-					'code',
-					'codespace',
-					'gasWanted',
-					'gasUsed',
-					'feeAmount',
-					'feeGasLimit',
-					'memo',
-					'timeoutHeight',
-					'signerAddresses',
-					'publicKeys',
-					'signatures',
-					'rawLog',
-					'eventTypes',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'transaction hash',
+		},
+		{
+			label: 'block',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'messages',
-					when: 'open',
-					items: [
-						'$$messages',
-					],
+					label: 'network',
+				},
+				{
+					label: 'transaction hash',
+				},
+				{
+					label: 'block',
+				},
+				{
+					label: 'code/codespace',
+				},
+				{
+					label: 'gas wanted',
+				},
+				{
+					label: 'gas used',
+				},
+				{
+					label: 'fee summary',
+				},
+				'memo',
+				{
+					label: 'signer count',
+				},
+				{
+					label: 'signature count',
+				},
+				{
+					label: 'event type count',
+				},
+				{
+					label: 'message count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Messages',
+				items: [
+					{
+						label: 'transaction SDK message rows',
+					},
+				],
+			},
+			{
+				label: 'Block',
+				items: [
+					{
+						label: 'containing Cosmos block',
+					},
+				],
+			},
+			{
+				label: 'Execution',
+				items: [
+					'code',
+					'codespace',
+					{
+						label: 'gas',
+					},
+					{
+						label: 'raw log',
+					},
+					{
+						label: 'event types',
+					},
+				],
+			},
+			{
+				label: 'Auth info',
+				items: [
+					{
+						label: 'fee amount/gas limit',
+					},
+					{
+						label: 'timeout height',
+					},
+					{
+						label: 'signer addresses',
+					},
+					{
+						label: 'public keys',
+					},
+					'signatures',
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Cosmos SDK tx body/auth_info/tx_response',
+					},
+					{
+						label: 'CometBFT inclusion payloads',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

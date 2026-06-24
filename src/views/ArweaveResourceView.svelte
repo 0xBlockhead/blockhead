@@ -9,31 +9,101 @@
 
 	// State
 	const view = {
-		closed: [
-			'transactionId',
-			'contentPath',
-		],
-		content: {
-			dl: [
-				[
-					'transactionId',
-					'contentPath',
-					'canonicalUri',
-				],
-			],
+	closed: [
+		{
+			label: 'canonical URI',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'latest gateway origin',
+		},
+		{
+			label: 'latest content type',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'canonical URI',
+				},
+				{
+					label: 'transaction id',
+				},
+				{
+					label: 'content path',
+				},
+				{
+					label: 'linked transaction',
+				},
+				{
+					label: 'latest gateway/source',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			[
+				{
+					label: 'latest content type',
+				},
+				{
+					label: 'latest content length',
+				},
+				{
+					label: 'latest display type',
+				},
+				{
+					label: 'latest inferred-content-type status',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Address',
+				items: [
+					{
+						label: 'transaction id',
+					},
+					{
+						label: 'content path',
+					},
+					{
+						label: 'linked Arweave transaction when resolved',
+					},
+				],
+			},
+			{
+				label: 'Latest retrieval',
+				items: [
+					{
+						label: 'latest gateway retrieval observation',
+					},
+				],
+			},
+			{
+				label: 'Retrieval history',
+				items: [
+					{
+						label: 'timestamped gateway/source observations',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'gateway headers',
+					},
+					{
+						label: 'content-type inference',
+					},
+					{
+						label: 'payload availability',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

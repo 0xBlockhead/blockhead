@@ -9,27 +9,108 @@
 
 	// State
 	const view = {
-		closed: [
-			'transferId',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'transferId',
-					'source',
-					'transactionLt',
-					'transactionHash',
-					'timestampMs',
-					'amountNano',
-					'queryId',
-					'forwardTonAmountNano',
-					'responseDestination',
-					'customPayloadHash',
-				],
-			],
+	closed: [
+		{
+			label: 'transfer id',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'source',
+		{
+			label: 'jetton',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'transfer id',
+				},
+				'source',
+				{
+					label: 'jetton',
+				},
+				{
+					label: 'from account',
+				},
+				{
+					label: 'to account',
+				},
+				{
+					label: 'transaction lt/hash',
+				},
+				{
+					label: 'timestamp',
+				},
+				{
+					label: 'amount',
+				},
+				{
+					label: 'query id',
+				},
+				{
+					label: 'forward TON amount',
+				},
+				{
+					label: 'response destination',
+				},
+				{
+					label: 'trace/message refs',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Jetton',
+				items: [
+					{
+						label: 'jetton master identity',
+					},
+				],
+			},
+			{
+				label: 'From/To',
+				items: [
+					{
+						label: 'sender and recipient accounts',
+					},
+				],
+			},
+			{
+				label: 'Trace',
+				items: [
+					{
+						label: 'containing trace graph',
+					},
+				],
+			},
+			{
+				label: 'Message',
+				items: [
+					{
+						label: 'underlying message edge',
+					},
+				],
+			},
+			{
+				label: 'Payload',
+				items: [
+					{
+						label: 'custom/forward payload evidence',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'jetton transfer payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

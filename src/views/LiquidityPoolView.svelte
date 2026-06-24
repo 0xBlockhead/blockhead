@@ -9,38 +9,93 @@
 
 	// State
 	const view = {
-		closed: [
-			'id',
+	closed: [
+		{
+			label: 'pool id',
+		},
+		{
+			label: 'base/quote token contracts',
+		},
+		{
+			label: 'on-chain curve fields',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'pool id',
+				},
+				{
+					label: 'base/quote token contracts',
+				},
+				'fee',
+				{
+					label: 'tick spacing',
+				},
+				{
+					label: 'hooks',
+				},
+				{
+					label: 'v4 pool id',
+				},
+				{
+					label: 'latest pair-indexer observation',
+				},
+				{
+					label: 'latest block state',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'id',
-					'fee',
-					'tickSpacing',
-					'v4PoolId',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Observations',
+				items: [
+					{
+						label: 'timestamped pair-indexer observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'blocks',
-					when: 'open',
-					items: [
-						'$$blocks',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Block state',
+				items: [
+					{
+						label: 'block-coordinate on-chain curve state',
+					},
+				],
+			},
+			{
+				label: 'Base token',
+				items: [
+					{
+						label: 'base token contract',
+					},
+				],
+			},
+			{
+				label: 'Quote token',
+				items: [
+					{
+						label: 'quote token contract',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Dexscreener pair id mapping',
+					},
+					{
+						label: 'execution RPC or pool indexer calls',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

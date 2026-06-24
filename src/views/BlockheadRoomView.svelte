@@ -9,31 +9,64 @@
 
 	// State
 	const view = {
-		closed: [
-			'id',
-		],
-		content: {
-			dl: [
-				[
-					'id',
-					'createdAt',
-					'createdBy',
-					'name',
-				],
-			],
+	closed: [
+		{
+			label: 'name or id',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'created time',
+		},
+		{
+			label: 'creator',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'peers',
-					when: 'open',
-					items: [
-						'$$peers',
-					],
+					label: 'name or id',
+				},
+				{
+					label: 'created time',
+				},
+				{
+					label: 'creator',
+				},
+				{
+					label: 'peer count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Peers',
+				items: [
+					{
+						label: 'BlockheadRoomPeer list',
+					},
+				],
+			},
+			{
+				label: 'Shared addresses',
+				items: [
+					{
+						label: 'BlockheadSharedAddress list when linked',
+					},
+				],
+			},
+			{
+				label: 'Transfer requests',
+				items: [
+					{
+						label: 'BlockheadTransferRequest list when linked',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

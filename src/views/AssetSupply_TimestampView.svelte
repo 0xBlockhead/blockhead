@@ -9,26 +9,81 @@
 
 	// State
 	const view = {
-		closed: [
-			'supplyScopeKey',
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'supplyScopeKey',
-					'classKey',
-					'timestampMs',
-					'source',
-					'totalSupply',
-					'circulatingSupply',
-					'burnedSupply',
-					'methodology',
-				],
-			],
+	closed: [
+		{
+			label: 'asset instance',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'supply scope',
+		},
+		{
+			label: 'observation time',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'asset instance',
+				},
+				{
+					label: 'supply scope key',
+				},
+				{
+					label: 'optional class key',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'total supply',
+				},
+				{
+					label: 'circulating supply',
+				},
+				{
+					label: 'burned supply',
+				},
+				'methodology',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Asset',
+				items: [
+					{
+						label: 'parent asset instance',
+					},
+				],
+			},
+			{
+				label: 'Class',
+				items: [
+					{
+						label: 'parent class when supplyScopeKey maps to a class',
+					},
+				],
+			},
+			{
+				label: 'Methodology',
+				items: [
+					{
+						label: 'source clock',
+					},
+					{
+						label: 'query',
+					},
+					{
+						label: 'inclusion/exclusion notes',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

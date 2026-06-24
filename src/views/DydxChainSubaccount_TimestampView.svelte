@@ -9,25 +9,84 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'blockHeight',
-					'equity',
-					'freeCollateral',
-					'marginUsage',
-					'openPositionCount',
-					'openOrderCount',
-				],
-			],
+	closed: [
+		{
+			label: 'subaccount',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'subaccount',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'block height',
+				},
+				'equity',
+				{
+					label: 'free collateral',
+				},
+				{
+					label: 'margin usage',
+				},
+				{
+					label: 'open position count',
+				},
+				{
+					label: 'open order count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Subaccount',
+				items: [
+					{
+						label: 'parent dYdX subaccount',
+					},
+				],
+			},
+			{
+				label: 'Positions',
+				items: [
+					{
+						label: 'position observations for same subaccount/time',
+					},
+				],
+			},
+			{
+				label: 'Orders',
+				items: [
+					{
+						label: 'orders for same subaccount/source window',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'indexer subaccount response',
+					},
+					{
+						label: 'validator state query',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

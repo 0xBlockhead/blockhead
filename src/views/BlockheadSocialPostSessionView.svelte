@@ -9,24 +9,61 @@
 
 	// State
 	const view = {
-		closed: [
-			'id',
-		],
-		content: {
-			dl: [
-				[
-					'id',
-					'name',
-					'status',
-					'protocol',
-					'authorId',
-					'createdAt',
-					'updatedAt',
-					'lockedAt',
-				],
+	closed: [
+		'name',
+		'status',
+		'protocol',
+	],
+	content: {
+		dl: [
+			[
+				'name',
+				'status',
+				'protocol',
+				{
+					label: 'author id',
+				},
+				{
+					label: 'created/updated/locked timestamps',
+				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Draft',
+				items: [
+					{
+						label: 'draft text',
+					},
+					{
+						label: 'attachments when modeled',
+					},
+				],
+			},
+			{
+				label: 'Publication',
+				items: [
+					{
+						label: 'submitted cast/message ids',
+					},
+					{
+						label: 'outcomes when linked',
+					},
+				],
+			},
+			{
+				label: 'Author',
+				items: [
+					{
+						label: 'local connected-account state',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

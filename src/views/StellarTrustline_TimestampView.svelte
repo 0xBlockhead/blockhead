@@ -9,27 +9,77 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
+	closed: [
+		'balance',
+		'limit',
+		{
+			label: 'liabilities',
+		},
+	],
+	content: {
+		dl: [
+			[
+				'balance',
+				'limit',
+				{
+					label: 'liabilities',
+				},
+				{
+					label: 'authorization/clawback flags',
+				},
+				{
+					label: 'ledger sequence',
+				},
+				'source',
+				{
+					label: 'observation time',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'ledgerSequence',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Trustline',
+				items: [
+					{
+						label: 'StellarTrustline',
+					},
+				],
+			},
+			{
+				label: 'Balances/limits',
+				items: [
 					'balance',
 					'limit',
-					'buyingLiabilities',
-					'sellingLiabilities',
-					'authorized',
-					'authorizedToMaintainLiabilities',
-					'clawbackEnabled',
+					{
+						label: 'buying/selling liabilities',
+					},
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Authorization',
+				items: [
+					'authorized',
+					{
+						label: 'authorized to maintain liabilities',
+					},
+					{
+						label: 'clawback enabled',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Horizon/RPC/explorer trustline payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

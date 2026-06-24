@@ -9,23 +9,70 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'balance',
-					'totalReward',
-					'winCount',
-					'miningAttempts',
-				],
-			],
+	closed: [
+		{
+			label: 'storage node',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'storage node',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				'balance',
+				{
+					label: 'total reward',
+				},
+				{
+					label: 'win count',
+				},
+				{
+					label: 'mining attempts',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Storage node',
+				items: [
+					{
+						label: 'parent public storage node',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent 0G network',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'miner detail/list payload',
+					},
+					{
+						label: 'scan timestamp',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

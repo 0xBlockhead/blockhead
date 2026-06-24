@@ -9,41 +9,90 @@
 
 	// State
 	const view = {
-		closed: [
-			'operatorAddress',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'operator address',
+		},
+		'moniker',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'operator address',
+				},
+				{
+					label: 'consensus pubkey',
+				},
+				'moniker',
+			],
+			[
+				{
+					label: 'latest jailed/status/tokens snapshot',
+				},
+				{
+					label: 'delegation count',
+				},
+				{
+					label: 'description links',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'operatorAddress',
-					'consensusPubkey',
-					'moniker',
-					'identity',
-					'website',
-					'securityContact',
-					'details',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Validator snapshots',
+				items: [
+					{
+						label: 'timestamped validator stake/status observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'delegations',
-					when: 'open',
-					items: [
-						'$$delegations',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Delegations',
+				items: [
+					{
+						label: 'delegations to this validator',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Cosmos network',
+					},
+				],
+			},
+			{
+				label: 'Consensus identity',
+				items: [
+					{
+						label: 'consensus pubkey',
+					},
+					{
+						label: 'proposer mapping when source-backed',
+					},
+				],
+			},
+			{
+				label: 'Description',
+				items: [
+					{
+						label: 'identity/website/security-contact/details',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

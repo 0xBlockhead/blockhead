@@ -9,80 +9,115 @@
 
 	// State
 	const view = {
-		closed: [
-			'infoHash',
-			'hashVersion',
+	closed: [
+		{
+			label: 'info hash',
+		},
+		{
+			label: 'hash version',
+		},
+		{
+			label: 'v1/v2 hashes',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'info hash',
+				},
+				{
+					label: 'hash version',
+				},
+				{
+					label: 'v1/v2 hashes',
+				},
+				{
+					label: 'metainfo hash',
+				},
+				{
+					label: 'bencoded info hash',
+				},
+				'name',
+				{
+					label: 'piece length',
+				},
+				{
+					label: 'total length',
+				},
+				{
+					label: 'private flag',
+				},
+				{
+					label: 'tracker count',
+				},
+				{
+					label: 'file count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'infoHash',
-					'hashVersion',
-					'infoHashV1',
-					'infoHashV2',
-					'metainfoHash',
-					'bencodedInfoHash',
-					'name',
-					'pieceLength',
-					'totalLength',
-					'private',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Files',
+				items: [
+					{
+						label: 'flattened file layout rows',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'files',
-					when: 'open',
-					items: [
-						'$$files',
-					],
-				},
-				{
-					label: 'file tree entries',
-					when: 'open',
-					items: [
-						'$$fileTreeEntries',
-					],
-				},
-				{
-					label: 'pieces',
-					when: 'open',
-					items: [
-						'$$pieces',
-					],
-				},
-				{
-					label: 'trackers',
-					when: 'open',
-					items: [
-						'$$trackers',
-					],
-				},
-				{
-					label: 'magnets',
-					when: 'open',
-					items: [
-						'$$magnets',
-					],
-				},
-				{
-					label: 'swarm timestamps',
-					when: 'open',
-					items: [
-						'$$swarmTimestamps',
-					],
-				},
-				{
-					label: 'client transfers',
-					when: 'open',
-					items: [
-						'$$clientTransfers',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'File tree',
+				items: [
+					{
+						label: 'BEP-52 or path-tree entries',
+					},
+				],
+			},
+			{
+				label: 'Pieces',
+				items: [
+					{
+						label: 'piece integrity/order rows',
+					},
+				],
+			},
+			{
+				label: 'Trackers',
+				items: [
+					{
+						label: 'tracker endpoint rows',
+					},
+				],
+			},
+			{
+				label: 'Magnets',
+				items: [
+					{
+						label: 'magnet links referencing this info hash',
+					},
+				],
+			},
+			{
+				label: 'Swarm',
+				items: [
+					{
+						label: 'tracker/DHT/client swarm observations',
+					},
+				],
+			},
+			{
+				label: 'Local transfers',
+				items: [
+					{
+						label: 'connected-client transfer observations',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

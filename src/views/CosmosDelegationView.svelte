@@ -9,24 +9,72 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[],
-			],
+	closed: [
+		{
+			label: 'delegator',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'validator',
+		},
+		{
+			label: 'latest delegation snapshot',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'delegator',
+				},
+				{
+					label: 'validator',
+				},
+				{
+					label: 'latest shares/balance snapshot',
+				},
+				{
+					label: 'snapshot count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Delegation snapshots',
+				items: [
+					{
+						label: 'timestamped staking delegation observations',
+					},
+				],
+			},
+			{
+				label: 'Delegator',
+				items: [
+					{
+						label: 'delegator Cosmos account',
+					},
+				],
+			},
+			{
+				label: 'Validator',
+				items: [
+					{
+						label: 'validator receiving delegated stake',
+					},
+				],
+			},
+			{
+				label: 'Rewards/unbonding',
+				items: [
+					{
+						label: 'distribution or unbonding rows when those source facets are modeled',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

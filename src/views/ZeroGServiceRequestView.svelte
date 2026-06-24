@@ -9,19 +9,70 @@
 
 	// State
 	const view = {
-		closed: [
-			'requestId',
-		],
-		content: {
-			dl: [
-				[
-					'requestId',
-					'requestHash',
-					'responseHash',
-				],
-			],
+	closed: [
+		{
+			label: 'service provider',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'request id',
+		},
+		{
+			label: 'requester',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'service provider',
+				},
+				{
+					label: 'request id',
+				},
+				{
+					label: 'requester',
+				},
+				{
+					label: 'request hash',
+				},
+				{
+					label: 'response hash',
+				},
+				{
+					label: 'settlement trace',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Provider',
+				items: [
+					{
+						label: 'parent service provider',
+					},
+				],
+			},
+			{
+				label: 'Settlement',
+				items: [
+					{
+						label: 'linked settlement trace',
+					},
+				],
+			},
+			{
+				label: 'Requester',
+				items: [
+					{
+						label: 'requester EVM account when resolved',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

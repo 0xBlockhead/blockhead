@@ -9,28 +9,90 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'nodeVersion',
-					'engineState',
-					'latestFrameNumber',
-					'latestFrameHash',
-					'difficulty',
-					'peerCount',
-					'pendingMessageCount',
-					'frameStoreHead',
-					'lastSyncedAt',
-				],
-			],
+	closed: [
+		{
+			label: 'node state',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'node state',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'node version',
+				},
+				{
+					label: 'engine state',
+				},
+				{
+					label: 'latest frame number/hash',
+				},
+				'difficulty',
+				{
+					label: 'peer count',
+				},
+				{
+					label: 'pending message count',
+				},
+				{
+					label: 'frame-store head',
+				},
+				{
+					label: 'last synced time',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Node',
+				items: [
+					{
+						label: 'parent Quilibrium node state',
+					},
+				],
+			},
+			{
+				label: 'Frames',
+				items: [
+					{
+						label: 'Quilibrium frame refs for latest heads',
+					},
+				],
+			},
+			{
+				label: 'Metrics',
+				items: [
+					{
+						label: 'Prometheus/node-status counters',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'node gRPC/status payload',
+					},
+					{
+						label: 'metrics scrape freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

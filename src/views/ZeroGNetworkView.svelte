@@ -9,56 +9,66 @@
 
 	// State
 	const view = {
-		closed: [
-			'slug',
+	closed: [
+		'name',
+		'environment',
+		{
+			label: 'native assets',
+		},
+	],
+	content: {
+		dl: [
+			[
+				'name',
+				'environment',
+				{
+					label: 'native assets',
+				},
+				{
+					label: 'execution network',
+				},
+				{
+					label: 'consensus network',
+				},
+				{
+					label: 'latest execution/storage snapshot',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'slug',
-					'name',
-					'namespace',
-					'environment',
-					'chainId',
-					'rpcEndpoints',
-					'explorerEndpoints',
-					'storageEndpoints',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Execution',
+				items: [
+					{
+						label: 'Blocks',
+					},
+					{
+						label: 'Network snapshots',
+					},
+					{
+						label: 'Consensus',
+					},
+					{
+						label: 'Endpoints',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'blocks',
-					when: 'open',
-					items: [
-						'$$blocks',
-					],
-				},
-				{
-					label: 'storage nodes',
-					when: 'open',
-					items: [
-						'$$storageNodes',
-					],
-				},
-				{
-					label: 'data blobs',
-					when: 'open',
-					items: [
-						'$$dataBlobs',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Data & Storage',
+				items: [
+					{
+						label: 'Data blobs',
+					},
+					{
+						label: 'Storage nodes',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

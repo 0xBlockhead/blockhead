@@ -9,21 +9,64 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'amount',
-					'depositTimeMs',
-				],
-			],
+	closed: [
+		{
+			label: 'deposit',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'amount',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'deposit',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				'amount',
+				{
+					label: 'deposit time when sourced',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Deposit',
+				items: [
+					{
+						label: 'parent proposal/depositor/denom row',
+					},
+				],
+			},
+			{
+				label: 'Proposal',
+				items: [
+					{
+						label: 'parent governance proposal',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'SDK/indexer deposit payload',
+					},
+					{
+						label: 'pagination/window context when retained',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

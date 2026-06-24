@@ -2,7 +2,7 @@ import { rmSync } from 'node:fs'
 
 import { loadApp } from './load-app.ts'
 import { generatedOwnership, ownershipSummary } from './ownership.ts'
-import { writeText } from './files.ts'
+import { readText, writeText } from './files.ts'
 
 type ExpectedApp = {
 	schema: {
@@ -11,7 +11,6 @@ type ExpectedApp = {
 			label?: string
 			labelPlural?: string
 			description?: string
-			notes?: string
 			enums?: {
 				name: string
 				members: {
@@ -100,7 +99,6 @@ type ExpectedApp = {
 			file: string
 			capabilities: string[]
 			sourceText?: string
-			sourceFile: string
 		}[]
 	}
 	routes: {
@@ -120,17 +118,10 @@ type ExpectedApp = {
 			importedSymbols: string[]
 			selectorExpression: string
 			simpleDirectParamShape: boolean
-			sourceFile: string
 		}[]
 		pageShells: {
 			routePath: string
-			visiblePath: string
-			routeGroupPath: string
-			components: string[]
-			usesDataSelector: boolean
-			usesParams: boolean
-			usesSelect: boolean
-			kind: 'global-collection' | 'global-source-collection' | 'data-selector-detail' | 'data-selector-simple-detail' | 'data-selector-child-collection' | 'param-id-detail' | 'param-selector-detail' | 'scope-detail' | 'direct-selector-detail' | 'derived-selector-detail' | 'linked-view' | 'simple-view' | 'catalog-param-detail' | 'global-hub-tabs' | 'eip155-network-collection' | 'evm-protocol-collection' | 'youtube-parent-collection' | 'social-network-child-collection' | 'decoded-parent-child-collection' | 'decoded-param-detail' | 'lens-account-detail' | 'proposal-selector-detail' | 'placeholder' | 'param-heading' | 'static-page' | 'custom'
+			kind: 'global-collection' | 'global-source-collection' | 'data-selector-detail' | 'data-selector-simple-detail' | 'data-selector-child-collection' | 'param-id-detail' | 'param-selector-detail' | 'scope-detail' | 'direct-selector-detail' | 'derived-selector-detail' | 'linked-view' | 'simple-view' | 'catalog-param-detail' | 'global-hub-tabs' | 'eip155-network-collection' | 'evm-protocol-collection' | 'youtube-parent-collection' | 'social-network-child-collection' | 'decoded-parent-child-collection' | 'decoded-param-detail' | 'lens-account-detail' | 'proposal-selector-detail' | 'placeholder' | 'param-heading' | 'static-page' | 'query-resource-adapter-getters' | 'query-resource-adapter-promise' | 'collection-cache-debug' | 'resource-boundary-fixture' | 'evm-calldata-decoder-tool' | 'erc20-allowance-detail' | 'erc20-allowances-overview' | 'atproto-actor-detail' | 'atproto-actor-posts' | 'x-user-detail' | 'activitypub-notes' | 'activitypub-note-thread' | 'rss-feeds' | 'rss-feed-items' | 'youtube-video-comments' | 'xmtp-account-detail' | 'atproto-post-thread' | 'farcaster-cast-by-fname-hash' | 'farcaster-cast-by-fid-hash' | 'farcaster-trending-feed' | 'farcaster-open-cast' | 'nostr-profiles' | 'nostr-reactions' | 'evm-contracts-index' | 'services-hub' | 'market-detail' | 'coin-prices' | 'farcaster-channel-detail' | 'farcaster-user-detail' | 'leverage-explainer' | 'virtual-list-demo' | 'list-view-transitions-demo' | 'assets-hub' | 'explore-hub' | 'social-hub' | 'networks-architecture-hub' | 'network-slug-lightning-collection' | 'network-slug-lightning-channel-detail' | 'network-slug-cosmos-governance' | 'network-slug-blocks' | 'network-slug-block-detail' | 'network-slug-transactions' | 'network-slug-transaction-detail' | 'eip155-network-upgrade-detail' | 'network-slug-address-detail' | 'network-slug-node-detail' | 'custom'
 			viewComponent?: string
 			viewFile?: string
 			entityType?: string
@@ -201,6 +192,20 @@ type ExpectedApp = {
 				viewId?: string
 				placeholderText?: string
 			}[]
+			networkArchitectureSections?: {
+				id: string
+				label: string
+				snippet: string
+				slug: string
+			}[]
+			socialProtocolGroups?: {
+				label: string
+				hubRoute: string
+				lists: {
+					label: string
+					route: string
+				}[]
+			}[]
 			networkCollectionField?: string
 			networkCollectionSources?: string[]
 			networkCollectionCount?: boolean
@@ -229,7 +234,6 @@ type ExpectedApp = {
 			viewImportBeforePage?: boolean
 			sources?: string[]
 			sourceText?: string
-			sourceFile: string
 		}[]
 		sectionShells: {
 			routePath: string
@@ -239,7 +243,7 @@ type ExpectedApp = {
 			usesDataSelector: boolean
 			usesParams: boolean
 			usesSelect: boolean
-			kind: 'app-shell' | 'parent-collapsible' | 'nested-parent-collapsible' | 'page-param-parent-collapsible' | 'param-summary-collapsible' | 'keyed-param-summary-collapsible' | 'scope-summary-collapsible' | 'page-param-summary-collapsible' | 'proposal-parent-collapsible' | 'passthrough' | 'custom'
+			kind: 'app-shell' | 'parent-collapsible' | 'nested-parent-collapsible' | 'page-param-parent-collapsible' | 'param-summary-collapsible' | 'keyed-param-summary-collapsible' | 'scope-summary-collapsible' | 'page-param-summary-collapsible' | 'proposal-parent-collapsible' | 'atproto-actor-parent-collapsible' | 'lens-account-parent-collapsible' | 'eip155-network-upgrade-parent-collapsible' | 'passthrough' | 'custom'
 			viewComponent?: string
 			viewFile?: string
 			entityType?: string
@@ -266,7 +270,6 @@ type ExpectedApp = {
 			usesStringify?: boolean
 			proposalLevel?: 'realm' | 'kind' | 'proposal'
 			sourceText?: string
-			sourceFile: string
 		}[]
 		selectorMappings: {
 			entity: string
@@ -307,6 +310,45 @@ const json = (value: unknown) => JSON.stringify(value, null, '\t')
 const quote = (value: string) => (
 	`'${value.replace(/\\/g, '\\\\').replace(/'/g, '\\\'')}'`
 )
+
+const tsLiteral = (
+	value: unknown,
+	indent = '\t'
+): string => {
+	if (value === null)
+		return 'null'
+
+	if (typeof value === 'string')
+		return quote(value)
+
+	if (typeof value === 'number' || typeof value === 'boolean')
+		return String(value)
+
+	if (Array.isArray(value)) {
+		if (value.length === 0)
+			return '[]'
+
+		return [
+			'[',
+			...value.map((item) => `${indent}${tsLiteral(item, `${indent}\t`)},`),
+			`${indent.slice(1)}]`,
+		].join('\n')
+	}
+
+	if (typeof value === 'object') {
+		const entries = Object.entries(value)
+		if (entries.length === 0)
+			return '{}'
+
+		return [
+			'{',
+			...entries.map(([key, item]) => `${indent}${/^[A-Za-z_$][\w$]*$/.test(key) ? key : quote(key)}: ${tsLiteral(item, `${indent}\t`)},`),
+			`${indent.slice(1)}}`,
+		].join('\n')
+	}
+
+	return 'undefined'
+}
 
 const splitTopLevel = (text: string, delimiter: string) => {
 	const parts: string[] = []
@@ -738,10 +780,25 @@ const generatedViewsIndexFile = (app: ExpectedApp) => [
 	'} as const satisfies Partial<Record<EntityType, EntityViewComponent>>',
 ].join('\n')
 
-const schemaMarkdown = (app: ExpectedApp) => [
+const appEntityNotes = () => new Map(
+	[...readText('APP.ts').matchAll(/(?<comments>(?:\t\t\t\/\/ .+\n)+)\t\t\t\{\n\t\t\t\tname: '(?<name>[^']+)',/g)]
+		.map((match) => [
+			match.groups?.name ?? '',
+			(match.groups?.comments ?? '')
+				.split('\n')
+				.filter(Boolean)
+				.map((line) => line.replace(/^\t\t\t\/\/ ?/, ''))
+				.join(' '),
+		])
+)
+
+const schemaMarkdown = (app: ExpectedApp) => {
+	const notesByEntity = appEntityNotes()
+
+	return [
 	'# Blockhead Schema',
 	'',
-	'Schema Language v1. `SCHEMA.md` is the schema design source of truth. Run `pnpm run schema:sync` after editing it, and run `pnpm run schema:check` in review to verify that `SCHEMA.md` and `src/schema/**` agree.',
+	'Schema Language v1. `APP.ts` is the schema design source of truth. Run `pnpm run app:sync` after editing it, and run `pnpm run app:check` in review to verify generated schema output.',
 	'',
 	'Each entity block starts with `Entity Name`, then `Selectors :: selectorName: field+field` and `Fields :: field! p:type, field? p:type, field* $:Entity`. Field suffixes mean required (`!`), optional (`?`), many (`*`), or impossible (`0`). `$field` references one entity and `$$field` references many entities. `Field name :: ...` lines hold user-facing language only; modeling notes stay in `Notes ::`.',
 	'',
@@ -785,13 +842,14 @@ const schemaMarkdown = (app: ExpectedApp) => [
 		...(entity.view === undefined ? [] : [
 			`    View :: ${entity.view}`,
 		]),
-		...(entity.notes === undefined ? [] : [
-			`    Notes :: ${entity.notes}`,
+		...(notesByEntity.get(entity.name) === undefined ? [] : [
+			`    Notes :: ${notesByEntity.get(entity.name)}`,
 		]),
 		'',
 	]),
 	'```',
 ].join('\n')
+}
 
 const resolverCoverageMarkdown = (app: ExpectedApp) => [
 	'# Resolver Coverage',
@@ -886,9 +944,455 @@ const generatedViewFieldArray = (
 	].join('\n')
 }
 
-const generatedEntityViewShellSource = (
+const generatedEntityViewDeclaration = (
 	entity: ExpectedApp['schema']['entities'][number]
 ) => {
+	if (entity.view === undefined)
+		return undefined
+
+	const {
+		list: _list,
+		...view
+	} = JSON.parse(entity.view) as Record<string, unknown>
+
+	return view
+}
+
+const generatedNetworkViewShellSource = () => `<script lang="ts">
+	// Types/constants
+	import {
+		NetworkNamespace,
+		networkByCaip2,
+		networkEnvironmentByEnvironment,
+	} from '$/constants/Network.ts'
+
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { schema } from '$/schema/index.ts'
+
+	type NetworkResource = EntityProxyResource<typeof schema, EntityType.Network>
+
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+	import { resolve } from '$app/paths'
+
+
+	// State
+	let {
+		selection,
+		href,
+		layout = EntityLayout.SummaryDetails,
+		open = $bindable(layout === EntityLayout.SummaryDetails),
+	}: {
+		selection: NetworkResource
+		href?: string
+		layout?: EntityLayout
+		open?: boolean
+	} = $props()
+
+
+	// Components
+	import EntityView2 from '$/components/EntityView2.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import BittensorNetworkView from '$/views/BittensorNetworkView.svelte'
+	import CosmosNetworkView from '$/views/CosmosNetworkView.svelte'
+	import EvmNetworkView from '$/views/EvmNetworkView.svelte'
+	import FilecoinNetworkView from '$/views/FilecoinNetworkView.svelte'
+	import HyperliquidNetworkView from '$/views/HyperliquidNetworkView.svelte'
+	import LightningNetworkView from '$/views/LightningNetworkView.svelte'
+	import LogosNetworkView from '$/views/LogosNetworkView.svelte'
+	import MoneroNetworkView from '$/views/MoneroNetworkView.svelte'
+	import NearNetworkView from '$/views/NearNetworkView.svelte'
+	import PolkadotNetworkView from '$/views/PolkadotNetworkView.svelte'
+	import QuilibriumNetworkView from '$/views/QuilibriumNetworkView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import SolanaNetworkView from '$/views/SolanaNetworkView.svelte'
+	import TronNetworkView from '$/views/TronNetworkView.svelte'
+	import UtxoNetworkView from '$/views/UtxoNetworkView.svelte'
+	import ZeroGNetworkView from '$/views/ZeroGNetworkView.svelte'
+</script>
+
+
+<ResourceBoundary
+	resource={selection}
+>
+	{#snippet children(row)}
+		{@const networkCaip2 = row.caip2 ?? (
+			'caip2' in selection.entitySelector ?
+				selection.entitySelector.caip2
+			:
+				undefined
+		)}
+		{@const networkSlug = row.slug ?? (
+			'slug' in selection.entitySelector ?
+				selection.entitySelector.slug
+			:
+				undefined
+		)}
+		{@const networkHref = href ?? (
+			networkCaip2 == null ?
+				networkSlug == null ?
+					undefined
+				:
+					resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
+						networkSlug,
+					})
+				:
+					resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+						caip2: \`\${networkCaip2.namespace}:\${networkCaip2.reference}\`,
+					})
+		)}
+		{@const networkSelector = selection.entitySelector}
+		{@const networkNamespace = row.namespace ?? (
+			networkCaip2 == null ?
+				undefined
+			:
+				networkByCaip2[\`\${networkCaip2.namespace}:\${networkCaip2.reference}\`]?.namespace
+		)}
+		{#if networkNamespace === NetworkNamespace.Evm && networkCaip2 != null}
+			<EvmNetworkView
+				selection={select(EntityType.EvmNetwork, {
+					caip2: {
+						namespace: 'eip155',
+						reference: networkCaip2.reference,
+					},
+				})}
+				href={networkHref}
+				bind:open
+				{layout}
+			/>
+		{:else if networkNamespace === NetworkNamespace.Bitcoin || networkNamespace === NetworkNamespace.BitcoinCash || networkNamespace === NetworkNamespace.Litecoin || networkNamespace === NetworkNamespace.Dogecoin || networkNamespace === NetworkNamespace.Zcash}
+			<UtxoNetworkView
+				selection={select(EntityType.UtxoNetwork, { $network: networkSelector })}
+				href={networkHref}
+				bind:open
+				{layout}
+			/>
+		{:else if networkNamespace === NetworkNamespace.Solana && networkCaip2 != null}
+			<SolanaNetworkView
+				selection={select(EntityType.SolanaNetwork, {
+					caip2: {
+						namespace: 'solana',
+						reference: networkCaip2.reference,
+					},
+				})}
+				href={networkHref}
+				bind:open
+				{layout}
+			/>
+		{:else if networkNamespace === NetworkNamespace.Cosmos}
+			<CosmosNetworkView
+				selection={select(EntityType.CosmosNetwork, { $network: networkSelector })}
+				href={networkHref}
+				bind:open
+				{layout}
+			/>
+		{:else if networkNamespace === NetworkNamespace.Filecoin}
+			<FilecoinNetworkView
+				selection={select(EntityType.FilecoinNetwork, { $network: networkSelector })}
+				href={networkHref}
+				bind:open
+				{layout}
+			/>
+		{:else if networkNamespace === NetworkNamespace.Polkadot}
+			<PolkadotNetworkView
+				selection={select(EntityType.PolkadotNetwork, { $network: networkSelector })}
+				href={networkHref}
+				bind:open
+				{layout}
+			/>
+		{:else if networkNamespace === NetworkNamespace.Monero}
+			<MoneroNetworkView
+				selection={select(EntityType.MoneroNetwork, { $network: networkSelector })}
+				href={networkHref}
+				bind:open
+				{layout}
+			/>
+		{:else if networkNamespace === NetworkNamespace.Near}
+			<NearNetworkView
+				selection={select(EntityType.NearNetwork, { slug: 'near' })}
+				href={networkHref}
+				bind:open
+				{layout}
+			/>
+		{:else if networkNamespace === NetworkNamespace.Tron}
+			<TronNetworkView
+				selection={select(EntityType.TronNetwork, { $network: networkSelector })}
+				href={networkHref}
+				bind:open
+				{layout}
+			/>
+		{:else if networkNamespace === NetworkNamespace.Hyperliquid}
+			<HyperliquidNetworkView
+				selection={select(EntityType.HyperliquidNetwork, { $network: networkSelector })}
+				href={networkHref}
+				bind:open
+				{layout}
+			/>
+		{:else if networkNamespace === NetworkNamespace.Bittensor}
+			<BittensorNetworkView
+				selection={select(EntityType.BittensorNetwork, { $network: networkSelector })}
+				href={networkHref}
+				bind:open
+				{layout}
+			/>
+		{:else if networkNamespace === NetworkNamespace.Lightning}
+			<LightningNetworkView
+				selection={select(EntityType.LightningNetwork, {
+					$network: networkSelector,
+				})}
+				href={networkHref}
+				bind:open
+				{layout}
+			/>
+		{:else if networkNamespace === NetworkNamespace.ZeroG}
+			<ZeroGNetworkView
+				selection={select(EntityType.Network, networkSelector)}
+				href={networkHref}
+				bind:open
+				{layout}
+			/>
+		{:else if networkNamespace === NetworkNamespace.Logos}
+			<LogosNetworkView
+				selection={select(EntityType.Network, networkSelector)}
+				href={networkHref}
+				bind:open
+				{layout}
+			/>
+		{:else if networkNamespace === NetworkNamespace.Quilibrium}
+			<QuilibriumNetworkView
+				selection={select(EntityType.Network, networkSelector)}
+				href={networkHref}
+				bind:open
+				{layout}
+			/>
+		{:else}
+			<EntityView2
+				{selection}
+				entityType={EntityType.Network}
+				entitySelector={networkSelector}
+				href={networkHref}
+				bind:open
+				{layout}
+				view={{
+					closed: [
+						'caip2',
+						'environment',
+					],
+					content: {
+						dl: [
+							[
+								'caip2',
+								'environment',
+								{
+									label: 'stack classification',
+								},
+								'executionEnvironments',
+								'consensusMechanisms',
+							],
+							[
+								{
+									label: 'native asset count',
+								},
+								{
+									label: 'explorer/faucet URL counts',
+								},
+							],
+						],
+					},
+					details: {
+						tabs: [
+							{
+								label: 'Namespace-specific state',
+								items: [
+									{
+										label: 'EVM',
+									},
+									{
+										label: 'UTXO',
+									},
+									{
+										label: 'Solana',
+									},
+									{
+										label: 'Cosmos',
+									},
+									{
+										label: 'Celestia',
+									},
+									{
+										label: 'Avail',
+									},
+									{
+										label: 'Filecoin',
+									},
+									{
+										label: 'Polkadot',
+									},
+									{
+										label: 'Monero',
+									},
+									{
+										label: 'NEAR',
+									},
+									{
+										label: 'TRON',
+									},
+									{
+										label: 'Hyperliquid',
+									},
+									{
+										label: 'Bittensor',
+									},
+									{
+										label: 'Lightning',
+									},
+									{
+										label: 'Arweave',
+									},
+									{
+										label: '0G',
+									},
+									{
+										label: 'Quilibrium',
+									},
+								],
+							},
+							{
+								label: 'Catalog refs',
+								items: [
+									'$$nativeAssets',
+									'$$blockExplorerUrls',
+									'$$faucetUrls',
+									{
+										label: 'secondary identifiers',
+									},
+								],
+							},
+							{
+								label: 'Observations',
+								items: [
+									{
+										label: 'Network_Timestamp fallback rows',
+									},
+									{
+										label: 'endpoint observations',
+									},
+								],
+							},
+						],
+					},
+				}}
+			>
+				{#snippet Title()}
+					{row.name}
+				{/snippet}
+
+				{#snippet Content()}
+					<dl>
+						{#if row.caip2 != null}
+							<div>
+								<dt>CAIP-2</dt>
+								<dd>
+									{row.caip2.namespace}:{row.caip2.reference}
+								</dd>
+							</div>
+						{/if}
+
+						{#if row.environment !== undefined}
+							<div>
+								<dt>Environment</dt>
+								<dd>{networkEnvironmentByEnvironment[row.environment].label}</dd>
+							</div>
+						{/if}
+					</dl>
+				{/snippet}
+			</EntityView2>
+		{/if}
+	{/snippet}
+</ResourceBoundary>
+`
+
+const generatedEntityViewShellSource = (
+	entity: ExpectedApp['schema']['entities'][number],
+	shell: ExpectedApp['views']['entityViewShells'][number]
+) => {
+	if (entity.name === 'Network')
+		return generatedNetworkViewShellSource()
+
+	if (
+		shell.capabilities.includes('entities-list')
+		&& shell.capabilities.includes('entity-select')
+	)
+		return `<script lang="ts">
+\t// Types/constants
+\timport type { ComponentProps } from 'svelte'
+\timport type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+\timport { ListOrientation } from '$/components/ListOrientation.ts'
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { schema } from '$/schema/index.ts'
+\timport type { WithRest } from '$/typescript/WithRest.ts'
+\timport { stringify } from 'devalue'
+
+
+\t// Context
+\timport { select } from '$/routes/+layout.svelte'
+
+
+\t// State
+\tconst listView = {
+\t\tentityType: EntityType.${entity.name},
+\t\titem: 'summary',
+\t\torientation: 'column',
+\t} as const
+
+\tlet {
+\t\tselection,
+\t\ttitle,
+\t\topen = $bindable(true),
+\t\tid = '${entity.name}',
+\t\thref = '',
+\t\t...EntitiesListProps
+\t}: WithRest<
+\t\t{
+\t\t\tselection: EntityProxyEntitiesResource<typeof schema, EntityType.${entity.name}>
+\t\t\ttitle?: string
+\t\t\topen?: boolean
+\t\t\tid?: string
+\t\t\thref?: string
+\t\t},
+\t\tPick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
+\t> = $props()
+
+
+\t// Components
+\timport EntitiesList from '$/components/EntitiesList.svelte'
+\timport { EntityLayout } from '$/components/EntityView.svelte'
+\timport ${entity.name}View from '$/views/${entity.name}View.svelte'
+</script>
+
+
+<EntitiesList
+\tentityType={listView.entityType}
+\t{title}
+\tbind:open
+\t{id}
+\thref={href}
+\tresource={selection}
+\tgetKey={(entity) => stringify(entity.entitySelector)}
+\tUnorderedListProps={{ orientation: ListOrientation.Column }}
+\t{...EntitiesListProps}
+>
+\t{#snippet Item({ item })}
+\t\t<${entity.name}View
+\t\t\tselection={select(EntityType.${entity.name}, item.entitySelector)}
+\t\t\tlayout={EntityLayout.Summary}
+\t\t/>
+\t{/snippet}
+</EntitiesList>
+`
+
 	const closedFields = (
 		entity.selectors[0]?.fields.filter((fieldName) => entity.fields.some((field) => field.name === fieldName && !field.type.startsWith('$:')))
 		?? []
@@ -898,6 +1402,7 @@ const generatedEntityViewShellSource = (
 		.map((field) => field.name)
 	const detailFields = entity.fields
 		.filter((field) => field.name.startsWith('$$') || (field.cardinality === 'Many' && field.type.startsWith('$:')))
+	const viewDeclaration = generatedEntityViewDeclaration(entity)
 
 	return `<script lang="ts">
 \t// Types/constants
@@ -909,7 +1414,7 @@ const generatedEntityViewShellSource = (
 
 
 \t// State
-\tconst view = {
+\tconst view = ${viewDeclaration === undefined ? `{
 \t\tclosed: ${generatedViewFieldArray(closedFields)},
 \t\tcontent: {
 \t\t\tdl: [
@@ -927,7 +1432,7 @@ ${detailFields.map((field) => `\t\t\t\t{
 \t\t\t\t},`).join('\n')}
 \t\t\t],
 \t\t},
-`}\t} satisfies ComponentProps<typeof EntityView2>['view']
+`}\t}` : tsLiteral(viewDeclaration, '\t')} satisfies ComponentProps<typeof EntityView2>['view']
 
 \tlet {
 \t\tselection,
@@ -1307,10 +1812,4100 @@ ${shell.title === undefined ? '' : `${shell.globalSourceIndentExtra ? '\t' : ''}
 `
 }
 
+const queryResourceAdapterButtons = `<button
+\t\tdata-testid="adapter-ready-button"
+\t\tonclick={() => applyQuery({
+\t\t\tdata: 'Ready value',
+\t\t\tisLoading: false,
+\t\t\tisError: false,
+\t\t\tisReady: true,
+\t\t\tstatus: 'ready',
+\t\t})}
+\t>
+\t\tAdapter ready
+\t</button>
+
+\t<button
+\t\tdata-testid="adapter-refresh-loading-button"
+\t\tonclick={() => applyQuery({
+\t\t\tdata: 'Ready value',
+\t\t\tisLoading: true,
+\t\t\tisError: false,
+\t\t\tisReady: false,
+\t\t\tstatus: 'loading',
+\t\t})}
+\t>
+\t\tAdapter refresh loading
+\t</button>
+
+\t<button
+\t\tdata-testid="adapter-refreshed-ready-button"
+\t\tonclick={() => applyQuery({
+\t\t\tdata: 'Refreshed value',
+\t\t\tisLoading: false,
+\t\t\tisError: false,
+\t\t\tisReady: true,
+\t\t\tstatus: 'ready',
+\t\t})}
+\t>
+\t\tAdapter refreshed ready
+\t</button>
+
+\t<button
+\t\tdata-testid="adapter-error-button"
+\t\tonclick={() => applyQuery({
+\t\t\tdata: '',
+\t\t\tisLoading: false,
+\t\t\tisError: true,
+\t\t\tisReady: false,
+\t\t\terror: 'Adapter failure',
+\t\t\tstatus: 'error',
+\t\t})}
+\t>
+\t\tAdapter error
+\t</button>
+
+\t<button
+\t\tdata-testid="adapter-recover-loading-button"
+\t\tonclick={() => applyQuery({
+\t\t\tdata: '',
+\t\t\tisLoading: true,
+\t\t\tisError: false,
+\t\t\tisReady: false,
+\t\t\tstatus: 'loading',
+\t\t})}
+\t>
+\t\tAdapter recover loading
+\t</button>
+
+\t<button
+\t\tdata-testid="adapter-recovered-ready-button"
+\t\tonclick={() => applyQuery({
+\t\t\tdata: 'Recovered value',
+\t\t\tisLoading: false,
+\t\t\tisError: false,
+\t\t\tisReady: true,
+\t\t\tstatus: 'ready',
+\t\t})}
+\t>
+\t\tAdapter recovered ready
+\t</button>`
+
+const generatedQueryResourceAdapterPageShell = (
+	mode: 'getters' | 'promise'
+) => `<script lang="ts">
+\t// Types/constants
+\timport {
+\t\ttype TanStackLiveQuerySnapshot,
+\t\tTanStackLiveQueryResource,
+\t} from '$/lib/db/queryResource.svelte.ts'
+
+
+\tconst initialQuery = {
+\t\tdata: '',
+\t\tisLoading: true,
+\t\tisError: false,
+\t\tisReady: false,
+\t\tstatus: 'loading',
+\t} satisfies TanStackLiveQuerySnapshot<string>
+\tlet query = $state<TanStackLiveQuerySnapshot<string>>(initialQuery)
+\tconst queryListeners = new Set<() => void>()
+\tconst resource = new TanStackLiveQueryResource(
+\t\t() => query,
+\t\t(update) => {
+\t\t\tqueryListeners.add(update)
+\t\t\treturn () => {
+\t\t\t\tqueryListeners.delete(update)
+\t\t\t}
+\t\t},
+\t)
+${mode === 'getters' ? `\tlet resolveInitializedResource: (() => void) | undefined
+\tlet initializedQuery = $state<TanStackLiveQuerySnapshot<string>>({
+\t\tdata: 'Premature value',
+\t\tisLoading: false,
+\t\tisError: false,
+\t\tisReady: true,
+\t\tstatus: 'ready',
+\t})
+\tconst initializedQueryListeners = new Set<() => void>()
+\tconst initializedResource = new TanStackLiveQueryResource(
+\t\t() => initializedQuery,
+\t\t(update) => {
+\t\t\tinitializedQueryListeners.add(update)
+\t\t\treturn () => {
+\t\t\t\tinitializedQueryListeners.delete(update)
+\t\t\t}
+\t\t},
+\t\t() => new Promise<void>((resolve) => {
+\t\t\tresolveInitializedResource = resolve
+\t\t})
+\t)
+` : `\tlet promiseState = $state('pending')
+\tlet secondPromiseState = $state('pending')
+\tlet catchState = $state('')
+\tlet finallyCount = $state(0)
+`}
+\tconst applyQuery = (
+\t\tnextQuery: TanStackLiveQuerySnapshot<string>,
+\t) => {
+\t\tquery.data = nextQuery.data
+\t\tquery.isLoading = nextQuery.isLoading
+\t\tquery.isError = nextQuery.isError
+\t\tquery.isReady = nextQuery.isReady
+\t\tquery.error = nextQuery.error
+\t\tquery.status = nextQuery.status
+${mode === 'promise' ? `\t\tpromiseState = 'pending'
+\t\tsecondPromiseState = 'pending'
+\t\tcatchState = ''
+` : ''}\t\tfor (const listener of queryListeners)
+\t\t\tlistener()
+${mode === 'promise' ? `\t\tvoid resource.then(
+\t\t\t(value) => {
+\t\t\t\tpromiseState = value
+\t\t\t},
+\t\t\t(error) => {
+\t\t\t\tpromiseState = String(error)
+\t\t\t},
+\t\t)
+\t\tvoid resource.then(
+\t\t\t(value) => {
+\t\t\t\tsecondPromiseState = value
+\t\t\t},
+\t\t\t(error) => {
+\t\t\t\tsecondPromiseState = String(error)
+\t\t\t},
+\t\t)
+\t\tvoid resource.catch((error) => {
+\t\t\tcatchState = String(error)
+\t\t})
+\t\tvoid resource.finally(() => {
+\t\t\tfinallyCount += 1
+\t\t}).catch(() => {})
+` : ''}\t}
+${mode === 'getters' ? `
+\tconst resolveInitialized = () => {
+\t\tinitializedQuery = {
+\t\t\tdata: 'Initialized value',
+\t\t\tisLoading: false,
+\t\t\tisError: false,
+\t\t\tisReady: true,
+\t\t\tstatus: 'ready',
+\t\t}
+\t\tresolveInitializedResource?.()
+\t\tfor (const listener of initializedQueryListeners)
+\t\t\tlistener()
+\t}
+` : ''}</script>
+
+
+<h1>Query resource adapter ${mode === 'getters' ? 'getter' : 'promise'} test route</h1>
+
+<section>
+\t<h2>TanStack adapter ${mode === 'getters' ? 'getter' : 'promise'} state machine</h2>
+
+\t${queryResourceAdapterButtons}
+${mode === 'getters' ? `
+\t<button
+\t\tdata-testid="adapter-disabled-ready-button"
+\t\tonclick={() => applyQuery({
+\t\t\tdata: 'Disabled value',
+\t\t\tisLoading: false,
+\t\t\tisError: false,
+\t\t\tisReady: true,
+\t\t\tstatus: 'ready',
+\t\t})}
+\t>
+\t\tAdapter disabled ready
+\t</button>
+
+\t<dl>
+\t\t<dt>current</dt>
+\t\t<dd data-testid="adapter-current">{resource.current ?? ''}</dd>
+
+\t\t<dt>loading</dt>
+\t\t<dd data-testid="adapter-loading">{String(resource.loading)}</dd>
+
+\t\t<dt>ready</dt>
+\t\t<dd data-testid="adapter-ready">{String(resource.ready)}</dd>
+
+\t\t<dt>error</dt>
+\t\t<dd data-testid="adapter-error">{resource.error === undefined ? '' : String(resource.error)}</dd>
+\t</dl>
+</section>
+
+<section>
+\t<h2>Initialized resource</h2>
+
+\t<button
+\t\tdata-testid="initialized-resource-resolve"
+\t\tonclick={resolveInitialized}
+\t>
+\t\tResolve initialized resource
+\t</button>
+
+\t<dl>
+\t\t<dt>current</dt>
+\t\t<dd data-testid="initialized-resource-current">{initializedResource.current ?? ''}</dd>
+
+\t\t<dt>loading</dt>
+\t\t<dd data-testid="initialized-resource-loading">{String(initializedResource.loading)}</dd>
+
+\t\t<dt>ready</dt>
+\t\t<dd data-testid="initialized-resource-ready">{String(initializedResource.ready)}</dd>
+\t</dl>
+</section>
+` : `
+\t<p data-testid="adapter-awaited">{promiseState}</p>
+\t<p data-testid="adapter-awaited-second">{secondPromiseState}</p>
+\t<p data-testid="adapter-catch">{catchState}</p>
+\t<p data-testid="adapter-finally-count">{finallyCount}</p>
+</section>
+`}`
+
+const generatedCollectionCacheDebugPageShell = () => `<script lang="ts">
+\t// Types/constants
+\timport { EntityMetaKey, entityFieldDefinitions } from '$/schema/$schema.ts'
+\timport { schema } from '$/schema/index.ts'
+\timport { Source } from '$/sources/Source.ts'
+\timport { enabledSources } from '$/sources/index.ts'
+\timport { appClient } from '$/routes/+layout.svelte'
+\timport { useCollectionCache } from './collectionCache.svelte.ts'
+
+
+\tconst collectionEntityDefinitions = schema.map((entityDefinition) => ({
+\t\tentityType: entityDefinition.entityType,
+\t\tlabel: entityDefinition.label,
+\t\tfields: entityFieldDefinitions(entityDefinition).map((field) => ({
+\t\t\tcacheKey: \`\${entityDefinition.entityType}\\0\${field.name}\`,
+\t\t\tname: field.name,
+\t\t})),
+\t}))
+
+\tconst entityCaches = Object.fromEntries(
+\t\tschema.map((entityDefinition) => [
+\t\t\tentityDefinition.entityType,
+\t\t\tuseCollectionCache(appClient.entityCollections[entityDefinition.entityType]),
+\t\t]),
+\t)
+
+\tconst fieldCaches = Object.fromEntries(
+\t\tschema.flatMap((entityDefinition) => (
+\t\t\tentityFieldDefinitions(entityDefinition).map((field) => [
+\t\t\t\t\`\${entityDefinition.entityType}\\0\${field.name}\`,
+\t\t\t\tuseCollectionCache(
+\t\t\t\t\tappClient.entityFieldCollections[entityDefinition.entityType][field.name],
+\t\t\t\t),
+\t\t\t])
+\t\t)),
+\t)
+
+
+\t// Components
+\timport NumberValue from '$/views/NumberValue.svelte'
+</script>
+
+
+<main data-column>
+\t<section data-card>
+\t\t<h2>Resolver sources</h2>
+\t\t<p class="collection-overview-lead">
+\t\t\tWhich <code>Source</code> values are currently enabled (env gates satisfied in
+\t\t\t<code>src/sources/index.ts</code>). Off means that resolver module is not registered.
+\t\t</p>
+\t\t<ul>
+\t\t\t{#each [...Object.values(Source)].sort((a, b) => a.localeCompare(b)) as source (source)}
+\t\t\t\t<li>
+\t\t\t\t\t<code>{source}</code> · {enabledSources.has(source) ? 'on' : 'off'}
+\t\t\t\t</li>
+\t\t\t{/each}
+\t\t</ul>
+\t</section>
+\t<section data-card>
+\t\t<h2>Collection cache (TanStack DB)</h2>
+\t\t<p class="collection-overview-lead">
+\t\t\tRows already loaded in this session (not a full refetch). Expand a type to see items and
+\t\t\teach related field group.
+\t\t</p>
+
+\t\t{#each collectionEntityDefinitions as entityDefinition (entityDefinition.entityType)}
+\t\t\t{@const entityCache = entityCaches[entityDefinition.entityType]}
+
+\t\t\t<details
+\t\t\t\tdata-card
+\t\t\t\tclass="collection-domain"
+\t\t\t>
+\t\t\t\t<summary>
+\t\t\t\t\t<h2>
+\t\t\t\t\t\t<code>{entityDefinition.entityType}</code>
+\t\t\t\t\t</h2>
+
+\t\t\t\t\t{entityDefinition.label}
+\t\t\t\t</summary>
+
+\t\t\t\t<div data-column>
+\t\t\t\t\t<details
+\t\t\t\t\t\tdata-card
+\t\t\t\t\t\tclass="collection-domain"
+\t\t\t\t\t>
+\t\t\t\t\t\t<summary>
+\t\t\t\t\t\t\t<h3>
+\t\t\t\t\t\t\t\tItems
+\t\t\t\t\t\t\t\t(<NumberValue
+\t\t\t\t\t\t\t\t\tvalue={entityCache.rows.length}
+\t\t\t\t\t\t\t\t\toptions={{ maximumFractionDigits: 0 }}
+\t\t\t\t\t\t\t\t/>)
+\t\t\t\t\t\t\t\t·
+\t\t\t\t\t\t\t\t<code>{entityCache.status}</code>
+\t\t\t\t\t\t\t</h3>
+\t\t\t\t\t\t</summary>
+
+\t\t\t\t\t\t{#if entityCache.status === 'error'}
+\t\t\t\t\t\t\t<p>Error</p>
+\t\t\t\t\t\t{:else if entityCache.rows.length}
+\t\t\t\t\t\t\t<ul class="collection-entities">
+\t\t\t\t\t\t\t\t{#each entityCache.rows as row, index (
+\t\t\t\t\t\t\t\t\t[
+\t\t\t\t\t\t\t\t\t\tString(row[EntityMetaKey.Source] ?? ''),
+\t\t\t\t\t\t\t\t\t\tString(row[EntityMetaKey.SelectorKey] ?? ''),
+\t\t\t\t\t\t\t\t\t].join('\\0')
+\t\t\t\t\t\t\t\t)}
+\t\t\t\t\t\t\t\t\t<li>
+\t\t\t\t\t\t\t\t\t\t<pre data-card>{JSON.stringify(
+\t\t\t\t\t\t\t\t\t\t\trow,
+\t\t\t\t\t\t\t\t\t\t\t(_key, inner) => (typeof inner === 'bigint' ?
+\t\t\t\t\t\t\t\t\t\t\t\tinner.toString()
+\t\t\t\t\t\t\t\t\t\t\t:
+\t\t\t\t\t\t\t\t\t\t\t\tinner),
+\t\t\t\t\t\t\t\t\t\t\t2,
+\t\t\t\t\t\t\t\t\t\t)}</pre>
+\t\t\t\t\t\t\t\t\t</li>
+\t\t\t\t\t\t\t\t{/each}
+\t\t\t\t\t\t\t</ul>
+\t\t\t\t\t\t{:else}
+\t\t\t\t\t\t\t<p>No cached rows</p>
+\t\t\t\t\t\t{/if}
+\t\t\t\t\t</details>
+
+\t\t\t\t\t{#each entityDefinition.fields as field, fieldIndex (
+\t\t\t\t\t\t[
+\t\t\t\t\t\t\tString(entityDefinition.entityType),
+\t\t\t\t\t\t\tString(field.name),
+\t\t\t\t\t\t\tString(fieldIndex),
+\t\t\t\t\t\t].join('\\0')
+\t\t\t\t\t)}
+\t\t\t\t\t\t{@const fieldCache = fieldCaches[field.cacheKey]}
+
+\t\t\t\t\t\t<details
+\t\t\t\t\t\t\tdata-card
+\t\t\t\t\t\t\tclass="collection-field"
+\t\t\t\t\t\t>
+\t\t\t\t\t\t\t<summary>
+\t\t\t\t\t\t\t\t<h4>
+\t\t\t\t\t\t\t\t\t<code>{field.name}</code>
+\t\t\t\t\t\t\t\t\t(<NumberValue
+\t\t\t\t\t\t\t\t\t\tvalue={fieldCache.rows.length}
+\t\t\t\t\t\t\t\t\t\toptions={{ maximumFractionDigits: 0 }}
+\t\t\t\t\t\t\t\t\t/>)
+\t\t\t\t\t\t\t\t\t·
+\t\t\t\t\t\t\t\t\t<code>{fieldCache.status}</code>
+\t\t\t\t\t\t\t\t</h4>
+\t\t\t\t\t\t\t</summary>
+
+\t\t\t\t\t\t\t<div data-column>
+\t\t\t\t\t\t\t\t{#if fieldCache.status === 'error'}
+\t\t\t\t\t\t\t\t\t<p>Error</p>
+\t\t\t\t\t\t\t\t{:else if fieldCache.rows.length}
+\t\t\t\t\t\t\t\t\t<ul class="collection-entity-fields">
+\t\t\t\t\t\t\t\t\t\t{#each fieldCache.rows as row, index (
+\t\t\t\t\t\t\t\t\t\t\t[
+\t\t\t\t\t\t\t\t\t\t\t\tString(entityDefinition.entityType),
+\t\t\t\t\t\t\t\t\t\t\t\tString(field.name),
+\t\t\t\t\t\t\t\t\t\t\t\tString(row[EntityMetaKey.Source] ?? ''),
+\t\t\t\t\t\t\t\t\t\t\t\tString(row[EntityMetaKey.ParentSelectorKey] ?? ''),
+\t\t\t\t\t\t\t\t\t\t\t\tString(index),
+\t\t\t\t\t\t\t\t\t\t\t].join('\\0')
+\t\t\t\t\t\t\t\t\t\t)}
+\t\t\t\t\t\t\t\t\t\t\t<li>
+\t\t\t\t\t\t\t\t\t\t\t\t<pre data-card>{JSON.stringify(
+\t\t\t\t\t\t\t\t\t\t\t\t\trow,
+\t\t\t\t\t\t\t\t\t\t\t\t\t(_key, inner) => (typeof inner === 'bigint' ?
+\t\t\t\t\t\t\t\t\t\t\t\t\t\tinner.toString()
+\t\t\t\t\t\t\t\t\t\t\t\t\t:
+\t\t\t\t\t\t\t\t\t\t\t\t\t\tinner),
+\t\t\t\t\t\t\t\t\t\t\t\t\t2,
+\t\t\t\t\t\t\t\t\t\t\t\t)}</pre>
+\t\t\t\t\t\t\t\t\t\t\t</li>
+\t\t\t\t\t\t\t\t\t\t{/each}
+\t\t\t\t\t\t\t\t\t</ul>
+\t\t\t\t\t\t\t\t{:else}
+\t\t\t\t\t\t\t\t\t<p>No cached rows</p>
+\t\t\t\t\t\t\t\t{/if}
+\t\t\t\t\t\t\t</div>
+\t\t\t\t\t\t</details>
+\t\t\t\t\t{/each}
+\t\t\t\t</div>
+\t\t\t</details>
+\t\t{/each}
+\t</section>
+</main>
+
+
+<style>
+\tpre {
+\t\toverflow-x: auto;
+\t\tfont-size: 0.8rem;
+\t\tline-height: 1.35;
+\t\tmax-height: 80vh;
+\t}
+</style>
+`
+
+const generatedEvmCalldataDecoderToolPageShell = () => `<script lang="ts">
+	// Types/constants
+	import type { CalldataExample } from '$/constants/calldata-examples.ts'
+	import { calldataExamples } from '$/constants/calldata-examples.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
+	import { resolve } from '$app/paths'
+	import { untrack } from 'svelte'
+
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+	import { afterNavigate, goto } from '$app/navigation'
+	import { page } from '$app/state'
+
+
+	const hexFromParam = (value: string | null): string => {
+		if (!value) return ''
+		const s = value.trim().replace(/^0x/i, '').replace(/\\s/g, '')
+		if (!/^[0-9a-fA-F]*$/.test(s)) return ''
+		const even = s.length % 2 === 0 ?
+			s
+		:
+			s.slice(0, -1)
+		return even ?
+			\`0x\${even}\`
+		:
+			''
+	}
+
+
+	import {
+		decodeCalldataWithSignature,
+		decodeEventDataWithSignature,
+		formatDecodedParamValue,
+	} from '$/lib/calldata-decode.ts'
+
+	import { normalizeEvmSelectorHex, normalizeEvmTopicHex } from '$/lib/signature-paths.ts'
+
+	const EMPTY_SIGNATURES: readonly string[] = []
+
+	const IDLE_SELECTOR_HEX: \`0x\${string}\` = '0xffffffff'
+
+	const IDLE_TOPIC_HEX = ZeroExHex.assert(\`0x\${'f'.repeat(64)}\`)
+
+	const TRUNCATE_PARAM_LENGTH = 28
+
+	let inputRaw = $state(
+		hexFromParam(page.url.searchParams.get('data')),
+	)
+
+	let selectedExample = $state<CalldataExample | undefined>(undefined)
+
+	let selectedSigIndex = $state(0)
+
+	let selectedEventSigIndex = $state(0)
+
+	afterNavigate(({ to }) => {
+		if (!to) return
+		const fromUrl = hexFromParam(to.url.searchParams.get('data'))
+		if (fromUrl === inputRaw) return
+		inputRaw = fromUrl
+	})
+
+	$effect(() => {
+		const hex = hexNormalized.length > 0 ? \`0x\${hexNormalized}\` : ''
+		const curData = untrack(() =>
+			hexFromParam(page.url.searchParams.get('data')),
+		)
+		if (hex === curData) return
+		const pathname = untrack(() => page.url.pathname)
+		const url = hex
+			? \`\${pathname}?data=\${encodeURIComponent(hex)}\`
+			:
+				pathname
+		void goto(url, { replaceState: true })
+	})
+
+	$effect(() => {
+		const example = selectedExample
+		if (!example) return
+		inputRaw = example.hex
+		selectedExample = undefined
+	})
+
+	// (Derived)
+	const hexWithPrefix = $derived(
+		inputRaw.startsWith('0x') ?
+			inputRaw
+		:
+			inputRaw ?
+				\`0x\${inputRaw}\`
+			:
+				'',
+	)
+
+	const hexNormalized = $derived(
+		hexWithPrefix.slice(2).toLowerCase(),
+	)
+
+	const selector = $derived(
+		hexNormalized.length >= 8 ?
+			ZeroExHex.assert(\`0x\${hexNormalized.slice(0, 8).toLowerCase()}\`)
+		:
+			null,
+	)
+
+	const topic = $derived(
+		hexNormalized.length >= 64 ?
+			ZeroExHex.assert(\`0x\${hexNormalized.slice(0, 64).toLowerCase()}\`)
+		:
+			null,
+	)
+
+	const normalizedSelector = $derived(
+		selector ? normalizeEvmSelectorHex(selector) : null,
+	)
+
+	const normalizedTopic = $derived(
+		topic ? normalizeEvmTopicHex(topic) : null,
+	)
+
+
+	const selectorEntity = $derived(select(
+		EntityType.EvmSelector,
+		(selector ?
+			{ hex: normalizedSelector ?? selector }
+		:
+			{ hex: IDLE_SELECTOR_HEX }
+		),
+		{ sources: [
+				Source.Openchain_Rest,
+			], fields: { signatures: true } }
+	))
+
+	const topicEntity = $derived(select(
+		EntityType.EvmTopic,
+		(topic ?
+			{ hex: normalizedTopic ?? topic }
+		:
+			{ hex: IDLE_TOPIC_HEX }
+		),
+		{ sources: [
+				Source.Openchain_Rest,
+			], fields: { signatures: true } }
+	))
+
+
+	const functionSignatures = $derived(
+		selector ?
+			(selectorEntity.current?.signatures ?? EMPTY_SIGNATURES)
+		:
+			EMPTY_SIGNATURES,
+	)
+
+	const eventSignatures = $derived(
+		topic ?
+			(topicEntity.current?.signatures ?? EMPTY_SIGNATURES)
+		:
+			EMPTY_SIGNATURES,
+	)
+
+	const signatureForDecode = $derived(
+		functionSignatures.length > 0
+			? functionSignatures[
+					Math.min(selectedSigIndex, functionSignatures.length - 1)
+				]
+			:
+				null,
+	)
+
+	const decodedCall = $derived(
+		hexWithPrefix && selector && signatureForDecode
+			? decodeCalldataWithSignature(
+					signatureForDecode,
+					ZeroExHex.assert(hexWithPrefix),
+				)
+			:
+				null,
+	)
+
+	const eventSignatureForDecode = $derived(
+		eventSignatures.length > 0
+			? eventSignatures[
+					Math.min(selectedEventSigIndex, eventSignatures.length - 1)
+				]
+			:
+				null,
+	)
+
+	const decodedEvent = $derived(
+		hexWithPrefix
+			&& hexNormalized.length >= 64
+			&& eventSignatureForDecode
+			? decodeEventDataWithSignature(
+					eventSignatureForDecode,
+					ZeroExHex.assert(hexWithPrefix),
+				)
+			:
+				null,
+	)
+
+
+	// Components
+	import Collapsible from '$/components/Collapsible.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import Heading from '$/components/Heading.svelte'
+	import Icon from '$/components/Icon.svelte'
+	import Page from '$/components/Page.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Select from '$/components/Select.svelte'
+	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import EvmAccountView from '$/views/EvmAccountView.svelte'
+</script>
+
+
+<svelte:head>
+	<title>Calldata decoder</title>
+</svelte:head>
+
+
+<Page>
+	<section
+		class="calldata-decoder"
+		data-column
+	>
+		<header data-column="gap-1">
+			<Heading>Calldata decoder</Heading>
+			<p>
+				Paste transaction input or event data (hex) to resolve the function selector (4 bytes) and/or event topic (32 bytes) to human-readable signature(s). Use <code>?data=0x…</code> in the URL to open with hex pre-filled (shareable link).
+			</p>
+		</header>
+
+		<form
+			class="calldata-decoder-form"
+			data-card
+			data-column
+		>
+			<Select
+				items={[...calldataExamples]}
+				bind:value={
+					() => selectedExample,
+					(_value) => {
+						selectedExample = _value
+					}
+				}
+				allowDeselect={true}
+				getItemId={(example) => example.id}
+				getItemLabel={(example) => example.label}
+				placeholder="Load example…"
+				ariaLabel="Load example calldata"
+			/>
+
+			<label
+				class="calldata-decoder-field"
+				data-column
+			>
+				<span>Calldata (hex)</span>
+				<textarea
+					bind:value={inputRaw}
+					placeholder="0xa9059cbb000000000000000000000000..."
+					rows={4}
+					spellcheck={false}
+					autocapitalize="off"
+					autocomplete="off"
+				></textarea>
+			</label>
+		</form>
+
+		{#if hexWithPrefix}
+			<Collapsible>
+				{#snippet Summary({ open: _open })}
+					<Heading>Result</Heading>
+				{/snippet}
+
+				{#snippet children({ open })}
+					<ul
+						data-column="gap-4"
+						class="calldata-result"
+					>
+						{#if selector && normalizedSelector}
+							<li>
+									<EntityView
+										entityType={EntityType.EvmSelector}
+										entitySelector={{ hex: normalizedSelector }}
+										href={resolve('/(explore)/(evm)/evm/(selectors)/selector/[hex]', {
+											hex: normalizedSelector,
+										})}
+									>
+									{#snippet Icon()}
+										<Icon
+											icon="🔖"
+											label="EVM selector"
+											size="1.75rem"
+										/>
+									{/snippet}
+
+									{#snippet Title()}
+										<ResourceBoundary
+											resource={selectorEntity}
+											placeholderText="Loading function signature…"
+										>
+												{#snippet children(row)}
+													<Heading>
+														<a href={resolve('/(explore)/(evm)/evm/(selectors)/selector/[hex]', {
+															hex: normalizedSelector,
+														})}>
+															{signatureForDecode ?? row.signatures?.[0] ?? normalizedSelector}
+														</a>
+													</Heading>
+											{/snippet}
+										</ResourceBoundary>
+									{/snippet}
+
+									{#snippet Value()}
+										<span data-text="muted">Selector: {selector}</span>
+									{/snippet}
+
+									{#snippet Content()}
+										{#if functionSignatures.length > 0}
+											<dl data-definition-list="vertical">
+												<div>
+													<dt>Signature</dt>
+													<dd>
+														{#if functionSignatures.length > 1}
+															<select
+																bind:value={selectedSigIndex}
+																aria-label="Choose function signature for decoding"
+																class="calldata-result-select"
+															>
+																{#each functionSignatures as signature, index}
+																	<option value={index}>{signature}</option>
+																{/each}
+															</select>
+														{:else}
+															<code>{functionSignatures[0]}</code>
+														{/if}
+													</dd>
+												</div>
+
+												{#if decodedCall}
+													<div>
+														<dt>Arguments</dt>
+														<dd>
+															<ol
+																class="calldata-result-args"
+															>
+																{#each decodedCall.params as param, index}
+																	<div class="calldata-result-arg">
+																		<li>
+																			<span>{index}</span>
+																			{#if param.type === 'address' && typeof param.value === 'string'}
+																				<EvmAccountView
+																					selection={select(EntityType.EvmAccount, { address: EvmAddress.assert(param.value) })}
+																					layout={EntityLayout.Value}
+																				/>
+																			{:else}
+																				{@const displayValue = formatDecodedParamValue(param.type, param.value)}
+
+																				{#if displayValue.length > TRUNCATE_PARAM_LENGTH}
+																					<TruncatedValue
+																						value={displayValue}
+																						startLength={10}
+																						endLength={8}
+																					/>
+																				{:else}
+																					<span class="calldata-result-arg-value">{displayValue}</span>
+																				{/if}
+																			{/if}
+																		</li>
+																	</div>
+																{/each}
+															</ol>
+														</dd>
+													</div>
+												{/if}
+											</dl>
+										{/if}
+									{/snippet}
+								</EntityView>
+							</li>
+						{/if}
+
+						{#if topic && normalizedTopic}
+							<li>
+									<EntityView
+										entityType={EntityType.EvmTopic}
+										entitySelector={{ hex: normalizedTopic }}
+										href={resolve('/(explore)/(evm)/evm/(topics)/topic/[hex]', {
+											hex: normalizedTopic,
+										})}
+									>
+									{#snippet Icon()}
+										<Icon
+											icon="📋"
+											label="EVM topic"
+											size="1.75rem"
+										/>
+									{/snippet}
+
+									{#snippet Title()}
+										<ResourceBoundary
+											resource={topicEntity}
+											placeholderText="Loading event signature…"
+										>
+												{#snippet children(row)}
+													<Heading>
+														<a href={resolve('/(explore)/(evm)/evm/(topics)/topic/[hex]', {
+															hex: normalizedTopic,
+														})}>
+															{eventSignatureForDecode ?? row.signatures?.[0] ?? normalizedTopic}
+														</a>
+													</Heading>
+											{/snippet}
+										</ResourceBoundary>
+									{/snippet}
+
+									{#snippet Value()}
+										<span data-text="muted">Topic: {topic}</span>
+									{/snippet}
+
+									{#snippet Content()}
+										{#if eventSignatures.length > 0}
+											<dl data-definition-list="vertical">
+												<div>
+													<dt>Signature</dt>
+													<dd>
+														{#if eventSignatures.length > 1}
+															<select
+																bind:value={selectedEventSigIndex}
+																aria-label="Choose event signature for decoding"
+																class="calldata-result-select"
+															>
+																{#each eventSignatures as signature, index}
+																	<option value={index}>{signature}</option>
+																{/each}
+															</select>
+														{:else}
+															<code>{eventSignatures[0]}</code>
+														{/if}
+													</dd>
+												</div>
+
+												{#if decodedEvent}
+													<div>
+														<dt>Arguments</dt>
+														<dd>
+															<ol
+																class="calldata-result-args"
+															>
+																{#each decodedEvent.params as param, index}
+																	<div class="calldata-result-arg">
+																		<li>
+																			<span>{index}</span>
+																			{#if param.type === 'address' && typeof param.value === 'string'}
+																				<EvmAccountView
+																					selection={select(EntityType.EvmAccount, { address: EvmAddress.assert(param.value) })}
+																					layout={EntityLayout.Value}
+																				/>
+																			{:else}
+																				{@const displayValue = formatDecodedParamValue(param.type, param.value)}
+
+																				{#if displayValue.length > TRUNCATE_PARAM_LENGTH}
+																					<TruncatedValue
+																						value={displayValue}
+																						startLength={10}
+																						endLength={8}
+																					/>
+																				{:else}
+																					<span class="calldata-result-arg-value">{displayValue}</span>
+																				{/if}
+																			{/if}
+																		</li>
+																	</div>
+																{/each}
+															</ol>
+														</dd>
+													</div>
+												{/if}
+											</dl>
+										{/if}
+									{/snippet}
+								</EntityView>
+							</li>
+						{/if}
+
+						<li>
+							<dl data-definition-list="vertical">
+								<div>
+									<dt>Bytes</dt>
+									<dd>{hexNormalized ? Math.floor(hexNormalized.length / 2) : 0}</dd>
+								</div>
+							</dl>
+						</li>
+					</ul>
+				{/snippet}
+			</Collapsible>
+		{:else if inputRaw.trim().length > 0}
+			<p>
+				Enter valid hex (optional <code>0x</code>). Odd-length input is trimmed to even length.
+			</p>
+		{/if}
+	</section>
+</Page>
+
+
+<style>
+	.calldata-decoder {
+		gap: 1rem;
+	}
+
+	.calldata-decoder-form {
+		gap: 1rem;
+		padding: 1rem;
+	}
+
+	.calldata-decoder-field {
+		gap: 0.5rem;
+	}
+
+	.calldata-decoder-field textarea {
+		font-family: var(--fontFamily-monospace);
+		min-block-size: 6rem;
+	}
+
+	.calldata-result {
+		list-style: none;
+		padding-inline-start: 0;
+	}
+
+	.calldata-result-select {
+		font-family: var(--fontFamily-monospace);
+		max-width: 100%;
+	}
+
+	.calldata-result-args {
+		margin: 0;
+	}
+
+	.calldata-result-arg dt {
+		font-family: var(--fontFamily-monospace);
+		min-inline-size: 1.5em;
+	}
+
+	.calldata-result-arg-value {
+		font-family: var(--fontFamily-monospace);
+		word-break: break-all;
+	}
+</style>
+`
+
+const generatedResourceBoundaryFixturePageShell = () => `<script lang="ts">
+	// Types/constants
+	import { writeLocalBlockheadSessionName } from '$/collections/localMutations.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
+	import { SpecificationRealm } from '$/constants/SpecificationProposal.ts'
+	import {
+		type TanStackLiveQuerySnapshot,
+		type SvelteKitResource,
+		TanStackLiveQueryResource,
+	} from '$/lib/db/queryResource.svelte.ts'
+	import {
+		appClient,
+		select,
+	} from '$/routes/+layout.svelte'
+
+
+	let cachedBoundaryOpen = $state(
+		true
+	)
+
+	const cachedQuery = {
+		data: 'Cached value',
+		isLoading: false,
+		isError: false,
+		isReady: true,
+		status: 'ready',
+	} satisfies TanStackLiveQuerySnapshot<string>
+	const cachedResource = new TanStackLiveQueryResource(() => cachedQuery)
+
+	const initialLiveQuery = {
+		data: '',
+		isLoading: true,
+		isError: false,
+		isReady: false,
+		status: 'loading',
+	} satisfies TanStackLiveQuerySnapshot<string>
+	let liveQuery = $state<TanStackLiveQuerySnapshot<string>>(initialLiveQuery)
+	const liveQueryListeners = new Set<() => void>()
+	const selectedResource = new TanStackLiveQueryResource(
+		() => liveQuery,
+		(update) => {
+			liveQueryListeners.add(update)
+			return () => {
+				liveQueryListeners.delete(update)
+			}
+		},
+	)
+
+	const initialFailableQuery = {
+		data: '',
+		isLoading: true,
+		isError: false,
+		isReady: false,
+		status: 'loading',
+	} satisfies TanStackLiveQuerySnapshot<string>
+	let failableQuery = $state<TanStackLiveQuerySnapshot<string>>(initialFailableQuery)
+	const failableQueryListeners = new Set<() => void>()
+	const failableResource = new TanStackLiveQueryResource(
+		() => failableQuery,
+		(update) => {
+			failableQueryListeners.add(update)
+			return () => {
+				failableQueryListeners.delete(update)
+			}
+		},
+	)
+
+	let remoteValue = $state('')
+	let remoteReady = $state(false)
+	let queryTaggedValue = $state('')
+	let queryTaggedReady = $state(false)
+	let showFailedResource = $state(false)
+	let showRealSelectedScalarResource = $state(false)
+	let showRealSelectedResource = $state(false)
+	let showRealSelectedCountResource = $state(false)
+	let resolveRemotePromise: (value: string) => void = () => {}
+	let resolveQueryTaggedPromise: (value: string) => void = () => {}
+	const remotePromise = new Promise<string>((resolve) => {
+		resolveRemotePromise = resolve
+	})
+	const remoteResource = {
+		then: remotePromise.then.bind(remotePromise),
+		catch: remotePromise.catch.bind(remotePromise),
+		finally: remotePromise.finally.bind(remotePromise),
+		get current() {
+			return remoteReady ? remoteValue : undefined
+		},
+		get error() {
+			return undefined
+		},
+		get ready() {
+			return remoteReady
+		},
+		get loading() {
+			return !remoteReady
+		},
+		[Symbol.toStringTag]: 'RemoteResource',
+	}
+	const queryTaggedPromise = new Promise<string>((resolve) => {
+		resolveQueryTaggedPromise = resolve
+	})
+	const queryTaggedResource = {
+		then: queryTaggedPromise.then.bind(queryTaggedPromise),
+		catch: queryTaggedPromise.catch.bind(queryTaggedPromise),
+		finally: queryTaggedPromise.finally.bind(queryTaggedPromise),
+		get current() {
+			return queryTaggedReady ? queryTaggedValue : undefined
+		},
+		get error() {
+			return undefined
+		},
+		get ready() {
+			return queryTaggedReady
+		},
+		get loading() {
+			return !queryTaggedReady
+		},
+		[Symbol.toStringTag]: 'Query',
+	}
+	const failedPromise = Promise.reject<string>(new Error('Boundary failure'))
+	const failedResource = {
+		then: failedPromise.then.bind(failedPromise),
+		catch: failedPromise.catch.bind(failedPromise),
+		finally: failedPromise.finally.bind(failedPromise),
+		get current() {
+			return undefined
+		},
+		get error() {
+			return 'Boundary failure'
+		},
+		get ready() {
+			return false
+		},
+		get loading() {
+			return false
+		},
+		[Symbol.toStringTag]: 'Query',
+	} satisfies SvelteKitResource<string>
+	const realSelectedScalarResource = select(
+		EntityType.BlockheadSession,
+		{
+			id: 'e2e-probe-session',
+		},
+		{
+			sources: [
+				Source.Local_Internal,
+			],
+			fields: {
+				name: true,
+				status: true,
+			},
+		},
+	)
+	const realSelectedBoundaryOnlyResource = select(
+		EntityType.BlockheadSession,
+		{
+			id: 'e2e-probe-session',
+		},
+		{
+			sources: [
+				Source.Local_Internal,
+			],
+			fields: {
+				name: true,
+				status: true,
+			},
+		},
+	)
+	const realSelectedDirectOnlyResource = select(
+		EntityType.BlockheadSession,
+		{
+			id: 'e2e-probe-direct-session',
+		},
+		{
+			sources: [
+				Source.Local_Internal,
+			],
+			fields: {
+				name: true,
+				status: true,
+			},
+		},
+	)
+	let realSelectedScalar = $derived(
+		realSelectedScalarResource.current
+	)
+	let realSelectedDirectOnly = $derived(
+		realSelectedDirectOnlyResource.current
+	)
+	const applySelectedValue = (
+		value: string,
+	) => {
+		liveQuery.data = value
+		liveQuery.isLoading = false
+		liveQuery.isError = false
+		liveQuery.isReady = true
+		liveQuery.error = undefined
+		liveQuery.status = 'ready'
+		for (const listener of liveQueryListeners)
+			listener()
+	}
+
+	const applySelectedLoading = () => {
+		liveQuery.isLoading = true
+		liveQuery.isError = false
+		liveQuery.isReady = false
+		liveQuery.error = undefined
+		liveQuery.status = 'loading'
+		for (const listener of liveQueryListeners)
+			listener()
+	}
+
+	const applyFailableValue = (
+		value: string,
+	) => {
+		failableQuery.data = value
+		failableQuery.isLoading = false
+		failableQuery.isError = false
+		failableQuery.isReady = true
+		failableQuery.error = undefined
+		failableQuery.status = 'ready'
+		for (const listener of failableQueryListeners)
+			listener()
+	}
+
+	const applyFailableError = () => {
+		failableQuery.data = ''
+		failableQuery.isLoading = false
+		failableQuery.isError = true
+		failableQuery.isReady = false
+		failableQuery.error = 'Failable boundary failure'
+		failableQuery.status = 'error'
+		for (const listener of failableQueryListeners)
+			listener()
+	}
+
+	const applyRemoteValue = (
+		value: string,
+	) => {
+		remoteValue = value
+		remoteReady = true
+		resolveRemotePromise(value)
+	}
+
+	const applyQueryTaggedValue = (
+		value: string,
+	) => {
+		queryTaggedValue = value
+		queryTaggedReady = true
+		resolveQueryTaggedPromise(value)
+	}
+
+	const applyRealSelectedLabelValue = (
+		value: string,
+	) => {
+		writeLocalBlockheadSessionName(appClient, {
+			id: 'e2e-probe-session',
+		}, value)
+	}
+
+	const applyRealSelectedBoundaryOnlyLabelValue = (
+		value: string,
+	) => {
+		writeLocalBlockheadSessionName(appClient, {
+			id: 'e2e-probe-session',
+		}, value)
+	}
+
+	const applyRealSelectedDirectOnlyLabelValue = (
+		value: string,
+	) => {
+		writeLocalBlockheadSessionName(appClient, {
+			id: 'e2e-probe-direct-session',
+		}, value)
+	}
+
+	// Components
+	import Collapsible from '$/components/Collapsible.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+</script>
+
+
+<h1>Resource boundary test route</h1>
+
+<Collapsible
+	bind:open={cachedBoundaryOpen}
+>
+	{#snippet Summary()}
+		<span>Cached boundary</span>
+	{/snippet}
+
+	<ResourceBoundary
+		resource={cachedResource}
+		placeholderText="Loading cached value"
+	>
+		{#snippet children(value)}
+			<p data-testid="cached-boundary-value">{value}</p>
+		{/snippet}
+	</ResourceBoundary>
+</Collapsible>
+
+<section data-testid="selected-boundary-section">
+	<h2>Selected boundary</h2>
+
+	<button
+		data-testid="resolve-selected-boundary"
+		onclick={() => applySelectedValue('Selected value')}
+	>
+		Resolve selected boundary
+	</button>
+
+	<button
+		data-testid="refresh-selected-boundary"
+		onclick={applySelectedLoading}
+	>
+		Refresh selected boundary
+	</button>
+
+	<button
+		data-testid="update-selected-boundary"
+		onclick={() => applySelectedValue('Updated selected value')}
+	>
+		Update selected boundary
+	</button>
+
+	<p data-testid="selected-direct-current">{selectedResource.current ?? ''}</p>
+
+	<ResourceBoundary
+		resource={selectedResource}
+		placeholderText="Loading selected value"
+	>
+		{#snippet children(value)}
+			<p data-testid="selected-boundary-value">{value}</p>
+		{/snippet}
+	</ResourceBoundary>
+
+	<ResourceBoundary
+		resource={selectedResource}
+		placeholderText="Loading selected duplicate value"
+	>
+		{#snippet children(value)}
+			<p data-testid="selected-boundary-value-secondary">{value}</p>
+		{/snippet}
+	</ResourceBoundary>
+
+	<svelte:boundary>
+		<p data-testid="selected-awaited-value">{await selectedResource}</p>
+
+		{#snippet pending()}
+			<p data-testid="selected-awaited-value">pending</p>
+		{/snippet}
+	</svelte:boundary>
+</section>
+
+<section data-testid="failable-boundary-section">
+	<h2>Failable TanStack resource boundary</h2>
+
+	<button onclick={() => applyFailableValue('Failable value')}>
+		Resolve failable boundary
+	</button>
+
+	<button
+		data-testid="fail-failable-boundary"
+		onclick={applyFailableError}
+	>
+		Fail failable boundary
+	</button>
+
+	<button
+		data-testid="recover-failable-boundary"
+		onclick={() => applyFailableValue('Recovered failable value')}
+	>
+		Recover failable boundary
+	</button>
+
+	<ResourceBoundary
+		resource={failableResource}
+		placeholderText="Loading failable value"
+	>
+		{#snippet children(value)}
+			<p data-testid="failable-boundary-value">{value}</p>
+		{/snippet}
+
+		{#snippet Failed(error, retry)}
+			<p data-testid="failable-boundary-error">{String(error)}</p>
+
+			<button
+				data-testid="failable-boundary-retry"
+				onclick={retry}
+			>
+				Retry failable boundary
+			</button>
+		{/snippet}
+	</ResourceBoundary>
+</section>
+
+<section data-testid="real-selection-boundary-section">
+	<h2>Real selection boundary</h2>
+
+	<button
+		data-testid="show-real-selection-scalar-boundary"
+		onclick={() => showRealSelectedScalarResource = true}
+	>
+		Show real selection scalar boundary
+	</button>
+
+	<button
+		data-testid="show-real-selection-rows-boundary"
+		onclick={() => showRealSelectedResource = true}
+	>
+		Show real selection rows boundary
+	</button>
+
+	<button
+		data-testid="show-real-selection-count-boundary"
+		onclick={() => showRealSelectedCountResource = true}
+	>
+		Show real selection count boundary
+	</button>
+
+	<button onclick={() => applyRealSelectedLabelValue('Boundary Session')}>
+		Seed real selection scalar field
+	</button>
+
+	<button
+		data-testid="update-real-selection-scalar-field"
+		onclick={() => applyRealSelectedLabelValue('Updated Boundary Session')}
+	>
+		Update real selection scalar field
+	</button>
+
+	<button onclick={() => applyRealSelectedBoundaryOnlyLabelValue('Boundary Only Session')}>
+		Seed boundary-only live subscription field
+	</button>
+
+	<button
+		data-testid="update-boundary-only-live-subscription-field"
+		onclick={() => applyRealSelectedBoundaryOnlyLabelValue('Updated Boundary Only Session')}
+	>
+		Update boundary-only live subscription field
+	</button>
+
+	<button
+		data-testid="update-direct-only-live-subscription-field"
+		onclick={() => applyRealSelectedDirectOnlyLabelValue('Updated Direct Only Session')}
+	>
+		Update direct-only live subscription field
+	</button>
+
+	{#if showRealSelectedScalarResource}
+		<p data-testid="real-resource-direct-scalars">
+			{realSelectedScalar?.name ?? ''}:{realSelectedScalar?.status ?? ''}
+		</p>
+
+		<svelte:boundary>
+			{@const value = await realSelectedScalarResource}
+
+			<p data-testid="real-resource-awaited-scalars">{value.name}:{value.status}</p>
+
+			{#snippet pending()}
+				<p data-testid="real-resource-awaited-scalars">pending</p>
+			{/snippet}
+		</svelte:boundary>
+
+		<ResourceBoundary
+			resource={realSelectedScalarResource}
+			placeholderText="Loading real selection scalar value"
+		>
+			{#snippet children(value)}
+				<p data-testid="real-resource-boundary-scalars">{value.name}:{value.status}</p>
+			{/snippet}
+		</ResourceBoundary>
+	{/if}
+
+	<ResourceBoundary
+		resource={realSelectedBoundaryOnlyResource}
+		placeholderText="Loading real selection boundary-only resource"
+	>
+		{#snippet children(value)}
+			<p data-testid="real-resource-boundary-only-scalars">{value.name}:{value.status}</p>
+		{/snippet}
+	</ResourceBoundary>
+
+	<p data-testid="real-resource-direct-only-current">
+		{realSelectedDirectOnly?.name ?? ''}:{realSelectedDirectOnly?.status ?? ''}
+	</p>
+
+	<p data-testid="real-resource-direct-only-loading">
+		{String(realSelectedDirectOnlyResource.loading)}
+	</p>
+
+	<p data-testid="real-resource-direct-only-ready">
+		{String(realSelectedDirectOnlyResource.ready)}
+	</p>
+
+	<p data-testid="real-resource-direct-only-error">
+		{realSelectedDirectOnlyResource.error == null ? '' : String(realSelectedDirectOnlyResource.error)}
+	</p>
+
+	{#if showRealSelectedResource}
+		<ResourceBoundary
+			resource={select(
+				EntityType.SpecificationRealm,
+				{
+					realm: SpecificationRealm.Ethereum,
+				},
+				{
+					sources: [
+						Source.Constants_Internal,
+					],
+					fields: {
+						$$proposalKinds: true,
+					},
+				}
+			)}
+			placeholderText="Loading real selection value"
+		>
+			{#snippet children(value)}
+				<p data-testid="real-resource-boundary-rows">{value.$$proposalKinds?.values.length ?? 0}</p>
+			{/snippet}
+		</ResourceBoundary>
+	{/if}
+
+	{#if showRealSelectedCountResource}
+		<ResourceBoundary
+			resource={select(
+				EntityType.SpecificationRealm,
+				{
+					realm: SpecificationRealm.Ethereum,
+				},
+				{
+					sources: [
+						Source.Constants_Internal,
+					],
+					fields: {
+						$$proposalKinds: {
+							count: true,
+						},
+					},
+				}
+			)}
+			placeholderText="Loading real selection count"
+		>
+			{#snippet children(value)}
+				<p data-testid="real-resource-boundary-count">
+					{value.$$proposalKinds?.values.length ?? 0}:{value.$$proposalKinds?.totalCount ?? ''}
+				</p>
+			{/snippet}
+		</ResourceBoundary>
+	{/if}
+</section>
+
+<section data-testid="query-resource-boundary-section">
+	<h2>SvelteKit query resource boundary</h2>
+
+	<button
+		data-testid="resolve-query-resource-boundary"
+		onclick={() => applyQueryTaggedValue('Query tagged value')}
+	>
+		Resolve query resource boundary
+	</button>
+
+	<button onclick={() => applyQueryTaggedValue('Updated query tagged value')}>
+		Update query resource boundary
+	</button>
+
+	<ResourceBoundary
+		resource={queryTaggedResource}
+		placeholderText="Loading query resource value"
+	>
+		{#snippet children(value)}
+			<p data-testid="query-tagged-boundary-value">{value}</p>
+		{/snippet}
+	</ResourceBoundary>
+</section>
+
+<section data-testid="failed-resource-boundary-section">
+	<h2>Failed resource boundary</h2>
+
+	<button
+		data-testid="show-failed-resource"
+		onclick={() => showFailedResource = true}
+	>
+		Show failed resource
+	</button>
+
+	{#if showFailedResource}
+		<ResourceBoundary
+			resource={failedResource}
+			placeholderText="Loading failed value"
+		>
+			{#snippet children(value)}
+				<p>{value}</p>
+			{/snippet}
+
+			{#snippet Failed(error)}
+				<p data-testid="failed-resource-message">{error instanceof Error ? error.message : String(error)}</p>
+			{/snippet}
+		</ResourceBoundary>
+	{/if}
+</section>
+
+<section data-testid="remote-resource-boundary-section">
+	<h2>Remote resource boundary</h2>
+
+	<button
+		data-testid="resolve-remote-boundary"
+		onclick={() => applyRemoteValue('Remote selected value')}
+	>
+		Resolve remote boundary
+	</button>
+
+	<button onclick={() => applyRemoteValue('Updated remote value')}>
+		Update remote boundary
+	</button>
+
+	<ResourceBoundary
+		resource={remoteResource}
+		placeholderText="Loading remote value"
+	>
+		{#snippet children(value)}
+			<p data-testid="remote-boundary-value">{value}</p>
+		{/snippet}
+	</ResourceBoundary>
+</section>
+`
+
 const generatedRoutePageShell = (
 	shell: ExpectedApp['routes']['pageShells'][number]
 ) => {
 	const viewFile = shell.viewFile ?? `${shell.viewComponent}.svelte`
+
+	if (shell.kind === 'erc20-allowance-detail')
+		return `<script lang="ts">
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { toEvmActorCoinAllowanceEntitySelector } from '$/schema/EvmActorCoinAllowance.ts'
+\timport { select } from '$/routes/+layout.svelte'
+\t// Functions
+\timport { with0xHex } from '$/lib/hexLowerOfByteSize.ts'
+
+
+\t// State
+\tlet {
+\t\tparams,
+\t} = $props()
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport EvmActorCoinAllowanceView from '$/views/EvmActorCoinAllowanceView.svelte'
+</script>
+
+
+<Page>
+\t<EvmActorCoinAllowanceView
+\t\tselection={select(EntityType.EvmActorCoinAllowance, toEvmActorCoinAllowanceEntitySelector(
+\t\t\tNumber(params.chainId),
+\t\t\twith0xHex(params.owner),
+\t\t\twith0xHex(params.coin),
+\t\t\twith0xHex(params.spender),
+\t\t))}
+\t/>
+</Page>
+`
+
+	if (shell.kind === 'erc20-allowances-overview')
+		return `<script lang="ts">
+\t// Types/constants
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport HeadingComponent from '$/components/Heading.svelte'
+</script>
+
+
+<Page>
+\t<HeadingComponent>
+\t\tERC-20 Allowances
+\t</HeadingComponent>
+
+\t<p data-text="muted">
+\t\tERC-20 token allowances give a spender permission to transfer tokens on the owner's behalf.
+\t\tBlock explorers do not index every historical <code>Approval</code> event, so allowances cannot be
+\t\tlisted globally. Check individual token-spender pairs on a network account page.
+\t</p>
+
+\t<p>
+\t\tPer-network accounts make it possible to check the current allowance for known
+\t\ttoken and spender combinations via on-chain execution RPC.
+\t</p>
+</Page>
+`
+
+	if (shell.kind === 'query-resource-adapter-getters')
+		return generatedQueryResourceAdapterPageShell('getters')
+
+	if (shell.kind === 'query-resource-adapter-promise')
+		return generatedQueryResourceAdapterPageShell('promise')
+
+	if (shell.kind === 'collection-cache-debug')
+		return generatedCollectionCacheDebugPageShell()
+
+	if (shell.kind === 'resource-boundary-fixture')
+		return generatedResourceBoundaryFixturePageShell()
+
+	if (shell.kind === 'evm-calldata-decoder-tool')
+		return generatedEvmCalldataDecoderToolPageShell()
+
+	if (shell.kind === 'atproto-actor-detail')
+		return `<script lang="ts">
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { select } from '$/routes/+layout.svelte'
+\t// State
+\tlet {
+\t\tparams,
+\t} = $props()
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport AtprotoActorView from '$/views/AtprotoActorView.svelte'
+</script>
+
+
+<Page>
+\t\t<AtprotoActorView
+\t\t\tselection={select(EntityType.AtprotoActor, decodeURIComponent(params.did).startsWith('did:') ?
+\t\t\t\t\t{ did: decodeURIComponent(params.did) }
+\t\t\t\t:
+\t\t\t\t\t{ handle: decodeURIComponent(params.did) })}
+\t\t/>
+\t</Page>
+`
+
+	if (shell.kind === 'atproto-actor-posts')
+		return `\t<script lang="ts">
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { select } from '$/routes/+layout.svelte'
+\t\t// State
+\t\tlet {
+\t\t\tparams,
+\t\t} = $props()
+
+\t\tconst selector = $derived(
+\t\t\tdecodeURIComponent(params.did).startsWith('did:') ?
+\t\t\t\t{ did: decodeURIComponent(params.did) }
+\t\t\t:
+\t\t\t\t{ handle: decodeURIComponent(params.did) },
+\t\t)
+
+
+\t\t// Components
+\t\timport Page from '$/components/Page.svelte'
+\t\timport AtprotoActorView from '$/views/AtprotoActorView.svelte'
+\t</script>
+
+
+<Page>
+\t\t<AtprotoActorView
+\t\t\tselection={select(EntityType.AtprotoActor, selector)}
+\t\t/>
+\t</Page>
+`
+
+	if (shell.kind === 'x-user-detail')
+		return `<script lang="ts">
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { select } from '$/routes/+layout.svelte'
+\t// State
+\tlet {
+\t\tparams,
+\t} = $props()
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport XUserView from '$/views/XUserView.svelte'
+</script>
+
+
+<Page>
+\t<XUserView
+\t\tselection={select(EntityType.XUser, /^\\d+$/.test(decodeURIComponent(params.userId)) ?
+\t\t\t\t{
+\t\t\t\t\tid: decodeURIComponent(params.userId),
+\t\t\t\t}
+\t\t\t:
+\t\t\t\t{
+\t\t\t\t\tusername: decodeURIComponent(params.userId).replace(/^@/, ''),
+\t\t\t\t})}
+\t>
+\t</XUserView>
+</Page>
+`
+
+	if (shell.kind === 'activitypub-notes')
+		return `<script lang="ts">
+\timport { select } from '$/routes/+layout.svelte'
+\t// Types/constants
+\timport { EntityType } from '$/schema/EntityType.ts'
+
+
+\t// Context
+\timport { resolve } from '$app/paths'
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport ActivityPubNotesView from '$/views/ActivityPubNotesView.svelte'
+</script>
+
+
+<Page>
+\t<ActivityPubNotesView
+\t\thref={resolve('/(social)/(activitypub)/activitypub/notes')}
+\t\tselection={select(
+\t\t\tEntityType.ActivityPubNetwork,
+\t\t\t{ scope: 'ActivityPubNetwork' }
+\t\t).$$activityPubNotes}
+\t\tid="activitypub-notes"
+\t\torderByCreatedAt="desc"
+\t\tplaceholderText="Loading Mastodon public timeline…"
+\t\ttitle="Notes"
+\t/>
+</Page>
+`
+
+	if (shell.kind === 'activitypub-note-thread')
+		return `<script lang="ts">
+\timport { select } from '$/routes/+layout.svelte'
+\t// Context
+\timport { resolve } from '$app/paths'
+
+
+\t// State
+\tlet {
+\t\tparams,
+\t} = $props()
+
+
+\t// Components
+\timport ActivityPubNotesView from '$/views/ActivityPubNotesView.svelte'
+\timport Page from '$/components/Page.svelte'
+\timport { EntityType } from '$/schema/EntityType.ts'
+</script>
+
+
+<Page>
+\t<ActivityPubNotesView
+\t\thref={resolve('/activitypub/notes')}
+\t\tselection={select(
+\t\t\tEntityType.ActivityPubNote,
+\t\t\t{
+\t\t\t\tinstanceOrigin: decodeURIComponent(params.instanceOrigin),
+\t\t\t\tlocalStatusId: decodeURIComponent(params.localStatusId),
+\t\t\t}
+\t\t).$$thread}
+\t\tid="activitypub-note-thread"
+\t\torderByCreatedAt="asc"
+\t\tplaceholderText="Loading thread…"
+\t\ttitle="Thread"
+\t/>
+</Page>
+`
+
+	if (shell.kind === 'rss-feeds')
+		return `<script lang="ts">
+\t// Types/constants
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { Source } from '$/sources/Source.ts'
+
+
+\t// Context
+\timport { resolve } from '$app/paths'
+\timport { select } from '$/routes/+layout.svelte'
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport RssFeedsView from '$/views/RssFeedsView.svelte'
+</script>
+
+
+<Page>
+\t<RssFeedsView
+\t\thref={resolve('/rss/feeds')}
+\t\tselection={select(
+\t\t\tEntityType.RssNetwork,
+\t\t\t{ scope: 'RssNetwork' },
+\t\t\t{
+\t\t\t\tsources: [Source.Constants_Internal],
+\t\t\t}
+\t\t).$$rssFeeds({
+\t\t\tsources: [Source.Constants_Internal],
+\t\t})}
+\t\tid="rss-feeds"
+\t/>
+</Page>
+`
+
+	if (shell.kind === 'rss-feed-items')
+		return `<script lang="ts">
+\timport { select } from '$/routes/+layout.svelte'
+\t// Types/constants
+\timport { EntityType } from '$/schema/EntityType.ts'
+
+
+\t// Context
+\timport { resolve } from '$app/paths'
+\timport { page } from '$app/state'
+
+
+\t// (Derived)
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport RssItemsView from '$/views/RssItemsView.svelte'
+</script>
+
+
+<Page>
+\t<RssItemsView
+\t\thref={resolve('/rss/items')}
+\t\tselection={select(
+\t\t\tEntityType.RssFeed,
+\t\t\t{
+\t\t\t\tfeedUrl: decodeURIComponent(page.params.feedKey ?? ''),
+\t\t\t}
+\t\t).$$items}
+\t\tid="rss-feed-items"
+\t/>
+</Page>
+`
+
+	if (shell.kind === 'youtube-video-comments')
+		return `<script lang="ts">
+\timport { select } from '$/routes/+layout.svelte'
+\t// Types/constants
+\timport { EntityType } from '$/schema/EntityType.ts'
+
+
+\t// Context
+\timport { resolve } from '$app/paths'
+
+
+\t// State
+\tlet {
+\t\tparams,
+\t} = $props()
+
+\tconst selector = $derived(
+\t\t{ videoId: decodeURIComponent(params.videoId) },
+\t)
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport YouTubeCommentsView from '$/views/YouTubeCommentsView.svelte'
+</script>
+
+
+<Page>
+\t<YouTubeCommentsView
+\t\thref={resolve(
+\t\t\t'/(social)/(youtube)/youtube/video/[videoId]/(video)/comments',
+\t\t\t{ videoId: encodeURIComponent(selector.videoId) },
+\t\t)}
+\t\tselection={select(
+\t\t\tEntityType.YouTubeVideo,
+\t\t\tselector
+\t\t).$$comments}
+\t\tid="youtube-video-comments"
+\t/>
+</Page>
+`
+
+	if (shell.kind === 'xmtp-account-detail')
+		return `<script lang="ts">
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { select } from '$/routes/+layout.svelte'
+\t// Types/constants
+\timport { type as arktype } from 'arktype'
+\timport { EvmAddress } from '$/schema/ZeroExHex.ts'
+
+
+\t// State
+\tlet {
+\t\tparams,
+\t} = $props()
+\tconst selector = $derived(
+\t\t((address) => (
+\t\t\taddress instanceof arktype.errors ?
+\t\t\t\tundefined
+\t\t\t:
+\t\t\t\t{ address }
+\t\t))(EvmAddress(params.accountId)),
+\t)
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport EvmAccountView from '$/views/EvmAccountView.svelte'
+</script>
+
+
+<Page>
+\t{#if selector}
+\t\t<EvmAccountView
+\t\t\tselection={select(EntityType.EvmAccount, selector)}
+\t\t/>
+\t{/if}
+</Page>
+`
+
+	if (shell.kind === 'atproto-post-thread')
+		return `<script lang="ts">
+\timport { select } from '$/routes/+layout.svelte'
+\t// State
+\tlet {
+\t\tparams,
+\t} = $props()
+
+
+\t// Components
+\timport AtprotoPostThreadView from '$/views/AtprotoPostThreadView.svelte'
+\timport Page from '$/components/Page.svelte'
+\timport { EntityType } from '$/schema/EntityType.ts'
+</script>
+
+
+<Page>
+\t<AtprotoPostThreadView
+\t\tselection={select(
+\t\t\tEntityType.AtprotoPost,
+\t\t\t{
+\t\t\t\turi: decodeURIComponent(params.uri),
+\t\t\t}
+\t\t).$$thread}
+\t\tid="atproto-post-thread"
+\t\ttitle="Thread"
+\t/>
+</Page>
+`
+
+	if (shell.kind === 'farcaster-cast-by-fname-hash')
+		return `<script lang="ts">
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { select } from '$/routes/+layout.svelte'
+\t// Types/constants
+\timport { type as arktype } from 'arktype'
+\timport { ZeroExHex } from '$/schema/ZeroExHex.ts'
+
+
+\t// State
+\tlet {
+\t\tparams,
+\t} = $props()
+\tconst selector = $derived(
+\t\t((hashPrefix) => (
+\t\t\thashPrefix instanceof arktype.errors ?
+\t\t\t\tundefined
+\t\t\t:
+\t\t\t\t{
+\t\t\t\t\tusername: params.fname,
+\t\t\t\t\thashPrefix,
+\t\t\t\t}
+\t\t))(ZeroExHex(params.hash)),
+\t)
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport FarcasterCastView from '$/views/FarcasterCastView.svelte'
+</script>
+
+
+<Page>
+\t{#if selector}
+\t\t<FarcasterCastView
+\t\t\tvariant="feed"
+\t\t\tselection={select(EntityType.FarcasterCast, selector)}
+\t\t/>
+\t{/if}
+</Page>
+`
+
+	if (shell.kind === 'farcaster-cast-by-fid-hash')
+		return `<script lang="ts">
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { select } from '$/routes/+layout.svelte'
+\t// Types/constants
+\timport { type as arktype } from 'arktype'
+\timport { ZeroExHex } from '$/schema/ZeroExHex.ts'
+
+
+\t// State
+\tlet {
+\t\tparams,
+\t} = $props()
+\tconst selector = $derived(
+\t\t((hash) => (
+\t\t\thash instanceof arktype.errors ?
+\t\t\t\tundefined
+\t\t\t:
+\t\t\t\t{
+\t\t\t\t\tfid: Number(params.fid),
+\t\t\t\t\thash,
+\t\t\t\t}
+\t\t))(ZeroExHex(params.hash)),
+\t)
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport FarcasterCastView from '$/views/FarcasterCastView.svelte'
+</script>
+
+
+<Page>
+\t{#if selector}
+\t\t<FarcasterCastView
+\t\t\tvariant="feed"
+\t\t\tselection={select(EntityType.FarcasterCast, selector)}
+\t\t/>
+\t{/if}
+</Page>
+`
+
+	if (shell.kind === 'farcaster-trending-feed')
+		return `<script lang="ts">
+\timport { select } from '$/routes/+layout.svelte'
+\t// Types/constants
+\timport type { EntitySelector } from '$/schema/$schema.ts'
+\timport { schema } from '$/schema/index.ts'
+\timport { EntityType } from '$/schema/EntityType.ts'
+
+
+\t// Functions
+\tconst selector: EntitySelector<typeof schema, EntityType.FarcasterFeed> = {
+\t\tvariant: 'trending',
+\t}
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport FarcasterFeedView from '$/views/FarcasterFeedView.svelte'
+</script>
+
+
+<Page>
+\t<FarcasterFeedView
+\t\tselection={select(EntityType.FarcasterFeed, selector)}
+\t\tlimit={50}
+\t/>
+</Page>
+`
+
+	if (shell.kind === 'farcaster-open-cast')
+		return `<script lang="ts">
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { select } from '$/routes/+layout.svelte'
+\t// Types/constants
+\timport { type as arktype } from 'arktype'
+\timport { UrlString } from '$/schema/UrlString.ts'
+
+
+\t// Context
+\timport { page } from '$app/state'
+
+
+\t// State
+\tconst selector = $derived(
+\t\t((clientUrl) => (
+\t\t\tclientUrl instanceof arktype.errors ?
+\t\t\t\tundefined
+\t\t\t:
+\t\t\t\t{
+\t\t\t\t\tclientUrl,
+\t\t\t\t}
+\t\t))(UrlString(page.url.searchParams.get('url') ?? page.url.searchParams.get('u') ?? '')),
+\t)
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport FarcasterCastView from '$/views/FarcasterCastView.svelte'
+</script>
+
+
+<Page>
+\t{#if selector}
+\t\t<FarcasterCastView
+\t\t\tvariant="feed"
+\t\t\tselection={select(EntityType.FarcasterCast, selector)}
+\t\t/>
+\t{/if}
+</Page>
+`
+
+	if (shell.kind === 'nostr-profiles')
+		return `<script lang="ts">
+\timport { select } from '$/routes/+layout.svelte'
+\t// Types/constants
+\timport { EntityType } from '$/schema/EntityType.ts'
+
+
+\t// Context
+\timport { resolve } from '$app/paths'
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport NostrProfilesView from '$/views/NostrProfilesView.svelte'
+</script>
+
+
+<Page>
+\t<NostrProfilesView
+\t\thref={resolve('/nostr/profiles')}
+\t\tselection={select(
+\t\t\tEntityType.NostrNetwork,
+\t\t\t{ scope: 'NostrNetwork' }
+\t\t)}
+\t\tid="nostr-profiles"
+\t/>
+</Page>
+`
+
+	if (shell.kind === 'nostr-reactions')
+		return `<script lang="ts">
+\timport { select } from '$/routes/+layout.svelte'
+\t// Types/constants
+\timport type { PageProps } from './$types.ts'
+\timport { EntityType } from '$/schema/EntityType.ts'
+
+
+\t// Context
+\timport { resolve } from '$app/paths'
+
+
+\tlet { data }: PageProps = $props()
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport NostrReactionsView from '$/views/NostrReactionsView.svelte'
+</script>
+
+
+<Page>
+\t{#if data.noteEntitySelector}
+\t\t<NostrReactionsView
+\t\t\thref={resolve('/nostr/reactions')}
+\t\t\tselection={select(
+\t\t\tEntityType.NostrNote,
+\t\t\tdata.noteEntitySelector
+\t\t).$$reactions}
+\t\t\tid="nostr-reactions"
+\t\t\ttitle="Reactions"
+\t\t/>
+\t{:else}
+\t\t<p data-text="muted">
+\t\t\tOpen reactions for a specific note with
+\t\t\t<code>?note=</code>
+\t\t\tfollowed by the 64-character kind-1 event id, or navigate from a note’s reactions carousel.
+\t\t</p>
+\t{/if}
+</Page>
+`
+
+	if (shell.kind === 'evm-contracts-index')
+		return `<script lang="ts">
+\t// Types/constants
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { Source } from '$/sources/Source.ts'
+
+
+\t// Context
+\timport { select } from '$/routes/+layout.svelte'
+\timport { resolve } from '$app/paths'
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport EvmContractsView from '$/views/EvmContractsView.svelte'
+</script>
+
+
+<Page>
+\t<EvmContractsView
+\t\thref={resolve(
+\t\t\t'/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/contracts',
+\t\t\t{
+\t\t\t\tcaip2: \`eip155:\`,
+\t\t\t}
+\t\t)}
+\t\tselection={select(
+\t\t\tEntityType.EvmNetwork,
+\t\t\t{
+\t\t\t\tcaip2: {
+\t\t\t\t\tnamespace: 'eip155',
+\t\t\t\t\treference: String(1),
+\t\t\t\t},
+\t\t\t}
+\t\t).$$contracts({
+\t\t\tsources: [
+\t\t\t\tSource.Blockscout_Rest,
+\t\t\t],
+\t\t\tlimit: 16,
+\t\t})}
+\t\tid="contracts"
+\t/>
+</Page>
+`
+
+	if (shell.kind === 'services-hub')
+		return `<script lang="ts">
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { select } from '$/routes/+layout.svelte'
+\t// Context
+\timport { resolve } from '$app/paths'
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport GlobalView from '$/views/GlobalView.svelte'
+\timport ServicesView from '$/views/ServicesView.svelte'
+</script>
+
+
+<Page>
+\t<GlobalView
+\t\tselection={select(EntityType._Global, { scope: 'Services' })}
+\t\ttitle={'Services'}
+\t\thref={resolve('/services')}
+\t>
+\t\t{#snippet children({
+\t\t\topen: hubOpen,
+\t\t} = {})}
+\t\t\t<ServicesView
+\t\t\t\t{hubOpen}
+\t\t\t/>
+\t\t{/snippet}
+\t</GlobalView>
+</Page>
+`
+
+	if (shell.kind === 'market-detail')
+		return `<script lang="ts">
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { select } from '$/routes/+layout.svelte'
+\t// Types/constants
+\timport { type as arktype } from 'arktype'
+\timport { parse } from 'devalue'
+
+\timport { parseEntitySelector } from '$/schema/$schema.ts'
+\timport MarketSchema from '$/schema/Market.ts'
+\timport { schema } from '$/schema/index.ts'
+
+
+\t// State
+\tlet {
+\t\tparams,
+\t} = $props()
+
+\tconst route = $derived.by(() => {
+\t\tconst raw = params.marketKey ?? ''
+\t\tif (raw.length === 0)
+\t\t\treturn {
+\t\t\t\tmarketId: null,
+\t\t\t\terror: 'Missing market id' as const,
+\t\t\t}
+
+\t\ttry {
+\t\t\tconst marketId = parseEntitySelector(
+\t\t\t\tschema,
+\t\t\t\tMarketSchema,
+\t\t\t\tparse(decodeURIComponent(raw)),
+\t\t\t)
+\t\t\tif (!(marketId instanceof arktype.errors))
+\t\t\t\treturn { marketId, error: null }
+\t\t} catch {
+\t\t\t// fall through
+\t\t}
+\t\treturn {
+\t\t\tmarketId: null,
+\t\t\terror: 'Invalid or unsupported market id' as const,
+\t\t}
+\t})
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport MarketView from '$/views/MarketView.svelte'
+
+</script>
+
+
+<svelte:head>
+\t<title>
+\t\t{route.marketId != null ? \`Market\` : 'Market · not found'}
+\t</title>
+</svelte:head>
+
+
+<Page>
+\t{#if route.error != null || route.marketId == null}
+\t\t<h1>
+\t\t\tNot found
+\t\t</h1>
+\t\t<p>
+\t\t\t{route.error}
+\t\t</p>
+\t{:else}
+\t\t<MarketView
+\t\t\tselection={select(EntityType.Market, route.marketId)}
+\t\t/>
+\t{/if}
+</Page>
+`
+
+	if (shell.kind === 'coin-prices')
+		return `<script lang="ts">
+\timport { select } from '$/routes/+layout.svelte'
+\t// Types/constants
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { Source } from '$/sources/Source.ts'
+
+
+\t// Context
+\timport { resolve } from '$app/paths'
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport MarketPricesView from '$/views/MarketPricesView.svelte'
+</script>
+
+
+<svelte:head>
+\t<title>Spot quote index · Coins</title>
+</svelte:head>
+
+
+<Page>
+\t<p data-text="muted">
+\t\tPoint-in-time spot and index readings for catalog markets—not venue order books.
+\t\tEach row opens the market pair for quote history and OHLC ranges.
+\t</p>
+
+\t<MarketPricesView
+\t\thref={resolve('/markets')}
+\t\tcollapsible={false}
+\t\tselection={select(
+\t\t\tEntityType._Global,
+\t\t\t{ scope: '$$marketPrices' }
+\t\t).$$marketPrices}
+\t\tid="coin-prices-page"
+\t\tlimit={96}
+\t\tsources={[
+\t\t\tSource.Constants_Internal,
+\t\t\tSource.Coingecko_Rest,
+\t\t\tSource.Coingecko_OpenApi,
+\t\t\tSource.CoinMarketCap_Rest,
+\t\t\tSource.Coinpaprika_OpenApi,
+\t\t\tSource.Defillama_OpenApi,
+\t\t]}
+\t\ttitle="Spot quote index"
+\t/>
+</Page>
+`
+
+	if (shell.kind === 'farcaster-channel-detail')
+		return `<script lang="ts">
+\timport { select } from '$/routes/+layout.svelte'
+\t// Types/constants
+\timport type { EntitySelector } from '$/schema/$schema.ts'
+\timport { EntityType } from '$/schema/EntityType.ts'
+
+
+\t// Context
+\timport { resolve } from '$app/paths'
+
+
+\t// State
+\tlet { params } = $props()
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport FarcasterCastsView from '$/views/FarcasterCastsView.svelte'
+\timport FarcasterChannelView from '$/views/FarcasterChannelView.svelte'
+</script>
+
+
+<Page>
+\t<FarcasterChannelView
+\t\tselection={select(EntityType.FarcasterChannel, { id: params.channelId })}
+\t/>
+
+\t<section>
+\t\t<FarcasterCastsView
+\t\t\thref={resolve(
+\t\t\t\t\`/farcaster/feed/channel/\${encodeURIComponent(params.channelId)}\`,
+\t\t\t)}
+\t\t\tselection={select(
+\t\t\tEntityType.FarcasterFeed,
+\t\t\t{
+\t\t\t\t\tvariant: 'byChannel',
+\t\t\t\t\tchannelId: params.channelId,
+\t\t\t\t}
+\t\t).$$entries}
+\t\t\tid="casts"
+\t\t\ttitle="Feed"
+\t\t\tlimit={50}
+\t\t/>
+\t</section>
+</Page>
+`
+
+	if (shell.kind === 'farcaster-user-detail')
+		return `<script lang="ts">
+\timport { select } from '$/routes/+layout.svelte'
+\t// Types/constants
+\timport type { EntitySelector } from '$/schema/$schema.ts'
+\timport { EntityType } from '$/schema/EntityType.ts'
+
+
+\t// Context
+\timport { resolve } from '$app/paths'
+
+
+\t// State
+\tlet { params } = $props()
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport FarcasterCastsView from '$/views/FarcasterCastsView.svelte'
+\timport FarcasterUserView from '$/views/FarcasterUserView.svelte'
+</script>
+
+
+<Page>
+\t<FarcasterUserView
+\t\tselection={select(EntityType.FarcasterUser, { fid: Number(params.userId) })}
+\t/>
+
+\t<section>
+\t\t<FarcasterCastsView
+\t\t\thref={resolve(\`/farcaster/feed/user/\${params.userId}\`)}
+\t\t\tselection={select(
+\t\t\tEntityType.FarcasterFeed,
+\t\t\t{
+\t\t\t\t\tvariant: 'byUser',
+\t\t\t\t\tfid: Number(params.userId),
+\t\t\t\t}
+\t\t).$$entries}
+\t\t\tid="casts"
+\t\t\ttitle="Feed"
+\t\t\tlimit={50}
+\t\t/>
+\t</section>
+</Page>
+`
+
+	if (shell.kind === 'leverage-explainer')
+		return `<script lang="ts">
+\t// Context
+\timport { resolve } from '$app/paths'
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport Tooltip from '$/components/Tooltip.svelte'
+</script>
+
+
+<Page>
+\t<section data-column="gap-4">
+\t\t<p>
+\t\t\tLeverage rows model concentrated-liquidity LP position accounting on Uniswap v3-style pools—tick range, in-range liquidity, uncollected fees, and optional ERC-721 token ids.
+\t\t</p>
+
+\t\t<div data-row="wrap align-center gap-2">
+\t\t\t<p data-text="muted">
+\t\t\t\tNot CEX margin, borrow APR, liquidation price, or perpetual funding. No position indexer is wired yet; detail routes accept position ids when a resolver maps them.
+\t\t\t</p>
+\t\t\t<Tooltip contentProps={{ side: 'top' }}>
+\t\t\t\t{#snippet Content()}
+\t\t\t\t\t<p>
+\t\t\t\t\t\tThis label “Leverage” follows the schema’s concentrated-liquidity position shape—the same fields as liquidity positions under accounts.
+\t\t\t\t\t</p>
+\t\t\t\t\t<p>
+\t\t\t\t\t\tPool pair market stats live under liquidity pools (Dexscreener); on-chain LP NFT state requires an execution RPC or subgraph.
+\t\t\t\t\t</p>
+\t\t\t\t{/snippet}
+\t\t\t\t<abbr
+\t\t\t\t\tclass="entity-heading-tip"
+\t\t\t\t\taria-label="About leverage rows"
+\t\t\t\t>ⓘ</abbr>
+\t\t\t</Tooltip>
+\t\t</div>
+
+\t\t<p>
+\t\t\t<a href={resolve('/~/accounts/positions')}>Browse LP positions</a>
+\t\t\t<span data-text="muted"> (catalog empty until indexed)</span>
+\t\t</p>
+\t</section>
+</Page>
+`
+
+	if (shell.kind === 'virtual-list-demo')
+		return `<script lang="ts">
+\t// Types/constants
+\ttype Row = {
+\t\tid: string
+\t\ttext: string
+\t}
+
+
+\t// Components
+\timport VirtualList from '$/components/VirtualList.svelte'
+</script>
+
+
+<section
+\tclass="virtual-list-demo"
+\tdata-card
+>
+\t<h2>
+\t\tVirtualList + Pretext
+\t</h2>
+
+\t<p data-text="annotation">
+\t\t<code>@chenglou/pretext</code>
+\t\t<code>prepare</code>
+\t\t/
+\t\t<code>layout</code>
+\t\tfor row heights; official variable-height demos:
+\t\t<a href="https://chenglou.me/pretext/">chenglou.me/pretext</a>
+\t</p>
+
+\t<VirtualList
+\t\tclass="virtual-list-demo-viewport"
+\t\titems={Array.from(
+\t\t\t{
+\t\t\t\tlength: 400,
+\t\t\t},
+\t\t\t(_, i) => (
+\t\t\t\t{
+\t\t\t\t\tid: String(i),
+\t\t\t\t\ttext: \`Row \${i}: \${'Lorem ipsum dolor sit amet. '.repeat(2 + (i % 5))}\`,
+\t\t\t\t} satisfies Row
+\t\t\t),
+\t\t)}
+\t\tfont="16px Ubuntu, system-ui, sans-serif"
+\t\tgetKey={(row) => row.id}
+\t\tgetMeasureText={(row) => row.text}
+\t\tlineHeight={22}
+\t\titemGap={8}
+\t\trowInsetBlock={4}
+\t>
+\t\t{#snippet Item({
+\t\t\titem,
+\t\t\tindex,
+\t\t})}
+\t\t\t<p class="virtual-list-demo-line">
+\t\t\t\t<span data-text="annotation">
+\t\t\t\t\t{String(index)}
+\t\t\t\t</span>
+\t\t\t\t{item.text}
+\t\t\t</p>
+\t\t{/snippet}
+\t</VirtualList>
+</section>
+
+
+<style>
+\t.virtual-list-demo {
+\t\tdisplay: flex;
+\t\tflex-direction: column;
+\t\tgap: 1rem;
+\t\tmin-height: 0;
+\t}
+
+\t:global(.virtual-list-demo-viewport) {
+\t\tflex: 1;
+\t\tmin-height: 50vh;
+\t\tmax-height: 70vh;
+\t\tborder: 1px solid color-mix(in oklab, CanvasText 12%, transparent);
+\t}
+
+\t.virtual-list-demo-line {
+\t\tmargin: 0;
+\t\tfont: 16px/22px Ubuntu, system-ui, sans-serif;
+\t\toverflow: hidden;
+\t}
+</style>
+`
+
+	if (shell.kind === 'list-view-transitions-demo')
+		return `<script lang="ts">
+\t// Types/constants
+\ttype Row = { id: string, label: string }
+
+
+\tconst items: Row[] = [
+\t\t{ id: 'a', label: 'Alpha' },
+\t\t{ id: 'b', label: 'Bravo' },
+\t\t{ id: 'c', label: 'Candle' },
+\t]
+
+\tconst sortOptions: Sort<Row, 'asc' | 'desc'>[] = [
+\t\t{
+\t\t\tid: 'asc',
+\t\t\tlabel: 'A–Z',
+\t\t\tcompare: (x, y) => x.label.localeCompare(y.label),
+\t\t},
+\t\t{
+\t\t\tid: 'desc',
+\t\t\tlabel: 'Z–A',
+\t\t\tcompare: (x, y) => y.label.localeCompare(x.label),
+\t\t},
+\t]
+
+
+\t// Components
+\timport type { Sort } from '$/components/RefinableList.svelte'
+\timport RefinableList from '$/components/RefinableList.svelte'
+</script>
+
+
+<main
+\tdata-testid="list-vt-demo"
+\tdata-column
+>
+\t<h1>List view transitions (demo${shell.routePath === 'demo/list-view-transitions-novt' ? ', disabled' : ''})</h1>
+
+\t<RefinableList
+\t\t{items}
+\t\tgetKey={(row) => row.id}
+\t\tgetSearchText={(row) => row.label}
+\t\t{sortOptions}
+\t\tdefaultSortId="asc"
+\t\tsearchPlaceholder="Filter"${shell.routePath === 'demo/list-view-transitions-novt' ? '\n\t\tlistViewTransition={false}' : ''}
+\t>
+\t\t{#snippet ItemPlaceholder()}
+\t\t\t<span>…</span>
+\t\t{/snippet}
+
+\t\t{#snippet Item({ item })}
+\t\t\t<span data-testid="row-label">{item.label}</span>
+\t\t{/snippet}
+\t</RefinableList>
+</main>
+`
+
+	if (shell.kind === 'assets-hub')
+		return `<script lang="ts">
+\timport { select } from '$/routes/+layout.svelte'
+\t// Types/constants
+\timport { EntityType } from '$/schema/EntityType.ts'
+
+
+\t// Context
+\timport { resolve } from '$app/paths'
+
+
+\tconst hubKey = 'assets'
+
+
+\t// Components
+\timport CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+\timport HeadingComponent from '$/components/Heading.svelte'
+\timport Page from '$/components/Page.svelte'
+\timport CoinsView from '$/views/CoinsView.svelte'
+\timport CurrenciesView from '$/views/CurrenciesView.svelte'
+\timport GlobalView from '$/views/GlobalView.svelte'
+\timport LiquidityPoolsView from '$/views/LiquidityPoolsView.svelte'
+</script>
+
+
+<Page>
+\t<GlobalView
+\t\tselection={select(EntityType._Global, { scope: 'Assets' })}
+\t\ttitle="Assets"
+\t\thref={resolve('/assets')}
+\t\topen
+\t>
+\t\t{#snippet children({ open: hubOpen,
+\t\t})}
+\t\t\t<CollapsibleTabs
+\t\t\t\tid={\`\${hubKey}:hub\`}
+\t\t\t\tsectionIdPrefix={hubKey}
+\t\t\t\tsections={[
+\t\t\t\t\t{ id: 'coins', label: 'Coins' },
+\t\t\t\t\t{ id: 'currencies', label: 'Currencies' },
+\t\t\t\t\t{ id: 'pools', label: 'Pools' },
+\t\t\t\t]}
+\t\t\t\tdata-card
+\t\t\t\tscrollContainerProps={{
+\t\t\t\t\t'data-row': 'start align-start',
+\t\t\t\t\tstyle: '--carousel-basis: 40ch',
+\t\t\t\t}}
+\t\t\t>
+\t\t\t\t{#snippet Summary({ open: _summaryOpen })}
+\t\t\t\t\t<header
+\t\t\t\t\t\tdata-row-item="flexible"
+\t\t\t\t\t\tdata-row="wrap gap-4"
+\t\t\t\t\t>
+\t\t\t\t\t\t<HeadingComponent>
+\t\t\t\t\t\t\tAssets
+\t\t\t\t\t\t</HeadingComponent>
+\t\t\t\t\t</header>
+\t\t\t\t{/snippet}
+
+\t\t\t\t{#snippet SectionCoins({ id, label })}
+\t\t\t\t\t<CoinsView
+\t\t\t\t\t\thref={resolve('/coins')}
+\t\t\t\t\t\tselection={select(
+\t\t\tEntityType._Global,
+\t\t\t{ scope: '$$coins' }
+\t\t).$$coins}
+\t\t\t\t\t\tid="coins"
+\t\t\t\t\t\tlimit={120}
+\t\t\t\t\t\topen={hubOpen}
+\t\t\t\t\t/>
+\t\t\t\t{/snippet}
+
+\t\t\t\t{#snippet SectionCurrencies({ id, label })}
+\t\t\t\t\t<CurrenciesView
+\t\t\t\t\t\thref={resolve('/currencies')}
+\t\t\t\t\t\tselection={select(
+\t\t\tEntityType._Global,
+\t\t\t{ scope: '$$currencies' }
+\t\t).$$currencies}
+\t\t\t\t\t\topen={hubOpen}
+\t\t\t\t\t/>
+\t\t\t\t{/snippet}
+
+\t\t\t\t{#snippet SectionPools({ id, label })}
+\t\t\t\t\t<LiquidityPoolsView
+\t\t\t\t\t\thref={resolve('/pools')}
+\t\t\t\t\t\tselection={select(
+\t\t\tEntityType._Global,
+\t\t\t{ scope: '$$liquidityPools' }
+\t\t).$$liquidityPools}
+\t\t\t\t\t\tid="pools"
+\t\t\t\t\t\topen={false}
+\t\t\t\t\t/>
+\t\t\t\t{/snippet}
+\t\t</CollapsibleTabs>
+\t\t{/snippet}
+\t</GlobalView>
+</Page>
+`
+
+	if (shell.kind === 'explore-hub')
+		return `<script lang="ts">
+\t// Types/constants
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { Source } from '$/sources/Source.ts'
+
+
+\t// Context
+\timport { select } from '$/routes/+layout.svelte'
+\timport { resolve } from '$app/paths'
+
+
+\tconst hubKey = 'explore'
+
+
+\t// Components
+\timport CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+\timport HeadingComponent from '$/components/Heading.svelte'
+\timport Page from '$/components/Page.svelte'
+\timport GlobalView from '$/views/GlobalView.svelte'
+\timport NetworksView from '$/views/NetworksView.svelte'
+\timport EthereumNetworkUpgradesView from '$/views/EthereumNetworkUpgradesView.svelte'
+\timport SpecificationRealmsView from '$/views/SpecificationRealmsView.svelte'
+</script>
+
+
+<Page>
+\t<GlobalView
+\t\tselection={select(EntityType._Global, { scope: 'Explore' })}
+\t\ttitle="Explore"
+\t\thref={resolve('/explore')}
+\t>
+\t\t{#snippet children({ open: hubOpen,
+\t\t})}
+\t\t\t<CollapsibleTabs
+\t\t\t\tid={\`\${hubKey}:hub\`}
+\t\t\t\tsectionIdPrefix={hubKey}
+\t\t\t\tsections={[
+\t\t\t\t\t{ id: 'networks', label: 'Networks' },
+\t\t\t\t\t{ id: 'upgrades', label: 'Upgrades' },
+\t\t\t\t\t{ id: 'ipfs', label: 'IPFS' },
+\t\t\t\t\t{ id: 'swarm', label: 'Swarm' },
+\t\t\t\t\t{ id: 'proposals', label: 'Proposals' },
+\t\t\t\t]}
+\t\t\t\tdata-card
+\t\t\t\tscrollContainerProps={{
+\t\t\t\t\t'data-row': 'start align-start',
+\t\t\t\t\tstyle: '--carousel-basis: 40ch',
+\t\t\t\t}}
+\t\t\t>
+\t\t\t\t{#snippet Summary({ open: _summaryOpen })}
+\t\t\t\t\t<header
+\t\t\t\t\t\tdata-row-item="flexible"
+\t\t\t\t\t\tdata-row="wrap gap-4"
+\t\t\t\t\t>
+\t\t\t\t\t\t<HeadingComponent>
+\t\t\t\t\t\t\tExplore
+\t\t\t\t\t\t</HeadingComponent>
+\t\t\t\t\t</header>
+\t\t\t\t{/snippet}
+
+\t\t\t\t{#snippet SectionNetworks({ id, label })}
+\t\t\t\t\t<NetworksView
+\t\t\t\t\t\thref={resolve('/networks')}
+\t\t\t\t\t\tselection={select(
+\t\t\tEntityType._Global,
+\t\t\t{ scope: '$$networks' }
+\t\t).$$networks}
+\t\t\t\t\t\tid="networks"
+\t\t\t\t\t\topen={hubOpen}
+\t\t\t\t\t/>
+\t\t\t\t{/snippet}
+
+\t\t\t\t{#snippet SectionUpgrades({ id, label })}
+\t\t\t\t\t<EthereumNetworkUpgradesView
+\t\t\t\t\t\tselection={select(
+\t\t\t\t\t\t\tEntityType._Global,
+\t\t\t\t\t\t\t{ scope: '$$networkUpgrades' }
+\t\t\t\t\t\t).$$networkUpgrades({
+\t\t\t\t\t\t\tsources: [
+\t\t\t\t\t\t\t\tSource.Constants_Internal,
+\t\t\t\t\t\t\t],
+\t\t\t\t\t\t\tlimit: 512,
+\t\t\t\t\t\t})}
+\t\t\t\t\t\tid="upgrades"
+\t\t\t\t\t\topen={hubOpen}
+\t\t\t\t\t/>
+\t\t\t\t{/snippet}
+
+\t\t\t\t{#snippet SectionIpfs({ id, label })}
+\t\t\t\t\t<h2>
+\t\t\t\t\t\t<a href={resolve('/ipfs')}>IPFS</a>
+\t\t\t\t\t</h2>
+
+\t\t\t\t\t<p data-text="muted">
+\t\t\t\t\tOpen resolver-backed IPFS and IPNS resource pages from raw CIDs, protocol URIs, or public gateway URLs.
+\t\t\t\t</p>
+\t\t\t{/snippet}
+
+\t\t\t{#snippet SectionSwarm({ id, label })}
+\t\t\t\t<h2>
+\t\t\t\t\t<a href={resolve('/swarm')}>Swarm</a>
+\t\t\t\t</h2>
+
+\t\t\t\t<p data-text="muted">
+\t\t\t\t\tOpen resolver-backed Swarm BZZ resource pages from raw references, \`bzz://\` URIs, or public gateway URLs.
+\t\t\t\t</p>
+\t\t\t{/snippet}
+
+\t\t\t{#snippet SectionProposals({ id, label })}
+\t\t\t\t\t<SpecificationRealmsView
+\t\t\t\t\t\tselection={select(
+\t\t\t\tEntityType._Global,
+\t\t\t\t{ scope: '$$specificationRealms' }
+\t\t\t).$$specificationRealms({
+\t\t\t\tsources: [
+\t\t\t\t\tSource.Constants_Internal,
+\t\t\t\t],
+\t\t\t})}
+\t\t\t\t\t\tid="proposal-realms"
+\t\t\t\t\t\topen={hubOpen}
+\t\t\t\t\t\ttitle="Proposals"
+\t\t\t\t/>
+\t\t\t{/snippet}
+\t\t</CollapsibleTabs>
+\t\t{/snippet}
+\t</GlobalView>
+</Page>
+`
+
+	if (shell.kind === 'social-hub') {
+		if (shell.socialProtocolGroups === undefined)
+			throw new Error(`Missing social protocol groups for ${shell.routePath}`)
+
+		return `<script lang="ts">
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { select } from '$/routes/+layout.svelte'
+\t// Context
+\timport { resolve } from '$app/paths'
+
+
+\tconst hubKey = 'social'
+
+\tconst socialProtocolGroups = [
+${shell.socialProtocolGroups.map((group) => `\t\t{
+\t\t\tlabel: '${group.label}',
+\t\t\thubRoute: '${group.hubRoute}',
+\t\t\tlists: [
+${group.lists.map((list) => `\t\t\t\t{ label: '${list.label}', route: '${list.route}' },`).join('\n')}
+\t\t\t],
+\t\t},`).join('\n')}
+\t] as const satisfies readonly {
+\t\tlabel: string
+\t\thubRoute: string
+\t\tlists: readonly {
+\t\t\tlabel: string
+\t\t\troute: string
+\t\t}[]
+\t}[]
+
+
+\t// Components
+\timport CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+\timport HeadingComponent from '$/components/Heading.svelte'
+\timport Page from '$/components/Page.svelte'
+\timport FarcasterView from '$/views/FarcasterView.svelte'
+\timport GlobalView from '$/views/GlobalView.svelte'
+</script>
+
+
+<Page>
+\t<GlobalView
+\t\tselection={select(EntityType._Global, { scope: 'Social' })}
+\t\ttitle="Social"
+\t\thref={resolve('/social')}
+\t>
+\t\t{#snippet children({ open: hubOpen,
+\t\t})}
+\t\t\t<CollapsibleTabs
+\t\t\t\tid={\`\${hubKey}:hub\`}
+\t\t\t\tsectionIdPrefix={hubKey}
+\t\t\t\tsections={[
+\t\t\t\t\t{ id: 'protocols', label: 'Protocols' },
+\t\t\t\t\t{ id: 'farcaster', label: 'Farcaster' },
+\t\t\t\t]}
+\t\t\t\tdata-card
+\t\t\t\tscrollContainerProps={{
+\t\t\t\t\t'data-row': 'start align-start',
+\t\t\t\t\tstyle: '--carousel-basis: 40ch',
+\t\t\t\t}}
+\t\t\t>
+\t\t\t\t{#snippet Summary({ open: _summaryOpen })}
+\t\t\t\t\t<header
+\t\t\t\t\t\tdata-row-item="flexible"
+\t\t\t\t\t\tdata-row="wrap gap-4"
+\t\t\t\t\t>
+\t\t\t\t\t\t<HeadingComponent>
+\t\t\t\t\t\t\tSocial
+\t\t\t\t\t\t</HeadingComponent>
+\t\t\t\t\t</header>
+\t\t\t\t{/snippet}
+
+\t\t\t\t{#snippet SectionProtocols({ id, label })}
+\t\t\t\t\t<h2>Protocols & networks</h2>
+\t\t\t\t\t<ul class="social-protocol-groups">
+\t\t\t\t\t\t{#each socialProtocolGroups as { label, hubRoute, lists } (hubRoute)}
+\t\t\t\t\t\t\t<li>
+\t\t\t\t\t\t\t\t<a href={resolve(hubRoute)}>{label}</a>
+\t\t\t\t\t\t\t\t<ul>
+\t\t\t\t\t\t\t\t\t{#each lists as { label: listLabel, route } (route)}
+\t\t\t\t\t\t\t\t\t\t<li>
+\t\t\t\t\t\t\t\t\t\t\t<a href={resolve(route)}>{listLabel}</a>
+\t\t\t\t\t\t\t\t\t\t</li>
+\t\t\t\t\t\t\t\t\t{/each}
+\t\t\t\t\t\t\t\t</ul>
+\t\t\t\t\t\t\t</li>
+\t\t\t\t\t\t{/each}
+\t\t\t\t\t\t<li>
+\t\t\t\t\t\t\t<a href={resolve('/(social)/(farcaster)/farcaster')}>Farcaster (feed / hub)</a>
+\t\t\t\t\t\t\t<ul>
+\t\t\t\t\t\t\t\t<li>
+\t\t\t\t\t\t\t\t\t<a href={resolve('/farcaster/accounts')}>Accounts</a>
+\t\t\t\t\t\t\t\t</li>
+\t\t\t\t\t\t\t\t<li>
+\t\t\t\t\t\t\t\t\t<a href={resolve('/farcaster/feed')}>Feed</a>
+\t\t\t\t\t\t\t\t</li>
+\t\t\t\t\t\t\t\t<li>
+\t\t\t\t\t\t\t\t\t<a href={resolve('/farcaster/channels')}>Channels</a>
+\t\t\t\t\t\t\t\t</li>
+\t\t\t\t\t\t\t\t<li>
+\t\t\t\t\t\t\t\t\t<a href={resolve('/farcaster/users')}>Users</a>
+\t\t\t\t\t\t\t\t</li>
+\t\t\t\t\t\t\t</ul>
+\t\t\t\t\t\t</li>
+\t\t\t\t\t</ul>
+\t\t\t\t{/snippet}
+
+\t\t\t\t{#snippet SectionFarcaster({ id, label })}
+\t\t\t\t\t<FarcasterView
+\t\t\t\t\t\tselection={select(EntityType.FarcasterNetwork, {
+\t\t\t\t\t\t\tscope: 'FarcasterNetwork',
+\t\t\t\t\t\t})}
+\t\t\t\t\t\topen={hubOpen}
+\t\t\t\t\t/>
+\t\t\t\t{/snippet}
+\t\t\t</CollapsibleTabs>
+\t\t{/snippet}
+\t</GlobalView>
+</Page>
+
+
+<style>
+\t.social-protocol-groups {
+\t\t> li {
+\t\t\t> ul {
+\t\t\t\tmargin-block: 0.25em 0.75em;
+\t\t\t\tpadding-inline-start: 1.25em;
+\t\t\t}
+\t\t}
+\t}
+</style>
+`
+	}
+
+	if (shell.kind === 'networks-architecture-hub') {
+		if (shell.networkArchitectureSections === undefined)
+			throw new Error(`Missing network architecture sections for ${shell.routePath}`)
+
+		return `<script lang="ts">
+\timport { select } from '$/routes/+layout.svelte'
+\t// Types/constants
+\timport { EntityType } from '$/schema/EntityType.ts'
+
+
+\t// Context
+\timport { resolve } from '$app/paths'
+
+
+\t// Components
+\timport CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
+\timport EvmNetworksView from '$/views/EvmNetworksView.svelte'
+\timport Page from '$/components/Page.svelte'
+\timport NetworksView from '$/views/NetworksView.svelte'
+</script>
+
+
+<Page>
+\t<CollapsibleTabs
+\t\topen
+\t\tsectionIdPrefix="network-architecture"
+\t\tsections={collapsibleTabsSections([
+\t\t\t{ id: 'evm', label: 'EVM' },
+${shell.networkArchitectureSections.map((section) => `\t\t\t{ id: '${section.id}', label: '${section.label}' },`).join('\n')}
+\t\t])}
+\t\tdata-card
+\t\tscrollContainerProps={{
+\t\t\t'data-scroll-container': 'block',
+\t\t}}
+\t>
+\t\t{#snippet Summary({ open: _summaryOpen })}
+\t\t\t<header
+\t\t\t\tdata-row-item="flexible"
+\t\t\t\tdata-row="wrap gap-4"
+\t\t\t>
+\t\t\t\t<h1>
+\t\t\t\t\t<a href={resolve('/networks')}>Networks</a>
+\t\t\t\t</h1>
+\t\t\t</header>
+\t\t{/snippet}
+
+\t\t{#snippet Annotation({ open: _annotationOpen })}
+\t\t\t<span data-text="annotation">Architectures</span>
+\t\t{/snippet}
+
+\t\t{#snippet SectionEvm({ id: _id, label: _label })}
+\t\t\t<EvmNetworksView
+\t\t\t\thref={resolve('/networks')}
+\t\t\t\tselection={select(
+\t\t\tEntityType._Global,
+\t\t\t{ scope: '$$networks' }
+\t\t).$$evmNetworks}
+\t\t\t\tid="networks:evm"
+\t\t\t\topen
+\t\t\t/>
+\t\t{/snippet}
+${shell.networkArchitectureSections.map((section, index) => `${index === 0 ? '' : '\n'}
+\t\t{#snippet ${section.snippet}({ id: _id, label: label })}
+\t\t\t<NetworksView
+\t\t\t\thref={resolve('/networks')}
+\t\t\t\tselection={select(
+\t\t\tEntityType._Global,
+\t\t\t{ scope: '$$networks' }
+\t\t).$$networks}
+\t\t\t\tid="networks:${section.id}"
+\t\t\t\tnetworkSelectors={[{ slug: '${section.slug}' }]}
+\t\t\t\topen
+\t\t\t\ttitle={label}
+\t\t\t/>
+\t\t{/snippet}`).join('')}
+\t</CollapsibleTabs>
+</Page>
+`
+	}
+
+	if (shell.kind === 'network-slug-lightning-collection') {
+		const routeName = shell.routePath.split('/').at(-1) ?? ''
+		const config = (
+			routeName === 'channels' ? {
+				viewComponent: 'LightningChannelsView',
+				field: '$$channels',
+				sources: [
+					'LightningMempoolSpace_Rest',
+					'LightningLnd_Rest',
+				],
+				article: 'a',
+				blankBeforeState: false,
+			}
+			: routeName === 'invoices' ? {
+				viewComponent: 'BlockheadLightningInvoicesView',
+				field: '$$invoices',
+				sources: [
+					'LightningLnd_Rest',
+				],
+				article: 'an',
+				blankBeforeState: true,
+			}
+			: routeName === 'nodes' ? {
+				viewComponent: 'LightningNodesView',
+				field: '$$nodes',
+				sources: [
+					'LightningMempoolSpace_Rest',
+					'LightningLnd_Rest',
+				],
+				article: 'a',
+				blankBeforeState: false,
+			}
+			: {
+				viewComponent: 'BlockheadLightningPaymentsView',
+				field: '$$payments',
+				sources: [
+					'LightningLnd_Rest',
+				],
+				article: 'a',
+				blankBeforeState: false,
+			}
+		)
+
+		return `<script lang="ts">
+\t// Types/constants
+\timport type { PageProps } from './$types'
+\timport { NetworkNamespace } from '$/constants/Network.ts'
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { Source } from '$/sources/Source.ts'
+
+
+\t// Context
+\timport { resolve } from '$app/paths'
+\timport { select } from '$/routes/+layout.svelte'
+${config.blankBeforeState ? '\n\n' : ''}\t// State
+\tlet {
+\t\tparams,
+\t}: PageProps = $props()
+${config.blankBeforeState ? '\n' : ''}
+\tconst network = $derived(select(EntityType.Network,
+\t\t{
+\t\t\tslug: params.networkSlug,
+\t\t},
+\t\t({ sources: [
+\t\t\t\tSource.Constants_Internal,
+\t\t\t], fields: { namespace: true, slug: true } }),
+\t))
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport ResourceBoundary from '$/components/ResourceBoundary.svelte'
+\timport ${config.viewComponent} from '$/views/${config.viewComponent}.svelte'
+</script>
+
+
+<Page>
+\t<ResourceBoundary resource={network}>
+\t\t{#snippet children(network)}
+\t\t\t{#if network.namespace === NetworkNamespace.Lightning}
+\t\t\t\t<${config.viewComponent}
+\t\t\t\t\tselection={select(
+\t\t\t\t\t\tEntityType.LightningNetwork,
+\t\t\t\t\t\t{
+\t\t\t\t\t\t\t$network: {
+\t\t\t\t\t\t\t\tslug: params.networkSlug,
+\t\t\t\t\t\t\t},
+\t\t\t\t\t\t}
+\t\t\t\t\t).${config.field}({
+\t\t\t\t\t\tsources: [
+${config.sources.map((source) => `\t\t\t\t\t\t\tSource.${source},`).join('\n')}
+\t\t\t\t\t\t],
+\t\t\t\t\t\tlimit: 32,
+\t\t\t\t\t})}
+\t\t\t\t\thref={resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/${routeName}', {
+\t\t\t\t\t\tnetworkSlug: params.networkSlug,
+\t\t\t\t\t})}
+\t\t\t\t\tid="${routeName}"
+\t\t\t\t/>
+\t\t\t{:else}
+\t\t\t\t<p data-text="muted">This network does not expose ${config.article} ${routeName} route yet.</p>
+\t\t\t{/if}
+\t\t{/snippet}
+\t</ResourceBoundary>
+</Page>
+`
+	}
+
+	if (shell.kind === 'network-slug-lightning-channel-detail')
+		return `<script lang="ts">
+\t// Types/constants
+\timport type { PageProps } from './$types'
+\timport { NetworkNamespace } from '$/constants/Network.ts'
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { Source } from '$/sources/Source.ts'
+
+
+\t// Context
+\timport { select } from '$/routes/+layout.svelte'
+
+
+\t// State
+\tlet {
+\t\tparams,
+\t}: PageProps = $props()
+
+\tconst network = $derived(select(EntityType.Network,
+\t\t{
+\t\t\tslug: params.networkSlug,
+\t\t},
+\t\t({ sources: [
+\t\t\t\tSource.Constants_Internal,
+\t\t\t], fields: { namespace: true, slug: true } }),
+\t))
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport ResourceBoundary from '$/components/ResourceBoundary.svelte'
+\timport LightningChannelView from '$/views/LightningChannelView.svelte'
+</script>
+
+
+<Page>
+\t<ResourceBoundary resource={network}>
+\t\t{#snippet children(network)}
+\t\t\t{#if network.namespace === NetworkNamespace.Lightning}
+\t\t\t\t<LightningChannelView
+\t\t\t\t\tselection={select(EntityType.LightningChannel, {
+\t\t\t\t\t\t$network: { slug: params.networkSlug },
+\t\t\t\t\t\tchannelId: params.channelId,
+\t\t\t\t\t})}
+\t\t\t\t/>
+\t\t\t{:else}
+\t\t\t\t<p data-text="muted">This network does not expose a channel detail route yet.</p>
+\t\t\t{/if}
+\t\t{/snippet}
+\t</ResourceBoundary>
+</Page>
+`
+
+	if (shell.kind === 'network-slug-cosmos-governance')
+		return `<script lang="ts">
+\t// Types/constants
+\timport type { PageProps } from './$types'
+\timport { NetworkNamespace } from '$/constants/Network.ts'
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { Source } from '$/sources/Source.ts'
+
+
+\t// Context
+\timport { resolve } from '$app/paths'
+\timport { select } from '$/routes/+layout.svelte'
+\t// State
+\tlet {
+\t\tparams,
+\t}: PageProps = $props()
+
+\tconst network = $derived(select(EntityType.Network,
+\t\t{
+\t\t\tslug: params.networkSlug,
+\t\t},
+\t\t({ sources: [
+\t\t\t\tSource.Constants_Internal,
+\t\t\t], fields: { namespace: true, slug: true } }),
+\t))
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport ResourceBoundary from '$/components/ResourceBoundary.svelte'
+\timport CosmosGovernanceProposalsView from '$/views/CosmosGovernanceProposalsView.svelte'
+</script>
+
+
+<Page>
+\t<ResourceBoundary resource={network}>
+\t\t{#snippet children(network)}
+\t\t\t{#if network.namespace === NetworkNamespace.Cosmos}
+\t\t\t\t<CosmosGovernanceProposalsView
+\t\t\t\t\tselection={select(
+\t\t\t\t\t\tEntityType.CosmosNetwork,
+\t\t\t\t\t\t{
+\t\t\t\t\t\t\t$network: {
+\t\t\t\t\t\t\t\tslug: params.networkSlug,
+\t\t\t\t\t\t\t},
+\t\t\t\t\t\t}
+\t\t\t\t\t).$$governanceProposals({
+\t\t\t\t\t\tsources: [
+\t\t\t\t\t\t\tSource.CosmosSdk_Rest,
+\t\t\t\t\t\t],
+\t\t\t\t\t\tlimit: 32,
+\t\t\t\t\t})}
+\t\t\t\t\thref={resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/governance', {
+\t\t\t\t\t\tnetworkSlug: params.networkSlug,
+\t\t\t\t\t})}
+\t\t\t\t\tid="governance"
+\t\t\t\t\ttitle="Governance"
+\t\t\t\t/>
+\t\t\t{:else}
+\t\t\t\t<p data-text="muted">This network does not expose a governance route yet.</p>
+\t\t\t{/if}
+\t\t{/snippet}
+\t</ResourceBoundary>
+</Page>
+`
+
+	if (shell.kind === 'network-slug-blocks')
+		return `<script lang="ts">
+\t// Types/constants
+\timport type { PageProps } from './$types'
+\timport { NetworkNamespace } from '$/constants/Network.ts'
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { Source } from '$/sources/Source.ts'
+
+
+\t// Context
+\timport { resolve } from '$app/paths'
+\timport { select } from '$/routes/+layout.svelte'
+\t// State
+\tlet {
+\t\tparams,
+\t}: PageProps = $props()
+
+\tconst network = $derived(select(EntityType.Network,
+\t\t{
+\t\t\tslug: params.networkSlug,
+\t\t},
+\t\t({ sources: [
+\t\t\t\tSource.Constants_Internal,
+\t\t\t], fields: { caip2: true, namespace: true, slug: true } }),
+\t))
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport ResourceBoundary from '$/components/ResourceBoundary.svelte'
+\timport BittensorBlocksView from '$/views/BittensorBlocksView.svelte'
+\timport CosmosBlocksView from '$/views/CosmosBlocksView.svelte'
+\timport FilecoinTipsetsView from '$/views/FilecoinTipsetsView.svelte'
+\timport HyperliquidBlocksView from '$/views/HyperliquidBlocksView.svelte'
+\timport MoneroBlocksView from '$/views/MoneroBlocksView.svelte'
+\timport NearBlocksView from '$/views/NearBlocksView.svelte'
+\timport PolkadotBlocksView from '$/views/PolkadotBlocksView.svelte'
+\timport SolanaBlocksView from '$/views/SolanaBlocksView.svelte'
+\timport TronBlocksView from '$/views/TronBlocksView.svelte'
+\timport UtxoBlocksView from '$/views/UtxoBlocksView.svelte'
+\timport ZeroGBlocksView from '$/views/ZeroGBlocksView.svelte'
+</script>
+
+
+<Page>
+\t<ResourceBoundary resource={network}>
+\t\t{#snippet children(network)}
+\t\t\t{@const href = resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/blocks', {
+\t\t\t\tnetworkSlug: params.networkSlug,
+\t\t\t})}
+\t\t\t{#if network.namespace === NetworkNamespace.Bitcoin || network.namespace === NetworkNamespace.BitcoinCash || network.namespace === NetworkNamespace.Litecoin || network.namespace === NetworkNamespace.Dogecoin || network.namespace === NetworkNamespace.Zcash}
+\t\t\t\t<UtxoBlocksView
+\t\t\t\t\tselection={select(
+\t\t\t\t\t\tEntityType.UtxoNetwork,
+\t\t\t\t\t\t{
+\t\t\t\t\t\t\t$network: network.caip2 == null ?
+\t\t\t\t\t\t\t\t{ slug: params.networkSlug }
+\t\t\t\t\t\t\t:
+\t\t\t\t\t\t\t\t{ caip2: network.caip2 },
+\t\t\t\t\t\t}
+\t\t\t\t\t).$$blocks({
+\t\t\t\t\t\tlimit: 16,
+\t\t\t\t\t})}
+\t\t\t\t\t{href}
+\t\t\t\t\tid="blocks"
+\t\t\t\t/>
+\t\t\t{:else if network.namespace === NetworkNamespace.Solana && network.caip2 != null}
+\t\t\t\t<SolanaBlocksView
+\t\t\t\t\tselection={select(
+\t\t\t\t\t\tEntityType.SolanaNetwork,
+\t\t\t\t\t\t{
+\t\t\t\t\t\t\tcaip2: {
+\t\t\t\t\t\t\t\tnamespace: 'solana',
+\t\t\t\t\t\t\t\treference: network.caip2.reference,
+\t\t\t\t\t\t\t},
+\t\t\t\t\t\t}
+\t\t\t\t\t).$$blocks({
+\t\t\t\t\t\tlimit: 16,
+\t\t\t\t\t})}
+\t\t\t\t\t{href}
+\t\t\t\t\tid="blocks"
+\t\t\t\t/>
+\t\t\t{:else if network.namespace === NetworkNamespace.Cosmos}
+\t\t\t\t<CosmosBlocksView
+\t\t\t\t\tselection={select(
+\t\t\t\t\t\tEntityType.CosmosNetwork,
+\t\t\t\t\t\t{
+\t\t\t\t\t\t\t$network: network.caip2 == null ?
+\t\t\t\t\t\t\t\t{ slug: params.networkSlug }
+\t\t\t\t\t\t\t:
+\t\t\t\t\t\t\t\t{ caip2: network.caip2 },
+\t\t\t\t\t\t}
+\t\t\t\t\t).$$blocks({
+\t\t\t\t\t\tlimit: 16,
+\t\t\t\t\t})}
+\t\t\t\t\t{href}
+\t\t\t\t\tid="blocks"
+\t\t\t\t/>
+\t\t\t{:else if network.namespace === NetworkNamespace.Filecoin}
+\t\t\t\t<FilecoinTipsetsView
+\t\t\t\t\tselection={select(
+\t\t\t\t\t\tEntityType.FilecoinNetwork,
+\t\t\t\t\t\t{
+\t\t\t\t\t\t\t$network: network.caip2 == null ?
+\t\t\t\t\t\t\t\t{ slug: params.networkSlug }
+\t\t\t\t\t\t\t:
+\t\t\t\t\t\t\t\t{ caip2: network.caip2 },
+\t\t\t\t\t\t}
+\t\t\t\t\t).$$tipsets({
+\t\t\t\t\t\tlimit: 16,
+\t\t\t\t\t})}
+\t\t\t\t\t{href}
+\t\t\t\t\tid="blocks"
+\t\t\t\t\ttitle="Tipsets"
+\t\t\t\t/>
+\t\t\t{:else if network.namespace === NetworkNamespace.Polkadot}
+\t\t\t\t<PolkadotBlocksView
+\t\t\t\t\tselection={select(
+\t\t\t\t\t\tEntityType.PolkadotNetwork,
+\t\t\t\t\t\t{
+\t\t\t\t\t\t\t$network: network.caip2 == null ?
+\t\t\t\t\t\t\t\t{ slug: params.networkSlug }
+\t\t\t\t\t\t\t:
+\t\t\t\t\t\t\t\t{ caip2: network.caip2 },
+\t\t\t\t\t\t}
+\t\t\t\t\t).$$blocks({
+\t\t\t\t\t\tlimit: 16,
+\t\t\t\t\t})}
+\t\t\t\t\t{href}
+\t\t\t\t\tid="blocks"
+\t\t\t\t/>
+\t\t\t{:else if network.namespace === NetworkNamespace.Near}
+\t\t\t\t<NearBlocksView
+\t\t\t\t\tselection={select(
+\t\t\t\t\t\tEntityType.NearNetwork,
+\t\t\t\t\t\t{ slug: 'near' }
+\t\t\t\t\t).$$blocks({
+\t\t\t\t\t\tlimit: 16,
+\t\t\t\t\t})}
+\t\t\t\t\t{href}
+\t\t\t\t\tid="blocks"
+\t\t\t\t/>
+\t\t\t{:else if network.namespace === NetworkNamespace.Tron}
+\t\t\t\t<TronBlocksView
+\t\t\t\t\tselection={select(
+\t\t\t\t\t\tEntityType.TronNetwork,
+\t\t\t\t\t\t{
+\t\t\t\t\t\t\t$network: network.caip2 == null ?
+\t\t\t\t\t\t\t\t{ slug: params.networkSlug }
+\t\t\t\t\t\t\t:
+\t\t\t\t\t\t\t\t{ caip2: network.caip2 },
+\t\t\t\t\t\t}
+\t\t\t\t\t).$$blocks({
+\t\t\t\t\t\tlimit: 16,
+\t\t\t\t\t})}
+\t\t\t\t\t{href}
+\t\t\t\t\tid="blocks"
+\t\t\t\t/>
+\t\t\t{:else if network.namespace === NetworkNamespace.Monero}
+\t\t\t\t<MoneroBlocksView
+\t\t\t\t\tselection={select(
+\t\t\t\t\t\tEntityType.MoneroNetwork,
+\t\t\t\t\t\t{
+\t\t\t\t\t\t\t$network: network.caip2 == null ?
+\t\t\t\t\t\t\t\t{ slug: params.networkSlug }
+\t\t\t\t\t\t\t:
+\t\t\t\t\t\t\t\t{ caip2: network.caip2 },
+\t\t\t\t\t\t}
+\t\t\t\t\t).$$blocks({
+\t\t\t\t\t\tlimit: 16,
+\t\t\t\t\t})}
+\t\t\t\t\t{href}
+\t\t\t\t\tid="blocks"
+\t\t\t\t/>
+\t\t\t{:else if network.namespace === NetworkNamespace.Hyperliquid}
+\t\t\t\t<HyperliquidBlocksView
+\t\t\t\t\tselection={select(
+\t\t\t\t\t\tEntityType.HyperliquidNetwork,
+\t\t\t\t\t\t{
+\t\t\t\t\t\t\t$network: network.caip2 == null ?
+\t\t\t\t\t\t\t\t{ slug: params.networkSlug }
+\t\t\t\t\t\t\t:
+\t\t\t\t\t\t\t\t{ caip2: network.caip2 },
+\t\t\t\t\t\t}
+\t\t\t\t\t).$$blocks({
+\t\t\t\t\t\tlimit: 16,
+\t\t\t\t\t})}
+\t\t\t\t\t{href}
+\t\t\t\t\tid="blocks"
+\t\t\t\t/>
+\t\t\t{:else if network.namespace === NetworkNamespace.Bittensor}
+\t\t\t\t<BittensorBlocksView
+\t\t\t\t\tselection={select(
+\t\t\t\t\t\tEntityType.BittensorNetwork,
+\t\t\t\t\t\t{
+\t\t\t\t\t\t\t$network: network.caip2 == null ?
+\t\t\t\t\t\t\t\t{ slug: params.networkSlug }
+\t\t\t\t\t\t\t:
+\t\t\t\t\t\t\t\t{ caip2: network.caip2 },
+\t\t\t\t\t\t}
+\t\t\t\t\t).$$blocks({
+\t\t\t\t\t\tlimit: 16,
+\t\t\t\t\t})}
+\t\t\t\t\t{href}
+\t\t\t\t\tid="blocks"
+\t\t\t\t/>
+\t\t\t{:else if network.namespace === NetworkNamespace.ZeroG}
+\t\t\t\t<ZeroGBlocksView
+\t\t\t\t\tselection={select(
+\t\t\t\t\t\tEntityType.ZeroGNetwork,
+\t\t\t\t\t\t{ slug: '0g' }
+\t\t\t\t\t).$$blocks({
+\t\t\t\t\t\tlimit: 16,
+\t\t\t\t\t})}
+\t\t\t\t\t{href}
+\t\t\t\t\tid="blocks"
+\t\t\t\t/>
+\t\t\t{:else}
+\t\t\t\t<p data-text="muted">This network does not expose a block list route yet.</p>
+\t\t\t{/if}
+\t\t{/snippet}
+\t</ResourceBoundary>
+</Page>
+`
+
+	if (shell.kind === 'network-slug-block-detail')
+		return `<script lang="ts">
+\t// Types/constants
+\timport type { PageProps } from './$types'
+\timport { NetworkNamespace } from '$/constants/Network.ts'
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { Source } from '$/sources/Source.ts'
+
+
+\t// Context
+\timport { select } from '$/routes/+layout.svelte'
+\t// State
+\tlet {
+\t\tparams,
+\t}: PageProps = $props()
+
+\tconst network = $derived(select(EntityType.Network,
+\t\t{ slug: params.networkSlug },
+\t\t({ sources: [Source.Constants_Internal], fields: { namespace: true, slug: true } }),
+\t))
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport ResourceBoundary from '$/components/ResourceBoundary.svelte'
+\timport CosmosBlockView from '$/views/CosmosBlockView.svelte'
+\timport PolkadotBlockView from '$/views/PolkadotBlockView.svelte'
+\timport SolanaBlockView from '$/views/SolanaBlockView.svelte'
+\timport UtxoBlockView from '$/views/UtxoBlockView.svelte'
+</script>
+
+
+<Page>
+\t<ResourceBoundary resource={network}>
+\t\t{#snippet children(network)}
+\t\t\t{@const selector = { slug: params.networkSlug }}
+\t\t\t{#if network.namespace === NetworkNamespace.Bitcoin || network.namespace === NetworkNamespace.BitcoinCash || network.namespace === NetworkNamespace.Litecoin || network.namespace === NetworkNamespace.Dogecoin || network.namespace === NetworkNamespace.Zcash}
+\t\t\t\t<UtxoBlockView selection={select(EntityType.UtxoBlock, { $network: selector, height: BigInt(params.height) })} />
+\t\t\t{:else if network.namespace === NetworkNamespace.Cosmos}
+\t\t\t\t<CosmosBlockView selection={select(EntityType.CosmosBlock, { $network: selector, height: BigInt(params.height) })} />
+\t\t\t{:else if network.namespace === NetworkNamespace.Solana}
+\t\t\t\t<SolanaBlockView selection={select(EntityType.SolanaBlock, { $network: selector, slot: BigInt(params.height) })} />
+\t\t\t{:else if network.namespace === NetworkNamespace.Polkadot}
+\t\t\t\t<PolkadotBlockView selection={select(EntityType.PolkadotBlock, { $network: selector, blockNumber: BigInt(params.height) })} />
+\t\t\t{:else}
+\t\t\t\t<p data-text="muted">Block detail not available for this network type yet.</p>
+\t\t\t{/if}
+\t\t{/snippet}
+\t</ResourceBoundary>
+</Page>
+`
+
+	if (shell.kind === 'network-slug-transactions')
+		return `<script lang="ts">
+\t// Types/constants
+\timport type { PageProps } from './$types'
+\timport { NetworkNamespace } from '$/constants/Network.ts'
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { Source } from '$/sources/Source.ts'
+
+
+\t// Context
+\timport { resolve } from '$app/paths'
+\timport { select } from '$/routes/+layout.svelte'
+\t// State
+\tlet {
+\t\tparams,
+\t}: PageProps = $props()
+
+\tconst network = $derived(select(EntityType.Network,
+\t\t{
+\t\t\tslug: params.networkSlug,
+\t\t},
+\t\t({ sources: [
+\t\t\t\tSource.Constants_Internal,
+\t\t\t], fields: { caip2: true, namespace: true, slug: true } }),
+\t))
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport ResourceBoundary from '$/components/ResourceBoundary.svelte'
+\timport HyperliquidTransactionsView from '$/views/HyperliquidTransactionsView.svelte'
+\timport SolanaTransactionsView from '$/views/SolanaTransactionsView.svelte'
+\timport UtxoTransactionsView from '$/views/UtxoTransactionsView.svelte'
+</script>
+
+
+<Page>
+\t<ResourceBoundary resource={network}>
+\t\t{#snippet children(network)}
+\t\t\t{@const selector = network.caip2 == null ?
+\t\t\t\t{ slug: params.networkSlug }
+\t\t\t:
+\t\t\t\t{ caip2: network.caip2 }}
+\t\t\t{@const href = resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/transactions', {
+\t\t\t\tnetworkSlug: params.networkSlug,
+\t\t\t})}
+\t\t\t{#if network.namespace === NetworkNamespace.Bitcoin || network.namespace === NetworkNamespace.BitcoinCash || network.namespace === NetworkNamespace.Litecoin || network.namespace === NetworkNamespace.Dogecoin || network.namespace === NetworkNamespace.Zcash}
+\t\t\t\t<UtxoTransactionsView
+\t\t\t\t\tselection={select(
+\t\t\t\t\t\tEntityType.UtxoNetwork,
+\t\t\t\t\t\t{ $network: selector }
+\t\t\t\t\t).$$transactions({
+\t\t\t\t\t\tlimit: 16,
+\t\t\t\t\t})}
+\t\t\t\t\t{href}
+\t\t\t\t\tid="transactions"
+\t\t\t\t/>
+\t\t\t{:else if network.namespace === NetworkNamespace.Solana && network.caip2 != null}
+\t\t\t\t<SolanaTransactionsView
+\t\t\t\t\tselection={select(
+\t\t\t\t\t\tEntityType.SolanaNetwork,
+\t\t\t\t\t\t{
+\t\t\t\t\t\t\tcaip2: {
+\t\t\t\t\t\t\t\tnamespace: 'solana',
+\t\t\t\t\t\t\t\treference: network.caip2.reference,
+\t\t\t\t\t\t\t},
+\t\t\t\t\t\t}
+\t\t\t\t\t).$$transactions({
+\t\t\t\t\t\tlimit: 16,
+\t\t\t\t\t})}
+\t\t\t\t\t{href}
+\t\t\t\t\tid="transactions"
+\t\t\t\t/>
+\t\t\t{:else if network.namespace === NetworkNamespace.Hyperliquid}
+\t\t\t\t<HyperliquidTransactionsView
+\t\t\t\t\tselection={select(
+\t\t\t\t\t\tEntityType.HyperliquidNetwork,
+\t\t\t\t\t\t{ $network: selector }
+\t\t\t\t\t).$$transactions({
+\t\t\t\t\t\tlimit: 16,
+\t\t\t\t\t})}
+\t\t\t\t\t{href}
+\t\t\t\t\tid="transactions"
+\t\t\t\t/>
+\t\t\t{:else}
+\t\t\t\t<p data-text="muted">This network does not expose a network-level transactions route yet.</p>
+\t\t\t{/if}
+\t\t{/snippet}
+\t</ResourceBoundary>
+</Page>
+`
+
+	if (shell.kind === 'network-slug-transaction-detail')
+		return `<script lang="ts">
+\timport type { PageProps } from './$types'
+\timport { NetworkNamespace } from '$/constants/Network.ts'
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { ZeroExHex } from '$/schema/ZeroExHex.ts'
+\timport { Source } from '$/sources/Source.ts'
+\timport { select } from '$/routes/+layout.svelte'
+\t// State
+\tlet {
+\t\tparams,
+\t}: PageProps = $props()
+
+\tconst network = $derived(select(EntityType.Network,
+\t\t{
+\t\t\tslug: params.networkSlug,
+\t\t},
+\t\t({ sources: [
+\t\t\t\tSource.Constants_Internal,
+\t\t\t], fields: { namespace: true } }),
+\t))
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport ResourceBoundary from '$/components/ResourceBoundary.svelte'
+\timport EvmTransactionView from '$/views/EvmTransactionView.svelte'
+\timport UtxoTransactionView from '$/views/UtxoTransactionView.svelte'
+</script>
+
+
+<Page>
+\t<ResourceBoundary resource={network}>
+\t\t{#snippet children(network)}
+\t\t\t{#if network.namespace === NetworkNamespace.Bitcoin || network.namespace === NetworkNamespace.BitcoinCash || network.namespace === NetworkNamespace.Litecoin || network.namespace === NetworkNamespace.Dogecoin || network.namespace === NetworkNamespace.Zcash}
+\t\t\t\t\t<UtxoTransactionView
+\t\t\t\t\t\tselection={select(EntityType.UtxoTransaction, {
+\t\t\t\t\t\t\t$network: { slug: params.networkSlug },
+\t\t\t\t\t\t\ttxId: params.txId,
+\t\t\t\t\t\t})}
+\t\t\t\t\t/>
+\t\t\t{:else if network.namespace === NetworkNamespace.ZeroG}
+\t\t\t\t<EvmTransactionView
+\t\t\t\t\tselection={select(EntityType.EvmTransaction, {
+\t\t\t\t\t\t$network: {
+\t\t\t\t\t\t\tcaip2: {
+\t\t\t\t\t\t\t\tnamespace: 'eip155',
+\t\t\t\t\t\t\t\treference: '16661',
+\t\t\t\t\t\t\t},
+\t\t\t\t\t\t},
+\t\t\t\t\t\ttxHash: ZeroExHex.assert(params.txId),
+\t\t\t\t\t})}
+\t\t\t\t/>
+\t\t\t{:else}
+\t\t\t\t<p data-text="muted">This network does not expose a transaction detail route yet.</p>
+\t\t\t{/if}
+\t\t{/snippet}
+\t</ResourceBoundary>
+</Page>
+`
+
+	if (shell.kind === 'eip155-network-upgrade-detail')
+		return `<script lang="ts">
+\timport { eip155NetworkSelectorFromCaip2 } from '$/lib/caip2.ts'
+\t// Types/constants
+\timport {
+\t\tethereumMainnetNetworkUpgradeSlugAliasBySegmentSlug,
+\t\tnetworkUpgrades,
+\t} from '$/constants/EthereumNetworkUpgrades.ts'
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { select } from '$/routes/+layout.svelte'
+
+\t// State
+\tlet {
+\t\tparams,
+\t} = $props()
+
+\timport { evmChainIdFromCaip2 } from '$/lib/caip.ts'
+
+\tconst chainId = $derived(evmChainIdFromCaip2(params.caip2))
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport NetworkUpgradeView from '$/views/EthereumNetworkUpgradeView.svelte'
+</script>
+
+
+<Page>
+\t<NetworkUpgradeView
+\t\tselection={select(EntityType.EthereumNetworkUpgrade, {
+\t\t\t$network: eip155NetworkSelectorFromCaip2(params.caip2),
+\t\t\tupgradeId: ((() => {
+\t\t\t\tconst segment = params.upgradeSlug
+\t\t\t\tconst direct = networkUpgrades.find((networkUpgrade) => {
+\t\t\t\t\tif (networkUpgrade.chainId !== chainId) return false
+\t\t\t\t\tconst slug = (
+\t\t\t\t\t\tnetworkUpgrade.slug.length > 0 ?
+\t\t\t\t\t\t\tnetworkUpgrade.slug
+\t\t\t\t\t\t:
+\t\t\t\t\t\t\tString(networkUpgrade.upgradeId).toLowerCase().replace(/\\s+/g, '-')
+\t\t\t\t\t)
+\t\t\t\t\tconst { upgradeId } = networkUpgrade
+\t\t\t\t\tconst segmentSlug = String(segment).toLowerCase().replace(/\\s+/g, '-')
+\t\t\t\t\tconst slugSegment = String(slug).toLowerCase().replace(/\\s+/g, '-')
+\t\t\t\t\tconst upgradeIdSegment = String(upgradeId).toLowerCase().replace(/\\s+/g, '-')
+\t\t\t\t\treturn (
+\t\t\t\t\t\tsegment === upgradeId
+\t\t\t\t\t\t|| segment === slug
+\t\t\t\t\t\t|| segment.toLowerCase() === upgradeId.toLowerCase()
+\t\t\t\t\t\t|| segment.toLowerCase() === slug.toLowerCase()
+\t\t\t\t\t\t|| segmentSlug === slugSegment
+\t\t\t\t\t\t|| segmentSlug === upgradeIdSegment
+\t\t\t\t\t)
+\t\t\t\t})?.upgradeId
+
+\t\t\t\tif (direct != null) {
+\t\t\t\t\treturn direct
+\t\t\t\t}
+
+\t\t\t\tif (
+\t\t\t\t\tchainId === 1
+\t\t\t\t\t|| chainId === 11_155_111
+\t\t\t\t\t|| chainId === 17_000
+\t\t\t\t) {
+\t\t\t\t\tconst aliasRow = ethereumMainnetNetworkUpgradeSlugAliasBySegmentSlug[
+\t\t\t\t\t\tString(segment).toLowerCase().replace(/\\s+/g, '-')
+\t\t\t\t\t]
+\t\t\t\t\tif (aliasRow != null) {
+\t\t\t\t\t\treturn (
+\t\t\t\t\t\t\tnetworkUpgrades.find((networkUpgrade) => (
+\t\t\t\t\t\t\t\tnetworkUpgrade.chainId === chainId
+\t\t\t\t\t\t\t\t&& networkUpgrade.upgradeId === aliasRow.umbrellaUpgradeId
+\t\t\t\t\t\t\t))
+\t\t\t\t\t\t\t?.upgradeId
+\t\t\t\t\t\t)
+\t\t\t\t\t}
+\t\t\t\t}
+
+\t\t\t\treturn undefined
+\t\t\t})() ?? params.upgradeSlug)
+\t\t})}
+\t/>
+</Page>
+`
+
+	if (shell.kind === 'network-slug-address-detail')
+		return `<script lang="ts">
+\t// Types/constants
+\timport type { PageProps } from './$types'
+\timport { NetworkNamespace } from '$/constants/Network.ts'
+\timport { with0xHex } from '$/lib/hexLowerOfByteSize.ts'
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { Source } from '$/sources/Source.ts'
+
+
+\t// Context
+\timport { select } from '$/routes/+layout.svelte'
+\t// State
+\tlet {
+\t\tparams,
+\t}: PageProps = $props()
+
+\tconst network = $derived(select(EntityType.Network,
+\t\t{ slug: params.networkSlug },
+\t\t({ sources: [Source.Constants_Internal], fields: { namespace: true, slug: true } }),
+\t))
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport ResourceBoundary from '$/components/ResourceBoundary.svelte'
+\timport TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+\timport UtxoAddressView from '$/views/UtxoAddressView.svelte'
+</script>
+
+
+<Page>
+\t<ResourceBoundary resource={network}>
+\t\t{#snippet children(network)}
+\t\t\t{@const selector = { slug: params.networkSlug }}
+\t\t\t{#if network.namespace === NetworkNamespace.Bitcoin || network.namespace === NetworkNamespace.BitcoinCash || network.namespace === NetworkNamespace.Litecoin || network.namespace === NetworkNamespace.Dogecoin || network.namespace === NetworkNamespace.Zcash}
+\t\t\t\t<UtxoAddressView
+\t\t\t\t\tselection={select(EntityType.UtxoAddress, { $network: selector, address: params.address })}
+\t\t\t\t/>
+\t\t\t{:else if network.namespace === NetworkNamespace.ZeroG}
+\t\t\t\t{@const account = select(EntityType.EvmNetworkAccount, {
+\t\t\t\t\t$network: {
+\t\t\t\t\t\tcaip2: {
+\t\t\t\t\t\t\tnamespace: 'eip155',
+\t\t\t\t\t\t\treference: '16661',
+\t\t\t\t\t\t},
+\t\t\t\t\t},
+\t\t\t\t\t$actor: { address: with0xHex(params.address) },
+\t\t\t\t}, {
+\t\t\t\t\tsources: [Source.ZeroGChain_JsonRpc],
+\t\t\t\t\tfields: { isContract: true },
+\t\t\t\t})}
+\t\t\t\t<section data-column>
+\t\t\t\t\t<h1>
+\t\t\t\t\t\t<TruncatedValue
+\t\t\t\t\t\t\tformat={TruncatedValueFormat.Visual}
+\t\t\t\t\t\t\tvalue={params.address}
+\t\t\t\t\t\t/>
+\t\t\t\t\t</h1>
+
+\t\t\t\t\t<dl data-column-item="center">
+\t\t\t\t\t\t<div>
+\t\t\t\t\t\t\t<dt>Network</dt>
+\t\t\t\t\t\t\t<dd>0G</dd>
+\t\t\t\t\t\t</div>
+
+\t\t\t\t\t\t<div>
+\t\t\t\t\t\t\t<dt>CAIP-2</dt>
+\t\t\t\t\t\t\t<dd>
+\t\t\t\t\t\t\t\t<code>eip155:16661</code>
+\t\t\t\t\t\t\t</dd>
+\t\t\t\t\t\t</div>
+
+\t\t\t\t\t\t<div>
+\t\t\t\t\t\t\t<dt>Contract</dt>
+\t\t\t\t\t\t\t<dd>
+\t\t\t\t\t\t\t\t<ResourceBoundary
+\t\t\t\t\t\t\t\t\tresource={account}
+\t\t\t\t\t\t\t\t\tplaceholderText="Loading network activity…"
+\t\t\t\t\t\t\t\t>
+\t\t\t\t\t\t\t\t\t{#snippet children(account)}
+\t\t\t\t\t\t\t\t\t\t{account.isContract ? 'Yes' : 'No'}
+\t\t\t\t\t\t\t\t\t{/snippet}
+\t\t\t\t\t\t\t\t</ResourceBoundary>
+\t\t\t\t\t\t\t</dd>
+\t\t\t\t\t\t</div>
+\t\t\t\t\t</dl>
+\t\t\t\t</section>
+\t\t\t{:else}
+\t\t\t\t<p data-text="muted">Address detail not available for this network type yet.</p>
+\t\t\t{/if}
+\t\t{/snippet}
+\t</ResourceBoundary>
+</Page>
+`
+
+	if (shell.kind === 'network-slug-node-detail')
+		return `<script lang="ts">
+\timport type { PageProps } from './$types'
+\timport { NetworkNamespace } from '$/constants/Network.ts'
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { EvmAddress } from '$/schema/ZeroExHex.ts'
+\timport { Source } from '$/sources/Source.ts'
+\timport { select } from '$/routes/+layout.svelte'
+\t// State
+\tlet {
+\t\tparams,
+\t}: PageProps = $props()
+
+\tconst network = $derived(select(EntityType.Network,
+\t\t{
+\t\t\tslug: params.networkSlug,
+\t\t},
+\t\t({ sources: [
+\t\t\t\tSource.Constants_Internal,
+\t\t\t], fields: { namespace: true } }),
+\t))
+
+
+\t// Components
+\timport Page from '$/components/Page.svelte'
+\timport ResourceBoundary from '$/components/ResourceBoundary.svelte'
+\timport LightningNodeView from '$/views/LightningNodeView.svelte'
+\timport ZeroGStorageNodeView from '$/views/ZeroGStorageNodeView.svelte'
+</script>
+
+
+<Page>
+\t<ResourceBoundary resource={network}>
+\t\t\t{#snippet children(network)}
+\t\t\t\t{#if network.namespace === NetworkNamespace.Lightning}
+\t\t\t\t\t<LightningNodeView
+\t\t\t\t\t\tselection={select(EntityType.LightningNode, {
+\t\t\t\t\t\t\t$network: { slug: params.networkSlug },
+\t\t\t\t\t\t\tpublicKey: params.pubkey,
+\t\t\t\t\t\t})}
+\t\t\t\t\t/>
+\t\t\t\t{:else if network.namespace === NetworkNamespace.ZeroG}
+\t\t\t\t\t<ZeroGStorageNodeView
+\t\t\t\t\t\tselection={select(EntityType.ZeroGStorageNode, {
+\t\t\t\t\t\t\t$network: { slug: params.networkSlug },
+\t\t\t\t\t\t\tnodeId: EvmAddress.assert(params.pubkey),
+\t\t\t\t\t\t})}
+\t\t\t\t\t/>
+\t\t\t{:else}
+\t\t\t\t<p data-text="muted">This network does not expose a node detail route yet.</p>
+\t\t\t{/if}
+\t\t{/snippet}
+\t</ResourceBoundary>
+</Page>
+`
 
 	if (shell.kind === 'custom') {
 		if (shell.sourceText === undefined)
@@ -2855,6 +7450,233 @@ ${selectorSource}
 `
 	}
 
+	if (shell.kind === 'atproto-actor-parent-collapsible')
+		return `<script lang="ts">
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { select } from '$/routes/+layout.svelte'
+\t// Context
+\timport { resolve } from '$app/paths'
+\timport { page } from '$app/state'
+
+
+\t// State
+\tlet { children } = $props()
+
+\tconst did = $derived(
+\t\tpage.params.did ?? '',
+\t)
+
+
+\t// Components
+\timport { EntityLayout } from '$/components/EntityView.svelte'
+\timport AtprotoActorView from '$/views/AtprotoActorView.svelte'
+\timport ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
+</script>
+
+
+<ParentPageCollapsible
+\thref={resolve('/(social)/(atproto)/atproto/actor/[did]', {
+\t\tdid: encodeURIComponent(did),
+\t})}
+\tid={did}
+>
+\t\t{#snippet Summary({ open: _open })}
+\t\t\t<AtprotoActorView
+\t\t\t\tselection={select(EntityType.AtprotoActor, decodeURIComponent(did).startsWith('did:') ?
+\t\t\t\t\t\t{ did: decodeURIComponent(did) }
+\t\t\t\t\t:
+\t\t\t\t\t\t{ handle: decodeURIComponent(did) })}
+\t\t\t\tlayout={EntityLayout.SummaryInline}
+\t\t\t/>
+\t{/snippet}
+
+\t{@render children()}
+</ParentPageCollapsible>
+`
+
+	if (shell.kind === 'lens-account-parent-collapsible')
+		return `<script lang="ts">
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { select } from '$/routes/+layout.svelte'
+\t// Context
+\timport { resolve } from '$app/paths'
+\timport { page } from '$app/state'
+
+
+\t// State
+\tlet { children } = $props()
+
+\tconst address = $derived(
+\t\tpage.params.address ?? '',
+\t)
+\tconst selector = $derived.by(() => {
+\t\tconst raw = decodeURIComponent(address)
+\t\tif (raw.startsWith('legacy:'))
+\t\t\treturn { legacyProfileId: raw.slice('legacy:'.length) }
+
+\t\tconst with0x = raw.startsWith('0x') ? raw : \`0x\${raw}\`
+\t\tconst parsedAddress = (
+\t\t\thexLowerOfByteSize(with0x, 20)
+\t\t\t?? (
+\t\t\t\t/^0x[a-fA-F0-9]{40}$/i.test(with0x) ?
+\t\t\t\t\thexLowerOfByteSize(\`0x\${with0x.slice(2).toLowerCase()}\`, 20)
+\t\t\t\t:
+\t\t\t\t\tundefined
+\t\t\t)
+\t\t)
+\t\treturn parsedAddress === undefined ?
+\t\t\t{ localName: raw.replace(/^@/, '') }
+\t\t:
+\t\t\t{ address: parsedAddress }
+\t})
+
+
+\t// Functions
+\timport { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
+
+
+\t// Components
+\timport { EntityLayout } from '$/components/EntityView.svelte'
+\timport LensAccountView from '$/views/LensAccountView.svelte'
+\timport ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
+</script>
+
+
+<ParentPageCollapsible
+\thref={resolve('/(social)/(lens)/lens/account/[address=evmAddress]', {
+\t\taddress: encodeURIComponent(address),
+\t})}
+\tid={address}
+>
+\t{#snippet Summary({ open: _open })}
+\t\t<LensAccountView
+\t\t\tselection={select(EntityType.LensAccount, selector)}
+\t\t\tlayout={EntityLayout.SummaryInline}
+\t\t/>
+\t{/snippet}
+
+\t{@render children()}
+</ParentPageCollapsible>
+`
+
+	if (shell.kind === 'eip155-network-upgrade-parent-collapsible')
+		return `<script lang="ts">
+\timport { eip155NetworkSelectorFromCaip2 } from '$/lib/caip2.ts'
+\t// Types/constants
+\timport {
+\t\tethereumMainnetNetworkUpgradeSlugAliasBySegmentSlug,
+\t\tnetworkUpgrades,
+\t} from '$/constants/EthereumNetworkUpgrades.ts'
+\timport { EntityType } from '$/schema/EntityType.ts'
+\timport { select } from '$/routes/+layout.svelte'
+
+\timport { stringify } from 'devalue'
+
+
+\t// Context
+\timport { resolve } from '$app/paths'
+
+
+\t// State
+\tlet {
+\t\tchildren,
+\t\tparams,
+\t} = $props()
+
+\timport { evmChainIdFromCaip2 } from '$/lib/caip.ts'
+
+\tconst chainId = $derived(evmChainIdFromCaip2(params.caip2))
+
+\tconst resolvedUpgradeId = $derived(
+\t\t(() => {
+\t\t\tconst segment = params.upgradeSlug
+\t\t\tconst direct = networkUpgrades.find((networkUpgrade) => {
+\t\t\t\tif (networkUpgrade.chainId !== chainId) return false
+\t\t\t\tconst slug = (
+\t\t\t\t\tnetworkUpgrade.slug.length > 0 ?
+\t\t\t\t\t\tnetworkUpgrade.slug
+\t\t\t\t\t:
+\t\t\t\t\t\tString(networkUpgrade.upgradeId).toLowerCase().replace(/\\s+/g, '-')
+\t\t\t\t)
+\t\t\t\tconst { upgradeId } = networkUpgrade
+\t\t\t\tconst segmentSlug = String(segment).toLowerCase().replace(/\\s+/g, '-')
+\t\t\t\tconst slugSegment = String(slug).toLowerCase().replace(/\\s+/g, '-')
+\t\t\t\tconst upgradeIdSegment = String(upgradeId).toLowerCase().replace(/\\s+/g, '-')
+\t\t\t\treturn (
+\t\t\t\t\tsegment === upgradeId
+\t\t\t\t\t|| segment === slug
+\t\t\t\t\t|| segment.toLowerCase() === upgradeId.toLowerCase()
+\t\t\t\t\t|| segment.toLowerCase() === slug.toLowerCase()
+\t\t\t\t\t|| segmentSlug === slugSegment
+\t\t\t\t\t|| segmentSlug === upgradeIdSegment
+\t\t\t\t)
+\t\t\t})?.upgradeId
+
+\t\t\tif (direct != null) {
+\t\t\t\treturn direct
+\t\t\t}
+
+\t\t\tif (
+\t\t\t\tchainId === 1
+\t\t\t\t|| chainId === 11_155_111
+\t\t\t\t|| chainId === 17_000
+\t\t\t) {
+\t\t\t\tconst aliasRow = ethereumMainnetNetworkUpgradeSlugAliasBySegmentSlug[
+\t\t\t\t\tString(segment).toLowerCase().replace(/\\s+/g, '-')
+\t\t\t\t]
+\t\t\t\tif (aliasRow != null) {
+\t\t\t\t\treturn (
+\t\t\t\t\t\tnetworkUpgrades.find((networkUpgrade) => (
+\t\t\t\t\t\t\tnetworkUpgrade.chainId === chainId
+\t\t\t\t\t\t\t&& networkUpgrade.upgradeId === aliasRow.umbrellaUpgradeId
+\t\t\t\t\t\t))
+\t\t\t\t\t\t?.upgradeId
+\t\t\t\t\t)
+\t\t\t\t}
+\t\t\t}
+
+\t\t\treturn undefined
+\t\t})() ?? params.upgradeSlug,
+\t)
+
+
+\t// Components
+\timport ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
+\timport NetworkUpgradeView from '$/views/EthereumNetworkUpgradeView.svelte'
+
+
+\t// Components
+\timport { EntityLayout } from '$/components/EntityView.svelte'
+</script>
+
+
+<ParentPageCollapsible
+\thref={resolve(
+\t\t\t'/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/upgrade/[upgradeSlug]',
+\t\t{
+\t\t\tcaip2: params.caip2,
+\t\t\tupgradeSlug: params.upgradeSlug,
+\t\t},
+\t)}
+\tid={stringify({
+\t\t$network: eip155NetworkSelectorFromCaip2(params.caip2),
+\t\tupgradeId: resolvedUpgradeId,
+\t})}
+>
+\t{#snippet Summary({ open: _open })}
+\t\t<NetworkUpgradeView
+\t\t\tselection={select(EntityType.EthereumNetworkUpgrade, {
+\t\t\t\t$network: eip155NetworkSelectorFromCaip2(params.caip2),
+\t\t\t\tupgradeId: resolvedUpgradeId,
+\t\t\t})}
+\t\t\tlayout={EntityLayout.SummaryInline}
+\t\t/>
+\t{/snippet}
+
+\t{@render children()}
+</ParentPageCollapsible>
+`
+
 	if (shell.kind === 'scope-summary-collapsible') {
 		if (
 			shell.viewComponent === undefined
@@ -3158,7 +7980,7 @@ export const generateExpected = async () => {
 		if (entity === undefined)
 			throw new Error(`Missing schema entity for view shell ${shell.entity}`)
 
-		writeText(`.generated/expected/${shell.file}`, shell.sourceText ?? generatedEntityViewShellSource(entity))
+		writeText(`.generated/expected/${shell.file}`, shell.sourceText ?? generatedEntityViewShellSource(entity, shell))
 	}
 	writeText('.generated/expected/src/sources/sources.json', json(app.sources))
 	writeText('.generated/expected/src/resolvers/resolvers.json', json(app.resolvers))

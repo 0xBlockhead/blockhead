@@ -9,34 +9,99 @@
 
 	// State
 	const view = {
-		closed: [
-			'classHash',
-		],
-		content: {
-			dl: [
-				[
-					'classHash',
-					'sierraProgramHash',
-					'casmClassHash',
-					'abiHash',
-					'contractClassVersion',
-					'declaredAtBlockNumber',
-					'declaredByTransactionHash',
-				],
-			],
+	closed: [
+		{
+			label: 'class hash',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'class version',
+		},
+		{
+			label: 'declared block',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'contracts',
-					when: 'open',
-					items: [
-						'$$contracts',
-					],
+					label: 'network',
+				},
+				{
+					label: 'class hash',
+				},
+				{
+					label: 'class version',
+				},
+				{
+					label: 'Sierra program hash',
+				},
+				{
+					label: 'CASM class hash',
+				},
+				{
+					label: 'ABI hash',
+				},
+				{
+					label: 'declared block',
+				},
+				{
+					label: 'declared transaction',
+				},
+				{
+					label: 'contract count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Contracts',
+				items: [
+					{
+						label: 'contracts using this class',
+					},
+				],
+			},
+			{
+				label: 'Declaration',
+				items: [
+					{
+						label: 'declare transaction',
+					},
+				],
+			},
+			{
+				label: 'Class payload',
+				items: [
+					{
+						label: 'ABI',
+					},
+					{
+						label: 'Sierra/CASM hashes',
+					},
+					{
+						label: 'raw contract class',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'starknet_getClass',
+					},
+					{
+						label: 'starknet_getClassAt',
+					},
+					{
+						label: 'declare transaction payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

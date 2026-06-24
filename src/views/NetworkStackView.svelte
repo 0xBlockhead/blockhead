@@ -9,18 +9,43 @@
 
 	// State
 	const view = {
-		closed: [
-			'networkStackId',
-		],
-		content: {
-			dl: [
-				[
-					'networkStackId',
-					'label',
-				],
-			],
+	closed: [
+		{
+			label: 'stack id',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'label',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'stack id',
+				},
+				'label',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Networks',
+				items: [
+					{
+						label: 'Network rows classified with this stack',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'checked-in stack catalog',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

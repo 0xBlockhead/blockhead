@@ -9,30 +9,73 @@
 
 	// State
 	const view = {
-		closed: [
-			'signerKey',
-			'signerType',
-		],
-		content: {
-			dl: [
-				[
-					'signerKey',
-					'signerType',
-				],
-			],
+	closed: [
+		{
+			label: 'account',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'signer key',
+		},
+		{
+			label: 'signer type',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'account',
+				},
+				{
+					label: 'signer key',
+				},
+				{
+					label: 'signer type',
+				},
+				{
+					label: 'latest weight/sponsor observation',
+				},
+				{
+					label: 'latest ledger state',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Signer snapshots',
+				items: [
+					{
+						label: 'timestamped signer weight/sponsor observations',
+					},
+				],
+			},
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'parent Stellar account',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Horizon account signers array',
+					},
+					{
+						label: 'RPC AccountEntry ledger data',
+					},
+					{
+						label: 'indexer account history',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,29 +9,80 @@
 
 	// State
 	const view = {
-		closed: [
-			'host',
-		],
-		content: {
-			dl: [
-				[
-					'host',
-					'url',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'relay host',
+		},
+		{
+			label: 'URL',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'network',
+				},
+				{
+					label: 'relay host',
+				},
+				{
+					label: 'URL',
+				},
+				{
+					label: 'latest fetchability/sample summary',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Delivered payloads',
+				items: [
+					{
+						label: 'delivered-payload rows scoped by relay host',
+					},
+				],
+			},
+			{
+				label: 'Builders',
+				items: [
+					{
+						label: 'builders observed through this relay',
+					},
+				],
+			},
+			{
+				label: 'Relay observations',
+				items: [
+					{
+						label: 'timestamped relay reachability/sample observations',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent EVM network MEV-Boost section',
+					},
+				],
+			},
+			{
+				label: 'Catalog',
+				items: [
+					{
+						label: 'configured relay host/origin mapping',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

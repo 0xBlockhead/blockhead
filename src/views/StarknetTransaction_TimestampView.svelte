@@ -9,26 +9,91 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'blockNumber',
-					'finalityStatus',
-					'executionStatus',
-					'actualFee',
-					'revertReason',
-					'messagesSent',
-					'eventsCount',
-				],
-			],
+	closed: [
+		{
+			label: 'transaction',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		{
+			label: 'status',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'transaction',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'block number',
+				},
+				{
+					label: 'finality status',
+				},
+				{
+					label: 'execution status',
+				},
+				{
+					label: 'actual fee',
+				},
+				{
+					label: 'revert reason',
+				},
+				{
+					label: 'message count',
+				},
+				{
+					label: 'event count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transaction',
+				items: [
+					{
+						label: 'parent Starknet transaction',
+					},
+				],
+			},
+			{
+				label: 'Events',
+				items: [
+					{
+						label: 'event rows from this receipt',
+					},
+				],
+			},
+			{
+				label: 'Messages',
+				items: [
+					{
+						label: 'L1/L2 message payloads when decoded',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'starknet_getTransactionReceipt',
+					},
+					{
+						label: 'indexer transaction payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

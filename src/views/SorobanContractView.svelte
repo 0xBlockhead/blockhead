@@ -9,42 +9,91 @@
 
 	// State
 	const view = {
-		closed: [
-			'contractId',
+	closed: [
+		{
+			label: 'contract id',
+		},
+		{
+			label: 'latest executable observation',
+		},
+		{
+			label: 'storage/transaction windows',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'contract id',
+				},
+				{
+					label: 'latest wasm-hash/WASM observation',
+				},
+				{
+					label: 'latest storage-entry count',
+				},
+				{
+					label: 'transaction window count',
+				},
+				{
+					label: 'network',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'contractId',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest executable',
+				items: [
+					{
+						label: 'latest ledger/source executable observation',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'storage entries',
-					when: 'open',
-					items: [
-						'$$storageEntries',
-					],
-				},
-				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Executable history',
+				items: [
+					{
+						label: 'ledger/source executable observations',
+					},
+				],
+			},
+			{
+				label: 'Storage',
+				items: [
+					{
+						label: 'contract storage entries',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'Stellar transactions touching this contract',
+					},
+				],
+			},
+			{
+				label: 'Code',
+				items: [
+					{
+						label: 'linked Soroban WASM code details',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Stellar network',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

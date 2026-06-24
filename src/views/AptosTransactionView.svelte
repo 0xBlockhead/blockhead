@@ -9,45 +9,90 @@
 
 	// State
 	const view = {
-		closed: [
-			'version',
+	closed: [
+		{
+			label: 'version/hash',
+		},
+		{
+			label: 'kind',
+		},
+		'sender',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'version/hash',
+				},
+				{
+					label: 'kind',
+				},
+				'sender',
+				{
+					label: 'latest success/vm status',
+				},
+				{
+					label: 'latest gas',
+				},
+				{
+					label: 'latest timestamp',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'version',
-					'hash',
-					'transactionKind',
-					'sender',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest result',
+				items: [
+					{
+						label: 'latest ledger-version/source transaction observation',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'state changes',
-					when: 'open',
-					items: [
-						'$$stateChanges',
-					],
-				},
-				{
-					label: 'events',
-					when: 'open',
-					items: [
-						'$$events',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Result history',
+				items: [
+					{
+						label: 'transaction result observations',
+					},
+				],
+			},
+			{
+				label: 'State changes',
+				items: [
+					{
+						label: 'state changes emitted by this transaction',
+					},
+				],
+			},
+			{
+				label: 'Events',
+				items: [
+					{
+						label: 'events emitted by this transaction',
+					},
+				],
+			},
+			{
+				label: 'Payload',
+				items: [
+					{
+						label: 'entry function/script payload JSON',
+					},
+				],
+			},
+			{
+				label: 'Lookup evidence',
+				items: [
+					{
+						label: 'fullnode/indexer version or hash lookup',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

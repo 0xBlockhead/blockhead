@@ -9,22 +9,68 @@
 
 	// State
 	const view = {
-		closed: [
-			'sequence',
-		],
-		content: {
-			dl: [
-				[
-					'sequence',
-					'eventKind',
-					'timestampMs',
-					'state',
-					'final',
-					'payload',
-				],
-			],
+	closed: [
+		{
+			label: 'task',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'sequence',
+		{
+			label: 'kind',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'task',
+				},
+				'sequence',
+				{
+					label: 'kind',
+				},
+				{
+					label: 'timestamp',
+				},
+			],
+			[
+				'state',
+				'final',
+				{
+					label: 'artifact',
+				},
+				'payload',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Task',
+				items: [
+					{
+						label: 'A2aTask',
+					},
+				],
+			},
+			{
+				label: 'Artifact',
+				items: [
+					{
+						label: 'A2aArtifact when present',
+					},
+				],
+			},
+			{
+				label: 'Payload',
+				items: [
+					{
+						label: 'raw event payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

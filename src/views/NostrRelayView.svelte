@@ -9,35 +9,72 @@
 
 	// State
 	const view = {
-		closed: [
-			'relayUrl',
-		],
-		content: {
-			dl: [
-				[
-					'relayUrl',
-					'name',
-					'description',
-					'software',
-					'version',
-					'supportedNipCount',
-					'isPaid',
-					'limit',
-				],
-			],
+	closed: [
+		{
+			label: 'relay URL',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'latest relay snapshot',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'relay URL',
 				},
+				{
+					label: 'latest relay snapshot',
+				},
+				'name',
+				{
+					label: 'software/version',
+				},
+				{
+					label: 'supported NIP count',
+				},
+				{
+					label: 'paid flag',
+				},
+				'limit',
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Snapshots',
+				items: [
+					{
+						label: 'timestamped relay metadata/activity observations',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'seed',
+					},
+					{
+						label: 'NIP-11 HTTP document',
+					},
+					{
+						label: 'NostrBand relay-list payload',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'NostrNetwork browse context',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

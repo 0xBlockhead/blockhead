@@ -9,31 +9,87 @@
 
 	// State
 	const view = {
-		closed: [
-			'blockNumber',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'blockNumber',
-					'source',
-					'totalAssets',
-					'totalSupply',
-					'assetsPerShare',
-					'sharesPerAsset',
-					'maxDepositAssets',
-					'maxMintShares',
-					'maxWithdrawAssets',
-					'maxRedeemShares',
-					'previewDepositShares',
-					'previewMintAssets',
-					'previewWithdrawShares',
-					'previewRedeemAssets',
-				],
-			],
+	closed: [
+		{
+			label: 'vault',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'block number',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'vault',
+				},
+				{
+					label: 'block number',
+				},
+				'source',
+				{
+					label: 'total assets',
+				},
+				{
+					label: 'total supply',
+				},
+				{
+					label: 'assets per share',
+				},
+				{
+					label: 'shares per asset',
+				},
+				{
+					label: 'deposit/mint/withdraw/redeem limits',
+				},
+				{
+					label: 'preview outputs',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Vault',
+				items: [
+					{
+						label: 'parent ERC-4626 vault',
+					},
+				],
+			},
+			{
+				label: 'Contract calls',
+				items: [
+					{
+						label: 'method names',
+					},
+					{
+						label: 'arguments',
+					},
+					{
+						label: 'return values',
+					},
+					{
+						label: 'RPC block tag',
+					},
+				],
+			},
+			{
+				label: 'Asset/share context',
+				items: [
+					{
+						label: 'linked token instances',
+					},
+					{
+						label: 'raw-unit display',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

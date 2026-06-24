@@ -9,26 +9,83 @@
 
 	// State
 	const view = {
-		closed: [
-			'slot',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'slot',
-					'source',
-					'timestampMs',
-					'activatedStakeLamports',
-					'commission',
-					'delinquent',
-					'lastVoteSlot',
-					'rootSlot',
-					'epochCredits',
-				],
-			],
+	closed: [
+		{
+			label: 'validator',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'slot',
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'validator',
+				},
+				'slot',
+				'source',
+				{
+					label: 'timestamp',
+				},
+				{
+					label: 'activated stake',
+				},
+				'commission',
+				{
+					label: 'delinquent flag',
+				},
+				{
+					label: 'last vote slot',
+				},
+				{
+					label: 'root slot',
+				},
+				{
+					label: 'epoch-credit summary',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Validator',
+				items: [
+					{
+						label: 'parent Solana validator',
+					},
+				],
+			},
+			{
+				label: 'Vote account',
+				items: [
+					{
+						label: 'validator vote account',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Solana network',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'getVoteAccounts current/delinquent payload',
+					},
+					{
+						label: 'commitment',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

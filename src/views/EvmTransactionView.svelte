@@ -9,77 +9,310 @@
 
 	// State
 	const view = {
-		closed: [
-			'txHash',
+	route: {
+		href: '/network/[caip2]/tx/[txHash]',
+	},
+	query: {
+		sources: [
+			'Blockscout_Rest',
+			'Voltaire_JsonRpc',
 		],
-		content: {
-			dl: [
-				[
-					'txHash',
-					'envelopeType',
-					'kind',
-					'value',
-					'nonce',
-					'transactionIndex',
-					'gas',
-					'gasPrice',
-					'gasUsed',
-					'cumulativeGasUsed',
-					'effectiveGasPrice',
-					'maxFeePerGas',
-					'maxPriorityFeePerGas',
-					'maxFeePerBlobGas',
-					'blobGasUsed',
-					'input',
-					'r',
-					's',
-					'v',
-					'executionStatus',
+		fields: [
+			'kind',
+			'value',
+			'executionStatus',
+			'gasUsed',
+			'$block',
+			'$from',
+			'$to',
+			'$contract',
+		],
+		openFields: [
+			'nonce',
+			'transactionIndex',
+			'gas',
+			'gasPrice',
+			'envelopeType',
+			'maxFeePerGas',
+			'maxPriorityFeePerGas',
+			'effectiveGasPrice',
+			'input',
+			'r',
+			's',
+			'v',
+			'blobGasUsed',
+			'maxFeePerBlobGas',
+			'traceRoot',
+			'traceUnavailable',
+			'$$blobs',
+			'$$logs',
+			'$$internalTransfers',
+			'$$tokenTransfers',
+			'$$userOperations',
+		],
+		policies: [
+			{
+				when: {
+					selectorPath: 'reference',
+					equals: '16661',
+				},
+				sources: [
+					'ZeroGChain_JsonRpc',
+				],
+			},
+		],
+	},
+	panels: [
+		{
+			id: 'decode',
+			label: 'Decode',
+			kind: 'decode',
+			slot: 'TransactionDecodePanel',
+		},
+		{
+			id: 'trace',
+			label: 'Trace',
+			kind: 'tree',
+			defer: 'open',
+			slot: 'TracePanel',
+		},
+	],
+	decodes: [
+		{
+			field: 'input',
+			kind: 'transactionInput',
+			slot: 'EvmTransactionInputDecode',
+		},
+		{
+			field: 'traceRoot',
+			kind: 'trace',
+			slot: 'EvmTraceTree',
+		},
+	],
+	renderers: [
+		{
+			slot: 'EvmTransactionInputDecode',
+			component: 'EvmTransactionInputDecode',
+			label: 'transaction input decode renderer',
+			for: 'decode',
+		},
+		{
+			slot: 'EvmTraceTree',
+			component: 'EvmTraceTreeView',
+			label: 'trace tree renderer',
+			for: 'decode',
+		},
+	],
+	summary: {
+		value: {
+			field: 'txHash',
+			format: 'truncated',
+		},
+		title: [
+			{
+				label: 'Transaction',
+			},
+			{
+				field: 'txHash',
+				format: 'truncated',
+			},
+		],
+	},
+	closed: [
+		'kind',
+		{
+			field: 'value',
+			format: 'numberValue',
+		},
+		'executionStatus',
+		{
+			field: 'gasUsed',
+			format: 'numberValue',
+		},
+		{
+			field: '$block',
+			referenceDisplay: 'card',
+		},
+		'$from',
+		'$to',
+		{
+			field: '$contract',
+			referenceDisplay: 'card',
+		},
+	],
+	content: {
+		dl: [
+			[
+				'kind',
+				{
+					field: 'value',
+					format: 'numberValue',
+				},
+				'executionStatus',
+				{
+					field: '$block',
+					referenceDisplay: 'card',
+				},
+				'$from',
+				'$to',
+				{
+					field: '$contract',
+					referenceDisplay: 'card',
+				},
+			],
+			[
+				{
+					field: 'gasUsed',
+					format: 'numberValue',
+				},
+				{
+					field: 'gas',
+					label: 'Gas limit',
+					format: 'numberValue',
+					when: 'open',
+				},
+				{
+					field: 'gasPrice',
+					format: 'numberValue',
+					when: 'open',
+				},
+				{
+					field: 'effectiveGasPrice',
+					format: 'numberValue',
+					when: 'open',
+				},
+				{
+					field: 'maxFeePerGas',
+					format: 'numberValue',
+					prefix: 'max ',
+					when: 'open',
+				},
+				{
+					field: 'maxPriorityFeePerGas',
+					format: 'numberValue',
+					prefix: 'priority ',
+					when: 'open',
+				},
+				{
+					field: 'envelopeType',
+					label: 'Transaction envelope type',
+					when: 'open',
+				},
+			],
+			[
+				{
+					field: 'nonce',
+					when: 'open',
+				},
+				{
+					field: 'transactionIndex',
+					label: 'Position in block',
+					when: 'open',
+				},
+			],
+			[
+				{
+					field: 'input',
+					format: 'truncated',
+					when: 'open',
+				},
+				{
+					field: 'r',
+					format: 'truncated',
+					prefix: 'r ',
+					when: 'open',
+				},
+				{
+					field: 's',
+					format: 'truncated',
+					prefix: 's ',
+					when: 'open',
+				},
+				{
+					field: 'v',
+					prefix: 'v ',
+					when: 'open',
+				},
+				{
+					field: 'blobGasUsed',
+					format: 'numberValue',
+					when: 'open',
+				},
+				{
+					field: 'maxFeePerBlobGas',
+					format: 'numberValue',
+					when: 'open',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Movements',
+				items: [
+					{
+						field: '$$tokenTransfers',
+						listDisplay: 'selectorKey',
+					},
+					{
+						field: '$$internalTransfers',
+						listDisplay: 'selectorKey',
+					},
+				],
+			},
+			{
+				label: 'Call',
+				items: [
+					{
+						field: 'input',
+						format: 'truncated',
+					},
+					{
+						field: 'traceRoot',
+						format: 'json',
+					},
+				],
+			},
+			{
+				label: 'Events',
+				items: [
+					{
+						field: '$$logs',
+						listDisplay: 'selectorKey',
+					},
+				],
+			},
+			{
+				label: 'Trace',
+				items: [
 					'traceRoot',
 					'traceUnavailable',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'blobs',
-					when: 'open',
-					items: [
-						'$$blobs',
-					],
-				},
-				{
-					label: 'logs',
-					when: 'open',
-					items: [
-						'$$logs',
-					],
-				},
-				{
-					label: 'internal transfers',
-					when: 'open',
-					items: [
-						'$$internalTransfers',
-					],
-				},
-				{
-					label: 'token transfers',
-					when: 'open',
-					items: [
-						'$$tokenTransfers',
-					],
-				},
-				{
-					label: 'user operations',
-					when: 'open',
-					items: [
-						'$$userOperations',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Blobs',
+				items: [
+					{
+						field: '$$blobs',
+						listDisplay: 'selectorKey',
+						ifNonEmpty: true,
+					},
+				],
+			},
+			{
+				label: 'User operations',
+				items: [
+					{
+						field: '$$userOperations',
+						listDisplay: 'selectorKey',
+						ifNonEmpty: true,
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,15 +9,43 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
+	closed: [
+		'$hub',
+		'timestampMs',
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				'$hub',
+				'timestampMs',
+				'source',
+			],
+			[
+				'sourceWindowActorCount',
+				'sourceWindowPostCount',
+				'sourceWindowRepoCommitCount',
+				'localCatalogActorCount',
+				'localCatalogPostCount',
+				'firehoseCursor',
+				'repoRev',
+				'pdsHost',
+				'relayHost',
+				'reachable',
+			],
 		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Hub',
+				items: [
+					'$hub',
+				],
+			},
+			{
+				label: 'Observation fields',
+				items: [
 					'sourceWindowActorCount',
 					'sourceWindowPostCount',
 					'sourceWindowRepoCommitCount',
@@ -29,9 +57,27 @@
 					'relayHost',
 					'reachable',
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'SourceBinding.Atproto_BskySocial_Xrpc',
+					},
+					{
+						label: 'SourceBinding.Atproto_Xrpc',
+					},
+					{
+						label: 'SourceBinding.AtprotoSync_Xrpc',
+					},
+					{
+						label: 'SourceBinding.Constants_Internal',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

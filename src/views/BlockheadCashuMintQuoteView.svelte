@@ -9,33 +9,98 @@
 
 	// State
 	const view = {
-		closed: [
-			'method',
-			'quoteId',
-		],
-		content: {
-			dl: [
-				[
-					'method',
-					'quoteId',
-					'request',
-					'unit',
-					'amount',
-				],
-			],
+	closed: [
+		{
+			label: 'mint',
 		},
-		details: {
-			tabs: [
+		'method',
+		{
+			label: 'quote id',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'mint',
+				},
+				'method',
+				{
+					label: 'quote id',
+				},
+				{
+					label: 'payment request',
+				},
+				'unit',
+				'amount',
+				{
+					label: 'latest observed state',
+				},
+				{
+					label: 'latest expiry',
+				},
+				{
+					label: 'wallet state',
+				},
+				{
+					label: 'timestamp count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest state',
+				items: [
+					{
+						label: 'BlockheadCashuMintQuote_TimestampView',
+					},
+				],
+			},
+			{
+				label: 'State history',
+				items: [
+					{
+						label: 'BlockheadCashuMintQuote_TimestampsView',
+					},
+				],
+			},
+			{
+				label: 'Mint',
+				items: [
+					{
+						label: 'CashuMintView',
+					},
+				],
+			},
+			{
+				label: 'Payment request',
+				items: [
+					{
+						label: 'BOLT11/BOLT12/onchain request text',
+					},
+				],
+			},
+			{
+				label: 'Wallet',
+				items: [
+					{
+						label: 'BlockheadCashuWalletStateView',
+					},
+				],
+			},
+			{
+				label: 'Outputs',
+				items: [
+					{
+						label: 'local blinded-message/signature summary only in trusted local contexts',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

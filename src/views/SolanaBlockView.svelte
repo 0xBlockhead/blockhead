@@ -9,34 +9,86 @@
 
 	// State
 	const view = {
-		closed: [
-			'slot',
-		],
-		content: {
-			dl: [
-				[
-					'slot',
-					'blockHeight',
-					'blockHash',
-					'previousBlockHash',
-					'parentSlot',
-					'timestampMs',
-					'transactionCount',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		'slot',
+		{
+			label: 'block height',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
+					label: 'network',
+				},
+				'slot',
+				{
+					label: 'block height',
+				},
+				{
+					label: 'block hash',
+				},
+				{
+					label: 'previous block hash',
+				},
+				{
+					label: 'parent slot/block',
+				},
+				{
+					label: 'timestamp',
+				},
+				{
+					label: 'transaction count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'transactions in this block',
+					},
+				],
+			},
+			{
+				label: 'Parent',
+				items: [
+					{
+						label: 'parent Solana block',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Solana network',
+					},
+				],
+			},
+			{
+				label: 'Lookup evidence',
+				items: [
+					{
+						label: 'getBlock slot lookup',
+					},
+					{
+						label: 'getBlocks slot range',
+					},
+					{
+						label: 'indexer block payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

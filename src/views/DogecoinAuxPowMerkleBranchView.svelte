@@ -9,19 +9,54 @@
 
 	// State
 	const view = {
-		closed: [
-			'branchKind',
-		],
-		content: {
-			dl: [
-				[
-					'branchKind',
-					'branchHashes',
-					'index',
-				],
-			],
+	closed: [
+		{
+			label: 'AuxPoW ref',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'branch kind',
+		},
+		{
+			label: 'branch hash count',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'AuxPoW ref',
+				},
+				{
+					label: 'branch kind',
+				},
+				{
+					label: 'branch hash count',
+				},
+				'index',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Hashes',
+				items: [
+					{
+						label: 'ordered branch hash list',
+					},
+				],
+			},
+			{
+				label: 'AuxPoW',
+				items: [
+					{
+						label: 'parent Dogecoin AuxPoW proof',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

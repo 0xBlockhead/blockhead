@@ -9,73 +9,116 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[],
-			],
+	closed: [
+		{
+			label: 'linked Network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'latest checkpoint/epoch/protocol version snapshot',
+		},
+		{
+			label: 'execution environment',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'linked Network',
 				},
 				{
-					label: 'checkpoints',
-					when: 'open',
-					items: [
-						'$$checkpoints',
-					],
+					label: 'latest checkpoint/epoch/protocol version snapshot',
 				},
 				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
+					label: 'execution environment',
 				},
 				{
-					label: 'accounts',
-					when: 'open',
-					items: [
-						'$$accounts',
-					],
+					label: 'account count',
 				},
 				{
-					label: 'objects',
-					when: 'open',
-					items: [
-						'$$objects',
-					],
+					label: 'object count',
 				},
 				{
-					label: 'packages',
-					when: 'open',
-					items: [
-						'$$packages',
-					],
+					label: 'package count',
 				},
 				{
-					label: 'coin types',
-					when: 'open',
-					items: [
-						'$$coinTypes',
-					],
+					label: 'coin type count',
 				},
 				{
-					label: 'coin balance timestamps',
-					when: 'open',
-					items: [
-						'$$coinBalanceTimestamps',
-					],
+					label: 'transaction count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Checkpoints',
+				items: [
+					{
+						label: 'Sui checkpoint rows',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'Sui transaction rows',
+					},
+				],
+			},
+			{
+				label: 'Accounts',
+				items: [
+					{
+						label: 'Sui account rows',
+					},
+				],
+			},
+			{
+				label: 'Objects',
+				items: [
+					{
+						label: 'Sui object rows',
+					},
+				],
+			},
+			{
+				label: 'Packages',
+				items: [
+					{
+						label: 'Sui package rows',
+					},
+				],
+			},
+			{
+				label: 'Coin types',
+				items: [
+					{
+						label: 'Sui coin type rows',
+					},
+				],
+			},
+			{
+				label: 'Balances',
+				items: [
+					{
+						label: 'coin balance observations',
+					},
+				],
+			},
+			{
+				label: 'Network snapshots',
+				items: [
+					{
+						label: 'timestamped network observations',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

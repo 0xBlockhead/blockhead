@@ -9,47 +9,81 @@
 
 	// State
 	const view = {
-		closed: [
-			'channelId',
+	closed: [
+		{
+			label: 'channel id',
+		},
+		{
+			label: 'latest title',
+		},
+		{
+			label: 'latest description',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'channel id',
+				},
+				{
+					label: 'published date',
+				},
+				{
+					label: 'latest title',
+				},
+				{
+					label: 'latest description',
+				},
+				{
+					label: 'latest custom URL',
+				},
+				{
+					label: 'latest icon media',
+				},
+				{
+					label: 'latest subscriber/video/view snapshot',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'channelId',
-					'publishedAt',
-					'publishedAtMs',
-					'title',
-					'description',
-					'customUrl',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest metadata',
+				items: [
+					{
+						label: 'latest channel metadata observation',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'videos',
-					when: 'open',
-					items: [
-						'$$videos',
-					],
-				},
-				{
-					label: 'playlists',
-					when: 'open',
-					items: [
-						'$$playlists',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Videos',
+				items: [
+					{
+						label: 'channel videos',
+					},
+				],
+			},
+			{
+				label: 'Playlists',
+				items: [
+					{
+						label: 'channel playlists',
+					},
+				],
+			},
+			{
+				label: 'Metric snapshots',
+				items: [
+					{
+						label: 'channel metric observations',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

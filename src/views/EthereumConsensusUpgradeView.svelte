@@ -9,39 +9,74 @@
 
 	// State
 	const view = {
-		closed: [
-			'upgradeId',
-		],
-		content: {
-			dl: [
-				[
-					'upgradeId',
-					'name',
-					'slug',
-					'activationBlock',
-					'activationTimestampMs',
-					'activationEpoch',
-					'previousForkVersion',
-					'currentForkVersion',
-					'protocol',
-					'linkEthereumOrg',
-					'linkConsensusDocs',
-					'linkForkcast',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		'name',
+		'slug',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'proposals',
-					when: 'open',
-					items: [
-						'$$proposals',
-					],
+					label: 'network',
+				},
+				'name',
+				'slug',
+				'protocol',
+				{
+					label: 'activation block/timestamp/epoch',
+				},
+				{
+					label: 'previous/current fork versions',
+				},
+				{
+					label: 'proposal count',
+				},
+				{
+					label: 'links',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Fork versions',
+				items: [
+					{
+						label: 'Beacon REST evidence',
+					},
+				],
+			},
+			{
+				label: 'Network upgrade',
+				items: [
+					{
+						label: 'joined execution/consensus network-upgrade row when linked',
+					},
+				],
+			},
+			{
+				label: 'Proposals',
+				items: [
+					{
+						label: 'linked specification proposal rows',
+					},
+				],
+			},
+			{
+				label: 'References',
+				items: [
+					{
+						label: 'catalog URLs only',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

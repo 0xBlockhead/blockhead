@@ -9,43 +9,94 @@
 
 	// State
 	const view = {
-		closed: [
-			'transactionIndex',
+	closed: [
+		{
+			label: 'MWEB block',
+		},
+		{
+			label: 'transaction index',
+		},
+		{
+			label: 'kernel offset',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'MWEB block',
+				},
+				{
+					label: 'transaction index',
+				},
+				{
+					label: 'kernel offset',
+				},
+				{
+					label: 'output count',
+				},
+				{
+					label: 'peg-in count',
+				},
+				{
+					label: 'peg-out count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'transactionIndex',
-					'kernelOffset',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Outputs',
+				items: [
+					{
+						label: 'MWEB public output rows',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'outputs',
-					when: 'open',
-					items: [
-						'$$outputs',
-					],
-				},
-				{
-					label: 'peg ins',
-					when: 'open',
-					items: [
-						'$$pegIns',
-					],
-				},
-				{
-					label: 'peg outs',
-					when: 'open',
-					items: [
-						'$$pegOuts',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Peg-ins',
+				items: [
+					{
+						label: 'MWEB peg-in rows',
+					},
+				],
+			},
+			{
+				label: 'Peg-outs',
+				items: [
+					{
+						label: 'MWEB peg-out rows',
+					},
+				],
+			},
+			{
+				label: 'Block',
+				items: [
+					{
+						label: 'parent MWEB block',
+					},
+				],
+			},
+			{
+				label: 'Wallet matches',
+				items: [
+					{
+						label: 'BlockheadLitecoinMwebOutputState rows for locally recognized outputs',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Litecoin Core MWEB transaction payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

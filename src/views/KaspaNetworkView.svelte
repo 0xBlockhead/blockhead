@@ -9,59 +9,100 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[],
-			],
+	closed: [
+		{
+			label: 'linked base Network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'latest virtual selected parent',
+		},
+		{
+			label: 'pruning point',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'blocks',
-					when: 'open',
-					items: [
-						'$$blocks',
-					],
+					label: 'linked base Network',
 				},
 				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
+					label: 'latest virtual selected parent',
 				},
 				{
-					label: 'accepted transactions',
-					when: 'open',
-					items: [
-						'$$acceptedTransactions',
-					],
+					label: 'pruning point',
 				},
 				{
-					label: 'addresses',
-					when: 'open',
-					items: [
-						'$$addresses',
-					],
+					label: 'virtual DAA score',
 				},
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'virtual blue score',
 				},
 				{
-					label: 'virtual chain timestamps',
-					when: 'open',
-					items: [
-						'$$virtualChainTimestamps',
-					],
+					label: 'indexed transaction count',
+				},
+				{
+					label: 'UTXO-index availability',
+				},
+				{
+					label: 'server version',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Blocks',
+				items: [
+					{
+						label: 'Kaspa block rows',
+					},
+				],
+			},
+			{
+				label: 'Accepted transactions',
+				items: [
+					{
+						label: 'accepted transaction rows',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'Kaspa transaction rows',
+					},
+				],
+			},
+			{
+				label: 'Addresses',
+				items: [
+					{
+						label: 'Kaspa address rows',
+					},
+				],
+			},
+			{
+				label: 'Virtual-chain history',
+				items: [
+					{
+						label: 'timestamped virtual-chain movement observations',
+					},
+				],
+			},
+			{
+				label: 'Network timestamp history',
+				items: [
+					{
+						label: 'timestamped DAG head/indexer/node observations',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

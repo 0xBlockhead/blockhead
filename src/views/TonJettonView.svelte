@@ -9,42 +9,91 @@
 
 	// State
 	const view = {
-		closed: [
-			'masterAddress',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'master address',
+		},
+		{
+			label: 'master account',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'master address',
+				},
+				{
+					label: 'master account',
+				},
+				{
+					label: 'latest metadata/supply/admin observation',
+				},
+				{
+					label: 'holder/balance/transfer windows',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'masterAddress',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Master account',
+				items: [
+					{
+						label: 'linked master account',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'balance timestamps',
-					when: 'open',
-					items: [
-						'$$balanceTimestamps',
-					],
-				},
-				{
-					label: 'transfers',
-					when: 'open',
-					items: [
-						'$$transfers',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Latest state',
+				items: [
+					{
+						label: 'latest jetton master observation',
+					},
+				],
+			},
+			{
+				label: 'History',
+				items: [
+					{
+						label: 'jetton master observation history',
+					},
+				],
+			},
+			{
+				label: 'Balances',
+				items: [
+					{
+						label: 'holder balance snapshots grouped by holder',
+					},
+				],
+			},
+			{
+				label: 'Transfers',
+				items: [
+					{
+						label: 'decoded jetton transfer effects',
+					},
+				],
+			},
+			{
+				label: 'Contract',
+				items: [
+					{
+						label: 'contract classification when interface detection resolves',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

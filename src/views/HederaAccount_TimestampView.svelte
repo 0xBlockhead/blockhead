@@ -9,32 +9,109 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'alias',
-					'evmAddress',
-					'key',
-					'receiverSigRequired',
-					'memo',
-					'balanceTinybar',
-					'deleted',
-					'autoRenewPeriodSeconds',
-					'expiryTimestamp',
-					'stakedNodeId',
-					'stakedAccountId',
-					'declineReward',
-					'pendingRewardTinybar',
-				],
-			],
+	closed: [
+		{
+			label: 'account',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observed time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'account',
+				},
+				{
+					label: 'observed time',
+				},
+				'source',
+				'alias',
+				{
+					label: 'EVM address',
+				},
+				{
+					label: 'key presence',
+				},
+				{
+					label: 'receiver signature requirement',
+				},
+				'memo',
+				{
+					label: 'balance',
+				},
+				{
+					label: 'deleted flag',
+				},
+				{
+					label: 'staking target',
+				},
+				{
+					label: 'pending reward',
+				},
+				{
+					label: 'auto-renew period',
+				},
+				{
+					label: 'expiry',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'parent Hedera account',
+					},
+				],
+			},
+			{
+				label: 'Staking',
+				items: [
+					{
+						label: 'staked node/account',
+					},
+					{
+						label: 'decline reward',
+					},
+					{
+						label: 'pending reward',
+					},
+				],
+			},
+			{
+				label: 'Authorization/profile',
+				items: [
+					'key',
+					'alias',
+					{
+						label: 'EVM address',
+					},
+					'memo',
+					{
+						label: 'receiver signature setting',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'freshness',
+					},
+					{
+						label: 'raw account payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,34 +9,103 @@
 
 	// State
 	const view = {
-		closed: [
-			'priceFeedId',
-			'channel',
-		],
-		content: {
-			dl: [
-				[
-					'priceFeedId',
-					'channel',
-					'symbol',
-					'assetClass',
-					'baseAsset',
-					'quoteAsset',
-				],
-			],
+	closed: [
+		{
+			label: 'price feed id',
 		},
-		details: {
-			tabs: [
+		'symbol',
+		{
+			label: 'mapped market',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'price feed id',
+				},
+				'channel',
+				'symbol',
+				{
+					label: 'asset class',
+				},
+				{
+					label: 'base asset',
+				},
+				{
+					label: 'quote asset',
+				},
+				{
+					label: 'mapped market',
+				},
+				{
+					label: 'latest price publish time',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			[
+				{
+					label: 'latest price/conf/exponent',
+				},
+				{
+					label: 'latest EMA price/conf',
+				},
+				{
+					label: 'source/provider coverage',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest price',
+				items: [
+					{
+						label: 'latest price-feed observation by publishTimeMs',
+					},
+				],
+			},
+			{
+				label: 'Price history',
+				items: [
+					{
+						label: 'timestamped price observations from Hermes/Benchmarks/on-chain reads',
+					},
+				],
+			},
+			{
+				label: 'Market mapping',
+				items: [
+					{
+						label: 'mapped market when curated',
+					},
+				],
+			},
+			{
+				label: 'Update payloads',
+				items: [
+					{
+						label: 'Hermes binary price update payload hashes/VAAs when captured',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Hermes feed catalog',
+					},
+					{
+						label: 'price service response',
+					},
+					{
+						label: 'Pyth contract/program read context',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

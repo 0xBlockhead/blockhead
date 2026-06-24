@@ -9,77 +9,110 @@
 
 	// State
 	const view = {
-		closed: [
-			'hash',
+	closed: [
+		'hash',
+		{
+			label: 'block slot',
+		},
+		'fee',
+	],
+	content: {
+		dl: [
+			[
+				'hash',
+				{
+					label: 'block slot',
+				},
+				'fee',
+				'deposit',
+				{
+					label: 'size',
+				},
+				{
+					label: 'validity interval',
+				},
+				{
+					label: 'input count',
+				},
+				{
+					label: 'output count',
+				},
+				{
+					label: 'certificate count',
+				},
+				{
+					label: 'script witness count',
+				},
+				{
+					label: 'governance proposal count',
+				},
+				{
+					label: 'vote count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'hash',
-					'blockSlot',
-					'fee',
-					'deposit',
-					'sizeBytes',
-					'validityStartSlot',
-					'ttlSlot',
-					'metadata',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Inputs',
+				items: [
+					{
+						label: 'transaction input rows',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'inputs',
-					when: 'open',
-					items: [
-						'$$inputs',
-					],
-				},
-				{
-					label: 'outputs',
-					when: 'open',
-					items: [
-						'$$outputs',
-					],
-				},
-				{
-					label: 'certificates',
-					when: 'open',
-					items: [
-						'$$certificates',
-					],
-				},
-				{
-					label: 'scripts',
-					when: 'open',
-					items: [
-						'$$scripts',
-					],
-				},
-				{
-					label: 'governance proposals',
-					when: 'open',
-					items: [
-						'$$governanceProposals',
-					],
-				},
-				{
-					label: 'governance votes',
-					when: 'open',
-					items: [
-						'$$governanceVotes',
-					],
-				},
-				{
-					label: 'assets',
-					when: 'open',
-					items: [
-						'$$assets',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Outputs',
+				items: [
+					{
+						label: 'transaction output rows',
+					},
+				],
+			},
+			{
+				label: 'Certificates',
+				items: [
+					{
+						label: 'transaction-carried certificate effects',
+					},
+				],
+			},
+			{
+				label: 'Script witnesses',
+				items: [
+					{
+						label: 'transaction-scoped script witnesses',
+					},
+				],
+			},
+			{
+				label: 'Governance',
+				items: [
+					{
+						label: 'governance proposals and votes carried by the transaction',
+					},
+				],
+			},
+			{
+				label: 'Native assets',
+				items: [
+					{
+						label: 'native assets referenced by input/output bundles',
+					},
+				],
+			},
+			{
+				label: 'Metadata',
+				items: [
+					{
+						label: 'structured transaction metadata/status',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

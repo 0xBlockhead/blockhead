@@ -9,28 +9,81 @@
 
 	// State
 	const view = {
-		closed: [
-			'hex',
-		],
-		content: {
-			dl: [
-				[
-					'hex',
-				],
-			],
+	actions: [
+		{
+			id: 'copy-topic',
+			label: 'Copy topic',
+			kind: 'copy',
+			field: 'hex',
 		},
-		details: {
-			tabs: [
+	],
+	transforms: [
+		{
+			id: 'topic-hash',
+			label: 'Topic hash',
+			field: 'hex',
+			kind: 'hash',
+			slot: 'TopicHashEncodings',
+		},
+	],
+	closed: [
+		{
+			label: 'topic hash',
+		},
+		{
+			label: 'latest candidate signature',
+		},
+		{
+			label: 'candidate count',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'topic hash',
+				},
+				{
+					label: 'latest candidate signature',
+				},
+				{
+					label: 'latest source',
+				},
+				{
+					label: 'candidate count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Catalog observations',
+				items: [
+					{
+						label: 'timestamped candidate-signature lookups',
+					},
+				],
+			},
+			{
+				label: 'Log context',
+				items: [
+					{
+						label: 'EvmLog rows that use this topic',
+					},
+				],
+			},
+			{
+				label: 'ABI context',
+				items: [
+					{
+						label: 'verified emitter ABI requirement before authoritative decode',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

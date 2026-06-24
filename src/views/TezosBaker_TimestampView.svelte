@@ -9,26 +9,82 @@
 
 	// State
 	const view = {
-		closed: [
-			'level',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'level',
-					'source',
-					'timestampMs',
-					'consensusKey',
-					'stakingBalanceMutez',
-					'delegatedBalanceMutez',
-					'ownDelegatedBalanceMutez',
-					'votingPower',
-					'active',
-				],
-			],
+	closed: [
+		{
+			label: 'baker',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'level',
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'baker',
+				},
+				'level',
+				'source',
+				{
+					label: 'consensus key',
+				},
+				{
+					label: 'staking balance',
+				},
+				{
+					label: 'delegated balance',
+				},
+				{
+					label: 'own delegated balance',
+				},
+				{
+					label: 'voting power',
+				},
+				{
+					label: 'active status',
+				},
+				{
+					label: 'timestamp',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Baker',
+				items: [
+					{
+						label: 'parent Tezos baker',
+					},
+				],
+			},
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'underlying Tezos account',
+					},
+				],
+			},
+			{
+				label: 'Stake',
+				items: [
+					{
+						label: 'staking/delegated/voting-power values',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'delegate/account payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

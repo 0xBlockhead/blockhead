@@ -9,45 +9,94 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[],
-			],
+	closed: [
+		{
+			label: 'linked Network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'latest block',
+		},
+		{
+			label: 'latest app/submission counts',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'linked Network',
 				},
 				{
-					label: 'blocks',
-					when: 'open',
-					items: [
-						'$$blocks',
-					],
+					label: 'latest block number/hash',
 				},
 				{
-					label: 'app ids',
-					when: 'open',
-					items: [
-						'$$appIds',
-					],
+					label: 'latest health/finality',
 				},
 				{
-					label: 'data submissions',
-					when: 'open',
-					items: [
-						'$$dataSubmissions',
-					],
+					label: 'app id count',
+				},
+				{
+					label: 'data submission count',
+				},
+				{
+					label: 'source coverage',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest status',
+				items: [
+					{
+						label: 'latest head/finality/indexer observation',
+					},
+				],
+			},
+			{
+				label: 'Blocks',
+				items: [
+					{
+						label: 'Avail block rows',
+					},
+				],
+			},
+			{
+				label: 'App ids',
+				items: [
+					{
+						label: 'DA app id rows',
+					},
+				],
+			},
+			{
+				label: 'Data submissions',
+				items: [
+					{
+						label: 'DA data submission rows',
+					},
+				],
+			},
+			{
+				label: 'Scaling usage',
+				items: [
+					{
+						label: 'scaling deployment claims whose DA network/selector points at Avail',
+					},
+				],
+			},
+			{
+				label: 'Substrate base',
+				items: [
+					{
+						label: 'Substrate/Polkadot rows when runtime/account rows are sourced',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

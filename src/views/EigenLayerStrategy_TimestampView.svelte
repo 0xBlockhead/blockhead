@@ -9,24 +9,90 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'blockNumber',
-					'totalShares',
-					'totalUnderlying',
-					'stakerCount',
-					'delegationCount',
-				],
-			],
+	closed: [
+		{
+			label: 'strategy',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		{
+			label: 'total shares',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'strategy',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'block number',
+				},
+				{
+					label: 'total shares',
+				},
+				{
+					label: 'total underlying',
+				},
+			],
+			[
+				{
+					label: 'staker count',
+				},
+				{
+					label: 'delegation count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Strategy',
+				items: [
+					{
+						label: 'parent EigenLayer strategy',
+					},
+				],
+			},
+			{
+				label: 'Delegations',
+				items: [
+					{
+						label: 'delegation observations near the same source/block',
+					},
+				],
+			},
+			{
+				label: 'Allocations',
+				items: [
+					{
+						label: 'allocation observations near the same source/block',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'StrategyManager reads',
+					},
+					{
+						label: 'subgraph/indexer aggregate payload',
+					},
+					{
+						label: 'block context',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

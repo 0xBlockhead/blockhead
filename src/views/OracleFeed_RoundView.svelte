@@ -9,24 +9,85 @@
 
 	// State
 	const view = {
-		closed: [
-			'roundId',
-		],
-		content: {
-			dl: [
-				[
-					'roundId',
-					'answer',
-					'startedAtMs',
-					'updatedAtMs',
-					'answeredInRound',
-					'blockNumber',
-					'transactionHash',
-					'logIndex',
-				],
-			],
+	closed: [
+		{
+			label: 'oracle feed',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'round id',
+		},
+		'answer',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'oracle feed',
+				},
+				{
+					label: 'round id',
+				},
+				'answer',
+				'startedAtMs',
+				'updatedAtMs',
+				'answeredInRound',
+				{
+					label: 'network',
+				},
+			],
+			[
+				{
+					label: 'block number',
+				},
+				{
+					label: 'transaction hash',
+				},
+				{
+					label: 'log index',
+				},
+				{
+					label: 'parent feed market mapping',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Feed',
+				items: [
+					{
+						label: 'parent oracle feed',
+					},
+				],
+			},
+			{
+				label: 'On-chain provenance',
+				items: [
+					{
+						label: 'AnswerUpdated/NewRound logs or explorer coordinates',
+					},
+				],
+			},
+			{
+				label: 'Contract read',
+				items: [
+					{
+						label: 'getRoundData roundId/answer/startedAt/updatedAt/answeredInRound',
+					},
+				],
+			},
+			{
+				label: 'Market context',
+				items: [
+					{
+						label: 'parent feed market mapping',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

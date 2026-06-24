@@ -9,32 +9,111 @@
 
 	// State
 	const view = {
-		closed: [
-			'targetKey',
-			'rightKey',
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'targetKey',
-					'rightKey',
-					'timestampMs',
-					'source',
-					'sourceKind',
-					'receiverSelector',
-					'basisPoints',
-					'calculationKind',
-					'salePriceDenominationPolicy',
-					'enforcementKind',
-					'ledgerCoordinateKind',
-					'ledgerCoordinateValue',
-					'contractAddress',
-				],
-			],
+	closed: [
+		{
+			label: 'target key',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'right key',
+		},
+		{
+			label: 'observation time',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'target key',
+				},
+				{
+					label: 'right key',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'source kind',
+				},
+				{
+					label: 'collection',
+				},
+				{
+					label: 'token',
+				},
+			],
+			[
+				{
+					label: 'receiver selector',
+				},
+				{
+					label: 'basis points',
+				},
+				{
+					label: 'calculation kind',
+				},
+				{
+					label: 'sale-price denomination policy',
+				},
+				{
+					label: 'enforcement kind',
+				},
+				{
+					label: 'ledger coordinate',
+				},
+				{
+					label: 'contract address',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Collection/token',
+				items: [
+					{
+						label: 'NFT collection or token',
+					},
+				],
+			},
+			{
+				label: 'Receiver',
+				items: [
+					{
+						label: 'account/EVM account when resolved',
+					},
+				],
+			},
+			{
+				label: 'Format support',
+				items: [
+					{
+						label: 'asset format support observation for ERC-2981/interface evidence',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'royaltyInfo call',
+					},
+					{
+						label: 'marketplace claim',
+					},
+					{
+						label: 'metadata claim',
+					},
+					{
+						label: 'or registry payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,15 +9,57 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[
-					'amount',
-				],
-			],
+	closed: [
+		{
+			label: 'output',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'category',
+		},
+		'amount',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'output',
+				},
+				{
+					label: 'category',
+				},
+				'amount',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Output',
+				items: [
+					{
+						label: 'parent UTXO output',
+					},
+				],
+			},
+			{
+				label: 'Category',
+				items: [
+					{
+						label: 'parent CashToken category',
+					},
+				],
+			},
+			{
+				label: 'Transaction',
+				items: [
+					{
+						label: 'parent UTXO transaction through the output',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

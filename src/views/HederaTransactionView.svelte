@@ -9,51 +9,106 @@
 
 	// State
 	const view = {
-		closed: [
-			'consensusTimestamp',
+	closed: [
+		{
+			label: 'type',
+		},
+		'result',
+		{
+			label: 'consensus timestamp',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'type',
+				},
+				'result',
+				{
+					label: 'consensus timestamp',
+				},
+				{
+					label: 'transaction id',
+				},
+				'nonce',
+				{
+					label: 'payer',
+				},
+				{
+					label: 'node account',
+				},
+				{
+					label: 'fee',
+				},
+				{
+					label: 'scheduled flag',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'consensusTimestamp',
-					'transactionId',
-					'nonce',
-					'transactionType',
-					'payerAccount',
-					'result',
-					'chargedTxFeeTinybar',
-					'validStartTimestamp',
-					'nodeAccountId',
-					'scheduled',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'HBAR transfers',
+				items: [
+					{
+						label: 'HBAR transfer effects',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'hbar transfers',
-					when: 'open',
-					items: [
-						'$$hbarTransfers',
-					],
-				},
-				{
-					label: 'token transfers',
-					when: 'open',
-					items: [
-						'$$tokenTransfers',
-					],
-				},
-				{
-					label: 'contract results',
-					when: 'open',
-					items: [
-						'$$contractResults',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Token transfers',
+				items: [
+					{
+						label: 'HTS token/NFT transfer effects',
+					},
+				],
+			},
+			{
+				label: 'Contract result/actions/logs',
+				items: [
+					{
+						label: 'contract execution result',
+					},
+					{
+						label: 'actions',
+					},
+					{
+						label: 'logs',
+					},
+				],
+			},
+			{
+				label: 'Schedule',
+				items: [
+					{
+						label: 'linked schedule when present',
+					},
+				],
+			},
+			{
+				label: 'Child/duplicate records',
+				items: [
+					{
+						label: 'child',
+					},
+					{
+						label: 'duplicate transaction list',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'raw transaction record',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

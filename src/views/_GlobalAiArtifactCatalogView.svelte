@@ -9,44 +9,78 @@
 
 	// State
 	const view = {
-		closed: [
-			'catalogId',
+	closed: [
+		{
+			label: 'catalog id',
+		},
+		{
+			label: 'catalog kind',
+		},
+		{
+			label: 'latest artifact/document coverage',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'catalog id',
+				},
+				'label',
+				{
+					label: 'catalog kind',
+				},
+				{
+					label: 'latest observation',
+				},
+			],
+			[
+				{
+					label: 'artifact refs',
+				},
+				{
+					label: 'document refs',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'catalogId',
-					'label',
-					'catalogKind',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Artifacts',
+				items: [
+					{
+						label: 'AiArtifact list',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'artifacts',
-					when: 'open',
-					items: [
-						'$$artifacts',
-					],
-				},
-				{
-					label: 'documents',
-					when: 'open',
-					items: [
-						'$$documents',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Documents',
+				items: [
+					{
+						label: 'AiDocument list',
+					},
+				],
+			},
+			{
+				label: 'Claims',
+				items: [
+					{
+						label: 'AiDocumentClaim and AiRelationshipClaim lists',
+					},
+				],
+			},
+			{
+				label: 'Observations',
+				items: [
+					{
+						label: '_GlobalAiArtifactCatalog_Timestamp list',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

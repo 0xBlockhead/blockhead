@@ -9,61 +9,81 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[
-					'standard',
+	closed: [
+		{
+			label: 'asset instance',
+		},
+		'standard',
+		{
+			label: 'latest profile state',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'asset instance',
+				},
+				'standard',
+				{
+					label: 'latest RegulatedAssetProfile_Timestamp registry/control state',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'State observations',
+				items: [
+					{
+						label: 'RegulatedAssetProfile_Timestamp list',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'issuer powers',
-					when: 'open',
-					items: [
-						'$$issuerPowers',
-					],
-				},
-				{
-					label: 'claim requirements',
-					when: 'open',
-					items: [
-						'$$claimRequirements',
-					],
-				},
-				{
-					label: 'trusted issuers',
-					when: 'open',
-					items: [
-						'$$trustedIssuers',
-					],
-				},
-				{
-					label: 'compliance modules',
-					when: 'open',
-					items: [
-						'$$complianceModules',
-					],
-				},
-				{
-					label: 'restrictions',
-					when: 'open',
-					items: [
-						'$$restrictions',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Claim requirements',
+				items: [
+					{
+						label: 'ClaimTopicRequirement list',
+					},
+				],
+			},
+			{
+				label: 'Trusted issuers',
+				items: [
+					{
+						label: 'TrustedIssuer list',
+					},
+				],
+			},
+			{
+				label: 'Compliance modules',
+				items: [
+					{
+						label: 'ComplianceModule list',
+					},
+				],
+			},
+			{
+				label: 'Issuer powers',
+				items: [
+					{
+						label: 'IssuerPower list',
+					},
+				],
+			},
+			{
+				label: 'Restrictions',
+				items: [
+					{
+						label: 'TransferRestriction list',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

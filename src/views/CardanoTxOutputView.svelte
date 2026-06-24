@@ -9,35 +9,76 @@
 
 	// State
 	const view = {
-		closed: [
-			'outputIndex',
-		],
-		content: {
-			dl: [
-				[
-					'outputIndex',
-					'address',
-					'lovelace',
-					'datumHash',
-					'inlineDatum',
-					'referenceScriptHash',
-					'spentByTxHash',
-					'spentByInputIndex',
-				],
-			],
+	closed: [
+		{
+			label: 'output index',
 		},
-		details: {
-			tabs: [
+		'address',
+		'lovelace',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'assets',
-					when: 'open',
-					items: [
-						'$$assets',
-					],
+					label: 'output index',
+				},
+				'address',
+				'lovelace',
+				{
+					label: 'datum hash/inline datum presence',
+				},
+				{
+					label: 'reference script hash',
+				},
+				{
+					label: 'spent transaction hash/input index',
+				},
+				{
+					label: 'asset count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Assets',
+				items: [
+					{
+						label: 'multi-asset output amounts',
+					},
+				],
+			},
+			{
+				label: 'Datum/script',
+				items: [
+					{
+						label: 'structured datum',
+					},
+					{
+						label: 'reference script panels',
+					},
+				],
+			},
+			{
+				label: 'Address',
+				items: [
+					{
+						label: 'linked Cardano address',
+					},
+				],
+			},
+			{
+				label: 'Spending transaction',
+				items: [
+					{
+						label: 'spending Cardano transaction when spentByTxHash resolves',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

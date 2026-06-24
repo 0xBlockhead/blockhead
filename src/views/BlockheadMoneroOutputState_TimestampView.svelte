@@ -9,24 +9,86 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'spent',
-					'unlocked',
-					'confirmations',
-					'exportHeight',
-					'lastCheckedAt',
-				],
-			],
+	closed: [
+		{
+			label: 'output state',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'output state',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'spent state',
+				},
+				{
+					label: 'unlocked state',
+				},
+				'confirmations',
+				{
+					label: 'export height',
+				},
+				{
+					label: 'last checked time',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Output state',
+				items: [
+					{
+						label: 'BlockheadMoneroOutputStateView',
+					},
+				],
+			},
+			{
+				label: 'Public output',
+				items: [
+					{
+						label: 'MoneroStealthOutputView when resolved',
+					},
+				],
+			},
+			{
+				label: 'Subaddress',
+				items: [
+					{
+						label: 'BlockheadMoneroSubaddressStateView',
+					},
+				],
+			},
+			{
+				label: 'Transfer',
+				items: [
+					{
+						label: 'BlockheadMoneroTransferState rows for the tx',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'monero-wallet-rpc transfer/output/key-image payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

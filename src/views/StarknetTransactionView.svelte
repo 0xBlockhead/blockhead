@@ -9,43 +9,94 @@
 
 	// State
 	const view = {
-		closed: [
-			'transactionHash',
+	closed: [
+		{
+			label: 'transaction hash',
+		},
+		{
+			label: 'kind',
+		},
+		{
+			label: 'latest status',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'transaction hash',
+				},
+				{
+					label: 'kind',
+				},
+				{
+					label: 'block',
+				},
+				{
+					label: 'sender',
+				},
+				'nonce',
+				'version',
+				{
+					label: 'fee/resource bounds',
+				},
+				{
+					label: 'calldata count',
+				},
+				{
+					label: 'signature count',
+				},
+				{
+					label: 'latest status/fee',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'transactionHash',
-					'transactionKind',
-					'senderAddress',
-					'nonce',
-					'version',
-					'maxFee',
-					'resourceBounds',
-					'calldata',
-					'signature',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Execution observations',
+				items: [
+					{
+						label: 'timestamped receipt/status observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'events',
-					when: 'open',
-					items: [
-						'$$events',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Events',
+				items: [
+					{
+						label: 'transaction event rows',
+					},
+				],
+			},
+			{
+				label: 'Sender',
+				items: [
+					{
+						label: 'sender Starknet contract',
+					},
+				],
+			},
+			{
+				label: 'Block',
+				items: [
+					{
+						label: 'parent Starknet block',
+					},
+				],
+			},
+			{
+				label: 'Payload',
+				items: [
+					{
+						label: 'calldata/signature/resource bounds',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

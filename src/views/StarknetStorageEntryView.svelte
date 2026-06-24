@@ -9,28 +9,64 @@
 
 	// State
 	const view = {
-		closed: [
-			'storageKey',
-		],
-		content: {
-			dl: [
-				[
-					'storageKey',
-				],
-			],
+	closed: [
+		{
+			label: 'contract',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'storage key',
+		},
+		{
+			label: 'value observation summary',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'contract',
+				},
+				{
+					label: 'storage key',
+				},
+				{
+					label: 'latest block/source value observation',
+				},
+				{
+					label: 'timestamp count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Value history',
+				items: [
+					{
+						label: 'block-coordinate storage value observations',
+					},
+				],
+			},
+			{
+				label: 'Contract',
+				items: [
+					{
+						label: 'parent Starknet contract',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'starknet_getStorageAt block id/value',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,33 +9,86 @@
 
 	// State
 	const view = {
-		closed: [
-			'pegTransactionId',
-			'direction',
-		],
-		content: {
-			dl: [
-				[
-					'pegTransactionId',
-					'direction',
-					'amountSats',
-					'claimScript',
-					'pakProof',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		'direction',
+		{
+			label: 'peg transaction id',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'network',
+				},
+				'direction',
+				{
+					label: 'peg transaction id',
+				},
+				{
+					label: 'Bitcoin transaction',
+				},
+				{
+					label: 'Elements transaction',
+				},
+				{
+					label: 'amount',
+				},
+				{
+					label: 'latest status',
+				},
+				{
+					label: 'claim script',
+				},
+				{
+					label: 'PAK proof',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Bitcoin side',
+				items: [
+					{
+						label: 'Bitcoin-side UTXO transaction',
+					},
+				],
+			},
+			{
+				label: 'Elements side',
+				items: [
+					{
+						label: 'Elements-side UTXO transaction',
+					},
+				],
+			},
+			{
+				label: 'Status observations',
+				items: [
+					{
+						label: 'timestamped peg status observations',
+					},
+				],
+			},
+			{
+				label: 'Proof',
+				items: [
+					{
+						label: 'claim script',
+					},
+					{
+						label: 'PAK proof evidence',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

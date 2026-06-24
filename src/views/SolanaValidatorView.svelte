@@ -9,29 +9,88 @@
 
 	// State
 	const view = {
-		closed: [
-			'votePubkey',
-		],
-		content: {
-			dl: [
-				[
-					'votePubkey',
-					'nodePubkey',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'vote pubkey',
+		},
+		{
+			label: 'node pubkey',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'network',
+				},
+				{
+					label: 'vote pubkey',
+				},
+				{
+					label: 'node pubkey',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			[
+				{
+					label: 'latest stake/commission/delinquency snapshot',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Validator observations',
+				items: [
+					{
+						label: 'slot/source validator vote-account observations',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Solana network',
+					},
+				],
+			},
+			{
+				label: 'Vote account',
+				items: [
+					{
+						label: 'Solana account when resolved',
+					},
+				],
+			},
+			{
+				label: 'Stake/status',
+				items: [
+					{
+						label: 'activated stake',
+					},
+					{
+						label: 'commission',
+					},
+					{
+						label: 'delinquency',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'getVoteAccounts current/delinquent payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

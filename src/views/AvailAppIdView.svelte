@@ -9,37 +9,77 @@
 
 	// State
 	const view = {
-		closed: [
-			'appId',
+	closed: [
+		{
+			label: 'app id',
+		},
+		'label',
+		{
+			label: 'latest submission count',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'app id',
+				},
+				'label',
+				{
+					label: 'owner selector',
+				},
+				{
+					label: 'latest data submission count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'appId',
-					'label',
-					'ownerSelector',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Data submissions',
+				items: [
+					{
+						label: 'data submissions filtered by app id',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'data submissions',
-					when: 'open',
-					items: [
-						'$$dataSubmissions',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Observations',
+				items: [
+					{
+						label: 'timestamped app-id observations',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Avail network',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'app-id registry/indexer payload',
+					},
+					{
+						label: 'extrinsic app-id evidence',
+					},
+					{
+						label: 'configured app labels',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

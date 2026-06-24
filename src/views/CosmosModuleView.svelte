@@ -9,17 +9,61 @@
 
 	// State
 	const view = {
-		closed: [
-			'moduleName',
-		],
-		content: {
-			dl: [
-				[
-					'moduleName',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'module name',
+		},
+		{
+			label: 'authority account',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'module name',
+				},
+				{
+					label: 'authority account',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Authority',
+				items: [
+					{
+						label: 'authority Cosmos account',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Cosmos network',
+					},
+				],
+			},
+			{
+				label: 'Module data',
+				items: [
+					{
+						label: 'module-specific params/state rows when a resolver exposes them',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

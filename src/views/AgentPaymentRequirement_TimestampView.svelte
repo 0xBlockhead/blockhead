@@ -9,45 +9,104 @@
 
 	// State
 	const view = {
-		closed: [
-			'subjectKind',
-			'subjectSelector',
-			'paymentProtocol',
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'subjectKind',
-					'subjectSelector',
-					'paymentProtocol',
-					'timestampMs',
-					'source',
-					'required',
-					'httpStatus',
-					'requestMethod',
-					'resourceUrl',
-					'paymentRequiredHeader',
-					'paymentSignatureHeader',
-					'paymentResponseHeader',
-					'paymentRequirements',
-					'paymentPayload',
-					'paymentResponsePayload',
-					'facilitatorUrl',
-					'scheme',
-					'assetSelector',
-					'networkSelector',
-					'price',
-					'payTo',
-					'maxAmountRequired',
-					'maxTimeoutSeconds',
-					'evidenceUri',
-					'error',
-				],
-			],
+	closed: [
+		{
+			label: 'subject',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'payment protocol',
+		},
+		'required',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'subject kind/selector',
+				},
+				{
+					label: 'payment protocol',
+				},
+				{
+					label: 'timestamp',
+				},
+				'source',
+			],
+			[
+				'required',
+				{
+					label: 'HTTP status',
+				},
+				{
+					label: 'request method',
+				},
+				{
+					label: 'resource URL',
+				},
+			],
+			[
+				'scheme',
+				{
+					label: 'asset/network selectors',
+				},
+				'price',
+				{
+					label: 'pay-to',
+				},
+				{
+					label: 'facilitator',
+				},
+				{
+					label: 'timeout',
+				},
+				'error',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Concrete refs',
+				items: [
+					{
+						label: 'A2A/MCP/EIP-8004/Blockhead refs when known',
+					},
+				],
+			},
+			{
+				label: 'Evidence',
+				items: [
+					{
+						label: 'PAYMENT-REQUIRED/PAYMENT-SIGNATURE/PAYMENT-RESPONSE headers',
+					},
+					{
+						label: 'evidence URI',
+					},
+					{
+						label: 'source payload',
+					},
+				],
+			},
+			{
+				label: 'Payment',
+				items: [
+					{
+						label: 'requirements JSON',
+					},
+					{
+						label: 'payment payload',
+					},
+					{
+						label: 'response payload',
+					},
+					{
+						label: 'asset/network/price/payTo/facilitator',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,25 +9,83 @@
 
 	// State
 	const view = {
-		closed: [
-			'blockSlot',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'blockSlot',
-					'source',
-					'timestampMs',
-					'blockHash',
-					'lovelaceBalance',
-					'nativeAssetCount',
-					'utxoCount',
-					'transactionCount',
-				],
-			],
+	closed: [
+		{
+			label: 'address',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'block slot',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'address',
+				},
+				{
+					label: 'block slot',
+				},
+				'source',
+				{
+					label: 'observation time',
+				},
+				{
+					label: 'block hash',
+				},
+				{
+					label: 'lovelace balance',
+				},
+				{
+					label: 'native asset count',
+				},
+				{
+					label: 'UTXO count',
+				},
+				{
+					label: 'transaction count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Address',
+				items: [
+					{
+						label: 'parent Cardano address',
+					},
+				],
+			},
+			{
+				label: 'UTXO set',
+				items: [
+					{
+						label: 'Cardano transaction outputs for the same observation when sourceable',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'Cardano transactions',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'indexer/node query context',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

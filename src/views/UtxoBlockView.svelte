@@ -9,36 +9,95 @@
 
 	// State
 	const view = {
-		closed: [
-			'height',
-		],
-		content: {
-			dl: [
-				[
-					'height',
-					'hash',
-					'timestampMs',
-					'merkleRoot',
-					'nonce',
-					'difficulty',
-					'sizeBytes',
-					'weightUnits',
-					'transactionCount',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		'height',
+		'hash',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
+					label: 'network',
+				},
+				'height',
+				'hash',
+				{
+					label: 'parent',
+				},
+				{
+					label: 'timestamp',
+				},
+				{
+					label: 'transaction count',
+				},
+				{
+					label: 'size',
+				},
+				{
+					label: 'weight',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Header',
+				items: [
+					{
+						label: 'merkle root',
+					},
+					'nonce',
+					'difficulty',
+					{
+						label: 'size/weight',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'transactions in block',
+					},
+				],
+			},
+			{
+				label: 'Parent',
+				items: [
+					{
+						label: 'parent block',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent UTXO-family network',
+					},
+				],
+			},
+			{
+				label: 'Lookup evidence',
+				items: [
+					{
+						label: 'node getblock hash lookup',
+					},
+					{
+						label: 'Esplora/mempool.space height-to-hash lookup',
+					},
+					{
+						label: 'explorer block payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

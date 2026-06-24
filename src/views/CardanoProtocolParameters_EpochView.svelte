@@ -9,42 +9,88 @@
 
 	// State
 	const view = {
-		closed: [
-			'epoch',
-			'source',
+	closed: [
+		{
+			label: 'network',
+		},
+		'epoch',
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				'epoch',
+				'source',
+				{
+					label: 'protocol version',
+				},
+				{
+					label: 'min fee coefficients',
+				},
+				{
+					label: 'max block/transaction sizes',
+				},
+				{
+					label: 'key/pool deposits',
+				},
+				{
+					label: 'min pool cost',
+				},
+				{
+					label: 'coins per UTXO byte',
+				},
+				{
+					label: 'collateral settings',
+				},
+				{
+					label: 'Plutus execution limits',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'epoch',
-					'source',
-					'minFeeA',
-					'minFeeB',
-					'maxBlockBodySize',
-					'maxTxSize',
-					'maxBlockHeaderSize',
-					'keyDeposit',
-					'poolDeposit',
-					'maxEpoch',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Cost models',
+				items: [
+					{
+						label: 'decoded costModels by language',
+					},
+				],
+			},
+			{
+				label: 'Execution prices',
+				items: [
+					{
+						label: 'executionPrices/maxTxExUnits/maxBlockExUnits',
+					},
+				],
+			},
+			{
+				label: 'Deposits & rewards',
+				items: [
+					{
+						label: 'key/pool deposits',
+					},
 					'nOpt',
 					'rho',
 					'tau',
-					'decentralisation',
-					'protocolMajor',
-					'protocolMinor',
-					'minPoolCost',
-					'coinsPerUtxoByte',
-					'costModels',
-					'executionPrices',
-					'maxTxExUnits',
-					'maxBlockExUnits',
-					'maxValueSize',
-					'collateralPercentage',
-					'maxCollateralInputs',
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Cardano network',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

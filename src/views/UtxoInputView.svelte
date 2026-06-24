@@ -9,21 +9,74 @@
 
 	// State
 	const view = {
-		closed: [
-			'inputIndex',
-		],
-		content: {
-			dl: [
-				[
-					'inputIndex',
-					'coinbaseScript',
-					'scriptSigAsm',
-					'sequence',
-					'witness',
-				],
-			],
+	closed: [
+		{
+			label: 'transaction',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'input index',
+		},
+		{
+			label: 'spent output',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'transaction',
+				},
+				{
+					label: 'input index',
+				},
+				{
+					label: 'spent output',
+				},
+				{
+					label: 'coinbase/scriptSig summary',
+				},
+				'sequence',
+				{
+					label: 'witness count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Spent output',
+				items: [
+					{
+						label: 'spent output when present',
+					},
+				],
+			},
+			{
+				label: 'Script',
+				items: [
+					{
+						label: 'coinbase script',
+					},
+					{
+						label: 'scriptSig asm',
+					},
+					{
+						label: 'witness stack',
+					},
+				],
+			},
+			{
+				label: 'Transaction',
+				items: [
+					{
+						label: 'parent transaction',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

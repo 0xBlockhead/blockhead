@@ -9,34 +9,113 @@
 
 	// State
 	const view = {
-		closed: [
-			'walletId',
-			'accountIndex',
-			'addressIndex',
-		],
-		content: {
-			dl: [
-				[
-					'walletId',
-					'accountIndex',
-					'addressIndex',
-					'address',
-					'label',
-				],
-			],
+	closed: [
+		{
+			label: 'wallet id',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'account index',
+		},
+		{
+			label: 'address index',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'wallet id',
+				},
+				{
+					label: 'account index',
+				},
+				{
+					label: 'address index',
+				},
+				'address',
+				'label',
+				{
+					label: 'latest used flag',
+				},
+				{
+					label: 'latest balance',
+				},
+				{
+					label: 'latest unlocked balance',
+				},
+				{
+					label: 'latest unspent output count',
+				},
+				{
+					label: 'latest unlock timing',
+				},
+				{
+					label: 'latest sync time',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest state',
+				items: [
+					{
+						label: 'BlockheadMoneroSubaddressState_TimestampView',
+					},
+				],
+			},
+			{
+				label: 'State history',
+				items: [
+					{
+						label: 'BlockheadMoneroSubaddressState_TimestampsView',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'MoneroNetworkView',
+					},
+				],
+			},
+			{
+				label: 'Wallet',
+				items: [
+					{
+						label: 'BlockheadMoneroWalletStateView',
+					},
+				],
+			},
+			{
+				label: 'Outputs',
+				items: [
+					{
+						label: 'BlockheadMoneroOutputState list filtered to account/subaddress',
+					},
+				],
+			},
+			{
+				label: 'Transfers',
+				items: [
+					{
+						label: 'BlockheadMoneroTransferState list filtered to account/subaddress',
+					},
+				],
+			},
+			{
+				label: 'Address material',
+				items: [
+					{
+						label: 'redacted local address/export data',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

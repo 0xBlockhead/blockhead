@@ -9,34 +9,82 @@
 
 	// State
 	const view = {
-		closed: [
-			'version',
-		],
-		content: {
-			dl: [
-				[
-					'version',
-					'releaseDate',
-					'distributionKind',
-					'distribution',
-					'command',
-					'arguments',
-					'environmentKeys',
-				],
-			],
+	closed: [
+		{
+			label: 'program',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'version/artifact',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'documents',
-					when: 'open',
-					items: [
-						'$$documents',
-					],
+					label: 'program',
+				},
+				'version',
+				{
+					label: 'artifact',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			[
+				{
+					label: 'release date',
+				},
+				{
+					label: 'distribution kind',
+				},
+				'command',
+			],
+			[
+				'arguments',
+				{
+					label: 'environment keys',
+				},
+				{
+					label: 'document refs',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Program',
+				items: [
+					{
+						label: 'AcpAgentProgram',
+					},
+				],
+			},
+			{
+				label: 'Artifact',
+				items: [
+					{
+						label: 'AiArtifact',
+					},
+				],
+			},
+			{
+				label: 'Distribution',
+				items: [
+					{
+						label: 'distribution JSON',
+					},
+				],
+			},
+			{
+				label: 'Documents',
+				items: [
+					{
+						label: 'AiDocument list',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

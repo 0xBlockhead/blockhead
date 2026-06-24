@@ -9,32 +9,76 @@
 
 	// State
 	const view = {
-		closed: [
-			'connectionId',
-		],
-		content: {
-			dl: [
-				[
-					'connectionId',
-					'connectionKind',
-					'endpointUrl',
-					'authKind',
-					'enabled',
-				],
-			],
+	closed: [
+		{
+			label: 'connection id',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'profile',
+		},
+		{
+			label: 'kind',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'connection id',
+				},
+				{
+					label: 'profile',
+				},
+				{
+					label: 'source',
+				},
+				{
+					label: 'kind',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			[
+				{
+					label: 'endpoint URL',
+				},
+				{
+					label: 'auth kind',
+				},
+				'enabled',
+				{
+					label: 'latest health',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Profile',
+				items: [
+					{
+						label: 'BlockheadAgentProfile',
+					},
+				],
+			},
+			{
+				label: 'Source',
+				items: [
+					{
+						label: 'BlockheadSource',
+					},
+				],
+			},
+			{
+				label: 'Health',
+				items: [
+					{
+						label: 'BlockheadAgentConnection_Timestamp list',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

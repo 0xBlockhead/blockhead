@@ -9,19 +9,52 @@
 
 	// State
 	const view = {
-		closed: [
-			'apiHost',
-		],
-		content: {
-			dl: [
-				[
-					'apiHost',
-					'allowance',
-					'fetchedAt',
-				],
-			],
+	closed: [
+		{
+			label: 'API host',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'allowance',
+		{
+			label: 'fetched at',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'API host',
+				},
+				'allowance',
+				{
+					label: 'fetched at',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Allowance',
+				items: [
+					{
+						label: 'global fast-burn allowance value',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Iris API host',
+					},
+					{
+						label: 'fetch timestamp',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,35 +9,61 @@
 
 	// State
 	const view = {
-		closed: [
-			'agentCardUrl',
+	closed: [
+		{
+			label: 'agent card URL',
+		},
+		{
+			label: 'latest snapshot',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'agent card URL',
+				},
+				{
+					label: 'latest snapshot',
+				},
+				{
+					label: 'document refs',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'agentCardUrl',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Snapshots',
+				items: [
+					{
+						label: 'A2aAgentCard_Snapshot list',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'snapshots',
-					when: 'open',
-					items: [
-						'$$snapshots',
-					],
-				},
-				{
-					label: 'documents',
-					when: 'open',
-					items: [
-						'$$documents',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Documents',
+				items: [
+					{
+						label: 'AiDocument list',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'well-known URL',
+					},
+					{
+						label: 'EIP-8004 declarations',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,22 +9,67 @@
 
 	// State
 	const view = {
-		closed: [
-			'structName',
-		],
-		content: {
-			dl: [
-				[
-					'structName',
-					'isNative',
-					'isEvent',
-					'abilities',
-					'typeParameters',
-					'fields',
-				],
-			],
+	closed: [
+		{
+			label: 'module',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'struct name',
+		},
+		'abilities',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'module',
+				},
+				{
+					label: 'struct name',
+				},
+				{
+					label: 'native flag',
+				},
+				{
+					label: 'event flag',
+				},
+				'abilities',
+				{
+					label: 'type parameters',
+				},
+				'fields',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Module',
+				items: [
+					{
+						label: 'parent Move module',
+					},
+				],
+			},
+			{
+				label: 'ABI evidence',
+				items: [
+					{
+						label: 'Aptos structs payload or Sui normalized module struct payload',
+					},
+				],
+			},
+			{
+				label: 'Runtime uses',
+				items: [
+					{
+						label: 'Aptos account resources or Sui objects whose type tag resolves to this struct',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

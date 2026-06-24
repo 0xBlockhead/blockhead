@@ -9,26 +9,103 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'height',
-					'balanceAtomicUnits',
-					'unlockedBalanceAtomicUnits',
-					'multisigImportNeeded',
-					'outputsExportedAt',
-					'keyImagesExportedAt',
-					'lastSyncedAt',
-				],
-			],
+	closed: [
+		{
+			label: 'wallet state',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'wallet state',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'wallet height',
+				},
+				{
+					label: 'balance',
+				},
+				{
+					label: 'unlocked balance',
+				},
+				{
+					label: 'multisig import-needed flag',
+				},
+				{
+					label: 'outputs exported time',
+				},
+				{
+					label: 'key images exported time',
+				},
+				{
+					label: 'last synced time',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Wallet',
+				items: [
+					{
+						label: 'BlockheadMoneroWalletStateView',
+					},
+				],
+			},
+			{
+				label: 'Subaddresses',
+				items: [
+					{
+						label: 'BlockheadMoneroSubaddressState list',
+					},
+				],
+			},
+			{
+				label: 'Outputs',
+				items: [
+					{
+						label: 'BlockheadMoneroOutputState list',
+					},
+				],
+			},
+			{
+				label: 'Transfers',
+				items: [
+					{
+						label: 'BlockheadMoneroTransferState list',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'monero-wallet-rpc get_height',
+					},
+					{
+						label: 'get_balance',
+					},
+					{
+						label: 'output export',
+					},
+					{
+						label: 'key-image export/import payloads',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

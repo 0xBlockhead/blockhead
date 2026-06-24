@@ -9,27 +9,82 @@
 
 	// State
 	const view = {
-		closed: [
-			'forgeHost',
-			'owner',
-			'repositoryName',
-		],
-		content: {
-			dl: [
-				[
-					'forgeHost',
-					'owner',
-					'repositoryName',
-					'defaultBranch',
-					'visibility',
-					'cloneUrls',
-					'htmlUrl',
-					'providerRepositoryId',
-					'source',
-				],
-			],
+	closed: [
+		{
+			label: 'host',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'owner',
+		{
+			label: 'repository name',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'host',
+				},
+				'owner',
+				{
+					label: 'repository name',
+				},
+				{
+					label: 'provider repository id',
+				},
+				'visibility',
+				{
+					label: 'default branch',
+				},
+				{
+					label: 'clone URLs',
+				},
+				{
+					label: 'HTML URL',
+				},
+				'source',
+				{
+					label: 'linked Git repository',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Repository',
+				items: [
+					{
+						label: 'linked Git repository when clone/object evidence ties it',
+					},
+				],
+			},
+			{
+				label: 'Pull requests',
+				items: [
+					{
+						label: 'forge pull request records',
+					},
+				],
+			},
+			{
+				label: 'Issues',
+				items: [
+					{
+						label: 'forge issue records',
+					},
+				],
+			},
+			{
+				label: 'Releases',
+				items: [
+					{
+						label: 'forge release records',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

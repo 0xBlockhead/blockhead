@@ -9,36 +9,81 @@
 
 	// State
 	const view = {
-		closed: [
-			'address',
+	closed: [
+		{
+			label: 'network',
+		},
+		'address',
+		'name',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				'address',
+				'name',
+				{
+					label: 'account ref',
+				},
+				{
+					label: 'creator',
+				},
+				{
+					label: 'creation transaction',
+				},
+				{
+					label: 'latest verification/proxy snapshot',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'address',
-					'name',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Verification snapshots',
+				items: [
+					{
+						label: 'contract verification/proxy observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'tokens',
-					when: 'open',
-					items: [
-						'$$tokens',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Tokens',
+				items: [
+					{
+						label: 'tokens associated by source evidence',
+					},
+				],
+			},
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'contract account identity',
+					},
+				],
+			},
+			{
+				label: 'Creator',
+				items: [
+					{
+						label: 'creator account identity',
+					},
+				],
+			},
+			{
+				label: 'Creation transaction',
+				items: [
+					{
+						label: 'creation transaction',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

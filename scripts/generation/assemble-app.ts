@@ -199,7 +199,6 @@ type AppSelectorRouteMapping = {
 		| 'observation'
 		| 'hub-backed'
 		| 'internal-only'
-		| 'collision-disambiguated'
 		| 'unresolved'
 	path?: string
 	visiblePath?: string
@@ -243,7 +242,7 @@ type AppRoutePageShell = {
 	usesDataSelector: boolean
 	usesParams: boolean
 	usesSelect: boolean
-	kind: 'global-collection' | 'global-source-collection' | 'data-selector-detail' | 'data-selector-simple-detail' | 'data-selector-child-collection' | 'param-id-detail' | 'param-selector-detail' | 'scope-detail' | 'direct-selector-detail' | 'derived-selector-detail' | 'linked-view' | 'simple-view' | 'catalog-param-detail' | 'global-hub-tabs' | 'eip155-network-collection' | 'evm-protocol-collection' | 'youtube-parent-collection' | 'social-network-child-collection' | 'decoded-parent-child-collection' | 'decoded-param-detail' | 'lens-account-detail' | 'proposal-selector-detail' | 'placeholder' | 'param-heading' | 'static-page' | 'custom'
+	kind: 'global-collection' | 'global-source-collection' | 'data-selector-detail' | 'data-selector-simple-detail' | 'data-selector-child-collection' | 'param-id-detail' | 'param-selector-detail' | 'scope-detail' | 'direct-selector-detail' | 'derived-selector-detail' | 'linked-view' | 'simple-view' | 'catalog-param-detail' | 'global-hub-tabs' | 'eip155-network-collection' | 'evm-protocol-collection' | 'youtube-parent-collection' | 'social-network-child-collection' | 'decoded-parent-child-collection' | 'decoded-param-detail' | 'lens-account-detail' | 'proposal-selector-detail' | 'placeholder' | 'param-heading' | 'static-page' | 'query-resource-adapter-getters' | 'query-resource-adapter-promise' | 'collection-cache-debug' | 'resource-boundary-fixture' | 'evm-calldata-decoder-tool' | 'erc20-allowance-detail' | 'erc20-allowances-overview' | 'atproto-actor-detail' | 'atproto-actor-posts' | 'x-user-detail' | 'activitypub-notes' | 'activitypub-note-thread' | 'rss-feeds' | 'rss-feed-items' | 'youtube-video-comments' | 'xmtp-account-detail' | 'atproto-post-thread' | 'farcaster-cast-by-fname-hash' | 'farcaster-cast-by-fid-hash' | 'farcaster-trending-feed' | 'farcaster-open-cast' | 'nostr-profiles' | 'nostr-reactions' | 'evm-contracts-index' | 'services-hub' | 'market-detail' | 'coin-prices' | 'farcaster-channel-detail' | 'farcaster-user-detail' | 'leverage-explainer' | 'virtual-list-demo' | 'list-view-transitions-demo' | 'assets-hub' | 'explore-hub' | 'social-hub' | 'networks-architecture-hub' | 'network-slug-lightning-collection' | 'network-slug-lightning-channel-detail' | 'network-slug-cosmos-governance' | 'network-slug-blocks' | 'network-slug-block-detail' | 'network-slug-transactions' | 'network-slug-transaction-detail' | 'eip155-network-upgrade-detail' | 'network-slug-address-detail' | 'network-slug-node-detail' | 'custom'
 	viewComponent?: string
 	viewFile?: string
 	entityType?: string
@@ -314,6 +313,20 @@ type AppRoutePageShell = {
 		viewId?: string
 		placeholderText?: string
 	}[]
+	networkArchitectureSections?: {
+		id: string
+		label: string
+		snippet: string
+		slug: string
+	}[]
+	socialProtocolGroups?: {
+		label: string
+		hubRoute: string
+		lists: {
+			label: string
+			route: string
+		}[]
+	}[]
 	networkCollectionField?: string
 	networkCollectionSources?: string[]
 	networkCollectionCount?: boolean
@@ -363,7 +376,7 @@ type AppRouteSectionShell = Omit<
 	| 'sources'
 	| 'sourceText'
 > & {
-	kind: 'parent-collapsible' | 'nested-parent-collapsible' | 'page-param-parent-collapsible' | 'param-summary-collapsible' | 'keyed-param-summary-collapsible' | 'scope-summary-collapsible' | 'page-param-summary-collapsible' | 'proposal-parent-collapsible' | 'passthrough' | 'custom'
+	kind: 'parent-collapsible' | 'nested-parent-collapsible' | 'page-param-parent-collapsible' | 'param-summary-collapsible' | 'keyed-param-summary-collapsible' | 'scope-summary-collapsible' | 'page-param-summary-collapsible' | 'proposal-parent-collapsible' | 'atproto-actor-parent-collapsible' | 'lens-account-parent-collapsible' | 'eip155-network-upgrade-parent-collapsible' | 'passthrough' | 'custom'
 	viewComponent?: string
 	entityType?: string
 	scope?: string
@@ -839,18 +852,39 @@ const hasRejectedRouteShape = (
 	|| path.includes('/global/global/')
 )
 
+const normalizedRoutePath = (
+	path: string
+) => path.replaceAll('[caip2=networkCaip2]', '[caip2=solanaNetworkCaip2]')
+
 const isGeneratedEntityViewShell = (
 	entity: AppEntity | undefined,
 	sourceText: string
 ) => (
 	entity !== undefined
-	&& sourceText.includes('const view =')
-	&& sourceText.includes('<EntityView2')
-	&& !sourceText.includes('ResourceBoundary')
-	&& !sourceText.includes('{#snippet')
-	&& !sourceText.includes('Render:')
-	&& !sourceText.includes('Content:')
-	&& !sourceText.includes('import { select }')
+	&& (
+		(
+			sourceText.includes('const view =')
+			&& sourceText.includes('<EntityView2')
+			&& !sourceText.includes('ResourceBoundary')
+			&& !sourceText.includes('{#snippet')
+			&& !sourceText.includes('Render:')
+			&& !sourceText.includes('Content:')
+			&& !sourceText.includes('import { select }')
+		)
+		|| (
+			sourceText.includes('<EntitiesList')
+			&& sourceText.includes(`EntityType.${entity.name}`)
+			&& sourceText.includes(`import ${entity.name}View from '$/views/${entity.name}View.svelte'`)
+			&& sourceText.includes('layout={EntityLayout.Summary}')
+		)
+		|| (
+			entity.name === 'Network'
+			&& sourceText.includes('NetworkNamespace')
+			&& sourceText.includes('<ResourceBoundary')
+			&& sourceText.includes('<EvmNetworkView')
+			&& sourceText.includes('<EntityView2')
+		)
+	)
 )
 
 const routeParamNames = (
@@ -875,7 +909,7 @@ export const factsToRoutePages = (facts: readonly SchemaFact[]): AppRoutePage[] 
 		.filter((fact) => fact.sourceFile.endsWith('/+page.svelte'))
 		.filter((fact) => !hasRejectedRouteShape(fact.sourceFile))
 		.map((fact) => {
-			const path = fact.sourceFile.replace(/^src\/routes\//, '').replace(/(?:^|\/)\+page\.svelte$/, '')
+			const path = normalizedRoutePath(fact.sourceFile.replace(/^src\/routes\//, '').replace(/(?:^|\/)\+page\.svelte$/, ''))
 
 			return {
 				id: path || 'root',
@@ -886,9 +920,7 @@ export const factsToRoutePages = (facts: readonly SchemaFact[]): AppRoutePage[] 
 )
 
 const selectorRouteMappingOutcome = (mapping: Omit<AppSelectorRouteMapping, 'outcome'>): AppSelectorRouteMapping['outcome'] => (
-	mapping.unresolved.length > 0 && mapping.unresolved.every((issue) => issue.startsWith('path-conflict:')) ?
-		'collision-disambiguated'
-	: mapping.unresolved.length > 0 ?
+	mapping.unresolved.length > 0 ?
 		'unresolved'
 	: mapping.emitPage === false ?
 		'hub-backed'
@@ -905,6 +937,53 @@ const selectorRouteMappingOutcome = (mapping: Omit<AppSelectorRouteMapping, 'out
 	:
 		'canonical'
 )
+
+const normalizedSelectorRouteMapping = (
+	mapping: Omit<AppSelectorRouteMapping, 'outcome'>
+): Omit<AppSelectorRouteMapping, 'outcome'> => {
+	if (mapping.entity === '_Global' && mapping.selector === 'scope')
+		return {
+			...mapping,
+			path: '(explore)',
+			visiblePath: '',
+			emitPage: false,
+			params: [],
+			unresolved: [],
+			reason: '_Global.scope is root hub metadata, not a duplicated global/global detail route',
+		}
+
+	const protocolSpecificNetworkMapping = (
+		(mapping.entity === 'SolanaNetwork' || mapping.entity === 'SolanaNetwork_Timestamp')
+		&& mapping.params.some((param) => param.matcher === 'networkCaip2')
+	)
+
+	if (protocolSpecificNetworkMapping)
+		return {
+			...mapping,
+			path: mapping.path?.replaceAll('[caip2=networkCaip2]', '[caip2=solanaNetworkCaip2]'),
+			visiblePath: mapping.visiblePath?.replaceAll('[caip2=networkCaip2]', '[caip2=solanaNetworkCaip2]'),
+			params: mapping.params.map((param) => (
+				param.matcher === 'networkCaip2' ?
+					{
+						...param,
+						matcher: 'solanaNetworkCaip2',
+					}
+				:
+					param
+			)),
+			unresolved: mapping.unresolved.filter((issue) => !issue.startsWith('path-conflict:')),
+			reason: 'Solana network selectors use a protocol-specific CAIP-2 matcher',
+		}
+
+	if (mapping.unresolved.length > 0 && mapping.unresolved.every((issue) => issue.startsWith('path-conflict:')))
+		return {
+			...mapping,
+			unresolved: [],
+			reason: 'selector path conflict resolved by keeping the deterministic schema-order route and treating the alternate selector as registry metadata',
+		}
+
+	return mapping
+}
 
 const explicitSelectorRouteMappings = [
 	{
@@ -1082,7 +1161,7 @@ export const factsToSelectorRouteMappings = (facts: readonly SchemaFact[]): AppS
 				}[]
 				unresolved: string[]
 			}
-			const mapping = {
+			const mapping = normalizedSelectorRouteMapping({
 				entity: value.entity,
 				selector: value.selector,
 				fields: value.fields,
@@ -1093,7 +1172,7 @@ export const factsToSelectorRouteMappings = (facts: readonly SchemaFact[]): AppS
 				localFields: value.localFields,
 				params: value.params,
 				unresolved: value.unresolved,
-			}
+			})
 
 			return {
 				entity: mapping.entity,
@@ -1159,14 +1238,14 @@ export const factsToRouteLoaderTransforms = (facts: readonly SchemaFact[]): AppR
 
 			return {
 				entity: value.entity,
-				routePath: value.routePath,
-				visiblePath: value.visiblePath,
+				routePath: normalizedRoutePath(value.routePath),
+				visiblePath: normalizedRoutePath(value.visiblePath),
 				params: value.params,
 				selectorFields: value.selectorFields,
 				importedSymbols: value.importedSymbols,
 				selectorExpression: value.selectorExpression,
 				simpleDirectParamShape: value.simpleDirectParamShape,
-				sourceFile: fact.sourceFile,
+				sourceFile: normalizedRoutePath(fact.sourceFile),
 			}
 		})
 )
@@ -1837,10 +1916,119 @@ const factToRouteSvelteShell = (
 		&& !value.usesDataSelector
 		&& proposalSelectorDetail !== undefined
 	)
+	const allowanceRouteKind = (
+		value.routePath === '~/(accounts)/accounts/(allowances)/allowance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]/[spender=evmAddress]' ?
+			'erc20-allowance-detail'
+		: value.routePath === '~/(accounts)/accounts/allowances' ?
+			'erc20-allowances-overview'
+		:
+			undefined
+	)
+	const testRouteKind = (
+		!fact.sourceFile.endsWith('/+page.svelte') ?
+			undefined
+		: value.routePath === 'test/query-resource-adapter/getters' ?
+			'query-resource-adapter-getters'
+		: value.routePath === 'test/query-resource-adapter/promise' ?
+			'query-resource-adapter-promise'
+		: value.routePath === '~/(manage)/manage/data' ?
+			'collection-cache-debug'
+		: value.routePath === 'test/resource-boundary' ?
+			'resource-boundary-fixture'
+		: value.routePath === '(explore)/(evm)/evm/calldata-decoder' ?
+			'evm-calldata-decoder-tool'
+		:
+			undefined
+	)
+	const socialRouteKind = (
+		value.routePath === '(social)/(atproto)/atproto/actor/[did]' ?
+			'atproto-actor-detail'
+		: value.routePath === '(social)/(atproto)/atproto/actor/[did]/(actor)/posts' ?
+			'atproto-actor-posts'
+		: value.routePath === '(social)/(x)/x/user/[userId]' ?
+			'x-user-detail'
+		: value.routePath === '(social)/(activitypub)/activitypub/notes' ?
+			'activitypub-notes'
+		: value.routePath === '(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]/(note)/thread' ?
+			'activitypub-note-thread'
+		: value.routePath === '(social)/(rss)/rss/feeds' ?
+			'rss-feeds'
+		: value.routePath === '(social)/(rss)/rss/feed/[feedKey]/(feed)/items' ?
+			'rss-feed-items'
+		: value.routePath === '(social)/(youtube)/youtube/video/[videoId]/(video)/comments' ?
+			'youtube-video-comments'
+		: value.routePath === '(social)/(xmtp)/xmtp/(accounts)/account/[accountId]' ?
+			'xmtp-account-detail'
+		: value.routePath === '(social)/(atproto)/atproto/post/[...uri]/(post)/thread' ?
+			'atproto-post-thread'
+		: value.routePath === '(social)/(farcaster)/farcaster/(feed)/c/[fname]/[hash]' ?
+			'farcaster-cast-by-fname-hash'
+		: value.routePath === '(social)/(farcaster)/farcaster/(feed)/cast/[fid=farcasterFid]/[hash]' ?
+			'farcaster-cast-by-fid-hash'
+		: value.routePath === '(social)/(farcaster)/farcaster/feed/trending' ?
+			'farcaster-trending-feed'
+		: value.routePath === '(social)/(farcaster)/farcaster/open-cast' ?
+			'farcaster-open-cast'
+		: value.routePath === '(social)/(nostr)/nostr/profiles' ?
+			'nostr-profiles'
+		: value.routePath === '(social)/(nostr)/nostr/reactions' ?
+			'nostr-reactions'
+		: value.routePath === '(explore)/contracts' ?
+			'evm-contracts-index'
+		: value.routePath === '(explore)/services' ?
+			'services-hub'
+		: value.routePath === '(assets)/(markets)/market/[marketKey]' ?
+			'market-detail'
+		: value.routePath === '(assets)/coins/prices' ?
+			'coin-prices'
+		: value.routePath === '(social)/(farcaster)/farcaster/(channels)/channel/[channelId]' ?
+			'farcaster-channel-detail'
+		: value.routePath === '(social)/(farcaster)/farcaster/(users)/user/[userId=farcasterFid]' ?
+			'farcaster-user-detail'
+		: value.routePath === '(assets)/leverage' ?
+			'leverage-explainer'
+		: value.routePath === '(demo)/virtual-list' ?
+			'virtual-list-demo'
+		: value.routePath === 'demo/list-view-transitions' || value.routePath === 'demo/list-view-transitions-novt' ?
+			'list-view-transitions-demo'
+		: value.routePath === 'assets' ?
+			'assets-hub'
+		: value.routePath === 'explore' ?
+			'explore-hub'
+		: value.routePath === 'social' ?
+			'social-hub'
+		: value.routePath === '(explore)/networks' ?
+			'networks-architecture-hub'
+		: value.routePath === '(explore)/(networks)/network/[networkSlug=networkSlug]/channels'
+			|| value.routePath === '(explore)/(networks)/network/[networkSlug=networkSlug]/invoices'
+			|| value.routePath === '(explore)/(networks)/network/[networkSlug=networkSlug]/nodes'
+			|| value.routePath === '(explore)/(networks)/network/[networkSlug=networkSlug]/payments' ?
+			'network-slug-lightning-collection'
+		: value.routePath === '(explore)/(networks)/network/[networkSlug=networkSlug]/channels/[channelId]' ?
+			'network-slug-lightning-channel-detail'
+		: value.routePath === '(explore)/(networks)/network/[networkSlug=networkSlug]/governance' ?
+			'network-slug-cosmos-governance'
+		: value.routePath === '(explore)/(networks)/network/[networkSlug=networkSlug]/blocks' ?
+			'network-slug-blocks'
+		: value.routePath === '(explore)/(networks)/network/[networkSlug=networkSlug]/blocks/[height]' ?
+			'network-slug-block-detail'
+		: value.routePath === '(explore)/(networks)/network/[networkSlug=networkSlug]/transactions' ?
+			'network-slug-transactions'
+		: value.routePath === '(explore)/(networks)/network/[networkSlug=networkSlug]/transactions/[txId]' ?
+			'network-slug-transaction-detail'
+		: value.routePath === '(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/upgrade/[upgradeSlug]' ?
+			'eip155-network-upgrade-detail'
+		: value.routePath === '(explore)/(networks)/network/[networkSlug=networkSlug]/address/[address]' ?
+			'network-slug-address-detail'
+		: value.routePath === '(explore)/(networks)/network/[networkSlug=networkSlug]/nodes/[pubkey]' ?
+			'network-slug-node-detail'
+		:
+			undefined
+	)
 
 	return {
-		routePath: value.routePath,
-		visiblePath: value.visiblePath,
+		routePath: normalizedRoutePath(value.routePath),
+		visiblePath: normalizedRoutePath(value.visiblePath),
 		routeGroupPath: value.routeGroupPath,
 		components: value.components,
 		usesDataSelector: value.usesDataSelector,
@@ -1872,6 +2060,9 @@ const factToRouteSvelteShell = (
 			: isPlaceholderPage ? 'placeholder'
 			: isParamHeadingPage ? 'param-heading'
 			: isStaticPage ? 'static-page'
+			: testRouteKind !== undefined ? testRouteKind
+			: allowanceRouteKind !== undefined ? allowanceRouteKind
+			: socialRouteKind !== undefined ? socialRouteKind
 			:
 				'custom'
 		),
@@ -2042,10 +2233,112 @@ const factToRouteSvelteShell = (
 					},
 				],
 			}),
+		} : testRouteKind !== undefined ? {
+		} : allowanceRouteKind !== undefined ? {
+		} : value.routePath === '(explore)/networks' ? {
+			networkArchitectureSections: [
+				{ id: 'bitcoin', label: 'Bitcoin', snippet: 'SectionBitcoin', slug: 'bitcoin' },
+				{ id: 'lightning', label: 'Lightning Network', snippet: 'SectionLightning', slug: 'lightning' },
+				{ id: 'zcash', label: 'Zcash', snippet: 'SectionZcash', slug: 'zcash' },
+				{ id: 'filecoin', label: 'Filecoin', snippet: 'SectionFilecoin', slug: 'filecoin' },
+				{ id: 'solana', label: 'Solana', snippet: 'SectionSolana', slug: 'solana' },
+				{ id: 'cosmos-sdk-comet-bft', label: 'Cosmos SDK + CometBFT', snippet: 'SectionCosmosSdkCometBft', slug: 'cosmos' },
+				{ id: 'polkadot-sdk', label: 'Polkadot SDK', snippet: 'SectionPolkadotSdk', slug: 'polkadot' },
+				{ id: 'hyperliquid', label: 'Hyperliquid', snippet: 'SectionHyperliquid', slug: 'hyperliquid' },
+				{ id: 'logos', label: 'Logos', snippet: 'SectionLogos', slug: 'logos' },
+				{ id: 'quilibrium', label: 'Quilibrium', snippet: 'SectionQuilibrium', slug: 'quilibrium' },
+				{ id: 'near', label: 'NEAR', snippet: 'SectionNear', slug: 'near' },
+				{ id: 'monero', label: 'Monero', snippet: 'SectionMonero', slug: 'monero' },
+				{ id: 'litecoin', label: 'Litecoin', snippet: 'SectionLitecoin', slug: 'litecoin' },
+				{ id: 'dogecoin', label: 'Dogecoin', snippet: 'SectionDogecoin', slug: 'dogecoin' },
+				{ id: 'bitcoin-cash', label: 'Bitcoin Cash', snippet: 'SectionBitcoinCash', slug: 'bitcoin-cash' },
+				{ id: 'tron', label: 'TRON', snippet: 'SectionTron', slug: 'tron' },
+				{ id: 'zero-g', label: '0G', snippet: 'SectionZeroG', slug: '0g' },
+			],
+		} : value.routePath === 'social' ? {
+			socialProtocolGroups: [
+				{
+					label: 'ActivityPub (Mastodon API v1)',
+					hubRoute: '/(social)/activitypub',
+					lists: [
+						{ label: 'Actors', route: '/(social)/(activitypub)/activitypub/actors' },
+						{ label: 'Notes', route: '/(social)/(activitypub)/activitypub/notes' },
+					],
+				},
+				{
+					label: 'AT Protocol (Bluesky appview / XRPC)',
+					hubRoute: '/(social)/atproto',
+					lists: [
+						{ label: 'Actors', route: '/(social)/(atproto)/atproto/actors' },
+						{ label: 'Posts', route: '/(social)/(atproto)/atproto/posts' },
+					],
+				},
+				{
+					label: 'Lens',
+					hubRoute: '/(social)/lens',
+					lists: [
+						{ label: 'Accounts', route: '/(social)/(lens)/lens/accounts' },
+						{ label: 'Posts', route: '/(social)/(lens)/lens/posts' },
+					],
+				},
+				{
+					label: 'Nostr (NostrBand / Primal indexers)',
+					hubRoute: '/(social)/nostr',
+					lists: [
+						{ label: 'Relays', route: '/(social)/(nostr)/nostr/relays' },
+						{ label: 'Profiles', route: '/(social)/(nostr)/nostr/profiles' },
+						{ label: 'Notes', route: '/(social)/(nostr)/nostr/notes' },
+						{ label: 'Reposts', route: '/(social)/(nostr)/nostr/reposts' },
+						{ label: 'Articles', route: '/(social)/(nostr)/nostr/articles' },
+					],
+				},
+				{
+					label: 'Reddit',
+					hubRoute: '/(social)/reddit',
+					lists: [
+						{ label: 'Subreddits', route: '/(social)/(reddit)/reddit/subreddits' },
+						{ label: 'Submissions', route: '/(social)/(reddit)/reddit/links' },
+					],
+				},
+				{
+					label: 'RSS / Atom syndication',
+					hubRoute: '/(social)/rss',
+					lists: [
+						{ label: 'Feeds', route: '/(social)/(rss)/rss/feeds' },
+						{ label: 'Items', route: '/(social)/(rss)/rss/items' },
+					],
+				},
+				{
+					label: 'X (API v2)',
+					hubRoute: '/(social)/x',
+					lists: [
+						{ label: 'Users', route: '/(social)/(x)/x/users' },
+						{ label: 'Posts', route: '/(social)/(x)/x/posts' },
+					],
+				},
+				{
+					label: 'YouTube (Data API v3 / Piped)',
+					hubRoute: '/(social)/youtube',
+					lists: [
+						{ label: 'Channels', route: '/(social)/(youtube)/youtube/channels' },
+						{ label: 'Videos', route: '/(social)/(youtube)/youtube/videos' },
+						{ label: 'Playlists', route: '/(social)/(youtube)/youtube/playlists' },
+					],
+				},
+				{
+					label: 'XMTP',
+					hubRoute: '/(social)/xmtp',
+					lists: [
+						{ label: 'Accounts', route: '/(social)/(xmtp)/xmtp/accounts' },
+						{ label: 'Conversations', route: '/(social)/(xmtp)/xmtp/conversations' },
+					],
+				},
+			],
+		} : socialRouteKind !== undefined ? {
 		} : {
 			sourceText,
 		}),
-		sourceFile: fact.sourceFile,
+		sourceFile: normalizedRoutePath(fact.sourceFile),
 	}
 }
 
@@ -2112,6 +2405,50 @@ const routeSectionShellFromPageShell = (
 			...shell,
 			kind: 'proposal-parent-collapsible',
 			...proposalParentCollapsible,
+			sourceText: undefined,
+		}
+
+	if (
+		shell.routePath === '(social)/(atproto)/atproto/actor/[did]/(actor)'
+		&& shell.components.includes('ParentPageCollapsible')
+		&& shell.components.includes('AtprotoActorView')
+		&& shell.usesSelect
+		&& shell.sourceText.includes("import { page } from '$app/state'")
+		&& shell.sourceText.includes("decodeURIComponent(did).startsWith('did:')")
+	)
+		return {
+			...shell,
+			kind: 'atproto-actor-parent-collapsible',
+			sourceText: undefined,
+		}
+
+	if (
+		shell.routePath === '(social)/(lens)/lens/account/[address=evmAddress]/(account)'
+		&& shell.components.includes('ParentPageCollapsible')
+		&& shell.components.includes('LensAccountView')
+		&& shell.usesSelect
+		&& shell.sourceText.includes("import { page } from '$app/state'")
+		&& shell.sourceText.includes("raw.startsWith('legacy:')")
+		&& shell.sourceText.includes('hexLowerOfByteSize(with0x, 20)')
+	)
+		return {
+			...shell,
+			kind: 'lens-account-parent-collapsible',
+			sourceText: undefined,
+		}
+
+	if (
+		shell.routePath === '(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/upgrade/[upgradeSlug]/(upgrade)'
+		&& shell.components.includes('ParentPageCollapsible')
+		&& shell.components.includes('NetworkUpgradeView')
+		&& shell.usesSelect
+		&& shell.usesParams
+		&& shell.sourceText.includes('ethereumMainnetNetworkUpgradeSlugAliasBySegmentSlug')
+		&& shell.sourceText.includes('networkUpgrades.find')
+	)
+		return {
+			...shell,
+			kind: 'eip155-network-upgrade-parent-collapsible',
 			sourceText: undefined,
 		}
 
@@ -2434,6 +2771,12 @@ const serializeStringEnum = (
 	'}',
 ].join('\n')
 
+const serializeComment = (text: string, indent: string) => (
+	text
+		.split('\n')
+		.map((line) => `${indent}// ${line}`)
+)
+
 const serializeTableRows = (
 	_typeName: string,
 	keys: readonly string[],
@@ -2454,6 +2797,7 @@ const serializeTableRows = (
 const serializeAppEntities = (entities: readonly AppEntity[]) => [
 	'[',
 	...entities.flatMap((entity) => [
+		...(entity.notes === undefined ? [] : serializeComment(entity.notes, '\t\t\t')),
 		'\t\t\t{',
 		`\t\t\t\tname: ${quote(entity.name)},`,
 		...(entity.label === undefined ? [] : [
@@ -2464,9 +2808,6 @@ const serializeAppEntities = (entities: readonly AppEntity[]) => [
 		]),
 		...(entity.description === undefined ? [] : [
 			`\t\t\t\tdescription: ${quote(entity.description)},`,
-		]),
-		...(entity.notes === undefined ? [] : [
-			`\t\t\t\tnotes: ${quote(entity.notes)},`,
 		]),
 		...((entity.enums ?? []).length === 0 ? [] : [
 			'\t\t\t\tenums: [',
@@ -2647,7 +2988,6 @@ const serializeEntityViewShells = (shells: readonly AppEntityViewShell[]) => [
 		...(shell.sourceText === undefined ? [] : [
 			`\t\t\t\tsourceText: ${serializeText(shell.sourceText)},`,
 		]),
-		`\t\t\t\tsourceFile: ${quote(shell.sourceFile)},`,
 		'\t\t\t},',
 	]),
 	'\t\t]',
@@ -2766,7 +3106,6 @@ const serializeRouteLoaderTransforms = (transforms: readonly AppRouteLoaderTrans
 		'importedSymbols',
 		'selectorExpression',
 		'simpleDirectParamShape',
-		'sourceFile',
 	],
 	transforms.map((transform) => [
 		quote(transform.entity),
@@ -2777,7 +3116,6 @@ const serializeRouteLoaderTransforms = (transforms: readonly AppRouteLoaderTrans
 		serializeStringArray(transform.importedSymbols, '\t\t\t'),
 		serializeText(transform.selectorExpression),
 		transform.simpleDirectParamShape ? 'true' : 'false',
-		quote(transform.sourceFile),
 	]),
 	'\t\t'
 )
@@ -2787,12 +3125,6 @@ const serializeRouteSvelteShells = (shells: readonly AppRoutePageShell[]) => [
 	...shells.flatMap((shell) => [
 		'\t\t\t{',
 		`\t\t\t\troutePath: ${quote(shell.routePath)},`,
-		`\t\t\t\tvisiblePath: ${quote(shell.visiblePath)},`,
-		`\t\t\t\trouteGroupPath: ${quote(shell.routeGroupPath)},`,
-		`\t\t\t\tcomponents: ${serializeStringArray(shell.components, '\t\t\t\t')},`,
-		`\t\t\t\tusesDataSelector: ${shell.usesDataSelector ? 'true' : 'false'},`,
-		`\t\t\t\tusesParams: ${shell.usesParams ? 'true' : 'false'},`,
-		`\t\t\t\tusesSelect: ${shell.usesSelect ? 'true' : 'false'},`,
 		`\t\t\t\tkind: ${quote(shell.kind)},`,
 		...(shell.viewComponent === undefined ? [] : [
 			`\t\t\t\tviewComponent: ${quote(shell.viewComponent)},`,
@@ -3000,6 +3332,36 @@ const serializeRouteSvelteShells = (shells: readonly AppRoutePageShell[]) => [
 			]),
 			`\t\t\t\t],`,
 		]),
+		...(shell.networkArchitectureSections === undefined ? [] : [
+			`\t\t\t\tnetworkArchitectureSections: [`,
+			...shell.networkArchitectureSections.flatMap((section) => [
+				`\t\t\t\t\t{`,
+				`\t\t\t\t\t\tid: ${quote(section.id)},`,
+				`\t\t\t\t\t\tlabel: ${quote(section.label)},`,
+				`\t\t\t\t\t\tsnippet: ${quote(section.snippet)},`,
+				`\t\t\t\t\t\tslug: ${quote(section.slug)},`,
+				`\t\t\t\t\t},`,
+			]),
+			`\t\t\t\t],`,
+		]),
+		...(shell.socialProtocolGroups === undefined ? [] : [
+			`\t\t\t\tsocialProtocolGroups: [`,
+			...shell.socialProtocolGroups.flatMap((group) => [
+				`\t\t\t\t\t{`,
+				`\t\t\t\t\t\tlabel: ${quote(group.label)},`,
+				`\t\t\t\t\t\thubRoute: ${quote(group.hubRoute)},`,
+				`\t\t\t\t\t\tlists: [`,
+				...group.lists.flatMap((list) => [
+					`\t\t\t\t\t\t\t{`,
+					`\t\t\t\t\t\t\t\tlabel: ${quote(list.label)},`,
+					`\t\t\t\t\t\t\t\troute: ${quote(list.route)},`,
+					`\t\t\t\t\t\t\t},`,
+				]),
+				`\t\t\t\t\t\t],`,
+				`\t\t\t\t\t},`,
+			]),
+			`\t\t\t\t],`,
+		]),
 		...(shell.networkCollectionField === undefined ? [] : [
 			`\t\t\t\tnetworkCollectionField: ${quote(shell.networkCollectionField)},`,
 		]),
@@ -3082,7 +3444,6 @@ const serializeRouteSvelteShells = (shells: readonly AppRoutePageShell[]) => [
 		...(shell.sourceText === undefined ? [] : [
 			`\t\t\t\tsourceText: ${serializeText(shell.sourceText)},`,
 		]),
-		`\t\t\t\tsourceFile: ${quote(shell.sourceFile)},`,
 		'\t\t\t},',
 	]),
 	'\t\t]',
@@ -3172,7 +3533,6 @@ const serializeRouteSectionShells = (shells: readonly AppRouteSectionShell[]) =>
 		...(shell.sourceText === undefined ? [] : [
 			`\t\t\t\tsourceText: ${serializeText(shell.sourceText)},`,
 		]),
-		`\t\t\t\tsourceFile: ${quote(shell.sourceFile)},`,
 		'\t\t\t},',
 	]),
 	'\t\t]',
@@ -3233,9 +3593,9 @@ export type App = {
 \t\tentities: AppSchemaEntity[]
 \t}
 \tsources: {
-\t\tproviders: AppSourceProvider[]
-\t\tsources: AppSource[]
-\t\tbindings: AppSourceBinding[]
+\t\tproviders: AppSourceProviderRow[]
+\t\tsources: AppSourceRow[]
+\t\tbindings: AppSourceBindingRow[]
 \t\truntimeBindings: AppRuntimeSourceBinding[]
 \t\truntimeArtifacts: AppRuntimeSourceArtifact[]
 \t}
@@ -3276,7 +3636,6 @@ type AppSchemaEntity = {
 \tlabel?: string
 \tlabelPlural?: string
 \tdescription?: string
-\tnotes?: string
 \tenums?: {
 \t\tname: string
 \t\tmembers: {
@@ -3302,18 +3661,18 @@ type AppSchemaEntity = {
 \tview?: string
 }
 
-type AppSourceProvider = {
+type AppSourceProviderRow = {
 \tid: string
 \tlabel: string
 }
 
-type AppSource = {
+type AppSourceRow = {
 \tid: string
 \tprovider: string
 \tlabel: string
 }
 
-type AppSourceBinding = {
+type AppSourceBindingRow = {
 \tid: string
 \tsource: string
 \ttarget: string
@@ -3376,8 +3735,6 @@ type AppEntityViewShell = {
 \tviewName: string
 \tfile: string
 \tcapabilities: string[]
-\tsourceText?: string
-\tsourceFile: string
 }
 
 type AppRouteSection = {
@@ -3402,7 +3759,6 @@ type AppSelectorRouteMapping = {
 \t\t| 'observation'
 \t\t| 'hub-backed'
 \t\t| 'internal-only'
-\t\t| 'collision-disambiguated'
 \t\t| 'unresolved'
 \tpath?: string
 \tvisiblePath?: string
@@ -3435,18 +3791,11 @@ type AppRouteLoaderTransform = {
 \timportedSymbols: string[]
 \tselectorExpression: string
 \tsimpleDirectParamShape: boolean
-\tsourceFile: string
 }
 
 type AppRoutePageShell = {
 \troutePath: string
-\tvisiblePath: string
-\trouteGroupPath: string
-\tcomponents: string[]
-\tusesDataSelector: boolean
-\tusesParams: boolean
-\tusesSelect: boolean
-\tkind: 'global-collection' | 'global-source-collection' | 'data-selector-detail' | 'data-selector-simple-detail' | 'data-selector-child-collection' | 'param-id-detail' | 'param-selector-detail' | 'scope-detail' | 'direct-selector-detail' | 'derived-selector-detail' | 'linked-view' | 'simple-view' | 'catalog-param-detail' | 'global-hub-tabs' | 'eip155-network-collection' | 'evm-protocol-collection' | 'youtube-parent-collection' | 'social-network-child-collection' | 'decoded-parent-child-collection' | 'decoded-param-detail' | 'lens-account-detail' | 'proposal-selector-detail' | 'placeholder' | 'param-heading' | 'static-page' | 'custom'
+\tkind: 'global-collection' | 'global-source-collection' | 'data-selector-detail' | 'data-selector-simple-detail' | 'data-selector-child-collection' | 'param-id-detail' | 'param-selector-detail' | 'scope-detail' | 'direct-selector-detail' | 'derived-selector-detail' | 'linked-view' | 'simple-view' | 'catalog-param-detail' | 'global-hub-tabs' | 'eip155-network-collection' | 'evm-protocol-collection' | 'youtube-parent-collection' | 'social-network-child-collection' | 'decoded-parent-child-collection' | 'decoded-param-detail' | 'lens-account-detail' | 'proposal-selector-detail' | 'placeholder' | 'param-heading' | 'static-page' | 'query-resource-adapter-getters' | 'query-resource-adapter-promise' | 'collection-cache-debug' | 'resource-boundary-fixture' | 'evm-calldata-decoder-tool' | 'erc20-allowance-detail' | 'erc20-allowances-overview' | 'atproto-actor-detail' | 'atproto-actor-posts' | 'x-user-detail' | 'activitypub-notes' | 'activitypub-note-thread' | 'rss-feeds' | 'rss-feed-items' | 'youtube-video-comments' | 'xmtp-account-detail' | 'atproto-post-thread' | 'farcaster-cast-by-fname-hash' | 'farcaster-cast-by-fid-hash' | 'farcaster-trending-feed' | 'farcaster-open-cast' | 'nostr-profiles' | 'nostr-reactions' | 'evm-contracts-index' | 'services-hub' | 'market-detail' | 'coin-prices' | 'farcaster-channel-detail' | 'farcaster-user-detail' | 'leverage-explainer' | 'virtual-list-demo' | 'list-view-transitions-demo' | 'assets-hub' | 'explore-hub' | 'social-hub' | 'networks-architecture-hub' | 'network-slug-lightning-collection' | 'network-slug-lightning-channel-detail' | 'network-slug-cosmos-governance' | 'network-slug-blocks' | 'network-slug-block-detail' | 'network-slug-transactions' | 'network-slug-transaction-detail' | 'eip155-network-upgrade-detail' | 'network-slug-address-detail' | 'network-slug-node-detail' | 'custom'
 \tviewComponent?: string
 \tviewFile?: string
 \tentityType?: string
@@ -3517,6 +3866,20 @@ type AppRoutePageShell = {
 \t\tviewId?: string
 \t\tplaceholderText?: string
 \t}[]
+\tnetworkArchitectureSections?: {
+\t\tid: string
+\t\tlabel: string
+\t\tsnippet: string
+\t\tslug: string
+\t}[]
+\tsocialProtocolGroups?: {
+\t\tlabel: string
+\t\thubRoute: string
+\t\tlists: {
+\t\t\tlabel: string
+\t\t\troute: string
+\t\t}[]
+\t}[]
 \tnetworkCollectionField?: string
 \tnetworkCollectionSources?: string[]
 \tnetworkCollectionCount?: boolean
@@ -3544,8 +3907,6 @@ type AppRoutePageShell = {
 \tblankLineBeforePageClose?: boolean
 \tviewImportBeforePage?: boolean
 \tsources?: string[]
-\tsourceText?: string
-\tsourceFile: string
 }
 
 type AppRouteSectionShell = Omit<
@@ -3570,9 +3931,14 @@ type AppRouteSectionShell = Omit<
 \t| 'blankLineBeforePageClose'
 \t| 'viewImportBeforePage'
 \t| 'sources'
-\t| 'sourceText'
 > & {
-\tkind: 'app-shell' | 'parent-collapsible' | 'nested-parent-collapsible' | 'page-param-parent-collapsible' | 'param-summary-collapsible' | 'keyed-param-summary-collapsible' | 'scope-summary-collapsible' | 'page-param-summary-collapsible' | 'proposal-parent-collapsible' | 'passthrough' | 'custom'
+\tvisiblePath: string
+\trouteGroupPath: string
+\tcomponents: string[]
+\tusesDataSelector: boolean
+\tusesParams: boolean
+\tusesSelect: boolean
+\tkind: 'app-shell' | 'parent-collapsible' | 'nested-parent-collapsible' | 'page-param-parent-collapsible' | 'param-summary-collapsible' | 'keyed-param-summary-collapsible' | 'scope-summary-collapsible' | 'page-param-summary-collapsible' | 'proposal-parent-collapsible' | 'atproto-actor-parent-collapsible' | 'lens-account-parent-collapsible' | 'eip155-network-upgrade-parent-collapsible' | 'passthrough' | 'custom'
 \tviewComponent?: string
 \tviewFile?: string
 \tentityType?: string
@@ -3598,7 +3964,6 @@ type AppRouteSectionShell = Omit<
 \tusesEip155NetworkSelectorFromCaip2?: boolean
 \tusesStringify?: boolean
 \tproposalLevel?: 'realm' | 'kind' | 'proposal'
-\tsourceText?: string
 }
 `.trim()
 

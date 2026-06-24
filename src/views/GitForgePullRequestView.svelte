@@ -9,26 +9,81 @@
 
 	// State
 	const view = {
-		closed: [
-			'pullRequestNumber',
-		],
-		content: {
-			dl: [
-				[
-					'pullRequestNumber',
-					'title',
-					'state',
-					'authorSelector',
-					'baseRef',
-					'headRef',
-					'headObjectId',
-					'createdAt',
-					'updatedAt',
-					'mergedAt',
-				],
-			],
+	closed: [
+		{
+			label: 'forge mirror',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'number',
+		},
+		'title',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'forge mirror',
+				},
+				{
+					label: 'number',
+				},
+				'title',
+				'state',
+				{
+					label: 'author selector',
+				},
+				{
+					label: 'base ref',
+				},
+				{
+					label: 'head ref',
+				},
+				{
+					label: 'head object id',
+				},
+				{
+					label: 'created/updated/merged timestamps',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Forge mirror',
+				items: [
+					{
+						label: 'parent forge mirror',
+					},
+				],
+			},
+			{
+				label: 'Head commit',
+				items: [
+					{
+						label: 'head Git commit when resolved',
+					},
+				],
+			},
+			{
+				label: 'Base/head refs',
+				items: [
+					{
+						label: 'base/head Git refs',
+					},
+				],
+			},
+			{
+				label: 'Activity',
+				items: [
+					{
+						label: 'reviews/comments/checks when modeled',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

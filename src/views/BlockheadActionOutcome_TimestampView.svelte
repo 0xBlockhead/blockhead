@@ -9,26 +9,61 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'status',
-					'finality',
-					'transactionHash',
-					'transactionId',
-					'bridgeTransferId',
-					'sourcePayloadHash',
-					'error',
-				],
-			],
+	closed: [
+		{
+			label: 'outcome',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'status',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'outcome',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				'status',
+				'finality',
+				{
+					label: 'transaction hash/id',
+				},
+				{
+					label: 'bridge transfer id',
+				},
+				{
+					label: 'source payload hash',
+				},
+				'error',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Outcome',
+				items: [
+					{
+						label: 'BlockheadActionOutcomeView',
+					},
+				],
+			},
+			{
+				label: 'Public evidence',
+				items: [
+					{
+						label: 'transaction/receipt/bridge transfer rows when resolved outside this local artifact',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

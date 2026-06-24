@@ -9,22 +9,75 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'balanceSompi',
-					'utxoCount',
-					'transactionCount',
-				],
-			],
+	closed: [
+		{
+			label: 'address',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observed time/source',
+		},
+		{
+			label: 'balance in sompi',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'address',
+				},
+				{
+					label: 'observed time/source',
+				},
+				{
+					label: 'balance in sompi',
+				},
+				{
+					label: 'UTXO count',
+				},
+				{
+					label: 'transaction count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Address',
+				items: [
+					{
+						label: 'parent Kaspa address',
+					},
+				],
+			},
+			{
+				label: 'UTXO set',
+				items: [
+					{
+						label: 'address UTXO observations at the same observation when available',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'indexed transaction history',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'raw balance/address payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

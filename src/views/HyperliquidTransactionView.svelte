@@ -9,29 +9,78 @@
 
 	// State
 	const view = {
-		closed: [
-			'txHash',
-		],
-		content: {
-			dl: [
-				[
-					'txHash',
-					'actionType',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'tx hash',
+		},
+		{
+			label: 'block',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'network',
+				},
+				{
+					label: 'tx hash',
+				},
+				{
+					label: 'block',
+				},
+				{
+					label: 'account',
+				},
+				{
+					label: 'action type',
+				},
+				{
+					label: 'latest status',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Observations',
+				items: [
+					{
+						label: 'timestamped execution/status observations',
+					},
+				],
+			},
+			{
+				label: 'Block',
+				items: [
+					{
+						label: 'containing HyperEVM block',
+					},
+				],
+			},
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'linked Hyperliquid account when source context provides it',
+					},
+				],
+			},
+			{
+				label: 'Raw execution payload',
+				items: [
+					{
+						label: 'future decoded HyperEVM transaction fields when modeled',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

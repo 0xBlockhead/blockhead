@@ -9,28 +9,86 @@
 
 	// State
 	const view = {
-		closed: [
-			'metadataName',
-		],
-		content: {
-			dl: [
-				[
-					'metadataName',
-				],
-			],
+	closed: [
+		{
+			label: 'canister',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'metadata name',
+		},
+		{
+			label: 'latest visibility',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'canister',
+				},
+				{
+					label: 'metadata name',
+				},
+				{
+					label: 'latest visibility',
+				},
+				{
+					label: 'latest content hash',
+				},
+				{
+					label: 'content type',
+				},
+				{
+					label: 'value size',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Canister',
+				items: [
+					{
+						label: 'parent ICP canister',
+					},
+				],
+			},
+			{
+				label: 'Metadata history',
+				items: [
+					{
+						label: 'timestamped metadata observations',
+					},
+				],
+			},
+			{
+				label: 'Decoded value',
+				items: [
+					{
+						label: 'Candid/service metadata or text/blob preview',
+					},
+				],
+			},
+			{
+				label: 'Methods',
+				items: [
+					{
+						label: 'method rows when metadata contains Candid service',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'certified canister metadata or custom-section payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

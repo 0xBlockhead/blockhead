@@ -9,53 +9,113 @@
 
 	// State
 	const view = {
-		closed: [
-			'avsAddress',
+	closed: [
+		{
+			label: 'AVS address',
+		},
+		'name',
+		{
+			label: 'latest operator count',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'AVS address',
+				},
+				'name',
+				'website',
+				{
+					label: 'metadata URI',
+				},
+				{
+					label: 'latest operator/strategy counts',
+				},
+			],
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'AVS account',
+				},
+				{
+					label: 'latest allocation/slashing activity',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'avsAddress',
-					'metadataUri',
-					'name',
-					'website',
-					'description',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Observations',
+				items: [
+					{
+						label: 'timestamped AVS aggregate observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'operators',
-					when: 'open',
-					items: [
-						'$$operators',
-					],
-				},
-				{
-					label: 'allocations',
-					when: 'open',
-					items: [
-						'$$allocations',
-					],
-				},
-				{
-					label: 'slashing events',
-					when: 'open',
-					items: [
-						'$$slashingEvents',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Operators',
+				items: [
+					{
+						label: 'EigenLayer operators filtered by AVS',
+					},
+				],
+			},
+			{
+				label: 'Allocations',
+				items: [
+					{
+						label: 'allocation observations grouped by operator/strategy',
+					},
+				],
+			},
+			{
+				label: 'Slashing',
+				items: [
+					{
+						label: 'EigenLayer slashing events',
+					},
+				],
+			},
+			{
+				label: 'Metadata',
+				items: [
+					{
+						label: 'metadata URI payload',
+					},
+					{
+						label: 'display fields',
+					},
+				],
+			},
+			{
+				label: 'Contracts',
+				items: [
+					{
+						label: 'AVS and middleware EVM contracts when resolved',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'AVSDirectory registration',
+					},
+					{
+						label: 'metadata fetch/indexer payload',
+					},
+					{
+						label: 'event logs',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

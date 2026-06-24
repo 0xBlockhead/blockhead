@@ -9,28 +9,83 @@
 
 	// State
 	const view = {
-		closed: [
-			'validator',
-		],
-		content: {
-			dl: [
-				[
-					'validator',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'validator address',
+		},
+		{
+			label: 'latest name',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'network',
+				},
+				{
+					label: 'validator address',
+				},
+				{
+					label: 'latest observed name/signer',
+				},
+				{
+					label: 'latest commission/stake/activity summary',
+				},
+				{
+					label: 'observation count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Observations',
+				items: [
+					{
+						label: 'timestamped validator summary observations',
+					},
+				],
+			},
+			{
+				label: 'Latest signer',
+				items: [
+					{
+						label: 'Hyperliquid account from latest signer observation',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Hyperliquid network',
+					},
+				],
+			},
+			{
+				label: 'Produced blocks',
+				items: [
+					{
+						label: 'HyperEVM blocks when source context provides validator/block linkage',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'validatorSummaries payload freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,54 +9,82 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[
-					'restEndpoints',
+	closed: [
+		{
+			label: 'head block',
+		},
+		{
+			label: 'environment',
+		},
+		{
+			label: 'native asset count',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'head block',
+				},
+				{
+					label: 'environment',
+				},
+				{
+					label: 'native asset count',
+				},
+				{
+					label: 'REST endpoint availability',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'TRON',
+				items: [
+					{
+						label: 'Blocks',
+					},
+					{
+						label: 'Network snapshots',
+					},
+					{
+						label: 'Witnesses',
+					},
+					{
+						label: 'Endpoints',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'blocks',
-					when: 'open',
-					items: [
-						'$$blocks',
-					],
-				},
-				{
-					label: 'tokens',
-					when: 'open',
-					items: [
-						'$$tokens',
-					],
-				},
-				{
-					label: 'token transfers',
-					when: 'open',
-					items: [
-						'$$tokenTransfers',
-					],
-				},
-				{
-					label: 'witnesses',
-					when: 'open',
-					items: [
-						'$$witnesses',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Assets',
+				items: [
+					{
+						label: 'Native coin',
+					},
+					{
+						label: 'TRC token browse facets',
+					},
+					{
+						label: 'token transfer feeds when source-scoped',
+					},
+				],
+			},
+			{
+				label: 'Resources',
+				items: [
+					{
+						label: 'Faucets',
+					},
+					{
+						label: 'Block explorers',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

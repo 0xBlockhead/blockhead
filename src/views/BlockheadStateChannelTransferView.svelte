@@ -9,21 +9,75 @@
 
 	// State
 	const view = {
-		closed: [
-			'turnNum',
-			'amount',
-		],
-		content: {
-			dl: [
-				[
-					'turnNum',
-					'amount',
-					'timestamp',
-					'status',
-				],
-			],
+	closed: [
+		{
+			label: 'channel',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'turn number',
+		},
+		{
+			label: 'from account',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'channel',
+				},
+				{
+					label: 'turn number',
+				},
+				{
+					label: 'from account',
+				},
+				{
+					label: 'to account',
+				},
+				'amount',
+				'timestamp',
+				'status',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Channel',
+				items: [
+					{
+						label: 'parent local state channel',
+					},
+				],
+			},
+			{
+				label: 'Participants',
+				items: [
+					{
+						label: 'from/to EVM accounts',
+					},
+				],
+			},
+			{
+				label: 'Turn',
+				items: [
+					{
+						label: 'linked signed channel state when modeled',
+					},
+				],
+			},
+			{
+				label: 'Settlement evidence',
+				items: [
+					{
+						label: 'public ledger rows only when a submitted state or withdrawal proves them',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

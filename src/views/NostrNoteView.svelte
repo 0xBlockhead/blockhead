@@ -9,42 +9,87 @@
 
 	// State
 	const view = {
-		closed: [
-			'eventId',
+	closed: [
+		{
+			label: 'event id',
+		},
+		'kind',
+		{
+			label: 'author pubkey/profile',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'event id',
+				},
+				'kind',
+				{
+					label: 'author pubkey/profile',
+				},
+				'createdAt',
+				{
+					label: 'direct reply event id',
+				},
+				{
+					label: 'root event id',
+				},
+				{
+					label: 'reply-to note',
+				},
+				{
+					label: 'reply count',
+				},
+				{
+					label: 'reaction count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'eventId',
-					'kind',
-					'pubkey',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Note text',
+				items: [
 					'content',
-					'createdAt',
-					'tags',
-					'replyToEventId',
-					'rootEventId',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'replies',
-					when: 'open',
-					items: [
-						'$$replies',
-					],
-				},
-				{
-					label: 'reactions',
-					when: 'open',
-					items: [
-						'$$reactions',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Reply thread',
+				items: [
+					{
+						label: 'reply notes resolved from tags/indexer thread context',
+					},
+				],
+			},
+			{
+				label: 'Reactions',
+				items: [
+					{
+						label: 'reaction events targeting this note',
+					},
+				],
+			},
+			{
+				label: 'Author',
+				items: [
+					{
+						label: 'author Nostr profile',
+					},
+				],
+			},
+			{
+				label: 'Raw event',
+				items: [
+					{
+						label: 'kind/pubkey/tags/signature/source relays',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,39 +9,75 @@
 
 	// State
 	const view = {
-		closed: [
-			'protocolBinding',
-			'endpointUrl',
+	closed: [
+		{
+			label: 'card',
+		},
+		{
+			label: 'protocol binding',
+		},
+		{
+			label: 'endpoint',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'card',
+				},
+				{
+					label: 'protocol binding',
+				},
+				{
+					label: 'endpoint URL',
+				},
+			],
+			[
+				{
+					label: 'transport kind',
+				},
+				{
+					label: 'auth kind',
+				},
+				{
+					label: 'task refs',
+				},
+				{
+					label: 'latest health',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'protocolBinding',
-					'endpointUrl',
-					'transportKind',
-					'authKind',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Tasks',
+				items: [
+					{
+						label: 'A2aTask list',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'tasks',
-					when: 'open',
-					items: [
-						'$$tasks',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Health',
+				items: [
+					{
+						label: 'A2aAgentService_Timestamp list',
+					},
+				],
+			},
+			{
+				label: 'Card',
+				items: [
+					{
+						label: 'A2aAgentCard',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

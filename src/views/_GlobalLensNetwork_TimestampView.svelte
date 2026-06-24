@@ -9,15 +9,42 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
+	closed: [
+		'$hub',
+		'timestampMs',
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				'$hub',
+				'timestampMs',
+				'source',
+			],
+			[
+				'sourceWindowAccountCount',
+				'sourceWindowFeedCount',
+				'sourceWindowPostCount',
+				'sourceWindowUsernameNamespaceCount',
+				'localCatalogAccountCount',
+				'localCatalogFeedCount',
+				'localCatalogPostCount',
+				'reachable',
+				'cursor',
+			],
 		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Hub',
+				items: [
+					'$hub',
+				],
+			},
+			{
+				label: 'Observation fields',
+				items: [
 					'sourceWindowAccountCount',
 					'sourceWindowFeedCount',
 					'sourceWindowPostCount',
@@ -28,9 +55,21 @@
 					'reachable',
 					'cursor',
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'SourceBinding.Constants_Internal',
+					},
+					{
+						label: 'SourceBinding.Lens_Graphql',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

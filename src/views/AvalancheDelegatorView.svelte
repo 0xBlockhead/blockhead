@@ -9,23 +9,81 @@
 
 	// State
 	const view = {
-		closed: [
-			'txId',
-		],
-		content: {
-			dl: [
-				[
-					'txId',
-					'delegatorAddress',
-					'stakeAmountNavax',
-					'startTimeMs',
-					'endTimeMs',
-					'rewardOwnerAddresses',
-					'potentialRewardNavax',
-				],
-			],
+	closed: [
+		{
+			label: 'validator',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'delegation transaction id',
+		},
+		{
+			label: 'delegator address',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'validator',
+				},
+				{
+					label: 'delegation transaction id',
+				},
+				{
+					label: 'delegator address',
+				},
+				{
+					label: 'stake',
+				},
+				{
+					label: 'start/end time',
+				},
+				{
+					label: 'potential reward',
+				},
+				{
+					label: 'reward-owner count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Validator',
+				items: [
+					{
+						label: 'parent validation interval',
+					},
+				],
+			},
+			{
+				label: 'Delegation transaction',
+				items: [
+					{
+						label: 'P-Chain delegation transaction when resolved',
+					},
+				],
+			},
+			{
+				label: 'Reward owners',
+				items: [
+					{
+						label: 'reward owner address list',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'validator/delegator payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,36 +9,72 @@
 
 	// State
 	const view = {
-		closed: [
-			'id',
+	closed: [
+		'status',
+		'createdAt',
+		'providerId',
+	],
+	content: {
+		dl: [
+			[
+				'status',
+				'createdAt',
+				'providerId',
+				'promptVersion',
+				'parentId',
+				'$acpPromptTurn',
+				'$a2aTaskEvent',
+				'$$providerCalls',
+				'error',
+			],
 		],
-		content: {
-			dl: [
-				[
-					'id',
-					'parentId',
+		blocks: [
+			[
+				'userPrompt',
+				'assistantText',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Prompt',
+				items: [
 					'userPrompt',
-					'assistantText',
-					'providerId',
-					'status',
-					'error',
-					'createdAt',
-					'promptVersion',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'provider calls',
-					when: 'open',
-					items: [
-						'$$providerCalls',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Response',
+				items: [
+					'assistantText',
+				],
+			},
+			{
+				label: 'Provider calls',
+				items: [
+					'$$providerCalls',
+				],
+			},
+			{
+				label: 'Protocol refs',
+				items: [
+					'$acpPromptTurn',
+					'$a2aTaskEvent',
+				],
+			},
+			{
+				label: 'Branching',
+				items: [
+					'parentId',
+					{
+						slot: 'BranchContext',
+						label: 'Parent/child transcript context',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

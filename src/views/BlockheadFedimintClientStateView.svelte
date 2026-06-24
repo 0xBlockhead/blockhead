@@ -9,35 +9,109 @@
 
 	// State
 	const view = {
-		closed: [
-			'clientId',
-		],
-		content: {
-			dl: [
-				[
-					'clientId',
-					'clientName',
-					'inviteCode',
-					'mnemonicSet',
-					'guardianThreshold',
-					'moduleConfigJson',
-					'joinedAt',
-					'viewingKeyJson',
-				],
-			],
+	closed: [
+		{
+			label: 'client id/name',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'federation',
+		},
+		{
+			label: 'mnemonic-set status',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'client id/name',
+				},
+				{
+					label: 'federation',
+				},
+				{
+					label: 'mnemonic-set status',
+				},
+				{
+					label: 'joined time',
+				},
+				{
+					label: 'invite status',
+				},
+				{
+					label: 'latest balance totals',
+				},
+				{
+					label: 'latest recovery state',
+				},
+				{
+					label: 'latest sync time',
+				},
+				{
+					label: 'timestamp count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest state',
+				items: [
+					{
+						label: 'latest connected-client observation',
+					},
+				],
+			},
+			{
+				label: 'State history',
+				items: [
+					{
+						label: 'timestamped connected-client observations',
+					},
+				],
+			},
+			{
+				label: 'Federation',
+				items: [
+					{
+						label: 'parent federation',
+					},
+				],
+			},
+			{
+				label: 'Modules',
+				items: [
+					{
+						label: 'moduleConfigJson for mint/wallet/Lightning/meta modules',
+					},
+				],
+			},
+			{
+				label: 'Recovery/viewing keys',
+				items: [
+					{
+						label: 'redacted local key material',
+					},
+				],
+			},
+			{
+				label: 'Invite',
+				items: [
+					{
+						label: 'invite code',
+					},
+					{
+						label: 'federation id',
+					},
+					{
+						label: 'preview/join status',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

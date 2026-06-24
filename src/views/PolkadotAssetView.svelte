@@ -9,37 +9,81 @@
 
 	// State
 	const view = {
-		closed: [
-			'assetKind',
-			'assetId',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'asset kind',
+		},
+		{
+			label: 'asset id',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'asset kind',
+				},
+				{
+					label: 'asset id',
+				},
+				{
+					label: 'latest metadata/supply/role summary',
+				},
+				{
+					label: 'balance snapshot count',
+				},
+				{
+					label: 'latest observation time',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'assetKind',
-					'assetId',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Asset observations',
+				items: [
+					{
+						label: 'timestamped asset metadata/supply/role observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'balance timestamps',
-					when: 'open',
-					items: [
-						'$$balanceTimestamps',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Account balances',
+				items: [
+					{
+						label: 'asset balance observations grouped by account',
+					},
+				],
+			},
+			{
+				label: 'Runtime pallet',
+				items: [
+					{
+						label: 'runtime pallet for Assets/ForeignAssets/Tokens when resolved',
+					},
+				],
+			},
+			{
+				label: 'Holders/transfers',
+				items: [
+					{
+						label: 'indexed account balances',
+					},
+					{
+						label: 'extrinsics when source-scoped',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

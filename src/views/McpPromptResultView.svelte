@@ -9,27 +9,67 @@
 
 	// State
 	const view = {
-		closed: [
-			'argumentsHashAlgorithm',
-			'argumentsHash',
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'argumentsHashAlgorithm',
-					'argumentsHash',
-					'timestampMs',
-					'source',
-					'description',
-					'messages',
-					'raw',
-					'error',
-				],
-			],
+	closed: [
+		{
+			label: 'prompt',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'arguments hash',
+		},
+		{
+			label: 'observation time',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'prompt',
+				},
+				{
+					label: 'arguments hash algorithm/hash',
+				},
+				{
+					label: 'timestamp',
+				},
+				'source',
+			],
+			[
+				'description',
+				'messages',
+				'error',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Prompt',
+				items: [
+					{
+						label: 'McpPrompt',
+					},
+				],
+			},
+			{
+				label: 'Rendered messages',
+				items: [
+					{
+						label: 'messages payload',
+					},
+				],
+			},
+			{
+				label: 'Raw',
+				items: [
+					{
+						label: 'raw provider payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

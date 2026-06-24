@@ -9,54 +9,134 @@
 
 	// State
 	const view = {
-		closed: [
-			'walletId',
+	closed: [
+		{
+			label: 'wallet id',
+		},
+		{
+			label: 'network',
+		},
+		{
+			label: 'primary address',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'wallet id',
+				},
+				{
+					label: 'network',
+				},
+				{
+					label: 'primary address',
+				},
+				{
+					label: 'view-only flag',
+				},
+				{
+					label: 'trusted-daemon flag',
+				},
+				{
+					label: 'latest height',
+				},
+				{
+					label: 'latest balance',
+				},
+				{
+					label: 'latest unlocked balance',
+				},
+				{
+					label: 'latest multisig import status',
+				},
+				{
+					label: 'latest sync time',
+				},
+				{
+					label: 'view-key fingerprint',
+				},
+				{
+					label: 'spend-key availability',
+				},
+				{
+					label: 'timestamp count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'walletId',
-					'primaryAddress',
-					'viewOnly',
-					'trustedDaemon',
-					'viewKeyFingerprint',
-					'spendKeyAvailable',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest state',
+				items: [
+					{
+						label: 'BlockheadMoneroWalletState_TimestampView',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'subaddresses',
-					when: 'open',
-					items: [
-						'$$subaddresses',
-					],
-				},
-				{
-					label: 'outputs',
-					when: 'open',
-					items: [
-						'$$outputs',
-					],
-				},
-				{
-					label: 'transfers',
-					when: 'open',
-					items: [
-						'$$transfers',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'State history',
+				items: [
+					{
+						label: 'BlockheadMoneroWalletState_TimestampsView',
+					},
+				],
+			},
+			{
+				label: 'Subaddresses',
+				items: [
+					{
+						label: 'BlockheadMoneroSubaddressState list',
+					},
+				],
+			},
+			{
+				label: 'Outputs',
+				items: [
+					{
+						label: 'BlockheadMoneroOutputState list',
+					},
+				],
+			},
+			{
+				label: 'Transfers',
+				items: [
+					{
+						label: 'BlockheadMoneroTransferState list',
+					},
+				],
+			},
+			{
+				label: 'Sync/export',
+				items: [
+					{
+						label: 'output export',
+					},
+					{
+						label: 'key-image export times',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'MoneroNetworkView',
+					},
+				],
+			},
+			{
+				label: 'Key material',
+				items: [
+					{
+						label: 'redacted view/spend/multisig fields',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

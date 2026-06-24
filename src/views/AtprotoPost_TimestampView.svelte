@@ -9,21 +9,107 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
+	layout: 'Summary',
+	defaultOpen: false,
+	query: {
+		sources: [
+			'Atproto_Xrpc',
 		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
+		fields: [
+			'$post',
+			'timestampMs',
+			'likeCount',
+			'repostCount',
+			'replyCount',
+			'quoteCount',
+		],
+	},
+	metrics: [
+		{
+			group: 'engagement',
+			field: 'likeCount',
+			label: 'Likes',
+		},
+		{
+			group: 'engagement',
+			field: 'replyCount',
+			label: 'Replies',
+		},
+		{
+			group: 'engagement',
+			field: 'repostCount',
+			label: 'Reposts',
+		},
+		{
+			group: 'engagement',
+			field: 'quoteCount',
+			label: 'Quotes',
+		},
+	],
+	panels: [
+		{
+			id: 'metrics',
+			label: 'Metrics',
+			kind: 'metricRows',
+			slot: 'SocialMetricSnapshotRows',
+		},
+	],
+	renderers: [
+		{
+			slot: 'SocialMetricSnapshotRows',
+			component: 'SocialMetricSnapshotRows',
+			label: 'social metric rows renderer',
+			for: 'metricRows',
+		},
+	],
+	closed: [
+		'$post',
+		'timestampMs',
+		'likeCount',
+	],
+	content: {
+		dl: [
+			[
+				'$post',
+				'timestampMs',
+				'likeCount',
+				'repostCount',
+				'replyCount',
+				'quoteCount',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Post',
+				items: [
+					'$post',
+				],
+			},
+			{
+				label: 'Engagement',
+				items: [
 					'likeCount',
 					'repostCount',
 					'replyCount',
 					'quoteCount',
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'app.bsky.feed.getPostThread',
+					},
+					{
+						label: 'app.bsky.feed.getPosts AppView stats',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

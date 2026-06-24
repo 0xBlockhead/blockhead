@@ -9,25 +9,74 @@
 
 	// State
 	const view = {
-		closed: [
-			'discussionSelector',
-			'commentId',
-		],
-		content: {
-			dl: [
-				[
-					'discussionSelector',
-					'commentId',
-					'authorDid',
-					'body',
-					'bodyObjectId',
-					'createdAt',
-					'updatedAt',
-					'replyToCommentId',
-				],
-			],
+	closed: [
+		{
+			label: 'discussion selector',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'comment id',
+		},
+		{
+			label: 'author DID',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'discussion selector',
+				},
+				{
+					label: 'comment id',
+				},
+				{
+					label: 'author DID',
+				},
+				{
+					label: 'created/updated timestamps',
+				},
+				{
+					label: 'reply target',
+				},
+				'body',
+				{
+					label: 'body object id',
+				},
+				{
+					label: 'payload object',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Parent discussion',
+				items: [
+					{
+						label: 'Radicle issue or patch by selector',
+					},
+				],
+			},
+			{
+				label: 'Replies',
+				items: [
+					{
+						label: 'reply comment rows',
+					},
+				],
+			},
+			{
+				label: 'Payload',
+				items: [
+					{
+						label: 'Git object when body is object-backed',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,30 +9,78 @@
 
 	// State
 	const view = {
-		closed: [
-			'cid',
-		],
-		content: {
-			dl: [
-				[
-					'cid',
-					'ticketVrFProof',
-					'winCount',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'CID',
+		},
+		{
+			label: 'tipset',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'messages',
-					when: 'open',
-					items: [
-						'$$messages',
-					],
+					label: 'network',
+				},
+				{
+					label: 'CID',
+				},
+				{
+					label: 'tipset',
+				},
+				{
+					label: 'miner',
+				},
+				{
+					label: 'ticket VRF proof',
+				},
+				{
+					label: 'win count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Messages',
+				items: [
+					{
+						label: 'Filecoin messages included in the block',
+					},
+				],
+			},
+			{
+				label: 'Tipset',
+				items: [
+					{
+						label: 'parent Filecoin tipset',
+					},
+				],
+			},
+			{
+				label: 'Miner',
+				items: [
+					{
+						label: 'producing Filecoin miner',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Filecoin network',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

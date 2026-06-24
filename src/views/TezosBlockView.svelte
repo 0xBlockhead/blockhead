@@ -9,45 +9,105 @@
 
 	// State
 	const view = {
-		closed: [
-			'level',
+	closed: [
+		{
+			label: 'level/hash',
+		},
+		{
+			label: 'timestamp',
+		},
+		{
+			label: 'baker',
+		},
+	],
+	content: {
+		dl: [
+			[
+				'level',
+				'hash',
+				{
+					label: 'timestamp',
+				},
+				{
+					label: 'protocol',
+				},
+				{
+					label: 'baker',
+				},
+				'round',
+				'cycle',
+				{
+					label: 'predecessor',
+				},
+				{
+					label: 'operation count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'level',
-					'hash',
-					'timestampMs',
-					'protocolHash',
-					'predecessorHash',
-					'bakerAddress',
-					'round',
-					'cycle',
-					'payloadHash',
-					'operationsHash',
-					'fitness',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Operation groups',
+				items: [
+					{
+						label: 'operation groups included in block',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'operation groups',
-					when: 'open',
-					items: [
-						'$$operationGroups',
-					],
-				},
-				{
-					label: 'operations',
-					when: 'open',
-					items: [
-						'$$operations',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Operations',
+				items: [
+					{
+						label: 'operations by validation pass/kind',
+					},
+				],
+			},
+			{
+				label: 'Baker',
+				items: [
+					{
+						label: 'producing Tezos baker',
+					},
+				],
+			},
+			{
+				label: 'Cycle',
+				items: [
+					{
+						label: 'Tezos cycle',
+					},
+				],
+			},
+			{
+				label: 'Header',
+				items: [
+					{
+						label: 'payload hash',
+					},
+					{
+						label: 'operations hash',
+					},
+					'fitness',
+					{
+						label: 'predecessor/successor context',
+					},
+				],
+			},
+			{
+				label: 'Lookup evidence',
+				items: [
+					{
+						label: 'node RPC block lookup by level or hash',
+					},
+					{
+						label: 'TzKT/indexer block payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

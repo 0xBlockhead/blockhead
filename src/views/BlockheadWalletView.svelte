@@ -9,28 +9,93 @@
 
 	// State
 	const view = {
-		closed: [
-			'id',
-		],
-		content: {
-			dl: [
-				[
-					'id',
-					'name',
-					'icon',
-					'protocol',
-					'discoveryKind',
-					'transportKind',
-					'rdns',
-					'websiteUrl',
-					'capabilities',
-					'adapterId',
-					'sourceWalletKey',
-					'detectedAt',
-				],
-			],
+	lists: [
+		{
+			id: 'balances',
+			label: 'Balances',
+			emptyText: 'No balances for this wallet yet.',
+			item: 'summary',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+	],
+	closed: [
+		'id',
+		'name',
+		'protocol',
+		{
+			label: 'transport',
+		},
+	],
+	content: {
+		dl: [
+			[
+				'id',
+				'name',
+				'protocol',
+				{
+					label: 'discovery kind',
+				},
+				{
+					label: 'transport kind',
+				},
+				{
+					label: 'connection method',
+				},
+				'rdns',
+				{
+					label: 'website URL',
+				},
+			],
+			[
+				{
+					label: 'adapter id',
+				},
+				{
+					label: 'source wallet key',
+				},
+				{
+					label: 'detected time',
+				},
+				'capabilities',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Connection method',
+				items: [
+					{
+						label: 'WalletConnectionMethod',
+					},
+				],
+			},
+			{
+				label: 'Connections',
+				items: [
+					{
+						label: 'BlockheadWalletConnection rows for this wallet candidate',
+					},
+				],
+			},
+			{
+				label: 'Accounts',
+				items: [
+					{
+						label: 'BlockheadWalletAccount rows exposed through connections',
+					},
+				],
+			},
+			{
+				label: 'Discovery evidence',
+				items: [
+					{
+						label: 'injected event/global/registry/manifest/source fields',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

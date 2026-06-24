@@ -9,24 +9,78 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[],
-			],
+	closed: [
+		{
+			label: 'account',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'claimed primary name',
+		},
+		{
+			label: 'latest verified status',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'account',
+				},
+				{
+					label: 'claimed primary name',
+				},
+				{
+					label: 'latest verified status',
+				},
+				{
+					label: 'latest source',
+				},
+				{
+					label: 'timestamp count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Verification history',
+				items: [
+					{
+						label: 'timestamped reverse-record verification observations',
+					},
+				],
+			},
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'linked account/EVM account',
+					},
+				],
+			},
+			{
+				label: 'Name',
+				items: [
+					{
+						label: 'claimed ENS name',
+					},
+				],
+			},
+			{
+				label: 'Resolver evidence',
+				items: [
+					{
+						label: 'reverse node',
+					},
+					{
+						label: 'forward-resolution check',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

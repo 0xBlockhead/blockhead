@@ -9,33 +9,76 @@
 
 	// State
 	const view = {
-		closed: [
-			'restrictionKey',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'restrictionKey',
-					'source',
-					'restrictionKind',
-					'message',
-					'ruleSelector',
-				],
-			],
+	closed: [
+		{
+			label: 'asset instance',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'restriction key',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'checks',
-					when: 'open',
-					items: [
-						'$$checks',
-					],
+					label: 'asset instance',
+				},
+				{
+					label: 'restriction key',
+				},
+				'source',
+				{
+					label: 'restriction kind',
+				},
+				{
+					label: 'profile',
+				},
+				'message',
+				{
+					label: 'rule selector',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Profile',
+				items: [
+					{
+						label: 'regulated-asset profile',
+					},
+				],
+			},
+			{
+				label: 'Checks',
+				items: [
+					{
+						label: 'source/time transfer checks',
+					},
+				],
+			},
+			{
+				label: 'Evidence',
+				items: [
+					{
+						label: 'module config',
+					},
+					{
+						label: 'restriction-code mapping',
+					},
+					{
+						label: 'transfer-hook rule',
+					},
+					{
+						label: 'or explicit registry restriction',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

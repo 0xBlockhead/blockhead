@@ -9,31 +9,92 @@
 
 	// State
 	const view = {
-		closed: [
-			'connectionId',
-		],
-		content: {
-			dl: [
-				[
-					'connectionId',
-					'rpcUrl',
-					'encoding',
-					'networkId',
-				],
-			],
+	closed: [
+		{
+			label: 'connection id',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'RPC URL',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'connection id',
+				},
+				{
+					label: 'network',
+				},
+				{
+					label: 'RPC URL',
+				},
+				'encoding',
+				{
+					label: 'network id',
+				},
+				{
+					label: 'latest server version/sync/head state',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Node observations',
+				items: [
+					{
+						label: 'timestamped connected-node observations',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Kaspa network',
+					},
+				],
+			},
+			{
+				label: 'Node head',
+				items: [
+					{
+						label: 'network timestamp observation when materialized from this connected node',
+					},
+				],
+			},
+			{
+				label: 'Virtual chain',
+				items: [
+					{
+						label: 'virtual-chain observations from local checkpoint pulls',
+					},
+				],
+			},
+			{
+				label: 'Transport',
+				items: [
+					{
+						label: 'wRPC/gRPC connection metadata',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'local node RPC payloads',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

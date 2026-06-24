@@ -9,36 +9,74 @@
 
 	// State
 	const view = {
-		closed: [
-			'hash',
+	closed: [
+		'hash',
+		{
+			label: 'source account',
+		},
+		{
+			label: 'latest success/result code',
+		},
+	],
+	content: {
+		dl: [
+			[
+				'hash',
+				{
+					label: 'source account',
+				},
+				{
+					label: 'latest ledger',
+				},
+				{
+					label: 'latest success/result code',
+				},
+				{
+					label: 'latest fee charged/max fee',
+				},
+				{
+					label: 'latest memo',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'hash',
-					'sourceAccount',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest result',
+				items: [
+					{
+						label: 'latest ledger/source transaction result observation',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'operations',
-					when: 'open',
-					items: [
-						'$$operations',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Result history',
+				items: [
+					{
+						label: 'timestamped transaction result observations',
+					},
+				],
+			},
+			{
+				label: 'Operations',
+				items: [
+					{
+						label: 'operations in this transaction',
+					},
+				],
+			},
+			{
+				label: 'XDR/result',
+				items: [
+					{
+						label: 'envelope/result/meta inspectors from latest timestamp',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

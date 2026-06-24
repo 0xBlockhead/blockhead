@@ -9,33 +9,83 @@
 
 	// State
 	const view = {
-		closed: [
-			'objectId',
-			'objectFormat',
-			'byteSource',
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'objectId',
-					'objectFormat',
-					'byteSource',
-					'timestampMs',
-					'source',
-					'verifier',
-					'objectKind',
-					'headerBytesHash',
-					'payloadBytesHash',
-					'computedObjectId',
-					'canonicalEncoding',
-					'status',
-					'error',
-				],
-			],
+	closed: [
+		{
+			label: 'object id',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'object format',
+		},
+		{
+			label: 'byte source',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'object id',
+				},
+				{
+					label: 'object format',
+				},
+				{
+					label: 'byte source',
+				},
+				{
+					label: 'timestamp',
+				},
+				'source',
+				'verifier',
+				'status',
+				{
+					label: 'object kind',
+				},
+				{
+					label: 'computed object id',
+				},
+				{
+					label: 'canonical encoding flag',
+				},
+				{
+					label: 'header bytes hash',
+				},
+				{
+					label: 'payload bytes hash',
+				},
+				'error',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Object',
+				items: [
+					{
+						label: 'parsed Git object when verification succeeds',
+					},
+				],
+			},
+			{
+				label: 'Byte source',
+				items: [
+					{
+						label: 'loose/packed storage context when available',
+					},
+				],
+			},
+			{
+				label: 'Diagnostics',
+				items: [
+					{
+						label: 'verifier output when retained',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

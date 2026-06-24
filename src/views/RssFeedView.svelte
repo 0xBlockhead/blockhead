@@ -9,35 +9,87 @@
 
 	// State
 	const view = {
-		closed: [
-			'feedUrl',
-		],
-		content: {
-			dl: [
-				[
-					'feedUrl',
-					'title',
-					'description',
-					'link',
-					'siteUrl',
-					'language',
-					'lastBuildDate',
-					'imageUrl',
-				],
-			],
+	closed: [
+		{
+			label: 'feed URL',
 		},
-		details: {
-			tabs: [
+		'title',
+		{
+			label: 'item count',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'items',
-					when: 'open',
-					items: [
-						'$$items',
-					],
+					label: 'feed URL',
+				},
+				'title',
+				'description',
+				{
+					label: 'site/link URL',
+				},
+				'language',
+				{
+					label: 'last build date',
+				},
+				{
+					label: 'image URL',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			[
+				{
+					label: 'item count',
+				},
+				{
+					label: 'target latest metadata observation when timestamp rows exist',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Items',
+				items: [
+					{
+						label: 'RSS items from this feed',
+					},
+				],
+			},
+			{
+				label: 'Metadata',
+				items: [
+					{
+						label: 'publisher-declared title/description/link/site/language/image fields',
+					},
+				],
+			},
+			{
+				label: 'Metadata observations',
+				items: [
+					{
+						label: 'RssFeed_Timestamp target rows when implemented',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'configured feed URL',
+					},
+					{
+						label: 'direct XML fetch',
+					},
+					{
+						label: 'Rss2Json proxy payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

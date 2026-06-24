@@ -9,20 +9,80 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
+	layout: 'Summary',
+	defaultOpen: false,
+	query: {
+		sources: [
+			'Youtube_Rest',
 		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
+		fields: [
+			'$video',
+			'timestampMs',
+			'viewCount',
+			'likeCount',
+			'commentCount',
+		],
+	},
+	metrics: [
+		{
+			group: 'engagement',
+			field: 'viewCount',
+			label: 'Views',
+		},
+		{
+			group: 'engagement',
+			field: 'likeCount',
+			label: 'Likes',
+		},
+		{
+			group: 'engagement',
+			field: 'commentCount',
+			label: 'Comments',
+		},
+	],
+	closed: [
+		'$video',
+		'timestampMs',
+		'viewCount',
+	],
+	content: {
+		dl: [
+			[
+				'$video',
+				'timestampMs',
+				'viewCount',
+				'likeCount',
+				'commentCount',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Video',
+				items: [
+					'$video',
+				],
+			},
+			{
+				label: 'Statistics',
+				items: [
 					'viewCount',
 					'likeCount',
 					'commentCount',
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'YouTube Data API videos.list statistics payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

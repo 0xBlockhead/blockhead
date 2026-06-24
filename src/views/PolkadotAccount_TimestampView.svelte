@@ -9,30 +9,78 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'blockNumber',
-					'blockHash',
-					'nonce',
-					'freeBalancePlancks',
-					'reservedBalancePlancks',
-					'frozenBalancePlancks',
-					'miscFrozenPlancks',
-					'feeFrozenPlancks',
-					'consumers',
-					'providers',
-					'sufficients',
-				],
-			],
+	closed: [
+		{
+			label: 'account',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'timestamp',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'account',
+				},
+				{
+					label: 'timestamp',
+				},
+				'source',
+				{
+					label: 'block number/hash',
+				},
+				'nonce',
+				{
+					label: 'free/reserved/frozen balances',
+				},
+				{
+					label: 'legacy misc/fee frozen fields',
+				},
+				{
+					label: 'provider/consumer/sufficient refcounts',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'parent Polkadot account',
+					},
+				],
+			},
+			{
+				label: 'Block',
+				items: [
+					{
+						label: 'Polkadot block when block coordinates are present',
+					},
+				],
+			},
+			{
+				label: 'Balance breakdown',
+				items: [
+					{
+						label: 'account data fields',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'raw RPC/indexer coordinates',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

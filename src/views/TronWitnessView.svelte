@@ -9,28 +9,63 @@
 
 	// State
 	const view = {
-		closed: [
-			'address',
-		],
-		content: {
-			dl: [
-				[
-					'address',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		'address',
+		{
+			label: 'latest URL/vote/production summary',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'network',
+				},
+				'address',
+				{
+					label: 'latest URL/vote/production summary',
+				},
+				{
+					label: 'active state',
+				},
+				{
+					label: 'latest observation time',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Witness observations',
+				items: [
+					{
+						label: 'witness vote/production observations',
+					},
+				],
+			},
+			{
+				label: 'Produced blocks',
+				items: [
+					{
+						label: 'produced blocks when source supports witness filtering',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent TRON network',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

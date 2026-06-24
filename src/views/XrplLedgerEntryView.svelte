@@ -9,22 +9,90 @@
 
 	// State
 	const view = {
-		closed: [
-			'entryHash',
-		],
-		content: {
-			dl: [
-				[
-					'entryHash',
-					'entryType',
-					'account',
-					'previousTransactionHash',
-					'previousTransactionLedgerIndex',
-					'fields',
-				],
-			],
+	closed: [
+		{
+			label: 'entry type',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'entry hash',
+		},
+		{
+			label: 'ledger',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'entry type',
+				},
+				{
+					label: 'entry hash',
+				},
+				{
+					label: 'ledger',
+				},
+				'account',
+				{
+					label: 'previous transaction hash/index',
+				},
+				{
+					label: 'changed-by transaction links',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Ledger',
+				items: [
+					{
+						label: 'parent XRPL ledger',
+					},
+				],
+			},
+			{
+				label: 'Entry fields',
+				items: [
+					{
+						label: 'raw fields',
+					},
+					{
+						label: 'entry type',
+					},
+				],
+			},
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'account when present',
+					},
+				],
+			},
+			{
+				label: 'History',
+				items: [
+					{
+						label: 'previous transaction hash/index',
+					},
+					{
+						label: 'changed-by transaction links',
+					},
+				],
+			},
+			{
+				label: 'Type-specific panels',
+				items: [
+					{
+						label: 'rendered panels when implemented',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

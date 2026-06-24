@@ -9,44 +9,120 @@
 
 	// State
 	const view = {
-		closed: [
+	route: {
+		href: '/youtube/video/[videoId]',
+		dependsOn: [
 			'videoId',
 		],
-		content: {
-			dl: [
-				[
-					'videoId',
-					'publishedAt',
-					'publishedAtMs',
-					'durationSeconds',
-					'title',
-					'description',
-					'categoryId',
-					'liveBroadcastContent',
-					'tags',
-					'thumbnailUrl',
+	},
+	query: {
+		sources: [
+			'Youtube_Rest',
+			'Piped_Rest',
+		],
+		openFields: [
+			'$author',
+			'$$timestamps',
+			'$$comments',
+		],
+		slot: 'YouTubeVideoQueryPolicy',
+	},
+	media: {
+		thumbnail: 'thumbnailUrl',
+		title: 'title',
+		fallbackIcon: 'video',
+		slot: 'YouTubeVideoThumbnail',
+	},
+	latest: [
+		{
+			field: '$$timestamps',
+			sort: 'timestampMs',
+			direction: 'desc',
+			view: 'YouTubeVideo_TimestampView',
+			slot: 'LatestYouTubeVideoMetrics',
+		},
+	],
+	closed: [
+		{
+			label: 'video id',
+		},
+		{
+			label: 'latest title',
+		},
+		{
+			label: 'latest description',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'video id',
+				},
+				{
+					label: 'published date',
+				},
+				{
+					label: 'duration',
+				},
+				{
+					label: 'author channel',
+				},
+				{
+					label: 'latest title',
+				},
+				{
+					label: 'latest description',
+				},
+				{
+					label: 'latest live state',
+				},
+				{
+					label: 'latest thumbnail',
+				},
+				{
+					label: 'latest view/like/comment snapshot',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest metadata',
+				items: [
+					{
+						label: 'latest video metadata observation',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'comments',
-					when: 'open',
-					items: [
-						'$$comments',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Comments',
+				items: [
+					{
+						label: 'video comments',
+					},
+				],
+			},
+			{
+				label: 'Author',
+				items: [
+					{
+						label: 'author channel',
+					},
+				],
+			},
+			{
+				label: 'Metric snapshots',
+				items: [
+					{
+						label: 'video metric observations',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

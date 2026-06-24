@@ -9,29 +9,84 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'status',
-					'walletStatusCode',
-					'walletCallBundleStatus',
-					'atomic',
-					'receiptCount',
-					'transactionHash',
-					'transactionId',
-					'signatureHash',
-					'statusPayloadHash',
-					'error',
-				],
-			],
+	closed: [
+		{
+			label: 'wallet request',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+		'status',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'wallet request',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				'status',
+				{
+					label: 'wallet status code',
+				},
+				{
+					label: 'wallet call bundle status',
+				},
+				{
+					label: 'atomic execution',
+				},
+				{
+					label: 'receipt count',
+				},
+				{
+					label: 'transaction hash',
+				},
+				{
+					label: 'transaction id',
+				},
+				{
+					label: 'signature hash',
+				},
+				{
+					label: 'status payload hash',
+				},
+				'error',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Wallet request',
+				items: [
+					{
+						label: 'BlockheadWalletRequestView',
+					},
+				],
+			},
+			{
+				label: 'Status evidence',
+				items: [
+					{
+						label: 'wallet-reported status/result payload retained only when needed',
+					},
+				],
+			},
+			{
+				label: 'Chain evidence',
+				items: [
+					{
+						label: 'linked transaction rows when resolved',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

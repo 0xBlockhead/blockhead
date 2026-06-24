@@ -34,14 +34,21 @@ export type WitnessFile = {
 export type PatternFamily =
 	| 'schema-entity'
 	| 'schema-selector-or-fields'
+	| 'schema-product'
 	| 'view-file'
 	| 'view-reference'
+	| 'view-product'
 	| 'route-file'
 	| 'route-reference'
+	| 'route-family'
+	| 'route-product'
 	| 'source-file'
 	| 'source-reference'
+	| 'source-product'
 	| 'resolver-file'
 	| 'resolver-coverage'
+	| 'resolver-product'
+	| 'probe-product'
 	| 'invariant'
 	| 'unique'
 
@@ -63,19 +70,17 @@ export type ConceptRow = {
 export type Decision =
 	| 'adopt'
 	| 'merge'
-	| 'rename'
+	| 'alias'
 	| 'hand-owned'
-	| 'reject-obsolete-generated'
+	| 'obsolete'
 	| 'reference-only'
-	| 'defer-schema'
-	| 'defer-runtime'
-	| 'defer-artifact'
+	| 'deferred'
 
 export type DecisionRow = {
 	decision: Decision
+	area: string
 	identity: string
-	factKind: string
-	sourceFile: string
-	sourceRole: SourceRole
+	rowKind: string
+	evidence: string[]
 	reason: string
 }

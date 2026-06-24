@@ -9,22 +9,92 @@
 
 	// State
 	const view = {
-		closed: [
-			'sequenceNumber',
-		],
-		content: {
-			dl: [
-				[
-					'sequenceNumber',
-					'consensusTimestamp',
-					'runningHash',
-					'payerAccount',
-					'message',
-					'chunkInfo',
-				],
-			],
+	closed: [
+		{
+			label: 'topic',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'sequence number',
+		},
+		{
+			label: 'consensus timestamp',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'topic',
+				},
+				{
+					label: 'sequence number',
+				},
+				{
+					label: 'consensus timestamp',
+				},
+				{
+					label: 'payer account',
+				},
+				{
+					label: 'running hash',
+				},
+				{
+					label: 'message size',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Topic',
+				items: [
+					{
+						label: 'parent Hedera topic',
+					},
+				],
+			},
+			{
+				label: 'Message body',
+				items: [
+					{
+						label: 'decoded/base64 message body',
+					},
+					{
+						label: 'chunk metadata',
+					},
+				],
+			},
+			{
+				label: 'Transaction',
+				items: [
+					{
+						label: 'submit Hedera transaction when resolved',
+					},
+				],
+			},
+			{
+				label: 'Running hash',
+				items: [
+					{
+						label: 'sequence',
+					},
+					{
+						label: 'running-hash evidence',
+					},
+				],
+			},
+			{
+				label: 'Payer',
+				items: [
+					{
+						label: 'payer Hedera account when resolved',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

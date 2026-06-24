@@ -9,41 +9,91 @@
 
 	// State
 	const view = {
-		closed: [
-			'packageId',
-			'version',
-			'digest',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'package lineage',
+		},
+		{
+			label: 'package id',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'package lineage',
+				},
+				{
+					label: 'package id',
+				},
+				'version',
+				'digest',
+				{
+					label: 'previous package id',
+				},
+				{
+					label: 'upgrade policy',
+				},
+				{
+					label: 'module count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'packageId',
-					'version',
-					'digest',
-					'previousPackageId',
-					'upgradePolicy',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Package',
+				items: [
+					{
+						label: 'package lineage when resolved',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'modules',
-					when: 'open',
-					items: [
-						'$$modules',
-					],
-				},
-				{
-					label: 'module timestamps',
-					when: 'open',
-					items: [
-						'$$moduleTimestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Module identities',
+				items: [
+					{
+						label: 'Move module rows',
+					},
+				],
+			},
+			{
+				label: 'Module observations',
+				items: [
+					{
+						label: 'module bytecode/ABI/source observations for package version',
+					},
+				],
+			},
+			{
+				label: 'Publishing transaction',
+				items: [
+					{
+						label: 'Sui transaction when source object changes identify it',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'sui_getObject/GraphQL package object',
+					},
+					{
+						label: 'published-object payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,24 +9,81 @@
 
 	// State
 	const view = {
-		closed: [
-			'transactionDigest',
-			'eventIndex',
-		],
-		content: {
-			dl: [
-				[
-					'transactionDigest',
-					'eventIndex',
-					'eventType',
-					'packageId',
-					'moduleName',
-					'sender',
-					'value',
-				],
-			],
+	closed: [
+		{
+			label: 'event type',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'package/module',
+		},
+		'sender',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'event type',
+				},
+				{
+					label: 'package/module',
+				},
+				'sender',
+				{
+					label: 'transaction digest',
+				},
+				{
+					label: 'event index',
+				},
+				{
+					label: 'value payload',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transaction',
+				items: [
+					{
+						label: 'SuiTransaction',
+					},
+				],
+			},
+			{
+				label: 'Emitter',
+				items: [
+					{
+						label: 'package id',
+					},
+					{
+						label: 'module name',
+					},
+					'sender',
+				],
+			},
+			{
+				label: 'Event payload',
+				items: [
+					{
+						label: 'event type',
+					},
+					{
+						label: 'value JSON',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Sui transaction/event payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

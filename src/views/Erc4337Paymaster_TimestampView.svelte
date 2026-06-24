@@ -9,20 +9,60 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'userOperationsCount',
-				],
-			],
+	closed: [
+		{
+			label: 'paymaster',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'paymaster',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'indexed sponsored user-operation count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Paymaster',
+				items: [
+					{
+						label: 'parent ERC-4337 paymaster',
+					},
+				],
+			},
+			{
+				label: 'User operations',
+				items: [
+					{
+						label: 'user operations for the same source scope',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Blockscout paymaster detail/list payload fields such as total_ops',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

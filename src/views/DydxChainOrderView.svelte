@@ -9,34 +9,88 @@
 
 	// State
 	const view = {
-		closed: [
-			'orderId',
-		],
-		content: {
-			dl: [
-				[
-					'orderId',
-					'side',
-					'orderType',
-					'timeInForce',
-					'clientId',
-					'goodTilBlock',
-					'goodTilBlockTimeMs',
-				],
-			],
+	closed: [
+		{
+			label: 'subaccount',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'order id',
+		},
+		{
+			label: 'market',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'subaccount',
+				},
+				{
+					label: 'order id',
+				},
+				{
+					label: 'market',
+				},
+				'side',
+				{
+					label: 'order type',
+				},
+				{
+					label: 'time in force',
+				},
+				{
+					label: 'client id',
+				},
+				{
+					label: 'good-til block/time',
+				},
+				{
+					label: 'latest status/fill summary',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Order observations',
+				items: [
+					{
+						label: 'timestamped order lifecycle observations',
+					},
+				],
+			},
+			{
+				label: 'Subaccount',
+				items: [
+					{
+						label: 'parent dYdX subaccount',
+					},
+				],
+			},
+			{
+				label: 'Market',
+				items: [
+					{
+						label: 'linked dYdX market',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'indexer order payload',
+					},
+					{
+						label: 'stateful order query when available',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

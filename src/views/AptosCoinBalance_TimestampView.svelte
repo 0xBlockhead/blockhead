@@ -9,25 +9,80 @@
 
 	// State
 	const view = {
-		closed: [
-			'assetType',
-			'ledgerVersion',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'assetType',
-					'ledgerVersion',
-					'source',
-					'timestampMs',
-					'amount',
-					'ownerAddress',
-					'coinType',
-				],
-			],
+	closed: [
+		{
+			label: 'account',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'asset type',
+		},
+		{
+			label: 'ledger version',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'account',
+				},
+				{
+					label: 'asset type',
+				},
+				{
+					label: 'ledger version',
+				},
+				'source',
+				{
+					label: 'observation time',
+				},
+				'amount',
+				{
+					label: 'coin type when resolved',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'parent Aptos account',
+					},
+				],
+			},
+			{
+				label: 'Balance resource',
+				items: [
+					{
+						label: 'matching CoinStore/FungibleAsset resource when resolved',
+					},
+				],
+			},
+			{
+				label: 'History',
+				items: [
+					{
+						label: 'same account/asset snapshots',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'fullnode /accounts/{address}/balance/{asset_type}',
+					},
+					{
+						label: 'indexer balance payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,50 +9,99 @@
 
 	// State
 	const view = {
-		closed: [
-			'address',
+	closed: [
+		{
+			label: 'network',
+		},
+		'address',
+		{
+			label: 'account role',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				'address',
+				{
+					label: 'account role',
+				},
+				{
+					label: 'master account',
+				},
+				{
+					label: 'agent account',
+				},
+				{
+					label: 'latest account value',
+				},
+				{
+					label: 'latest withdrawable amount',
+				},
+				{
+					label: 'latest spot balance count',
+				},
+				{
+					label: 'latest open order count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'address',
-					'accountRole',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Account state',
+				items: [
+					{
+						label: 'timestamped clearinghouse/user-state observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'orders',
-					when: 'open',
-					items: [
-						'$$orders',
-					],
-				},
-				{
-					label: 'fills',
-					when: 'open',
-					items: [
-						'$$fills',
-					],
-				},
-				{
-					label: 'vault equities',
-					when: 'open',
-					items: [
-						'$$vaultEquities',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Orders',
+				items: [
+					{
+						label: 'Hyperliquid order rows',
+					},
+				],
+			},
+			{
+				label: 'Fills',
+				items: [
+					{
+						label: 'Hyperliquid fill rows',
+					},
+				],
+			},
+			{
+				label: 'Vault equities',
+				items: [
+					{
+						label: 'timestamped vault equity observations',
+					},
+				],
+			},
+			{
+				label: 'Master/agent',
+				items: [
+					{
+						label: 'Hyperliquid account role links',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'HyperEVM transactions when source context provides activity',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

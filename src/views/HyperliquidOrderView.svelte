@@ -9,40 +9,120 @@
 
 	// State
 	const view = {
-		closed: [
-			'oid',
-		],
-		content: {
-			dl: [
-				[
-					'oid',
-					'cloid',
-					'coin',
-					'side',
-					'orderType',
-					'limitPrice',
-					'originalSize',
-					'triggerCondition',
-					'triggerPrice',
-					'reduceOnly',
-					'tif',
-					'isTrigger',
-					'isPositionTpsl',
-				],
-			],
+	closed: [
+		{
+			label: 'account',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'order id',
+		},
+		{
+			label: 'client order id',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'account',
+				},
+				{
+					label: 'order id',
+				},
+				{
+					label: 'client order id',
+				},
+				'coin',
+				'side',
+				{
+					label: 'order type',
+				},
+				{
+					label: 'latest status',
+				},
+				{
+					label: 'latest status time',
+				},
+				{
+					label: 'limit price',
+				},
+				{
+					label: 'latest remaining size',
+				},
+				{
+					label: 'original size',
+				},
+				{
+					label: 'trigger condition',
+				},
+				{
+					label: 'reduce-only flag',
+				},
+				{
+					label: 'TIF',
+				},
+				{
+					label: 'timestamp count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest state',
+				items: [
+					{
+						label: 'latest order lifecycle observation',
+					},
+				],
+			},
+			{
+				label: 'State history',
+				items: [
+					{
+						label: 'timestamped order lifecycle observations',
+					},
+				],
+			},
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'parent Hyperliquid account',
+					},
+				],
+			},
+			{
+				label: 'Fills',
+				items: [
+					{
+						label: 'fills filtered by order id',
+					},
+				],
+			},
+			{
+				label: 'Trigger/TP-SL',
+				items: [
+					{
+						label: 'trigger fields',
+					},
+					{
+						label: 'latest children payload',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'openOrders/frontendOpenOrders/historicalOrders/orderStatus response',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

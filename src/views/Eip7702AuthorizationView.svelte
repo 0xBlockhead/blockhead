@@ -9,26 +9,89 @@
 
 	// State
 	const view = {
-		closed: [
-			'authorizationIndex',
-		],
-		content: {
-			dl: [
-				[
-					'authorizationIndex',
-					'chainId',
-					'delegationAddress',
-					'authority',
-					'nonce',
-					'yParity',
-					'r',
-					's',
-					'verificationStatus',
-					'verifiedAtMs',
-				],
-			],
+	closed: [
+		{
+			label: 'transaction',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'authorization index',
+		},
+		{
+			label: 'chain id',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'transaction',
+				},
+				{
+					label: 'authorization index',
+				},
+				{
+					label: 'chain id',
+				},
+				'authority',
+				{
+					label: 'delegation address',
+				},
+				'nonce',
+				{
+					label: 'yParity/r/s',
+				},
+				{
+					label: 'verification status/time',
+				},
+				{
+					label: 'authority account',
+				},
+				{
+					label: 'delegation contract',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transaction',
+				items: [
+					{
+						label: 'parent EVM transaction',
+					},
+				],
+			},
+			{
+				label: 'Authority',
+				items: [
+					{
+						label: 'authority EVM network account',
+					},
+				],
+			},
+			{
+				label: 'Delegation contract',
+				items: [
+					{
+						label: 'delegation EVM contract',
+					},
+				],
+			},
+			{
+				label: 'Signature evidence',
+				items: [
+					{
+						label: 'raw tuple',
+					},
+					{
+						label: 'local recovery status fields',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,28 +9,84 @@
 
 	// State
 	const view = {
-		closed: [
-			'hex',
-		],
-		content: {
-			dl: [
-				[
-					'hex',
-				],
-			],
+	actions: [
+		{
+			id: 'copy-selector',
+			label: 'Copy selector',
+			kind: 'copy',
+			field: 'hex',
 		},
-		details: {
-			tabs: [
+	],
+	transforms: [
+		{
+			id: 'selector-encodings',
+			label: 'Selector encodings',
+			field: 'hex',
+			kind: 'selectorEncoding',
+			slot: 'SelectorEncodings',
+		},
+	],
+	closed: [
+		{
+			label: 'selector hex',
+		},
+		{
+			label: 'latest candidate signature',
+		},
+		{
+			label: 'candidate count',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'selector hex',
+				},
+				{
+					label: 'latest candidate signature',
+				},
+				{
+					label: 'latest source',
+				},
+				{
+					label: 'candidate count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Catalog observations',
+				items: [
+					{
+						label: 'timestamped candidate-signature lookups',
+					},
+				],
+			},
+			{
+				label: 'Decode context',
+				items: [
+					{
+						label: 'verified contract ABI required before authoritative decode',
+					},
+				],
+			},
+			{
+				label: 'Related rows',
+				items: [
+					{
+						label: 'EvmContract ABI',
+					},
+					{
+						label: 'EvmTransaction input decode',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

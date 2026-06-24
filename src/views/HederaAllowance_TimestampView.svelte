@@ -9,22 +9,80 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'amount',
-					'approvedForAll',
-					'deleted',
-				],
-			],
+	closed: [
+		{
+			label: 'allowance',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'allowance',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				'amount',
+				{
+					label: 'approved-for-all flag',
+				},
+				{
+					label: 'deleted/absent flag',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Allowance',
+				items: [
+					{
+						label: 'parent Hedera allowance relation',
+					},
+				],
+			},
+			{
+				label: 'Owner',
+				items: [
+					{
+						label: 'owner Hedera account',
+					},
+				],
+			},
+			{
+				label: 'Spender',
+				items: [
+					{
+						label: 'spender Hedera account',
+					},
+				],
+			},
+			{
+				label: 'Token/NFT',
+				items: [
+					{
+						label: 'linked Hedera token or NFT through allowance',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'raw account allowance payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

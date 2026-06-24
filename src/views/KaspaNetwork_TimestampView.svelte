@@ -9,29 +9,106 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'virtualDaaScore',
-					'virtualBlueScore',
-					'virtualSelectedParentHash',
-					'pruningPointHash',
-					'sinkCount',
-					'blockCount',
-					'transactionCount',
-					'difficulty',
-					'hasUtxoIndex',
-					'serverVersion',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observed time/source',
+		},
+		{
+			label: 'virtual DAA score',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'observed time/source',
+				},
+				{
+					label: 'virtual DAA score',
+				},
+				{
+					label: 'virtual blue score',
+				},
+				{
+					label: 'selected parent',
+				},
+				{
+					label: 'pruning point',
+				},
+				{
+					label: 'sink count',
+				},
+				{
+					label: 'block count',
+				},
+				{
+					label: 'transaction count',
+				},
+				'difficulty',
+				{
+					label: 'UTXO-index availability',
+				},
+				{
+					label: 'server version',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Kaspa network',
+					},
+				],
+			},
+			{
+				label: 'DAG head',
+				items: [
+					{
+						label: 'selected parent',
+					},
+					{
+						label: 'pruning point',
+					},
+					{
+						label: 'virtual scores',
+					},
+					{
+						label: 'sink count',
+					},
+				],
+			},
+			{
+				label: 'Index/server',
+				items: [
+					{
+						label: 'UTXO-index availability',
+					},
+					{
+						label: 'server version',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'getBlockDagInfo/getServerInfo or indexer payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

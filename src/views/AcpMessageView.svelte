@@ -9,30 +9,57 @@
 
 	// State
 	const view = {
-		closed: [
-			'messageId',
-		],
-		content: {
-			dl: [
-				[
-					'messageId',
-					'role',
-					'createdAt',
-				],
-			],
+	closed: [
+		{
+			label: 'session',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'message id',
+		},
+		'role',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'parts',
-					when: 'open',
-					items: [
-						'$$parts',
-					],
+					label: 'session',
+				},
+				{
+					label: 'message id',
+				},
+				'role',
+				{
+					label: 'created at',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			[
+				{
+					label: 'part refs',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Parts',
+				items: [
+					{
+						label: 'AcpMessagePart list',
+					},
+				],
+			},
+			{
+				label: 'Session',
+				items: [
+					{
+						label: 'AcpSession',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

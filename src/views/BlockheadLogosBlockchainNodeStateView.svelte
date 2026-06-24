@@ -9,31 +9,63 @@
 
 	// State
 	const view = {
-		closed: [
-			'connectionId',
-			'peerId',
-		],
-		content: {
-			dl: [
-				[
-					'connectionId',
-					'peerId',
-					'endpoint',
-				],
-			],
+	closed: [
+		{
+			label: 'connection id',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'peer id',
+		},
+		'endpoint',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'connection id',
+				},
+				{
+					label: 'peer id',
+				},
+				'endpoint',
+				{
+					label: 'latest peer/connectivity observation',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'State history',
+				items: [
+					{
+						label: 'timestamped connected-node observations',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'Logos Blockchain network when configured network resolves',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: '/network/info',
+					},
+					{
+						label: 'configured local REST API',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

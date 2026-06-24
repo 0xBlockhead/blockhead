@@ -9,36 +9,86 @@
 
 	// State
 	const view = {
-		closed: [
-			'id',
-		],
-		content: {
-			dl: [
-				[
-					'id',
-					'source',
-					'quoteRequestHash',
-					'providerProtocol',
-					'intentType',
-					'userInteropAddress',
-					'requestedAt',
-					'requestPayloadHash',
-					'requestSummary',
-				],
-			],
+	closed: [
+		{
+			label: 'quote request id',
 		},
-		details: {
-			tabs: [
+		'source',
+		{
+			label: 'provider protocol',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'quote request id',
+				},
+				'source',
+				{
+					label: 'request hash',
+				},
+				{
+					label: 'provider protocol',
+				},
+				{
+					label: 'intent type',
+				},
+				{
+					label: 'session action',
+				},
+				{
+					label: 'user interop address',
+				},
+				{
+					label: 'requested time',
+				},
+				{
+					label: 'request payload hash',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Quote observations',
+				items: [
+					{
+						label: 'BlockheadIntentQuote_Timestamp list',
+					},
+				],
+			},
+			{
+				label: 'Session action',
+				items: [
+					{
+						label: 'BlockheadSessionActionView when linked',
+					},
+				],
+			},
+			{
+				label: 'Request summary',
+				items: [
+					{
+						label: 'normalized signed-order/filler-market request summary',
+					},
+					{
+						label: 'raw provider request retained only when needed',
+					},
+				],
+			},
+			{
+				label: 'Specialized quotes',
+				items: [
+					{
+						label: 'SwapQuote_Timestamp or BridgeRouteQuote_Timestamp when the provider returns executable route quotes instead of intent orders',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

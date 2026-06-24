@@ -9,24 +9,80 @@
 
 	// State
 	const view = {
-		closed: [
-			'namespace',
-			'localName',
-		],
-		content: {
-			dl: [
-				[
-					'namespace',
-					'localName',
-					'id',
-					'value',
-					'ownedBy',
-					'linkedTo',
-					'timestamp',
-				],
-			],
+	closed: [
+		'namespace',
+		{
+			label: 'local name',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'id',
+	],
+	content: {
+		dl: [
+			[
+				'namespace',
+				{
+					label: 'local name',
+				},
+				'id',
+				'value',
+				{
+					label: 'owner',
+				},
+				{
+					label: 'linked account',
+				},
+				{
+					label: 'minted timestamp',
+				},
+				{
+					label: 'namespace ref',
+				},
+				{
+					label: 'account ref',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Namespace',
+				items: [
+					{
+						label: 'parent username namespace',
+					},
+				],
+			},
+			{
+				label: 'Linked account',
+				items: [
+					{
+						label: 'linked Lens account',
+					},
+				],
+			},
+			{
+				label: 'Owner',
+				items: [
+					{
+						label: 'owner EVM account when resolved',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'username GraphQL payload',
+					},
+					{
+						label: 'namespace token events when available',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

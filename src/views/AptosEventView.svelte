@@ -9,24 +9,73 @@
 
 	// State
 	const view = {
-		closed: [
-			'transactionVersion',
-			'eventIndex',
-		],
-		content: {
-			dl: [
-				[
-					'transactionVersion',
-					'eventIndex',
-					'eventType',
-					'accountAddress',
-					'creationNumber',
-					'sequenceNumber',
-					'value',
-				],
-			],
+	closed: [
+		{
+			label: 'event type',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'transaction version',
+		},
+		{
+			label: 'event index',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'event type',
+				},
+				{
+					label: 'transaction version',
+				},
+				{
+					label: 'event index',
+				},
+				{
+					label: 'account/creation/sequence coordinates',
+				},
+				{
+					label: 'parent transaction',
+				},
+				{
+					label: 'value payload',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transaction',
+				items: [
+					{
+						label: 'parent transaction',
+					},
+				],
+			},
+			{
+				label: 'Emitter',
+				items: [
+					{
+						label: 'emitting account when account address resolves',
+					},
+				],
+			},
+			{
+				label: 'Payload',
+				items: [
+					{
+						label: 'event JSON',
+					},
+					{
+						label: 'type tag evidence',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

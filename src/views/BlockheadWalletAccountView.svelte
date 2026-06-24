@@ -9,27 +9,84 @@
 
 	// State
 	const view = {
-		closed: [
-			'caip10',
-		],
-		content: {
-			dl: [
-				[
-					'caip10',
-					'address',
-					'label',
-					'capabilities',
-					'namespace',
-					'reference',
-					'accountAddress',
-					'addressKind',
-					'canonicalAddress',
-					'derivationPath',
-					'publicKey',
-				],
-			],
+	closed: [
+		{
+			label: 'namespace/reference/address',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'address kind',
+		},
+		{
+			label: 'optional label',
+		},
+	],
+	content: {
+		dl: [
+			[
+				'namespace',
+				'reference',
+				{
+					label: 'account address',
+				},
+				{
+					label: 'address kind',
+				},
+				{
+					label: 'canonical address',
+				},
+				{
+					label: 'network when resolved',
+				},
+			],
+			[
+				'label',
+				{
+					label: 'public key presence',
+				},
+				{
+					label: 'derivation path presence',
+				},
+				'capabilities',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'NetworkView when CAIP-2/reference resolves',
+					},
+				],
+			},
+			{
+				label: 'Native account',
+				items: [
+					{
+						label: 'Account/native account view when linked by selector',
+					},
+				],
+			},
+			{
+				label: 'Connections',
+				items: [
+					{
+						label: 'BlockheadWalletConnection rows that exposed the account',
+					},
+				],
+			},
+			{
+				label: 'Capabilities',
+				items: [
+					{
+						label: 'account-level sign/send/list/watch/delegate capabilities supplied by the session',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

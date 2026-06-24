@@ -9,32 +9,89 @@
 
 	// State
 	const view = {
-		closed: [
-			'epochId',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'epochId',
-					'source',
-					'timestampMs',
-					'epochHeight',
-					'epochStartHeight',
-					'validatorSetRole',
-					'publicKey',
-					'stakeYoctoNear',
-					'isSlashed',
-					'expectedBlocks',
-					'producedBlocks',
-					'expectedChunks',
-					'producedChunks',
-					'shards',
-					'kickoutReason',
-				],
-			],
+	closed: [
+		{
+			label: 'validator',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'epoch id/height',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'validator',
+				},
+				{
+					label: 'epoch id/height',
+				},
+				'source',
+				{
+					label: 'role',
+				},
+				{
+					label: 'public key',
+				},
+				{
+					label: 'stake',
+				},
+				{
+					label: 'slashed flag',
+				},
+				{
+					label: 'expected/produced blocks',
+				},
+				{
+					label: 'chunks',
+				},
+				{
+					label: 'shard count',
+				},
+				{
+					label: 'kickout reason',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Validator',
+				items: [
+					{
+						label: 'parent NEAR validator',
+					},
+				],
+			},
+			{
+				label: 'Network epoch',
+				items: [
+					{
+						label: 'NEAR network epoch/head observation',
+					},
+				],
+			},
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'validator NEAR account',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'validators RPC current_validators/next_validators/current_proposals/fishermen/prev_epoch_kickout payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

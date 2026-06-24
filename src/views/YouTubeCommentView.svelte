@@ -9,42 +9,92 @@
 
 	// State
 	const view = {
-		closed: [
-			'videoId',
-			'commentId',
+	closed: [
+		{
+			label: 'video id',
+		},
+		{
+			label: 'comment id',
+		},
+		{
+			label: 'latest text',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'video id',
+				},
+				{
+					label: 'comment id',
+				},
+				{
+					label: 'published date',
+				},
+				{
+					label: 'video ref',
+				},
+				{
+					label: 'parent comment ref',
+				},
+				{
+					label: 'latest text',
+				},
+				{
+					label: 'latest author',
+				},
+				{
+					label: 'latest like/reply snapshot',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'videoId',
-					'commentId',
-					'text',
-					'authorDisplayName',
-					'authorChannelId',
-					'publishedAt',
-					'publishedAtMs',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest content',
+				items: [
+					{
+						label: 'latest comment content observation',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'replies',
-					when: 'open',
-					items: [
-						'$$replies',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Replies',
+				items: [
+					{
+						label: 'reply comments',
+					},
+				],
+			},
+			{
+				label: 'Video',
+				items: [
+					{
+						label: 'parent video',
+					},
+				],
+			},
+			{
+				label: 'Author',
+				items: [
+					{
+						label: 'author channel when resolved',
+					},
+				],
+			},
+			{
+				label: 'Metric snapshots',
+				items: [
+					{
+						label: 'comment metric observations',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

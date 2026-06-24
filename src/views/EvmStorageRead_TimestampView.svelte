@@ -9,23 +9,52 @@
 
 	// State
 	const view = {
-		closed: [
-			'slot',
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'slot',
-					'timestampMs',
-					'source',
-					'value',
-					'blockNumber',
-				],
-			],
+	closed: [
+		{
+			label: 'contract',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'slot',
+		'value',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'contract',
+				},
+				'slot',
+				'value',
+				{
+					label: 'block number',
+				},
+				'source',
+				{
+					label: 'observation timestamp',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Contract',
+				items: [
+					{
+						label: 'parent EVM contract',
+					},
+				],
+			},
+			{
+				label: 'Storage layout',
+				items: [
+					{
+						label: 'verified compilation metadata when it labels the slot',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

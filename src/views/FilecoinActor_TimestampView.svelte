@@ -9,25 +9,74 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'height',
-					'tipsetKey',
-					'actorCodeCid',
-					'nonce',
-					'balanceAttoFil',
-					'stateRootCid',
-				],
-			],
+	closed: [
+		{
+			label: 'actor',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'actor',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				'height',
+				{
+					label: 'tipset key',
+				},
+				{
+					label: 'actor code CID',
+				},
+				'nonce',
+				{
+					label: 'balance',
+				},
+				{
+					label: 'state root CID',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Actor',
+				items: [
+					{
+						label: 'parent Filecoin actor',
+					},
+				],
+			},
+			{
+				label: 'Tipset',
+				items: [
+					{
+						label: 'Filecoin tipset when resolved',
+					},
+				],
+			},
+			{
+				label: 'Source',
+				items: [
+					{
+						label: 'StateGetActor/address payload',
+					},
+					{
+						label: 'freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

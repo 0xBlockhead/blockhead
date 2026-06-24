@@ -9,34 +9,72 @@
 
 	// State
 	const view = {
-		closed: [
-			'callId',
-		],
-		content: {
-			dl: [
-				[
-					'callId',
-					'startedAt',
-					'completedAt',
-					'inputHashAlgorithm',
-					'inputHash',
-					'outputHashAlgorithm',
-					'outputHash',
-				],
-			],
+	closed: [
+		{
+			label: 'server',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'call id',
+		},
+		{
+			label: 'tool',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'server',
+				},
+				{
+					label: 'call id',
+				},
+				{
+					label: 'tool',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			[
+				{
+					label: 'started/completed at',
+				},
+				{
+					label: 'input/output hash algorithms and hashes',
+				},
+				{
+					label: 'latest status',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Tool',
+				items: [
+					{
+						label: 'McpTool',
+					},
+				],
+			},
+			{
+				label: 'Observations',
+				items: [
+					{
+						label: 'McpToolCall_Timestamp list',
+					},
+				],
+			},
+			{
+				label: 'Server',
+				items: [
+					{
+						label: 'McpServer',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

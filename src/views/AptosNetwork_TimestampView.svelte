@@ -9,26 +9,92 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'ledgerVersion',
-					'blockHeight',
-					'chainId',
-					'epoch',
-					'oldestLedgerVersion',
-					'oldestBlockHeight',
-					'nodeRole',
-				],
-			],
+	closed: [
+		{
+			label: 'observed time/source',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'ledger version',
+		},
+		{
+			label: 'block height',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'observed time/source',
+				},
+				{
+					label: 'ledger version',
+				},
+				{
+					label: 'block height',
+				},
+				{
+					label: 'chain id',
+				},
+				'epoch',
+				{
+					label: 'oldest retained ledger/block versions',
+				},
+				{
+					label: 'node role',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'AptosNetwork',
+					},
+				],
+			},
+			{
+				label: 'Ledger head',
+				items: [
+					{
+						label: 'ledger version',
+					},
+					{
+						label: 'block height',
+					},
+					'epoch',
+				],
+			},
+			{
+				label: 'Node retention',
+				items: [
+					{
+						label: 'oldest retained ledger version',
+					},
+					{
+						label: 'oldest retained block height',
+					},
+					{
+						label: 'node role',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'ledger info response headers',
+					},
+					{
+						label: 'indexer metadata',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

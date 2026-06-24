@@ -9,62 +9,92 @@
 
 	// State
 	const view = {
-		closed: [
-			'taskId',
+	closed: [
+		{
+			label: 'task id',
+		},
+		{
+			label: 'service',
+		},
+		{
+			label: 'context',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'task id',
+				},
+				{
+					label: 'service',
+				},
+				{
+					label: 'provider task id',
+				},
+				{
+					label: 'context id',
+				},
+			],
+			[
+				{
+					label: 'created/updated/cancelled at',
+				},
+				'listed',
+				{
+					label: 'latest state',
+				},
+				{
+					label: 'event/message/artifact refs',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'taskId',
-					'providerTaskId',
-					'contextId',
-					'createdAt',
-					'updatedAt',
-					'cancelledAt',
-					'listed',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Events',
+				items: [
+					{
+						label: 'A2aTaskEvent list',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'events',
-					when: 'open',
-					items: [
-						'$$events',
-					],
-				},
-				{
-					label: 'messages',
-					when: 'open',
-					items: [
-						'$$messages',
-					],
-				},
-				{
-					label: 'artifacts',
-					when: 'open',
-					items: [
-						'$$artifacts',
-					],
-				},
-				{
-					label: 'push notification configs',
-					when: 'open',
-					items: [
-						'$$pushNotificationConfigs',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Messages',
+				items: [
+					{
+						label: 'A2aMessage list',
+					},
+				],
+			},
+			{
+				label: 'Artifacts',
+				items: [
+					{
+						label: 'A2aArtifact list',
+					},
+				],
+			},
+			{
+				label: 'Status',
+				items: [
+					{
+						label: 'A2aTask_Timestamp list',
+					},
+				],
+			},
+			{
+				label: 'Service',
+				items: [
+					{
+						label: 'A2aAgentService',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

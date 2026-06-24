@@ -9,15 +9,55 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[
-					'commitmentHex',
-				],
-			],
+	closed: [
+		{
+			label: 'output',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'commitment hex',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'output',
+				},
+				{
+					label: 'commitment hex',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Output',
+				items: [
+					{
+						label: 'parent UTXO output',
+					},
+				],
+			},
+			{
+				label: 'NFT',
+				items: [
+					{
+						label: 'CashToken NFT carried by the same output',
+					},
+				],
+			},
+			{
+				label: 'Raw commitment',
+				items: [
+					{
+						label: 'hex display',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

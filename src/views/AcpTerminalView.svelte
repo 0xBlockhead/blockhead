@@ -9,32 +9,58 @@
 
 	// State
 	const view = {
-		closed: [
-			'terminalId',
-		],
-		content: {
-			dl: [
-				[
-					'terminalId',
-					'command',
-					'cwd',
-					'createdAt',
-					'releasedAt',
-				],
-			],
+	closed: [
+		{
+			label: 'session',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'terminal id',
+		},
+		'command',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'session',
+				},
+				{
+					label: 'terminal id',
+				},
+				'command',
+				'cwd',
+			],
+			[
+				{
+					label: 'created/released at',
+				},
+				{
+					label: 'latest status',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Session',
+				items: [
+					{
+						label: 'AcpSession',
+					},
+				],
+			},
+			{
+				label: 'Observations',
+				items: [
+					{
+						label: 'AcpTerminal_Timestamp list',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

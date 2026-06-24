@@ -9,56 +9,56 @@
 
 	// State
 	const view = {
-		closed: [
-			'scope',
+	closed: [
+		'scope',
+		'$$timestamps',
+		'$$sourceWindowAccounts',
+	],
+	content: {
+		dl: [
+			[
+				'scope',
+				'$$timestamps',
+			],
+			[
+				'$$sourceWindowAccounts',
+				'$$sourceWindowFeeds',
+				'$$sourceWindowPosts',
+				'$$sourceWindowUsernameNamespaces',
+			],
 		],
-		content: {
-			dl: [
-				[
-					'scope',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Source-window rows',
+				items: [
+					'$$sourceWindowAccounts',
+					'$$sourceWindowFeeds',
+					'$$sourceWindowPosts',
+					'$$sourceWindowUsernameNamespaces',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'source window accounts',
-					when: 'open',
-					items: [
-						'$$sourceWindowAccounts',
-					],
-				},
-				{
-					label: 'source window feeds',
-					when: 'open',
-					items: [
-						'$$sourceWindowFeeds',
-					],
-				},
-				{
-					label: 'source window posts',
-					when: 'open',
-					items: [
-						'$$sourceWindowPosts',
-					],
-				},
-				{
-					label: 'source window username namespaces',
-					when: 'open',
-					items: [
-						'$$sourceWindowUsernameNamespaces',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Hub observations',
+				items: [
+					'$$timestamps',
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'SourceBinding.Constants_Internal',
+					},
+					{
+						label: 'SourceBinding.Lens_Graphql',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

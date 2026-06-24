@@ -9,29 +9,67 @@
 
 	// State
 	const view = {
-		closed: [
-			'keyHash',
-		],
-		content: {
-			dl: [
-				[
-					'keyHash',
-					'key',
-				],
-			],
+	closed: [
+		{
+			label: 'contract',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'key hash/key',
+		},
+		{
+			label: 'latest storage observation',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'contract',
+				},
+				{
+					label: 'key hash/key',
+				},
+				{
+					label: 'latest value/durability/TTL observation',
+				},
+				{
+					label: 'snapshot count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Snapshots',
+				items: [
+					{
+						label: 'ledger/source storage-entry observations',
+					},
+				],
+			},
+			{
+				label: 'Contract',
+				items: [
+					{
+						label: 'parent Soroban contract',
+					},
+				],
+			},
+			{
+				label: 'Raw key',
+				items: [
+					{
+						label: 'decoded key JSON',
+					},
+					{
+						label: 'key XDR/source evidence',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

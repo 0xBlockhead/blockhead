@@ -9,52 +9,92 @@
 
 	// State
 	const view = {
-		closed: [
-			'repositoryId',
+	closed: [
+		{
+			label: 'repository id',
+		},
+		{
+			label: 'canonical remote URL',
+		},
+		{
+			label: 'object format',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'repository id',
+				},
+				{
+					label: 'canonical remote URL',
+				},
+				{
+					label: 'object format',
+				},
+				{
+					label: 'default ref',
+				},
+				{
+					label: 'remote count',
+				},
+				{
+					label: 'object count',
+				},
+				{
+					label: 'ref count',
+				},
+				{
+					label: 'latest fetch status',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'repositoryId',
-					'canonicalRemoteUrl',
-					'defaultRefName',
-					'objectFormat',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Refs',
+				items: [
+					{
+						label: 'GitRef list grouped by heads/tags/symbolic refs',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'refs',
-					when: 'open',
-					items: [
-						'$$refs',
-					],
-				},
-				{
-					label: 'objects',
-					when: 'open',
-					items: [
-						'$$objects',
-					],
-				},
-				{
-					label: 'remotes',
-					when: 'open',
-					items: [
-						'$$remotes',
-					],
-				},
-				{
-					label: 'fetches',
-					when: 'open',
-					items: [
-						'$$fetches',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Objects',
+				items: [
+					{
+						label: 'GitObject list grouped by commit/tree/blob/tag',
+					},
+				],
+			},
+			{
+				label: 'Remotes',
+				items: [
+					{
+						label: 'GitRemote list',
+					},
+				],
+			},
+			{
+				label: 'Fetches',
+				items: [
+					{
+						label: 'GitFetchObservation history',
+					},
+				],
+			},
+			{
+				label: 'Forge mirrors',
+				items: [
+					{
+						label: 'GitForgeMirror list',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

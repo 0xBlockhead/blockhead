@@ -9,62 +9,107 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[
-					'decommissionedAtMs',
-					'fusionDeadlineMs',
-				],
-			],
+	closed: [
+		{
+			label: 'linked base Network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'decommissioned time',
+		},
+		{
+			label: 'fusion deadline',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'blocks',
-					when: 'open',
-					items: [
-						'$$blocks',
-					],
+					label: 'linked base Network',
 				},
 				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
+					label: 'decommissioned time',
+				},
+				{
+					label: 'fusion deadline',
+				},
+				{
+					label: 'latest archived height',
+				},
+				{
+					label: 'archive coverage status',
+				},
+				{
+					label: 'validator count',
+				},
+				{
+					label: 'token count',
+				},
+				{
+					label: 'archived transactions',
 				},
 				{
 					label: 'validators',
-					when: 'open',
-					items: [
-						'$$validators',
-					],
 				},
 				{
-					label: 'tokens',
-					when: 'open',
-					items: [
-						'$$tokens',
-					],
+					label: 'BEP tokens',
 				},
 				{
-					label: 'migration records',
-					when: 'open',
-					items: [
-						'$$migrationRecords',
-					],
+					label: 'token migrations',
 				},
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'archive timestamp history',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Archive status',
+				items: [
+					{
+						label: 'BnbBeaconNetwork_Timestamp list',
+					},
+				],
+			},
+			{
+				label: 'Blocks',
+				items: [
+					{
+						label: 'BnbBeaconBlock list',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'BnbBeaconTransaction list',
+					},
+				],
+			},
+			{
+				label: 'Validators',
+				items: [
+					{
+						label: 'BnbValidator list',
+					},
+				],
+			},
+			{
+				label: 'Tokens/migration',
+				items: [
+					{
+						label: 'BnbBeaconToken',
+					},
+					{
+						label: 'BnbBeaconTokenMigration',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,28 +9,92 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'mwebAddress',
-					'transparentAddress',
-					'balanceLitoshis',
-					'mwebBalanceLitoshis',
-					'transparentBalanceLitoshis',
-					'unconfirmedBalanceLitoshis',
-					'immatureBalanceLitoshis',
-					'lastScannedHeight',
-					'lastSyncedAt',
-				],
-			],
+	closed: [
+		{
+			label: 'wallet state',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'wallet state',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'MWEB address',
+				},
+				{
+					label: 'transparent address',
+				},
+				{
+					label: 'total balance',
+				},
+				{
+					label: 'MWEB balance',
+				},
+				{
+					label: 'transparent balance',
+				},
+				{
+					label: 'unconfirmed balance',
+				},
+				{
+					label: 'immature balance',
+				},
+				{
+					label: 'last scanned height',
+				},
+				{
+					label: 'last synced time',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Wallet',
+				items: [
+					{
+						label: 'BlockheadLitecoinMwebWalletStateView',
+					},
+				],
+			},
+			{
+				label: 'Outputs',
+				items: [
+					{
+						label: 'BlockheadLitecoinMwebOutputState list',
+					},
+				],
+			},
+			{
+				label: 'Addresses',
+				items: [
+					{
+						label: 'local transparent/MWEB address material',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'wallet balance/address/scan payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

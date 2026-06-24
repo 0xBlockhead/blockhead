@@ -9,29 +9,67 @@
 
 	// State
 	const view = {
-		closed: [
-			'poolId',
-		],
-		content: {
-			dl: [
-				[
-					'poolId',
-					'vrfKeyHash',
-				],
-			],
+	closed: [
+		{
+			label: 'pool id',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'VRF key hash',
+		},
+		{
+			label: 'latest pledge',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'pool id',
+				},
+				{
+					label: 'VRF key hash',
+				},
+				{
+					label: 'latest pledge',
+				},
+				{
+					label: 'latest margin',
+				},
+				{
+					label: 'latest stake/delegator snapshot',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Snapshots',
+				items: [
+					{
+						label: 'timestamped stake-pool economics/stake observations',
+					},
+				],
+			},
+			{
+				label: 'Metadata',
+				items: [
+					{
+						label: 'pool metadata from latest registration/update snapshot',
+					},
+				],
+			},
+			{
+				label: 'Blocks',
+				items: [
+					{
+						label: 'produced blocks when indexing exists',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,38 +9,75 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
+	closed: [
+		{
+			label: 'catalog',
+		},
+		{
+			label: 'observation time',
+		},
+		'source',
+		'status',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'catalog',
+				},
+				{
+					label: 'timestamp',
+				},
+				'source',
+				'status',
+				'error',
+			],
+			[
+				{
+					label: 'source-reported/local provider/model/dataset/benchmark/eval counts',
+				},
+				{
+					label: 'search result count',
+				},
+				{
+					label: 'cursor',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'sourceReportedProviderCount',
-					'localCatalogProviderCount',
-					'sourceReportedModelCount',
-					'localCatalogModelCount',
-					'sourceReportedDatasetCount',
-					'localCatalogDatasetCount',
-					'sourceReportedBenchmarkCount',
-					'localCatalogBenchmarkCount',
-					'sourceReportedEvaluationCount',
-					'localCatalogEvaluationCount',
-					'configuredEndpointCount',
-					'reachableEndpointCount',
-					'searchResultCount',
-					'queryHashAlgorithm',
-					'queryHash',
-					'lastCursor',
-					'rateLimitRemaining',
-					'status',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Catalog',
+				items: [
+					{
+						label: '_GlobalAiModelCatalog',
+					},
+				],
+			},
+			{
+				label: 'Counts',
+				items: [
+					{
+						label: 'scoped provider/model/dataset/benchmark/eval counts',
+					},
+				],
+			},
+			{
+				label: 'Source health',
+				items: [
+					{
+						label: 'endpoint reachability',
+					},
+					{
+						label: 'rate limit',
+					},
 					'error',
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

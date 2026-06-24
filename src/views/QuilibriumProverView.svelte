@@ -9,31 +9,67 @@
 
 	// State
 	const view = {
-		closed: [
-			'proverPeerId',
-		],
-		content: {
-			dl: [
-				[
-					'proverPeerId',
-					'publicKey',
-					'version',
-					'lastSeenAt',
-				],
-			],
+	closed: [
+		{
+			label: 'prover peer id',
 		},
-		details: {
-			tabs: [
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'frames',
-					when: 'open',
-					items: [
-						'$$frames',
-					],
+					label: 'prover peer id',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'prover peer id',
+				},
+				{
+					label: 'public key',
+				},
+				'version',
+				{
+					label: 'last seen time',
+				},
+				{
+					label: 'produced frame count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Frames',
+				items: [
+					{
+						label: 'frames attributed to this prover',
+					},
+				],
+			},
+			{
+				label: 'Connected nodes',
+				items: [
+					{
+						label: 'BlockheadQuilibriumNodeState rows that observed the prover',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'node peer/prover inventory payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

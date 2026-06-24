@@ -9,25 +9,85 @@
 
 	// State
 	const view = {
-		closed: [
-			'nodeId',
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'nodeId',
-					'timestampMs',
-					'source',
-					'advertised',
-					'reachable',
-					'refCount',
-					'objectCount',
-				],
-			],
+	closed: [
+		{
+			label: 'repository',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'seed node id',
+		},
+		{
+			label: 'observer node',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'repository',
+				},
+				{
+					label: 'seed node id',
+				},
+				{
+					label: 'observer node',
+				},
+				{
+					label: 'timestamp',
+				},
+				'source',
+				{
+					label: 'advertised flag',
+				},
+				{
+					label: 'reachable flag',
+				},
+				{
+					label: 'ref count',
+				},
+				{
+					label: 'object count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Repository',
+				items: [
+					{
+						label: 'parent Radicle repository',
+					},
+				],
+			},
+			{
+				label: 'Observer node',
+				items: [
+					{
+						label: 'observer Radicle node state',
+					},
+				],
+			},
+			{
+				label: 'Fetch evidence',
+				items: [
+					{
+						label: 'sync session or Git fetch observation rows when linked',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'connected-node inventory/fetch payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

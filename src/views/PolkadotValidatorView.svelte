@@ -9,28 +9,72 @@
 
 	// State
 	const view = {
-		closed: [
-			'stashAccountId',
-		],
-		content: {
-			dl: [
-				[
-					'stashAccountId',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'stash account id',
+		},
+		{
+			label: 'latest era controller/commission/stake summary',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'eras',
-					when: 'open',
-					items: [
-						'$$eras',
-					],
+					label: 'network',
+				},
+				{
+					label: 'stash account id',
+				},
+				{
+					label: 'latest era controller/commission/stake summary',
+				},
+				{
+					label: 'era count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Era history',
+				items: [
+					{
+						label: 'era-bounded validator observations',
+					},
+				],
+			},
+			{
+				label: 'Controller',
+				items: [
+					{
+						label: 'Polkadot account through the latest era when resolved',
+					},
+				],
+			},
+			{
+				label: 'Network set',
+				items: [
+					{
+						label: 'validator-set context',
+					},
+				],
+			},
+			{
+				label: 'Nominators/exposure',
+				items: [
+					{
+						label: 'era-bounded exposure rows when modeled',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

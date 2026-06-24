@@ -9,29 +9,74 @@
 
 	// State
 	const view = {
-		closed: [
-			'shardKey',
-		],
-		content: {
-			dl: [
-				[
-					'shardKey',
-					'shardKind',
-				],
-			],
+	closed: [
+		{
+			label: 'shard key',
 		},
-		details: {
-			tabs: [
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'frames',
-					when: 'open',
-					items: [
-						'$$frames',
-					],
+					label: 'shard key',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'shard key',
+				},
+				{
+					label: 'shard kind',
+				},
+				{
+					label: 'application account',
+				},
+				{
+					label: 'frame count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Frames',
+				items: [
+					{
+						label: 'frames in this shard',
+					},
+				],
+			},
+			{
+				label: 'Application account',
+				items: [
+					{
+						label: 'linked Quilibrium account',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent network',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'node RPC shard/frame payloads',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

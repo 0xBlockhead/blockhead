@@ -9,25 +9,81 @@
 
 	// State
 	const view = {
-		closed: [
-			'owner',
-			'subaccount',
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'owner',
-					'subaccount',
-					'timestampMs',
-					'source',
-					'balance',
-					'allowanceCount',
-				],
-			],
+	closed: [
+		{
+			label: 'ledger',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'owner principal',
+		},
+		'subaccount',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'ledger',
+				},
+				{
+					label: 'owner principal',
+				},
+				'subaccount',
+				{
+					label: 'observed time/source',
+				},
+				'balance',
+				{
+					label: 'allowance count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Ledger',
+				items: [
+					{
+						label: 'parent ICP ledger canister',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'ledger transactions filtered by owner/subaccount when indexed',
+					},
+				],
+			},
+			{
+				label: 'Allowances',
+				items: [
+					{
+						label: 'approve/transfer-from allowance evidence',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'icrc1_balance_of',
+					},
+					{
+						label: 'icrc2_allowance',
+					},
+					{
+						label: 'Rosetta',
+					},
+					{
+						label: 'or dashboard payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,32 +9,94 @@
 
 	// State
 	const view = {
-		closed: [
-			'simulationId',
-			'callPath',
-		],
-		content: {
-			dl: [
-				[
-					'simulationId',
-					'callPath',
-					'parentCallPath',
-					'depth',
-					'callIndex',
-					'callType',
-					'fromAddress',
-					'toAddress',
-					'value',
-					'inputSelector',
-					'inputDataHash',
-					'outputDataHash',
-					'gasUsed',
-					'reverted',
-					'error',
-				],
-			],
+	closed: [
+		{
+			label: 'simulation',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'call path',
+		},
+		{
+			label: 'to address',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'simulation',
+				},
+				{
+					label: 'call path',
+				},
+				{
+					label: 'parent path',
+				},
+				'depth',
+				{
+					label: 'call index',
+				},
+				{
+					label: 'call type',
+				},
+				{
+					label: 'from/to addresses',
+				},
+				'value',
+				{
+					label: 'selector',
+				},
+				{
+					label: 'gas used',
+				},
+				'reverted',
+				'error',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Simulation',
+				items: [
+					{
+						label: 'BlockheadSessionSimulationView',
+					},
+				],
+			},
+			{
+				label: 'Children',
+				items: [
+					{
+						label: 'nested call rows by parent path',
+					},
+				],
+			},
+			{
+				label: 'Input/output',
+				items: [
+					{
+						label: 'input selector',
+					},
+					{
+						label: 'input/output data hashes',
+					},
+					{
+						label: 'raw runtime payload when retained',
+					},
+				],
+			},
+			{
+				label: 'Logs',
+				items: [
+					{
+						label: 'simulation log rows emitted within this call when mapped',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

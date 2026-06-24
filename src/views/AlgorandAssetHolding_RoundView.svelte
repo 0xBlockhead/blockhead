@@ -9,23 +9,84 @@
 
 	// State
 	const view = {
-		closed: [
-			'round',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'round',
-					'source',
-					'amount',
-					'frozen',
-					'optedInAtRound',
-					'deleted',
-				],
-			],
+	closed: [
+		{
+			label: 'account',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'asset',
+		},
+		'round',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'account',
+				},
+				{
+					label: 'asset',
+				},
+				'round',
+				'source',
+				'amount',
+				{
+					label: 'frozen state',
+				},
+				{
+					label: 'opt-in round',
+				},
+				{
+					label: 'deleted state',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'parent Algorand account',
+					},
+				],
+			},
+			{
+				label: 'Asset',
+				items: [
+					{
+						label: 'parent Algorand asset',
+					},
+				],
+			},
+			{
+				label: 'Round context',
+				items: [
+					{
+						label: 'ledger round coordinate',
+					},
+				],
+			},
+			{
+				label: 'Transfer history',
+				items: [
+					{
+						label: 'asset/account transactions when indexed',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'account asset-holding payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,40 +9,138 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'headHeight',
-					'headTipsetKey',
-					'headBlockCount',
-					'headTimestampMs',
-					'networkVersion',
-					'lotusVersion',
-					'lotusAgent',
-					'blockDelaySeconds',
-					'totalRawBytePower',
-					'totalQualityAdjustedPower',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'head miners',
-					when: 'open',
-					items: [
-						'$$headMiners',
-					],
+					label: 'network',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'head height',
+				},
+				{
+					label: 'head tipset key',
+				},
+				{
+					label: 'head block count',
+				},
+				{
+					label: 'head timestamp',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			[
+				{
+					label: 'head tipset',
+				},
+				{
+					label: 'head miners',
+				},
+				{
+					label: 'network version',
+				},
+				{
+					label: 'Lotus version/agent',
+				},
+				{
+					label: 'block delay',
+				},
+				{
+					label: 'total power',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'Filecoin network identity',
+					},
+				],
+			},
+			{
+				label: 'Head',
+				items: [
+					{
+						label: 'head height',
+					},
+					{
+						label: 'tipset key',
+					},
+					{
+						label: 'block count',
+					},
+					{
+						label: 'head timestamp',
+					},
+					{
+						label: 'head tipset',
+					},
+				],
+			},
+			{
+				label: 'Miners/power',
+				items: [
+					{
+						label: 'head block producers',
+					},
+					{
+						label: 'raw byte power',
+					},
+					{
+						label: 'quality-adjusted power',
+					},
+				],
+			},
+			{
+				label: 'Node',
+				items: [
+					{
+						label: 'network version',
+					},
+					{
+						label: 'Lotus version/agent',
+					},
+					{
+						label: 'block delay',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'ChainHead',
+					},
+					{
+						label: 'StateNetworkVersion',
+					},
+					{
+						label: 'Version',
+					},
+					{
+						label: 'StateMinerPower',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

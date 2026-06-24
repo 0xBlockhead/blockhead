@@ -9,38 +9,82 @@
 
 	// State
 	const view = {
-		closed: [
-			'txHash',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'transaction hash',
+		},
+		{
+			label: 'block',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'transaction hash',
+				},
+				{
+					label: 'block',
+				},
+				'version',
+				{
+					label: 'unlock time',
+				},
+				{
+					label: 'fee',
+				},
+				{
+					label: 'key-image count',
+				},
+				{
+					label: 'stealth-output count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'txHash',
-					'version',
-					'unlockTime',
-					'feeAtomicUnits',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Key images',
+				items: [
+					{
+						label: 'public key-image input rows',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'key images',
-					when: 'open',
-					items: [
-						'$$keyImages',
-					],
-				},
-				{
-					label: 'stealth outputs',
-					when: 'open',
-					items: [
-						'$$stealthOutputs',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Stealth outputs',
+				items: [
+					{
+						label: 'public stealth-output rows',
+					},
+				],
+			},
+			{
+				label: 'Block',
+				items: [
+					{
+						label: 'containing Monero block',
+					},
+				],
+			},
+			{
+				label: 'Local wallet interpretation',
+				items: [
+					{
+						label: 'BlockheadMoneroTransferState when a connected wallet maps this transaction',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

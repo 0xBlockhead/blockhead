@@ -9,29 +9,100 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'nodeCount',
-					'channelCount',
-					'totalCapacitySats',
-					'torNodeCount',
-					'clearnetNodeCount',
-					'unannouncedNodeCount',
-					'averageCapacitySats',
-					'medianCapacitySats',
-					'averageFeeRatePpm',
-					'medianFeeRatePpm',
-				],
-			],
+	closed: [
+		{
+			label: 'lightning network',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'timestamp/source',
+		},
+		{
+			label: 'node count',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'lightning network',
+				},
+				{
+					label: 'timestamp/source',
+				},
+				{
+					label: 'node count',
+				},
+				{
+					label: 'channel count',
+				},
+				{
+					label: 'total capacity',
+				},
+				{
+					label: 'Tor/clearnet/unannounced counts',
+				},
+				{
+					label: 'average/median capacity',
+				},
+				{
+					label: 'average/median fee rate',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Lightning network',
+					},
+				],
+			},
+			{
+				label: 'Graph size',
+				items: [
+					{
+						label: 'node/channel counts',
+					},
+				],
+			},
+			{
+				label: 'Capacity',
+				items: [
+					{
+						label: 'total/average/median capacity',
+					},
+				],
+			},
+			{
+				label: 'Connectivity',
+				items: [
+					{
+						label: 'Tor/clearnet/unannounced counts',
+					},
+				],
+			},
+			{
+				label: 'Fees',
+				items: [
+					{
+						label: 'average/median fee rate',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'mempool.space/Amboss/LND graph snapshot payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

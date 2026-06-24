@@ -9,28 +9,76 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'health',
-					'protocolVersion',
-					'supportedProtocolVersions',
-					'agentCapabilities',
-					'clientCapabilities',
-					'authMethods',
-					'agentInfo',
-					'clientInfo',
-					'error',
-				],
-			],
+	closed: [
+		{
+			label: 'runtime',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'health',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'runtime',
+				},
+				{
+					label: 'timestamp',
+				},
+				'source',
+				'health',
+				{
+					label: 'protocol version',
+				},
+			],
+			[
+				{
+					label: 'agent/client info',
+				},
+				{
+					label: 'auth methods',
+				},
+				{
+					label: 'agent capabilities',
+				},
+				{
+					label: 'client capabilities',
+				},
+				'error',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Runtime',
+				items: [
+					{
+						label: 'AcpAgentRuntime',
+					},
+				],
+			},
+			{
+				label: 'Capabilities',
+				items: [
+					{
+						label: 'protocol/capability/auth payloads',
+					},
+				],
+			},
+			{
+				label: 'Errors',
+				items: [
+					{
+						label: 'error field',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

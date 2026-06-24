@@ -9,33 +9,88 @@
 
 	// State
 	const view = {
-		closed: [
-			'targetAddress',
-		],
-		content: {
-			dl: [
-				[
-					'targetAddress',
-					'migrationKind',
-					'sourceAddress',
-					'targetContractAddress',
-					'amount',
-					'eventTxHash',
-				],
-			],
+	closed: [
+		{
+			label: 'token',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'target network',
+		},
+		{
+			label: 'target address/contract',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'token',
+				},
+				{
+					label: 'target network',
+				},
+				{
+					label: 'target address/contract',
+				},
+				{
+					label: 'migration kind',
+				},
+				'amount',
+				{
+					label: 'target-chain evidence',
+				},
+				{
+					label: 'mapping metadata',
+				},
+				{
+					label: 'latest status',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Observations',
+				items: [
+					{
+						label: 'timestamped migration/fusion status observations',
+					},
+				],
+			},
+			{
+				label: 'Token',
+				items: [
+					{
+						label: 'source BNB Beacon token',
+					},
+				],
+			},
+			{
+				label: 'Target network',
+				items: [
+					{
+						label: 'target Network row',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'fusion mapping payload',
+					},
+					{
+						label: 'archive migration record',
+					},
+					{
+						label: 'target-chain event evidence',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

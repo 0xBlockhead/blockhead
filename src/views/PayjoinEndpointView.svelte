@@ -9,36 +9,95 @@
 
 	// State
 	const view = {
-		closed: [
-			'endpointUrl',
+	closed: [
+		{
+			label: 'endpoint URL',
+		},
+		{
+			label: 'protocol version',
+		},
+		{
+			label: 'directory',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'endpoint URL',
+				},
+				{
+					label: 'protocol version',
+				},
+				{
+					label: 'directory',
+				},
+				{
+					label: 'latest capability snapshot',
+				},
+				{
+					label: 'local session count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'endpointUrl',
-					'protocolVersion',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Capability snapshots',
+				items: [
+					{
+						label: 'timestamped receiver capability observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'blockhead sessions',
-					when: 'open',
-					items: [
-						'$$blockheadSessions',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Local sessions',
+				items: [
+					{
+						label: 'BlockheadPayjoinSession rows',
+					},
+				],
+			},
+			{
+				label: 'Directory',
+				items: [
+					{
+						label: 'Payjoin directory when an OHTTP directory is involved',
+					},
+				],
+			},
+			{
+				label: 'Receiver exchange',
+				items: [
+					{
+						label: 'accepted query parameters',
+					},
+					{
+						label: 'response status',
+					},
+					{
+						label: 'well-known error codes from local probes/sessions',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'BIP21 pj=/pjos= parameters',
+					},
+					{
+						label: 'OHTTP relay context',
+					},
+					{
+						label: 'receiver HTTP responses',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,23 +9,99 @@
 
 	// State
 	const view = {
-		closed: [
-			'traceKey',
-		],
-		content: {
-			dl: [
-				[
-					'traceKey',
-					'denomHash',
-					'path',
-					'baseDenom',
-					'displayDenom',
-					'sourcePort',
-					'sourceChannel',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'trace key',
+		},
+		{
+			label: 'display denom',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'trace key',
+				},
+				{
+					label: 'display denom',
+				},
+				{
+					label: 'denom hash',
+				},
+				{
+					label: 'base denom',
+				},
+				'path',
+				{
+					label: 'source port/channel',
+				},
+				{
+					label: 'local denom',
+				},
+				{
+					label: 'asset instance',
+				},
+				{
+					label: 'channel ref',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Channel',
+				items: [
+					{
+						label: 'linked IBC transfer channel',
+					},
+				],
+			},
+			{
+				label: 'Local denom',
+				items: [
+					{
+						label: 'linked CosmosDenom for the local hashed denom when resolved',
+					},
+				],
+			},
+			{
+				label: 'Base asset',
+				items: [
+					{
+						label: 'asset instance when registry/catalog mapping resolves',
+					},
+				],
+			},
+			{
+				label: 'Path',
+				items: [
+					{
+						label: 'hop list parsed from transfer path',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'denom trace',
+					},
+					{
+						label: 'asset registry payloads',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,25 +9,84 @@
 
 	// State
 	const view = {
-		closed: [
-			'powerKind',
-			'actorKey',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'powerKind',
-					'actorKey',
-					'source',
-					'actorSelector',
-					'scope',
-					'ledgerCoordinateKind',
-					'ledgerCoordinateValue',
-				],
-			],
+	closed: [
+		{
+			label: 'regulated asset profile',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'power kind',
+		},
+		{
+			label: 'actor key',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'regulated asset profile',
+				},
+				{
+					label: 'power kind',
+				},
+				{
+					label: 'actor key',
+				},
+				'source',
+				{
+					label: 'actor selector',
+				},
+				'scope',
+				{
+					label: 'ledger coordinate',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Profile',
+				items: [
+					{
+						label: 'parent regulated asset profile',
+					},
+				],
+			},
+			{
+				label: 'Actions',
+				items: [
+					{
+						label: 'issuer actions attributed to this power',
+					},
+				],
+			},
+			{
+				label: 'Evidence',
+				items: [
+					{
+						label: 'role/member state',
+					},
+					{
+						label: 'role events',
+					},
+					{
+						label: 'owner/agent calls',
+					},
+					{
+						label: 'mint authority',
+					},
+					{
+						label: 'token keys',
+					},
+					{
+						label: 'or verified ABI context',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

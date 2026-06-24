@@ -9,35 +9,86 @@
 
 	// State
 	const view = {
-		closed: [
-			'builderPubkey',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'builder public key',
+		},
+		{
+			label: 'latest delivered-payload count',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'builder public key',
+				},
+				{
+					label: 'latest delivered-payload count',
+				},
+				{
+					label: 'latest delivered value sum when available',
+				},
+				{
+					label: 'delivered-payload row count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'builderPubkey',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Delivered payloads',
+				items: [
+					{
+						label: 'relay delivered-payload rows scoped by builder',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'delivered payloads',
-					when: 'open',
-					items: [
-						'$$deliveredPayloads',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Count snapshots',
+				items: [
+					{
+						label: 'timestamped builder activity observations',
+					},
+				],
+			},
+			{
+				label: 'Relays',
+				items: [
+					{
+						label: 'relay hosts that have observed this builder',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent EVM network MEV-Boost section',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'relay bidtrace windows',
+					},
+					{
+						label: 'pagination/limit context',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,24 +9,89 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'title',
-					'description',
-					'siteName',
-					'imageUrl',
-					'previewStatus',
-				],
-			],
+	closed: [
+		{
+			label: 'URL',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'timestamp',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'URL',
+				},
+				{
+					label: 'timestamp',
+				},
+				'source',
+				{
+					label: 'status',
+				},
+				'title',
+				{
+					label: 'site name',
+				},
+				'description',
+				{
+					label: 'image URL',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'URL',
+				items: [
+					{
+						label: 'parent URL row',
+					},
+				],
+			},
+			{
+				label: 'Preview',
+				items: [
+					'title',
+					{
+						label: 'site name',
+					},
+					'description',
+					{
+						label: 'status',
+					},
+				],
+			},
+			{
+				label: 'Image',
+				items: [
+					{
+						label: 'embedded image URL/MIME/dimensions from this preview source',
+					},
+				],
+			},
+			{
+				label: 'History context',
+				items: [
+					{
+						label: 'sibling observations for the same Url sorted newest first',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'extracted Open Graph/card payload when exposed',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

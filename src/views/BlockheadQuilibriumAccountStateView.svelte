@@ -9,41 +9,95 @@
 
 	// State
 	const view = {
-		closed: [
-			'connectionId',
-			'accountAddress',
+	closed: [
+		{
+			label: 'connection id',
+		},
+		{
+			label: 'network',
+		},
+		{
+			label: 'account',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'connection id',
+				},
+				{
+					label: 'network',
+				},
+				{
+					label: 'account',
+				},
+				{
+					label: 'account kind',
+				},
+				{
+					label: 'latest balance',
+				},
+				{
+					label: 'allowance address',
+				},
+				{
+					label: 'signature key address',
+				},
+				{
+					label: 'key-ring ref count',
+				},
+				{
+					label: 'pending transaction count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'connectionId',
-					'accountAddress',
-					'accountKind',
-					'allowanceAddress',
-					'signatureKeyAddress',
-					'keyRingRefCount',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'State observations',
+				items: [
+					{
+						label: 'timestamped account-state observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'pending transactions',
-					when: 'open',
-					items: [
-						'$$pendingTransactions',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Pending transactions',
+				items: [
+					{
+						label: 'connected-node pending transaction rows',
+					},
+				],
+			},
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'public Quilibrium account when resolved',
+					},
+				],
+			},
+			{
+				label: 'Connected node',
+				items: [
+					{
+						label: 'parent Quilibrium node state',
+					},
+				],
+			},
+			{
+				label: 'Request authority',
+				items: [
+					{
+						label: 'allowance/signature/key-ring metadata with sensitive material redacted',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,27 +9,98 @@
 
 	// State
 	const view = {
-		closed: [
-			'feeIndex',
-		],
-		content: {
-			dl: [
-				[
-					'feeIndex',
-					'feeKind',
-					'collectorAccountId',
-					'denominatingTokenId',
-					'amount',
-					'numerator',
-					'denominator',
-					'minimumAmount',
-					'maximumAmount',
-					'netOfTransfers',
-					'allCollectorsAreExempt',
-				],
-			],
+	closed: [
+		{
+			label: 'token timestamp',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'fee index',
+		},
+		{
+			label: 'fee kind',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'token timestamp',
+				},
+				{
+					label: 'fee index',
+				},
+				{
+					label: 'fee kind',
+				},
+				{
+					label: 'collector',
+				},
+				{
+					label: 'denominating token',
+				},
+				{
+					label: 'fixed amount',
+				},
+				{
+					label: 'fractional numerator/denominator',
+				},
+				{
+					label: 'min/max amounts',
+				},
+				{
+					label: 'net-of-transfers flag',
+				},
+				{
+					label: 'collector exemption flag',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Token state',
+				items: [
+					{
+						label: 'parent token-info observation',
+					},
+				],
+			},
+			{
+				label: 'Token',
+				items: [
+					{
+						label: 'Hedera token through timestamp',
+					},
+				],
+			},
+			{
+				label: 'Collector',
+				items: [
+					{
+						label: 'collector Hedera account',
+					},
+				],
+			},
+			{
+				label: 'Denominating token',
+				items: [
+					{
+						label: 'denominating Hedera token',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'token custom fee payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

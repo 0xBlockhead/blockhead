@@ -9,75 +9,118 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[
-					'restEndpoints',
+	closed: [
+		{
+			label: 'parent network',
+		},
+		{
+			label: 'latest head snapshot',
+		},
+		{
+			label: 'REST endpoint count',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'parent network',
+				},
+				{
+					label: 'latest head snapshot',
+				},
+				{
+					label: 'REST endpoint count',
+				},
+			],
+			[
+				{
+					label: 'bounded validator count',
+				},
+				{
+					label: 'bounded governance proposal count',
+				},
+				{
+					label: 'denom/account/module entry points',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Execution',
+				items: [
+					{
+						label: 'Blocks',
+					},
+					{
+						label: 'Transactions',
+					},
+					{
+						label: 'Network snapshots',
+					},
+					{
+						label: 'Endpoints',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'blocks',
-					when: 'open',
-					items: [
-						'$$blocks',
-					],
-				},
-				{
-					label: 'validators',
-					when: 'open',
-					items: [
-						'$$validators',
-					],
-				},
-				{
-					label: 'governance proposals',
-					when: 'open',
-					items: [
-						'$$governanceProposals',
-					],
-				},
-				{
-					label: 'denoms',
-					when: 'open',
-					items: [
-						'$$denoms',
-					],
-				},
-				{
-					label: 'accounts',
-					when: 'open',
-					items: [
-						'$$accounts',
-					],
-				},
-				{
-					label: 'contracts',
-					when: 'open',
-					items: [
-						'$$contracts',
-					],
-				},
-				{
-					label: 'modules',
-					when: 'open',
-					items: [
-						'$$modules',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Consensus & Governance',
+				items: [
+					{
+						label: 'Validators',
+					},
+					{
+						label: 'Validator snapshots',
+					},
+					{
+						label: 'Governance proposals',
+					},
+				],
+			},
+			{
+				label: 'Accounts & Modules',
+				items: [
+					{
+						label: 'Accounts',
+					},
+					{
+						label: 'Modules',
+					},
+					{
+						label: 'CosmWasm contracts',
+					},
+				],
+			},
+			{
+				label: 'Assets',
+				items: [
+					{
+						label: 'native denom metadata',
+					},
+					{
+						label: 'account balance snapshots',
+					},
+				],
+			},
+			{
+				label: 'Source coverage',
+				items: [
+					{
+						label: 'Cosmos SDK REST endpoint',
+					},
+					{
+						label: 'Cosmos Chain Registry catalog seeds',
+					},
+					{
+						label: 'CometBFT REST when wired',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

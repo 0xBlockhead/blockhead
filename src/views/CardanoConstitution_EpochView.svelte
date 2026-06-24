@@ -9,25 +9,71 @@
 
 	// State
 	const view = {
-		closed: [
-			'epoch',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'epoch',
-					'source',
-					'slot',
-					'anchorUrl',
-					'anchorHash',
-					'scriptHash',
-					'previousAnchorUrl',
-					'previousAnchorHash',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'epoch',
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				'epoch',
+				'source',
+				'slot',
+				{
+					label: 'constitution anchor URL/hash',
+				},
+				{
+					label: 'guardrail script hash',
+				},
+				{
+					label: 'previous anchor URL/hash',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Cardano network',
+					},
+				],
+			},
+			{
+				label: 'Governance',
+				items: [
+					{
+						label: 'governance proposals for constitution updates',
+					},
+				],
+			},
+			{
+				label: 'Anchor',
+				items: [
+					{
+						label: 'off-chain constitution document evidence',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'constitution/local-state-query/indexer payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

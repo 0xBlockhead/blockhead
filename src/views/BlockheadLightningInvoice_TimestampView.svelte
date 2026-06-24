@@ -9,23 +9,87 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'state',
-					'amountPaidMsat',
-					'settledAtMs',
-					'settleIndex',
-				],
-			],
+	closed: [
+		{
+			label: 'invoice',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'invoice',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				'state',
+				{
+					label: 'amount paid msat',
+				},
+				{
+					label: 'settled time',
+				},
+				{
+					label: 'settle index',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Invoice',
+				items: [
+					{
+						label: 'parent local invoice',
+					},
+				],
+			},
+			{
+				label: 'Local node',
+				items: [
+					{
+						label: 'connected Lightning node state',
+					},
+				],
+			},
+			{
+				label: 'Settlement',
+				items: [
+					{
+						label: 'amount paid',
+					},
+					{
+						label: 'settled time',
+					},
+					{
+						label: 'settle index',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'LND lookupinvoice',
+					},
+					{
+						label: 'listinvoices',
+					},
+					{
+						label: 'or invoice subscription payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

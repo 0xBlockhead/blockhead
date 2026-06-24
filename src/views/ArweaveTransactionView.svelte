@@ -9,29 +9,108 @@
 
 	// State
 	const view = {
-		closed: [
-			'transactionId',
-		],
-		content: {
-			dl: [
-				[
-					'transactionId',
-					'ownerAddress',
-					'targetAddress',
-					'quantityWinston',
-					'rewardWinston',
-					'signature',
-					'lastTx',
-					'dataRoot',
-					'dataSizeBytes',
-					'dataTree',
-					'tags',
-					'format',
-					'denomination',
-				],
-			],
+	closed: [
+		{
+			label: 'transaction id',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'owner',
+		},
+		{
+			label: 'data size',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'transaction id',
+				},
+				{
+					label: 'owner address',
+				},
+				{
+					label: 'target address',
+				},
+				{
+					label: 'quantity',
+				},
+				{
+					label: 'reward',
+				},
+				'format',
+				'denomination',
+			],
+			[
+				{
+					label: 'block',
+				},
+				{
+					label: 'data size',
+				},
+				{
+					label: 'data root',
+				},
+				{
+					label: 'last tx',
+				},
+				{
+					label: 'tag count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Resource',
+				items: [
+					{
+						label: 'gateway resource for the data payload',
+					},
+				],
+			},
+			{
+				label: 'Block',
+				items: [
+					{
+						label: 'containing block when confirmed',
+					},
+				],
+			},
+			{
+				label: 'Tags',
+				items: [
+					{
+						label: 'name/value tag list',
+					},
+				],
+			},
+			{
+				label: 'Economics',
+				items: [
+					{
+						label: 'quantity/reward/denomination',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'transaction endpoint',
+					},
+					{
+						label: 'status/confirmation endpoint',
+					},
+					{
+						label: 'gateway data availability',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

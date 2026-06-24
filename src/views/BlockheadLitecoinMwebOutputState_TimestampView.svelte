@@ -9,25 +9,95 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'spent',
-					'spendTransactionId',
-					'receivedAtHeight',
-					'spentAtHeight',
-					'confirmations',
-					'lastScannedAt',
-				],
-			],
+	closed: [
+		{
+			label: 'output state',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'output state',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'spent state',
+				},
+				{
+					label: 'spend transaction id',
+				},
+				{
+					label: 'received height',
+				},
+				{
+					label: 'spent height',
+				},
+				'confirmations',
+				{
+					label: 'last scanned time',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Output state',
+				items: [
+					{
+						label: 'BlockheadLitecoinMwebOutputStateView',
+					},
+				],
+			},
+			{
+				label: 'Public output',
+				items: [
+					{
+						label: 'LitecoinMwebOutputView when resolved',
+					},
+				],
+			},
+			{
+				label: 'Wallet',
+				items: [
+					{
+						label: 'BlockheadLitecoinMwebWalletStateView',
+					},
+				],
+			},
+			{
+				label: 'Spend context',
+				items: [
+					{
+						label: 'spend transaction id',
+					},
+					{
+						label: 'spent height',
+					},
+					{
+						label: 'confirmation state',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'wallet scan/listunspent/gettransaction payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,28 +9,67 @@
 
 	// State
 	const view = {
-		closed: [
-			'publicKey',
-		],
-		content: {
-			dl: [
-				[
-					'publicKey',
-				],
-			],
+	closed: [
+		{
+			label: 'node state',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'public key',
+		},
+		{
+			label: 'latest balance',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'node state',
+				},
+				{
+					label: 'public key',
+				},
+				{
+					label: 'latest balance',
+				},
+				{
+					label: 'latest tip',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Balance history',
+				items: [
+					{
+						label: 'BlockheadLogosBlockchainWalletKeyState_TimestampsView',
+					},
+				],
+			},
+			{
+				label: 'Node',
+				items: [
+					{
+						label: 'BlockheadLogosBlockchainNodeStateView',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'user_config.yaml known_keys',
+					},
+					{
+						label: '/wallet/{publicKey}/balance',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

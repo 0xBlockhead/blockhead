@@ -9,30 +9,75 @@
 
 	// State
 	const view = {
-		closed: [
-			'address',
-		],
-		content: {
-			dl: [
-				[
-					'address',
-					'interopAddress',
-					'avatarUrl',
-				],
-			],
+	closed: [
+		{
+			label: 'global address identity',
 		},
-		details: {
-			tabs: [
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'ENS names ownedses',
-					when: 'open',
-					items: [
-						'$$ensNamesOwned',
-					],
+					label: 'global address identity',
+				},
+				{
+					label: 'primary ENS name',
+				},
+				{
+					label: 'avatar URL/media when resolver-backed',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Identity',
+				items: [
+					{
+						label: 'ENS names owned',
+					},
+					{
+						label: 'primary ENS name',
+					},
+					{
+						label: 'resolver-backed avatar media or generated blockie fallback',
+					},
+				],
+			},
+			{
+				label: 'Network accounts',
+				items: [
+					{
+						label: 'per-chain EVM network accounts',
+					},
+				],
+			},
+			{
+				label: 'Balances',
+				items: [
+					{
+						label: 'network-actor coin balances when available',
+					},
+				],
+			},
+			{
+				label: 'Activity',
+				items: [
+					{
+						label: 'transactions',
+					},
+					{
+						label: 'token transfers',
+					},
+					{
+						label: 'internal transfers through network accounts',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

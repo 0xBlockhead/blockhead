@@ -9,29 +9,69 @@
 
 	// State
 	const view = {
-		closed: [
-			'accountAddress',
-		],
-		content: {
-			dl: [
-				[
-					'accountAddress',
-					'accountKind',
-				],
-			],
+	closed: [
+		{
+			label: 'account address',
 		},
-		details: {
-			tabs: [
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'blockhead account states',
-					when: 'open',
-					items: [
-						'$$blockheadAccountStates',
-					],
+					label: 'account address',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'account address',
+				},
+				{
+					label: 'account kind',
+				},
+				{
+					label: 'connected account-state count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Connected account state',
+				items: [
+					{
+						label: 'BlockheadQuilibriumAccountState rows for balances',
+					},
+					{
+						label: 'pending queues',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent network',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'account ref kind',
+					},
+					{
+						label: 'address encoding',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

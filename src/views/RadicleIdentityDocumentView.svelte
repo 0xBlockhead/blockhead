@@ -9,35 +9,72 @@
 
 	// State
 	const view = {
-		closed: [
-			'rid',
-			'revision',
-		],
-		content: {
-			dl: [
-				[
-					'rid',
-					'revision',
-					'documentHash',
-					'payload',
-					'signatureThreshold',
-					'verifiedSignatureCount',
-					'verificationStatus',
-				],
-			],
+	closed: [
+		{
+			label: 'RID',
 		},
-		details: {
-			tabs: [
+		'revision',
+		{
+			label: 'document hash',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'signatures',
-					when: 'open',
-					items: [
-						'$$signatures',
-					],
+					label: 'RID',
+				},
+				'revision',
+				{
+					label: 'document hash',
+				},
+				{
+					label: 'repository',
+				},
+				{
+					label: 'signature threshold',
+				},
+				{
+					label: 'verified signature count',
+				},
+				{
+					label: 'verification status',
+				},
+				{
+					label: 'payload summary',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Payload',
+				items: [
+					{
+						label: 'name/description/default branch/visibility/delegates JSON',
+					},
+				],
+			},
+			{
+				label: 'Signatures',
+				items: [
+					{
+						label: 'Git signatures',
+					},
+				],
+			},
+			{
+				label: 'Repository',
+				items: [
+					{
+						label: 'linked Radicle repository',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

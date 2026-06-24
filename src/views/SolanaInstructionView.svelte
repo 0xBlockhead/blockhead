@@ -9,34 +9,99 @@
 
 	// State
 	const view = {
-		closed: [
-			'instructionKind',
-			'instructionIndex',
-		],
-		content: {
-			dl: [
-				[
-					'instructionKind',
-					'instructionIndex',
-					'innerInstructionIndex',
-					'parsedType',
-					'data',
-					'stackHeight',
-				],
-			],
+	panels: [
+		{
+			id: 'accounts',
+			label: 'Accounts',
+			kind: 'details',
+			slot: 'InstructionAccounts',
 		},
-		details: {
-			tabs: [
+	],
+	decodes: [
+		{
+			field: 'data',
+			kind: 'rawBytes',
+			slot: 'SolanaInstructionData',
+		},
+	],
+	closed: [
+		{
+			label: 'transaction',
+		},
+		{
+			label: 'instruction kind',
+		},
+		{
+			label: 'instruction index',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'accounts',
-					when: 'open',
-					items: [
-						'$$accounts',
-					],
+					label: 'transaction',
+				},
+				{
+					label: 'instruction kind',
+				},
+				{
+					label: 'instruction index',
+				},
+				{
+					label: 'inner instruction index',
+				},
+				{
+					label: 'program',
+				},
+				{
+					label: 'parsed type',
+				},
+				{
+					label: 'stack height',
+				},
+				{
+					label: 'account count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Program',
+				items: [
+					{
+						label: 'executing Solana program',
+					},
+				],
+			},
+			{
+				label: 'Accounts',
+				items: [
+					{
+						label: 'account refs touched by instruction',
+					},
+				],
+			},
+			{
+				label: 'Transaction',
+				items: [
+					{
+						label: 'parent Solana transaction',
+					},
+				],
+			},
+			{
+				label: 'Raw instruction',
+				items: [
+					{
+						label: 'data/base64/parsed payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

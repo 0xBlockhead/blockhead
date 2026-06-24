@@ -9,26 +9,80 @@
 
 	// State
 	const view = {
-		closed: [
-			'signatureId',
-		],
-		content: {
-			dl: [
-				[
-					'signatureId',
-					'subjectObjectId',
-					'signatureKind',
-					'signerSelector',
-					'payloadHash',
-					'signature',
-					'verificationStatus',
-					'verifiedAtMs',
-					'verifier',
-					'evidenceUrl',
-				],
-			],
+	closed: [
+		{
+			label: 'signature id',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'subject object id',
+		},
+		{
+			label: 'signature kind',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'signature id',
+				},
+				{
+					label: 'subject object id',
+				},
+				{
+					label: 'signature kind',
+				},
+				{
+					label: 'signer selector',
+				},
+				{
+					label: 'payload hash',
+				},
+				{
+					label: 'verification status',
+				},
+				{
+					label: 'verified timestamp',
+				},
+				'verifier',
+				{
+					label: 'evidence URL',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Subject',
+				items: [
+					{
+						label: 'GitObject/GitCommit/GitTag/RadicleSignedRef context',
+					},
+				],
+			},
+			{
+				label: 'Raw signature',
+				items: [
+					{
+						label: 'redacted signature text',
+					},
+				],
+			},
+			{
+				label: 'Verification evidence',
+				items: [
+					{
+						label: 'verifier/evidence fields',
+					},
+					{
+						label: 'local verification output when retained',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

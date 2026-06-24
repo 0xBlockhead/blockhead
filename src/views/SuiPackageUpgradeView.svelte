@@ -9,23 +9,89 @@
 
 	// State
 	const view = {
-		closed: [
-			'upgradedPackageId',
-		],
-		content: {
-			dl: [
-				[
-					'upgradedPackageId',
-					'upgradedVersion',
-					'previousPackageId',
-					'upgradeCapSelector',
-					'policy',
-					'digest',
-					'timestampMs',
-				],
-			],
+	closed: [
+		{
+			label: 'package lineage',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'upgraded package id',
+		},
+		{
+			label: 'upgraded version',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'package lineage',
+				},
+				{
+					label: 'upgraded package id',
+				},
+				{
+					label: 'upgraded version',
+				},
+				{
+					label: 'previous package id',
+				},
+				'policy',
+				'digest',
+				{
+					label: 'transaction',
+				},
+				{
+					label: 'timestamp',
+				},
+				{
+					label: 'upgrade capability selector',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Package',
+				items: [
+					{
+						label: 'parent package lineage',
+					},
+				],
+			},
+			{
+				label: 'Published package',
+				items: [
+					{
+						label: 'published package version',
+					},
+				],
+			},
+			{
+				label: 'Transaction',
+				items: [
+					{
+						label: 'upgrade transaction',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'object changes',
+					},
+					{
+						label: 'published objects',
+					},
+					{
+						label: 'upgrade-cap mutation payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

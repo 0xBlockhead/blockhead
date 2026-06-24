@@ -9,39 +9,105 @@
 
 	// State
 	const view = {
-		closed: [
-			'walletId',
-			'pool',
-			'noteCommitment',
-		],
-		content: {
-			dl: [
-				[
-					'walletId',
-					'pool',
-					'noteCommitment',
-					'nullifier',
-					'valueZatoshis',
-					'memo',
-					'diversifier',
-					'recipientAddress',
-					'receivedTransactionId',
-					'receivedAtHeight',
-				],
-			],
+	closed: [
+		{
+			label: 'wallet id',
 		},
-		details: {
-			tabs: [
+		'pool',
+		{
+			label: 'note commitment',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'wallet id',
+				},
+				'pool',
+				{
+					label: 'note commitment',
+				},
+				{
+					label: 'value',
+				},
+				'nullifier',
+				{
+					label: 'received transaction id',
+				},
+				{
+					label: 'received height',
+				},
+				{
+					label: 'recipient address',
+				},
+				{
+					label: 'latest spent state',
+				},
+				{
+					label: 'latest spent transaction id',
+				},
+				{
+					label: 'latest spent height',
+				},
+				{
+					label: 'latest scan time',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest state',
+				items: [
+					{
+						label: 'latest note-state observation',
+					},
+				],
+			},
+			{
+				label: 'State history',
+				items: [
+					{
+						label: 'timestamped note-state observations',
+					},
+				],
+			},
+			{
+				label: 'Pool/action',
+				items: [
+					{
+						label: 'pool enum/constant metadata',
+					},
+					{
+						label: 'linked public shielded action when available',
+					},
+				],
+			},
+			{
+				label: 'Memo/address',
+				items: [
+					{
+						label: 'redacted memo',
+					},
+					'diversifier',
+					{
+						label: 'recipient address',
+					},
+				],
+			},
+			{
+				label: 'Wallet',
+				items: [
+					{
+						label: 'parent local Zcash wallet state',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

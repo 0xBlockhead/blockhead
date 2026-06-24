@@ -9,29 +9,103 @@
 
 	// State
 	const view = {
-		closed: [
-			'height',
-			'commitment',
-		],
-		content: {
-			dl: [
-				[
-					'height',
-					'commitment',
-					'dataHash',
-					'shareVersion',
-					'index',
-					'sizeBytes',
-					'signer',
-					'txHash',
-					'proof',
-					'shareProofAvailable',
-					'blobData',
-					'payloadRequested',
-				],
-			],
+	closed: [
+		{
+			label: 'namespace',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'height',
+		'commitment',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'namespace',
+				},
+				'height',
+				'commitment',
+				{
+					label: 'size bytes',
+				},
+				{
+					label: 'share version',
+				},
+				'index',
+				{
+					label: 'tx hash',
+				},
+			],
+			[
+				{
+					label: 'block',
+				},
+				{
+					label: 'proof availability',
+				},
+				{
+					label: 'payload requested',
+				},
+				'signer',
+				{
+					label: 'data hash',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Namespace',
+				items: [
+					{
+						label: 'parent Celestia namespace',
+					},
+				],
+			},
+			{
+				label: 'Block',
+				items: [
+					{
+						label: 'containing Celestia block',
+					},
+				],
+			},
+			{
+				label: 'Payload',
+				items: [
+					{
+						label: 'blob bytes only when explicitly requested',
+					},
+					{
+						label: 'size/hash summary otherwise',
+					},
+				],
+			},
+			{
+				label: 'Proof',
+				items: [
+					{
+						label: 'share proof JSON when source endpoint returns it',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'blob.Get/GetAll',
+					},
+					{
+						label: 'state-submitted PayForBlobs tx evidence',
+					},
+					{
+						label: 'node height/head freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

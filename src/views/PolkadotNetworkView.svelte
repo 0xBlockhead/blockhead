@@ -9,54 +9,99 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[
-					'rpcEndpoints',
+	closed: [
+		{
+			label: 'head block',
+		},
+		{
+			label: 'environment',
+		},
+		{
+			label: 'native asset count',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'head block',
+				},
+				{
+					label: 'environment',
+				},
+				{
+					label: 'native asset count',
+				},
+				{
+					label: 'runtime asset count',
+				},
+				{
+					label: 'validator count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Blocks',
+				items: [
+					{
+						label: 'Polkadot block rows',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'blocks',
-					when: 'open',
-					items: [
-						'$$blocks',
-					],
-				},
-				{
-					label: 'assets',
-					when: 'open',
-					items: [
-						'$$assets',
-					],
-				},
-				{
-					label: 'asset balance timestamps',
-					when: 'open',
-					items: [
-						'$$assetBalanceTimestamps',
-					],
-				},
-				{
-					label: 'validators',
-					when: 'open',
-					items: [
-						'$$validators',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Runtime snapshots',
+				items: [
+					{
+						label: 'timestamped finalized-head/runtime observations',
+					},
+				],
+			},
+			{
+				label: 'Validators',
+				items: [
+					{
+						label: 'Polkadot validator rows',
+					},
+				],
+			},
+			{
+				label: 'Assets',
+				items: [
+					{
+						label: 'native coin plus bounded runtime/indexer asset rows',
+					},
+				],
+			},
+			{
+				label: 'Asset balances',
+				items: [
+					{
+						label: 'asset balance observations',
+					},
+				],
+			},
+			{
+				label: 'Endpoints',
+				items: [
+					{
+						label: 'network transport endpoints',
+					},
+				],
+			},
+			{
+				label: 'Resources',
+				items: [
+					{
+						label: 'faucet and block explorer URLs',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

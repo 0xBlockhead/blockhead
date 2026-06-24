@@ -9,52 +9,84 @@
 
 	// State
 	const view = {
-		closed: [
-			'contentHashAlgorithm',
-			'contentHash',
+	closed: [
+		{
+			label: 'registration',
+		},
+		{
+			label: 'content hash/artifact',
+		},
+		'name',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'registration',
+				},
+				{
+					label: 'content hash algorithm/hash',
+				},
+				{
+					label: 'artifact',
+				},
+				{
+					label: 'fetched at',
+				},
+			],
+			[
+				'type',
+				'name',
+				'active',
+				{
+					label: 'x402 support',
+				},
+				{
+					label: 'supported trust',
+				},
+				{
+					label: 'endpoint/cross-registration/document refs',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'contentHashAlgorithm',
-					'contentHash',
-					'fetchedAt',
-					'type',
-					'name',
-					'description',
-					'image',
-					'active',
-					'x402Support',
-					'supportedTrust',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Service endpoints',
+				items: [
+					{
+						label: 'Eip8004AgentServiceEndpoint list',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'service endpoints',
-					when: 'open',
-					items: [
-						'$$serviceEndpoints',
-					],
-				},
-				{
-					label: 'cross registrations',
-					when: 'open',
-					items: [
-						'$$crossRegistrations',
-					],
-				},
-				{
-					label: 'documents',
-					when: 'open',
-					items: [
-						'$$documents',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Cross registrations',
+				items: [
+					{
+						label: 'Eip8004CrossRegistration list',
+					},
+				],
+			},
+			{
+				label: 'Documents',
+				items: [
+					{
+						label: 'AiDocument list',
+					},
+				],
+			},
+			{
+				label: 'Registration',
+				items: [
+					{
+						label: 'Eip8004AgentRegistration',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

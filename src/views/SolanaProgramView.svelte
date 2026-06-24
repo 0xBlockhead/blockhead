@@ -9,18 +9,63 @@
 
 	// State
 	const view = {
-		closed: [
-			'programId',
-		],
-		content: {
-			dl: [
-				[
-					'programId',
-					'name',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'program id',
+		},
+		'name',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'program id',
+				},
+				'name',
+				{
+					label: 'program account',
+				},
+				{
+					label: 'upgrade authority',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Program account',
+				items: [
+					{
+						label: 'executable Solana account',
+					},
+				],
+			},
+			{
+				label: 'Upgrade authority',
+				items: [
+					{
+						label: 'upgrade authority account',
+					},
+				],
+			},
+			{
+				label: 'Instructions',
+				items: [
+					{
+						label: 'instructions when reached from transactions',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

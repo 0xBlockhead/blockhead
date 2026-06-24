@@ -9,59 +9,88 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[],
-			],
+	closed: [
+		{
+			label: 'linked Network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'latest round/protocol/genesis snapshot',
+		},
+		{
+			label: 'catchpoint',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'rounds',
-					when: 'open',
-					items: [
-						'$$rounds',
-					],
+					label: 'linked Network',
 				},
 				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
+					label: 'latest round/protocol/genesis snapshot',
 				},
 				{
-					label: 'accounts',
-					when: 'open',
-					items: [
-						'$$accounts',
-					],
+					label: 'catchpoint',
 				},
 				{
-					label: 'assets',
-					when: 'open',
-					items: [
-						'$$assets',
-					],
-				},
-				{
-					label: 'applications',
-					when: 'open',
-					items: [
-						'$$applications',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'native ALGO asset',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Rounds',
+				items: [
+					{
+						label: 'ledger round rows',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'network transaction rows',
+					},
+				],
+			},
+			{
+				label: 'Accounts',
+				items: [
+					{
+						label: 'account rows',
+					},
+				],
+			},
+			{
+				label: 'Assets',
+				items: [
+					{
+						label: 'ASA rows',
+					},
+				],
+			},
+			{
+				label: 'Applications',
+				items: [
+					{
+						label: 'application rows',
+					},
+				],
+			},
+			{
+				label: 'Network snapshots',
+				items: [
+					{
+						label: 'source-local algod/indexer status observations',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

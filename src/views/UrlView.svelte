@@ -9,28 +9,72 @@
 
 	// State
 	const view = {
-		closed: [
-			'url',
-		],
-		content: {
-			dl: [
-				[
-					'url',
-				],
-			],
+	actions: [
+		{
+			id: 'copy-url',
+			label: 'Copy URL',
+			kind: 'copy',
+			field: 'url',
 		},
-		details: {
-			tabs: [
+		{
+			id: 'open-url',
+			label: 'Open URL',
+			kind: 'externalLink',
+			field: 'url',
+		},
+	],
+	closed: [
+		{
+			label: 'URL',
+		},
+		{
+			label: 'latest preview timestamp',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'preview timestamps',
-					when: 'open',
-					items: [
-						'$$previewTimestamps',
-					],
+					label: 'URL',
+				},
+				{
+					label: 'latest preview timestamp',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Preview history',
+				items: [
+					{
+						label: 'preview observations sorted newest first',
+					},
+				],
+			},
+			{
+				label: 'References',
+				items: [
+					{
+						label: 'parent rows that link this URL',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'catalog rows',
+					},
+					{
+						label: 'preview extractor payloads',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

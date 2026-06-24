@@ -9,19 +9,75 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'followerCount',
-					'memberCount',
-				],
-			],
+	closed: [
+		{
+			label: 'channel',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		{
+			label: 'follower count',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'channel',
+				},
+				{
+					label: 'observation time',
+				},
+				{
+					label: 'follower count',
+				},
+				{
+					label: 'member count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Channel',
+				items: [
+					{
+						label: 'parent Farcaster channel',
+					},
+				],
+			},
+			{
+				label: 'Membership',
+				items: [
+					{
+						label: 'follower count',
+					},
+					{
+						label: 'member count',
+					},
+				],
+			},
+			{
+				label: 'History',
+				items: [
+					{
+						label: 'timestamped channel metric observations',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Farcaster channel payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

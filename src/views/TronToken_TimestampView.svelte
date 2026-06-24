@@ -9,27 +9,102 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
+	closed: [
+		{
+			label: 'token',
+		},
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'token',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'block height',
+				},
+				'name',
+				'symbol',
+				'decimals',
+			],
+			[
+				{
+					label: 'total supply',
+				},
+				{
+					label: 'holder count',
+				},
+				{
+					label: 'transfer count',
+				},
+				{
+					label: 'contract verification flag',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'blockHeight',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Token',
+				items: [
+					{
+						label: 'parent token identity',
+					},
+				],
+			},
+			{
+				label: 'Metadata',
+				items: [
 					'name',
 					'symbol',
 					'decimals',
-					'totalSupply',
-					'holderCount',
-					'transferCount',
-					'contractVerified',
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Metrics',
+				items: [
+					{
+						label: 'supply',
+					},
+					{
+						label: 'holder count',
+					},
+					{
+						label: 'transfer count',
+					},
+					{
+						label: 'verification flag',
+					},
+				],
+			},
+			{
+				label: 'Contract',
+				items: [
+					{
+						label: 'contract identity when contract-backed',
+					},
+				],
+			},
+			{
+				label: 'Source',
+				items: [
+					{
+						label: 'token overview/indexer payload freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

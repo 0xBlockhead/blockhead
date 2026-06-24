@@ -9,24 +9,78 @@
 
 	// State
 	const view = {
-		closed: [
-			'changeIndex',
-		],
-		content: {
-			dl: [
-				[
-					'changeIndex',
-					'changeKind',
-					'address',
-					'stateKeyHash',
-					'resourceType',
-					'moduleAddress',
-					'moduleName',
-					'value',
-				],
-			],
+	closed: [
+		{
+			label: 'change kind',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'address/state key',
+		},
+		{
+			label: 'resource or module target',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'change kind',
+				},
+				{
+					label: 'address/state key',
+				},
+				{
+					label: 'resource or module target',
+				},
+				{
+					label: 'linked resource/module when resolved',
+				},
+				{
+					label: 'value summary',
+				},
+				{
+					label: 'parent transaction',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transaction',
+				items: [
+					{
+						label: 'parent transaction',
+					},
+				],
+			},
+			{
+				label: 'Resource',
+				items: [
+					{
+						label: 'target resource when resolved',
+					},
+				],
+			},
+			{
+				label: 'Module',
+				items: [
+					{
+						label: 'target Move module when resolved',
+					},
+				],
+			},
+			{
+				label: 'Payload',
+				items: [
+					{
+						label: 'write/delete state-change JSON',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

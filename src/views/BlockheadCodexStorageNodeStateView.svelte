@@ -9,39 +9,91 @@
 
 	// State
 	const view = {
-		closed: [
-			'connectionId',
-			'peerId',
+	closed: [
+		{
+			label: 'connection id',
+		},
+		{
+			label: 'peer id',
+		},
+		'endpoint',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'connection id',
+				},
+				{
+					label: 'peer id',
+				},
+				'endpoint',
+				{
+					label: 'signed peer record',
+				},
+				{
+					label: 'latest space/peer observation',
+				},
+				{
+					label: 'stored data count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'connectionId',
-					'peerId',
-					'endpoint',
-					'signedPeerRecord',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'State history',
+				items: [
+					{
+						label: 'timestamped connected-node observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'stored datases',
-					when: 'open',
-					items: [
-						'$$storedData',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Stored data',
+				items: [
+					{
+						label: 'local stored-data inventory rows',
+					},
+				],
+			},
+			{
+				label: 'Peers',
+				items: [
+					{
+						label: 'latest peer table fields from debug info',
+					},
+				],
+			},
+			{
+				label: 'Network presets',
+				items: [
+					{
+						label: 'bootstrap SPR records from presets',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: '/peerid',
+					},
+					{
+						label: '/spr',
+					},
+					{
+						label: '/debug/info',
+					},
+					{
+						label: '/space',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

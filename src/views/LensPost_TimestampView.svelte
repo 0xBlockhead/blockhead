@@ -9,23 +9,84 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'commentCount',
-					'repostCount',
-					'quoteCount',
-					'bookmarkCount',
-					'collectCount',
-					'reactionCount',
-				],
-			],
+	closed: [
+		{
+			label: 'post',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		{
+			label: 'comment count',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'post',
+				},
+				{
+					label: 'observation time',
+				},
+				{
+					label: 'comment count',
+				},
+				{
+					label: 'repost count',
+				},
+				{
+					label: 'quote count',
+				},
+				{
+					label: 'bookmark count',
+				},
+				{
+					label: 'collect count',
+				},
+				{
+					label: 'reaction count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Post',
+				items: [
+					{
+						label: 'LensPost',
+					},
+				],
+			},
+			{
+				label: 'Engagement',
+				items: [
+					{
+						label: 'comment/repost/quote/bookmark/collect/reaction counts',
+					},
+				],
+			},
+			{
+				label: 'History',
+				items: [
+					{
+						label: 'LensPost_Timestamp list',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Lens GraphQL post stats payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

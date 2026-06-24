@@ -9,21 +9,66 @@
 
 	// State
 	const view = {
-		closed: [
-			'url',
-		],
-		content: {
-			dl: [
-				[
-					'url',
-					'width',
-					'height',
-					'mimeType',
-					'size',
-				],
-			],
+	closed: [
+		'url',
+		{
+			label: 'dimensions',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'MIME/size',
+		},
+	],
+	content: {
+		dl: [
+			[
+				'url',
+				'width',
+				'height',
+				{
+					label: 'MIME type',
+				},
+				'size',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Media',
+				items: [
+					{
+						label: 'Media rows that reference this rendition',
+					},
+				],
+			},
+			{
+				label: 'Metadata',
+				items: [
+					{
+						label: 'dimensions',
+					},
+					{
+						label: 'MIME type',
+					},
+					{
+						label: 'byte size',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'source payload rendition object',
+					},
+					{
+						label: 'HTTP/content response metadata when available',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

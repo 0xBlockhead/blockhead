@@ -9,32 +9,47 @@
 
 	// State
 	const view = {
-		closed: [
-			'account',
-			'currency',
-			'issuer',
-		],
-		content: {
-			dl: [
-				[
-					'account',
-					'currency',
-					'issuer',
-				],
-			],
-		},
-		details: {
-			tabs: [
+	closed: [
+		'account',
+		'currency',
+		'issuer',
+	],
+	content: {
+		dl: [
+			[
+				'account',
+				'currency',
+				'issuer',
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'latest balance/limit flags',
+				},
+				{
+					label: 'account/issuer links',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Snapshots',
+				items: [
+					{
+						label: 'ledger-indexed trustline observations',
+					},
+				],
+			},
+			{
+				label: 'Ledger entry',
+				items: [
+					{
+						label: 'RippleState ledger object when known',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

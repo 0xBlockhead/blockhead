@@ -9,48 +9,82 @@
 
 	// State
 	const view = {
-		closed: [
-			'providerModelId',
+	closed: [
+		{
+			label: 'provider',
+		},
+		{
+			label: 'provider model id',
+		},
+		'label',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'provider',
+				},
+				{
+					label: 'provider model id',
+				},
+				{
+					label: 'provider resource name',
+				},
+				{
+					label: 'base model id',
+				},
+				'label',
+				{
+					label: 'model family',
+				},
+			],
+			[
+				{
+					label: 'provider owned-by/created-at',
+				},
+				{
+					label: 'latest availability/capabilities',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'providerModelId',
-					'providerResourceName',
-					'baseModelId',
-					'label',
-					'modelFamily',
-					'providerOwnedBy',
-					'providerCreatedAt',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Versions',
+				items: [
+					{
+						label: 'AiModelVersion list',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'versions',
-					when: 'open',
-					items: [
-						'$$versions',
-					],
-				},
-				{
-					label: 'documents',
-					when: 'open',
-					items: [
-						'$$documents',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Observations',
+				items: [
+					{
+						label: 'AiModel_Timestamp list',
+					},
+				],
+			},
+			{
+				label: 'Documents',
+				items: [
+					{
+						label: 'AiDocument list',
+					},
+				],
+			},
+			{
+				label: 'Catalog entries',
+				items: [
+					{
+						label: 'AiProviderCatalogEntry list',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

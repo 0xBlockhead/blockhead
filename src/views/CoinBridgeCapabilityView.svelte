@@ -9,21 +9,101 @@
 
 	// State
 	const view = {
-		closed: [
-			'toolKey',
-		],
-		content: {
-			dl: [
-				[
-					'toolKey',
-					'railId',
-					'settlementModel',
-					'verificationModel',
-					'assetOutcome',
-				],
-			],
+	closed: [
+		{
+			label: 'from/to EvmCoinInstance refs',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'tool key',
+		},
+		{
+			label: 'rail',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'from/to EvmCoinInstance refs',
+				},
+				{
+					label: 'tool key',
+				},
+				{
+					label: 'rail',
+				},
+				{
+					label: 'settlement model',
+				},
+				{
+					label: 'verification model',
+				},
+				{
+					label: 'asset outcome',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Route endpoints',
+				items: [
+					{
+						label: 'from EvmCoinInstance',
+					},
+					{
+						label: 'to EvmCoinInstance',
+					},
+				],
+			},
+			{
+				label: 'Catalog tool',
+				items: [
+					{
+						label: 'tool key',
+					},
+					{
+						label: 'LI.FI tool/source row when available',
+					},
+				],
+			},
+			{
+				label: 'Rail/trust model',
+				items: [
+					{
+						label: 'rail id',
+					},
+					{
+						label: 'settlement model',
+					},
+					{
+						label: 'verification model',
+					},
+				],
+			},
+			{
+				label: 'Asset outcome',
+				items: [
+					{
+						label: 'wrapped/native/canonical result semantics',
+					},
+				],
+			},
+			{
+				label: 'Quotes/transfers',
+				items: [
+					{
+						label: 'BridgeRouteQuote_Timestamp',
+					},
+					{
+						label: 'BridgeTransfer when executed',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

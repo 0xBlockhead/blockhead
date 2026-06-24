@@ -9,23 +9,74 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'listenAddresses',
-					'peerCount',
-					'connectionCount',
-					'pendingConnectionCount',
-				],
-			],
+	closed: [
+		{
+			label: 'node state',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		{
+			label: 'peer count',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'node state',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'listen address count',
+				},
+				{
+					label: 'peer count',
+				},
+				{
+					label: 'connection count',
+				},
+				{
+					label: 'pending connection count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Node',
+				items: [
+					{
+						label: 'parent Logos Blockchain node state',
+					},
+				],
+			},
+			{
+				label: 'Connectivity',
+				items: [
+					{
+						label: 'listen addresses',
+					},
+					{
+						label: 'peer/connection counters',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: '/network/info response',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

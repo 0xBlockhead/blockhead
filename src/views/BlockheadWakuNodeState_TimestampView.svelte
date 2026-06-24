@@ -9,31 +9,108 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'health',
-					'version',
-					'peerCount',
-					'listenAddresses',
-					'enrUri',
-					'relayEnabled',
-					'storeEnabled',
-					'filterEnabled',
-					'lightpushEnabled',
-					'rlnRelayEnabled',
-					'subscribedPubsubTopics',
-					'subscribedContentTopics',
-				],
-			],
+	closed: [
+		{
+			label: 'node state',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'health',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'node state',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				'health',
+				'version',
+				{
+					label: 'peer count',
+				},
+				{
+					label: 'listen address count',
+				},
+				{
+					label: 'ENR URI',
+				},
+				{
+					label: 'enabled protocols',
+				},
+				{
+					label: 'subscribed pubsub/content topics',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Node',
+				items: [
+					{
+						label: 'parent connected Waku node state',
+					},
+				],
+			},
+			{
+				label: 'Health',
+				items: [
+					{
+						label: 'health endpoint result',
+					},
+				],
+			},
+			{
+				label: 'Peers/addresses',
+				items: [
+					{
+						label: 'peer count',
+					},
+					{
+						label: 'listen addresses',
+					},
+					{
+						label: 'ENR',
+					},
+				],
+			},
+			{
+				label: 'Protocols',
+				items: [
+					{
+						label: 'relay',
+					},
+					{
+						label: 'store',
+					},
+					{
+						label: 'filter',
+					},
+					{
+						label: 'lightpush',
+					},
+					{
+						label: 'RLN relay flags',
+					},
+				],
+			},
+			{
+				label: 'Subscriptions',
+				items: [
+					{
+						label: 'pubsub/content-topic lists',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

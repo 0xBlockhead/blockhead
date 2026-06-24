@@ -9,31 +9,79 @@
 
 	// State
 	const view = {
-		closed: [
-			'nodeId',
-		],
-		content: {
-			dl: [
-				[
-					'nodeId',
-					'nodeIp',
-					'nodePopPublicKey',
-					'nodePopProofOfPossession',
-				],
-			],
+	closed: [
+		{
+			label: 'node id',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'node IP',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'node id',
+				},
+				{
+					label: 'network',
+				},
+				{
+					label: 'node IP',
+				},
+				{
+					label: 'BLS public key/proof presence',
+				},
+				{
+					label: 'latest network name',
+				},
+				{
+					label: 'latest node version',
+				},
+				{
+					label: 'latest peer/uptime summary',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'State observations',
+				items: [
+					{
+						label: 'BlockheadAvalancheNodeState_Timestamp list',
+					},
+				],
+			},
+			{
+				label: 'Node identity',
+				items: [
+					{
+						label: 'node id',
+					},
+					{
+						label: 'POP public key/proof',
+					},
+					{
+						label: 'IP',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'AvalancheSubnet/AvalancheValidator context when linked',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

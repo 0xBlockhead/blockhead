@@ -9,23 +9,87 @@
 
 	// State
 	const view = {
-		closed: [
-			'manager',
-		],
-		content: {
-			dl: [
-				[
-					'manager',
-					'addedAt',
-					'isLensManager',
-					'canExecuteTransactions',
-					'canSetMetadataUri',
-					'canTransferNative',
-					'canTransferTokens',
-				],
-			],
+	closed: [
+		{
+			label: 'account',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'manager address',
+		},
+		{
+			label: 'added time',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'account',
+				},
+				{
+					label: 'manager address',
+				},
+				{
+					label: 'added time',
+				},
+				{
+					label: 'Lens manager flag',
+				},
+				{
+					label: 'transaction permission',
+				},
+				{
+					label: 'metadata permission',
+				},
+				{
+					label: 'native transfer permission',
+				},
+				{
+					label: 'token transfer permission',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'parent Lens account',
+					},
+				],
+			},
+			{
+				label: 'Manager address',
+				items: [
+					{
+						label: 'manager EVM account when resolved',
+					},
+				],
+			},
+			{
+				label: 'Permissions',
+				items: [
+					{
+						label: 'manager permission booleans',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'accountManagers GraphQL payload',
+					},
+					{
+						label: 'on-chain manager events when available',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

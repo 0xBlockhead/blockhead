@@ -9,24 +9,84 @@
 
 	// State
 	const view = {
-		closed: [
-			'blockNumber',
-		],
-		content: {
-			dl: [
-				[
-					'blockNumber',
-					'baseFeePerGas',
-					'legacyGasPrice',
-					'maxPriorityFeePerGas',
-					'gasUsedRatio',
-					'priorityFeeRewardAt50thPercentile',
-					'baseFeePerBlobGas',
-					'blobGasUsedRatio',
-				],
-			],
+	closed: [
+		{
+			label: 'base fee/gas price',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'block number',
+		},
+		{
+			label: 'gas used ratio',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'base fee/gas price',
+				},
+				{
+					label: 'block number',
+				},
+				{
+					label: 'gas used ratio',
+				},
+				{
+					label: 'priority fee percentile',
+				},
+				{
+					label: 'blob base fee',
+				},
+				{
+					label: 'blob gas used ratio',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent EVM network',
+					},
+				],
+			},
+			{
+				label: 'Block',
+				items: [
+					{
+						label: 'EVM block for blockNumber when resolved',
+					},
+				],
+			},
+			{
+				label: 'Fee history',
+				items: [
+					{
+						label: 'base fee',
+					},
+					{
+						label: 'priority fee percentile',
+					},
+					{
+						label: 'blob fee fields',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'eth_feeHistory/eth_gasPrice/eth_maxPriorityFeePerGas response',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

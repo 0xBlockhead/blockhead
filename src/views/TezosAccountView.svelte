@@ -9,50 +9,96 @@
 
 	// State
 	const view = {
-		closed: [
-			'address',
+	closed: [
+		'address',
+		{
+			label: 'account kind',
+		},
+		{
+			label: 'public key/revealed state',
+		},
+	],
+	content: {
+		dl: [
+			[
+				'address',
+				{
+					label: 'account kind',
+				},
+				{
+					label: 'public key/revealed state',
+				},
+				{
+					label: 'latest balance',
+				},
+				{
+					label: 'counter',
+				},
+				{
+					label: 'delegate',
+				},
+				{
+					label: 'token balance count',
+				},
+				{
+					label: 'token transfer count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'address',
-					'accountKind',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Operations',
+				items: [
+					{
+						label: 'Tezos operations involving this account',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'operations',
-					when: 'open',
-					items: [
-						'$$operations',
-					],
-				},
-				{
-					label: 'token balance timestamps',
-					when: 'open',
-					items: [
-						'$$tokenBalanceTimestamps',
-					],
-				},
-				{
-					label: 'token transfers',
-					when: 'open',
-					items: [
-						'$$tokenTransfers',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Token balances',
+				items: [
+					{
+						label: 'token balance observations grouped by token',
+					},
+				],
+			},
+			{
+				label: 'Token transfers',
+				items: [
+					{
+						label: 'token transfer rows',
+					},
+				],
+			},
+			{
+				label: 'Delegation/baker',
+				items: [
+					{
+						label: 'Tezos baker when delegate/baker identity resolves',
+					},
+				],
+			},
+			{
+				label: 'Contract',
+				items: [
+					{
+						label: 'Tezos contract for originated accounts',
+					},
+				],
+			},
+			{
+				label: 'Account history',
+				items: [
+					{
+						label: 'level/source account-state observations',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

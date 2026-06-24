@@ -9,19 +9,74 @@
 
 	// State
 	const view = {
-		closed: [
-			'outputIndex',
-		],
-		content: {
-			dl: [
-				[
-					'outputIndex',
-					'commitment',
-					'senderPubkey',
-				],
-			],
+	closed: [
+		{
+			label: 'transaction',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'output index',
+		},
+		'commitment',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'transaction',
+				},
+				{
+					label: 'output index',
+				},
+				'commitment',
+				{
+					label: 'sender pubkey',
+				},
+				{
+					label: 'local wallet match when available',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transaction',
+				items: [
+					{
+						label: 'parent MWEB transaction',
+					},
+				],
+			},
+			{
+				label: 'Commitment',
+				items: [
+					{
+						label: 'public output commitment',
+					},
+					{
+						label: 'sender pubkey fields',
+					},
+				],
+			},
+			{
+				label: 'Local wallet match',
+				items: [
+					{
+						label: 'BlockheadLitecoinMwebOutputState when a connected wallet can identify ownership',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Litecoin Core MWEB output payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

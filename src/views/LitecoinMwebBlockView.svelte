@@ -9,27 +9,86 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[
-					'hogExTransactionId',
-					'kernelRoot',
-				],
-			],
+	closed: [
+		{
+			label: 'parent UTXO block',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'HogEx transaction id',
+		},
+		{
+			label: 'kernel root',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
+					label: 'parent UTXO block',
+				},
+				{
+					label: 'HogEx transaction id',
+				},
+				{
+					label: 'kernel root',
+				},
+				{
+					label: 'MWEB transaction count',
+				},
+				{
+					label: 'peg-in count',
+				},
+				{
+					label: 'peg-out count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Parent block',
+				items: [
+					{
+						label: 'parent Litecoin UTXO block',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'MWEB transactions in this extension block',
+					},
+				],
+			},
+			{
+				label: 'Peg flows',
+				items: [
+					{
+						label: 'peg-ins and peg-outs through transactions',
+					},
+				],
+			},
+			{
+				label: 'Wallet matches',
+				items: [
+					{
+						label: 'BlockheadLitecoinMwebWalletState when a connected wallet has scanned this block',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'verbose Litecoin Core block payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

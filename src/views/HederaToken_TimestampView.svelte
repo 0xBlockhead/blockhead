@@ -9,46 +9,105 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'name',
-					'symbol',
-					'totalSupply',
-					'maxSupply',
-					'treasuryAccount',
-					'supplyKey',
-					'adminKey',
-					'freezeKey',
-					'wipeKey',
-					'kycKey',
-					'pauseKey',
-					'feeScheduleKey',
-					'deleted',
-					'paused',
-					'customFees',
-					'expiryTimestamp',
-				],
-			],
+	closed: [
+		{
+			label: 'token',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'custom fees',
-					when: 'open',
-					items: [
-						'$$customFees',
-					],
+					label: 'token',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				'name',
+				'symbol',
+				{
+					label: 'total supply',
+				},
+				{
+					label: 'max supply',
+				},
+				{
+					label: 'treasury',
+				},
+				{
+					label: 'deleted flag',
+				},
+				{
+					label: 'paused flag',
+				},
+				{
+					label: 'custom fee count',
+				},
+				{
+					label: 'expiry',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Token',
+				items: [
+					{
+						label: 'parent Hedera token',
+					},
+				],
+			},
+			{
+				label: 'Supply/state',
+				items: [
+					{
+						label: 'supply',
+					},
+					{
+						label: 'treasury',
+					},
+					{
+						label: 'deleted/paused',
+					},
+					{
+						label: 'expiry fields',
+					},
+				],
+			},
+			{
+				label: 'Control keys',
+				items: [
+					{
+						label: 'supply/admin/freeze/wipe/KYC/pause/fee-schedule keys',
+					},
+				],
+			},
+			{
+				label: 'Custom fees',
+				items: [
+					{
+						label: 'custom-fee rows for this observed schedule',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'raw token-info payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

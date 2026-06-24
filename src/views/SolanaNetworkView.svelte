@@ -9,72 +9,106 @@
 
 	// State
 	const view = {
-		closed: [
-			'caip2',
+	closed: [
+		{
+			label: 'CAIP-2',
+		},
+		{
+			label: 'parent network',
+		},
+		'environment',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'CAIP-2',
+				},
+				{
+					label: 'parent network',
+				},
+				'environment',
+				{
+					label: 'latest head snapshot',
+				},
+				{
+					label: 'endpoint count',
+				},
+			],
+			[
+				{
+					label: 'bounded recent account count',
+				},
+				{
+					label: 'bounded transaction count',
+				},
+				{
+					label: 'validator count',
+				},
+				{
+					label: 'token mint entry points',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'caip2',
-					'environment',
-					'rpcEndpoints',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Execution',
+				items: [
+					{
+						label: 'Blocks',
+					},
+					{
+						label: 'Transactions',
+					},
+					{
+						label: 'Accounts',
+					},
+					{
+						label: 'Network snapshots',
+					},
+					{
+						label: 'Endpoints',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'blocks',
-					when: 'open',
-					items: [
-						'$$blocks',
-					],
-				},
-				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
-				},
-				{
-					label: 'accounts',
-					when: 'open',
-					items: [
-						'$$accounts',
-					],
-				},
-				{
-					label: 'token accounts',
-					when: 'open',
-					items: [
-						'$$tokenAccounts',
-					],
-				},
-				{
-					label: 'token mints',
-					when: 'open',
-					items: [
-						'$$tokenMints',
-					],
-				},
-				{
-					label: 'validators',
-					when: 'open',
-					items: [
-						'$$validators',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Consensus & Block Production',
+				items: [
+					{
+						label: 'Validators',
+					},
+				],
+			},
+			{
+				label: 'Assets',
+				items: [
+					{
+						label: 'native coin',
+					},
+					{
+						label: 'token mints from selectors or parsed token-account state',
+					},
+				],
+			},
+			{
+				label: 'Resources',
+				items: [
+					{
+						label: 'faucets',
+					},
+					{
+						label: 'block explorers',
+					},
+					{
+						label: 'source coverage',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

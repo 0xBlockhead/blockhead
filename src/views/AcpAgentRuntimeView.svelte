@@ -9,38 +9,92 @@
 
 	// State
 	const view = {
-		closed: [
-			'runtimeId',
+	closed: [
+		{
+			label: 'runtime id',
+		},
+		{
+			label: 'program version',
+		},
+		{
+			label: 'transport',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'runtime id',
+				},
+				{
+					label: 'source',
+				},
+				{
+					label: 'program version',
+				},
+				{
+					label: 'program install',
+				},
+				{
+					label: 'transport kind',
+				},
+			],
+			[
+				{
+					label: 'process id',
+				},
+				{
+					label: 'initialized at',
+				},
+				{
+					label: 'session refs',
+				},
+				{
+					label: 'latest health',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'runtimeId',
-					'transportKind',
-					'processId',
-					'initializedAt',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Sessions',
+				items: [
+					{
+						label: 'AcpSession list',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'sessions',
-					when: 'open',
-					items: [
-						'$$sessions',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Health',
+				items: [
+					{
+						label: 'AcpAgentRuntime_Timestamp list',
+					},
+				],
+			},
+			{
+				label: 'Program',
+				items: [
+					{
+						label: 'AcpAgentProgramVersion',
+					},
+					{
+						label: 'BlockheadAgentProgramInstall',
+					},
+				],
+			},
+			{
+				label: 'Local source',
+				items: [
+					{
+						label: 'BlockheadSource',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

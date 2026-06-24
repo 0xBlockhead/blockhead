@@ -9,39 +9,106 @@
 
 	// State
 	const view = {
-		closed: [
-			'sessionId',
-			'actionId',
-			'outcomeId',
-		],
-		content: {
-			dl: [
-				[
-					'sessionId',
-					'actionId',
-					'outcomeId',
-					'outcomeKind',
-					'transactionHash',
-					'transactionId',
-					'bridgeTransferId',
-					'createdAt',
-					'outcomeSummary',
-					'outcomePayloadHash',
-				],
-			],
+	closed: [
+		{
+			label: 'outcome',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'kind',
+		},
+		{
+			label: 'latest status',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'session action',
+				},
+				{
+					label: 'outcome id',
+				},
+				{
+					label: 'kind',
+				},
+				{
+					label: 'linked wallet request',
+				},
+				{
+					label: 'linked intent order',
+				},
+				{
+					label: 'linked simulation',
+				},
+				{
+					label: 'transaction hash/id',
+				},
+				{
+					label: 'bridge transfer id',
+				},
+				{
+					label: 'created time',
+				},
+				{
+					label: 'outcome payload hash',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Status history',
+				items: [
+					{
+						label: 'BlockheadActionOutcome_Timestamp list',
+					},
+				],
+			},
+			{
+				label: 'Session action',
+				items: [
+					{
+						label: 'BlockheadSessionActionView',
+					},
+				],
+			},
+			{
+				label: 'Wallet request',
+				items: [
+					{
+						label: 'BlockheadWalletRequestView when linked',
+					},
+				],
+			},
+			{
+				label: 'Intent order',
+				items: [
+					{
+						label: 'BlockheadIntentOrderView when linked',
+					},
+				],
+			},
+			{
+				label: 'Simulation',
+				items: [
+					{
+						label: 'BlockheadSessionSimulationView when linked',
+					},
+				],
+			},
+			{
+				label: 'Public evidence',
+				items: [
+					{
+						label: 'transaction/receipt/bridge transfer rows when resolved outside this local artifact',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

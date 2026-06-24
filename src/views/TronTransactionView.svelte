@@ -9,38 +9,129 @@
 
 	// State
 	const view = {
-		closed: [
-			'transactionId',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'transaction id',
+		},
+		{
+			label: 'block ref/height',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'transaction id',
+				},
+				{
+					label: 'block ref/height',
+				},
+				{
+					label: 'timestamp',
+				},
+				{
+					label: 'expiration',
+				},
+				{
+					label: 'contract type',
+				},
+				'result',
+				{
+					label: 'fee',
+				},
+				{
+					label: 'owner',
+				},
+				{
+					label: 'recipient',
+				},
+				{
+					label: 'contract',
+				},
+				{
+					label: 'amount',
+				},
+				{
+					label: 'asset name',
+				},
+				{
+					label: 'raw data hash/hex summary',
+				},
+				{
+					label: 'signature count',
+				},
+				{
+					label: 'receipt status',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'transactionId',
-					'blockHeight',
-					'timestampMs',
-					'expirationTimestampMs',
-					'contractType',
-					'result',
-					'feeSun',
-					'amountSun',
-					'assetName',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Receipt',
+				items: [
+					{
+						label: 'execution receipt/resource row',
+					},
+				],
+			},
+			{
+				label: 'Token transfers',
+				items: [
+					{
+						label: 'indexed token transfer effects',
+					},
+				],
+			},
+			{
+				label: 'Block',
+				items: [
+					{
+						label: 'containing block',
+					},
+				],
+			},
+			{
+				label: 'Owner',
+				items: [
+					{
+						label: 'owner account',
+					},
+				],
+			},
+			{
+				label: 'Recipient',
+				items: [
+					{
+						label: 'recipient account',
+					},
+				],
+			},
+			{
+				label: 'Contract',
+				items: [
+					{
+						label: 'called or created contract',
+					},
+				],
+			},
+			{
+				label: 'Raw/signatures',
+				items: [
 					'rawDataHex',
 					'signatures',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'token transfers',
-					when: 'open',
-					items: [
-						'$$tokenTransfers',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

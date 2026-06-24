@@ -9,38 +9,98 @@
 
 	// State
 	const view = {
-		closed: [
-			'epoch',
-		],
-		content: {
-			dl: [
-				[
-					'epoch',
-					'startSlot',
-					'endSlot',
-					'slotCount',
-					'finalized',
-					'globalParticipationRate',
-					'validatorsCount',
-					'attestationsCount',
-					'attesterSlashingsCount',
-					'proposerSlashingsCount',
-					'withdrawalsCount',
-				],
-			],
+	closed: [
+		{
+			label: 'epoch number',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'slot range',
+		},
+		{
+			label: 'finalized status',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'beacon slots',
-					when: 'open',
-					items: [
-						'$$beaconSlots',
-					],
+					label: 'epoch number',
+				},
+				{
+					label: 'start slot',
+				},
+				{
+					label: 'end slot',
+				},
+				{
+					label: 'slot count',
+				},
+				{
+					label: 'finalized status',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			[
+				{
+					label: 'global participation rate',
+				},
+				{
+					label: 'validator count',
+				},
+				{
+					label: 'attestation count',
+				},
+				{
+					label: 'withdrawal count',
+				},
+				{
+					label: 'attester slashing count',
+				},
+				{
+					label: 'proposer slashing count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Slots',
+				items: [
+					{
+						label: 'beacon slots in the epoch range',
+					},
+				],
+			},
+			{
+				label: 'Epoch stats',
+				items: [
+					{
+						label: 'Beaconcha.in epoch overview fields keyed by epoch',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent EVM network consensus context',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Beacon REST slot math/list expansion',
+					},
+					{
+						label: 'Beaconcha.in /epoch/{epoch} payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

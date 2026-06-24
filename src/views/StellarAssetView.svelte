@@ -9,59 +9,100 @@
 
 	// State
 	const view = {
-		closed: [
-			'assetKey',
+	closed: [
+		{
+			label: 'asset key',
+		},
+		{
+			label: 'asset kind',
+		},
+		{
+			label: 'issuer account',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'asset key',
+				},
+				{
+					label: 'asset kind',
+				},
+				{
+					label: 'asset code',
+				},
+				{
+					label: 'issuer account',
+				},
+				{
+					label: 'trustline count',
+				},
+				{
+					label: 'claimable balance count',
+				},
+				{
+					label: 'liquidity pool count',
+				},
+				{
+					label: 'asset metadata',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'assetKey',
-					'assetKind',
-					'assetCode',
-					'issuer',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Trustlines',
+				items: [
+					{
+						label: 'asset trustlines',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'claimable balances',
-					when: 'open',
-					items: [
-						'$$claimableBalances',
-					],
-				},
-				{
-					label: 'liquidity pools',
-					when: 'open',
-					items: [
-						'$$liquidityPools',
-					],
-				},
-				{
-					label: 'trustlines',
-					when: 'open',
-					items: [
-						'$$trustlines',
-					],
-				},
-				{
-					label: 'offers',
-					when: 'open',
-					items: [
-						'$$offers',
-					],
-				},
-				{
-					label: 'trades',
-					when: 'open',
-					items: [
-						'$$trades',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Claimable balances',
+				items: [
+					{
+						label: 'claimable balances denominated in this asset',
+					},
+				],
+			},
+			{
+				label: 'Liquidity pools',
+				items: [
+					{
+						label: 'liquidity pools containing this asset',
+					},
+				],
+			},
+			{
+				label: 'Offers',
+				items: [
+					{
+						label: 'offers selling/buying this asset',
+					},
+				],
+			},
+			{
+				label: 'Trades',
+				items: [
+					{
+						label: 'trades involving this asset',
+					},
+				],
+			},
+			{
+				label: 'Metadata',
+				items: [
+					{
+						label: 'TOML/explorer metadata when available',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

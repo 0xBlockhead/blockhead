@@ -9,26 +9,89 @@
 
 	// State
 	const view = {
-		closed: [
-			'transactionIndex',
-		],
-		content: {
-			dl: [
-				[
-					'transactionIndex',
-					'transactionHash',
-					'operationKind',
-					'fromAccount',
-					'toAccount',
-					'spenderAccount',
-					'amount',
-					'fee',
-					'memo',
-					'createdAtTimeNs',
-				],
-			],
+	closed: [
+		{
+			label: 'operation kind',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'ledger',
+		},
+		{
+			label: 'block',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'operation kind',
+				},
+				{
+					label: 'ledger',
+				},
+				{
+					label: 'block',
+				},
+				{
+					label: 'transaction hash',
+				},
+				'amount',
+				'fee',
+				{
+					label: 'from/to/spender',
+				},
+				'memo',
+				{
+					label: 'created-at time',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Ledger',
+				items: [
+					{
+						label: 'parent ICP ledger canister',
+					},
+				],
+			},
+			{
+				label: 'Block',
+				items: [
+					{
+						label: 'parent ledger block',
+					},
+				],
+			},
+			{
+				label: 'Related accounts',
+				items: [
+					{
+						label: 'account balance observations for from/to/spender accounts',
+					},
+				],
+			},
+			{
+				label: 'Rosetta operations',
+				items: [
+					{
+						label: 'operation list when sourced',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'raw ledger transaction payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

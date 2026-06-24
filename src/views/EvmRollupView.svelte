@@ -9,33 +9,71 @@
 
 	// State
 	const view = {
-		closed: [
-			'projectId',
-		],
-		content: {
-			dl: [
-				[
-					'projectId',
-					'name',
-					'slug',
-					'type',
-					'category',
-					'hostChain',
-				],
-			],
+	closed: [
+		{
+			label: 'L2Beat name',
 		},
-		details: {
-			tabs: [
+		'type',
+		'category',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'L2Beat name',
+				},
+				'type',
+				'category',
+				{
+					label: 'host chain',
+				},
+				{
+					label: 'settlement network',
+				},
+				{
+					label: 'latest source status',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Settlement',
+				items: [
+					{
+						label: 'settlement EVM network derived from L2Beat hostChain mapping',
+					},
+				],
+			},
+			{
+				label: 'Status history',
+				items: [
+					{
+						label: 'timestamped L2Beat project status observations',
+					},
+				],
+			},
+			{
+				label: 'Source identity',
+				items: [
+					{
+						label: 'L2Beat project id',
+					},
+					'slug',
+				],
+			},
+			{
+				label: 'Architecture claims',
+				items: [
+					{
+						label: 'ScalingDeploymentClaim rows may link back to this rollup when a richer source resolves them',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

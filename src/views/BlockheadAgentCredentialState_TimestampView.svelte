@@ -9,22 +9,56 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'status',
-					'expiresAt',
-					'error',
-				],
-			],
+	closed: [
+		{
+			label: 'credential',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'status',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'credential',
+				},
+				{
+					label: 'timestamp',
+				},
+				'source',
+				'status',
+			],
+			[
+				{
+					label: 'expires at',
+				},
+				'error',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Credential',
+				items: [
+					{
+						label: 'BlockheadAgentCredentialState',
+					},
+				],
+			},
+			{
+				label: 'Status',
+				items: [
+					{
+						label: 'status/expires/error',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

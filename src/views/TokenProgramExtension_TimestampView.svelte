@@ -9,27 +9,82 @@
 
 	// State
 	const view = {
-		closed: [
-			'extensionKind',
-			'extensionScope',
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'extensionKind',
-					'extensionScope',
-					'timestampMs',
-					'source',
-					'config',
-					'authoritySelector',
-					'ledgerCoordinateKind',
-					'ledgerCoordinateValue',
-				],
-			],
+	closed: [
+		{
+			label: 'asset instance',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'extension kind',
+		},
+		{
+			label: 'scope',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'asset instance',
+				},
+				{
+					label: 'extension kind',
+				},
+				{
+					label: 'scope',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'authority selector',
+				},
+				{
+					label: 'ledger coordinate',
+				},
+				{
+					label: 'config summary',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Asset',
+				items: [
+					{
+						label: 'parent asset instance',
+					},
+				],
+			},
+			{
+				label: 'Config',
+				items: [
+					{
+						label: 'decoded extension config',
+					},
+				],
+			},
+			{
+				label: 'Authority',
+				items: [
+					{
+						label: 'account/EVM account/Solana account when resolved',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'raw mint/account/contract/metadata payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

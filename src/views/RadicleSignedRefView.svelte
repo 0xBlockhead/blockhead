@@ -9,32 +9,82 @@
 
 	// State
 	const view = {
-		closed: [
-			'nodeId',
-			'refName',
-		],
-		content: {
-			dl: [
-				[
-					'nodeId',
-					'refName',
-					'targetObjectId',
-					'signature',
-				],
-			],
+	closed: [
+		{
+			label: 'repository',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'node id',
+		},
+		{
+			label: 'ref name',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'repository',
+				},
+				{
+					label: 'node id',
+				},
+				{
+					label: 'ref name',
+				},
+				{
+					label: 'target object id',
+				},
+				{
+					label: 'Git ref',
+				},
+				{
+					label: 'Git ref observation',
+				},
+				{
+					label: 'latest signed-ref verification',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Proof',
+				items: [
+					'signature',
+					{
+						label: 'delegate authorization details',
+					},
+				],
+			},
+			{
+				label: 'Target',
+				items: [
+					{
+						label: 'Git object or commit target',
+					},
+				],
+			},
+			{
+				label: 'Git ref',
+				items: [
+					{
+						label: 'Git ref and ref observation',
+					},
+				],
+			},
+			{
+				label: 'Verification history',
+				items: [
+					{
+						label: 'timestamped signed-ref verification observations',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

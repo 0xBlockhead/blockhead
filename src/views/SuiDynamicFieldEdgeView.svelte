@@ -9,31 +9,75 @@
 
 	// State
 	const view = {
-		closed: [
-			'fieldNameHash',
-			'childObjectId',
-		],
-		content: {
-			dl: [
-				[
-					'fieldNameHash',
-					'childObjectId',
-					'fieldName',
-				],
-			],
+	closed: [
+		{
+			label: 'parent object',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'field name hash/value',
+		},
+		{
+			label: 'child object id',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'parent object',
+				},
+				{
+					label: 'field name hash/value',
+				},
+				{
+					label: 'child object id',
+				},
+				{
+					label: 'latest field/child type',
+				},
+				{
+					label: 'latest observation time',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'State observations',
+				items: [
+					{
+						label: 'checkpoint/source dynamic-field observations',
+					},
+				],
+			},
+			{
+				label: 'Parent object',
+				items: [
+					{
+						label: 'parent Sui object',
+					},
+				],
+			},
+			{
+				label: 'Child object',
+				items: [
+					{
+						label: 'child Sui object when child id resolves',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'dynamic field listing/read payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,26 +9,93 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'symbol',
-					'name',
-					'decimals',
-					'fee',
-					'archiveCanisterIds',
-					'supportedStandards',
-					'latestBlockIndex',
-				],
-			],
+	closed: [
+		{
+			label: 'ledger',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'ledger',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				'symbol',
+				'name',
+				'decimals',
+				'fee',
+				{
+					label: 'archive count',
+				},
+				{
+					label: 'supported standards',
+				},
+				{
+					label: 'latest block index',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Ledger',
+				items: [
+					{
+						label: 'parent ICP ledger canister',
+					},
+				],
+			},
+			{
+				label: 'Archive canisters',
+				items: [
+					{
+						label: 'archive canister refs',
+					},
+				],
+			},
+			{
+				label: 'Methods',
+				items: [
+					{
+						label: 'icrc1_metadata',
+					},
+					{
+						label: 'icrc1_fee',
+					},
+					{
+						label: 'icrc1_supported_standards',
+					},
+					{
+						label: 'get_blocks/archive payload',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'ledger method',
+					},
+					{
+						label: 'Rosetta',
+					},
+					{
+						label: 'or dashboard payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

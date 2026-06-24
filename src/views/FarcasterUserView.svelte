@@ -9,47 +9,69 @@
 
 	// State
 	const view = {
-		closed: [
-			'fid',
+	closed: [
+		'fid',
+		'username',
+		{
+			label: 'display name',
+		},
+	],
+	content: {
+		dl: [
+			[
+				'fid',
+				'username',
+				{
+					label: 'display name',
+				},
+				{
+					label: 'icon URL/media',
+				},
+				'bio',
+				{
+					label: 'URL',
+				},
+				{
+					label: 'primary EVM account',
+				},
+				{
+					label: 'verified address count',
+				},
+				{
+					label: 'latest follower/following snapshot',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'fid',
-					'username',
-					'displayName',
-					'iconUrl',
-					'bio',
-					'url',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Casts',
+				items: [
+					{
+						label: 'casts authored by this FID',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'verified addresses',
-					when: 'open',
-					items: [
-						'$$verifiedAddresses',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'casts',
-					when: 'open',
-					items: [
-						'$$casts',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Verified addresses',
+				items: [
+					{
+						label: 'verified-address rows',
+					},
+				],
+			},
+			{
+				label: 'Metric snapshots',
+				items: [
+					{
+						label: 'timestamped follower/following observations',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

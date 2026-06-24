@@ -9,34 +9,75 @@
 
 	// State
 	const view = {
-		closed: [
-			'height',
-		],
-		content: {
-			dl: [
-				[
-					'height',
-					'hash',
-					'parentHash',
-					'timestampMs',
-					'txTrieRoot',
-					'version',
-					'transactionCount',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		'height',
+		'hash',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
+					label: 'network',
+				},
+				'height',
+				'hash',
+				{
+					label: 'parent hash/ref',
+				},
+				{
+					label: 'timestamp',
+				},
+				{
+					label: 'witness',
+				},
+				'txTrieRoot',
+				'version',
+				{
+					label: 'transaction count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'transactions in block',
+					},
+				],
+			},
+			{
+				label: 'Parent',
+				items: [
+					{
+						label: 'parent block',
+					},
+				],
+			},
+			{
+				label: 'Witness',
+				items: [
+					{
+						label: 'producing witness',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent TRON network',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

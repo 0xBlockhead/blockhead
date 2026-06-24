@@ -9,32 +9,80 @@
 
 	// State
 	const view = {
-		closed: [
-			'height',
-		],
-		content: {
-			dl: [
-				[
-					'height',
-					'hash',
-					'proposerConsensusAddress',
-					'timestampMs',
-					'transactionCount',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		'height',
+		'hash',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
+					label: 'network',
+				},
+				'height',
+				'hash',
+				{
+					label: 'timestamp',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			[
+				{
+					label: 'proposer consensus address',
+				},
+				{
+					label: 'transaction count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'Cosmos transactions included in the block',
+					},
+				],
+			},
+			{
+				label: 'Header',
+				items: [
+					'height',
+					'hash',
+					{
+						label: 'proposer consensus address',
+					},
+					{
+						label: 'time',
+					},
+				],
+			},
+			{
+				label: 'Lookup evidence',
+				items: [
+					{
+						label: 'height lookup',
+					},
+					{
+						label: 'hash lookup only when source-backed',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Cosmos network',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

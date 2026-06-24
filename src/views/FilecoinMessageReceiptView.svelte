@@ -9,25 +9,96 @@
 
 	// State
 	const view = {
-		closed: [
-			'tipsetKey',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'tipsetKey',
-					'source',
-					'height',
-					'blockCid',
-					'exitCode',
-					'returnData',
-					'gasUsed',
-					'replacedMessageCid',
-				],
-			],
+	closed: [
+		{
+			label: 'message',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'execution tipset key',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'message',
+				},
+				{
+					label: 'execution tipset key',
+				},
+				'source',
+				'height',
+				{
+					label: 'block CID',
+				},
+				{
+					label: 'exit code',
+				},
+				{
+					label: 'gas used',
+				},
+				{
+					label: 'return-data status',
+				},
+				{
+					label: 'replaced message CID',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Message',
+				items: [
+					{
+						label: 'parent Filecoin message',
+					},
+				],
+			},
+			{
+				label: 'Tipset',
+				items: [
+					{
+						label: 'execution Filecoin tipset',
+					},
+				],
+			},
+			{
+				label: 'Execution',
+				items: [
+					{
+						label: 'exit code',
+					},
+					{
+						label: 'return data',
+					},
+					{
+						label: 'gas used',
+					},
+					{
+						label: 'replacement note',
+					},
+				],
+			},
+			{
+				label: 'Source',
+				items: [
+					{
+						label: 'StateSearchMsg',
+					},
+					{
+						label: 'ChainGetParentReceipts',
+					},
+					{
+						label: 'or indexer payload evidence',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

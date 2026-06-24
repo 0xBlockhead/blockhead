@@ -9,35 +9,112 @@
 
 	// State
 	const view = {
-		closed: [
-			'vaultAddress',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'vault address',
+		},
+		{
+			label: 'leader',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'vault address',
+				},
+				{
+					label: 'leader',
+				},
+				{
+					label: 'latest name',
+				},
+				{
+					label: 'latest APR',
+				},
+				{
+					label: 'latest leader fraction/commission',
+				},
+				{
+					label: 'latest distributable/withdrawable amounts',
+				},
+				{
+					label: 'latest closed/deposit flags',
+				},
+				{
+					label: 'follower count',
+				},
+				{
+					label: 'equity observation count',
+				},
+				{
+					label: 'timestamp count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'vaultAddress',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest state',
+				items: [
+					{
+						label: 'latest vault-detail observation',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'equities',
-					when: 'open',
-					items: [
-						'$$equities',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'State history',
+				items: [
+					{
+						label: 'timestamped vault-detail observations',
+					},
+				],
+			},
+			{
+				label: 'Leader',
+				items: [
+					{
+						label: 'linked Hyperliquid leader account',
+					},
+				],
+			},
+			{
+				label: 'Portfolio',
+				items: [
+					{
+						label: 'account value',
+					},
+					{
+						label: 'PnL history buckets from latest vaultDetails',
+					},
+				],
+			},
+			{
+				label: 'Followers',
+				items: [
+					{
+						label: 'follower equity/PnL rows from latest vaultDetails',
+					},
+				],
+			},
+			{
+				label: 'User equities',
+				items: [
+					{
+						label: 'account/vault equity observations',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

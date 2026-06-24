@@ -9,26 +9,96 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'subnetKind',
-					'publicKey',
-					'nodeCount',
-					'canisterCount',
-					'replicaVersion',
-					'stateRootHash',
-					'certifiedHeight',
-				],
-			],
+	closed: [
+		{
+			label: 'subnet',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observed time/source',
+		},
+		{
+			label: 'node count',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'subnet',
+				},
+				{
+					label: 'observed time/source',
+				},
+				{
+					label: 'subnet kind',
+				},
+				{
+					label: 'public key',
+				},
+				{
+					label: 'node count',
+				},
+				{
+					label: 'canister count',
+				},
+				{
+					label: 'replica version',
+				},
+				{
+					label: 'certified height',
+				},
+				{
+					label: 'state root hash',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Subnet',
+				items: [
+					{
+						label: 'parent ICP subnet',
+					},
+				],
+			},
+			{
+				label: 'Node/replica state',
+				items: [
+					{
+						label: 'node count',
+					},
+					{
+						label: 'replica version',
+					},
+				],
+			},
+			{
+				label: 'Certification',
+				items: [
+					{
+						label: 'public key',
+					},
+					{
+						label: 'certified height',
+					},
+					{
+						label: 'state root hash',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'raw registry/status payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

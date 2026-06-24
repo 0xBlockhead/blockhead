@@ -9,24 +9,74 @@
 
 	// State
 	const view = {
-		closed: [
-			'packHash',
-			'objectId',
-			'objectFormat',
-		],
-		content: {
-			dl: [
-				[
-					'packHash',
-					'objectId',
-					'objectFormat',
-					'offset',
-					'deltaBaseObjectId',
-					'storedKind',
-				],
-			],
+	closed: [
+		{
+			label: 'pack hash',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'object id',
+		},
+		{
+			label: 'object format',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'pack hash',
+				},
+				{
+					label: 'object id',
+				},
+				{
+					label: 'object format',
+				},
+				{
+					label: 'stored kind',
+				},
+				'offset',
+				{
+					label: 'delta base object id',
+				},
+				{
+					label: 'packfile',
+				},
+				{
+					label: 'parsed object',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Packfile',
+				items: [
+					{
+						label: 'parent Git packfile',
+					},
+				],
+			},
+			{
+				label: 'Object',
+				items: [
+					{
+						label: 'parsed Git object when available',
+					},
+				],
+			},
+			{
+				label: 'Verification',
+				items: [
+					{
+						label: 'verification observations for this packed byte source',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

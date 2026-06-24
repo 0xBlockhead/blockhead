@@ -9,24 +9,64 @@
 
 	// State
 	const view = {
-		closed: [
-			'endpointUrl',
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'endpointUrl',
-					'timestampMs',
-					'source',
-					'verified',
-					'registrationSelector',
-					'error',
-				],
-			],
+	closed: [
+		{
+			label: 'endpoint URL',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'verified',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'endpoint URL',
+				},
+				{
+					label: 'timestamp',
+				},
+				'source',
+				'verified',
+			],
+			[
+				{
+					label: 'registration selector',
+				},
+				'error',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Endpoint',
+				items: [
+					{
+						label: 'endpoint URL',
+					},
+				],
+			},
+			{
+				label: 'Registration',
+				items: [
+					{
+						label: 'registration selector JSON',
+					},
+				],
+			},
+			{
+				label: 'Error',
+				items: [
+					{
+						label: 'error field',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,32 +9,99 @@
 
 	// State
 	const view = {
-		closed: [
-			'metadataSubjectKey',
-			'metadataKey',
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'metadataSubjectKey',
-					'metadataKey',
-					'timestampMs',
-					'source',
-					'uri',
-					'contentHash',
-					'name',
-					'symbol',
-					'description',
-					'attributes',
-					'mutable',
-					'metadataStandard',
-					'mediaUrl',
-				],
-			],
+	closed: [
+		{
+			label: 'metadata subject',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'metadata key',
+		},
+		{
+			label: 'timestamp',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'metadata subject key',
+				},
+				{
+					label: 'asset instance',
+				},
+				{
+					label: 'object',
+				},
+				{
+					label: 'metadata key',
+				},
+				{
+					label: 'timestamp',
+				},
+				{
+					label: 'URI',
+				},
+				{
+					label: 'content hash',
+				},
+				{
+					label: 'metadata standard',
+				},
+				{
+					label: 'mutable flag',
+				},
+				'source',
+				{
+					label: 'media URL',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Fields',
+				items: [
+					{
+						label: 'name/symbol/description/attributes',
+					},
+				],
+			},
+			{
+				label: 'Media',
+				items: [
+					{
+						label: 'embedded media URL/MIME/dimensions from this metadata source',
+					},
+				],
+			},
+			{
+				label: 'Subject',
+				items: [
+					{
+						label: 'asset-level or object-level subject encoded by metadataSubjectKey',
+					},
+				],
+			},
+			{
+				label: 'Raw document',
+				items: [
+					{
+						label: 'JSON/source payload',
+					},
+				],
+			},
+			{
+				label: 'History',
+				items: [
+					{
+						label: 'sibling metadata observations',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

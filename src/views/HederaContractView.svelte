@@ -9,51 +9,122 @@
 
 	// State
 	const view = {
-		closed: [
-			'contractId',
+	closed: [
+		{
+			label: 'contract id',
+		},
+		{
+			label: 'EVM address',
+		},
+		{
+			label: 'created timestamp',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'contract id',
+				},
+				{
+					label: 'EVM address',
+				},
+				{
+					label: 'created timestamp',
+				},
+				{
+					label: 'latest linked account id',
+				},
+				{
+					label: 'latest bytecode hash',
+				},
+				{
+					label: 'deleted flag',
+				},
+				{
+					label: 'result count',
+				},
+				{
+					label: 'log count',
+				},
+				{
+					label: 'storage slot count',
+				},
+				{
+					label: 'timestamp count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'contractId',
-					'evmAddress',
-					'createdTimestamp',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest info',
+				items: [
+					{
+						label: 'latest contract-info observation',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'results',
-					when: 'open',
-					items: [
-						'$$results',
-					],
-				},
-				{
-					label: 'logs',
-					when: 'open',
-					items: [
-						'$$logs',
-					],
-				},
-				{
-					label: 'state',
-					when: 'open',
-					items: [
-						'$$state',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Info history',
+				items: [
+					{
+						label: 'timestamped contract-info observations',
+					},
+				],
+			},
+			{
+				label: 'Call results',
+				items: [
+					{
+						label: 'contract execution result rows',
+					},
+				],
+			},
+			{
+				label: 'Actions',
+				items: [
+					{
+						label: 'contract action trace rows',
+					},
+				],
+			},
+			{
+				label: 'Logs',
+				items: [
+					{
+						label: 'contract log rows',
+					},
+				],
+			},
+			{
+				label: 'Storage slots',
+				items: [
+					{
+						label: 'timestamped contract storage-slot observations',
+					},
+				],
+			},
+			{
+				label: 'Verification metadata',
+				items: [
+					{
+						label: 'verified source/ABI payloads when modeled',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'related Hedera transactions',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

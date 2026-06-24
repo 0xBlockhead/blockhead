@@ -9,39 +9,85 @@
 
 	// State
 	const view = {
-		closed: [
-			'cycle',
-			'level',
-			'rightKind',
-			'bakerAddress',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'cycle',
-					'level',
-					'rightKind',
-					'bakerAddress',
-					'source',
-					'round',
-					'slots',
-					'priority',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		'cycle',
+		'level',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'network',
+				},
+				'cycle',
+				'level',
+				{
+					label: 'right kind',
+				},
+				{
+					label: 'baker',
+				},
+				'source',
+				'round',
+				'slots',
+				'priority',
+				{
+					label: 'latest status',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Baker',
+				items: [
+					{
+						label: 'assigned Tezos baker',
+					},
+				],
+			},
+			{
+				label: 'Cycle',
+				items: [
+					{
+						label: 'Tezos cycle',
+					},
+				],
+			},
+			{
+				label: 'Observations',
+				items: [
+					{
+						label: 'timestamped right status observations',
+					},
+				],
+			},
+			{
+				label: 'Rights peer group',
+				items: [
+					{
+						label: 'rights for same level/cycle',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'rights payload',
+					},
+					{
+						label: 'freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

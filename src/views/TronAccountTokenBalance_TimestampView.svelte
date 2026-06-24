@@ -9,28 +9,103 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'blockHeight',
-					'standard',
-					'balance',
-					'ownedSerialNumbers',
-					'tokenId',
-					'tokenName',
-					'tokenSymbol',
-					'frozenBalance',
-					'delegatedBalance',
-				],
-			],
+	closed: [
+		{
+			label: 'account',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'token',
+		},
+		{
+			label: 'observation time',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'account',
+				},
+				{
+					label: 'token',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'block height',
+				},
+				'standard',
+				'balance',
+				{
+					label: 'owned serial count',
+				},
+				{
+					label: 'frozen balance',
+				},
+				{
+					label: 'delegated balance',
+				},
+				{
+					label: 'token metadata snapshot',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'holder account identity',
+					},
+				],
+			},
+			{
+				label: 'Token',
+				items: [
+					{
+						label: 'token identity',
+					},
+				],
+			},
+			{
+				label: 'Transfers',
+				items: [
+					{
+						label: 'token transfers for the account/token when indexed',
+					},
+				],
+			},
+			{
+				label: 'Serial holdings',
+				items: [
+					{
+						label: 'owned serial numbers for NFT standards',
+					},
+				],
+			},
+			{
+				label: 'Resource context',
+				items: [
+					{
+						label: 'TRC-10 asset bandwidth maps when sourced',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'account-token/indexer payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

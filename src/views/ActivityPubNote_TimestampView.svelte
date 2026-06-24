@@ -9,20 +9,67 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'favouriteCount',
-					'reblogCount',
-					'replyCount',
-				],
-			],
+	closed: [
+		{
+			label: 'note',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		{
+			label: 'favourites',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'note',
+				},
+				{
+					label: 'observation time',
+				},
+				{
+					label: 'favourite count',
+				},
+				{
+					label: 'reblog count',
+				},
+				{
+					label: 'reply count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Note',
+				items: [
+					{
+						label: 'parent ActivityPub note identity',
+					},
+				],
+			},
+			{
+				label: 'Engagement',
+				items: [
+					{
+						label: 'favourite/reblog/reply counts',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Mastodon/Fedi status counters',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

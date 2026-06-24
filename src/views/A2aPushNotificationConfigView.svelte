@@ -9,23 +9,58 @@
 
 	// State
 	const view = {
-		closed: [
-			'configId',
-		],
-		content: {
-			dl: [
-				[
-					'configId',
-					'url',
-					'authKind',
-					'authentication',
-					'createdAt',
-					'deletedAt',
-					'status',
-				],
-			],
+	closed: [
+		{
+			label: 'task',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'config id',
+		},
+		'url',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'task',
+				},
+				{
+					label: 'config id',
+				},
+				'url',
+			],
+			[
+				{
+					label: 'auth kind',
+				},
+				{
+					label: 'created/deleted at',
+				},
+				'status',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Task',
+				items: [
+					{
+						label: 'A2aTask',
+					},
+				],
+			},
+			{
+				label: 'Delivery',
+				items: [
+					{
+						label: 'URL/auth/status',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

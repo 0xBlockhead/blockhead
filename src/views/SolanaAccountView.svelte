@@ -9,35 +9,95 @@
 
 	// State
 	const view = {
-		closed: [
-			'pubkey',
+	closed: [
+		{
+			label: 'network',
+		},
+		'pubkey',
+		{
+			label: 'owner program',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				'pubkey',
+				{
+					label: 'owner program',
+				},
+			],
+			[
+				{
+					label: 'latest lamports/executable/rent/data snapshot',
+				},
+				{
+					label: 'token-account count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'pubkey',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Account observations',
+				items: [
+					{
+						label: 'slot-bounded account state observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'token accounts',
-					when: 'open',
-					items: [
-						'$$tokenAccounts',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Owner program',
+				items: [
+					{
+						label: 'owning Solana program',
+					},
+				],
+			},
+			{
+				label: 'Token accounts',
+				items: [
+					{
+						label: 'SPL token accounts owned by this pubkey',
+					},
+				],
+			},
+			{
+				label: 'Transactions/instructions',
+				items: [
+					{
+						label: 'instruction references when reached from transactions',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Solana network',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'getAccountInfo',
+					},
+					{
+						label: 'getMultipleAccounts/getProgramAccounts when wired',
+					},
+					{
+						label: 'indexer account payloads',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

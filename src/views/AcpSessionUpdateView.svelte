@@ -9,20 +9,55 @@
 
 	// State
 	const view = {
-		closed: [
-			'sequence',
-		],
-		content: {
-			dl: [
-				[
-					'sequence',
-					'updateKind',
-					'timestampMs',
-					'payload',
-				],
-			],
+	closed: [
+		{
+			label: 'session',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'sequence',
+		{
+			label: 'kind',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'session',
+				},
+				'sequence',
+				{
+					label: 'kind',
+				},
+				{
+					label: 'timestamp',
+				},
+			],
+			[
+				'payload',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Session',
+				items: [
+					{
+						label: 'AcpSession',
+					},
+				],
+			},
+			{
+				label: 'Payload',
+				items: [
+					{
+						label: 'raw update payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

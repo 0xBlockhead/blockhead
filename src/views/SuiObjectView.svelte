@@ -9,35 +9,89 @@
 
 	// State
 	const view = {
-		closed: [
-			'objectId',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'object id',
+		},
+		{
+			label: 'latest type/owner/version/digest summary',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'object id',
+				},
+				{
+					label: 'latest type/owner/version/digest summary',
+				},
+				{
+					label: 'version count',
+				},
+				{
+					label: 'dynamic-field count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'objectId',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Versions',
+				items: [
+					{
+						label: 'object version rows',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'versions',
-					when: 'open',
-					items: [
-						'$$versions',
-					],
-				},
-				{
-					label: 'dynamic fields',
-					when: 'open',
-					items: [
-						'$$dynamicFields',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Dynamic fields',
+				items: [
+					{
+						label: 'dynamic-field edge rows',
+					},
+				],
+			},
+			{
+				label: 'Owner',
+				items: [
+					{
+						label: 'Sui account or parent object when owner selector resolves',
+					},
+				],
+			},
+			{
+				label: 'Contents',
+				items: [
+					{
+						label: 'latest structured JSON via object version',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'sui_getObject',
+					},
+					{
+						label: 'suix_getOwnedObjects',
+					},
+					{
+						label: 'or GraphQL object payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

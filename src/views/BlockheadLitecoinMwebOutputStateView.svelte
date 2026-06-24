@@ -9,34 +9,113 @@
 
 	// State
 	const view = {
-		closed: [
-			'walletId',
-			'commitment',
-		],
-		content: {
-			dl: [
-				[
-					'walletId',
-					'commitment',
-					'amountLitoshis',
-					'address',
-					'account',
-					'label',
-				],
-			],
+	closed: [
+		{
+			label: 'wallet id',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'network',
+		},
+		'commitment',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'wallet id',
+				},
+				{
+					label: 'network',
+				},
+				'commitment',
+				{
+					label: 'public output',
+				},
+				{
+					label: 'amount',
+				},
+				{
+					label: 'address/account label',
+				},
+				{
+					label: 'latest spent state',
+				},
+				{
+					label: 'latest spend transaction id',
+				},
+				{
+					label: 'latest received/spent heights',
+				},
+				{
+					label: 'latest confirmations',
+				},
+				{
+					label: 'latest scan time',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest state',
+				items: [
+					{
+						label: 'BlockheadLitecoinMwebOutputState_TimestampView',
+					},
+				],
+			},
+			{
+				label: 'State history',
+				items: [
+					{
+						label: 'BlockheadLitecoinMwebOutputState_TimestampsView',
+					},
+				],
+			},
+			{
+				label: 'Public output',
+				items: [
+					{
+						label: 'LitecoinMwebOutputView when resolved',
+					},
+				],
+			},
+			{
+				label: 'Wallet',
+				items: [
+					{
+						label: 'BlockheadLitecoinMwebWalletStateView',
+					},
+				],
+			},
+			{
+				label: 'Ownership/value',
+				items: [
+					{
+						label: 'local address',
+					},
+					'account',
+					'label',
+					{
+						label: 'amount',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'wallet output identity',
+					},
+					{
+						label: 'label payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

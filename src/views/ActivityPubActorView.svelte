@@ -9,46 +9,119 @@
 
 	// State
 	const view = {
-		closed: [
-			'activityStreamsUri',
+	closed: [
+		{
+			label: 'icon/header image',
+		},
+		{
+			label: 'display name',
+		},
+		'acct',
+	],
+	content: {
+		dl: [
+			[
+				'acct',
+				{
+					label: 'ActivityStreams URI',
+				},
+				{
+					label: 'instance origin',
+				},
+				{
+					label: 'local account id',
+				},
+				{
+					label: 'created date',
+				},
+			],
+			[
+				{
+					label: 'profile URL',
+				},
+				{
+					label: 'bot/locked flags',
+				},
+				{
+					label: 'latest follower/following/status counters',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'instanceOrigin',
-					'localAccountId',
-					'username',
-					'acct',
-					'displayName',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Profile',
+				items: [
+					{
+						label: 'display name',
+					},
 					'note',
-					'profileUrl',
-					'activityStreamsUri',
+					{
+						label: 'icon',
+					},
+					{
+						label: 'header image',
+					},
 					'website',
-					'bot',
-					'locked',
-					'createdAt',
+					{
+						label: 'profile URL',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'notes',
-					when: 'open',
-					items: [
-						'$$notes',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Metric snapshots',
+				items: [
+					{
+						label: 'timestamped follower/following/status counters',
+					},
+				],
+			},
+			{
+				label: 'Outbox',
+				items: [
+					{
+						label: 'note rows authored by this actor',
+					},
+				],
+			},
+			{
+				label: 'Federation identity',
+				items: [
+					{
+						label: 'ActivityStreams URI',
+					},
+					{
+						label: 'instance origin',
+					},
+					{
+						label: 'local account id',
+					},
+					{
+						label: 'acct selector',
+					},
+					{
+						label: 'WebFinger link evidence',
+					},
+				],
+			},
+			{
+				label: 'Lookup evidence',
+				items: [
+					{
+						label: 'Mastodon/Fedi account id lookup',
+					},
+					{
+						label: 'acct lookup',
+					},
+					{
+						label: 'ActivityStreams URI search/dereference',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

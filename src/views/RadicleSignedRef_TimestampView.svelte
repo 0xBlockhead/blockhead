@@ -9,25 +9,79 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'targetObjectId',
-					'signatureStatus',
-					'objectAvailable',
-					'delegateThresholdMet',
-					'status',
-					'error',
-				],
-			],
+	closed: [
+		{
+			label: 'signed ref',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'timestamp',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'signed ref',
+				},
+				{
+					label: 'timestamp',
+				},
+				'source',
+				{
+					label: 'target object id',
+				},
+				{
+					label: 'signature status',
+				},
+				{
+					label: 'object availability',
+				},
+				{
+					label: 'delegate-threshold result',
+				},
+				'status',
+				'error',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Signed ref',
+				items: [
+					{
+						label: 'parent Radicle signed ref',
+					},
+				],
+			},
+			{
+				label: 'Target object',
+				items: [
+					{
+						label: 'Git object or commit target',
+					},
+				],
+			},
+			{
+				label: 'Repository',
+				items: [
+					{
+						label: 'parent Radicle repository',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'CLI/storage/git-remote diagnostics',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

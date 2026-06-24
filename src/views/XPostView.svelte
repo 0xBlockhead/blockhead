@@ -9,39 +9,92 @@
 
 	// State
 	const view = {
-		closed: [
-			'id',
+	closed: [
+		{
+			label: 'post id',
+		},
+		{
+			label: 'latest text',
+		},
+		{
+			label: 'created time',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'post id',
+				},
+				{
+					label: 'created time',
+				},
+				{
+					label: 'author',
+				},
+				{
+					label: 'conversation id',
+				},
+				{
+					label: 'reply/quote refs',
+				},
+				{
+					label: 'latest post URL',
+				},
+				{
+					label: 'latest media attachments',
+				},
+				{
+					label: 'latest like/repost/reply/quote snapshot',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'id',
-					'text',
-					'createdAt',
-					'conversationId',
-					'postUrl',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest content',
+				items: [
+					{
+						label: 'latest content observation by timestamp/source',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'mediases',
-					when: 'open',
-					items: [
-						'$$media',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Thread refs',
+				items: [
+					{
+						label: 'reply/quote/conversation facets',
+					},
+				],
+			},
+			{
+				label: 'Author',
+				items: [
+					{
+						label: 'author profile',
+					},
+				],
+			},
+			{
+				label: 'Media',
+				items: [
+					{
+						label: 'media list from latest timestamp',
+					},
+				],
+			},
+			{
+				label: 'Metric snapshots',
+				items: [
+					{
+						label: 'post metric observations',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

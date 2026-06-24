@@ -9,21 +9,73 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'likeCount',
-					'retweetCount',
-					'replyCount',
-					'quoteCount',
-				],
-			],
+	closed: [
+		{
+			label: 'post',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		{
+			label: 'likes',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'post',
+				},
+				{
+					label: 'observation time',
+				},
+				{
+					label: 'likes',
+				},
+				{
+					label: 'reposts',
+				},
+				{
+					label: 'replies',
+				},
+				{
+					label: 'quotes',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Post',
+				items: [
+					{
+						label: 'parent post identity',
+					},
+				],
+			},
+			{
+				label: 'Engagement',
+				items: [
+					{
+						label: 'like/repost/reply/quote counts',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'X_Rest public_metrics',
+					},
+					{
+						label: 'FxEmbed status counters',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,41 +9,149 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'sourceUpdatedAt',
-					'architectureKind',
-					'stack',
-					'protocolId',
-					'protocolLabel',
-					'protocolKind',
-					'proofSystemKind',
-					'dataAvailabilityKind',
-					'dataAvailabilitySelector',
-					'chainConfigUrl',
-					'derivationSpecUrl',
-					'publicRpcUrl',
-					'sequencerRpcUrl',
-					'batchInboxAddress',
-					'batchInboxSelector',
-					'outputOracleSelector',
-					'bridgeSelector',
-					'forcedInclusionSelector',
-					'proofVerifierSelector',
-					'challengeGameSelector',
-					'genesisSelector',
-					'rolesSelector',
-				],
-			],
+	closed: [
+		{
+			label: 'claim',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		{
+			label: 'architecture kind',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'claim',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'source updated time',
+				},
+				{
+					label: 'architecture kind',
+				},
+				'stack',
+				{
+					label: 'protocol id/label/kind',
+				},
+				{
+					label: 'proof system kind',
+				},
+				{
+					label: 'settlement network',
+				},
+			],
+			[
+				{
+					label: 'DA kind/network',
+				},
+				{
+					label: 'config/spec URLs',
+				},
+				{
+					label: 'public/sequencer RPCs',
+				},
+				{
+					label: 'selector chips for batch inbox/output oracle/bridge/forced inclusion/verifier/challenge/genesis/roles',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Claim',
+				items: [
+					{
+						label: 'parent source-scoped deployment claim',
+					},
+				],
+			},
+			{
+				label: 'Architecture',
+				items: [
+					{
+						label: 'protocol id/label/kind',
+					},
+					'stack',
+					{
+						label: 'proof system kind',
+					},
+					{
+						label: 'source-backed classification',
+					},
+				],
+			},
+			{
+				label: 'Settlement',
+				items: [
+					{
+						label: 'settlement network',
+					},
+					{
+						label: 'batch inbox',
+					},
+					{
+						label: 'output oracle',
+					},
+					{
+						label: 'bridge selectors',
+					},
+					{
+						label: 'settlement contract refs via parent when resolved',
+					},
+				],
+			},
+			{
+				label: 'Sequencing',
+				items: [
+					{
+						label: 'public/sequencer RPCs',
+					},
+					{
+						label: 'batcher/sequencer selectors',
+					},
+				],
+			},
+			{
+				label: 'Data availability',
+				items: [
+					{
+						label: 'EVM blob, Celestia blob, Avail submission, or 0G data-blob selectors only when concrete evidence rows are linked',
+					},
+				],
+			},
+			{
+				label: 'Proofs & challenges',
+				items: [
+					{
+						label: 'verifier/challenge/forced-inclusion selectors',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'source/project/config URLs',
+					},
+					{
+						label: 'raw selector payloads',
+					},
+					{
+						label: 'source freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

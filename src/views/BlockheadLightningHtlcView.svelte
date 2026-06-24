@@ -9,22 +9,99 @@
 
 	// State
 	const view = {
-		closed: [
-			'htlcIndex',
-		],
-		content: {
-			dl: [
-				[
-					'htlcIndex',
-					'direction',
-					'amountMsat',
-					'expiryHeight',
-					'hashLock',
-					'state',
-				],
-			],
+	closed: [
+		{
+			label: 'channel state',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'channel',
+		},
+		{
+			label: 'HTLC index',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'channel state',
+				},
+				{
+					label: 'channel',
+				},
+				{
+					label: 'HTLC index',
+				},
+				'direction',
+				{
+					label: 'amount msat',
+				},
+				{
+					label: 'expiry height',
+				},
+				{
+					label: 'hash lock',
+				},
+				'state',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Channel state',
+				items: [
+					{
+						label: 'parent local channel state',
+					},
+				],
+			},
+			{
+				label: 'Channel',
+				items: [
+					{
+						label: 'public Lightning channel when resolved',
+					},
+				],
+			},
+			{
+				label: 'Local node',
+				items: [
+					{
+						label: 'connected Lightning node through channel state',
+					},
+				],
+			},
+			{
+				label: 'Timing',
+				items: [
+					{
+						label: 'expiry height',
+					},
+					{
+						label: 'local state',
+					},
+				],
+			},
+			{
+				label: 'Payment hash',
+				items: [
+					{
+						label: 'hash lock display',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'LND pending_htlcs payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

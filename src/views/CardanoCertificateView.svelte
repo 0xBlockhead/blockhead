@@ -9,25 +9,110 @@
 
 	// State
 	const view = {
-		closed: [
-			'certificateIndex',
-		],
-		content: {
-			dl: [
-				[
-					'certificateIndex',
-					'certificateKind',
-					'poolId',
-					'rewardAddress',
-					'depositLovelace',
-					'epoch',
-					'metadataUrl',
-					'metadataHash',
-					'payload',
-				],
-			],
+	closed: [
+		{
+			label: 'transaction',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'certificate index',
+		},
+		{
+			label: 'kind',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'transaction',
+				},
+				{
+					label: 'certificate index',
+				},
+				{
+					label: 'kind',
+				},
+				{
+					label: 'stake credential',
+				},
+				{
+					label: 'stake pool',
+				},
+				{
+					label: 'DRep',
+				},
+				{
+					label: 'pool id',
+				},
+				{
+					label: 'reward address',
+				},
+				{
+					label: 'deposit',
+				},
+				'epoch',
+				{
+					label: 'metadata URL/hash',
+				},
+				{
+					label: 'payload summary',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transaction',
+				items: [
+					{
+						label: 'parent Cardano transaction',
+					},
+				],
+			},
+			{
+				label: 'Stake credential',
+				items: [
+					{
+						label: 'linked Cardano stake credential',
+					},
+				],
+			},
+			{
+				label: 'Stake pool',
+				items: [
+					{
+						label: 'linked Cardano stake pool',
+					},
+				],
+			},
+			{
+				label: 'DRep',
+				items: [
+					{
+						label: 'linked Cardano DRep',
+					},
+				],
+			},
+			{
+				label: 'Payload',
+				items: [
+					{
+						label: 'certificate JSON/CBOR fields',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'node/indexer certificate payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

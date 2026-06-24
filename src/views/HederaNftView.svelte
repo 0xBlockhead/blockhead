@@ -9,37 +9,97 @@
 
 	// State
 	const view = {
-		closed: [
-			'serialNumber',
+	closed: [
+		{
+			label: 'token',
+		},
+		{
+			label: 'serial number',
+		},
+		{
+			label: 'created timestamp',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'token',
+				},
+				{
+					label: 'serial number',
+				},
+				{
+					label: 'created timestamp',
+				},
+				{
+					label: 'metadata summary',
+				},
+				{
+					label: 'latest owner/deleted/spender state',
+				},
+				{
+					label: 'transfer count',
+				},
+				{
+					label: 'timestamp count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'serialNumber',
-					'metadata',
-					'createdTimestamp',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest state',
+				items: [
+					{
+						label: 'latest NFT serial-state observation',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'transfers',
-					when: 'open',
-					items: [
-						'$$transfers',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'State history',
+				items: [
+					{
+						label: 'timestamped NFT serial-state observations',
+					},
+				],
+			},
+			{
+				label: 'Transfer history',
+				items: [
+					{
+						label: 'token transfer rows for this serial',
+					},
+				],
+			},
+			{
+				label: 'Metadata',
+				items: [
+					{
+						label: 'decoded/raw metadata',
+					},
+				],
+			},
+			{
+				label: 'Allowances',
+				items: [
+					{
+						label: 'serial approval allowance rows',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'NFT payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

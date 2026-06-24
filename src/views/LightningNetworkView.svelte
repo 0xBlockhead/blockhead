@@ -9,61 +9,104 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[
-					'name',
+	closed: [
+		'name',
+		{
+			label: 'settlement network',
+		},
+		{
+			label: 'latest graph snapshot',
+		},
+	],
+	content: {
+		dl: [
+			[
+				'name',
+				{
+					label: 'settlement network',
+				},
+				{
+					label: 'latest graph snapshot',
+				},
+				{
+					label: 'connected local node count',
+				},
+				{
+					label: 'public node count',
+				},
+				{
+					label: 'public channel count',
+				},
+				{
+					label: 'total capacity',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Graph nodes',
+				items: [
+					{
+						label: 'public Lightning node rows',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'nodes',
-					when: 'open',
-					items: [
-						'$$nodes',
-					],
-				},
-				{
-					label: 'channels',
-					when: 'open',
-					items: [
-						'$$channels',
-					],
-				},
-				{
-					label: 'invoices',
-					when: 'open',
-					items: [
-						'$$invoices',
-					],
-				},
-				{
-					label: 'payments',
-					when: 'open',
-					items: [
-						'$$payments',
-					],
-				},
-				{
-					label: 'local node states',
-					when: 'open',
-					items: [
-						'$$localNodeStates',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Graph channels',
+				items: [
+					{
+						label: 'public Lightning channel rows',
+					},
+				],
+			},
+			{
+				label: 'Graph snapshots',
+				items: [
+					{
+						label: 'timestamped graph metric observations',
+					},
+				],
+			},
+			{
+				label: 'Local nodes',
+				items: [
+					{
+						label: 'BlockheadLightningNodeState rows from connected nodes',
+					},
+				],
+			},
+			{
+				label: 'Local payments',
+				items: [
+					{
+						label: 'BlockheadLightningInvoice and BlockheadLightningPayment rows from connected nodes',
+					},
+				],
+			},
+			{
+				label: 'Assets',
+				items: [
+					{
+						label: 'settlement asset from the underlying Network native asset list',
+					},
+				],
+			},
+			{
+				label: 'Resources',
+				items: [
+					{
+						label: 'faucets',
+					},
+					{
+						label: 'block explorers',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

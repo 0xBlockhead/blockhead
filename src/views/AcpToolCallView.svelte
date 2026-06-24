@@ -9,36 +9,64 @@
 
 	// State
 	const view = {
-		closed: [
-			'toolCallId',
-		],
-		content: {
-			dl: [
-				[
-					'toolCallId',
-					'toolName',
-					'serverName',
-					'startedAt',
-					'completedAt',
-					'inputHashAlgorithm',
-					'inputHash',
-					'outputHashAlgorithm',
-					'outputHash',
-				],
-			],
+	closed: [
+		{
+			label: 'prompt turn',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'tool call id',
+		},
+		{
+			label: 'tool name',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'prompt turn',
+				},
+				{
+					label: 'tool call id',
+				},
+				{
+					label: 'tool/server name',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			[
+				{
+					label: 'started/completed at',
+				},
+				{
+					label: 'input/output hash algorithms and hashes',
+				},
+				{
+					label: 'latest status',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Prompt turn',
+				items: [
+					{
+						label: 'AcpPromptTurn',
+					},
+				],
+			},
+			{
+				label: 'Observations',
+				items: [
+					{
+						label: 'AcpToolCall_Timestamp list',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

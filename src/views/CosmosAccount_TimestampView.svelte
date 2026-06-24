@@ -9,21 +9,65 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
+	closed: [
+		{
+			label: 'account',
+		},
+		{
+			label: 'observation time',
+		},
+		'sequence',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'account',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'account number',
+				},
+				'sequence',
+			],
 		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'accountNumber',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'parent Cosmos account',
+					},
+				],
+			},
+			{
+				label: 'Auth state',
+				items: [
+					{
+						label: 'account number',
+					},
 					'sequence',
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'auth account payload',
+					},
+					{
+						label: 'source freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

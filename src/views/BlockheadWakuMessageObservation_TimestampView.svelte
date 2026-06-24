@@ -9,29 +9,106 @@
 
 	// State
 	const view = {
-		closed: [
-			'messageHash',
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'messageHash',
-					'timestampMs',
-					'source',
-					'pubsubTopic',
-					'contentTopic',
-					'payloadHash',
-					'payloadSizeBytes',
-					'version',
-					'ephemeral',
-					'senderPeerId',
-					'protocolPath',
-				],
-			],
+	closed: [
+		{
+			label: 'message hash',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		{
+			label: 'content topic',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'message hash',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'pubsub topic',
+				},
+				{
+					label: 'content topic',
+				},
+				{
+					label: 'payload hash',
+				},
+				{
+					label: 'payload size',
+				},
+				'version',
+				{
+					label: 'ephemeral flag',
+				},
+				{
+					label: 'sender peer id',
+				},
+				{
+					label: 'protocol path',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Node',
+				items: [
+					{
+						label: 'parent connected Waku node state',
+					},
+				],
+			},
+			{
+				label: 'Topics',
+				items: [
+					{
+						label: 'pubsub/content-topic grouping',
+					},
+				],
+			},
+			{
+				label: 'Payload',
+				items: [
+					{
+						label: 'hash/size only unless caller retains decrypted local payload',
+					},
+				],
+			},
+			{
+				label: 'Protocol path',
+				items: [
+					{
+						label: 'relay',
+					},
+					{
+						label: 'store',
+					},
+					{
+						label: 'filter',
+					},
+					{
+						label: 'lightpush observation context',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'connected Waku REST node payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

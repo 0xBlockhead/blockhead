@@ -9,25 +9,77 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'currentRateCentEquivalent',
-					'currentRateHbarEquivalent',
-					'currentRateExpirationTime',
-					'nextRateCentEquivalent',
-					'nextRateHbarEquivalent',
-					'nextRateExpirationTime',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'current cent/HBAR equivalents',
+				},
+				{
+					label: 'current expiration',
+				},
+				{
+					label: 'next cent/HBAR equivalents',
+				},
+				{
+					label: 'next expiration',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Hedera network',
+					},
+				],
+			},
+			{
+				label: 'Current rate',
+				items: [
+					{
+						label: 'current exchange-rate fields',
+					},
+				],
+			},
+			{
+				label: 'Next rate',
+				items: [
+					{
+						label: 'next exchange-rate fields',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'network exchange-rate payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

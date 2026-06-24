@@ -9,18 +9,61 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'itemCount',
-				],
-			],
+	closed: [
+		{
+			label: 'playlist',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		{
+			label: 'item count',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'playlist',
+				},
+				{
+					label: 'observation time',
+				},
+				{
+					label: 'item count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Playlist',
+				items: [
+					{
+						label: 'parent playlist identity',
+					},
+				],
+			},
+			{
+				label: 'Items',
+				items: [
+					{
+						label: 'playlist video refs from source window',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'YouTube playlists.list contentDetails',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

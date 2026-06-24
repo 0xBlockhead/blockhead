@@ -9,28 +9,96 @@
 
 	// State
 	const view = {
-		closed: [
-			'voterKind',
-			'voterCredential',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'voterKind',
-					'voterCredential',
-					'source',
-					'vote',
-					'voteTxHash',
-					'voteIndex',
-					'anchorUrl',
-					'anchorHash',
-					'epoch',
-					'slot',
-				],
-			],
+	closed: [
+		{
+			label: 'proposal',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'voter kind',
+		},
+		{
+			label: 'voter credential',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'proposal',
+				},
+				{
+					label: 'voter kind',
+				},
+				{
+					label: 'voter credential',
+				},
+				'vote',
+				'source',
+				{
+					label: 'DRep',
+				},
+				{
+					label: 'stake pool',
+				},
+				{
+					label: 'vote transaction',
+				},
+				{
+					label: 'vote index',
+				},
+				'epoch',
+				'slot',
+				{
+					label: 'anchor URL/hash',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Proposal',
+				items: [
+					{
+						label: 'parent governance proposal',
+					},
+				],
+			},
+			{
+				label: 'Voter',
+				items: [
+					{
+						label: 'linked DRep or stake pool',
+					},
+				],
+			},
+			{
+				label: 'Transaction',
+				items: [
+					{
+						label: 'vote-bearing Cardano transaction',
+					},
+				],
+			},
+			{
+				label: 'Anchor',
+				items: [
+					{
+						label: 'off-chain anchor evidence',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'vote payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

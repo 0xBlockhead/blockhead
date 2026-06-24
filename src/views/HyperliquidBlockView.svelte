@@ -9,30 +9,62 @@
 
 	// State
 	const view = {
-		closed: [
-			'height',
-		],
-		content: {
-			dl: [
-				[
-					'height',
-					'hash',
-					'timestampMs',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		'height',
+		'hash',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
+					label: 'network',
+				},
+				'height',
+				'hash',
+				{
+					label: 'timestamp',
+				},
+				{
+					label: 'transaction count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'Hyperliquid transactions in this block',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Hyperliquid network',
+					},
+				],
+			},
+			{
+				label: 'Lookup evidence',
+				items: [
+					{
+						label: 'eth_getBlockByNumber height lookup',
+					},
+					{
+						label: 'returned block hash',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

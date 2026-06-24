@@ -9,53 +9,84 @@
 
 	// State
 	const view = {
-		closed: [
-			'id',
+	closed: [
+		'id',
+		'name',
+		{
+			label: 'URL',
+		},
+	],
+	content: {
+		dl: [
+			[
+				'id',
+				'name',
+				{
+					label: 'URL',
+				},
+				'description',
+				{
+					label: 'icon URL/media',
+				},
+				{
+					label: 'header image URL/media',
+				},
+				{
+					label: 'lead',
+				},
+				{
+					label: 'moderator',
+				},
+				{
+					label: 'created time',
+				},
+				{
+					label: 'pinned cast hash',
+				},
+				{
+					label: 'public-casting policy',
+				},
+				{
+					label: 'external link',
+				},
+				{
+					label: 'followed time',
+				},
+				{
+					label: 'latest follower/member snapshot',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'id',
-					'name',
-					'url',
-					'description',
-					'iconUrl',
-					'headerImageUrl',
-					'createdAt',
-					'pinnedCastHash',
-					'publicCasting',
-					'externalLinkTitle',
-					'externalLinkUrl',
-					'followedAt',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Casts',
+				items: [
+					{
+						label: 'casts linked to this channel',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'moderators',
-					when: 'open',
-					items: [
-						'$$moderators',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'casts',
-					when: 'open',
-					items: [
-						'$$casts',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Moderators',
+				items: [
+					{
+						label: 'lead/moderator user refs',
+					},
+				],
+			},
+			{
+				label: 'Metric snapshots',
+				items: [
+					{
+						label: 'timestamped follower/member observations',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

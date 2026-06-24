@@ -9,94 +9,130 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[],
-			],
+	closed: [
+		{
+			label: 'linked base Network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'latest level',
+		},
+		{
+			label: 'protocol hash',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'blocks',
-					when: 'open',
-					items: [
-						'$$blocks',
-					],
+					label: 'linked base Network',
 				},
 				{
-					label: 'operation groups',
-					when: 'open',
-					items: [
-						'$$operationGroups',
-					],
+					label: 'latest level',
 				},
 				{
-					label: 'operations',
-					when: 'open',
-					items: [
-						'$$operations',
-					],
+					label: 'protocol hash',
 				},
 				{
-					label: 'accounts',
-					when: 'open',
-					items: [
-						'$$accounts',
-					],
+					label: 'cycle',
 				},
 				{
-					label: 'contracts',
-					when: 'open',
-					items: [
-						'$$contracts',
-					],
+					label: 'total supply',
 				},
 				{
-					label: 'bakers',
-					when: 'open',
-					items: [
-						'$$bakers',
-					],
+					label: 'active baker count',
 				},
 				{
-					label: 'cycles',
-					when: 'open',
-					items: [
-						'$$cycles',
-					],
+					label: 'token count',
 				},
 				{
-					label: 'baking rights',
-					when: 'open',
-					items: [
-						'$$bakingRights',
-					],
-				},
-				{
-					label: 'tokens',
-					when: 'open',
-					items: [
-						'$$tokens',
-					],
-				},
-				{
-					label: 'token transfers',
-					when: 'open',
-					items: [
-						'$$tokenTransfers',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'indexer lag',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Blocks',
+				items: [
+					{
+						label: 'Tezos block rows',
+					},
+				],
+			},
+			{
+				label: 'Operation groups',
+				items: [
+					{
+						label: 'operation group rows',
+					},
+				],
+			},
+			{
+				label: 'Operations',
+				items: [
+					{
+						label: 'Tezos operation rows',
+					},
+				],
+			},
+			{
+				label: 'Accounts',
+				items: [
+					{
+						label: 'Tezos account rows',
+					},
+				],
+			},
+			{
+				label: 'Contracts',
+				items: [
+					{
+						label: 'Tezos contract rows',
+					},
+				],
+			},
+			{
+				label: 'Bakers',
+				items: [
+					{
+						label: 'Tezos baker rows',
+					},
+				],
+			},
+			{
+				label: 'Cycles/rights',
+				items: [
+					{
+						label: 'cycle rows',
+					},
+					{
+						label: 'baking right rows',
+					},
+				],
+			},
+			{
+				label: 'Tokens',
+				items: [
+					{
+						label: 'token rows',
+					},
+					{
+						label: 'token transfer rows',
+					},
+				],
+			},
+			{
+				label: 'Network history',
+				items: [
+					{
+						label: 'timestamped network observations',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

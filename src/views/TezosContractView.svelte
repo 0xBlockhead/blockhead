@@ -9,53 +9,105 @@
 
 	// State
 	const view = {
-		closed: [
-			'address',
+	closed: [
+		{
+			label: 'contract address',
+		},
+		{
+			label: 'script hash',
+		},
+		{
+			label: 'code hash',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'contract address',
+				},
+				{
+					label: 'script hash',
+				},
+				{
+					label: 'code hash',
+				},
+				{
+					label: 'script ref',
+				},
+				{
+					label: 'latest balance',
+				},
+				{
+					label: 'latest storage hash',
+				},
+				{
+					label: 'entrypoint count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'address',
-					'scriptHash',
-					'codeHash',
-					'storageType',
-					'parameterType',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Script',
+				items: [
+					{
+						label: 'Michelson script row',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'entrypoints',
-					when: 'open',
-					items: [
-						'$$entrypoints',
-					],
-				},
-				{
-					label: 'big maps',
-					when: 'open',
-					items: [
-						'$$bigMaps',
-					],
-				},
-				{
-					label: 'operations',
-					when: 'open',
-					items: [
-						'$$operations',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Entrypoints',
+				items: [
+					{
+						label: 'contract entrypoint rows',
+					},
+				],
+			},
+			{
+				label: 'Parameter/storage types',
+				items: [
+					{
+						label: 'decoded Michelson types',
+					},
+				],
+			},
+			{
+				label: 'Big maps',
+				items: [
+					{
+						label: 'contract big maps',
+					},
+				],
+			},
+			{
+				label: 'Operations',
+				items: [
+					{
+						label: 'contract operations',
+					},
+				],
+			},
+			{
+				label: 'Storage history',
+				items: [
+					{
+						label: 'level/source contract storage observations',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'node/indexer payloads',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

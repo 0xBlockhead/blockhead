@@ -9,29 +9,72 @@
 
 	// State
 	const view = {
-		closed: [
-			'quorumId',
-		],
-		content: {
-			dl: [
-				[
-					'quorumId',
-					'selectionMethod',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'quorum id',
+		},
+		{
+			label: 'consensus network',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'da nodes',
-					when: 'open',
-					items: [
-						'$$daNodes',
-					],
+					label: 'network',
+				},
+				{
+					label: 'quorum id',
+				},
+				{
+					label: 'consensus network',
+				},
+				{
+					label: 'selection method',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'DA nodes',
+				items: [
+					{
+						label: 'node rows in this quorum',
+					},
+				],
+			},
+			{
+				label: 'Consensus',
+				items: [
+					{
+						label: 'linked consensus-network identity',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent 0G network',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: '0G DA/consensus payload exposing quorum id',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

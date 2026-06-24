@@ -9,25 +9,99 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'allocationMagnitude',
-					'allocatedShares',
-					'slashableUntilMs',
-					'registrationStatus',
-					'operatorSetId',
-					'quorumNumbers',
-				],
-			],
+	closed: [
+		{
+			label: 'operator',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'AVS',
+		},
+		{
+			label: 'strategy',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'operator',
+				},
+				{
+					label: 'AVS',
+				},
+				{
+					label: 'strategy',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'allocation magnitude',
+				},
+				{
+					label: 'allocated shares',
+				},
+			],
+			[
+				{
+					label: 'operator set',
+				},
+				{
+					label: 'quorum numbers',
+				},
+				{
+					label: 'registration status',
+				},
+				{
+					label: 'slashable-until time',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Operator',
+				items: [
+					{
+						label: 'EigenLayer operator',
+					},
+				],
+			},
+			{
+				label: 'AVS',
+				items: [
+					{
+						label: 'EigenLayer AVS',
+					},
+				],
+			},
+			{
+				label: 'Strategy',
+				items: [
+					{
+						label: 'EigenLayer strategy',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'AllocationManager/AVSDirectory reads',
+					},
+					{
+						label: 'operator-set or quorum payload',
+					},
+					{
+						label: 'indexer freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,33 +9,50 @@
 
 	// State
 	const view = {
-		closed: [
-			'scope',
+	closed: [
+		'protocolName',
+		'registryLabel',
+	],
+	content: {
+		dl: [
+			[
+				'protocolName',
+				'registryLabel',
+				'topology',
+				'homeUrl',
+				'docsUrl',
+				'$$xmtpConversations',
+			],
 		],
-		content: {
-			dl: [
-				[
-					'scope',
-					'protocolName',
-					'homeUrl',
-					'docsUrl',
-					'registryLabel',
-					'topology',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Conversations',
+				items: [
+					'$$xmtpConversations',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'xmtp conversations',
-					when: 'open',
-					items: [
-						'$$xmtpConversations',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Demo accounts',
+				items: [
+					{
+						slot: 'DemoAccounts',
+						label: 'Generic EVM actor examples',
+					},
+				],
+			},
+			{
+				label: 'Source coverage',
+				items: [
+					{
+						label: 'Constants and local catalog state',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

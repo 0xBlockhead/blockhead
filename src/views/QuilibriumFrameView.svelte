@@ -9,22 +9,90 @@
 
 	// State
 	const view = {
-		closed: [
-			'frameNumber',
-			'shardKey',
-		],
-		content: {
-			dl: [
-				[
-					'frameNumber',
-					'shardKey',
-					'frameHash',
-					'timestampMs',
-					'difficulty',
-				],
-			],
+	closed: [
+		{
+			label: 'shard key',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'frame number',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'shard key',
+				},
+				{
+					label: 'frame number',
+				},
+			],
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'frame number',
+				},
+				{
+					label: 'shard key',
+				},
+				{
+					label: 'frame hash',
+				},
+				{
+					label: 'timestamp',
+				},
+				'difficulty',
+				{
+					label: 'shard',
+				},
+				{
+					label: 'prover when sourced',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Shard',
+				items: [
+					{
+						label: 'parent Quilibrium shard',
+					},
+				],
+			},
+			{
+				label: 'Prover',
+				items: [
+					{
+						label: 'linked Quilibrium prover',
+					},
+				],
+			},
+			{
+				label: 'Node observations',
+				items: [
+					{
+						label: 'BlockheadQuilibriumNodeState rows whose latest/frame-store head reached this frame',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'node RPC frame payload',
+					},
+					{
+						label: 'endpoint freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

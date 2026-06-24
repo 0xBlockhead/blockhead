@@ -9,36 +9,113 @@
 
 	// State
 	const view = {
-		closed: [
-			'txHash',
-			'logIndex',
-		],
-		content: {
-			dl: [
-				[
-					'txHash',
-					'logIndex',
-					'topics',
-					'data',
-					'blockNumber',
-					'blockHash',
-					'transactionIndex',
-					'removed',
-				],
-			],
+	panels: [
+		{
+			id: 'decode',
+			label: 'Decode',
+			kind: 'decode',
+			slot: 'LogDecodePanel',
 		},
-		details: {
-			tabs: [
+	],
+	decodes: [
+		{
+			field: 'data',
+			kind: 'eventLog',
+			slot: 'EvmLogDecode',
+		},
+	],
+	renderers: [
+		{
+			slot: 'EvmLogDecode',
+			component: 'EvmLogDecode',
+			label: 'event log decode renderer',
+			for: 'decode',
+		},
+	],
+	closed: [
+		{
+			label: 'receipt log index',
+		},
+		{
+			label: 'topic0 when topics[0] exists',
+		},
+		{
+			label: 'transaction link',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'token transfers',
-					when: 'open',
-					items: [
-						'$$tokenTransfers',
-					],
+					label: 'receipt log index',
 				},
+				{
+					label: 'topic0 when topics[0] exists',
+				},
+				{
+					label: 'transaction link',
+				},
+				{
+					label: 'emitter contract',
+				},
+				{
+					label: 'topics list with topic links',
+				},
+				'data',
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transaction',
+				items: [
+					{
+						label: 'parent transaction and block',
+					},
+				],
+			},
+			{
+				label: 'Emitter',
+				items: [
+					{
+						label: 'emitter contract',
+					},
+				],
+			},
+			{
+				label: 'Topics/data',
+				items: [
+					{
+						label: 'topics list',
+					},
+					{
+						label: 'data payload',
+					},
+					{
+						label: 'topic0 catalog signatures',
+					},
+				],
+			},
+			{
+				label: 'Token transfers',
+				items: [
+					{
+						label: 'token-transfer interpretations of this log',
+					},
+				],
+			},
+			{
+				label: 'ABI decode',
+				items: [
+					{
+						label: 'emitter ABI from Sourcify/Etherscan when open',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

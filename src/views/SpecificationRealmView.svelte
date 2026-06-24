@@ -9,38 +9,61 @@
 
 	// State
 	const view = {
-		closed: [
-			'realm',
+	closed: [
+		'realm',
+		'label',
+		'slug',
+	],
+	content: {
+		dl: [
+			[
+				'realm',
+				'label',
+				{
+					label: 'plural label',
+				},
+				'slug',
+				{
+					label: 'proposal kind count',
+				},
+				{
+					label: 'proposal count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'realm',
-					'label',
-					'labelPlural',
-					'slug',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Proposal kinds',
+				items: [
+					{
+						label: 'SpecificationProposalKind rows',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'proposal kinds',
-					when: 'open',
-					items: [
-						'$$proposalKinds',
-					],
-				},
-				{
-					label: 'proposals',
-					when: 'open',
-					items: [
-						'$$proposals',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Proposals',
+				items: [
+					{
+						label: 'SpecificationProposal rows in this realm',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'checked-in realm catalog',
+					},
+					{
+						label: 'source repositories for proposals',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

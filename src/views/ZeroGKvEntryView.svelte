@@ -9,20 +9,62 @@
 
 	// State
 	const view = {
-		closed: [
-			'namespace',
-			'key',
-		],
-		content: {
-			dl: [
-				[
-					'namespace',
-					'key',
-					'valueHash',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'namespace',
+		'key',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				'namespace',
+				'key',
+				{
+					label: 'value hash',
+				},
+				{
+					label: 'owner',
+				},
+				{
+					label: 'storage log entry',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Storage log',
+				items: [
+					{
+						label: 'linked storage log entry',
+					},
+				],
+			},
+			{
+				label: 'Owner',
+				items: [
+					{
+						label: 'owner EVM account when resolved',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent 0G network',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

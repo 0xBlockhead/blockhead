@@ -9,21 +9,99 @@
 
 	// State
 	const view = {
-		closed: [
-			'cid',
-		],
-		content: {
-			dl: [
-				[
-					'cid',
-					'method',
-					'nonce',
-					'valueAttoFil',
-					'gasLimit',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'CID',
+		},
+		{
+			label: 'from actor',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'CID',
+				},
+				{
+					label: 'from actor',
+				},
+				{
+					label: 'to actor',
+				},
+				{
+					label: 'method number',
+				},
+				'nonce',
+				{
+					label: 'value in attoFIL',
+				},
+				{
+					label: 'gas limit',
+				},
+				{
+					label: 'fee cap',
+				},
+				{
+					label: 'premium',
+				},
+				{
+					label: 'receipt count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'From',
+				items: [
+					{
+						label: 'from Filecoin actor',
+					},
+				],
+			},
+			{
+				label: 'To',
+				items: [
+					{
+						label: 'to Filecoin actor',
+					},
+				],
+			},
+			{
+				label: 'Receipts',
+				items: [
+					{
+						label: 'Filecoin message receipts',
+					},
+				],
+			},
+			{
+				label: 'Blocks/tipsets',
+				items: [
+					{
+						label: 'block/tipset refs when source context provides inclusion',
+					},
+				],
+			},
+			{
+				label: 'Params',
+				items: [
+					{
+						label: 'raw params preview when source-backed',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,42 +9,69 @@
 
 	// State
 	const view = {
-		closed: [
-			'consensusNetworkId',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'consensus network id',
+		},
+		{
+			label: 'latest staking status source',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'consensus network id',
+				},
+				{
+					label: 'latest staking status source',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'consensusNetworkId',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Observations',
+				items: [
+					{
+						label: 'timestamped staking-status source rows',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'da quorums',
-					when: 'open',
-					items: [
-						'$$daQuorums',
-					],
-				},
-				{
-					label: 'storage proofs',
-					when: 'open',
-					items: [
-						'$$storageProofs',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'DA quorums',
+				items: [
+					{
+						label: 'quorum rows scoped to this consensus network',
+					},
+				],
+			},
+			{
+				label: 'Storage proofs',
+				items: [
+					{
+						label: 'public proof commitments linked to this consensus network',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent 0G network',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

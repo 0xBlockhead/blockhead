@@ -9,17 +9,72 @@
 
 	// State
 	const view = {
-		closed: [
-			'receiptId',
-		],
-		content: {
-			dl: [
-				[
-					'receiptId',
-				],
-			],
+	closed: [
+		{
+			label: 'receipt id',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'predecessor account',
+		},
+		{
+			label: 'receiver account',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'receipt id',
+				},
+				{
+					label: 'predecessor account',
+				},
+				{
+					label: 'receiver account',
+				},
+				{
+					label: 'linked outcome when available',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Predecessor',
+				items: [
+					{
+						label: 'predecessor NEAR account',
+					},
+				],
+			},
+			{
+				label: 'Receiver',
+				items: [
+					{
+						label: 'receiver NEAR account',
+					},
+				],
+			},
+			{
+				label: 'Execution outcome',
+				items: [
+					{
+						label: 'linked execution outcome',
+					},
+				],
+			},
+			{
+				label: 'Spawned receipts',
+				items: [
+					{
+						label: 'child receipts when available from tx/status',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

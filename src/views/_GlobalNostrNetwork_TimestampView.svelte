@@ -9,15 +9,43 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
+	closed: [
+		'$hub',
+		'timestampMs',
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				'$hub',
+				'timestampMs',
+				'source',
+			],
+			[
+				'configuredRelayCount',
+				'reachableRelayCount',
+				'sourceWindowProfileCount',
+				'sourceWindowNoteCount',
+				'sourceWindowRelayCount',
+				'sourceWindowRepostCount',
+				'sourceWindowArticleCount',
+				'localCatalogRelayCount',
+				'reachable',
+				'filterKind',
+			],
 		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Hub',
+				items: [
+					'$hub',
+				],
+			},
+			{
+				label: 'Observation fields',
+				items: [
 					'configuredRelayCount',
 					'reachableRelayCount',
 					'sourceWindowProfileCount',
@@ -29,9 +57,30 @@
 					'reachable',
 					'filterKind',
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'SourceBinding.Constants_Internal',
+					},
+					{
+						label: 'SourceBinding.NostrBand_Rest',
+					},
+					{
+						label: 'SourceBinding.NostrRelay_Nip11_Http',
+					},
+					{
+						label: 'SourceBinding.NostrRelay_WebSocket',
+					},
+					{
+						label: 'SourceBinding.Primal_Rest',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

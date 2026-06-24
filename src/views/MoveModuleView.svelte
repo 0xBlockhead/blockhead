@@ -9,44 +9,80 @@
 
 	// State
 	const view = {
-		closed: [
-			'address',
-			'moduleName',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'address/package id',
+		},
+		{
+			label: 'module name',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'address/package id',
+				},
+				{
+					label: 'module name',
+				},
+				{
+					label: 'latest bytecode/source availability',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'address',
-					'moduleName',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest module state',
+				items: [
+					{
+						label: 'latest module bytecode/ABI/source observation',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'functions',
-					when: 'open',
-					items: [
-						'$$functions',
-					],
-				},
-				{
-					label: 'structs',
-					when: 'open',
-					items: [
-						'$$structs',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Module history',
+				items: [
+					{
+						label: 'timestamped module observations',
+					},
+				],
+			},
+			{
+				label: 'Functions',
+				items: [
+					{
+						label: 'function rows from latest parsed interface',
+					},
+				],
+			},
+			{
+				label: 'Structs',
+				items: [
+					{
+						label: 'struct rows from latest parsed interface',
+					},
+				],
+			},
+			{
+				label: 'ABI/source',
+				items: [
+					{
+						label: 'structured payloads from latest timestamp',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

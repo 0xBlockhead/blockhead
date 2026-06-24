@@ -9,25 +9,98 @@
 
 	// State
 	const view = {
-		closed: [
-			'certificateHash',
-			'pathHash',
-		],
-		content: {
-			dl: [
-				[
-					'certificateHash',
-					'pathHash',
-					'treeHash',
-					'certifiedAtMs',
-					'subnetSignature',
-					'witness',
-					'value',
-					'verificationStatus',
-				],
-			],
+	closed: [
+		{
+			label: 'canister',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'certificate hash',
+		},
+		{
+			label: 'path hash',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'canister',
+				},
+				{
+					label: 'certificate hash',
+				},
+				{
+					label: 'path hash',
+				},
+				{
+					label: 'tree hash',
+				},
+				{
+					label: 'certified time',
+				},
+				{
+					label: 'verification status',
+				},
+				{
+					label: 'value presence',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Canister',
+				items: [
+					{
+						label: 'parent ICP canister',
+					},
+				],
+			},
+			{
+				label: 'Decoded value',
+				items: [
+					{
+						label: 'certified value preview',
+					},
+				],
+			},
+			{
+				label: 'Witness path',
+				items: [
+					{
+						label: 'hash-tree path',
+					},
+					{
+						label: 'tree hash',
+					},
+				],
+			},
+			{
+				label: 'Signature chain',
+				items: [
+					{
+						label: 'subnet delegation',
+					},
+					{
+						label: 'root-key verification',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'raw certificate',
+					},
+					{
+						label: 'witness payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

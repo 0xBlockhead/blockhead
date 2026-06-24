@@ -9,34 +9,78 @@
 
 	// State
 	const view = {
-		closed: [
-			'issueId',
-		],
-		content: {
-			dl: [
-				[
-					'issueId',
-					'title',
-					'authorDid',
-					'state',
-					'createdAt',
-					'updatedAt',
-					'payloadObjectId',
-				],
-			],
+	closed: [
+		{
+			label: 'repository',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'issue id',
+		},
+		'title',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'comments',
-					when: 'open',
-					items: [
-						'$$comments',
-					],
+					label: 'repository',
+				},
+				{
+					label: 'issue id',
+				},
+				'title',
+				'state',
+				{
+					label: 'author DID',
+				},
+				{
+					label: 'created/updated timestamps',
+				},
+				{
+					label: 'payload object id',
+				},
+				{
+					label: 'payload object',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Comments',
+				items: [
+					{
+						label: 'discussion comments',
+					},
+				],
+			},
+			{
+				label: 'Events',
+				items: [
+					{
+						label: 'collaboration events',
+					},
+				],
+			},
+			{
+				label: 'Payload',
+				items: [
+					{
+						label: 'Git object payload',
+					},
+				],
+			},
+			{
+				label: 'Repository',
+				items: [
+					{
+						label: 'parent Radicle repository',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,32 +9,71 @@
 
 	// State
 	const view = {
-		closed: [
-			'objectKey',
-		],
-		content: {
-			dl: [
-				[
-					'objectKey',
-					'objectKind',
-					'tokenId',
-					'slot',
-					'metadataUri',
-				],
-			],
+	closed: [
+		{
+			label: 'asset instance',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'object key',
+		},
+		{
+			label: 'object kind',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'metadatases',
-					when: 'open',
-					items: [
-						'$$metadata',
-					],
+					label: 'asset instance',
+				},
+				{
+					label: 'object key',
+				},
+				{
+					label: 'object kind',
+				},
+				{
+					label: 'class',
+				},
+				{
+					label: 'token id',
+				},
+				'slot',
+				{
+					label: 'metadata URI',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Class',
+				items: [
+					{
+						label: 'parent class when class-scoped',
+					},
+				],
+			},
+			{
+				label: 'Metadata',
+				items: [
+					{
+						label: 'token metadata document observations',
+					},
+				],
+			},
+			{
+				label: 'Ownership/balance',
+				items: [
+					{
+						label: 'account-specific balance rows when modeled separately',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

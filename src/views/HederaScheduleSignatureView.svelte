@@ -9,19 +9,67 @@
 
 	// State
 	const view = {
-		closed: [
-			'publicKeyPrefix',
-		],
-		content: {
-			dl: [
-				[
-					'publicKeyPrefix',
-					'consensusTimestamp',
-					'signature',
-				],
-			],
+	closed: [
+		{
+			label: 'schedule',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'public-key prefix',
+		},
+		{
+			label: 'consensus timestamp',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'schedule',
+				},
+				{
+					label: 'public-key prefix',
+				},
+				{
+					label: 'consensus timestamp',
+				},
+				{
+					label: 'account',
+				},
+				{
+					label: 'signature presence',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Schedule',
+				items: [
+					{
+						label: 'parent Hedera schedule',
+					},
+				],
+			},
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'signing Hedera account when resolved',
+					},
+				],
+			},
+			{
+				label: 'Signature',
+				items: [
+					{
+						label: 'raw signature evidence',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

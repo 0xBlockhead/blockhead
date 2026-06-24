@@ -9,23 +9,76 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'status',
-					'confirmations',
-					'observedBitcoinHeight',
-					'observedElementsHeight',
-				],
-			],
+	closed: [
+		{
+			label: 'peg',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'status',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'peg',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				'status',
+				'confirmations',
+				{
+					label: 'observed Bitcoin height',
+				},
+				{
+					label: 'observed Elements height',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Peg',
+				items: [
+					{
+						label: 'parent Elements peg',
+					},
+				],
+			},
+			{
+				label: 'Bitcoin side',
+				items: [
+					{
+						label: 'Bitcoin-side UTXO transaction when resolved',
+					},
+				],
+			},
+			{
+				label: 'Elements side',
+				items: [
+					{
+						label: 'Elements-side UTXO transaction when resolved',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'explorer/indexer status payload',
+					},
+					{
+						label: 'block-height freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

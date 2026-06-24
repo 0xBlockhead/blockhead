@@ -9,31 +9,61 @@
 
 	// State
 	const view = {
-		closed: [
-			'name',
-		],
-		content: {
-			dl: [
-				[
-					'name',
-					'title',
-					'description',
-					'argumentsSchema',
-				],
-			],
+	closed: [
+		{
+			label: 'server',
 		},
-		details: {
-			tabs: [
+		'name',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'results',
-					when: 'open',
-					items: [
-						'$$results',
-					],
+					label: 'server',
+				},
+				'name',
+				'title',
+				'description',
+			],
+			[
+				{
+					label: 'arguments schema',
+				},
+				{
+					label: 'result refs',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Server',
+				items: [
+					{
+						label: 'McpServer',
+					},
+				],
+			},
+			{
+				label: 'Schema',
+				items: [
+					{
+						label: 'arguments schema',
+					},
+				],
+			},
+			{
+				label: 'Results',
+				items: [
+					{
+						label: 'McpPromptResult list',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

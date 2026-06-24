@@ -9,58 +9,96 @@
 
 	// State
 	const view = {
-		closed: [
-			'walletId',
-			'unit',
+	closed: [
+		{
+			label: 'wallet id',
+		},
+		{
+			label: 'mint',
+		},
+		'unit',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'wallet id',
+				},
+				{
+					label: 'mint',
+				},
+				'unit',
+				{
+					label: 'latest balance',
+				},
+				{
+					label: 'latest proof count',
+				},
+				{
+					label: 'latest active keyset count',
+				},
+				{
+					label: 'latest pending mint/melt quote counts',
+				},
+				{
+					label: 'latest sync time',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'walletId',
-					'unit',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest state',
+				items: [
+					{
+						label: 'BlockheadCashuWalletState_TimestampView',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'proofs',
-					when: 'open',
-					items: [
-						'$$proofs',
-					],
-				},
-				{
-					label: 'tokens',
-					when: 'open',
-					items: [
-						'$$tokens',
-					],
-				},
-				{
-					label: 'mint quotes',
-					when: 'open',
-					items: [
-						'$$mintQuotes',
-					],
-				},
-				{
-					label: 'melt quotes',
-					when: 'open',
-					items: [
-						'$$meltQuotes',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'State history',
+				items: [
+					{
+						label: 'BlockheadCashuWalletState_TimestampsView',
+					},
+				],
+			},
+			{
+				label: 'Proofs',
+				items: [
+					{
+						label: 'BlockheadCashuProof list',
+					},
+				],
+			},
+			{
+				label: 'Tokens',
+				items: [
+					{
+						label: 'BlockheadCashuToken list',
+					},
+				],
+			},
+			{
+				label: 'Mint',
+				items: [
+					{
+						label: 'CashuMintView',
+					},
+				],
+			},
+			{
+				label: 'Quotes',
+				items: [
+					{
+						label: 'BlockheadCashuMintQuote/BlockheadCashuMeltQuote rows known to the wallet',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

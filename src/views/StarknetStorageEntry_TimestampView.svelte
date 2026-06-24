@@ -9,21 +9,69 @@
 
 	// State
 	const view = {
-		closed: [
-			'blockNumber',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'blockNumber',
-					'source',
-					'value',
-					'blockHash',
-				],
-			],
+	closed: [
+		{
+			label: 'storage entry',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'block number',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'storage entry',
+				},
+				{
+					label: 'block number',
+				},
+				'source',
+				'value',
+				{
+					label: 'block hash',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Storage entry',
+				items: [
+					{
+						label: 'parent Starknet storage entry',
+					},
+				],
+			},
+			{
+				label: 'Contract',
+				items: [
+					{
+						label: 'parent Starknet contract',
+					},
+				],
+			},
+			{
+				label: 'Block',
+				items: [
+					{
+						label: 'Starknet block when resolved',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'starknet_getStorageAt response',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,24 +9,70 @@
 
 	// State
 	const view = {
-		closed: [
-			'targetKind',
-			'targetSelectorHashAlgorithm',
-			'targetSelectorHash',
-		],
-		content: {
-			dl: [
-				[
-					'targetKind',
-					'targetSelectorHashAlgorithm',
-					'targetSelectorHash',
-					'targetSelector',
-					'evidenceUri',
-					'signature',
-				],
-			],
+	closed: [
+		{
+			label: 'registration file',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'target kind',
+		},
+		{
+			label: 'selector hash',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'registration file',
+				},
+				{
+					label: 'target kind',
+				},
+				{
+					label: 'target selector hash algorithm/hash',
+				},
+			],
+			[
+				{
+					label: 'target selector',
+				},
+				{
+					label: 'evidence URI',
+				},
+				'signature',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Registration file',
+				items: [
+					{
+						label: 'Eip8004AgentRegistrationFile',
+					},
+				],
+			},
+			{
+				label: 'Target',
+				items: [
+					{
+						label: 'selector JSON',
+					},
+				],
+			},
+			{
+				label: 'Evidence',
+				items: [
+					{
+						label: 'URI/signature',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

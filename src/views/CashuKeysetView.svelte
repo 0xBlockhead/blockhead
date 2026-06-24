@@ -9,21 +9,80 @@
 
 	// State
 	const view = {
-		closed: [
-			'keysetId',
-		],
-		content: {
-			dl: [
-				[
-					'keysetId',
-					'unit',
-					'active',
-					'inputFeePpk',
-					'keysByAmountJson',
-				],
-			],
+	closed: [
+		{
+			label: 'mint',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'keyset id',
+		},
+		'unit',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'mint',
+				},
+				{
+					label: 'keyset id',
+				},
+				'unit',
+				{
+					label: 'active state',
+				},
+				{
+					label: 'input fee ppk',
+				},
+				{
+					label: 'public key count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Mint',
+				items: [
+					{
+						label: 'parent Cashu mint',
+					},
+				],
+			},
+			{
+				label: 'Keys',
+				items: [
+					{
+						label: 'amount-to-public-key JSON',
+					},
+					{
+						label: 'keyset-id verification context',
+					},
+				],
+			},
+			{
+				label: 'Rotation target',
+				items: [
+					{
+						label: 'CashuKeyset_Timestamp when timestamp schema exists',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'GET /v1/keysets',
+					},
+					{
+						label: 'GET /v1/keys/{keyset_id}',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

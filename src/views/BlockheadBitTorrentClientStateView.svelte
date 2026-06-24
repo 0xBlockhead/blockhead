@@ -9,38 +9,87 @@
 
 	// State
 	const view = {
-		closed: [
-			'clientId',
+	closed: [
+		{
+			label: 'client id',
+		},
+		{
+			label: 'client name',
+		},
+		{
+			label: 'peer id',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'client id',
+				},
+				{
+					label: 'client name',
+				},
+				{
+					label: 'peer id',
+				},
+				{
+					label: 'DHT node id',
+				},
+				{
+					label: 'latest client version',
+				},
+				{
+					label: 'latest listen address count',
+				},
+				{
+					label: 'latest transfer rates',
+				},
+				{
+					label: 'latest active torrent count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'clientId',
-					'clientName',
-					'peerId',
-					'dhtNodeId',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'State observations',
+				items: [
+					{
+						label: 'timestamped connected-client observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'transfers',
-					when: 'open',
-					items: [
-						'$$transfers',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Transfers',
+				items: [
+					{
+						label: 'local transfer snapshots',
+					},
+				],
+			},
+			{
+				label: 'Network identity',
+				items: [
+					{
+						label: 'peer id',
+					},
+					{
+						label: 'DHT node id',
+					},
+				],
+			},
+			{
+				label: 'Torrent catalog',
+				items: [
+					{
+						label: 'metainfo rows exposed by the client',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

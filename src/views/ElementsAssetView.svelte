@@ -9,41 +9,74 @@
 
 	// State
 	const view = {
-		closed: [
-			'assetId',
+	closed: [
+		{
+			label: 'asset id',
+		},
+		{
+			label: 'ticker/name',
+		},
+		'precision',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'asset id',
+				},
+				{
+					label: 'ticker/name',
+				},
+				'precision',
+				{
+					label: 'entity domain',
+				},
+				{
+					label: 'blinded issuance flag',
+				},
+				{
+					label: 'latest issued/burned totals',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'assetId',
-					'name',
-					'ticker',
-					'precision',
-					'entityDomain',
-					'contractJson',
-					'hasBlindedIssuances',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Supply snapshots',
+				items: [
+					{
+						label: 'timestamped issued/burned total observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'issuances',
-					when: 'open',
-					items: [
-						'$$issuances',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Elements network',
+					},
+				],
+			},
+			{
+				label: 'Issuances',
+				items: [
+					{
+						label: 'Elements issuance rows',
+					},
+				],
+			},
+			{
+				label: 'Registry contract',
+				items: [
+					{
+						label: 'contractJson/source metadata',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

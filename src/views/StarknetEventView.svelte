@@ -9,19 +9,80 @@
 
 	// State
 	const view = {
-		closed: [
-			'eventIndex',
+	closed: [
+		{
+			label: 'transaction',
+		},
+		{
+			label: 'event index',
+		},
+		{
+			label: 'from contract',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'transaction',
+				},
+				{
+					label: 'event index',
+				},
+				{
+					label: 'from contract',
+				},
+				{
+					label: 'key count',
+				},
+				{
+					label: 'data count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'eventIndex',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transaction',
+				items: [
+					{
+						label: 'parent Starknet transaction',
+					},
+				],
+			},
+			{
+				label: 'Contract',
+				items: [
+					{
+						label: 'emitting Starknet contract',
+					},
+				],
+			},
+			{
+				label: 'Payload',
+				items: [
 					'keys',
 					'data',
+					{
+						label: 'decoded event when ABI is available',
+					},
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'transaction receipt events',
+					},
+					{
+						label: 'indexer event payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

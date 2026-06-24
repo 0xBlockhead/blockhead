@@ -9,30 +9,83 @@
 
 	// State
 	const view = {
-		closed: [
-			'accountId',
-		],
-		content: {
-			dl: [
-				[
-					'accountId',
-					'amountYoctoNear',
-					'storageUsageBytes',
-				],
-			],
+	closed: [
+		{
+			label: 'account id',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'latest balance/storage/code summary',
+		},
+		{
+			label: 'contract link when latest code observation indicates deployed code',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'access keys',
-					when: 'open',
-					items: [
-						'$$accessKeys',
-					],
+					label: 'account id',
+				},
+				{
+					label: 'latest balance/storage/code summary',
+				},
+				{
+					label: 'contract link when latest code observation indicates deployed code',
+				},
+				{
+					label: 'access-key count',
+				},
+				{
+					label: 'latest observation time',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'State observations',
+				items: [
+					{
+						label: 'timestamped account balance/storage/code observations',
+					},
+				],
+			},
+			{
+				label: 'Access keys',
+				items: [
+					{
+						label: 'access-key rows for this account',
+					},
+				],
+			},
+			{
+				label: 'Contract',
+				items: [
+					{
+						label: 'account-scoped contract code state',
+					},
+				],
+			},
+			{
+				label: 'Transactions/receipts',
+				items: [
+					{
+						label: 'transactions and receipts when indexed',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'RPC/indexer payload freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

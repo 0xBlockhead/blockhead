@@ -9,23 +9,79 @@
 
 	// State
 	const view = {
-		closed: [
-			'changeIndex',
+	closed: [
+		{
+			label: 'change kind',
+		},
+		{
+			label: 'object id/type',
+		},
+		{
+			label: 'owner',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'change kind',
+				},
+				{
+					label: 'object id/type',
+				},
+				{
+					label: 'owner',
+				},
+				'version',
+				'digest',
+				{
+					label: 'parent transaction',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'changeIndex',
-					'changeKind',
-					'objectId',
-					'objectType',
-					'ownerSelector',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transaction',
+				items: [
+					{
+						label: 'SuiTransaction',
+					},
+				],
+			},
+			{
+				label: 'Object',
+				items: [
+					{
+						label: 'object id',
+					},
+					{
+						label: 'object type',
+					},
+					{
+						label: 'owner selector',
+					},
+				],
+			},
+			{
+				label: 'Version/digest',
+				items: [
 					'version',
 					'digest',
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Sui transaction effects objectChanges payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

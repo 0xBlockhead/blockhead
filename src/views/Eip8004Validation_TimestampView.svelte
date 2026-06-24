@@ -9,33 +9,72 @@
 
 	// State
 	const view = {
-		closed: [
-			'requestHashAlgorithm',
-			'requestHash',
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'requestHashAlgorithm',
-					'requestHash',
-					'timestampMs',
-					'source',
-					'validatorAddress',
-					'requestUri',
-					'response',
-					'responseUri',
-					'responseHashAlgorithm',
-					'responseHash',
-					'tag',
-					'lastUpdate',
-					'blockNumber',
-					'transactionHash',
-				],
-			],
+	closed: [
+		{
+			label: 'request hash',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'validator',
+		},
+		'response',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'request hash algorithm/hash',
+				},
+				{
+					label: 'registration',
+				},
+				{
+					label: 'validator',
+				},
+				'response',
+			],
+			[
+				{
+					label: 'request URI',
+				},
+				{
+					label: 'response URI/hash algorithm/hash',
+				},
+				'tag',
+				{
+					label: 'last update',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Registration',
+				items: [
+					{
+						label: 'Eip8004AgentRegistration when known',
+					},
+				],
+			},
+			{
+				label: 'Evidence',
+				items: [
+					{
+						label: 'request/response URI/hash algorithm/hash',
+					},
+				],
+			},
+			{
+				label: 'On-chain evidence',
+				items: [
+					{
+						label: 'block/transaction',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,59 +9,86 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[],
-			],
+	closed: [
+		{
+			label: 'icon/name from actor ENS/blockie',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'network icon',
+		},
+		{
+			label: 'address on network',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'icon/name from actor ENS/blockie',
 				},
 				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
+					label: 'network icon',
 				},
 				{
-					label: 'token transfers',
-					when: 'open',
-					items: [
-						'$$tokenTransfers',
-					],
+					label: 'address on network',
 				},
 				{
-					label: 'internal transfers',
-					when: 'open',
-					items: [
-						'$$internalTransfers',
-					],
-				},
-				{
-					label: 'owned coins',
-					when: 'open',
-					items: [
-						'$$ownedCoins',
-					],
-				},
-				{
-					label: 'erc20 token allowances',
-					when: 'open',
-					items: [
-						'$$erc20TokenAllowances',
-					],
+					label: 'latest activity/count/contract summary',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Account observations',
+				items: [
+					{
+						label: 'timestamped account activity/count observations',
+					},
+				],
+			},
+			{
+				label: 'Balances',
+				items: [
+					{
+						label: 'network actor coin balances',
+					},
+				],
+			},
+			{
+				label: 'Activity',
+				items: [
+					{
+						label: 'transactions',
+					},
+					{
+						label: 'token transfers',
+					},
+					{
+						label: 'internal transfers',
+					},
+				],
+			},
+			{
+				label: 'Allowances',
+				items: [
+					{
+						label: 'known ERC-20 allowance identities',
+					},
+				],
+			},
+			{
+				label: 'Contract',
+				items: [
+					{
+						label: 'linked contract row when code/source evidence resolves',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

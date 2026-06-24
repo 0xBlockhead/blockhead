@@ -9,21 +9,77 @@
 
 	// State
 	const view = {
-		closed: [
-			'slot',
-			'index',
-		],
-		content: {
-			dl: [
-				[
-					'slot',
-					'index',
-					'validatorIndex',
-					'amountGwei',
-				],
-			],
+	closed: [
+		{
+			label: 'withdrawal index in the slot',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'withdrawal index in the slot',
+				},
+			],
+			[
+				{
+					label: 'validator index',
+				},
+				{
+					label: 'BeaconValidator ref',
+				},
+				{
+					label: 'recipient EvmAccount ref',
+				},
+				{
+					label: 'amount in gwei',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Slot',
+				items: [
+					{
+						label: 'beacon block/body withdrawal context',
+					},
+				],
+			},
+			{
+				label: 'Validator',
+				items: [
+					{
+						label: 'validator index',
+					},
+					{
+						label: 'BeaconValidator',
+					},
+				],
+			},
+			{
+				label: 'Recipient',
+				items: [
+					{
+						label: 'EvmAccount',
+					},
+					{
+						label: 'amount in gwei',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'beacon block withdrawals payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,26 +9,82 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'blockHeight',
-					'indexerHeight',
-					'marketCount',
-					'subaccountCount',
-					'openOrderCount',
-					'openPositionCount',
-					'health',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'block height',
+				},
+				{
+					label: 'indexer height',
+				},
+				{
+					label: 'market count',
+				},
+				{
+					label: 'subaccount count',
+				},
+				{
+					label: 'open order count',
+				},
+				{
+					label: 'open position count',
+				},
+				'health',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent dYdX Chain network',
+					},
+				],
+			},
+			{
+				label: 'Markets',
+				items: [
+					{
+						label: 'market rows at same source/head when available',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'indexer status/height payload',
+					},
+					{
+						label: 'validator node status',
+					},
+					{
+						label: 'app-state query freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

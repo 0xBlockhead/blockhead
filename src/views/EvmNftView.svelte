@@ -9,32 +9,83 @@
 
 	// State
 	const view = {
-		closed: [
-			'tokenId',
+	closed: [
+		'$contract',
+		'tokenId',
+		'name',
+	],
+	content: {
+		dl: [
+			[
+				'$contract',
+				'tokenId',
+				'standard',
+				'format',
+				'tokenUri',
+				'name',
+				'description',
+				'image',
+				'fetchedAt',
+			],
+			[
+				'agentRegistry',
+				'agentId',
+				'agentUri',
+				'contactEndpoint',
+				'$agentWallet',
+				'x402Support',
+				'active',
+				'supportedTrust',
+				'registrationTypeIri',
+			],
 		],
-		content: {
-			dl: [
-				[
-					'tokenId',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Registry',
+				items: [
+					'$contract',
+				],
+			},
+			{
+				label: 'Agent',
+				items: [
+					'agentRegistry',
+					'agentId',
+					'agentUri',
+					'contactEndpoint',
+					'$agentWallet',
+				],
+			},
+			{
+				label: 'Registration metadata',
+				items: [
 					'standard',
 					'format',
 					'tokenUri',
 					'name',
 					'description',
 					'image',
-					'agentRegistry',
-					'agentId',
-					'agentUri',
-					'contactEndpoint',
+					'fetchedAt',
 					'x402Support',
 					'active',
 					'supportedTrust',
 					'registrationTypeIri',
-					'fetchedAt',
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Registrations list',
+				items: [
+					{
+						slot: 'Eip8004Registrations',
+						label: 'Agent-registration NFTs',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

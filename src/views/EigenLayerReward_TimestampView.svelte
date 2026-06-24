@@ -9,27 +9,126 @@
 
 	// State
 	const view = {
-		closed: [
-			'rewardContextKey',
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'rewardContextKey',
-					'timestampMs',
-					'source',
-					'rewardToken',
-					'rewardAmount',
-					'cumulativeClaimed',
-					'merkleRoot',
-					'claimProof',
-					'proofRequested',
-				],
-			],
+	closed: [
+		{
+			label: 'earner',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'reward context',
+		},
+		{
+			label: 'reward token/amount',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'earner',
+				},
+				{
+					label: 'reward context key',
+				},
+				{
+					label: 'strategy',
+				},
+				{
+					label: 'operator',
+				},
+				{
+					label: 'AVS',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'reward token',
+				},
+			],
+			[
+				{
+					label: 'reward amount',
+				},
+				{
+					label: 'cumulative claimed',
+				},
+				{
+					label: 'merkle root',
+				},
+				{
+					label: 'claim proof availability',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Earner',
+				items: [
+					{
+						label: 'earner EVM network account',
+					},
+				],
+			},
+			{
+				label: 'Reward context',
+				items: [
+					{
+						label: 'source-defined strategy/operator/AVS/distribution scope encoded by rewardContextKey',
+					},
+				],
+			},
+			{
+				label: 'Operator',
+				items: [
+					{
+						label: 'EigenLayer operator when present',
+					},
+				],
+			},
+			{
+				label: 'AVS',
+				items: [
+					{
+						label: 'EigenLayer AVS when present',
+					},
+				],
+			},
+			{
+				label: 'Strategy',
+				items: [
+					{
+						label: 'EigenLayer strategy when present',
+					},
+				],
+			},
+			{
+				label: 'Claim proof',
+				items: [
+					{
+						label: 'proof JSON when requested',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'RewardsCoordinator reads/events',
+					},
+					{
+						label: 'distribution root payload',
+					},
+					{
+						label: 'indexer freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

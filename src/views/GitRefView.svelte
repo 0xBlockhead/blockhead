@@ -9,31 +9,70 @@
 
 	// State
 	const view = {
-		closed: [
-			'refName',
-		],
-		content: {
-			dl: [
-				[
-					'refName',
-					'refKind',
-					'targetObjectId',
-					'symbolicTarget',
-				],
-			],
+	closed: [
+		{
+			label: 'repository',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'ref name',
+		},
+		{
+			label: 'ref kind',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'observations',
-					when: 'open',
-					items: [
-						'$$observations',
-					],
+					label: 'repository',
+				},
+				{
+					label: 'ref name',
+				},
+				{
+					label: 'ref kind',
+				},
+				{
+					label: 'latest target object id',
+				},
+				{
+					label: 'symbolic target',
+				},
+				{
+					label: 'latest observation time',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Observations',
+				items: [
+					{
+						label: 'timestamped ref target observations',
+					},
+				],
+			},
+			{
+				label: 'Target',
+				items: [
+					{
+						label: 'target Git object/commit/tag when resolved',
+					},
+				],
+			},
+			{
+				label: 'Repository',
+				items: [
+					{
+						label: 'parent Git repository',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

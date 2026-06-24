@@ -9,19 +9,75 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'followerCount',
-					'followingCount',
-				],
-			],
+	closed: [
+		{
+			label: 'user',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		{
+			label: 'follower count',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'user',
+				},
+				{
+					label: 'observation time',
+				},
+				{
+					label: 'follower count',
+				},
+				{
+					label: 'following count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'User',
+				items: [
+					{
+						label: 'parent Farcaster user',
+					},
+				],
+			},
+			{
+				label: 'Social graph counters',
+				items: [
+					{
+						label: 'follower count',
+					},
+					{
+						label: 'following count',
+					},
+				],
+			},
+			{
+				label: 'History',
+				items: [
+					{
+						label: 'timestamped user metric observations',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Neynar/Snapchain profile payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

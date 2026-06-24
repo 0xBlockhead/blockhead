@@ -9,15 +9,41 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
+	closed: [
+		'$hub',
+		'timestampMs',
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				'$hub',
+				'timestampMs',
+				'source',
+			],
+			[
+				'sourceReportedSelectorCount',
+				'sourceReportedTopicCount',
+				'sourceReportedErrorCount',
+				'localCatalogSelectorCount',
+				'localCatalogTopicCount',
+				'localCatalogErrorCount',
+				'reachable',
+				'rateLimitRemaining',
+			],
 		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Hub',
+				items: [
+					'$hub',
+				],
+			},
+			{
+				label: 'Observation fields',
+				items: [
 					'sourceReportedSelectorCount',
 					'sourceReportedTopicCount',
 					'sourceReportedErrorCount',
@@ -27,9 +53,24 @@
 					'reachable',
 					'rateLimitRemaining',
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'SourceBinding.Constants_Internal',
+					},
+					{
+						label: 'SourceBinding.Local_Internal',
+					},
+					{
+						label: 'SourceBinding.Openchain_Rest',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

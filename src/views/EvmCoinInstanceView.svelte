@@ -9,56 +9,58 @@
 
 	// State
 	const view = {
-		closed: [
-			'type',
+	closed: [
+		{
+			label: 'icon',
+		},
+		{
+			label: 'symbol/name fallback',
+		},
+		{
+			label: 'chain',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'icon',
+				},
+				{
+					label: 'symbol/name fallback',
+				},
+				{
+					label: 'chain',
+				},
+				{
+					label: 'native/token contract kind',
+				},
+				'name',
+				'symbol',
+				'decimals',
+				{
+					label: 'CAIP-19',
+				},
+				'representation',
+				{
+					label: 'canonical deployment',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'type',
-					'coinId',
-					'name',
-					'symbol',
-					'decimals',
-					'iconUrl',
-					'caip19',
-					'representation',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Bridging',
+				items: [
+					{
+						label: 'outbound/inbound bridge capability rows',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'markets with instance as base',
-					when: 'open',
-					items: [
-						'$$marketsWithInstanceAsBase',
-					],
-				},
-				{
-					label: 'markets with instance as quote',
-					when: 'open',
-					items: [
-						'$$marketsWithInstanceAsQuote',
-					],
-				},
-				{
-					label: 'outbound bridge capabilities',
-					when: 'open',
-					items: [
-						'$$outboundBridgeCapabilities',
-					],
-				},
-				{
-					label: 'inbound bridge capabilities',
-					when: 'open',
-					items: [
-						'$$inboundBridgeCapabilities',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

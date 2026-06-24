@@ -9,31 +9,73 @@
 
 	// State
 	const view = {
-		closed: [
-			'directoryUrl',
-		],
-		content: {
-			dl: [
-				[
-					'directoryUrl',
-					'ohttpGatewayUrl',
-					'ohttpKeyConfig',
-					'maxPayloadBytes',
-				],
-			],
+	closed: [
+		{
+			label: 'directory URL',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'OHTTP gateway URL',
+		},
+		{
+			label: 'OHTTP key config presence/length',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'blockhead sessions',
-					when: 'open',
-					items: [
-						'$$blockheadSessions',
-					],
+					label: 'directory URL',
+				},
+				{
+					label: 'OHTTP gateway URL',
+				},
+				{
+					label: 'OHTTP key config presence/length',
+				},
+				{
+					label: 'max payload bytes',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'OHTTP gateway',
+				items: [
+					{
+						label: 'derived gateway URL',
+					},
+					{
+						label: 'fetched key config bytes/base64 preview',
+					},
+				],
+			},
+			{
+				label: 'Receiver endpoints',
+				items: [
+					{
+						label: 'PayjoinEndpoint target rows when advertised by payment material or session evidence',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'OHTTP key-config HTTP response',
+					},
+					{
+						label: 'freshness',
+					},
+					{
+						label: 'errors',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

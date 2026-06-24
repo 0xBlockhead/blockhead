@@ -9,42 +9,79 @@
 
 	// State
 	const view = {
-		closed: [
-			'ledgerIndex',
+	closed: [
+		{
+			label: 'ledger index/hash',
+		},
+		{
+			label: 'validation state',
+		},
+		{
+			label: 'close time',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'ledger index',
+				},
+				{
+					label: 'ledger hash',
+				},
+				{
+					label: 'validation state',
+				},
+				{
+					label: 'close time',
+				},
+				{
+					label: 'parent hash',
+				},
+				{
+					label: 'total XRP drops',
+				},
+				{
+					label: 'account hash',
+				},
+				{
+					label: 'transaction hash',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'ledgerIndex',
-					'ledgerHash',
-					'closeTimeMs',
-					'validated',
-					'totalCoinsDrops',
-					'parentHash',
-					'accountHash',
-					'transactionHash',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'transactions in ledger',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
-				},
-				{
-					label: 'ledger entries',
-					when: 'open',
-					items: [
-						'$$ledgerEntries',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Ledger entries',
+				items: [
+					{
+						label: 'ledger object entries',
+					},
+				],
+			},
+			{
+				label: 'Lookup evidence',
+				items: [
+					{
+						label: 'rippled ledger lookup by index/hash',
+					},
+					{
+						label: 'Clio/XRPScan ledger payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

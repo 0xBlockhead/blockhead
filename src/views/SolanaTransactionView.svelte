@@ -9,35 +9,82 @@
 
 	// State
 	const view = {
-		closed: [
-			'signature',
+	closed: [
+		{
+			label: 'network',
+		},
+		'signature',
+		{
+			label: 'block',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				'signature',
+				{
+					label: 'block',
+				},
+				{
+					label: 'fee payer',
+				},
+				{
+					label: 'latest status/fee/compute snapshot',
+				},
+				{
+					label: 'instruction count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'signature',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Observations',
+				items: [
+					{
+						label: 'slot/source transaction observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'instructions',
-					when: 'open',
-					items: [
-						'$$instructions',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Instructions',
+				items: [
+					{
+						label: 'instructions grouped by top-level/inner kind',
+					},
+				],
+			},
+			{
+				label: 'Block',
+				items: [
+					{
+						label: 'parent Solana block',
+					},
+				],
+			},
+			{
+				label: 'Fee payer',
+				items: [
+					{
+						label: 'fee-payer Solana account',
+					},
+				],
+			},
+			{
+				label: 'Raw message',
+				items: [
+					{
+						label: 'account keys/address lookup table data when modeled',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

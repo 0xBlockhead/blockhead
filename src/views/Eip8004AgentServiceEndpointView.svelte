@@ -9,34 +9,82 @@
 
 	// State
 	const view = {
-		closed: [
-			'endpointKind',
-			'endpointUrl',
-		],
-		content: {
-			dl: [
-				[
-					'endpointKind',
-					'endpointUrl',
-					'name',
-					'version',
-					'protocolKind',
-					'active',
-				],
-			],
+	closed: [
+		{
+			label: 'registration file',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'endpoint kind',
+		},
+		{
+			label: 'endpoint URL',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'payment requirements',
-					when: 'open',
-					items: [
-						'$$paymentRequirements',
-					],
+					label: 'registration file',
+				},
+				{
+					label: 'endpoint kind',
+				},
+				{
+					label: 'endpoint URL',
+				},
+				{
+					label: 'name/version',
+				},
+				{
+					label: 'protocol kind',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			[
+				'active',
+				{
+					label: 'A2A card',
+				},
+				{
+					label: 'MCP server',
+				},
+				{
+					label: 'payment requirement refs',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Registration file',
+				items: [
+					{
+						label: 'Eip8004AgentRegistrationFile',
+					},
+				],
+			},
+			{
+				label: 'Protocol refs',
+				items: [
+					{
+						label: 'A2aAgentCard',
+					},
+					{
+						label: 'McpServer',
+					},
+				],
+			},
+			{
+				label: 'Payment',
+				items: [
+					{
+						label: 'AgentPaymentRequirement_Timestamp list',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

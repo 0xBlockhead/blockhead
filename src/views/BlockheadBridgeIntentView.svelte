@@ -9,42 +9,105 @@
 
 	// State
 	const view = {
-		closed: [
-			'sessionId',
-			'actionId',
-		],
-		content: {
-			dl: [
-				[
-					'sessionId',
-					'actionId',
-					'fromNetworkCaip2',
-					'toNetworkCaip2',
-					'assetCaip19',
-					'fromAssetCaip19',
-					'toAssetCaip19',
-					'fromChainId',
-					'toChainId',
-					'coinId',
-					'fromTokenAddress',
-					'toTokenAddress',
-					'amount',
-					'slippage',
-				],
-			],
+	closed: [
+		{
+			label: 'session action',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'from/to networks',
+		},
+		{
+			label: 'asset',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'quotes',
-					when: 'open',
-					items: [
-						'$$quotes',
-					],
+					label: 'session action',
 				},
+				{
+					label: 'action selected protocol',
+				},
+				{
+					label: 'from/to CAIP-2',
+				},
+				{
+					label: 'asset CAIP-19 values',
+				},
+				{
+					label: 'EVM chain ids/raw token addresses',
+				},
+				{
+					label: 'coin id',
+				},
+				{
+					label: 'resolved network/token refs',
+				},
+				'amount',
+				'slippage',
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Session action',
+				items: [
+					{
+						label: 'BlockheadSessionActionView',
+					},
+				],
+			},
+			{
+				label: 'Readiness',
+				items: [
+					{
+						label: 'BlockheadActionReadinessCheck list',
+					},
+				],
+			},
+			{
+				label: 'Intent quotes',
+				items: [
+					{
+						label: 'BlockheadIntentQuote list for signed-order/filler-market protocols',
+					},
+				],
+			},
+			{
+				label: 'Route quotes',
+				items: [
+					{
+						label: 'BridgeRouteQuote_Timestamp for executable route quotes',
+					},
+				],
+			},
+			{
+				label: 'Execution',
+				items: [
+					{
+						label: 'orders',
+					},
+					{
+						label: 'wallet requests',
+					},
+					{
+						label: 'bridge transfer rows when source-proven',
+					},
+				],
+			},
+			{
+				label: 'Outcomes',
+				items: [
+					{
+						label: 'BlockheadActionOutcome list',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

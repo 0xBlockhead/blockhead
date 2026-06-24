@@ -9,12 +9,28 @@
 
 	// State
 	const view = {
-		closed: [
-			'scope',
+	closed: [
+		'scope',
+		'protocolName',
+		'topology',
+	],
+	content: {
+		dl: [
+			[
+				'scope',
+				'protocolName',
+				'homeUrl',
+				'docsUrl',
+				'registryLabel',
+				'topology',
+			],
 		],
-		content: {
-			dl: [
-				[
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Protocol profile',
+				items: [
 					'scope',
 					'protocolName',
 					'homeUrl',
@@ -22,9 +38,26 @@
 					'registryLabel',
 					'topology',
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Global coverage',
+				items: [
+					{
+						label: '_GlobalActivityPubNetwork',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'SourceBinding.Constants_Internal',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

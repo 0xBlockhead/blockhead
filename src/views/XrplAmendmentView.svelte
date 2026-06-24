@@ -9,29 +9,55 @@
 
 	// State
 	const view = {
-		closed: [
-			'amendmentId',
-		],
-		content: {
-			dl: [
-				[
-					'amendmentId',
-					'name',
-				],
-			],
+	closed: [
+		{
+			label: 'amendment id',
 		},
-		details: {
-			tabs: [
+		'name',
+		{
+			label: 'latest status',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'amendment id',
+				},
+				'name',
+				{
+					label: 'latest status',
+				},
+				{
+					label: 'latest enabled ledger',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Status history',
+				items: [
+					{
+						label: 'XrplAmendment_Timestamp list',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'feature command payload',
+					},
+					{
+						label: 'validator voting/support evidence when exposed',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

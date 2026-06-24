@@ -9,41 +9,133 @@
 
 	// State
 	const view = {
-		closed: [
-			'id',
-		],
-		content: {
-			dl: [
-				[
-					'id',
-					'walletProtocol',
-					'requestKind',
-					'requestMethod',
-					'chainId',
-					'fromAddress',
-					'toAddress',
-					'value',
-					'callCount',
-					'atomicRequired',
-					'requestPayloadHash',
-					'walletCallBundleId',
-					'requestedAt',
-					'submittedAt',
-				],
-			],
+	closed: [
+		{
+			label: 'request id',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'request kind',
+		},
+		{
+			label: 'latest status',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'request id',
+				},
+				{
+					label: 'wallet protocol',
+				},
+				{
+					label: 'request kind',
+				},
+				{
+					label: 'method',
+				},
+				{
+					label: 'latest status',
+				},
+				{
+					label: 'wallet connection',
+				},
+				{
+					label: 'account',
+				},
+				{
+					label: 'chain id',
+				},
+				{
+					label: 'from/to',
+				},
+				'value',
+				{
+					label: 'call count',
+				},
+				{
+					label: 'atomic required',
+				},
+				{
+					label: 'requested time',
+				},
+				{
+					label: 'submitted time',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			[
+				{
+					label: 'latest signature hash',
+				},
+				{
+					label: 'latest transaction hash',
+				},
+				{
+					label: 'latest transaction id',
+				},
+				{
+					label: 'wallet call bundle id',
+				},
+				{
+					label: 'request payload hash',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Status history',
+				items: [
+					{
+						label: 'BlockheadWalletRequest_Timestamp list',
+					},
+				],
+			},
+			{
+				label: 'Session action',
+				items: [
+					{
+						label: 'BlockheadSessionActionView when linked',
+					},
+				],
+			},
+			{
+				label: 'Intent order',
+				items: [
+					{
+						label: 'BlockheadIntentOrderView when linked',
+					},
+				],
+			},
+			{
+				label: 'Wallet',
+				items: [
+					{
+						label: 'BlockheadWalletConnectionView when linked',
+					},
+				],
+			},
+			{
+				label: 'Chain evidence',
+				items: [
+					{
+						label: 'EvmTransaction or protocol transaction rows when the hash/id resolves publicly',
+					},
+				],
+			},
+			{
+				label: 'Request evidence',
+				items: [
+					{
+						label: 'request payload retained locally only when needed',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

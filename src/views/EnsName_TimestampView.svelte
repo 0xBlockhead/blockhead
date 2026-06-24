@@ -9,28 +9,129 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'subdomainCount',
-					'resolverTextKeys',
-					'resolverCoinTypes',
-					'ttl',
-					'isMigrated',
-					'createdAt',
-					'expiryDate',
-					'subgraphId',
-					'blockNumber',
-				],
-			],
+	closed: [
+		{
+			label: 'name',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'name',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'resolved actor',
+				},
+				{
+					label: 'resolver contract',
+				},
+				{
+					label: 'owner',
+				},
+				{
+					label: 'subdomain count',
+				},
+			],
+			[
+				{
+					label: 'text/coin record key counts',
+				},
+				{
+					label: 'TTL',
+				},
+				{
+					label: 'migration state',
+				},
+				{
+					label: 'created/expiry dates',
+				},
+				{
+					label: 'subgraph id',
+				},
+				{
+					label: 'block number',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Name',
+				items: [
+					{
+						label: 'parent ENS name',
+					},
+				],
+			},
+			{
+				label: 'Registry state',
+				items: [
+					{
+						label: 'owner',
+					},
+					{
+						label: 'resolver',
+					},
+					{
+						label: 'resolved-address summary',
+					},
+					{
+						label: 'TTL',
+					},
+					{
+						label: 'migration',
+					},
+				],
+			},
+			{
+				label: 'Registration',
+				items: [
+					{
+						label: 'created/expiry/subgraph id',
+					},
+				],
+			},
+			{
+				label: 'Record discovery',
+				items: [
+					{
+						label: 'text record keys',
+					},
+					{
+						label: 'coin types',
+					},
+					{
+						label: 'links to concrete resolver record observations',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'live RPC resolver calls',
+					},
+					{
+						label: 'subgraph registration/resolver event payload',
+					},
+					{
+						label: 'metadata service payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

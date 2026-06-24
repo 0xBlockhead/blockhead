@@ -9,49 +9,86 @@
 
 	// State
 	const view = {
-		closed: [
-			'address',
+	closed: [
+		{
+			label: 'contract address',
+		},
+		{
+			label: 'account-state summary',
+		},
+		{
+			label: 'activity counts',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'contract address',
+				},
+				{
+					label: 'latest account-state observation',
+				},
+				{
+					label: 'storage entry count',
+				},
+				{
+					label: 'bounded event count',
+				},
+				{
+					label: 'bounded transaction count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'address',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Account/state history',
+				items: [
+					{
+						label: 'block/source account state observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'account states',
-					when: 'open',
-					items: [
-						'$$accountStates',
-					],
-				},
-				{
-					label: 'storage',
-					when: 'open',
-					items: [
-						'$$storage',
-					],
-				},
-				{
-					label: 'events',
-					when: 'open',
-					items: [
-						'$$events',
-					],
-				},
-				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Storage',
+				items: [
+					{
+						label: 'contract storage entries',
+					},
+				],
+			},
+			{
+				label: 'Events',
+				items: [
+					{
+						label: 'bounded contract event windows',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'bounded contract transaction windows',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Starknet network',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

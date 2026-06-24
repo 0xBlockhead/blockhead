@@ -9,66 +9,99 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[],
-			],
+	closed: [
+		{
+			label: 'linked Network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'latest validated ledger/range snapshot',
+		},
+		{
+			label: 'load factor',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'ledgers',
-					when: 'open',
-					items: [
-						'$$ledgers',
-					],
+					label: 'linked Network',
 				},
 				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
+					label: 'latest validated ledger/range snapshot',
 				},
 				{
-					label: 'accounts',
-					when: 'open',
-					items: [
-						'$$accounts',
-					],
+					label: 'load factor',
 				},
 				{
-					label: 'ledger entries',
-					when: 'open',
-					items: [
-						'$$ledgerEntries',
-					],
+					label: 'peer count',
 				},
 				{
-					label: 'amendments',
-					when: 'open',
-					items: [
-						'$$amendments',
-					],
-				},
-				{
-					label: 'amms',
-					when: 'open',
-					items: [
-						'$$amms',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'native XRP asset',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Ledgers',
+				items: [
+					{
+						label: 'validated ledgers',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'ledger transactions',
+					},
+				],
+			},
+			{
+				label: 'Accounts',
+				items: [
+					{
+						label: 'XRPL accounts',
+					},
+				],
+			},
+			{
+				label: 'Ledger entries',
+				items: [
+					{
+						label: 'ledger object entries',
+					},
+				],
+			},
+			{
+				label: 'Amendments',
+				items: [
+					{
+						label: 'amendment feature gates',
+					},
+				],
+			},
+			{
+				label: 'AMMs',
+				items: [
+					{
+						label: 'AMM ledger objects',
+					},
+				],
+			},
+			{
+				label: 'Network snapshots',
+				items: [
+					{
+						label: 'node/network observations',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

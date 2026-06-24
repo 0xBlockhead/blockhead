@@ -9,32 +9,74 @@
 
 	// State
 	const view = {
-		closed: [
-			'operationHash',
-		],
-		content: {
-			dl: [
-				[
-					'operationHash',
-					'branch',
-					'signature',
-					'validationPass',
-					'operationCount',
-				],
-			],
+	closed: [
+		{
+			label: 'operation hash',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'block',
+		},
+		'branch',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'operations',
-					when: 'open',
-					items: [
-						'$$operations',
-					],
+					label: 'operation hash',
+				},
+				{
+					label: 'block',
+				},
+				'branch',
+				{
+					label: 'signature presence',
+				},
+				{
+					label: 'validation pass',
+				},
+				{
+					label: 'operation count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Operation contents',
+				items: [
+					{
+						label: 'operations ordered by content index',
+					},
+				],
+			},
+			{
+				label: 'Block',
+				items: [
+					{
+						label: 'parent Tezos block',
+					},
+				],
+			},
+			{
+				label: 'Raw payload',
+				items: [
+					{
+						label: 'signed group JSON/Micheline when available',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'node/indexer payloads',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

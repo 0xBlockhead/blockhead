@@ -9,34 +9,78 @@
 
 	// State
 	const view = {
-		closed: [
-			'subjectKind',
-			'subjectSelector',
-			'relationshipKind',
-			'objectKind',
-			'objectSelector',
-			'source',
-			'timestampMs',
+	closed: [
+		{
+			label: 'subject',
+		},
+		{
+			label: 'relationship',
+		},
+		{
+			label: 'object',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'subject kind/selector',
+				},
+				{
+					label: 'relationship kind',
+				},
+				{
+					label: 'object kind/selector',
+				},
+			],
+			[
+				'source',
+				{
+					label: 'timestamp',
+				},
+				'confidence',
+				{
+					label: 'document/claim/evidence',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'subjectKind',
-					'subjectSelector',
-					'relationshipKind',
-					'objectKind',
-					'objectSelector',
-					'source',
-					'timestampMs',
-					'confidence',
-					'evidenceUri',
-					'evidenceHashAlgorithm',
-					'evidenceHash',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Evidence',
+				items: [
+					{
+						label: 'document',
+					},
+					{
+						label: 'document claim',
+					},
+					{
+						label: 'evidence URI/hash algorithm/hash',
+					},
 					'signature',
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Subject',
+				items: [
+					{
+						label: 'subject selector',
+					},
+				],
+			},
+			{
+				label: 'Object',
+				items: [
+					{
+						label: 'object selector',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

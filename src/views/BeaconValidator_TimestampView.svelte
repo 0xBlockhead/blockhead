@@ -9,31 +9,75 @@
 
 	// State
 	const view = {
-		closed: [
-			'slot',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'slot',
-					'source',
-					'timestampMs',
-					'balanceGwei',
-					'effectiveBalanceGwei',
-					'status',
-					'slashed',
-					'activationEligibilityEpoch',
-					'activationEpoch',
-					'exitEpoch',
-					'withdrawableEpoch',
-					'withdrawalCredentials',
-					'finalized',
-					'executionOptimistic',
-				],
-			],
+	closed: [
+		{
+			label: 'validator',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'slot',
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'validator',
+				},
+				'slot',
+				'source',
+				{
+					label: 'balance',
+				},
+				{
+					label: 'effective balance',
+				},
+				'status',
+				{
+					label: 'slashed flag',
+				},
+				{
+					label: 'activation/exit/withdrawable epochs',
+				},
+				{
+					label: 'finalized/execution-optimistic flags',
+				},
+				{
+					label: 'observation time',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Validator',
+				items: [
+					{
+						label: 'parent beacon validator',
+					},
+				],
+			},
+			{
+				label: 'Network state',
+				items: [
+					{
+						label: 'consensus network snapshot context',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: '/eth/v1/beacon/states/{state_id}/validators/{validator_id} or validator-list payload',
+					},
+					{
+						label: 'state id',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

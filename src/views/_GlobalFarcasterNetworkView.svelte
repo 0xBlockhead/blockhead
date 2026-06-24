@@ -9,56 +9,62 @@
 
 	// State
 	const view = {
-		closed: [
-			'scope',
+	closed: [
+		'scope',
+		'$$timestamps',
+		'$$sourceWindowUsers',
+	],
+	content: {
+		dl: [
+			[
+				'scope',
+				'$$timestamps',
+			],
+			[
+				'$$sourceWindowUsers',
+				'$$sourceWindowChannels',
+				'$$sourceWindowCasts',
+				'$$sourceWindowFeeds',
+			],
 		],
-		content: {
-			dl: [
-				[
-					'scope',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Source-window rows',
+				items: [
+					'$$sourceWindowUsers',
+					'$$sourceWindowChannels',
+					'$$sourceWindowCasts',
+					'$$sourceWindowFeeds',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'source window users',
-					when: 'open',
-					items: [
-						'$$sourceWindowUsers',
-					],
-				},
-				{
-					label: 'source window channels',
-					when: 'open',
-					items: [
-						'$$sourceWindowChannels',
-					],
-				},
-				{
-					label: 'source window casts',
-					when: 'open',
-					items: [
-						'$$sourceWindowCasts',
-					],
-				},
-				{
-					label: 'source window feeds',
-					when: 'open',
-					items: [
-						'$$sourceWindowFeeds',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Hub observations',
+				items: [
+					'$$timestamps',
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'SourceBinding.Constants_Internal',
+					},
+					{
+						label: 'SourceBinding.Farcaster_Rest',
+					},
+					{
+						label: 'SourceBinding.Neynar_Rest',
+					},
+					{
+						label: 'SourceBinding.Snapchain_Rest',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

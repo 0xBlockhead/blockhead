@@ -9,51 +9,117 @@
 
 	// State
 	const view = {
-		closed: [
-			'contentIndex',
+	closed: [
+		{
+			label: 'operation kind',
+		},
+		{
+			label: 'operation hash/content index',
+		},
+		'status',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'operation kind',
+				},
+				{
+					label: 'operation hash/content index',
+				},
+				'status',
+				{
+					label: 'source',
+				},
+				{
+					label: 'destination/delegate/contract',
+				},
+				'counter',
+				{
+					label: 'fee',
+				},
+				{
+					label: 'amount',
+				},
+				{
+					label: 'token transfer count',
+				},
+				{
+					label: 'big-map diff count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'contentIndex',
-					'operationKind',
-					'sourceAddress',
-					'destinationAddress',
-					'delegateAddress',
-					'contractAddress',
-					'counter',
-					'feeMutez',
-					'gasLimit',
-					'storageLimit',
-					'amountMutez',
-					'parameters',
-					'status',
-					'consumedGas',
-					'storageSize',
-					'paidStorageSizeDiff',
-					'originatedContractAddresses',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Gas/storage/result',
+				items: [
+					{
+						label: 'consumed gas',
+					},
+					{
+						label: 'storage size',
+					},
+					{
+						label: 'paid storage diff',
+					},
+					{
+						label: 'errors',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'internal operations',
-					when: 'open',
-					items: [
-						'$$internalOperations',
-					],
-				},
-				{
-					label: 'big map diffs',
-					when: 'open',
-					items: [
-						'$$bigMapDiffs',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Parameters',
+				items: [
+					{
+						label: 'decoded parameter payload',
+					},
+				],
+			},
+			{
+				label: 'Internal operations',
+				items: [
+					{
+						label: 'internal operation effects',
+					},
+				],
+			},
+			{
+				label: 'Big-map diffs',
+				items: [
+					{
+						label: 'big-map diff effects',
+					},
+				],
+			},
+			{
+				label: 'Token transfers',
+				items: [
+					{
+						label: 'token transfers sourced from this operation',
+					},
+				],
+			},
+			{
+				label: 'Originated contracts',
+				items: [
+					{
+						label: 'originated contracts',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'node/indexer operation payloads',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

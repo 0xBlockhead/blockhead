@@ -9,58 +9,89 @@
 
 	// State
 	const view = {
-		closed: [
-			'digest',
+	closed: [
+		'digest',
+		{
+			label: 'kind',
+		},
+		'sender',
+	],
+	content: {
+		dl: [
+			[
+				'digest',
+				{
+					label: 'kind',
+				},
+				'sender',
+				{
+					label: 'latest status',
+				},
+				{
+					label: 'latest checkpoint',
+				},
+				{
+					label: 'latest timestamp',
+				},
+				{
+					label: 'latest gas budget/price',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'digest',
-					'transactionKind',
-					'sender',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest execution',
+				items: [
+					{
+						label: 'latest checkpoint/source execution observation',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'commands',
-					when: 'open',
-					items: [
-						'$$commands',
-					],
-				},
-				{
-					label: 'object changes',
-					when: 'open',
-					items: [
-						'$$objectChanges',
-					],
-				},
-				{
-					label: 'balance changes',
-					when: 'open',
-					items: [
-						'$$balanceChanges',
-					],
-				},
-				{
-					label: 'events',
-					when: 'open',
-					items: [
-						'$$events',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Execution history',
+				items: [
+					{
+						label: 'timestamped transaction execution observations',
+					},
+				],
+			},
+			{
+				label: 'Commands',
+				items: [
+					{
+						label: 'programmable transaction commands',
+					},
+				],
+			},
+			{
+				label: 'Object changes',
+				items: [
+					{
+						label: 'object effect rows',
+					},
+				],
+			},
+			{
+				label: 'Balance changes',
+				items: [
+					{
+						label: 'balance delta rows',
+					},
+				],
+			},
+			{
+				label: 'Events',
+				items: [
+					{
+						label: 'Sui event rows',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

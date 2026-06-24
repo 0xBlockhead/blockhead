@@ -9,35 +9,94 @@
 
 	// State
 	const view = {
-		closed: [
-			'id',
-		],
-		content: {
-			dl: [
-				[
-					'id',
-					'name',
-					'pinned',
-					'systemPrompt',
-					'defaultConnectionId',
-					'defaultModelId',
-					'createdAt',
-					'updatedAt',
-				],
-			],
+	actions: [
+		{
+			id: 'pin-conversation',
+			label: 'Pin conversation',
+			kind: 'createLocal',
+			slot: 'PinConversationAction',
 		},
-		details: {
-			tabs: [
+		{
+			id: 'delete-conversation',
+			label: 'Delete conversation',
+			kind: 'deleteLocal',
+			slot: 'DeleteConversationAction',
+		},
+	],
+	forms: [
+		{
+			id: 'new-turn',
+			label: 'New turn',
+			kind: 'createLocal',
+			fields: [
 				{
-					label: 'turns',
-					when: 'open',
-					items: [
-						'$$turns',
-					],
+					name: 'prompt',
+					label: 'Prompt',
+					kind: 'textarea',
 				},
 			],
+			slot: 'CreateConversationTurnForm',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+	],
+	closed: [
+		'name',
+		'id',
+		'pinned',
+		{
+			slot: 'LastActivity',
+			label: 'Last activity',
+		},
+	],
+	content: {
+		dl: [
+			[
+				'name',
+				'id',
+				'pinned',
+				'createdAt',
+				'updatedAt',
+				'defaultConnectionId',
+				'defaultModelId',
+				'$profile',
+				'$acpSession',
+				'$a2aTask',
+			],
+			[
+				'systemPrompt',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Turns',
+				items: [
+					'$$turns',
+				],
+			},
+			{
+				label: 'Preferences',
+				items: [
+					'defaultConnectionId',
+					'defaultModelId',
+				],
+			},
+			{
+				label: 'Protocol refs',
+				items: [
+					'$acpSession',
+					'$a2aTask',
+				],
+			},
+			{
+				label: 'Profile',
+				items: [
+					'$profile',
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

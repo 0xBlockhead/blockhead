@@ -9,24 +9,98 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'ledgerSequence',
-					'amount',
-					'sponsor',
-					'claimants',
-					'deleted',
-				],
-			],
+	closed: [
+		{
+			label: 'claimable balance',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'asset',
+		},
+		'amount',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'claimable balance',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'ledger sequence',
+				},
+				{
+					label: 'asset',
+				},
+				'amount',
+			],
+			[
+				'sponsor',
+				{
+					label: 'claimant count',
+				},
+				{
+					label: 'claimed transaction',
+				},
+				{
+					label: 'deleted state',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Claimable balance',
+				items: [
+					{
+						label: 'parent Stellar claimable balance',
+					},
+				],
+			},
+			{
+				label: 'Claimants',
+				items: [
+					{
+						label: 'destination/predicate table',
+					},
+				],
+			},
+			{
+				label: 'Asset',
+				items: [
+					{
+						label: 'claimable asset',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'create/claim transaction evidence',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Horizon claimable balance object',
+					},
+					{
+						label: 'RPC ledger entry payload',
+					},
+					{
+						label: 'explorer/indexer freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

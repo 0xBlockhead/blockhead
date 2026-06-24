@@ -9,44 +9,111 @@
 
 	// State
 	const view = {
-		closed: [
-			'strategyAddress',
+	closed: [
+		{
+			label: 'strategy address',
+		},
+		{
+			label: 'underlying token',
+		},
+		{
+			label: 'latest total shares',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'strategy address',
+				},
+				{
+					label: 'underlying token',
+				},
+				{
+					label: 'underlying coin',
+				},
+				{
+					label: 'strategy kind',
+				},
+				{
+					label: 'latest total shares/underlying',
+				},
+			],
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'strategy contract',
+				},
+				{
+					label: 'delegation count',
+				},
+				{
+					label: 'allocation count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'strategyAddress',
-					'underlyingToken',
-					'strategyKind',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Observations',
+				items: [
+					{
+						label: 'timestamped strategy accounting observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'delegations',
-					when: 'open',
-					items: [
-						'$$delegations',
-					],
-				},
-				{
-					label: 'allocations',
-					when: 'open',
-					items: [
-						'$$allocations',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Delegations',
+				items: [
+					{
+						label: 'delegation observations filtered by strategy',
+					},
+				],
+			},
+			{
+				label: 'Allocations',
+				items: [
+					{
+						label: 'allocation observations filtered by strategy',
+					},
+				],
+			},
+			{
+				label: 'Token',
+				items: [
+					{
+						label: 'underlying EVM coin instance',
+					},
+				],
+			},
+			{
+				label: 'Contract',
+				items: [
+					{
+						label: 'strategy EVM contract',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'StrategyManager strategy reads',
+					},
+					{
+						label: 'strategy token/share math',
+					},
+					{
+						label: 'indexer freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

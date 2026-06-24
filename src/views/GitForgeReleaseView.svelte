@@ -9,24 +9,72 @@
 
 	// State
 	const view = {
-		closed: [
-			'releaseTagName',
-		],
-		content: {
-			dl: [
-				[
-					'releaseTagName',
-					'name',
-					'targetObjectId',
-					'authorSelector',
-					'draft',
-					'prerelease',
-					'createdAt',
-					'publishedAt',
-				],
-			],
+	closed: [
+		{
+			label: 'forge mirror',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'release tag name',
+		},
+		'name',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'forge mirror',
+				},
+				{
+					label: 'release tag name',
+				},
+				'name',
+				{
+					label: 'target object id',
+				},
+				{
+					label: 'author selector',
+				},
+				{
+					label: 'draft/prerelease flags',
+				},
+				{
+					label: 'created timestamp',
+				},
+				{
+					label: 'published timestamp',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Forge mirror',
+				items: [
+					{
+						label: 'parent forge mirror',
+					},
+				],
+			},
+			{
+				label: 'Tag/ref',
+				items: [
+					{
+						label: 'Git tag or ref when resolved',
+					},
+				],
+			},
+			{
+				label: 'Assets',
+				items: [
+					{
+						label: 'downloadable release assets when modeled',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

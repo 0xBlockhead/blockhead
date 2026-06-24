@@ -9,26 +9,74 @@
 
 	// State
 	const view = {
-		closed: [
-			'infoHash',
-			'observerKey',
-			'timestampMs',
-		],
-		content: {
-			dl: [
-				[
-					'infoHash',
-					'observerKey',
-					'timestampMs',
-					'queriedNodeCount',
-					'responsiveNodeCount',
-					'peerCount',
-					'closestNodeIds',
-					'status',
-				],
-			],
+	closed: [
+		{
+			label: 'info hash',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observer',
+		},
+		{
+			label: 'timestamp',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'info hash',
+				},
+				{
+					label: 'observer',
+				},
+				{
+					label: 'timestamp',
+				},
+				'status',
+				{
+					label: 'queried node count',
+				},
+				{
+					label: 'responsive node count',
+				},
+				{
+					label: 'peer count',
+				},
+				{
+					label: 'closest node ids',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Closest nodes',
+				items: [
+					{
+						label: 'BitTorrentDhtNode_Timestamp list',
+					},
+				],
+			},
+			{
+				label: 'Swarm context',
+				items: [
+					{
+						label: 'BitTorrentSwarmObservation_Timestamp list for the same info hash',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'get_peers query/response summary when retained',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

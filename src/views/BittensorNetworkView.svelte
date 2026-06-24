@@ -9,38 +9,89 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[],
-			],
+	closed: [
+		{
+			label: 'linked Network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'latest finalized block',
+		},
+		{
+			label: 'latest runtime',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'linked Network',
 				},
 				{
-					label: 'blocks',
-					when: 'open',
-					items: [
-						'$$blocks',
-					],
+					label: 'latest finalized block',
 				},
 				{
-					label: 'subnets',
-					when: 'open',
-					items: [
-						'$$subnets',
-					],
+					label: 'latest runtime',
+				},
+				{
+					label: 'subnet count',
+				},
+				{
+					label: 'environment',
+				},
+				{
+					label: 'stack',
+				},
+				{
+					label: 'native asset',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Blocks',
+				items: [
+					{
+						label: 'Subtensor/Substrate block rows',
+					},
+				],
+			},
+			{
+				label: 'Subnets',
+				items: [
+					{
+						label: 'subnet rows by netuid',
+					},
+				],
+			},
+			{
+				label: 'Neurons',
+				items: [
+					{
+						label: 'neuron rows scoped under decoded subnets',
+					},
+				],
+			},
+			{
+				label: 'Network snapshots',
+				items: [
+					{
+						label: 'timestamped finality/runtime/node observations',
+					},
+				],
+			},
+			{
+				label: 'Resources',
+				items: [
+					{
+						label: 'faucets/block explorers from parent Network',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

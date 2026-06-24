@@ -9,22 +9,57 @@
 
 	// State
 	const view = {
-		closed: [
-			'uriTemplate',
-		],
-		content: {
-			dl: [
-				[
-					'uriTemplate',
-					'name',
-					'title',
-					'description',
-					'mimeType',
-					'annotations',
-				],
-			],
+	closed: [
+		{
+			label: 'server',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'URI template',
+		},
+		'name',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'server',
+				},
+				{
+					label: 'URI template',
+				},
+				'name',
+				'title',
+			],
+			[
+				'description',
+				{
+					label: 'mime type',
+				},
+				'annotations',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Server',
+				items: [
+					{
+						label: 'McpServer',
+					},
+				],
+			},
+			{
+				label: 'Annotations',
+				items: [
+					{
+						label: 'annotations JSON',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,42 +9,74 @@
 
 	// State
 	const view = {
-		closed: [
-			'address',
+	closed: [
+		'address',
+		{
+			label: 'network',
+		},
+		{
+			label: 'latest SUI balance',
+		},
+	],
+	content: {
+		dl: [
+			[
+				'address',
+				{
+					label: 'network',
+				},
+				{
+					label: 'latest SUI balance',
+				},
+				{
+					label: 'owned object count',
+				},
+				{
+					label: 'transaction count',
+				},
+				{
+					label: 'balance snapshot count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'address',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Balances',
+				items: [
+					{
+						label: 'coin balance observations grouped by coin type',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'balances',
-					when: 'open',
-					items: [
-						'$$balances',
-					],
-				},
-				{
-					label: 'objects',
-					when: 'open',
-					items: [
-						'$$objects',
-					],
-				},
-				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Owned objects',
+				items: [
+					{
+						label: 'Sui objects owned by this account',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'Sui transactions involving this account',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Sui network',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

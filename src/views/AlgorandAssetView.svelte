@@ -9,36 +9,76 @@
 
 	// State
 	const view = {
-		closed: [
-			'assetId',
+	closed: [
+		{
+			label: 'asset id',
+		},
+		'creator',
+		{
+			label: 'latest unit/name',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'asset id',
+				},
+				'creator',
+				{
+					label: 'network',
+				},
+			],
+			[
+				{
+					label: 'latest unit/name/decimals',
+				},
+				{
+					label: 'latest manager/reserve/freeze/clawback addresses',
+				},
+				{
+					label: 'latest supply snapshot',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'assetId',
-					'creator',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest params',
+				items: [
+					{
+						label: 'latest round/source asset observation',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'holding rounds',
-					when: 'open',
-					items: [
-						'$$holdingRounds',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Param history',
+				items: [
+					{
+						label: 'round/source asset parameter observations',
+					},
+				],
+			},
+			{
+				label: 'Holdings',
+				items: [
+					{
+						label: 'account holding rows for this asset',
+					},
+				],
+			},
+			{
+				label: 'Metadata',
+				items: [
+					{
+						label: 'ARC/source metadata from latest params URL/hash',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

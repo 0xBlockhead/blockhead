@@ -9,35 +9,84 @@
 
 	// State
 	const view = {
-		closed: [
-			'keyHash',
+	closed: [
+		{
+			label: 'big map',
+		},
+		{
+			label: 'key hash',
+		},
+		{
+			label: 'latest key summary',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'big map',
+				},
+				{
+					label: 'key hash',
+				},
+				{
+					label: 'latest key summary',
+				},
+				{
+					label: 'latest value summary',
+				},
+				{
+					label: 'first/last level',
+				},
+				{
+					label: 'update count',
+				},
+				{
+					label: 'active state',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'keyHash',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Big map',
+				items: [
+					{
+						label: 'parent Tezos big map',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'updates',
-					when: 'open',
-					items: [
-						'$$updates',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Current/history',
+				items: [
+					{
+						label: 'level/source key-value observations',
+					},
+				],
+			},
+			{
+				label: 'Updates',
+				items: [
+					{
+						label: 'big-map diffs for this key',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'key lookup',
+					},
+					{
+						label: 'history payloads',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

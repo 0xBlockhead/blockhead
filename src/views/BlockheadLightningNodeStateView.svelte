@@ -9,59 +9,134 @@
 
 	// State
 	const view = {
-		closed: [
-			'connectionId',
+	closed: [
+		{
+			label: 'connection id',
+		},
+		{
+			label: 'network',
+		},
+		{
+			label: 'node pubkey',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'connection id',
+				},
+				{
+					label: 'network',
+				},
+				{
+					label: 'node pubkey',
+				},
+				'alias',
+				{
+					label: 'latest chain sync',
+				},
+				{
+					label: 'latest graph sync',
+				},
+				{
+					label: 'latest block height',
+				},
+				{
+					label: 'latest balance summary',
+				},
+				{
+					label: 'latest peer/channel counts',
+				},
+				{
+					label: 'macaroon permission summary',
+				},
+				{
+					label: 'latest sync time',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'connectionId',
-					'lndPubkey',
-					'alias',
-					'macaroonPermissions',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest state',
+				items: [
+					{
+						label: 'latest connected-node observation',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'channel states',
-					when: 'open',
-					items: [
-						'$$channelStates',
-					],
-				},
-				{
-					label: 'channels',
-					when: 'open',
-					items: [
-						'$$channels',
-					],
-				},
-				{
-					label: 'invoices',
-					when: 'open',
-					items: [
-						'$$invoices',
-					],
-				},
-				{
-					label: 'payments',
-					when: 'open',
-					items: [
-						'$$payments',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'State history',
+				items: [
+					{
+						label: 'timestamped connected-node observations',
+					},
+				],
+			},
+			{
+				label: 'Public node',
+				items: [
+					{
+						label: 'public Lightning node when advertised',
+					},
+				],
+			},
+			{
+				label: 'Local channel states',
+				items: [
+					{
+						label: 'local channel-state rows',
+					},
+				],
+			},
+			{
+				label: 'Public channel refs',
+				items: [
+					{
+						label: 'public channel rows for channels with graph identities',
+					},
+				],
+			},
+			{
+				label: 'Invoices',
+				items: [
+					{
+						label: 'local invoice rows',
+					},
+				],
+			},
+			{
+				label: 'Payments',
+				items: [
+					{
+						label: 'local payment rows',
+					},
+				],
+			},
+			{
+				label: 'Permissions',
+				items: [
+					{
+						label: 'macaroon permissions',
+					},
+					{
+						label: 'connection metadata',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Lightning network',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

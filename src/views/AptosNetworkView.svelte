@@ -9,66 +9,105 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[],
-			],
+	closed: [
+		{
+			label: 'linked Network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'latest ledger version/block/chain id snapshot',
+		},
+		{
+			label: 'epoch',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'linked Network',
 				},
 				{
-					label: 'blocks',
-					when: 'open',
-					items: [
-						'$$blocks',
-					],
+					label: 'latest ledger version/block/chain id snapshot',
 				},
 				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
+					label: 'epoch',
 				},
 				{
-					label: 'accounts',
-					when: 'open',
-					items: [
-						'$$accounts',
-					],
+					label: 'execution environment',
 				},
 				{
-					label: 'modules',
-					when: 'open',
-					items: [
-						'$$modules',
-					],
+					label: 'account count',
 				},
 				{
-					label: 'events',
-					when: 'open',
-					items: [
-						'$$events',
-					],
+					label: 'module count',
 				},
 				{
-					label: 'coin balance timestamps',
-					when: 'open',
-					items: [
-						'$$coinBalanceTimestamps',
-					],
+					label: 'transaction count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Blocks',
+				items: [
+					{
+						label: 'block rows by height/version range',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'transaction rows by version/hash',
+					},
+				],
+			},
+			{
+				label: 'Accounts',
+				items: [
+					{
+						label: 'account rows',
+					},
+				],
+			},
+			{
+				label: 'Modules',
+				items: [
+					{
+						label: 'published Move modules',
+					},
+				],
+			},
+			{
+				label: 'Events',
+				items: [
+					{
+						label: 'transaction event rows',
+					},
+				],
+			},
+			{
+				label: 'Balances',
+				items: [
+					{
+						label: 'account coin-balance observations',
+					},
+				],
+			},
+			{
+				label: 'Network snapshots',
+				items: [
+					{
+						label: 'ledger-head and node-retention observations',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

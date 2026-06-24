@@ -9,32 +9,81 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'availabilityStatus',
-					'supportedModelSelectors',
-					'inputModalities',
-					'outputModalities',
-					'supportedStreaming',
-					'supportedToolUse',
-					'supportedStructuredOutput',
-					'supportedJsonMode',
-					'supportedReasoningEffort',
-					'contextPolicy',
-					'rateLimitPolicy',
-					'pricingPolicy',
-					'error',
-				],
-			],
+	closed: [
+		{
+			label: 'operation',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		{
+			label: 'availability',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'operation',
+				},
+				{
+					label: 'timestamp',
+				},
+				'source',
+				{
+					label: 'availability',
+				},
+			],
+			[
+				{
+					label: 'supported model selectors',
+				},
+				{
+					label: 'modalities',
+				},
+				{
+					label: 'streaming/tool/structured support',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Operation',
+				items: [
+					{
+						label: 'AiProviderApiOperation',
+					},
+				],
+			},
+			{
+				label: 'Model support',
+				items: [
+					{
+						label: 'supported model selectors',
+					},
+				],
+			},
+			{
+				label: 'Policies',
+				items: [
+					{
+						label: 'context/rate-limit/pricing policies',
+					},
+				],
+			},
+			{
+				label: 'Error',
+				items: [
+					{
+						label: 'error field',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

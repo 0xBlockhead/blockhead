@@ -9,36 +9,81 @@
 
 	// State
 	const view = {
-		closed: [
-			'blockNumber',
-		],
-		content: {
-			dl: [
-				[
-					'blockNumber',
-					'blockHash',
-					'parentHash',
-					'newRoot',
-					'timestampMs',
-					'sequencerAddress',
-					'l1GasPrice',
-					'l1DataGasPrice',
-					'status',
-				],
-			],
+	closed: [
+		{
+			label: 'block number',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'block hash',
+		},
+		'status',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
+					label: 'block number',
+				},
+				{
+					label: 'block hash',
+				},
+				{
+					label: 'parent hash',
+				},
+				{
+					label: 'state root',
+				},
+				{
+					label: 'timestamp',
+				},
+				{
+					label: 'sequencer address',
+				},
+				{
+					label: 'gas price summary',
+				},
+				'status',
+				{
+					label: 'transaction count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'transactions in this block',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Starknet network',
+					},
+				],
+			},
+			{
+				label: 'Lookup evidence',
+				items: [
+					{
+						label: 'starknet_getBlockWithTxs block_id',
+					},
+					{
+						label: 'starknet_getBlockWithTxHashes block_id',
+					},
+					{
+						label: 'indexer block payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

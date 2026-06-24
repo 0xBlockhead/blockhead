@@ -9,49 +9,90 @@
 
 	// State
 	const view = {
-		closed: [
-			'address',
+	closed: [
+		{
+			label: 'network',
+		},
+		'address',
+		{
+			label: 'latest account-state snapshot',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				'address',
+				{
+					label: 'latest account number/sequence',
+				},
+				{
+					label: 'latest native-denom balance',
+				},
+				{
+					label: 'delegation count',
+				},
+				{
+					label: 'transaction count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'address',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Account snapshots',
+				items: [
+					{
+						label: 'timestamped account/auth state observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'balances',
-					when: 'open',
-					items: [
-						'$$balances',
-					],
-				},
-				{
-					label: 'delegations',
-					when: 'open',
-					items: [
-						'$$delegations',
-					],
-				},
-				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Balances',
+				items: [
+					{
+						label: 'timestamped account balance observations grouped by denom',
+					},
+				],
+			},
+			{
+				label: 'Delegations',
+				items: [
+					{
+						label: 'staking delegations from this account',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'Cosmos transactions involving this account when indexed',
+					},
+				],
+			},
+			{
+				label: 'Contracts/modules',
+				items: [
+					{
+						label: 'creator/admin/authority refs when linked by CosmosContract or CosmosModule',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Cosmos network',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

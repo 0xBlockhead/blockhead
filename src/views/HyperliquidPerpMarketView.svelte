@@ -9,28 +9,71 @@
 
 	// State
 	const view = {
-		closed: [
-			'coin',
-		],
-		content: {
-			dl: [
-				[
-					'coin',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		'coin',
+		{
+			label: 'latest max leverage',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'network',
+				},
+				'coin',
+				{
+					label: 'latest max leverage',
+				},
+				{
+					label: 'latest isolated-only flag',
+				},
+				{
+					label: 'timestamp count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest state',
+				items: [
+					{
+						label: 'latest perp universe observation',
+					},
+				],
+			},
+			{
+				label: 'State history',
+				items: [
+					{
+						label: 'timestamped perp universe observations',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Hyperliquid network',
+					},
+				],
+			},
+			{
+				label: 'Related market',
+				items: [
+					{
+						label: 'generic market row only when a separate selector maps this coin to venue/base/quote identity',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

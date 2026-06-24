@@ -9,37 +9,91 @@
 
 	// State
 	const view = {
-		closed: [
-			'id',
-		],
-		content: {
-			dl: [
-				[
-					'id',
-					'source',
-					'provider',
-					'label',
-					'endpointUrl',
-					'transportKind',
-					'authKind',
-					'corsMode',
-					'proxyMode',
-					'environmentScope',
-				],
-			],
+	closed: [
+		{
+			label: 'source id',
 		},
-		details: {
-			tabs: [
+		'label',
+		'provider',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'source id',
+				},
+				'label',
+				'provider',
+				{
+					label: 'source enum',
+				},
+				{
+					label: 'endpoint URL',
+				},
+				{
+					label: 'transport kind',
+				},
+				{
+					label: 'auth kind',
+				},
+				{
+					label: 'CORS/proxy mode',
+				},
+				{
+					label: 'environment scope',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Health',
+				items: [
+					{
+						label: 'BlockheadSource_Timestamp list',
+					},
+				],
+			},
+			{
+				label: 'Transport',
+				items: [
+					{
+						label: 'endpoint URL',
+					},
+					{
+						label: 'auth kind',
+					},
+					{
+						label: 'CORS/proxy policy',
+					},
+					{
+						label: 'local env scope',
+					},
+				],
+			},
+			{
+				label: 'Source catalog',
+				items: [
+					{
+						label: 'Source/SourceProvider enum ids',
+					},
+					{
+						label: 'resolver coverage notes',
+					},
+				],
+			},
+			{
+				label: 'Usage',
+				items: [
+					{
+						label: 'routes or resolver families that selected this local source config',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

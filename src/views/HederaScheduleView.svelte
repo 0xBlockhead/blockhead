@@ -9,38 +9,95 @@
 
 	// State
 	const view = {
-		closed: [
-			'scheduleId',
+	closed: [
+		{
+			label: 'schedule id',
+		},
+		{
+			label: 'creator',
+		},
+		{
+			label: 'payer',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'schedule id',
+				},
+				{
+					label: 'creator',
+				},
+				{
+					label: 'payer',
+				},
+				{
+					label: 'latest executed timestamp',
+				},
+				{
+					label: 'deleted flag',
+				},
+				{
+					label: 'expiration',
+				},
+				{
+					label: 'wait-for-expiry',
+				},
+				{
+					label: 'signature count',
+				},
+				{
+					label: 'timestamp count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'scheduleId',
-					'creatorAccountId',
-					'payerAccountId',
-					'transactionBody',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Scheduled transaction body',
+				items: [
+					{
+						label: 'transactionBody JSON',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'signatures',
-					when: 'open',
-					items: [
-						'$$signatures',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Latest state',
+				items: [
+					{
+						label: 'latest schedule lifecycle observation',
+					},
+				],
+			},
+			{
+				label: 'State history',
+				items: [
+					{
+						label: 'timestamped schedule lifecycle observations',
+					},
+				],
+			},
+			{
+				label: 'Signatures',
+				items: [
+					{
+						label: 'schedule signature rows',
+					},
+				],
+			},
+			{
+				label: 'Execution transaction',
+				items: [
+					{
+						label: 'executed Hedera transaction when available',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,34 +9,128 @@
 
 	// State
 	const view = {
-		closed: [
-			'sessionId',
-		],
-		content: {
-			dl: [
-				[
-					'sessionId',
-					'role',
-					'status',
-					'bip21Uri',
-					'endpointUrl',
-					'receiverAddress',
-					'amountSats',
-					'disableOutputSubstitution',
-					'minFeeRateSatPerVbyte',
-					'additionalFeeOutputIndex',
-					'maxAdditionalFeeContributionSats',
-					'originalPsbtHash',
-					'proposalPsbtHash',
-					'finalTransactionId',
-					'errorCode',
-					'createdAt',
-					'updatedAt',
-					'completedAt',
-				],
-			],
+	closed: [
+		{
+			label: 'session id',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'role',
+		'status',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'session id',
+				},
+				'role',
+				'status',
+				{
+					label: 'network',
+				},
+				{
+					label: 'endpoint',
+				},
+				{
+					label: 'directory',
+				},
+				{
+					label: 'receiver address',
+				},
+				{
+					label: 'amount',
+				},
+				{
+					label: 'output-substitution flag',
+				},
+				{
+					label: 'fee constraints',
+				},
+				{
+					label: 'PSBT hash availability',
+				},
+				{
+					label: 'final transaction id',
+				},
+				{
+					label: 'error code',
+				},
+				{
+					label: 'created/updated/completed times',
+				},
+				{
+					label: 'source coverage',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Request',
+				items: [
+					{
+						label: 'BIP21 URI',
+					},
+					{
+						label: 'endpoint URL',
+					},
+					{
+						label: 'version/fee/output-substitution parameters',
+					},
+				],
+			},
+			{
+				label: 'PSBT exchange',
+				items: [
+					{
+						label: 'original/proposal PSBT hashes',
+					},
+					{
+						label: 'validation state',
+					},
+				],
+			},
+			{
+				label: 'Final transaction',
+				items: [
+					{
+						label: 'UTXO transaction when broadcast/resolved',
+					},
+				],
+			},
+			{
+				label: 'Directory/OHTTP',
+				items: [
+					{
+						label: 'Payjoin directory',
+					},
+					{
+						label: 'relay metadata',
+					},
+				],
+			},
+			{
+				label: 'Error',
+				items: [
+					{
+						label: 'well-known BIP78 error code',
+					},
+					{
+						label: 'local debug payload',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent UTXO network',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

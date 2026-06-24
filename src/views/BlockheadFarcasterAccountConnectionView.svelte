@@ -9,25 +9,73 @@
 
 	// State
 	const view = {
-		closed: [
-			'fid',
-		],
-		content: {
-			dl: [
-				[
-					'fid',
-					'username',
-					'displayName',
-					'iconUrl',
-					'bio',
-					'verifications',
-					'custody',
-					'authMethod',
-					'signedAt',
-				],
-			],
+	closed: [
+		{
+			label: 'FID',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'username',
+		{
+			label: 'display name',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'FID',
+				},
+				'username',
+				{
+					label: 'display name',
+				},
+				{
+					label: 'icon',
+				},
+				'bio',
+				{
+					label: 'custody address',
+				},
+				{
+					label: 'auth method',
+				},
+				{
+					label: 'signed time',
+				},
+				{
+					label: 'verification count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Feed',
+				items: [
+					{
+						label: 'casts for the connected FID when indexed',
+					},
+				],
+			},
+			{
+				label: 'Verification',
+				items: [
+					{
+						label: 'custody/auth-address proof fields',
+					},
+				],
+			},
+			{
+				label: 'Profile',
+				items: [
+					{
+						label: 'hydrated social profile fields',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

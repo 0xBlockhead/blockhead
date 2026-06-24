@@ -9,42 +9,65 @@
 
 	// State
 	const view = {
-		closed: [
-			'sequence',
+	closed: [
+		'sequence',
+		'hash',
+		{
+			label: 'close time',
+		},
+	],
+	content: {
+		dl: [
+			[
+				'sequence',
+				'hash',
+				{
+					label: 'close time',
+				},
+				{
+					label: 'protocol version',
+				},
+				{
+					label: 'transaction/operation counts',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'sequence',
-					'hash',
-					'closeTimeMs',
-					'protocolVersion',
-					'transactionCount',
-					'operationCount',
-					'successfulTransactionCount',
-					'failedTransactionCount',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'transactions in this ledger',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
-				},
-				{
-					label: 'operations',
-					when: 'open',
-					items: [
-						'$$operations',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Operations',
+				items: [
+					{
+						label: 'operations in this ledger',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Horizon ledger payload',
+					},
+					{
+						label: 'RPC ledger/head payload',
+					},
+					{
+						label: 'explorer ledger stats',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

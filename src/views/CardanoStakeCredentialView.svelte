@@ -9,37 +9,99 @@
 
 	// State
 	const view = {
-		closed: [
-			'credential',
+	closed: [
+		{
+			label: 'network',
+		},
+		'credential',
+		{
+			label: 'credential kind',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				'credential',
+				{
+					label: 'credential kind',
+				},
+				{
+					label: 'reward address',
+				},
+				{
+					label: 'latest registered flag',
+				},
+				{
+					label: 'latest active pool',
+				},
+				{
+					label: 'latest active DRep',
+				},
+				{
+					label: 'delegation epoch count',
+				},
+				{
+					label: 'address count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'credential',
-					'credentialKind',
-					'rewardAddress',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Delegation history',
+				items: [
+					{
+						label: 'epoch-bounded stake/DRep delegation rows',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'delegation epochs',
-					when: 'open',
-					items: [
-						'$$delegationEpochs',
-					],
-				},
-				{
-					label: 'addresses',
-					when: 'open',
-					items: [
-						'$$addresses',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Addresses',
+				items: [
+					{
+						label: 'Cardano addresses sharing the credential',
+					},
+				],
+			},
+			{
+				label: 'Active pool',
+				items: [
+					{
+						label: 'stake pool from latest delegation epoch',
+					},
+				],
+			},
+			{
+				label: 'Active DRep',
+				items: [
+					{
+						label: 'DRep from latest delegation epoch',
+					},
+				],
+			},
+			{
+				label: 'Rewards',
+				items: [
+					{
+						label: 'epoch reward fields when sourced',
+					},
+				],
+			},
+			{
+				label: 'Certificates',
+				items: [
+					{
+						label: 'registration/delegation/withdrawal certificate effects',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

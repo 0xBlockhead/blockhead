@@ -9,35 +9,128 @@
 
 	// State
 	const view = {
-		closed: [
-			'paymentHash',
-		],
-		content: {
-			dl: [
-				[
-					'paymentHash',
-					'paymentRequest',
-					'memo',
-					'valueMsat',
-					'createdAtMs',
-					'expirySeconds',
-					'private',
-					'addIndex',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'payment hash',
+		},
+		'memo',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'network',
+				},
+				{
+					label: 'payment hash',
+				},
+				'memo',
+				{
+					label: 'latest state',
+				},
+				{
+					label: 'value msat',
+				},
+				{
+					label: 'latest amount paid',
+				},
+				{
+					label: 'created time',
+				},
+				{
+					label: 'latest settled time',
+				},
+				{
+					label: 'expiry seconds',
+				},
+				{
+					label: 'private flag',
+				},
+				{
+					label: 'add index',
+				},
+				{
+					label: 'latest settle index',
+				},
+				{
+					label: 'payment request',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest state',
+				items: [
+					{
+						label: 'latest invoice lifecycle observation',
+					},
+				],
+			},
+			{
+				label: 'State history',
+				items: [
+					{
+						label: 'timestamped invoice lifecycle observations',
+					},
+				],
+			},
+			{
+				label: 'Local node',
+				items: [
+					{
+						label: 'connected Lightning node state',
+					},
+				],
+			},
+			{
+				label: 'Payment request',
+				items: [
+					{
+						label: 'full BOLT11 string',
+					},
+					{
+						label: 'decoded invoice context when available',
+					},
+				],
+			},
+			{
+				label: 'Settlement',
+				items: [
+					{
+						label: 'amount paid',
+					},
+					{
+						label: 'settled time',
+					},
+					{
+						label: 'settle index',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Lightning network',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'LND invoice identity/request payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

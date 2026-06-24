@@ -9,24 +9,84 @@
 
 	// State
 	const view = {
-		closed: [
-			'accountId',
-		],
-		content: {
-			dl: [
-				[
-					'accountId',
-					'publicKey',
-					'stakeYoctoNear',
-					'isSlashed',
-					'expectedBlocks',
-					'producedBlocks',
-					'expectedChunks',
-					'producedChunks',
-				],
-			],
+	closed: [
+		{
+			label: 'validator account',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'public key',
+		},
+		{
+			label: 'latest stake/status/performance observation',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'validator account',
+				},
+				{
+					label: 'public key',
+				},
+				{
+					label: 'latest stake/status/performance observation',
+				},
+				{
+					label: 'account link',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Validator observations',
+				items: [
+					{
+						label: 'epoch-scoped validator-set observations',
+					},
+				],
+			},
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'validator NEAR account',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent NEAR network',
+					},
+				],
+			},
+			{
+				label: 'Epoch groups',
+				items: [
+					{
+						label: 'current',
+					},
+					{
+						label: 'next',
+					},
+					{
+						label: 'proposal',
+					},
+					{
+						label: 'fisherman',
+					},
+					{
+						label: 'kickout facets when source payloads expose them',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

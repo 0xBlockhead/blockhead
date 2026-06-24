@@ -9,24 +9,76 @@
 
 	// State
 	const view = {
-		closed: [
-			'rangeStart',
-			'rangeEnd',
-			'registryVersion',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'rangeStart',
-					'rangeEnd',
-					'registryVersion',
-					'source',
-					'timestampMs',
-				],
-			],
+	closed: [
+		{
+			label: 'subnet',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'range start',
+		},
+		{
+			label: 'range end',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'subnet',
+				},
+				{
+					label: 'range start',
+				},
+				{
+					label: 'range end',
+				},
+				{
+					label: 'registry version',
+				},
+				'source',
+				{
+					label: 'observed time',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Subnet',
+				items: [
+					{
+						label: 'parent ICP subnet',
+					},
+				],
+			},
+			{
+				label: 'Hosted canisters',
+				items: [
+					{
+						label: 'canisters filtered by range when indexed',
+					},
+				],
+			},
+			{
+				label: 'Registry version',
+				items: [
+					{
+						label: 'ICP network observation when resolved',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'registry routing-table/source payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

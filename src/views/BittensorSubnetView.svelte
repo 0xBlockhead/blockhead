@@ -9,39 +9,87 @@
 
 	// State
 	const view = {
-		closed: [
-			'netuid',
+	closed: [
+		{
+			label: 'network',
+		},
+		'netuid',
+		'name',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				'netuid',
+				'name',
+				{
+					label: 'subnet-info byte length',
+				},
+				{
+					label: 'dynamic-info byte length',
+				},
+				{
+					label: 'hyperparams byte length',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'netuid',
-					'name',
-					'subnetInfoByteLength',
-					'dynamicInfoByteLength',
-					'hyperparamsByteLength',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Payload summaries',
+				items: [
+					{
+						label: 'subnetInfo_getSubnetInfo byte length',
+					},
+					{
+						label: 'subnetInfo_getDynamicInfo byte length',
+					},
+					{
+						label: 'subnetInfo_getSubnetHyperparams byte length',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'metagraph timestamps',
-					when: 'open',
-					items: [
-						'$$metagraphTimestamps',
-					],
-				},
-				{
-					label: 'neurons',
-					when: 'open',
-					items: [
-						'$$neurons',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Metagraph snapshots',
+				items: [
+					{
+						label: 'timestamped metagraph payload observations',
+					},
+				],
+			},
+			{
+				label: 'Neurons',
+				items: [
+					{
+						label: 'neuron rows by uid',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Bittensor network',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Bittensor JSON-RPC SCALE payloads',
+					},
+					{
+						label: 'decoder/version context',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

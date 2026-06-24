@@ -9,28 +9,106 @@
 
 	// State
 	const view = {
-		closed: [
-			'endpointUrl',
-			'endpointKind',
-			'timestampMs',
-			'source',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'endpoint URL',
+		},
+		{
+			label: 'endpoint kind',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'endpoint URL',
+				},
+				{
+					label: 'endpoint kind',
+				},
+				'source',
+				{
+					label: 'timestamp',
+				},
+				{
+					label: 'CORS/proxy policy',
+				},
+				'health',
+				{
+					label: 'latency',
+				},
+				'error',
+				{
+					label: 'source freshness',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'endpointUrl',
-					'endpointKind',
-					'timestampMs',
-					'source',
-					'corsEnabled',
-					'proxyAllowed',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'Network',
+					},
+				],
+			},
+			{
+				label: 'Endpoint',
+				items: [
+					{
+						label: 'URL',
+					},
+					{
+						label: 'kind',
+					},
+					{
+						label: 'source definition or catalog origin',
+					},
+				],
+			},
+			{
+				label: 'Browser policy',
+				items: [
+					{
+						label: 'CORS enabled',
+					},
+					{
+						label: 'proxy allowed',
+					},
+				],
+			},
+			{
+				label: 'Health check',
+				items: [
 					'health',
-					'latencyMs',
+					{
+						label: 'latency',
+					},
 					'error',
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'runtime probe',
+					},
+					{
+						label: 'catalog/source freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

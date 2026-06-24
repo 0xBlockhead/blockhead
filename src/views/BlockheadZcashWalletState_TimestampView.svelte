@@ -9,32 +9,104 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'balanceZatoshis',
-					'verifiedBalanceZatoshis',
-					'spendableBalanceZatoshis',
-					'unshieldedBalanceZatoshis',
-					'saplingBalanceZatoshis',
-					'orchardBalanceZatoshis',
-					'changePendingConfirmationZatoshis',
-					'valuePendingSpendabilityZatoshis',
-					'uneconomicValueZatoshis',
-					'lastScannedHeight',
-					'chainTipHeight',
-					'recoveryState',
-					'lastSyncedAt',
-				],
-			],
+	closed: [
+		{
+			label: 'wallet state',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'wallet state',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'total balance',
+				},
+				{
+					label: 'verified balance',
+				},
+				{
+					label: 'spendable balance',
+				},
+				{
+					label: 'transparent/Sapling/Orchard balance breakdowns',
+				},
+				{
+					label: 'pending-change value',
+				},
+				{
+					label: 'pending-spendability value',
+				},
+				{
+					label: 'uneconomic value',
+				},
+				{
+					label: 'scan height',
+				},
+				{
+					label: 'chain tip height',
+				},
+				{
+					label: 'recovery state',
+				},
+				{
+					label: 'sync time',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Wallet',
+				items: [
+					{
+						label: 'parent local Zcash wallet state',
+					},
+				],
+			},
+			{
+				label: 'Viewing keys',
+				items: [
+					{
+						label: 'local Zcash viewing keys',
+					},
+				],
+			},
+			{
+				label: 'Notes',
+				items: [
+					{
+						label: 'local Zcash note states',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'zcashd wallet balance/list RPC payloads',
+					},
+					{
+						label: 'lightwalletd tip/tree state',
+					},
+					{
+						label: 'or local SDK account balance rows',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

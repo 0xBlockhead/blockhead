@@ -9,76 +9,111 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[
-					'rpcEndpoints',
-					'restEndpoints',
+	closed: [
+		{
+			label: 'head HyperEVM block',
+		},
+		{
+			label: 'environment',
+		},
+		{
+			label: 'stack',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'head HyperEVM block',
+				},
+				{
+					label: 'environment',
+				},
+				{
+					label: 'stack',
+				},
+				{
+					label: 'endpoint availability',
+				},
+				{
+					label: 'latest perp market count',
+				},
+				{
+					label: 'latest spot asset count',
+				},
+				{
+					label: 'latest spot pair count',
+				},
+				{
+					label: 'latest validator count',
+				},
+				{
+					label: 'latest vault count when sourced',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Execution',
+				items: [
+					{
+						label: 'blocks',
+					},
+					{
+						label: 'transactions',
+					},
+					{
+						label: 'network snapshots',
+					},
+					{
+						label: 'validators',
+					},
+					{
+						label: 'endpoints',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'blocks',
-					when: 'open',
-					items: [
-						'$$blocks',
-					],
-				},
-				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
-				},
-				{
-					label: 'validators',
-					when: 'open',
-					items: [
-						'$$validators',
-					],
-				},
-				{
-					label: 'spot assets',
-					when: 'open',
-					items: [
-						'$$spotAssets',
-					],
-				},
-				{
-					label: 'spot pairs',
-					when: 'open',
-					items: [
-						'$$spotPairs',
-					],
-				},
-				{
-					label: 'perp markets',
-					when: 'open',
-					items: [
-						'$$perpMarkets',
-					],
-				},
-				{
-					label: 'vaults',
-					when: 'open',
-					items: [
-						'$$vaults',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Assets',
+				items: [
+					{
+						label: 'native coin',
+					},
+					{
+						label: 'perp markets',
+					},
+					{
+						label: 'spot assets',
+					},
+					{
+						label: 'spot pairs',
+					},
+				],
+			},
+			{
+				label: 'Vaults',
+				items: [
+					{
+						label: 'Hyperliquid vault rows',
+					},
+				],
+			},
+			{
+				label: 'Resources',
+				items: [
+					{
+						label: 'faucets',
+					},
+					{
+						label: 'block explorers',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

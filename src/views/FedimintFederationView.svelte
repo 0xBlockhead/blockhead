@@ -9,41 +9,93 @@
 
 	// State
 	const view = {
-		closed: [
-			'federationId',
+	closed: [
+		{
+			label: 'federation id',
+		},
+		'name',
+		{
+			label: 'guardian count',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'federation id',
+				},
+				'name',
+				{
+					label: 'guardian count',
+				},
+				{
+					label: 'guardian threshold',
+				},
+				{
+					label: 'consensus version',
+				},
+				{
+					label: 'module count',
+				},
+				{
+					label: 'latest health',
+				},
+				{
+					label: 'latest meta summary',
+				},
+				{
+					label: 'gateway count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'federationId',
-					'name',
-					'guardianCount',
-					'guardianThreshold',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Config',
+				items: [
 					'clientConfigJson',
-					'moduleConfigJson',
-					'consensusVersion',
+					{
+						label: 'guardian/module config summaries',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'gateways',
-					when: 'open',
-					items: [
-						'$$gateways',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Modules',
+				items: [
+					{
+						label: 'mint',
+					},
+					{
+						label: 'wallet',
+					},
+					{
+						label: 'Lightning',
+					},
+					{
+						label: 'meta module config facets',
+					},
+				],
+			},
+			{
+				label: 'Gateways',
+				items: [
+					{
+						label: 'Fedimint gateway rows',
+					},
+				],
+			},
+			{
+				label: 'Observations',
+				items: [
+					{
+						label: 'timestamped federation health/meta observations',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

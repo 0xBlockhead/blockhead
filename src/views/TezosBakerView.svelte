@@ -9,35 +9,97 @@
 
 	// State
 	const view = {
-		closed: [
-			'address',
+	closed: [
+		{
+			label: 'baker address',
+		},
+		{
+			label: 'consensus key',
+		},
+		{
+			label: 'latest staking balance',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'baker address',
+				},
+				{
+					label: 'consensus key',
+				},
+				{
+					label: 'latest staking balance',
+				},
+				{
+					label: 'voting power',
+				},
+				{
+					label: 'active status',
+				},
+				{
+					label: 'cycle snapshot count',
+				},
+				{
+					label: 'rights count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'address',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Cycle snapshots',
+				items: [
+					{
+						label: 'cycle-bounded baker performance observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'cycle timestamps',
-					when: 'open',
-					items: [
-						'$$cycleTimestamps',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Rights',
+				items: [
+					{
+						label: 'baking/attestation rights',
+					},
+				],
+			},
+			{
+				label: 'Produced blocks',
+				items: [
+					{
+						label: 'blocks filtered by baker',
+					},
+				],
+			},
+			{
+				label: 'Delegators',
+				items: [
+					{
+						label: 'accounts delegated to baker',
+					},
+				],
+			},
+			{
+				label: 'Baker history',
+				items: [
+					{
+						label: 'level/source baker-state observations',
+					},
+				],
+			},
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'underlying Tezos account',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

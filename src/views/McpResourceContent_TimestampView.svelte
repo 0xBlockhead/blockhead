@@ -9,28 +9,75 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'contentKind',
-					'text',
-					'blobHashAlgorithm',
-					'blobHash',
-					'uri',
-					'mimeType',
-					'size',
-					'annotations',
-					'error',
-				],
-			],
+	closed: [
+		{
+			label: 'resource',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		{
+			label: 'content kind',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'resource',
+				},
+				{
+					label: 'timestamp',
+				},
+				'source',
+				{
+					label: 'kind',
+				},
+			],
+			[
+				{
+					label: 'URI',
+				},
+				{
+					label: 'mime type',
+				},
+				'size',
+				{
+					label: 'blob hash algorithm/hash',
+				},
+				'error',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Resource',
+				items: [
+					{
+						label: 'McpResource',
+					},
+				],
+			},
+			{
+				label: 'Content',
+				items: [
+					{
+						label: 'text/blob hash',
+					},
+				],
+			},
+			{
+				label: 'Annotations',
+				items: [
+					{
+						label: 'annotations payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

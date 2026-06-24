@@ -9,24 +9,83 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[],
-			],
+	closed: [
+		{
+			label: 'proposal',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'voter',
+		},
+		{
+			label: 'latest option',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'proposal',
+				},
+				{
+					label: 'voter',
+				},
+				{
+					label: 'latest option/weight',
+				},
+				{
+					label: 'latest vote time',
+				},
+				{
+					label: 'metadata presence',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Proposal',
+				items: [
+					{
+						label: 'parent governance proposal',
+					},
+				],
+			},
+			{
+				label: 'Voter',
+				items: [
+					{
+						label: 'voter Cosmos account',
+					},
+				],
+			},
+			{
+				label: 'Vote observations',
+				items: [
+					{
+						label: 'timestamped option/weight rows',
+					},
+				],
+			},
+			{
+				label: 'Weighted options',
+				items: [
+					{
+						label: 'raw weighted-vote JSON when present',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'x/gov vote payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

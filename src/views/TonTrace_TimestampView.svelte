@@ -9,23 +9,75 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'status',
-					'transactionCount',
-					'messageCount',
-					'error',
-				],
-			],
+	closed: [
+		{
+			label: 'trace',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time/source',
+		},
+		'status',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'trace',
+				},
+				{
+					label: 'observation time/source',
+				},
+				'status',
+				{
+					label: 'transaction count',
+				},
+				{
+					label: 'message count',
+				},
+				'error',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Trace',
+				items: [
+					{
+						label: 'parent trace identity',
+					},
+				],
+			},
+			{
+				label: 'Transaction DAG',
+				items: [
+					{
+						label: 'transactions through trace',
+					},
+				],
+			},
+			{
+				label: 'Message edges',
+				items: [
+					{
+						label: 'messages through trace',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'trace payload freshness',
+					},
+					{
+						label: 'indexer graph status',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

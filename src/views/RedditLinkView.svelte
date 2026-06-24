@@ -9,41 +9,63 @@
 
 	// State
 	const view = {
-		closed: [
-			'fullname',
+	closed: [
+		'fullname',
+		'title',
+		'selftext',
+	],
+	content: {
+		dl: [
+			[
+				'fullname',
+				'title',
+				'selftext',
+				{
+					label: 'URL',
+				},
+				'permalink',
+				'author',
+				{
+					label: 'created time',
+				},
+				{
+					label: 'subreddit',
+				},
+				{
+					label: 'latest score/comment-count snapshot',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'fullname',
-					'title',
-					'selftext',
-					'url',
-					'permalink',
-					'author',
-					'createdAt',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Comments',
+				items: [
+					{
+						label: 'comment tree rows',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'comments',
-					when: 'open',
-					items: [
-						'$$comments',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Subreddit',
+				items: [
+					{
+						label: 'parent subreddit',
+					},
+				],
+			},
+			{
+				label: 'Metric snapshots',
+				items: [
+					{
+						label: 'timestamped score/comment-count observations',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

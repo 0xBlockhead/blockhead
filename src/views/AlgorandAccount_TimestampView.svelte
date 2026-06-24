@@ -9,23 +9,74 @@
 
 	// State
 	const view = {
-		closed: [
-			'round',
-			'source',
+	closed: [
+		{
+			label: 'account',
+		},
+		'round',
+		'amount',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'account',
+				},
+				'round',
+				'amount',
+				{
+					label: 'pending rewards',
+				},
+				{
+					label: 'rewards base',
+				},
+				'status',
+				'source',
+			],
 		],
-		content: {
-			dl: [
-				[
-					'round',
-					'source',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'AlgorandAccount',
+					},
+				],
+			},
+			{
+				label: 'Round state',
+				items: [
 					'amount',
-					'pendingRewards',
-					'rewardsBase',
+					{
+						label: 'pending rewards',
+					},
+					{
+						label: 'rewards base',
+					},
 					'status',
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'History',
+				items: [
+					{
+						label: 'AlgorandAccount_Timestamp list by round',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'algod/indexer account payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

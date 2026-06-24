@@ -9,33 +9,88 @@
 
 	// State
 	const view = {
-		closed: [
-			'connectionId',
-		],
-		content: {
-			dl: [
-				[
-					'connectionId',
-					'clientId',
-					'counterpartyClientId',
-					'counterpartyConnectionId',
-					'state',
-					'delayPeriodNs',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'connection id',
+		},
+		{
+			label: 'client id',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'channels',
-					when: 'open',
-					items: [
-						'$$channels',
-					],
+					label: 'network',
+				},
+				{
+					label: 'connection id',
+				},
+				{
+					label: 'client id',
+				},
+				{
+					label: 'client ref',
+				},
+				{
+					label: 'counterparty client/connection',
+				},
+				'state',
+				{
+					label: 'delay period',
+				},
+				{
+					label: 'channel count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Channels',
+				items: [
+					{
+						label: 'IBC channels over this connection',
+					},
+				],
+			},
+			{
+				label: 'Client',
+				items: [
+					{
+						label: 'linked IBC client',
+					},
+				],
+			},
+			{
+				label: 'Counterparty',
+				items: [
+					{
+						label: 'counterparty client/connection ids',
+					},
+					{
+						label: 'resolved network when available',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'connection',
+					},
+					{
+						label: 'connection-channels query payloads',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,60 +9,96 @@
 
 	// State
 	const view = {
-		closed: [
-			'rid',
+	closed: [
+		{
+			label: 'RID',
+		},
+		{
+			label: 'linked Git repository',
+		},
+		'name',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'RID',
+				},
+				{
+					label: 'linked Git repository',
+				},
+				'name',
+				'description',
+				'visibility',
+				{
+					label: 'default branch',
+				},
+				{
+					label: 'delegate count',
+				},
+				{
+					label: 'latest signed-ref status',
+				},
+				{
+					label: 'issue count',
+				},
+				{
+					label: 'patch count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'rid',
-					'name',
-					'description',
-					'visibility',
-					'defaultBranch',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Identity',
+				items: [
+					{
+						label: 'identity documents',
+					},
+					{
+						label: 'identity revisions',
+					},
+					{
+						label: 'delegates',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'delegates',
-					when: 'open',
-					items: [
-						'$$delegates',
-					],
-				},
-				{
-					label: 'signed refs',
-					when: 'open',
-					items: [
-						'$$signedRefs',
-					],
-				},
-				{
-					label: 'issues',
-					when: 'open',
-					items: [
-						'$$issues',
-					],
-				},
-				{
-					label: 'patches',
-					when: 'open',
-					items: [
-						'$$patches',
-					],
-				},
-				{
-					label: 'seed observations',
-					when: 'open',
-					items: [
-						'$$seedObservations',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Signed refs',
+				items: [
+					{
+						label: 'signed refs by node/ref',
+					},
+				],
+			},
+			{
+				label: 'Collaboration',
+				items: [
+					{
+						label: 'issues/patches/comments/events',
+					},
+				],
+			},
+			{
+				label: 'Replication',
+				items: [
+					{
+						label: 'BlockheadRadicleSeedObservation_Timestamp rows when a connected node observes availability',
+					},
+				],
+			},
+			{
+				label: 'Git storage',
+				items: [
+					{
+						label: 'linked Git repository',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

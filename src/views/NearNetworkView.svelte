@@ -9,46 +9,102 @@
 
 	// State
 	const view = {
-		closed: [
-			'slug',
-		],
-		content: {
-			dl: [
-				[
-					'slug',
-					'name',
-					'namespace',
-					'environment',
-					'rpcEndpoints',
-				],
-			],
-		},
-		details: {
-			tabs: [
+	closed: [
+		'slug',
+		'name',
+		'environment',
+	],
+	content: {
+		dl: [
+			[
+				'slug',
+				'name',
+				'environment',
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'head block',
 				},
 				{
-					label: 'blocks',
-					when: 'open',
-					items: [
-						'$$blocks',
-					],
+					label: 'native asset count',
+				},
+				{
+					label: 'epoch',
+				},
+				{
+					label: 'protocol version',
+				},
+				{
+					label: 'validator counts',
+				},
+				{
+					label: 'gas price',
+				},
+				{
+					label: 'network snapshots',
 				},
 				{
 					label: 'validators',
-					when: 'open',
-					items: [
-						'$$validators',
-					],
+				},
+				{
+					label: 'endpoints',
+				},
+				{
+					label: 'native assets',
+				},
+				{
+					label: 'faucets',
+				},
+				{
+					label: 'block explorers',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Blocks',
+				items: [
+					{
+						label: 'NearBlock list',
+					},
+				],
+			},
+			{
+				label: 'Validators',
+				items: [
+					{
+						label: 'NearValidator list',
+					},
+				],
+			},
+			{
+				label: 'Network snapshots',
+				items: [
+					{
+						label: 'NearNetwork_Timestamp list',
+					},
+				],
+			},
+			{
+				label: 'Endpoints/resources',
+				items: [
+					{
+						label: 'RPC endpoints',
+					},
+					{
+						label: 'native assets',
+					},
+					{
+						label: 'faucets',
+					},
+					{
+						label: 'block explorers',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

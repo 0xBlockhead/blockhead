@@ -9,33 +9,77 @@
 
 	// State
 	const view = {
-		closed: [
-			'cid',
-		],
-		content: {
-			dl: [
-				[
-					'cid',
-					'treeCid',
-					'datasetSizeBytes',
-					'blockSizeBytes',
-					'filename',
-					'mimetype',
-				],
-			],
+	closed: [
+		{
+			label: 'CID',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'tree CID',
+		},
+		{
+			label: 'dataset size',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'local copies',
-					when: 'open',
-					items: [
-						'$$localCopies',
-					],
+					label: 'CID',
+				},
+				{
+					label: 'tree CID',
+				},
+				{
+					label: 'dataset size',
+				},
+				{
+					label: 'block size',
+				},
+				'filename',
+				'mimetype',
+				{
+					label: 'local copy count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Local copies',
+				items: [
+					{
+						label: 'BlockheadCodexStoredData list',
+					},
+				],
+			},
+			{
+				label: 'Manifest',
+				items: [
+					{
+						label: 'manifest fields from /data or /data/{cid}/network/manifest',
+					},
+				],
+			},
+			{
+				label: 'Download',
+				items: [
+					{
+						label: 'BlockheadCodexStoredData_Timestamp download/availability history',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Codex REST DataItem/ManifestItem payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

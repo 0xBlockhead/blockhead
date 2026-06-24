@@ -9,28 +9,67 @@
 
 	// State
 	const view = {
-		closed: [
-			'boxName',
-		],
-		content: {
-			dl: [
-				[
-					'boxName',
-				],
-			],
+	closed: [
+		{
+			label: 'application',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'box name',
+		},
+		{
+			label: 'latest value hash',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'rounds',
-					when: 'open',
-					items: [
-						'$$rounds',
-					],
+					label: 'application',
+				},
+				{
+					label: 'box name',
+				},
+				{
+					label: 'latest value hash',
+				},
+				{
+					label: 'latest round/source',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Application',
+				items: [
+					{
+						label: 'parent application',
+					},
+				],
+			},
+			{
+				label: 'Round observations',
+				items: [
+					{
+						label: 'round/source box value observations',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'box name listing',
+					},
+					{
+						label: 'application box lookup payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

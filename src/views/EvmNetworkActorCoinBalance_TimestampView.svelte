@@ -9,24 +9,86 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'blockNumber',
-					'balance',
-					'usdValue',
-					'priceUsd',
-					'tokenMetadata',
-				],
-			],
+	closed: [
+		{
+			label: 'actor coin',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'actor coin',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'block number when known',
+				},
+				'balance',
+				{
+					label: 'USD value',
+				},
+				{
+					label: 'price',
+				},
+				{
+					label: 'token metadata summary',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Actor coin',
+				items: [
+					{
+						label: 'parent actor/coin balance identity',
+					},
+				],
+			},
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'parent EVM network account',
+					},
+				],
+			},
+			{
+				label: 'Coin',
+				items: [
+					{
+						label: 'EVM coin instance or token contract',
+					},
+				],
+			},
+			{
+				label: 'Block',
+				items: [
+					{
+						label: 'EVM block when blockNumber resolves',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Allium latest wallet balance row or RPC balanceOf/eth_getBalance response',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

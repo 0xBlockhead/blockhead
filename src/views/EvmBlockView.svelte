@@ -9,37 +9,70 @@
 
 	// State
 	const view = {
-		closed: [
-			'blockNumber',
-		],
-		content: {
-			dl: [
-				[
-					'blockNumber',
-					'hash',
-					'parentHash',
-					'timestamp',
-					'gasUsed',
-					'gasLimit',
-					'baseFeePerGas',
-					'blobGasUsed',
-					'excessBlobGas',
-					'transactionCount',
-				],
-			],
+	closed: [
+		{
+			label: 'block number',
 		},
-		details: {
-			tabs: [
+		'hash',
+		{
+			label: 'transaction count',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
+					label: 'block number',
+				},
+				'hash',
+				'timestamp',
+				{
+					label: 'gas/base fee/blob gas',
+				},
+				{
+					label: 'parent block',
+				},
+				{
+					label: 'miner/validator account',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Chain',
+				items: [
+					{
+						label: 'parent EVM network',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'transactions included in the block',
+					},
+				],
+			},
+			{
+				label: 'Lookup evidence',
+				items: [
+					{
+						label: 'eth_getBlockByNumber',
+					},
+					{
+						label: 'eth_getBlockByHash',
+					},
+					{
+						label: 'explorer block detail/list payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

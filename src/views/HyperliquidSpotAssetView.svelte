@@ -9,42 +9,95 @@
 
 	// State
 	const view = {
-		closed: [
-			'assetId',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'asset id',
+		},
+		{
+			label: 'latest name',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'asset id',
+				},
+				{
+					label: 'latest name',
+				},
+				{
+					label: 'latest size decimals',
+				},
+				{
+					label: 'latest wei decimals',
+				},
+				{
+					label: 'latest token id',
+				},
+				{
+					label: 'base pair count',
+				},
+				{
+					label: 'quote pair count',
+				},
+				{
+					label: 'timestamp count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'assetId',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest state',
+				items: [
+					{
+						label: 'latest spot-asset universe observation',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'base pairs',
-					when: 'open',
-					items: [
-						'$$basePairs',
-					],
-				},
-				{
-					label: 'quote pairs',
-					when: 'open',
-					items: [
-						'$$quotePairs',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'State history',
+				items: [
+					{
+						label: 'timestamped spot-asset universe observations',
+					},
+				],
+			},
+			{
+				label: 'Spot pairs',
+				items: [
+					{
+						label: 'base-side and quote-side spot pair rows',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Hyperliquid network',
+					},
+				],
+			},
+			{
+				label: 'Related markets',
+				items: [
+					{
+						label: 'generic market rows only when separate venue/base/quote selectors map spot pairs to market identity',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

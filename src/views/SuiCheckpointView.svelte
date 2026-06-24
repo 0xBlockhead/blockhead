@@ -9,32 +9,69 @@
 
 	// State
 	const view = {
-		closed: [
-			'sequence',
+	closed: [
+		'sequence',
+		'digest',
+		'epoch',
+	],
+	content: {
+		dl: [
+			[
+				'sequence',
+				'digest',
+				'epoch',
+				{
+					label: 'timestamp',
+				},
+				{
+					label: 'previous digest',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'SuiNetwork',
+					},
+				],
+			},
+			{
+				label: 'Checkpoint header',
+				items: [
 					'sequence',
 					'digest',
 					'epoch',
-					'timestampMs',
-					'previousDigest',
+					{
+						label: 'timestamp',
+					},
+					{
+						label: 'previous digest',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'SuiTransaction list',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Sui checkpoint payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

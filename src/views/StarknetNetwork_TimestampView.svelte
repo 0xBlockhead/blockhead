@@ -9,24 +9,83 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'latestBlockNumber',
-					'latestBlockHash',
-					'syncing',
-					'protocolVersion',
-					'pendingBlockHash',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		{
+			label: 'latest block',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'latest block number',
+				},
+				{
+					label: 'latest block hash',
+				},
+				{
+					label: 'syncing state',
+				},
+				{
+					label: 'protocol version',
+				},
+				{
+					label: 'pending block hash',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Starknet network',
+					},
+				],
+			},
+			{
+				label: 'Latest block',
+				items: [
+					{
+						label: 'Starknet block when resolved',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'starknet_blockNumber',
+					},
+					{
+						label: 'starknet_syncing',
+					},
+					{
+						label: 'starknet_specVersion',
+					},
+					{
+						label: 'indexer status payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

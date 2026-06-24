@@ -9,46 +9,92 @@
 
 	// State
 	const view = {
-		closed: [
-			'connectionId',
+	closed: [
+		{
+			label: 'connection id',
+		},
+		{
+			label: 'network',
+		},
+		'endpoint',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'connection id',
+				},
+				{
+					label: 'network',
+				},
+				'endpoint',
+				{
+					label: 'gRPC/REST ports',
+				},
+				{
+					label: 'peer id',
+				},
+				{
+					label: 'latest frame',
+				},
+				{
+					label: 'latest engine state',
+				},
+				{
+					label: 'peer/prover count',
+				},
+				{
+					label: 'latest sync time',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'connectionId',
-					'endpoint',
-					'grpcPort',
-					'restPort',
-					'peerId',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'State observations',
+				items: [
+					{
+						label: 'timestamped connected-node observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'frames',
-					when: 'open',
-					items: [
-						'$$frames',
-					],
-				},
-				{
-					label: 'provers',
-					when: 'open',
-					items: [
-						'$$provers',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Frames',
+				items: [
+					{
+						label: 'locally observed frame heads',
+					},
+				],
+			},
+			{
+				label: 'Provers',
+				items: [
+					{
+						label: 'peers/provers exposed by the connected node',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent network',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					'endpoint',
+					{
+						label: 'scrape/RPC freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

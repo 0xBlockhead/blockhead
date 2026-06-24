@@ -9,47 +9,103 @@
 
 	// State
 	const view = {
-		closed: [
-			'fromChainId',
-			'toChainId',
-			'fromToken',
-			'toToken',
-			'fromAmount',
-			'fromAddress',
-			'slippage',
-			'toAddress',
+	closed: [
+		{
+			label: 'from-chain -> to-chain ids',
+		},
+		{
+			label: 'token pair',
+		},
+		{
+			label: 'request amount',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'from-chain -> to-chain ids',
+				},
+				{
+					label: 'from/to token addresses',
+				},
+				{
+					label: 'from amount',
+				},
+				{
+					label: 'from/to addresses',
+				},
+				'slippage',
+			],
+			[
+				{
+					label: 'to amount',
+				},
+				{
+					label: 'minimum received',
+				},
+				{
+					label: 'estimated cost',
+				},
+				{
+					label: 'ETA',
+				},
+				'tags',
+			],
 		],
-		content: {
-			dl: [
-				[
-					'fromChainId',
-					'toChainId',
-					'fromToken',
-					'toToken',
-					'fromAmount',
-					'fromAddress',
-					'slippage',
-					'toAddress',
-					'toAmount',
-					'toAmountMin',
-					'estimatedCostUsd',
-					'estimatedDurationSeconds',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Steps',
+				items: [
+					{
+						label: 'ordered BridgeRouteStep rows',
+					},
+				],
+			},
+			{
+				label: 'Networks',
+				items: [
+					{
+						label: 'from/to EVM network refs',
+					},
+				],
+			},
+			{
+				label: 'Request',
+				items: [
+					{
+						label: 'quote selector fields',
+					},
+				],
+			},
+			{
+				label: 'Quote result',
+				items: [
+					{
+						label: 'amounts',
+					},
+					{
+						label: 'cost',
+					},
+					{
+						label: 'duration',
+					},
 					'tags',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'steps',
-					when: 'open',
-					items: [
-						'$$steps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'LI.FI quote response',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

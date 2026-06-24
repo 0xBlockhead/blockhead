@@ -9,36 +9,84 @@
 
 	// State
 	const view = {
-		closed: [
-			'address',
-		],
-		content: {
-			dl: [
-				[
-					'address',
-					'namespace',
-					'owner',
-					'tokenName',
-					'tokenSymbol',
-					'createdAt',
-					'description',
-					'totalUsernames',
-					'rules',
-				],
-			],
+	closed: [
+		{
+			label: 'namespace address',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'namespace string',
+		},
+		'owner',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'usernames',
-					when: 'open',
-					items: [
-						'$$usernames',
-					],
+					label: 'namespace address',
+				},
+				{
+					label: 'namespace string',
+				},
+				'owner',
+				{
+					label: 'token name',
+				},
+				{
+					label: 'token symbol',
+				},
+				{
+					label: 'created time',
+				},
+				'description',
+				{
+					label: 'total usernames',
+				},
+				{
+					label: 'rule summary',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Usernames',
+				items: [
+					{
+						label: 'username rows minted in this namespace',
+					},
+				],
+			},
+			{
+				label: 'Owner',
+				items: [
+					{
+						label: 'owner EVM account when resolved',
+					},
+				],
+			},
+			{
+				label: 'Rules',
+				items: [
+					{
+						label: 'namespace rules JSON',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'namespace GraphQL payload',
+					},
+					{
+						label: 'namespace contract events when available',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

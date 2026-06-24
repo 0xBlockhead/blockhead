@@ -9,23 +9,94 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
+	closed: [
+		{
+			label: 'payment',
+		},
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'payment',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				'status',
+				{
+					label: 'fee msat',
+				},
+				{
+					label: 'failure reason',
+				},
+				{
+					label: 'preimage status',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Payment',
+				items: [
+					{
+						label: 'parent local payment',
+					},
+				],
+			},
+			{
+				label: 'Local node',
+				items: [
+					{
+						label: 'connected Lightning node state',
+					},
+				],
+			},
+			{
+				label: 'Invoice',
+				items: [
+					{
+						label: 'linked local invoice when resolved',
+					},
+				],
+			},
+			{
+				label: 'Result',
+				items: [
 					'status',
-					'feeMsat',
-					'failureReason',
+					{
+						label: 'fee',
+					},
+					{
+						label: 'failure reason',
+					},
 					'preimage',
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'LND listpayments',
+					},
+					{
+						label: 'trackpayment',
+					},
+					{
+						label: 'or payment subscription payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

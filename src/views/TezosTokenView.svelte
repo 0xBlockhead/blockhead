@@ -9,45 +9,96 @@
 
 	// State
 	const view = {
-		closed: [
-			'contractAddress',
-			'tokenId',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'contract address',
+		},
+		{
+			label: 'token id',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'contract address',
+				},
+				{
+					label: 'token id',
+				},
+				'standard',
+				{
+					label: 'contract ref',
+				},
+				{
+					label: 'latest name/symbol/decimals',
+				},
+				{
+					label: 'latest media URI availability',
+				},
+				{
+					label: 'latest supply',
+				},
+				{
+					label: 'holder count',
+				},
+				{
+					label: 'transfer count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'contractAddress',
-					'tokenId',
-					'standard',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Contract',
+				items: [
+					{
+						label: 'parent Tezos contract',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'balance timestamps',
-					when: 'open',
-					items: [
-						'$$balanceTimestamps',
-					],
-				},
-				{
-					label: 'transfers',
-					when: 'open',
-					items: [
-						'$$transfers',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Metadata/history',
+				items: [
+					{
+						label: 'level/source token metadata observations',
+					},
+				],
+			},
+			{
+				label: 'Balances',
+				items: [
+					{
+						label: 'token balance observations grouped by holder',
+					},
+				],
+			},
+			{
+				label: 'Transfers',
+				items: [
+					{
+						label: 'token transfer rows',
+					},
+				],
+			},
+			{
+				label: 'Ledger storage',
+				items: [
+					{
+						label: 'big-map rows for ledger/token_metadata big maps when resolved',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

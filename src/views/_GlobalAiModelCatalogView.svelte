@@ -9,72 +9,91 @@
 
 	// State
 	const view = {
-		closed: [
-			'catalogId',
+	closed: [
+		{
+			label: 'catalog id',
+		},
+		{
+			label: 'catalog kind',
+		},
+		{
+			label: 'latest model/provider coverage',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'catalog id',
+				},
+				'label',
+				{
+					label: 'catalog kind',
+				},
+				{
+					label: 'latest observation',
+				},
+			],
+			[
+				{
+					label: 'provider/model/dataset/benchmark entry points',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'catalogId',
-					'label',
-					'catalogKind',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Providers',
+				items: [
+					{
+						label: 'AiModelProvider list',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'providers',
-					when: 'open',
-					items: [
-						'$$providers',
-					],
-				},
-				{
-					label: 'catalog entries',
-					when: 'open',
-					items: [
-						'$$catalogEntries',
-					],
-				},
-				{
-					label: 'models',
-					when: 'open',
-					items: [
-						'$$models',
-					],
-				},
-				{
-					label: 'datasets',
-					when: 'open',
-					items: [
-						'$$datasets',
-					],
-				},
-				{
-					label: 'benchmarks',
-					when: 'open',
-					items: [
-						'$$benchmarks',
-					],
-				},
-				{
-					label: 'evaluations',
-					when: 'open',
-					items: [
-						'$$evaluations',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Catalog entries',
+				items: [
+					{
+						label: 'AiProviderCatalogEntry list',
+					},
+				],
+			},
+			{
+				label: 'Models',
+				items: [
+					{
+						label: 'AiModel list',
+					},
+				],
+			},
+			{
+				label: 'Datasets',
+				items: [
+					{
+						label: 'AiDataset list',
+					},
+				],
+			},
+			{
+				label: 'Evaluations',
+				items: [
+					{
+						label: 'AiEvaluation_Timestamp list',
+					},
+				],
+			},
+			{
+				label: 'Observations',
+				items: [
+					{
+						label: '_GlobalAiModelCatalog_Timestamp list',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,49 +9,106 @@
 
 	// State
 	const view = {
-		closed: [
-			'sourceDomain',
-			'nonce',
-		],
-		content: {
-			dl: [
-				[
-					'sourceDomain',
-					'nonce',
-					'cctpVersion',
-					'messageHash',
-					'messageBytes',
-					'sourceTransactionHash',
-					'sourceLogIndex',
-					'destinationDomain',
-					'sender',
-					'recipient',
-					'destinationCaller',
-					'burnToken',
-					'mintRecipient',
-					'amount',
-					'messageSender',
-					'maxFee',
-					'feeExecuted',
-					'expirationBlock',
-					'hookData',
-					'minFinalityThreshold',
-					'finalityThresholdExecuted',
-				],
-			],
+	closed: [
+		{
+			label: 'source domain',
 		},
-		details: {
-			tabs: [
+		'nonce',
+		{
+			label: 'version',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'attestation timestamps',
-					when: 'open',
-					items: [
-						'$$attestationTimestamps',
-					],
+					label: 'source domain',
+				},
+				'nonce',
+				{
+					label: 'version',
+				},
+				{
+					label: 'message hash',
+				},
+				{
+					label: 'source transaction hash/log index',
+				},
+				{
+					label: 'destination domain',
+				},
+				'sender',
+				'recipient',
+				'amount',
+				{
+					label: 'burn token',
+				},
+				{
+					label: 'mint recipient',
+				},
+				{
+					label: 'finality thresholds',
+				},
+				{
+					label: 'latest attestation status',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Attestations',
+				items: [
+					{
+						label: 'timestamped Iris attestation observations',
+					},
+				],
+			},
+			{
+				label: 'Domain support',
+				items: [
+					{
+						label: 'source/destination CCTP domain support when mapped',
+					},
+				],
+			},
+			{
+				label: 'Source transaction',
+				items: [
+					{
+						label: 'chain-specific transaction row when mapped',
+					},
+				],
+			},
+			{
+				label: 'Message bytes/body',
+				items: [
+					{
+						label: 'raw message',
+					},
+					{
+						label: 'decoded body',
+					},
+					{
+						label: 'hook data',
+					},
+					{
+						label: 'fee fields',
+					},
+				],
+			},
+			{
+				label: 'Forwarding',
+				items: [
+					{
+						label: 'forward state/tx hash from latest attestation observation',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

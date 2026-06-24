@@ -9,55 +9,85 @@
 
 	// State
 	const view = {
-		closed: [
-			'turnId',
+	closed: [
+		{
+			label: 'session',
+		},
+		{
+			label: 'turn id',
+		},
+		{
+			label: 'stop reason',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'session',
+				},
+				{
+					label: 'turn id',
+				},
+				{
+					label: 'started/completed/cancelled at',
+				},
+			],
+			[
+				{
+					label: 'stop reason',
+				},
+				{
+					label: 'message/tool/file/permission refs',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'turnId',
-					'startedAt',
-					'completedAt',
-					'cancelledAt',
-					'stopReason',
-					'userPromptHashAlgorithm',
-					'userPromptHash',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Messages',
+				items: [
+					{
+						label: 'AcpMessage list',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'messages',
-					when: 'open',
-					items: [
-						'$$messages',
-					],
-				},
-				{
-					label: 'tool calls',
-					when: 'open',
-					items: [
-						'$$toolCalls',
-					],
-				},
-				{
-					label: 'file operations',
-					when: 'open',
-					items: [
-						'$$fileOperations',
-					],
-				},
-				{
-					label: 'permission requests',
-					when: 'open',
-					items: [
-						'$$permissionRequests',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Tool calls',
+				items: [
+					{
+						label: 'AcpToolCall list',
+					},
+				],
+			},
+			{
+				label: 'File operations',
+				items: [
+					{
+						label: 'AcpFileOperation list',
+					},
+				],
+			},
+			{
+				label: 'Permission requests',
+				items: [
+					{
+						label: 'AcpPermissionRequest list',
+					},
+				],
+			},
+			{
+				label: 'Session',
+				items: [
+					{
+						label: 'AcpSession',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

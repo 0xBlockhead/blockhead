@@ -9,32 +9,84 @@
 
 	// State
 	const view = {
-		closed: [
-			'round',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'round',
-					'source',
-					'total',
-					'decimals',
-					'defaultFrozen',
-					'unitName',
-					'assetName',
-					'url',
-					'metadataHash',
-					'manager',
-					'reserve',
-					'freeze',
-					'clawback',
-					'holderCount',
-					'deleted',
-				],
-			],
+	closed: [
+		{
+			label: 'unit/name',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'total supply',
+		},
+		'round',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'asset',
+				},
+				'round',
+				'source',
+				{
+					label: 'total supply',
+				},
+				'decimals',
+				{
+					label: 'default frozen',
+				},
+			],
+			[
+				{
+					label: 'unit/name/url/metadata hash',
+				},
+				{
+					label: 'manager/reserve/freeze/clawback',
+				},
+				{
+					label: 'holder count',
+				},
+				{
+					label: 'deleted state',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Asset',
+				items: [
+					{
+						label: 'parent asset identity',
+					},
+				],
+			},
+			{
+				label: 'Holdings at round',
+				items: [
+					{
+						label: 'asset holding rows when indexed',
+					},
+				],
+			},
+			{
+				label: 'Metadata',
+				items: [
+					{
+						label: 'ARC/source metadata URL/hash',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'algod/indexer asset params payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

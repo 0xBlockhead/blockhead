@@ -9,39 +9,97 @@
 
 	// State
 	const view = {
-		closed: [
-			'walletId',
-			'keysetId',
-			'secretHash',
-		],
-		content: {
-			dl: [
-				[
-					'walletId',
-					'keysetId',
-					'secretHash',
-					'secret',
-					'amount',
-					'unit',
-					'signature',
-					'dleqJson',
-					'receivedAt',
-					'sourceTokenId',
-				],
-			],
+	closed: [
+		{
+			label: 'wallet id',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'mint',
+		},
+		{
+			label: 'keyset id',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'wallet id',
+				},
+				{
+					label: 'mint',
+				},
+				{
+					label: 'keyset id',
+				},
+				{
+					label: 'secret hash',
+				},
+				'amount',
+				'unit',
+				{
+					label: 'latest observed proof state',
+				},
+				{
+					label: 'received time',
+				},
+				{
+					label: 'source token id',
+				},
+				{
+					label: 'timestamp count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest state',
+				items: [
+					{
+						label: 'BlockheadCashuProof_TimestampView',
+					},
+				],
+			},
+			{
+				label: 'State history',
+				items: [
+					{
+						label: 'BlockheadCashuProof_TimestampsView',
+					},
+				],
+			},
+			{
+				label: 'Mint/keyset',
+				items: [
+					{
+						label: 'CashuMintView',
+					},
+					{
+						label: 'CashuKeysetView',
+					},
+				],
+			},
+			{
+				label: 'Secret material',
+				items: [
+					{
+						label: 'redacted secret/signature/DLEQ fields with reveal controls only in local trusted UI',
+					},
+				],
+			},
+			{
+				label: 'Source token',
+				items: [
+					{
+						label: 'BlockheadCashuTokenView when imported from a token string',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,32 +9,67 @@
 
 	// State
 	const view = {
-		closed: [
-			'height',
-		],
-		content: {
-			dl: [
-				[
-					'height',
-					'containsVersion',
-					'firstVersion',
-					'lastVersion',
-					'timestampMs',
-				],
-			],
+	closed: [
+		{
+			label: 'block height',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'contained version lookup',
+		},
+		{
+			label: 'first/last version',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
+					label: 'block height',
+				},
+				{
+					label: 'contained version lookup',
+				},
+				{
+					label: 'first/last version',
+				},
+				{
+					label: 'timestamp',
+				},
+				{
+					label: 'transaction count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'transactions in the block version range',
+					},
+				],
+			},
+			{
+				label: 'Lookup evidence',
+				items: [
+					{
+						label: 'height lookup or contained-version lookup response',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Aptos network',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

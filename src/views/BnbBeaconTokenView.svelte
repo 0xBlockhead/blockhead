@@ -9,46 +9,88 @@
 
 	// State
 	const view = {
-		closed: [
-			'symbol',
+	closed: [
+		'symbol',
+		{
+			label: 'original symbol',
+		},
+		{
+			label: 'name',
+		},
+	],
+	content: {
+		dl: [
+			[
+				'symbol',
+				{
+					label: 'original symbol',
+				},
+				{
+					label: 'name',
+				},
+				{
+					label: 'owner',
+				},
+				{
+					label: 'token type',
+				},
+				{
+					label: 'latest supply/mintability',
+				},
+			],
+			[
+				{
+					label: 'mapped contract observation',
+				},
+				{
+					label: 'mint/burn/freeze effects',
+				},
+				{
+					label: 'migration records',
+				},
+				{
+					label: 'archive source evidence',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'symbol',
-					'originalSymbol',
-					'tokenName',
-					'ownerAddress',
-					'tokenType',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Observations',
+				items: [
+					{
+						label: 'timestamped token metadata/supply observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'transfers',
-					when: 'open',
-					items: [
-						'$$transfers',
-					],
-				},
-				{
-					label: 'migrations',
-					when: 'open',
-					items: [
-						'$$migrations',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Transfers',
+				items: [
+					{
+						label: 'archived Beacon token transfer rows',
+					},
+				],
+			},
+			{
+				label: 'Migrations',
+				items: [
+					{
+						label: 'Beacon-to-target token migration records',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent BNB Beacon network',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

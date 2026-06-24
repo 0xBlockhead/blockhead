@@ -9,46 +9,104 @@
 
 	// State
 	const view = {
-		closed: [
-			'traceId',
-			'source',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'trace id/root message',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'trace id/root message',
+				},
+				'source',
+				{
+					label: 'start time',
+				},
+				{
+					label: 'latest status',
+				},
+				{
+					label: 'transaction count',
+				},
+				{
+					label: 'message count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'traceId',
-					'source',
-					'rootTransactionSelector',
-					'startedAtMs',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Status snapshots',
+				items: [
+					{
+						label: 'trace graph/status observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
-				},
-				{
-					label: 'messages',
-					when: 'open',
-					items: [
-						'$$messages',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Transaction DAG',
+				items: [
+					{
+						label: 'transactions in trace order',
+					},
+				],
+			},
+			{
+				label: 'Message edges',
+				items: [
+					{
+						label: 'messages in trace graph',
+					},
+				],
+			},
+			{
+				label: 'Root message',
+				items: [
+					{
+						label: 'root message edge',
+					},
+				],
+			},
+			{
+				label: 'Asset effects',
+				items: [
+					{
+						label: 'decoded jetton and NFT transfer effects',
+					},
+				],
+			},
+			{
+				label: 'Failures',
+				items: [
+					{
+						label: 'failed phase/action summary from latest trace observation',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'trace payload',
+					},
+					{
+						label: 'indexer trace id/root-message mapping',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

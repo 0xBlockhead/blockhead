@@ -9,33 +9,100 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[
-					'rpcEndpoints',
+	closed: [
+		{
+			label: 'head tipset',
+		},
+		{
+			label: 'environment',
+		},
+		{
+			label: 'RPC endpoint availability',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'head tipset',
+				},
+				{
+					label: 'environment',
+				},
+				{
+					label: 'RPC endpoint availability',
+				},
+				{
+					label: 'latest network version',
+				},
+			],
+			[
+				{
+					label: 'latest power summary',
+				},
+				{
+					label: 'bounded recent tipset count',
+				},
+				{
+					label: 'indexed deal count when available',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Execution',
+				items: [
+					{
+						label: 'tipsets',
+					},
+					{
+						label: 'timestamped network/head observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'tipsets',
-					when: 'open',
-					items: [
-						'$$tipsets',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Consensus & Storage Power',
+				items: [
+					{
+						label: 'head miners from latest snapshot plus miner state observations when scoped',
+					},
+				],
+			},
+			{
+				label: 'Deals',
+				items: [
+					{
+						label: 'Filecoin deals from market state/indexer sources when wired',
+					},
+				],
+			},
+			{
+				label: 'Assets',
+				items: [
+					{
+						label: 'native coin',
+					},
+				],
+			},
+			{
+				label: 'Resources',
+				items: [
+					{
+						label: 'faucets',
+					},
+					{
+						label: 'block explorers',
+					},
+					{
+						label: 'source endpoints',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,24 +9,63 @@
 
 	// State
 	const view = {
-		closed: [
-			'level',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'level',
-					'source',
-					'timestampMs',
-					'balanceMutez',
-					'storageHash',
-					'storage',
-					'delegate',
-				],
-			],
+	closed: [
+		{
+			label: 'contract',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'level',
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'contract',
+				},
+				'level',
+				'source',
+				{
+					label: 'balance',
+				},
+				{
+					label: 'storage hash',
+				},
+				'delegate',
+				{
+					label: 'timestamp',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Contract',
+				items: [
+					{
+						label: 'parent Tezos contract',
+					},
+				],
+			},
+			{
+				label: 'Storage',
+				items: [
+					{
+						label: 'decoded storage JSON/Micheline',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'contract storage payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

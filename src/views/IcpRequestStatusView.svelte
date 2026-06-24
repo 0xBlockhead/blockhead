@@ -9,32 +9,123 @@
 
 	// State
 	const view = {
-		closed: [
-			'requestId',
-		],
-		content: {
-			dl: [
-				[
-					'requestId',
-					'methodName',
-					'requestKind',
-					'callerPrincipal',
-					'ingressExpiryNs',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'request id',
+		},
+		{
+			label: 'canister',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'network',
+				},
+				{
+					label: 'request id',
+				},
+				{
+					label: 'canister',
+				},
+				{
+					label: 'method',
+				},
+				{
+					label: 'request kind',
+				},
+				{
+					label: 'caller',
+				},
+				{
+					label: 'ingress expiry',
+				},
+				{
+					label: 'latest status',
+				},
+				{
+					label: 'certified time',
+				},
+				{
+					label: 'reply hash',
+				},
+				{
+					label: 'reject summary',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Status history',
+				items: [
+					{
+						label: 'timestamped request-status observations',
+					},
+				],
+			},
+			{
+				label: 'Canister',
+				items: [
+					{
+						label: 'target ICP canister',
+					},
+				],
+			},
+			{
+				label: 'Method',
+				items: [
+					{
+						label: 'canister method when resolved',
+					},
+				],
+			},
+			{
+				label: 'Request metadata',
+				items: [
+					{
+						label: 'caller',
+					},
+					{
+						label: 'ingress expiry',
+					},
+					{
+						label: 'request kind',
+					},
+				],
+			},
+			{
+				label: 'Certified status proof',
+				items: [
+					{
+						label: 'certificate/witness evidence',
+					},
+				],
+			},
+			{
+				label: 'Reply/reject payload',
+				items: [
+					{
+						label: 'reply hash or reject code/message',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'read_state request_status payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,49 +9,90 @@
 
 	// State
 	const view = {
-		closed: [
-			'txId',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'tx id',
+		},
+		{
+			label: 'block',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'tx id',
+				},
+				{
+					label: 'block',
+				},
+				'version',
+				{
+					label: 'fee',
+				},
+				{
+					label: 'size/vsize/weight',
+				},
+				{
+					label: 'lock time',
+				},
+				{
+					label: 'coinbase flag',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'txId',
-					'version',
-					'lockTime',
-					'sizeBytes',
-					'virtualSizeBytes',
-					'weightUnits',
-					'feeSats',
-					'isCoinbase',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Inputs',
+				items: [
+					{
+						label: 'transaction inputs',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'inputs',
-					when: 'open',
-					items: [
-						'$$inputs',
-					],
-				},
-				{
-					label: 'outputs',
-					when: 'open',
-					items: [
-						'$$outputs',
-					],
-				},
-				{
-					label: 'zcash shielded actions',
-					when: 'open',
-					items: [
-						'$$zcashShieldedActions',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Outputs',
+				items: [
+					{
+						label: 'transaction outputs',
+					},
+				],
+			},
+			{
+				label: 'Block',
+				items: [
+					{
+						label: 'containing block when confirmed',
+					},
+				],
+			},
+			{
+				label: 'Shielded actions',
+				items: [
+					{
+						label: 'Zcash shielded actions when present',
+					},
+				],
+			},
+			{
+				label: 'Raw/source',
+				items: [
+					{
+						label: 'source payload fields useful for debugging resolver conflicts',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

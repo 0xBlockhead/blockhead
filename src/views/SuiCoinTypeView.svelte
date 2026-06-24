@@ -9,47 +9,113 @@
 
 	// State
 	const view = {
-		closed: [
-			'coinType',
+	closed: [
+		{
+			label: 'coin type',
+		},
+		{
+			label: 'symbol/name',
+		},
+		'decimals',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'coin type',
+				},
+				'symbol',
+				'name',
+				'decimals',
+				'description',
+				{
+					label: 'icon URL',
+				},
+			],
+			[
+				{
+					label: 'defining Move struct',
+				},
+				{
+					label: 'treasury cap',
+				},
+				{
+					label: 'asset instance',
+				},
+				{
+					label: 'balance count',
+				},
+				{
+					label: 'object count',
+				},
+				{
+					label: 'regulated-state count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'coinType',
-					'decimals',
-					'symbol',
-					'name',
-					'description',
-					'iconUrl',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Balances',
+				items: [
+					{
+						label: 'coin balance observations grouped by account',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'balances',
-					when: 'open',
-					items: [
-						'$$balances',
-					],
-				},
-				{
-					label: 'objects',
-					when: 'open',
-					items: [
-						'$$objects',
-					],
-				},
-				{
-					label: 'regulated states',
-					when: 'open',
-					items: [
-						'$$regulatedStates',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Coin objects',
+				items: [
+					{
+						label: 'Sui objects filtered by coin type',
+					},
+				],
+			},
+			{
+				label: 'Regulated state',
+				items: [
+					{
+						label: 'timestamped regulated-coin state observations',
+					},
+				],
+			},
+			{
+				label: 'Move definition',
+				items: [
+					{
+						label: 'defining Move struct',
+					},
+				],
+			},
+			{
+				label: 'Asset mapping',
+				items: [
+					{
+						label: 'asset instance and format-support observations when resolved',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'suix_getCoinMetadata',
+					},
+					{
+						label: 'GraphQL coin metadata',
+					},
+					{
+						label: 'treasury-cap/object ownership evidence',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

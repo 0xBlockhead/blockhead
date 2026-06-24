@@ -9,58 +9,99 @@
 
 	// State
 	const view = {
-		closed: [
-			'serverKey',
+	closed: [
+		{
+			label: 'server key',
+		},
+		{
+			label: 'transport',
+		},
+		{
+			label: 'endpoint',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'server key',
+				},
+				{
+					label: 'source',
+				},
+				{
+					label: 'package version',
+				},
+				{
+					label: 'transport kind',
+				},
+			],
+			[
+				{
+					label: 'endpoint URL',
+				},
+				{
+					label: 'tool/resource/template/prompt refs',
+				},
+				{
+					label: 'latest health',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'serverKey',
-					'transportKind',
-					'endpointUrl',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Tools',
+				items: [
+					{
+						label: 'McpTool list',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'tools',
-					when: 'open',
-					items: [
-						'$$tools',
-					],
-				},
-				{
-					label: 'resources',
-					when: 'open',
-					items: [
-						'$$resources',
-					],
-				},
-				{
-					label: 'resource templates',
-					when: 'open',
-					items: [
-						'$$resourceTemplates',
-					],
-				},
-				{
-					label: 'prompts',
-					when: 'open',
-					items: [
-						'$$prompts',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Resources',
+				items: [
+					{
+						label: 'McpResource list',
+					},
+				],
+			},
+			{
+				label: 'Resource templates',
+				items: [
+					{
+						label: 'McpResourceTemplate list',
+					},
+				],
+			},
+			{
+				label: 'Prompts',
+				items: [
+					{
+						label: 'McpPrompt list',
+					},
+				],
+			},
+			{
+				label: 'Health',
+				items: [
+					{
+						label: 'McpServer_Timestamp list',
+					},
+				],
+			},
+			{
+				label: 'Package',
+				items: [
+					{
+						label: 'McpServerPackageVersion',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

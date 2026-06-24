@@ -9,17 +9,47 @@
 
 	// State
 	const view = {
-		closed: [
-			'id',
-		],
-		content: {
-			dl: [
-				[
-					'id',
-				],
-			],
+	closed: [
+		{
+			label: 'panel tree id',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'local dashboard workspace kind',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'panel tree id',
+				},
+				{
+					label: 'local dashboard workspace kind',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Layout',
+				items: [
+					{
+						label: 'saved geometry when modeled',
+					},
+				],
+			},
+			{
+				label: 'Panels',
+				items: [
+					{
+						label: 'saved panel route refs when modeled',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

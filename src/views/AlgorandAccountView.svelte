@@ -9,42 +9,68 @@
 
 	// State
 	const view = {
-		closed: [
-			'address',
+	closed: [
+		'address',
+		{
+			label: 'latest microAlgos',
+		},
+		{
+			label: 'rewards',
+		},
+	],
+	content: {
+		dl: [
+			[
+				'address',
+				{
+					label: 'latest microAlgos',
+				},
+				{
+					label: 'rewards',
+				},
+				{
+					label: 'status snapshot',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'address',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Asset holdings',
+				items: [
+					{
+						label: 'round-scoped asset holding rows',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'asset holding rounds',
-					when: 'open',
-					items: [
-						'$$assetHoldingRounds',
-					],
-				},
-				{
-					label: 'application local state rounds',
-					when: 'open',
-					items: [
-						'$$applicationLocalStateRounds',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Application local state',
+				items: [
+					{
+						label: 'round-scoped account/application state rows',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'transactions involving this address when indexed',
+					},
+				],
+			},
+			{
+				label: 'Account snapshots',
+				items: [
+					{
+						label: 'round/source account observations',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

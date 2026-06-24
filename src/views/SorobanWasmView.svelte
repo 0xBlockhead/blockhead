@@ -9,35 +9,97 @@
 
 	// State
 	const view = {
-		closed: [
-			'wasmHash',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'wasm hash',
+		},
+		{
+			label: 'latest bytecode availability',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'wasm hash',
+				},
+				{
+					label: 'latest bytecode availability',
+				},
+				{
+					label: 'latest interface version',
+				},
+				{
+					label: 'latest spec-entry count',
+				},
+				{
+					label: 'contract count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'wasmHash',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest code',
+				items: [
+					{
+						label: 'latest ledger/source WASM-code observation',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'contracts',
-					when: 'open',
-					items: [
-						'$$contracts',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Code history',
+				items: [
+					{
+						label: 'ledger/source WASM-code observations',
+					},
+				],
+			},
+			{
+				label: 'Contracts',
+				items: [
+					{
+						label: 'contracts using this WASM',
+					},
+				],
+			},
+			{
+				label: 'Bytes',
+				items: [
+					{
+						label: 'raw WASM bytes when fetched',
+					},
+				],
+			},
+			{
+				label: 'Spec',
+				items: [
+					{
+						label: 'contract spec entries',
+					},
+					{
+						label: 'environment metadata',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'RPC/indexer payloads',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

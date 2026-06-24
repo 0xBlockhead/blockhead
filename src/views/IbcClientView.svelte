@@ -9,44 +9,107 @@
 
 	// State
 	const view = {
-		closed: [
-			'clientId',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'client id',
+		},
+		{
+			label: 'client type',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'client id',
+				},
+				{
+					label: 'client type',
+				},
+				{
+					label: 'latest height',
+				},
+				{
+					label: 'frozen height',
+				},
+				{
+					label: 'counterparty chain id',
+				},
+				{
+					label: 'trust level',
+				},
+				{
+					label: 'trusting period',
+				},
+				{
+					label: 'unbonding period',
+				},
+				{
+					label: 'max clock drift',
+				},
+				{
+					label: 'connection count',
+				},
+				{
+					label: 'channel count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'clientId',
-					'clientType',
-					'latestHeight',
-					'frozenHeight',
-					'trustLevel',
-					'trustingPeriodNs',
-					'unbondingPeriodNs',
-					'maxClockDriftNs',
-					'counterpartyChainId',
-					'consensusStates',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Connections',
+				items: [
+					{
+						label: 'IBC connections using this client',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'connections',
-					when: 'open',
-					items: [
-						'$$connections',
-					],
-				},
-				{
-					label: 'channels',
-					when: 'open',
-					items: [
-						'$$channels',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Channels',
+				items: [
+					{
+						label: 'IBC channels using this client',
+					},
+				],
+			},
+			{
+				label: 'Counterparty',
+				items: [
+					{
+						label: 'resolved network plus registry/indexer chain claims',
+					},
+				],
+			},
+			{
+				label: 'Consensus states',
+				items: [
+					{
+						label: 'decoded consensus-state list',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'client state',
+					},
+					{
+						label: 'consensus-state query payloads',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,30 +9,102 @@
 
 	// State
 	const view = {
-		closed: [
-			'tid',
+	closed: [
+		{
+			label: 'account',
+		},
+		{
+			label: 'trade id',
+		},
+		{
+			label: 'order id',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'account',
+				},
+				{
+					label: 'trade id',
+				},
+				{
+					label: 'order id',
+				},
+				'coin',
+				'side',
+				'direction',
+				'price',
+				'size',
+				'fee',
+				{
+					label: 'fee token',
+				},
+				{
+					label: 'closed PnL',
+				},
+				{
+					label: 'time',
+				},
+				'hash',
+				{
+					label: 'crossed flag',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'tid',
-					'oid',
-					'coin',
-					'side',
-					'direction',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'parent Hyperliquid account',
+					},
+				],
+			},
+			{
+				label: 'Order',
+				items: [
+					{
+						label: 'linked Hyperliquid order when order id resolves',
+					},
+				],
+			},
+			{
+				label: 'Transaction',
+				items: [
+					{
+						label: 'HyperEVM transaction when hash maps to execution',
+					},
+				],
+			},
+			{
+				label: 'Fill economics',
+				items: [
 					'price',
 					'size',
-					'startPosition',
-					'closedPnl',
 					'fee',
-					'feeToken',
-					'timeMs',
-					'hash',
-					'crossed',
+					{
+						label: 'start position',
+					},
+					{
+						label: 'PnL fields',
+					},
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'userFills or userFillsByTime payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

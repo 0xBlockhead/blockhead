@@ -9,23 +9,83 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'votingPower',
-					'stakeAmount',
-					'status',
-					'jailed',
-				],
-			],
+	closed: [
+		{
+			label: 'validator',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observed time/source',
+		},
+		{
+			label: 'voting power',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'validator',
+				},
+				{
+					label: 'observed time/source',
+				},
+				{
+					label: 'voting power',
+				},
+				{
+					label: 'stake',
+				},
+				'status',
+				{
+					label: 'jailed flag',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Validator',
+				items: [
+					{
+						label: 'parent validator identity',
+					},
+				],
+			},
+			{
+				label: 'Power/status',
+				items: [
+					{
+						label: 'voting power',
+					},
+					{
+						label: 'stake',
+					},
+					'status',
+					{
+						label: 'jailed flag',
+					},
+				],
+			},
+			{
+				label: 'History',
+				items: [
+					{
+						label: 'BnbValidator_Timestamp list',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'archive/API/explorer validator payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

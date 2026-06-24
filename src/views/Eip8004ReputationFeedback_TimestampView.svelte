@@ -9,34 +9,74 @@
 
 	// State
 	const view = {
-		closed: [
-			'clientAddress',
-			'feedbackIndex',
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'clientAddress',
-					'feedbackIndex',
-					'timestampMs',
-					'source',
-					'value',
-					'valueDecimals',
-					'tag1',
-					'tag2',
-					'endpoint',
-					'feedbackUri',
-					'feedbackHashAlgorithm',
-					'feedbackHash',
-					'revoked',
-					'blockNumber',
-					'transactionHash',
-				],
-			],
+	closed: [
+		{
+			label: 'registration',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'client',
+		},
+		{
+			label: 'feedback index',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'registration',
+				},
+				{
+					label: 'client address',
+				},
+				{
+					label: 'feedback index',
+				},
+				{
+					label: 'value/decimals',
+				},
+			],
+			[
+				{
+					label: 'tags',
+				},
+				'endpoint',
+				{
+					label: 'feedback URI/hash',
+				},
+				'revoked',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Registration',
+				items: [
+					{
+						label: 'Eip8004AgentRegistration',
+					},
+				],
+			},
+			{
+				label: 'On-chain evidence',
+				items: [
+					{
+						label: 'block/transaction',
+					},
+				],
+			},
+			{
+				label: 'Off-chain evidence',
+				items: [
+					{
+						label: 'feedback URI/hash algorithm/hash',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

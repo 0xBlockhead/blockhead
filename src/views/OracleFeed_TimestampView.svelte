@@ -9,28 +9,93 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'decimals',
-					'description',
-					'version',
-					'aggregatorAddress',
-					'typeAndVersion',
-					'latestRoundId',
-					'latestUpdatedAtMs',
-					'configDigest',
-					'configBlockNumber',
-				],
-			],
+	closed: [
+		{
+			label: 'feed',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'feed',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				'decimals',
+				'description',
+				{
+					label: 'proxy version',
+				},
+				{
+					label: 'aggregator address',
+				},
+				{
+					label: 'aggregator type/version',
+				},
+			],
+			[
+				{
+					label: 'latest round id',
+				},
+				{
+					label: 'latest updated time',
+				},
+				{
+					label: 'config digest',
+				},
+				{
+					label: 'config block number',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Feed',
+				items: [
+					{
+						label: 'parent oracle feed',
+					},
+				],
+			},
+			{
+				label: 'Aggregator',
+				items: [
+					{
+						label: 'EVM contract when aggregatorAddress is present',
+					},
+				],
+			},
+			{
+				label: 'Latest round',
+				items: [
+					{
+						label: 'oracle round when latestRoundId resolves',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'AggregatorV3Interface decimals/description/version/latestRoundData',
+					},
+					{
+						label: 'aggregator typeAndVersion/latestConfigDetails',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,17 +9,43 @@
 
 	// State
 	const view = {
-		closed: [
-			'uid',
-		],
-		content: {
-			dl: [
-				[
-					'uid',
-				],
-			],
+	closed: [
+		{
+			label: 'subnet',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'uid',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'subnet',
+				},
+				'uid',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Subnet',
+				items: [
+					{
+						label: 'parent subnet',
+					},
+				],
+			},
+			{
+				label: 'Metagraph snapshots',
+				items: [
+					{
+						label: 'metagraph observations for the subnet',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,52 +9,111 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[],
-			],
+	closed: [
+		{
+			label: 'linked Cosmos network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'latest block/indexer height',
+		},
+		{
+			label: 'market count',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'linked Cosmos network',
 				},
 				{
-					label: 'markets',
-					when: 'open',
-					items: [
-						'$$markets',
-					],
+					label: 'latest block height',
 				},
 				{
-					label: 'subaccounts',
-					when: 'open',
-					items: [
-						'$$subaccounts',
-					],
+					label: 'latest indexer height',
 				},
 				{
-					label: 'orders',
-					when: 'open',
-					items: [
-						'$$orders',
-					],
+					label: 'market count',
 				},
 				{
-					label: 'positions',
-					when: 'open',
-					items: [
-						'$$positions',
-					],
+					label: 'subaccount count',
+				},
+				{
+					label: 'open order count',
+				},
+				{
+					label: 'open position count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Network observations',
+				items: [
+					{
+						label: 'timestamped dYdX Chain status/coverage observations',
+					},
+				],
+			},
+			{
+				label: 'Markets',
+				items: [
+					{
+						label: 'dYdX market rows',
+					},
+				],
+			},
+			{
+				label: 'Subaccounts',
+				items: [
+					{
+						label: 'dYdX subaccount rows',
+					},
+				],
+			},
+			{
+				label: 'Orders',
+				items: [
+					{
+						label: 'dYdX order rows',
+					},
+				],
+			},
+			{
+				label: 'Positions',
+				items: [
+					{
+						label: 'perpetual position observations',
+					},
+				],
+			},
+			{
+				label: 'Cosmos base',
+				items: [
+					{
+						label: 'underlying Cosmos network row',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'dYdX indexer status/height',
+					},
+					{
+						label: 'validator Cosmos SDK node status',
+					},
+					{
+						label: 'app-state query support',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

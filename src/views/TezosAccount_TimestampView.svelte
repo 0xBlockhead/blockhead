@@ -9,25 +9,70 @@
 
 	// State
 	const view = {
-		closed: [
-			'level',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'level',
-					'source',
-					'timestampMs',
-					'balanceMutez',
-					'counter',
-					'delegate',
-					'isRevealed',
-					'publicKey',
-				],
-			],
+	closed: [
+		{
+			label: 'account',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'level',
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'account',
+				},
+				'level',
+				'source',
+				{
+					label: 'balance',
+				},
+				'counter',
+				'delegate',
+				{
+					label: 'revealed status',
+				},
+				{
+					label: 'public key',
+				},
+				{
+					label: 'timestamp',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'parent Tezos account',
+					},
+				],
+			},
+			{
+				label: 'Delegation',
+				items: [
+					{
+						label: 'Tezos baker when delegate resolves',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'account payload',
+					},
+					{
+						label: 'freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

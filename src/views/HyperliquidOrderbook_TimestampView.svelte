@@ -9,26 +9,89 @@
 
 	// State
 	const view = {
-		closed: [
-			'bookKey',
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'bookKey',
-					'timestampMs',
-					'source',
-					'bids',
-					'asks',
-					'nSigFigs',
-					'mantissa',
-					'depthLimit',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'book key',
+		},
+		{
+			label: 'observation time',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'book key',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'perp market or spot pair ref',
+				},
+				{
+					label: 'bid level count',
+				},
+				{
+					label: 'ask level count',
+				},
+				{
+					label: 'significant-figure aggregation',
+				},
+				'mantissa',
+				{
+					label: 'depth limit',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Perp market',
+				items: [
+					{
+						label: 'linked perp market when book key resolves to a perp coin',
+					},
+				],
+			},
+			{
+				label: 'Spot pair',
+				items: [
+					{
+						label: 'linked spot pair when book key resolves to a spot pair',
+					},
+				],
+			},
+			{
+				label: 'Book levels',
+				items: [
+					{
+						label: 'bid/ask JSON levels',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'raw l2Book response',
+					},
+					{
+						label: 'request aggregation parameters',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

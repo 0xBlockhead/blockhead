@@ -9,23 +9,89 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'state',
-					'expiryMs',
-					'paymentPreimage',
-					'subscriptionId',
-				],
-			],
+	closed: [
+		{
+			label: 'melt quote',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'melt quote',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				'state',
+				{
+					label: 'expiry',
+				},
+				{
+					label: 'payment preimage status',
+				},
+				{
+					label: 'subscription id',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Melt quote',
+				items: [
+					{
+						label: 'BlockheadCashuMeltQuoteView',
+					},
+				],
+			},
+			{
+				label: 'Mint',
+				items: [
+					{
+						label: 'CashuMintView through the quote',
+					},
+				],
+			},
+			{
+				label: 'Payment proof',
+				items: [
+					{
+						label: 'payment preimage when present',
+					},
+				],
+			},
+			{
+				label: 'Input proofs',
+				items: [
+					{
+						label: 'BlockheadCashuProof list from the quote',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'NUT-05 quote-state response',
+					},
+					{
+						label: 'melt execution response',
+					},
+					{
+						label: 'or NUT-17 websocket notification',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

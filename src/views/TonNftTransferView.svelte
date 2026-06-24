@@ -9,26 +9,116 @@
 
 	// State
 	const view = {
-		closed: [
-			'transferId',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'transferId',
-					'source',
-					'transactionLt',
-					'transactionHash',
-					'timestampMs',
-					'queryId',
-					'forwardAmountNano',
-					'responseDestination',
-					'customPayloadHash',
-				],
-			],
+	closed: [
+		{
+			label: 'transfer id',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'source',
+		{
+			label: 'item',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'transfer id',
+				},
+				'source',
+				{
+					label: 'item',
+				},
+				{
+					label: 'collection',
+				},
+				{
+					label: 'from account',
+				},
+				{
+					label: 'to account',
+				},
+				{
+					label: 'transaction lt/hash',
+				},
+				{
+					label: 'timestamp',
+				},
+				{
+					label: 'query id',
+				},
+				{
+					label: 'forward amount',
+				},
+				{
+					label: 'response destination',
+				},
+				{
+					label: 'trace/message refs',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Item',
+				items: [
+					{
+						label: 'transferred item identity',
+					},
+				],
+			},
+			{
+				label: 'Collection',
+				items: [
+					{
+						label: 'collection identity',
+					},
+				],
+			},
+			{
+				label: 'From/To',
+				items: [
+					{
+						label: 'sender and recipient accounts',
+					},
+				],
+			},
+			{
+				label: 'Trace',
+				items: [
+					{
+						label: 'containing trace graph',
+					},
+				],
+			},
+			{
+				label: 'Message',
+				items: [
+					{
+						label: 'underlying message edge',
+					},
+				],
+			},
+			{
+				label: 'Payload',
+				items: [
+					{
+						label: 'custom/forward payload evidence',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'NFT transfer payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

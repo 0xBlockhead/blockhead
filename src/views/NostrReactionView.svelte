@@ -9,22 +9,97 @@
 
 	// State
 	const view = {
-		closed: [
-			'eventId',
-		],
-		content: {
-			dl: [
-				[
-					'eventId',
-					'kind',
-					'pubkey',
+	lists: [
+		{
+			id: 'reactions',
+			label: 'Reactions',
+			limit: 50,
+			query: {
+				limit: 50,
+				fields: [
 					'createdAt',
-					'tags',
-					'content',
 				],
-			],
+			},
+			item: 'link',
+			itemHref: {
+				label: '/nostr/reaction/[eventId]',
+			},
+			key: 'eventId',
+			emptyText: 'No reactions yet.',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+	],
+	closed: [
+		{
+			label: 'event id',
+		},
+		'kind',
+		{
+			label: 'author',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'event id',
+				},
+				'kind',
+				{
+					label: 'author',
+				},
+				'createdAt',
+				{
+					label: 'reaction content',
+				},
+				{
+					label: 'target note',
+				},
+				{
+					label: 'target article',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Target',
+				items: [
+					{
+						label: 'target note or article',
+					},
+				],
+			},
+			{
+				label: 'Author',
+				items: [
+					{
+						label: 'author Nostr profile',
+					},
+				],
+			},
+			{
+				label: 'Raw event',
+				items: [
+					{
+						label: 'pubkey/tags/signature/source relays',
+					},
+				],
+			},
+			{
+				label: 'Relay evidence',
+				items: [
+					{
+						label: 'filters',
+					},
+					{
+						label: 'relays/indexers that returned the reaction',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,50 +9,97 @@
 
 	// State
 	const view = {
-		closed: [
-			'id',
+	closed: [
+		{
+			label: 'channel id or participant pair',
+		},
+		{
+			label: 'network',
+		},
+		{
+			label: 'participant accounts',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'channel id or participant pair',
+				},
+				{
+					label: 'network',
+				},
+				{
+					label: 'participant accounts',
+				},
+				{
+					label: 'asset',
+				},
+				{
+					label: 'linked room',
+				},
+				{
+					label: 'created timestamp',
+				},
+				{
+					label: 'latest channel state',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'id',
-					'createdAt',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'State observations',
+				items: [
+					{
+						label: 'timestamped channel state observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'transfers',
-					when: 'open',
-					items: [
-						'$$transfers',
-					],
-				},
-				{
-					label: 'states',
-					when: 'open',
-					items: [
-						'$$states',
-					],
-				},
-				{
-					label: 'deposits',
-					when: 'open',
-					items: [
-						'$$deposits',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Transfers',
+				items: [
+					{
+						label: 'local channel transfers',
+					},
+				],
+			},
+			{
+				label: 'States',
+				items: [
+					{
+						label: 'signed channel state rows',
+					},
+				],
+			},
+			{
+				label: 'Deposits',
+				items: [
+					{
+						label: 'per-account deposit slices',
+					},
+				],
+			},
+			{
+				label: 'Room',
+				items: [
+					{
+						label: 'linked local room',
+					},
+				],
+			},
+			{
+				label: 'Settlement evidence',
+				items: [
+					{
+						label: 'linked EVM transactions/contracts if later modeled',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

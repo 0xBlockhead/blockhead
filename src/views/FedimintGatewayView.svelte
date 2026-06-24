@@ -9,37 +9,101 @@
 
 	// State
 	const view = {
-		closed: [
-			'gatewayId',
+	closed: [
+		{
+			label: 'gateway id',
+		},
+		{
+			label: 'API URL',
+		},
+		{
+			label: 'node pubkey',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'gateway id',
+				},
+				{
+					label: 'API URL',
+				},
+				{
+					label: 'node pubkey',
+				},
+				{
+					label: 'latest Lightning alias',
+				},
+				{
+					label: 'latest version',
+				},
+				{
+					label: 'latest routing-fee summary',
+				},
+				{
+					label: 'connected federation count',
+				},
+				{
+					label: 'latest liquidity/health status',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'gatewayId',
-					'apiUrl',
-					'nodePubkey',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Federations',
+				items: [
+					{
+						label: 'Fedimint federations known to this gateway',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'federations',
-					when: 'open',
-					items: [
-						'$$federations',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Latest state',
+				items: [
+					{
+						label: 'latest gateway operational observation',
+					},
+				],
+			},
+			{
+				label: 'Observations',
+				items: [
+					{
+						label: 'timestamped gateway operational observations',
+					},
+				],
+			},
+			{
+				label: 'Lightning',
+				items: [
+					{
+						label: 'node pubkey',
+					},
+					{
+						label: 'alias',
+					},
+					{
+						label: 'channels',
+					},
+					{
+						label: 'fee settings when source-backed',
+					},
+				],
+			},
+			{
+				label: 'Management',
+				items: [
+					{
+						label: 'admin-only config fields only in trusted local contexts',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

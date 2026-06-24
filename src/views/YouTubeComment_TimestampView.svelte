@@ -9,19 +9,64 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'likeCount',
-					'replyCount',
-				],
-			],
+	closed: [
+		{
+			label: 'comment',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		{
+			label: 'like count',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'comment',
+				},
+				{
+					label: 'observation time',
+				},
+				{
+					label: 'like count',
+				},
+				{
+					label: 'reply count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Comment',
+				items: [
+					{
+						label: 'parent comment identity',
+					},
+				],
+			},
+			{
+				label: 'Engagement',
+				items: [
+					{
+						label: 'like/reply counts',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'YouTube comments.list/commentThreads.list statistics',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

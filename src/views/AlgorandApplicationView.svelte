@@ -9,43 +9,92 @@
 
 	// State
 	const view = {
-		closed: [
-			'applicationId',
+	closed: [
+		{
+			label: 'application id',
+		},
+		'creator',
+		{
+			label: 'latest program hashes',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'application id',
+				},
+				'creator',
+				{
+					label: 'network',
+				},
+			],
+			[
+				{
+					label: 'latest approval/clear program hashes',
+				},
+				{
+					label: 'latest box count',
+				},
+				{
+					label: 'global-state summary',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'applicationId',
-					'creator',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest params',
+				items: [
+					{
+						label: 'latest round/source application observation',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'boxes',
-					when: 'open',
-					items: [
-						'$$boxes',
-					],
-				},
-				{
-					label: 'local state rounds',
-					when: 'open',
-					items: [
-						'$$localStateRounds',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Param/global-state history',
+				items: [
+					{
+						label: 'round/source application observations',
+					},
+				],
+			},
+			{
+				label: 'Boxes',
+				items: [
+					{
+						label: 'application box identities and value observations',
+					},
+				],
+			},
+			{
+				label: 'Local state accounts',
+				items: [
+					{
+						label: 'account-scoped local-state rows',
+					},
+				],
+			},
+			{
+				label: 'TEAL programs',
+				items: [
+					{
+						label: 'program rows for latest approval/clear hashes',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'transactions creating/updating/calling this application when indexed',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

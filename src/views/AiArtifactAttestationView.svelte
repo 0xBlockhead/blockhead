@@ -9,27 +9,75 @@
 
 	// State
 	const view = {
-		closed: [
-			'attestationKind',
-			'logEntryId',
-		],
-		content: {
-			dl: [
-				[
-					'attestationKind',
-					'logEntryId',
-					'signatureHashAlgorithm',
-					'signatureHash',
-					'certificateIdentity',
-					'certificateIssuer',
-					'logIndex',
-					'integratedTime',
-					'bundle',
-					'payload',
-				],
-			],
+	closed: [
+		{
+			label: 'artifact',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'attestation kind',
+		},
+		{
+			label: 'log/signature id',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'artifact',
+				},
+				{
+					label: 'attestation kind',
+				},
+				{
+					label: 'log entry/signature',
+				},
+			],
+			[
+				{
+					label: 'certificate identity',
+				},
+				{
+					label: 'issuer',
+				},
+				{
+					label: 'log index',
+				},
+				{
+					label: 'integrated time',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Artifact',
+				items: [
+					{
+						label: 'AiArtifact',
+					},
+				],
+			},
+			{
+				label: 'Bundle',
+				items: [
+					{
+						label: 'Sigstore/Rekor bundle',
+					},
+				],
+			},
+			{
+				label: 'Payload',
+				items: [
+					{
+						label: 'attestation payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

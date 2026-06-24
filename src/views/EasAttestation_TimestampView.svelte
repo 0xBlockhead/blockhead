@@ -9,28 +9,90 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'revoked',
-					'revocationTime',
-					'valid',
-					'expired',
-					'blockNumber',
-					'transactionHash',
-					'logIndex',
-					'revokedTransactionHash',
-					'revokedLogIndex',
-				],
-			],
+	closed: [
+		{
+			label: 'attestation',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		{
+			label: 'valid/revoked',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'attestation',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'valid flag',
+				},
+				{
+					label: 'revoked flag',
+				},
+				{
+					label: 'expired flag',
+				},
+				{
+					label: 'revocation time',
+				},
+			],
+			[
+				{
+					label: 'attest transaction/log',
+				},
+				{
+					label: 'revoked transaction/log',
+				},
+				{
+					label: 'block number',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Attestation',
+				items: [
+					{
+						label: 'parent EAS attestation',
+					},
+				],
+			},
+			{
+				label: 'Lifecycle evidence',
+				items: [
+					{
+						label: 'Attested and Revoked event coordinates',
+					},
+				],
+			},
+			{
+				label: 'Contract reads',
+				items: [
+					{
+						label: 'isAttestationValid/getAttestation response at source block',
+					},
+				],
+			},
+			{
+				label: 'Indexer evidence',
+				items: [
+					{
+						label: 'EAS Scan or explorer payload freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

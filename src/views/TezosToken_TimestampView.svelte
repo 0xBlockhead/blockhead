@@ -9,30 +9,102 @@
 
 	// State
 	const view = {
-		closed: [
-			'level',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'level',
-					'source',
-					'timestampMs',
-					'metadataUri',
-					'name',
-					'symbol',
-					'decimals',
-					'artifactUri',
-					'displayUri',
-					'thumbnailUri',
-					'totalSupply',
-					'holderCount',
-					'transferCount',
-				],
-			],
+	closed: [
+		{
+			label: 'token',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'level',
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'token',
+				},
+				'level',
+				'source',
+				{
+					label: 'timestamp',
+				},
+				'name',
+				'symbol',
+				'decimals',
+				{
+					label: 'metadata/artifact/display/thumbnail URIs',
+				},
+				{
+					label: 'total supply',
+				},
+				{
+					label: 'holder count',
+				},
+				{
+					label: 'transfer count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Token',
+				items: [
+					{
+						label: 'parent Tezos token',
+					},
+				],
+			},
+			{
+				label: 'Metadata',
+				items: [
+					{
+						label: 'token metadata fields',
+					},
+					{
+						label: 'URI evidence',
+					},
+					{
+						label: 'TZIP-12/FA2 metadata payload',
+					},
+				],
+			},
+			{
+				label: 'Supply/counts',
+				items: [
+					{
+						label: 'total supply',
+					},
+					{
+						label: 'holder count',
+					},
+					{
+						label: 'transfer count',
+					},
+				],
+			},
+			{
+				label: 'Ledger storage',
+				items: [
+					{
+						label: 'big-map key for token_metadata/ledger keys when resolved',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'token metadata/indexer payload',
+					},
+					{
+						label: 'contract storage query',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

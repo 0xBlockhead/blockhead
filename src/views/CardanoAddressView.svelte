@@ -9,38 +9,77 @@
 
 	// State
 	const view = {
-		closed: [
-			'address',
+	closed: [
+		'address',
+		{
+			label: 'address kind',
+		},
+		{
+			label: 'payment credential',
+		},
+	],
+	content: {
+		dl: [
+			[
+				'address',
+				{
+					label: 'address kind',
+				},
+				{
+					label: 'payment credential',
+				},
+				{
+					label: 'stake credential',
+				},
+				{
+					label: 'stake credential ref',
+				},
+				{
+					label: 'latest lovelace/asset/UTXO snapshot',
+				},
+				{
+					label: 'timestamp count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'address',
-					'addressKind',
-					'paymentCredential',
-					'stakeCredential',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'UTXOs',
+				items: [
+					{
+						label: 'Cardano transaction outputs at this address',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'utxos',
-					when: 'open',
-					items: [
-						'$$utxos',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Snapshots',
+				items: [
+					{
+						label: 'timestamped address balance/count observations',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'Cardano transactions when indexed',
+					},
+				],
+			},
+			{
+				label: 'Stake credential',
+				items: [
+					{
+						label: 'linked Cardano stake credential',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

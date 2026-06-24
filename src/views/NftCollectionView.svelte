@@ -9,31 +9,69 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[],
-			],
+	closed: [
+		{
+			label: 'asset instance',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'token count',
+		},
+		{
+			label: 'royalty observation count',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'tokens',
-					when: 'open',
-					items: [
-						'$$tokens',
-					],
+					label: 'asset instance',
 				},
 				{
-					label: 'royalty timestamps',
-					when: 'open',
-					items: [
-						'$$royaltyTimestamps',
-					],
+					label: 'token count',
+				},
+				{
+					label: 'royalty observation count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Tokens',
+				items: [
+					{
+						label: 'collection-scoped token rows',
+					},
+				],
+			},
+			{
+				label: 'Asset instance',
+				items: [
+					{
+						label: 'parent asset instance',
+					},
+				],
+			},
+			{
+				label: 'Royalty observations',
+				items: [
+					{
+						label: 'timestamped royalty-right observations',
+					},
+				],
+			},
+			{
+				label: 'Metadata',
+				items: [
+					{
+						label: 'collection-level token metadata documents',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

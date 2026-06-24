@@ -9,27 +9,106 @@
 
 	// State
 	const view = {
-		closed: [
-			'eraIndex',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'eraIndex',
-					'source',
-					'commissionPerBillion',
-					'totalStakePlancks',
-					'ownStakePlancks',
-					'nominatorStakePlancks',
-					'nominatorCount',
-					'rewardPoints',
-					'active',
-					'slashed',
-				],
-			],
+	closed: [
+		{
+			label: 'validator',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'era index',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'validator',
+				},
+				{
+					label: 'era index',
+				},
+				'source',
+				{
+					label: 'controller',
+				},
+				{
+					label: 'commission',
+				},
+				{
+					label: 'total/own/nominator stake',
+				},
+				{
+					label: 'nominator count',
+				},
+				{
+					label: 'reward points',
+				},
+				{
+					label: 'active status',
+				},
+				{
+					label: 'slashed status',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Validator',
+				items: [
+					{
+						label: 'parent Polkadot validator',
+					},
+				],
+			},
+			{
+				label: 'Controller',
+				items: [
+					{
+						label: 'controller Polkadot account',
+					},
+				],
+			},
+			{
+				label: 'Exposure',
+				items: [
+					{
+						label: 'nominators',
+					},
+					{
+						label: 'stake breakdown',
+					},
+				],
+			},
+			{
+				label: 'Rewards/slashes',
+				items: [
+					{
+						label: 'era reward',
+					},
+					{
+						label: 'slash evidence',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Sidecar /pallets/staking/validators',
+					},
+					{
+						label: 'runtime storage',
+					},
+					{
+						label: 'or Subscan staking payload freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,22 +9,71 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'blockNumber',
-					'dataSubmissionCount',
-					'sourceWindowSubmissionCount',
-				],
-			],
+	closed: [
+		{
+			label: 'app id',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		{
+			label: 'submission count',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'app id',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'block number',
+				},
+				{
+					label: 'data submission count',
+				},
+				{
+					label: 'source-window submission count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'App id',
+				items: [
+					{
+						label: 'parent app id',
+					},
+				],
+			},
+			{
+				label: 'Submissions',
+				items: [
+					{
+						label: 'data submission rows from the same source/window',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'indexer count/window payload',
+					},
+					{
+						label: 'chain head or block context',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

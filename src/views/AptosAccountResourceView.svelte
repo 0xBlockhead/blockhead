@@ -9,28 +9,72 @@
 
 	// State
 	const view = {
-		closed: [
-			'resourceType',
-		],
-		content: {
-			dl: [
-				[
-					'resourceType',
-				],
-			],
+	closed: [
+		{
+			label: 'account',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'resource type',
+		},
+		{
+			label: 'latest value summary',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'account',
+				},
+				{
+					label: 'resource type',
+				},
+				{
+					label: 'latest value summary',
+				},
+				{
+					label: 'latest ledger version/source',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Resource observations',
+				items: [
+					{
+						label: 'ledger-versioned resource values',
+					},
+				],
+			},
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'parent Aptos account',
+					},
+				],
+			},
+			{
+				label: 'Move struct',
+				items: [
+					{
+						label: 'Move struct type when the type tag resolves',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'account resource lookup/indexer payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

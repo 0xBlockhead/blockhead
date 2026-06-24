@@ -9,26 +9,88 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'blockHeight',
-					'blockHash',
-					'nonce',
-					'permission',
-					'allowanceYoctoNear',
-					'receiverId',
-					'methodNames',
-				],
-			],
+	closed: [
+		{
+			label: 'access key',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'access key',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'block height/hash',
+				},
+				'nonce',
+				'permission',
+				{
+					label: 'allowance',
+				},
+				{
+					label: 'receiver id',
+				},
+				{
+					label: 'method count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Access key',
+				items: [
+					{
+						label: 'parent NEAR access key',
+					},
+				],
+			},
+			{
+				label: 'Function-call scope',
+				items: [
+					{
+						label: 'receiver id',
+					},
+					{
+						label: 'method names',
+					},
+					{
+						label: 'allowance',
+					},
+				],
+			},
+			{
+				label: 'Block',
+				items: [
+					{
+						label: 'NEAR block when block hash/height resolves',
+					},
+				],
+			},
+			{
+				label: 'Source',
+				items: [
+					{
+						label: 'view_access_key/access_key_changes payload',
+					},
+					{
+						label: 'freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

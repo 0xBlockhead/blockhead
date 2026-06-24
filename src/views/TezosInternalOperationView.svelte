@@ -9,25 +9,80 @@
 
 	// State
 	const view = {
-		closed: [
-			'internalIndex',
-		],
-		content: {
-			dl: [
-				[
-					'internalIndex',
-					'operationKind',
-					'sourceAddress',
-					'destinationAddress',
-					'amountMutez',
-					'nonce',
-					'parameters',
-					'resultStatus',
-					'consumedGas',
-				],
-			],
+	closed: [
+		{
+			label: 'parent operation',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'internal index',
+		},
+		{
+			label: 'kind',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'parent operation',
+				},
+				{
+					label: 'internal index',
+				},
+				{
+					label: 'kind',
+				},
+				{
+					label: 'source',
+				},
+				{
+					label: 'destination',
+				},
+				{
+					label: 'amount',
+				},
+				'nonce',
+				{
+					label: 'status',
+				},
+				{
+					label: 'consumed gas',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Parent operation',
+				items: [
+					{
+						label: 'parent Tezos operation',
+					},
+				],
+			},
+			{
+				label: 'Parameters/result',
+				items: [
+					{
+						label: 'decoded parameters',
+					},
+					{
+						label: 'result evidence',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'node/indexer payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

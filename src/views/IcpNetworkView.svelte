@@ -9,52 +9,111 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[],
-			],
+	closed: [
+		{
+			label: 'linked base Network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'latest registry version',
+		},
+		{
+			label: 'subnet count',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'subnets',
-					when: 'open',
-					items: [
-						'$$subnets',
-					],
+					label: 'linked base Network',
 				},
 				{
-					label: 'canisters',
-					when: 'open',
-					items: [
-						'$$canisters',
-					],
+					label: 'latest registry version',
 				},
 				{
-					label: 'ledger canisters',
-					when: 'open',
-					items: [
-						'$$ledgerCanisters',
-					],
+					label: 'subnet count',
 				},
 				{
-					label: 'request statuses',
-					when: 'open',
-					items: [
-						'$$requestStatuses',
-					],
+					label: 'canister count',
 				},
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'boundary node count',
+				},
+				{
+					label: 'root-key hash',
+				},
+				{
+					label: 'certification summary',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Subnets',
+				items: [
+					{
+						label: 'ICP subnet rows',
+					},
+				],
+			},
+			{
+				label: 'Canisters',
+				items: [
+					{
+						label: 'ICP canister rows',
+					},
+				],
+			},
+			{
+				label: 'Ledger canisters',
+				items: [
+					{
+						label: 'ledger-interface canister rows',
+					},
+				],
+			},
+			{
+				label: 'Request statuses',
+				items: [
+					{
+						label: 'ingress request-status rows',
+					},
+				],
+			},
+			{
+				label: 'Certified-state proofs',
+				items: [
+					{
+						label: 'certificate/witness rows grouped by canister',
+					},
+				],
+			},
+			{
+				label: 'Timestamp history',
+				items: [
+					{
+						label: 'timestamped network registry/status observations',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'registry',
+					},
+					{
+						label: 'status',
+					},
+					{
+						label: 'dashboard payloads',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

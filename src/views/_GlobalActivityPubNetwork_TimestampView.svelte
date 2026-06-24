@@ -9,15 +9,42 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
+	closed: [
+		'$hub',
+		'timestampMs',
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				'$hub',
+				'timestampMs',
+				'source',
+			],
+			[
+				'instanceOrigin',
+				'instanceTitle',
+				'instanceDescription',
+				'instanceVersion',
+				'activeUserCount',
+				'sourceWindowActorCount',
+				'sourceWindowNoteCount',
+				'localCatalogInstanceCount',
+				'reachable',
+			],
 		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Hub',
+				items: [
+					'$hub',
+				],
+			},
+			{
+				label: 'Observation fields',
+				items: [
 					'instanceOrigin',
 					'instanceTitle',
 					'instanceDescription',
@@ -28,9 +55,21 @@
 					'localCatalogInstanceCount',
 					'reachable',
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'SourceBinding.Fedi_Rest',
+					},
+					{
+						label: 'SourceBinding.Mastodon_Rest',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

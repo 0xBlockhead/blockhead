@@ -9,118 +9,124 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[
-					'shard',
-					'realm',
+	closed: [
+		{
+			label: 'linked base Network',
+		},
+		'shard',
+		'realm',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'linked base Network',
+				},
+				'shard',
+				'realm',
+				{
+					label: 'latest consensus timestamp',
+				},
+				{
+					label: 'latest block number',
+				},
+				{
+					label: 'node count',
+				},
+				{
+					label: 'mirror-node lag',
+				},
+				{
+					label: 'latest fee/exchange/stake/supply snapshots',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Blocks',
+				items: [
+					{
+						label: 'Hedera block rows',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'blocks',
-					when: 'open',
-					items: [
-						'$$blocks',
-					],
-				},
-				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
-				},
-				{
-					label: 'accounts',
-					when: 'open',
-					items: [
-						'$$accounts',
-					],
-				},
-				{
-					label: 'tokens',
-					when: 'open',
-					items: [
-						'$$tokens',
-					],
-				},
-				{
-					label: 'nfts',
-					when: 'open',
-					items: [
-						'$$nfts',
-					],
-				},
-				{
-					label: 'contracts',
-					when: 'open',
-					items: [
-						'$$contracts',
-					],
-				},
-				{
-					label: 'topics',
-					when: 'open',
-					items: [
-						'$$topics',
-					],
-				},
-				{
-					label: 'schedules',
-					when: 'open',
-					items: [
-						'$$schedules',
-					],
-				},
-				{
-					label: 'nodes',
-					when: 'open',
-					items: [
-						'$$nodes',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'fee timestamps',
-					when: 'open',
-					items: [
-						'$$feeTimestamps',
-					],
-				},
-				{
-					label: 'exchange rate timestamps',
-					when: 'open',
-					items: [
-						'$$exchangeRateTimestamps',
-					],
-				},
-				{
-					label: 'stake timestamps',
-					when: 'open',
-					items: [
-						'$$stakeTimestamps',
-					],
-				},
-				{
-					label: 'supply timestamps',
-					when: 'open',
-					items: [
-						'$$supplyTimestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'Hedera transaction rows',
+					},
+				],
+			},
+			{
+				label: 'Accounts',
+				items: [
+					{
+						label: 'Hedera account rows',
+					},
+				],
+			},
+			{
+				label: 'HTS tokens',
+				items: [
+					{
+						label: 'Hedera token rows',
+					},
+				],
+			},
+			{
+				label: 'NFTs',
+				items: [
+					{
+						label: 'Hedera NFT serial rows',
+					},
+				],
+			},
+			{
+				label: 'Contracts',
+				items: [
+					{
+						label: 'Hedera contract rows',
+					},
+				],
+			},
+			{
+				label: 'Consensus topics',
+				items: [
+					{
+						label: 'Hedera consensus topic rows',
+					},
+				],
+			},
+			{
+				label: 'Schedules',
+				items: [
+					{
+						label: 'Hedera schedule rows',
+					},
+				],
+			},
+			{
+				label: 'Nodes',
+				items: [
+					{
+						label: 'Hedera node rows',
+					},
+				],
+			},
+			{
+				label: 'Network observations',
+				items: [
+					{
+						label: 'timestamped head/count/fee/exchange/stake/supply observations',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

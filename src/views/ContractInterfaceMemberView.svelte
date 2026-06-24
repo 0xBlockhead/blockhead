@@ -9,26 +9,89 @@
 
 	// State
 	const view = {
-		closed: [
-			'interfaceId',
-			'memberKey',
+	closed: [
+		{
+			label: 'member kind',
+		},
+		'name',
+		{
+			label: 'canonical signature',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'member kind',
+				},
+				'name',
+				{
+					label: 'canonical signature',
+				},
+				{
+					label: 'selector or topic0',
+				},
+				'inputs',
+				'outputs',
+				{
+					label: 'state mutability',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'interfaceId',
-					'memberKey',
-					'memberKind',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Interface',
+				items: [
+					{
+						label: 'interface id',
+					},
+					{
+						label: 'member key',
+					},
+					{
+						label: 'member kind',
+					},
+				],
+			},
+			{
+				label: 'ABI shape',
+				items: [
 					'name',
-					'canonicalSignature',
-					'selector',
+					{
+						label: 'canonical signature',
+					},
 					'inputs',
 					'outputs',
-					'stateMutability',
+					{
+						label: 'state mutability',
+					},
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Hash refs',
+				items: [
+					'selector',
+					{
+						label: 'topic0',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'verified ABI JSON',
+					},
+					{
+						label: 'checked-in interface catalogs',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,42 +9,85 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[
-					'contractId',
-					'evmAddress',
-					'ethereumHash',
-					'functionParameters',
-					'gasLimit',
-					'gasUsed',
-					'amountTinybar',
-					'status',
-					'errorMessage',
-					'bloom',
+	closed: [
+		{
+			label: 'transaction',
+		},
+		{
+			label: 'contract',
+		},
+		'status',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'transaction',
+				},
+				{
+					label: 'contract',
+				},
+				'status',
+				{
+					label: 'gas used/limit',
+				},
+				{
+					label: 'amount',
+				},
+				{
+					label: 'Ethereum hash',
+				},
+				{
+					label: 'error',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Actions',
+				items: [
+					{
+						label: 'contract action trace rows',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'actions',
-					when: 'open',
-					items: [
-						'$$actions',
-					],
-				},
-				{
-					label: 'logs',
-					when: 'open',
-					items: [
-						'$$logs',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Logs',
+				items: [
+					{
+						label: 'contract log rows',
+					},
+				],
+			},
+			{
+				label: 'Function parameters',
+				items: [
+					{
+						label: 'raw input',
+					},
+				],
+			},
+			{
+				label: 'Bloom',
+				items: [
+					{
+						label: 'bloom/filter evidence',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'contract result payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

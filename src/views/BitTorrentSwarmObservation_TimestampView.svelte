@@ -9,23 +9,83 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'peerCount',
-					'seedCount',
-					'completedCount',
-					'availability',
-				],
-			],
+	closed: [
+		{
+			label: 'torrent',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'source',
+		{
+			label: 'timestamp',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'torrent',
+				},
+				'source',
+				{
+					label: 'timestamp',
+				},
+				{
+					label: 'peer count',
+				},
+				{
+					label: 'seed count',
+				},
+				{
+					label: 'completed count',
+				},
+				'availability',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Torrent',
+				items: [
+					{
+						label: 'parent metainfo',
+					},
+				],
+			},
+			{
+				label: 'Announces',
+				items: [
+					{
+						label: 'tracker announce observations',
+					},
+				],
+			},
+			{
+				label: 'DHT lookups',
+				items: [
+					{
+						label: 'DHT lookup observations',
+					},
+				],
+			},
+			{
+				label: 'Peers',
+				items: [
+					{
+						label: 'peer observations from tracker/DHT/client sources',
+					},
+				],
+			},
+			{
+				label: 'History',
+				items: [
+					{
+						label: 'same torrent observations sorted newest first',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

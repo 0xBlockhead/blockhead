@@ -9,24 +9,69 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'ledgerSequence',
-					'reserveA',
-					'reserveB',
-					'totalShares',
-					'accounts',
-				],
-			],
+	closed: [
+		{
+			label: 'liquidity pool',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'liquidity pool',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'ledger sequence',
+				},
+				{
+					label: 'reserves',
+				},
+				{
+					label: 'total shares',
+				},
+				{
+					label: 'account count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Pool',
+				items: [
+					{
+						label: 'parent Stellar liquidity pool',
+					},
+				],
+			},
+			{
+				label: 'Ledger',
+				items: [
+					{
+						label: 'Stellar ledger',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Horizon/RPC/indexer payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

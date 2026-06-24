@@ -9,28 +9,94 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'latestHeight',
-					'latestBlockHash',
-					'currentBlockHash',
-					'networkId',
-					'peerCount',
-					'queuedTransactionCount',
-					'gatewayOrigin',
-					'graphqlCursor',
-					'reachable',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		{
+			label: 'latest height',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				'reachable',
+				{
+					label: 'gateway origin',
+				},
+				{
+					label: 'latest height',
+				},
+				{
+					label: 'latest/current block hash',
+				},
+			],
+			[
+				{
+					label: 'network id',
+				},
+				{
+					label: 'peer count',
+				},
+				{
+					label: 'queued transaction count',
+				},
+				{
+					label: 'GraphQL cursor',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Arweave network',
+					},
+				],
+			},
+			{
+				label: 'Head',
+				items: [
+					{
+						label: 'latest height/hash fields from gateway info or newest block metadata',
+					},
+				],
+			},
+			{
+				label: 'Source window',
+				items: [
+					{
+						label: 'GraphQL cursor or REST info payload freshness',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'gateway/node info response',
+					},
+					{
+						label: 'GraphQL blocks sorted by height',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

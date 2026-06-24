@@ -9,28 +9,99 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'latestHeight',
-					'latestHash',
-					'latestBlockTimeMs',
-					'syncing',
-					'health',
-					'blobCount',
-					'namespaceCount',
-					'sampledHeaderHeight',
-					'nodeType',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		{
+			label: 'latest height',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'latest height/hash',
+				},
+				{
+					label: 'latest block time',
+				},
+				{
+					label: 'syncing/health',
+				},
+			],
+			[
+				{
+					label: 'blob count',
+				},
+				{
+					label: 'namespace count',
+				},
+				{
+					label: 'sampled header height',
+				},
+				{
+					label: 'node type',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Celestia network',
+					},
+				],
+			},
+			{
+				label: 'Latest block',
+				items: [
+					{
+						label: 'latest Celestia block when resolved',
+					},
+				],
+			},
+			{
+				label: 'DA sampling',
+				items: [
+					{
+						label: 'sampled header height',
+					},
+					{
+						label: 'node type/source freshness',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'node header/status APIs',
+					},
+					{
+						label: 'CometBFT status',
+					},
+					{
+						label: 'Cosmos SDK node info',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

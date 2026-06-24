@@ -9,32 +9,108 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'nodeAccountId',
-					'description',
-					'fileId',
-					'memo',
-					'publicKey',
-					'nodeCertHash',
-					'serviceEndpoints',
-					'stakeTinybar',
-					'stakeRewardedTinybar',
-					'stakeNotRewardedTinybar',
-					'minStakeTinybar',
-					'maxStakeTinybar',
-					'deleted',
-				],
-			],
+	closed: [
+		{
+			label: 'node',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'node',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'node account',
+				},
+				'description',
+				{
+					label: 'file id',
+				},
+				'memo',
+				{
+					label: 'public key',
+				},
+				{
+					label: 'certificate hash',
+				},
+				{
+					label: 'endpoint count',
+				},
+				{
+					label: 'stake',
+				},
+				{
+					label: 'rewarded stake',
+				},
+				{
+					label: 'not-rewarded stake',
+				},
+				{
+					label: 'min/max stake',
+				},
+				{
+					label: 'deleted flag',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Node',
+				items: [
+					{
+						label: 'parent Hedera node',
+					},
+				],
+			},
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'node Hedera account',
+					},
+				],
+			},
+			{
+				label: 'Endpoints',
+				items: [
+					{
+						label: 'service endpoint list',
+					},
+				],
+			},
+			{
+				label: 'Stake',
+				items: [
+					{
+						label: 'stake',
+					},
+					{
+						label: 'reward split fields',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'registered-node/address-book/stake payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

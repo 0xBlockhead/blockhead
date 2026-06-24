@@ -9,23 +9,69 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'height',
-					'blobCount',
-					'sourceWindowStartHeight',
-					'sourceWindowEndHeight',
-				],
-			],
+	closed: [
+		{
+			label: 'namespace',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		{
+			label: 'blob count',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'namespace',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				'height',
+				{
+					label: 'blob count',
+				},
+				{
+					label: 'source-window height range',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Namespace',
+				items: [
+					{
+						label: 'parent Celestia namespace',
+					},
+				],
+			},
+			{
+				label: 'Blobs',
+				items: [
+					{
+						label: 'Celestia blobs for the same namespace/window',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'blob.GetAll namespace query',
+					},
+					{
+						label: 'Celenium namespace/indexer window',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

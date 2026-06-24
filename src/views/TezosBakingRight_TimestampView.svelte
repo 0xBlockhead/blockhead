@@ -9,21 +9,67 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'status',
-					'estimatedTimeMs',
-				],
-			],
+	closed: [
+		{
+			label: 'right',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'right',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				'status',
+				{
+					label: 'estimated time',
+				},
+				{
+					label: 'realized block',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Right',
+				items: [
+					{
+						label: 'parent Tezos baking right',
+					},
+				],
+			},
+			{
+				label: 'Block',
+				items: [
+					{
+						label: 'Tezos block when realized',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'rights payload',
+					},
+					{
+						label: 'head/freshness context',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

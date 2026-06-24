@@ -9,30 +9,49 @@
 
 	// State
 	const view = {
-		closed: [
-			'query',
+	closed: [
+		'query',
+		{
+			label: 'created time',
+		},
+		{
+			label: 'result limit',
+		},
+	],
+	content: {
+		dl: [
+			[
+				'query',
+				{
+					label: 'created time',
+				},
+				{
+					label: 'result limit',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Matching names',
+				items: [
+					{
+						label: 'EnsName list from $$matchingNames',
+					},
+				],
+			},
+			{
+				label: 'Search state',
+				items: [
 					'query',
 					'createdAt',
 					'resultLimit',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'matching names',
-					when: 'open',
-					items: [
-						'$$matchingNames',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

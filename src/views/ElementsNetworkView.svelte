@@ -9,28 +9,81 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[
-					'federationName',
-					'blockTimeSeconds',
-					'confidentialTransactionsDefault',
-				],
-			],
+	closed: [
+		{
+			label: 'linked Network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'settlement UTXO network',
+		},
+		{
+			label: 'federation name',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'assets',
-					when: 'open',
-					items: [
-						'$$assets',
-					],
+					label: 'linked Network',
+				},
+				{
+					label: 'settlement UTXO network',
+				},
+				{
+					label: 'federation name',
+				},
+				{
+					label: 'block time',
+				},
+				{
+					label: 'native asset',
+				},
+				{
+					label: 'confidential-transactions default',
+				},
+				{
+					label: 'asset count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Assets',
+				items: [
+					{
+						label: 'Elements asset rows',
+					},
+				],
+			},
+			{
+				label: 'Issuances',
+				items: [
+					{
+						label: 'Elements issuance rows when scoped from transactions',
+					},
+				],
+			},
+			{
+				label: 'Pegs',
+				items: [
+					{
+						label: 'Elements peg rows when linked',
+					},
+				],
+			},
+			{
+				label: 'Settlement',
+				items: [
+					{
+						label: 'settlement UTXO network',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

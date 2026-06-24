@@ -9,30 +9,82 @@
 
 	// State
 	const view = {
-		closed: [
-			'referendumId',
-		],
-		content: {
-			dl: [
-				[
-					'referendumId',
-					'track',
-					'submittedAtBlockNumber',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'referendum id',
+		},
+		'track',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'network',
+				},
+				{
+					label: 'referendum id',
+				},
+				'track',
+				{
+					label: 'submitted block',
+				},
+				{
+					label: 'latest lifecycle/tally observation',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Lifecycle',
+				items: [
+					{
+						label: 'timestamped referendum lifecycle observations',
+					},
+				],
+			},
+			{
+				label: 'Tally',
+				items: [
+					{
+						label: 'aye/nay/support fields from latest runtime/indexer payload',
+					},
+				],
+			},
+			{
+				label: 'Votes/deposits',
+				items: [
+					{
+						label: 'vote',
+					},
+					{
+						label: 'deposit child rows once selectors are modeled',
+					},
+				],
+			},
+			{
+				label: 'Preimage/call',
+				items: [
+					{
+						label: 'linked preimage or call metadata',
+					},
+				],
+			},
+			{
+				label: 'Discussions',
+				items: [
+					{
+						label: 'source-attributed forum/indexer links only when selectors exist',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

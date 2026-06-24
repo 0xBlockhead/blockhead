@@ -9,27 +9,78 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'apyBase',
-					'apyReward',
-					'apyTotal',
-					'tvlUsd',
-					'rewardTokens',
-					'poolId',
-					'projectSlug',
-					'chainLabel',
-				],
-			],
+	closed: [
+		{
+			label: 'vault',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'vault',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'base/reward/total APY',
+				},
+				{
+					label: 'TVL USD',
+				},
+				{
+					label: 'project slug',
+				},
+				{
+					label: 'chain label',
+				},
+				{
+					label: 'pool id',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Vault',
+				items: [
+					{
+						label: 'parent ERC-4626 vault',
+					},
+				],
+			},
+			{
+				label: 'Rewards',
+				items: [
+					{
+						label: 'reward token addresses mapped to EVM coin instances when resolvable',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'DefiLlama pool/chart payload',
+					},
+					{
+						label: 'chain/project keys',
+					},
+					{
+						label: 'contract mapping confidence',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

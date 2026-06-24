@@ -9,43 +9,92 @@
 
 	// State
 	const view = {
-		closed: [
-			'nodeId',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'node id',
+		},
+		{
+			label: 'operator',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'node id',
+				},
+				{
+					label: 'operator',
+				},
+				'endpoint',
+				{
+					label: 'latest storage-node observation balance/reward/mining summary',
+				},
+				{
+					label: 'latest observation time',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'nodeId',
-					'endpoint',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Node observations',
+				items: [
+					{
+						label: 'timestamped balance/reward/mining rows',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'stored chunks',
-					when: 'open',
-					items: [
-						'$$storedChunks',
-					],
-				},
-				{
-					label: 'proofs',
-					when: 'open',
-					items: [
-						'$$proofs',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Stored chunks',
+				items: [
+					{
+						label: 'public data-chunk rows linked to this node',
+					},
+				],
+			},
+			{
+				label: 'Proofs',
+				items: [
+					{
+						label: 'public storage-proof rows linked to this node',
+					},
+				],
+			},
+			{
+				label: 'Operator',
+				items: [
+					{
+						label: 'operator EVM account when resolved',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent 0G network',
+					},
+				],
+			},
+			{
+				label: 'Local node state',
+				items: [
+					{
+						label: 'Blockhead node state when connected',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

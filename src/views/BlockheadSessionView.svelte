@@ -9,48 +9,105 @@
 
 	// State
 	const view = {
-		closed: [
-			'id',
+	actions: [
+		{
+			id: 'lock-session',
+			label: 'Lock session',
+			kind: 'createLocal',
+			slot: 'LockSessionAction',
+		},
+		{
+			id: 'delete-session',
+			label: 'Delete session',
+			kind: 'deleteLocal',
+			slot: 'DeleteSessionAction',
+		},
+	],
+	forms: [
+		{
+			id: 'create-action',
+			label: 'Create action',
+			kind: 'createLocal',
+			fields: [
+				{
+					name: 'actionType',
+					label: 'Action type',
+					kind: 'select',
+				},
+				{
+					name: 'params',
+					label: 'Parameters',
+					kind: 'textarea',
+				},
+			],
+			slot: 'CreateSessionActionForm',
+		},
+	],
+	closed: [
+		{
+			label: 'id/name',
+		},
+		'status',
+		{
+			label: 'created/updated/locked timestamps',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'id/name',
+				},
+				'status',
+				{
+					label: 'created/updated/locked timestamps',
+				},
+				{
+					label: 'simulation count',
+				},
+				{
+					label: 'latest simulation when linked',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'id',
-					'name',
-					'status',
-					'createdAt',
-					'updatedAt',
-					'lockedAt',
-					'simulationCount',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Actions',
+				items: [
+					{
+						label: 'ordered BlockheadSessionAction list',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'actions',
-					when: 'open',
-					items: [
-						'$$actions',
-					],
-				},
-				{
-					label: 'intent invocations',
-					when: 'open',
-					items: [
-						'$$intentInvocations',
-					],
-				},
-				{
-					label: 'simulations',
-					when: 'open',
-					items: [
-						'$$simulations',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Invocations',
+				items: [
+					{
+						label: 'accepted or recorded BlockheadIntentInvocation rows',
+					},
+				],
+			},
+			{
+				label: 'Simulations',
+				items: [
+					{
+						label: 'BlockheadSessionSimulation list',
+					},
+				],
+			},
+			{
+				label: 'Intents',
+				items: [
+					{
+						label: 'typed swap/bridge/transfer intent rows',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

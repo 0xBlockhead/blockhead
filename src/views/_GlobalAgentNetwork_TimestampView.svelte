@@ -9,34 +9,81 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'observation time',
+		},
+		'source',
+		'status',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'timestamp',
+				},
+				'source',
+				'status',
+				'error',
+			],
+			[
+				{
+					label: 'scoped agent/registration/server counts',
+				},
+				{
+					label: 'endpoint reachability',
+				},
+				{
+					label: 'cursor',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'sourceReportedAgentCount',
-					'localCatalogAgentCount',
-					'sourceReportedRegistrationCount',
-					'localCatalogRegistrationCount',
-					'sourceReportedServerCount',
-					'localCatalogServerCount',
-					'configuredEndpointCount',
-					'reachableEndpointCount',
-					'searchResultCount',
-					'queryHashAlgorithm',
-					'queryHash',
-					'lastCursor',
-					'rateLimitRemaining',
-					'status',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Network',
+				items: [
+					{
+						label: '_GlobalAgentNetwork',
+					},
+				],
+			},
+			{
+				label: 'Discovery windows',
+				items: [
+					{
+						label: 'query hash algorithm/hash',
+					},
+					{
+						label: 'cursor',
+					},
+					{
+						label: 'search result count',
+					},
+				],
+			},
+			{
+				label: 'Source health',
+				items: [
+					{
+						label: 'reachable endpoint count',
+					},
+					{
+						label: 'rate limit',
+					},
 					'error',
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

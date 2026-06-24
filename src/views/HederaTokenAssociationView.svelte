@@ -9,24 +9,70 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[],
-			],
+	closed: [
+		{
+			label: 'account',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'token',
+		},
+		{
+			label: 'latest association state',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'account',
+				},
+				{
+					label: 'token',
+				},
+				{
+					label: 'latest association state',
+				},
+				{
+					label: 'latest balance',
+				},
+				{
+					label: 'KYC status',
+				},
+				{
+					label: 'freeze status',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Relationship-state history',
+				items: [
+					{
+						label: 'timestamped association/balance observations',
+					},
+				],
+			},
+			{
+				label: 'Transfers',
+				items: [
+					{
+						label: 'token transfers for this account/token',
+					},
+				],
+			},
+			{
+				label: 'NFT holdings',
+				items: [
+					{
+						label: 'NFT serial rows for this account/token',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

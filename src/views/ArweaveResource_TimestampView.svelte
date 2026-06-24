@@ -9,29 +9,90 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'gatewayOrigin',
-					'gatewayUrl',
-					'reachable',
-					'fileName',
-					'extension',
-					'contentType',
-					'contentLength',
-					'displayType',
-					'isContentTypeInferred',
-					'text',
-				],
-			],
+	closed: [
+		{
+			label: 'resource',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		{
+			label: 'gateway origin',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'resource',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'gateway origin',
+				},
+				{
+					label: 'gateway URL',
+				},
+				'reachable',
+			],
+			[
+				{
+					label: 'content type',
+				},
+				{
+					label: 'content length',
+				},
+				{
+					label: 'file name',
+				},
+				'extension',
+				{
+					label: 'display type',
+				},
+				{
+					label: 'inferred-content-type status',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Resource',
+				items: [
+					{
+						label: 'parent transaction/path identity',
+					},
+				],
+			},
+			{
+				label: 'Preview',
+				items: [
+					{
+						label: 'text/media/binary content based on displayType',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'gateway headers',
+					},
+					{
+						label: 'content-type inference',
+					},
+					{
+						label: 'payload availability',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

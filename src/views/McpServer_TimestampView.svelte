@@ -9,31 +9,84 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'health',
-					'protocolVersion',
-					'serverCapabilities',
-					'toolsListChanged',
-					'resourcesListChanged',
-					'resourcesSubscribe',
-					'promptsListChanged',
-					'toolCount',
-					'resourceCount',
-					'promptCount',
-					'nextCursor',
-					'error',
-				],
-			],
+	closed: [
+		{
+			label: 'server',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'health',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'server',
+				},
+				{
+					label: 'timestamp',
+				},
+				'source',
+				'health',
+				{
+					label: 'protocol version',
+				},
+			],
+			[
+				{
+					label: 'capabilities',
+				},
+				{
+					label: 'listChanged/subscribe flags',
+				},
+				{
+					label: 'tool/resource/prompt counts',
+				},
+				{
+					label: 'cursor',
+				},
+				'error',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Server',
+				items: [
+					{
+						label: 'McpServer',
+					},
+				],
+			},
+			{
+				label: 'Capabilities',
+				items: [
+					{
+						label: 'server capabilities and feature flags',
+					},
+				],
+			},
+			{
+				label: 'Counts',
+				items: [
+					{
+						label: 'scoped tool/resource/prompt counts',
+					},
+				],
+			},
+			{
+				label: 'Error',
+				items: [
+					{
+						label: 'error field',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

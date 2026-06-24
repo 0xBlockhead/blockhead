@@ -9,42 +9,100 @@
 
 	// State
 	const view = {
-		closed: [
-			'subnetId',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'subnet id',
+		},
+		{
+			label: 'latest subnet kind',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'subnet id',
+				},
+				{
+					label: 'latest subnet kind',
+				},
+				{
+					label: 'public key',
+				},
+				{
+					label: 'latest replica version',
+				},
+				{
+					label: 'latest node count',
+				},
+				{
+					label: 'latest canister count',
+				},
+				{
+					label: 'latest certified height',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'subnetId',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Hosted canisters',
+				items: [
+					{
+						label: 'canisters hosted on this subnet',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'canister ranges',
-					when: 'open',
-					items: [
-						'$$canisterRanges',
-					],
-				},
-				{
-					label: 'canisters',
-					when: 'open',
-					items: [
-						'$$canisters',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Canister ranges',
+				items: [
+					{
+						label: 'timestamped canister-range routing observations',
+					},
+				],
+			},
+			{
+				label: 'Node/replica observations',
+				items: [
+					{
+						label: 'timestamped subnet registry/status observations',
+					},
+				],
+			},
+			{
+				label: 'Certified-state evidence',
+				items: [
+					{
+						label: 'certificate/witness rows for canisters on this subnet',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent ICP network',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'registry subnet record payloads',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

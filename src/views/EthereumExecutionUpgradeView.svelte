@@ -9,41 +9,86 @@
 
 	// State
 	const view = {
-		closed: [
-			'upgradeId',
-		],
-		content: {
-			dl: [
-				[
-					'upgradeId',
-					'name',
-					'slug',
-					'activationBlock',
-					'activationTimestampMs',
-					'activationEpoch',
-					'protocol',
-					'layer',
-					'forkHash',
-					'linkEthereumOrg',
-					'linkExecutionDocs',
-					'linkForkcast',
-					'executionSpecsPinnedMarkdownFilename',
-					'executionSpecsMainnetUpgradeMarkdown',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		'name',
+		'slug',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'proposals',
-					when: 'open',
-					items: [
-						'$$proposals',
-					],
+					label: 'network',
+				},
+				'name',
+				'slug',
+				'protocol',
+				'layer',
+				{
+					label: 'activation block/timestamp/epoch',
+				},
+				{
+					label: 'fork hash',
+				},
+				{
+					label: 'proposal count',
+				},
+				{
+					label: 'links',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Network upgrade',
+				items: [
+					{
+						label: 'joined execution/consensus network-upgrade row when linked',
+					},
+				],
+			},
+			{
+				label: 'Activation evidence',
+				items: [
+					{
+						label: 'JSON-RPC/fork catalog evidence',
+					},
+				],
+			},
+			{
+				label: 'Proposals',
+				items: [
+					{
+						label: 'linked specification proposal rows',
+					},
+				],
+			},
+			{
+				label: 'Execution specs',
+				items: [
+					{
+						label: 'pinned markdown filename',
+					},
+					{
+						label: 'mainnet upgrade markdown when sourced',
+					},
+				],
+			},
+			{
+				label: 'References',
+				items: [
+					{
+						label: 'catalog URLs only',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

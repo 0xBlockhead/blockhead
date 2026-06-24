@@ -9,29 +9,86 @@
 
 	// State
 	const view = {
-		closed: [
-			'tokenKey',
-		],
-		content: {
-			dl: [
-				[
-					'tokenKey',
-					'tokenId',
-				],
-			],
+	closed: [
+		{
+			label: 'collection',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'token key',
+		},
+		{
+			label: 'token id',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'usage right timestamps',
-					when: 'open',
-					items: [
-						'$$usageRightTimestamps',
-					],
+					label: 'collection',
+				},
+				{
+					label: 'token key',
+				},
+				{
+					label: 'token id',
+				},
+				{
+					label: 'asset object',
+				},
+				{
+					label: 'metadata link',
+				},
+				{
+					label: 'usage-right observation count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Collection',
+				items: [
+					{
+						label: 'parent NFT collection',
+					},
+				],
+			},
+			{
+				label: 'Asset object',
+				items: [
+					{
+						label: 'linked AssetObject when canonical object identity is available',
+					},
+				],
+			},
+			{
+				label: 'Metadata',
+				items: [
+					{
+						label: 'linked token metadata document',
+					},
+				],
+			},
+			{
+				label: 'Usage-right observations',
+				items: [
+					{
+						label: 'timestamped usage-right observations',
+					},
+				],
+			},
+			{
+				label: 'Ownership/balance evidence',
+				items: [
+					{
+						label: 'token transfers or future account-scoped ownership/balance rows',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

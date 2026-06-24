@@ -9,31 +9,103 @@
 
 	// State
 	const view = {
-		closed: [
-			'extractorId',
-			'claimPath',
-		],
-		content: {
-			dl: [
-				[
-					'extractorId',
-					'claimPath',
-					'claimKind',
-					'value',
-					'subjectKind',
-					'subjectSelector',
-					'metadataKey',
-					'formatObjectId',
-					'formatObjectKind',
-					'checksumAlgorithm',
-					'checksumValue',
-					'relationshipKind',
-					'normalizedSelector',
-					'confidence',
-				],
-			],
+	closed: [
+		{
+			label: 'document',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'claim path',
+		},
+		{
+			label: 'claim kind',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'document',
+				},
+				{
+					label: 'extractor id',
+				},
+				{
+					label: 'claim path',
+				},
+				{
+					label: 'claim kind',
+				},
+				{
+					label: 'metadata key',
+				},
+			],
+			[
+				{
+					label: 'format object',
+				},
+				{
+					label: 'checksum',
+				},
+				{
+					label: 'subject kind/selector',
+				},
+				{
+					label: 'relationship kind',
+				},
+				{
+					label: 'normalized selector',
+				},
+				'confidence',
+				'value',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Document',
+				items: [
+					{
+						label: 'AiDocument',
+					},
+				],
+			},
+			{
+				label: 'Value',
+				items: [
+					{
+						label: 'claim value JSON',
+					},
+				],
+			},
+			{
+				label: 'Subject',
+				items: [
+					{
+						label: 'subject selector',
+					},
+				],
+			},
+			{
+				label: 'Normalized',
+				items: [
+					{
+						label: 'metadata key',
+					},
+					{
+						label: 'format object id/kind',
+					},
+					{
+						label: 'relationship kind',
+					},
+					{
+						label: 'normalized selector',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

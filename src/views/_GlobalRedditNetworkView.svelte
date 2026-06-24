@@ -9,42 +9,55 @@
 
 	// State
 	const view = {
-		closed: [
-			'scope',
+	closed: [
+		'scope',
+		'$$timestamps',
+		'$$sourceWindowSubreddits',
+	],
+	content: {
+		dl: [
+			[
+				'scope',
+				'$$timestamps',
+			],
+			[
+				'$$sourceWindowSubreddits',
+				'$$sourceWindowLinks',
+			],
 		],
-		content: {
-			dl: [
-				[
-					'scope',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Source-window rows',
+				items: [
+					'$$sourceWindowSubreddits',
+					'$$sourceWindowLinks',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'source window subreddits',
-					when: 'open',
-					items: [
-						'$$sourceWindowSubreddits',
-					],
-				},
-				{
-					label: 'source window links',
-					when: 'open',
-					items: [
-						'$$sourceWindowLinks',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Hub observations',
+				items: [
+					'$$timestamps',
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'SourceBinding.Constants_Internal',
+					},
+					{
+						label: 'SourceBinding.Reddit_PublicJson',
+					},
+					{
+						label: 'SourceBinding.Reddit_Rest',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,27 +9,83 @@
 
 	// State
 	const view = {
-		closed: [
-			'slot',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'slot',
-					'source',
-					'timestampMs',
-					'lamports',
-					'ownerProgramId',
-					'executable',
-					'rentEpoch',
-					'spaceBytes',
-					'dataEncoding',
-					'parsedData',
-				],
-			],
+	closed: [
+		{
+			label: 'account',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'slot',
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'account',
+				},
+				'slot',
+				'source',
+				{
+					label: 'timestamp',
+				},
+				'lamports',
+				{
+					label: 'owner program id',
+				},
+				{
+					label: 'executable flag',
+				},
+				{
+					label: 'rent epoch',
+				},
+				{
+					label: 'space bytes',
+				},
+				{
+					label: 'data encoding',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'parent Solana account',
+					},
+				],
+			},
+			{
+				label: 'Owner program',
+				items: [
+					{
+						label: 'Solana program when ownerProgramId resolves',
+					},
+				],
+			},
+			{
+				label: 'Parsed data',
+				items: [
+					{
+						label: 'parsedData JSON',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'getAccountInfo/getMultipleAccounts/getProgramAccounts context',
+					},
+					{
+						label: 'payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

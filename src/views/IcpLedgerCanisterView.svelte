@@ -9,47 +9,114 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[
-					'ledgerStandard',
+	closed: [
+		{
+			label: 'canister',
+		},
+		{
+			label: 'standard',
+		},
+		{
+			label: 'latest symbol',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'canister',
+				},
+				{
+					label: 'standard',
+				},
+				{
+					label: 'latest symbol',
+				},
+				{
+					label: 'latest name',
+				},
+				{
+					label: 'decimals',
+				},
+				{
+					label: 'fee',
+				},
+				{
+					label: 'archive count',
+				},
+				{
+					label: 'latest block index',
+				},
+				{
+					label: 'account observation count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Ledger state history',
+				items: [
+					{
+						label: 'timestamped ledger metadata/archive observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'account timestamps',
-					when: 'open',
-					items: [
-						'$$accountTimestamps',
-					],
-				},
-				{
-					label: 'blocks',
-					when: 'open',
-					items: [
-						'$$blocks',
-					],
-				},
-				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Blocks',
+				items: [
+					{
+						label: 'ledger-local block rows',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'ledger transaction rows',
+					},
+				],
+			},
+			{
+				label: 'Account balances',
+				items: [
+					{
+						label: 'account balance observations',
+					},
+				],
+			},
+			{
+				label: 'Archive canisters',
+				items: [
+					{
+						label: 'canister refs from latest timestamp',
+					},
+				],
+			},
+			{
+				label: 'Methods',
+				items: [
+					{
+						label: 'canister method rows exposed by ledger interface',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'ledger metadata',
+					},
+					{
+						label: 'supported-standard payloads',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

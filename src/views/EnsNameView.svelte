@@ -9,53 +9,81 @@
 
 	// State
 	const view = {
-		closed: [
-			'name',
+	closed: [
+		'name',
+		{
+			label: 'normalized name',
+		},
+		'node',
+	],
+	content: {
+		dl: [
+			[
+				'name',
+				{
+					label: 'normalized name',
+				},
+				'node',
+				{
+					label: 'label name/hash',
+				},
+				{
+					label: 'parent',
+				},
+				{
+					label: 'latest owner/resolver snapshot',
+				},
+				{
+					label: 'latest reverse-record status',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'name',
-					'normalizedName',
-					'node',
-					'labelName',
-					'labelhash',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Name snapshots',
+				items: [
+					{
+						label: 'timestamped ENS name registry/index state',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'subdomains',
-					when: 'open',
-					items: [
-						'$$subdomains',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'records',
-					when: 'open',
-					items: [
-						'$$records',
-					],
-				},
-				{
-					label: 'reverse records',
-					when: 'open',
-					items: [
-						'$$reverseRecords',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Records',
+				items: [
+					{
+						label: 'ENS records grouped by addr/text/contenthash/ABI/multicoin',
+					},
+				],
+			},
+			{
+				label: 'Subdomains',
+				items: [
+					{
+						label: 'ENS subdomain rows',
+					},
+				],
+			},
+			{
+				label: 'Reverse records',
+				items: [
+					{
+						label: 'ENS reverse-record rows',
+					},
+				],
+			},
+			{
+				label: 'Linked accounts',
+				items: [
+					{
+						label: 'EVM account refs from latest snapshot/records',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

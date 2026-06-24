@@ -9,35 +9,86 @@
 
 	// State
 	const view = {
-		closed: [
-			'patchId',
-		],
-		content: {
-			dl: [
-				[
-					'patchId',
-					'authorDid',
-					'targetRef',
-					'headObjectId',
-					'baseObjectId',
-					'state',
-					'createdAt',
-					'updatedAt',
-				],
-			],
+	closed: [
+		{
+			label: 'repository',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'patch id',
+		},
+		'state',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'comments',
-					when: 'open',
-					items: [
-						'$$comments',
-					],
+					label: 'repository',
+				},
+				{
+					label: 'patch id',
+				},
+				'state',
+				{
+					label: 'author DID',
+				},
+				{
+					label: 'target ref',
+				},
+				{
+					label: 'head object id',
+				},
+				{
+					label: 'base object id',
+				},
+				{
+					label: 'created/updated timestamps',
+				},
+				{
+					label: 'head commit',
+				},
+				{
+					label: 'base commit',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Commits',
+				items: [
+					{
+						label: 'head/base Git commits',
+					},
+				],
+			},
+			{
+				label: 'Comments',
+				items: [
+					{
+						label: 'discussion comments',
+					},
+				],
+			},
+			{
+				label: 'Events',
+				items: [
+					{
+						label: 'collaboration events',
+					},
+				],
+			},
+			{
+				label: 'Repository',
+				items: [
+					{
+						label: 'parent Radicle repository',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

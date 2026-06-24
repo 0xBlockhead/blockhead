@@ -9,40 +9,131 @@
 
 	// State
 	const view = {
-		closed: [
-			'id',
-		],
-		content: {
-			dl: [
-				[
-					'id',
-					'fromPeerId',
-					'toPeerId',
-					'message',
-					'scheme',
-					'domain',
-					'address',
-					'uri',
-					'version',
-					'chainId',
-					'nonce',
-					'statement',
-					'issuedAt',
-					'expiresAt',
-					'notBefore',
-					'requestId',
-					'resources',
-					'requestOrigin',
-					'signature',
-					'signatureKind',
-					'verified',
-					'verificationMethod',
-					'verifiedAt',
-					'verificationError',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'room',
+		},
+		{
+			label: 'requester/responder peers',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'room',
+				},
+				{
+					label: 'requester/responder peers',
+				},
+				{
+					label: 'signer account',
+				},
+				'domain',
+				{
+					label: 'URI',
+				},
+				{
+					label: 'chain id',
+				},
+				'nonce',
+				{
+					label: 'issued/expires/not-before times',
+				},
+				{
+					label: 'request origin',
+				},
+				{
+					label: 'signature presence',
+				},
+				{
+					label: 'verification method',
+				},
+				{
+					label: 'verified time',
+				},
+				{
+					label: 'verified state',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Message',
+				items: [
+					{
+						label: 'full ERC-4361 message',
+					},
+					{
+						label: 'parsed scheme/domain/address/statement/resources',
+					},
+				],
+			},
+			{
+				label: 'Verification',
+				items: [
+					{
+						label: 'EOA ERC-191 recovery or contract ERC-1271 result',
+					},
+					{
+						label: 'signature kind',
+					},
+					{
+						label: 'error',
+					},
+					{
+						label: 'local verifier timestamp',
+					},
+				],
+			},
+			{
+				label: 'Signer',
+				items: [
+					{
+						label: 'signer EVM account plus ENS reverse/profile evidence when resolved',
+					},
+				],
+			},
+			{
+				label: 'Room',
+				items: [
+					{
+						label: 'parent local room',
+					},
+					{
+						label: 'peer ids',
+					},
+				],
+			},
+			{
+				label: 'Session scope',
+				items: [
+					{
+						label: 'URI',
+					},
+					{
+						label: 'request id',
+					},
+					'resources',
+					{
+						label: 'expiration',
+					},
+					{
+						label: 'replay checks',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,30 +9,83 @@
 
 	// State
 	const view = {
-		closed: [
-			'authenticationId',
-		],
-		content: {
-			dl: [
-				[
-					'authenticationId',
-					'protocol',
-					'statement',
-					'domain',
-					'uri',
-					'nonce',
-					'issuedAt',
-					'expirationTime',
-					'notBefore',
-					'chainId',
-					'signature',
-					'verified',
-					'verifiedAt',
-					'error',
-				],
-			],
+	closed: [
+		{
+			label: 'authentication id',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'protocol',
+		'verified',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'authentication id',
+				},
+				'protocol',
+				'domain',
+				{
+					label: 'URI',
+				},
+				{
+					label: 'chain/account',
+				},
+				{
+					label: 'issued/expiration/not-before times',
+				},
+			],
+			[
+				{
+					label: 'nonce presence',
+				},
+				{
+					label: 'signature presence',
+				},
+				'verified',
+				{
+					label: 'verified at',
+				},
+				'error',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Connection',
+				items: [
+					{
+						label: 'BlockheadWalletConnection if auth was performed through a live wallet',
+					},
+				],
+			},
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'BlockheadWalletAccount',
+					},
+				],
+			},
+			{
+				label: 'Statement',
+				items: [
+					{
+						label: 'redacted sign-in statement',
+					},
+				],
+			},
+			{
+				label: 'Verification',
+				items: [
+					{
+						label: 'nonce/domain/signature verification result',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

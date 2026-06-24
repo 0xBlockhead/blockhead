@@ -9,23 +9,69 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'slowGwei',
-					'averageGwei',
-					'fastGwei',
-					'transport',
-				],
-			],
+	closed: [
+		{
+			label: 'slow/average/fast gwei',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation timestamp',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'slow/average/fast gwei',
+				},
+				{
+					label: 'observation timestamp',
+				},
+				'source',
+				{
+					label: 'transport/source methodology',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent EVM network',
+					},
+				],
+			},
+			{
+				label: 'Gas tiers',
+				items: [
+					{
+						label: 'slow',
+					},
+					{
+						label: 'average',
+					},
+					{
+						label: 'fast values and provider methodology',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Blockscout gas_prices',
+					},
+					{
+						label: 'Etherscan gasoracle payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

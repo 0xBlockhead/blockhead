@@ -9,43 +9,79 @@
 
 	// State
 	const view = {
-		closed: [
-			'registryAgentId',
+	closed: [
+		{
+			label: 'registry id/package',
+		},
+		'label',
+		{
+			label: 'repository',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'registry agent id',
+				},
+				{
+					label: 'package name',
+				},
+				'label',
+				'description',
+			],
+			[
+				{
+					label: 'repository URL',
+				},
+				{
+					label: 'website URL',
+				},
+				'authors',
+				'license',
+			],
+			[
+				{
+					label: 'supports authentication',
+				},
+				{
+					label: 'version refs',
+				},
+				{
+					label: 'document refs',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'registryAgentId',
-					'packageName',
-					'repositoryUrl',
-					'websiteUrl',
-					'label',
-					'description',
-					'authors',
-					'license',
-					'supportsAuthentication',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Versions',
+				items: [
+					{
+						label: 'AcpAgentProgramVersion list',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'versions',
-					when: 'open',
-					items: [
-						'$$versions',
-					],
-				},
-				{
-					label: 'documents',
-					when: 'open',
-					items: [
-						'$$documents',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Documents',
+				items: [
+					{
+						label: 'AiDocument list',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'ACP registry/GitHub references',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

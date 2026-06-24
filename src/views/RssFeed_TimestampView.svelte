@@ -9,29 +9,89 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'reachable',
-					'title',
-					'description',
-					'link',
-					'siteUrl',
-					'language',
-					'lastBuildDate',
-					'imageUrl',
-					'sourceWindowItemCount',
-					'fetchWindowKind',
-				],
-			],
+	closed: [
+		{
+			label: 'feed',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'feed',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				'reachable',
+				{
+					label: 'fetch window kind',
+				},
+			],
+			[
+				'title',
+				'description',
+				{
+					label: 'link/site URL',
+				},
+				'language',
+				{
+					label: 'last build date',
+				},
+				{
+					label: 'image URL',
+				},
+				{
+					label: 'source-window item count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Feed',
+				items: [
+					{
+						label: 'parent RSS feed',
+					},
+				],
+			},
+			{
+				label: 'Document metadata',
+				items: [
+					{
+						label: 'publisher-declared channel/feed fields',
+					},
+				],
+			},
+			{
+				label: 'Item window',
+				items: [
+					{
+						label: 'bounded item count from this fetch',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'direct XML fetch response',
+					},
+					{
+						label: 'Rss2Json proxy response',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

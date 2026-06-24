@@ -9,23 +9,85 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'blockNumber',
-					'operatorCount',
-					'strategyCount',
-					'registrationStatus',
-				],
-			],
+	closed: [
+		{
+			label: 'AVS',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		{
+			label: 'operator count',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'AVS',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'block number',
+				},
+				{
+					label: 'operator count',
+				},
+				{
+					label: 'strategy count',
+				},
+				{
+					label: 'registration status',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'AVS',
+				items: [
+					{
+						label: 'parent EigenLayer AVS',
+					},
+				],
+			},
+			{
+				label: 'Operators',
+				items: [
+					{
+						label: 'operator rows for the same source/window when available',
+					},
+				],
+			},
+			{
+				label: 'Allocations',
+				items: [
+					{
+						label: 'allocation observations near the same observation',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'AVSDirectory reads/logs',
+					},
+					{
+						label: 'subgraph/indexer aggregate payload',
+					},
+					{
+						label: 'block context',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

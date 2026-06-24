@@ -9,51 +9,102 @@
 
 	// State
 	const view = {
-		closed: [
-			'address',
+	closed: [
+		'address',
+		{
+			label: 'local name',
+		},
+		{
+			label: 'legacy profile id',
+		},
+	],
+	content: {
+		dl: [
+			[
+				'address',
+				{
+					label: 'local name',
+				},
+				{
+					label: 'legacy profile id',
+				},
+				{
+					label: 'display name',
+				},
+				'bio',
+				'owner',
+				'score',
+				{
+					label: 'member state',
+				},
+				{
+					label: 'created time',
+				},
+				{
+					label: 'icon URL/media',
+				},
+				{
+					label: 'username',
+				},
+				{
+					label: 'latest follower/following snapshot',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'address',
-					'legacyProfileId',
-					'localName',
-					'displayName',
-					'bio',
-					'createdAt',
-					'owner',
-					'score',
-					'isMemberOf',
-					'iconUrl',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Posts',
+				items: [
+					{
+						label: 'posts authored by this account',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'account managers',
-					when: 'open',
-					items: [
-						'$$accountManagers',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'posts',
-					when: 'open',
-					items: [
-						'$$posts',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Username',
+				items: [
+					{
+						label: 'linked Lens username',
+					},
+				],
+			},
+			{
+				label: 'Account managers',
+				items: [
+					{
+						label: 'delegated manager permission rows',
+					},
+				],
+			},
+			{
+				label: 'Metric snapshots',
+				items: [
+					{
+						label: 'timestamped follower/following observations',
+					},
+				],
+			},
+			{
+				label: 'Owner',
+				items: [
+					{
+						label: 'owner EVM account when resolved',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'account GraphQL payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

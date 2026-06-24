@@ -9,35 +9,103 @@
 
 	// State
 	const view = {
-		closed: [
-			'schemaUid',
-		],
-		content: {
-			dl: [
-				[
-					'schemaUid',
-					'schema',
-					'resolver',
-					'revocable',
-					'registerer',
-					'registeredAt',
-					'registeredTransactionHash',
-					'registeredLogIndex',
-				],
-			],
+	closed: [
+		{
+			label: 'schema UID',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'schema string',
+		},
+		'resolver',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'attestations',
-					when: 'open',
-					items: [
-						'$$attestations',
-					],
+					label: 'schema UID',
+				},
+				{
+					label: 'network',
+				},
+				{
+					label: 'schema string',
+				},
+				'resolver',
+				{
+					label: 'revocable flag',
+				},
+				'registerer',
+				{
+					label: 'registered time',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			[
+				{
+					label: 'registered transaction/log',
+				},
+				{
+					label: 'attestation count when indexed',
+				},
+				{
+					label: 'resolver contract',
+				},
+				{
+					label: 'registerer account',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Attestations',
+				items: [
+					{
+						label: 'attestations filtered by schema',
+					},
+				],
+			},
+			{
+				label: 'Resolver',
+				items: [
+					{
+						label: 'resolver EVM contract when nonzero',
+					},
+				],
+			},
+			{
+				label: 'Registerer',
+				items: [
+					{
+						label: 'registerer EVM network account',
+					},
+				],
+			},
+			{
+				label: 'Schema fields',
+				items: [
+					{
+						label: 'parsed ABI-style schema segments',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'SchemaRegistry getSchema',
+					},
+					{
+						label: 'Registered log',
+					},
+					{
+						label: 'deployment artifact/version',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

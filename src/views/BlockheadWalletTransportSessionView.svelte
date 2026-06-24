@@ -9,33 +9,82 @@
 
 	// State
 	const view = {
-		closed: [
-			'connectionKey',
-			'transportSessionId',
-		],
-		content: {
-			dl: [
-				[
-					'connectionKey',
-					'transportSessionId',
-					'transportKind',
-					'sessionKind',
-					'status',
-					'topic',
-					'peerId',
-					'relayProtocol',
-					'bridgeUrl',
-					'manifestUrl',
-					'origin',
-					'deviceId',
-					'createdAt',
-					'updatedAt',
-					'expiresAt',
-					'metadata',
-				],
-			],
+	closed: [
+		{
+			label: 'transport session id',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'transport kind',
+		},
+		'status',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'transport session id',
+				},
+				{
+					label: 'transport kind',
+				},
+				{
+					label: 'session kind',
+				},
+				'status',
+				'topic',
+				{
+					label: 'peer id',
+				},
+			],
+			[
+				{
+					label: 'relay protocol',
+				},
+				{
+					label: 'bridge URL',
+				},
+				{
+					label: 'manifest URL',
+				},
+				'origin',
+				{
+					label: 'device id',
+				},
+				{
+					label: 'created/updated/expires timestamps',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Connection',
+				items: [
+					{
+						label: 'BlockheadWalletConnection',
+					},
+				],
+			},
+			{
+				label: 'Transport metadata',
+				items: [
+					{
+						label: 'redacted metadata JSON',
+					},
+				],
+			},
+			{
+				label: 'Lifecycle',
+				items: [
+					{
+						label: 'created/updated/expires/status',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

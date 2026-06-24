@@ -9,23 +9,77 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'lastScannedHeight',
-					'lastScannedAt',
-					'notesDiscovered',
-					'nullifiersMatched',
-				],
-			],
+	closed: [
+		{
+			label: 'viewing key',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'viewing key',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'last scanned height',
+				},
+				{
+					label: 'last scanned time',
+				},
+				{
+					label: 'discovered note count',
+				},
+				{
+					label: 'matched nullifier count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Viewing key',
+				items: [
+					{
+						label: 'parent local Zcash viewing key',
+					},
+				],
+			},
+			{
+				label: 'Wallet',
+				items: [
+					{
+						label: 'parent local Zcash wallet state',
+					},
+				],
+			},
+			{
+				label: 'Notes',
+				items: [
+					{
+						label: 'local Zcash note states scoped by key/account',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'zcashd wallet/import scan state or local SDK scan metadata',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

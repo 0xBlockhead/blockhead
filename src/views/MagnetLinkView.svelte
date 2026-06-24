@@ -9,34 +9,87 @@
 
 	// State
 	const view = {
-		closed: [
-			'magnetUri',
-		],
-		content: {
-			dl: [
-				[
-					'magnetUri',
-					'infoHash',
-					'displayName',
-					'exactLength',
-					'trackers',
-					'webSeeds',
-					'acceptableSources',
-				],
-			],
+	closed: [
+		{
+			label: 'magnet URI',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'info hash',
+		},
+		{
+			label: 'display name',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'resolution timestamps',
-					when: 'open',
-					items: [
-						'$$resolutionTimestamps',
-					],
+					label: 'magnet URI',
+				},
+				{
+					label: 'info hash',
+				},
+				{
+					label: 'display name',
+				},
+				{
+					label: 'exact length',
+				},
+				{
+					label: 'tracker count',
+				},
+				{
+					label: 'web seed count',
+				},
+				{
+					label: 'acceptable source count',
+				},
+				{
+					label: 'linked torrent',
+				},
+				{
+					label: 'resolution count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Parameters',
+				items: [
+					{
+						label: 'grouped xt/dn/xl/tr/ws/as values',
+					},
+				],
+			},
+			{
+				label: 'Trackers',
+				items: [
+					{
+						label: 'tracker URLs from tr parameters',
+					},
+				],
+			},
+			{
+				label: 'Torrent',
+				items: [
+					{
+						label: 'linked metainfo row when resolved',
+					},
+				],
+			},
+			{
+				label: 'Resolution history',
+				items: [
+					{
+						label: 'timestamped resolution attempts',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

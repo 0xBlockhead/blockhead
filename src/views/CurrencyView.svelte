@@ -9,46 +9,51 @@
 
 	// State
 	const view = {
-		closed: [
-			'iso4217',
+	closed: [
+		{
+			label: 'ISO code',
+		},
+		'name',
+		'symbol',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'ISO code',
+				},
+				'name',
+				'symbol',
+				{
+					label: 'minor unit exponent',
+				},
+				{
+					label: 'catalog sort weight',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'iso4217',
-					'name',
-					'symbol',
-					'minorUnitExponent',
-					'catalogSortWeight',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Markets as base',
+				items: [
+					{
+						label: 'Market list',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'markets with currency as base',
-					when: 'open',
-					items: [
-						'$$marketsWithCurrencyAsBase',
-					],
-				},
-				{
-					label: 'markets with currency as quote',
-					when: 'open',
-					items: [
-						'$$marketsWithCurrencyAsQuote',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Markets as quote',
+				items: [
+					{
+						label: 'Market list',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

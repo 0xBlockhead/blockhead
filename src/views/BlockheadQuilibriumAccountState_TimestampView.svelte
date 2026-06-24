@@ -9,21 +9,69 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'balance',
-					'balanceObservedAt',
-				],
-			],
+	closed: [
+		{
+			label: 'account state',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'account state',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				'balance',
+				{
+					label: 'balance observation time',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Account state',
+				items: [
+					{
+						label: 'parent local account state',
+					},
+				],
+			},
+			{
+				label: 'Public account',
+				items: [
+					{
+						label: 'public Quilibrium account when resolved',
+					},
+				],
+			},
+			{
+				label: 'Connected node',
+				items: [
+					{
+						label: 'parent Quilibrium node state',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'decryptable balanceAccount response',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

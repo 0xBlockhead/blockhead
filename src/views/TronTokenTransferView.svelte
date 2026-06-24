@@ -9,22 +9,86 @@
 
 	// State
 	const view = {
-		closed: [
-			'transactionId',
-			'transferIndex',
-		],
-		content: {
-			dl: [
-				[
-					'transactionId',
-					'transferIndex',
-					'standard',
-					'amount',
-					'timestampMs',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'transaction id',
+		},
+		{
+			label: 'transfer index',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'transaction id',
+				},
+				{
+					label: 'transfer index',
+				},
+				{
+					label: 'token',
+				},
+				'standard',
+				{
+					label: 'from account',
+				},
+				{
+					label: 'to account',
+				},
+				'amount',
+				{
+					label: 'timestamp',
+				},
+				{
+					label: 'transaction ref',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transaction',
+				items: [
+					{
+						label: 'containing transaction',
+					},
+				],
+			},
+			{
+				label: 'Token',
+				items: [
+					{
+						label: 'token identity',
+					},
+				],
+			},
+			{
+				label: 'From',
+				items: [
+					{
+						label: 'sender account',
+					},
+				],
+			},
+			{
+				label: 'To',
+				items: [
+					{
+						label: 'recipient account',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

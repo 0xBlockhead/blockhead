@@ -9,28 +9,76 @@
 
 	// State
 	const view = {
-		closed: [
-			'denom',
-		],
-		content: {
-			dl: [
-				[
-					'denom',
-				],
-			],
+	closed: [
+		{
+			label: 'proposal',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'depositor',
+		},
+		'denom',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'proposal',
+				},
+				{
+					label: 'depositor',
+				},
+				'denom',
+				{
+					label: 'latest amount/deposit time',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Proposal',
+				items: [
+					{
+						label: 'parent governance proposal',
+					},
+				],
+			},
+			{
+				label: 'Depositor',
+				items: [
+					{
+						label: 'depositor Cosmos account',
+					},
+				],
+			},
+			{
+				label: 'Denom',
+				items: [
+					{
+						label: 'deposit denom when resolved',
+					},
+				],
+			},
+			{
+				label: 'Deposit observations',
+				items: [
+					{
+						label: 'timestamped amount/source rows',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'x/gov deposit payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,32 +9,56 @@
 
 	// State
 	const view = {
-		closed: [
-			'variant',
-		],
-		content: {
-			dl: [
-				[
-					'variant',
-					'fid',
-					'channelId',
-					'viewerFid',
-					'label',
-				],
-			],
+	closed: [
+		'variant',
+		'label',
+		{
+			label: 'scope',
 		},
-		details: {
-			tabs: [
+	],
+	content: {
+		dl: [
+			[
+				'variant',
+				'label',
 				{
-					label: 'entries',
-					when: 'open',
-					items: [
-						'$$entries',
-					],
+					label: 'FID/channel/viewer selector',
+				},
+				{
+					label: 'entry count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Entries',
+				items: [
+					{
+						label: 'FarcasterCast rows returned for this feed request',
+					},
+				],
+			},
+			{
+				label: 'Scope',
+				items: [
+					{
+						label: 'trending/by-user/by-channel/following selector fields',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Farcaster_Rest feed route and pagination context',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

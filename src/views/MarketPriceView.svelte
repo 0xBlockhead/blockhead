@@ -9,24 +9,99 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[],
-			],
+	charts: [
+		{
+			id: 'quotes',
+			label: 'Quote history',
+			kind: 'timeseries',
+			controls: {
+				lookbackDays: [
+					1,
+					7,
+					30,
+					90,
+				],
+			},
+			slot: 'QuoteHistoryChart',
 		},
-		details: {
-			tabs: [
+	],
+	closed: [
+		{
+			label: 'market',
+		},
+		{
+			label: 'latest quote',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'quotes',
-					when: 'open',
-					items: [
-						'$$quotes',
-					],
+					label: 'market',
+				},
+				{
+					label: 'latest quote',
+				},
+				{
+					label: 'quote count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			[
+				{
+					label: 'parent market',
+				},
+				{
+					label: 'base asset',
+				},
+				{
+					label: 'quote asset',
+				},
+				{
+					label: 'venue',
+				},
+				{
+					label: 'market kind',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest quote',
+				items: [
+					{
+						label: 'head Market_Timestamp',
+					},
+				],
+			},
+			{
+				label: 'Quote history',
+				items: [
+					{
+						label: 'Market_Timestamp list sorted by timestampMs',
+					},
+				],
+			},
+			{
+				label: 'Market',
+				items: [
+					{
+						label: 'parent Market',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'provider feed mappings and quote payloads',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

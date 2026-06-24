@@ -9,33 +9,75 @@
 
 	// State
 	const view = {
-		closed: [
-			'ammAccount',
-		],
-		content: {
-			dl: [
-				[
-					'ammAccount',
-					'assetCurrency',
-					'assetIssuer',
-					'asset2Currency',
-					'asset2Issuer',
-					'lpTokenCurrency',
-				],
-			],
+	closed: [
+		{
+			label: 'AMM account',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'asset pair',
+		},
+		{
+			label: 'latest trading fee',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'AMM account',
+				},
+				{
+					label: 'asset pair',
+				},
+				{
+					label: 'LP token currency',
+				},
+				{
+					label: 'latest trading fee',
+				},
+				{
+					label: 'latest reserve snapshot',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Snapshots',
+				items: [
+					{
+						label: 'ledger-indexed AMM observations',
+					},
+				],
+			},
+			{
+				label: 'Ledger entry',
+				items: [
+					{
+						label: 'ledger entry from latest snapshot',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'AMMCreate/AMMDeposit/AMMWithdraw/AMMVote/AMMBid transactions',
+					},
+				],
+			},
+			{
+				label: 'Trust lines',
+				items: [
+					{
+						label: 'LP token holder trust lines when indexed',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

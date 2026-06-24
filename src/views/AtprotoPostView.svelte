@@ -9,40 +9,109 @@
 
 	// State
 	const view = {
-		closed: [
-			'uri',
+	closed: [
+		{
+			label: 'AT URI',
+		},
+		{
+			label: 'author',
+		},
+		'text',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'AT URI',
+				},
+				{
+					label: 'author',
+				},
+				{
+					label: 'created time',
+				},
+				{
+					label: 'indexed time',
+				},
+				'text',
+			],
+			[
+				{
+					label: 'languages',
+				},
+				{
+					label: 'self-label values',
+				},
+				{
+					label: 'parent',
+				},
+				{
+					label: 'root',
+				},
+				{
+					label: 'latest engagement snapshot',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'uri',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Content',
+				items: [
 					'text',
-					'createdAt',
-					'indexedAt',
-					'langs',
-					'selfLabelValues',
+					{
+						label: 'languages',
+					},
+					{
+						label: 'self-label values',
+					},
+					{
+						label: 'created/indexed times',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'threadses',
-					when: 'open',
-					items: [
-						'$$thread',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Thread',
+				items: [
+					{
+						label: 'parent/root/thread post relationships',
+					},
+				],
+			},
+			{
+				label: 'Author',
+				items: [
+					{
+						label: 'author AT Protocol actor',
+					},
+				],
+			},
+			{
+				label: 'Metric snapshots',
+				items: [
+					{
+						label: 'timestamped like/repost/reply/quote counts',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'app.bsky.feed.getPosts',
+					},
+					{
+						label: 'app.bsky.feed.getPostThread',
+					},
+					{
+						label: 'AppView post payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,42 +9,79 @@
 
 	// State
 	const view = {
-		closed: [
-			'sessionId',
-			'actionId',
-			'checkId',
-		],
-		content: {
-			dl: [
-				[
-					'sessionId',
-					'actionId',
-					'checkId',
-					'checkKind',
-					'networkCaip2',
-					'assetCaip19',
-					'chainId',
-					'accountAddress',
-					'tokenAddress',
-					'spenderAddress',
-					'capabilityKey',
-					'requiredAmount',
-					'createdAt',
-				],
-			],
+	closed: [
+		{
+			label: 'readiness check',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'kind',
+		},
+		{
+			label: 'latest status',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'session action',
+				},
+				{
+					label: 'check id',
+				},
+				{
+					label: 'kind',
+				},
+				{
+					label: 'network/account/asset selectors',
+				},
+				{
+					label: 'EVM account/token/spender shortcuts',
+				},
+				{
+					label: 'capability key',
+				},
+				{
+					label: 'required amount',
+				},
+				{
+					label: 'created time',
+				},
+				{
+					label: 'latest status',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Status history',
+				items: [
+					{
+						label: 'BlockheadActionReadinessCheck_Timestamp list',
+					},
+				],
+			},
+			{
+				label: 'Session action',
+				items: [
+					{
+						label: 'BlockheadSessionActionView',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'linked balance/allowance/capability rows when implemented',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

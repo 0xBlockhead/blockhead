@@ -9,43 +9,75 @@
 
 	// State
 	const view = {
-		closed: [
-			'registryServerName',
+	closed: [
+		{
+			label: 'registry server name/repository',
+		},
+		'label',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'registry server name',
+				},
+				{
+					label: 'repository URL',
+				},
+				{
+					label: 'repository source/id',
+				},
+			],
+			[
+				{
+					label: 'repository subfolder',
+				},
+				{
+					label: 'website URL',
+				},
+				'label',
+				'description',
+				'license',
+			],
+			[
+				{
+					label: 'version refs',
+				},
+				{
+					label: 'document refs',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'registryServerName',
-					'repositoryUrl',
-					'repositorySource',
-					'repositoryId',
-					'repositorySubfolder',
-					'websiteUrl',
-					'label',
-					'description',
-					'license',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Versions',
+				items: [
+					{
+						label: 'McpServerPackageVersion list',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'versions',
-					when: 'open',
-					items: [
-						'$$versions',
-					],
-				},
-				{
-					label: 'documents',
-					when: 'open',
-					items: [
-						'$$documents',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Documents',
+				items: [
+					{
+						label: 'AiDocument list',
+					},
+				],
+			},
+			{
+				label: 'Repository',
+				items: [
+					{
+						label: 'repository source/id/subfolder',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

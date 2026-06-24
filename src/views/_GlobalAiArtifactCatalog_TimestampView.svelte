@@ -9,36 +9,77 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'sourceReportedArtifactCount',
-					'localCatalogArtifactCount',
-					'sourceReportedDocumentCount',
-					'localCatalogDocumentCount',
-					'ociManifestCount',
-					'spdxDocumentCount',
-					'cycloneDxDocumentCount',
-					'croissantDocumentCount',
-					'mlflowModelCount',
-					'onnxModelCount',
-					'configuredEndpointCount',
-					'reachableEndpointCount',
-					'queryHashAlgorithm',
-					'queryHash',
-					'lastCursor',
-					'status',
-					'error',
-				],
-			],
+	closed: [
+		{
+			label: 'catalog',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+		'status',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'catalog',
+				},
+				{
+					label: 'timestamp',
+				},
+				'source',
+				'status',
+				'error',
+			],
+			[
+				{
+					label: 'source-reported/local artifact counts',
+				},
+				{
+					label: 'source-reported/local document counts',
+				},
+				{
+					label: 'format counts',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Catalog',
+				items: [
+					{
+						label: '_GlobalAiArtifactCatalog',
+					},
+				],
+			},
+			{
+				label: 'Format coverage',
+				items: [
+					{
+						label: 'OCI/SPDX/CycloneDX/Croissant/MLflow/ONNX counts',
+					},
+				],
+			},
+			{
+				label: 'Source window',
+				items: [
+					{
+						label: 'query hash algorithm/hash',
+					},
+					{
+						label: 'cursor',
+					},
+					{
+						label: 'endpoint coverage',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

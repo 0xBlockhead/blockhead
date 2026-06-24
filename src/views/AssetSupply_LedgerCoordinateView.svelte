@@ -9,28 +9,77 @@
 
 	// State
 	const view = {
-		closed: [
-			'supplyScopeKey',
-			'ledgerCoordinateKind',
-			'ledgerCoordinateValue',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'supplyScopeKey',
-					'classKey',
-					'ledgerCoordinateKind',
-					'ledgerCoordinateValue',
-					'source',
-					'totalSupply',
-					'maxSupply',
-					'mintedSupply',
-					'burnedSupply',
-				],
-			],
+	closed: [
+		{
+			label: 'asset instance',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'supply scope',
+		},
+		{
+			label: 'coordinate kind/value',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'asset instance',
+				},
+				{
+					label: 'supply scope key',
+				},
+				{
+					label: 'optional class',
+				},
+				{
+					label: 'coordinate kind/value',
+				},
+				'source',
+				{
+					label: 'total supply',
+				},
+				{
+					label: 'max supply',
+				},
+				{
+					label: 'minted supply',
+				},
+				{
+					label: 'burned supply',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Asset',
+				items: [
+					{
+						label: 'parent asset instance',
+					},
+				],
+			},
+			{
+				label: 'Class',
+				items: [
+					{
+						label: 'parent class when supplyScopeKey targets a class',
+					},
+				],
+			},
+			{
+				label: 'Source payload',
+				items: [
+					{
+						label: 'chain/indexer-specific raw fields',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

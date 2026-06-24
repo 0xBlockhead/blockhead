@@ -9,24 +9,65 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'oraclePrice',
-					'fundingRate',
-					'openInterest',
-					'status',
-					'nextFundingAtMs',
-				],
-			],
+	closed: [
+		{
+			label: 'market',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'market',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'oracle price',
+				},
+				{
+					label: 'funding rate',
+				},
+				{
+					label: 'open interest',
+				},
+				'status',
+				{
+					label: 'next funding time',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Market',
+				items: [
+					{
+						label: 'parent dYdX market',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'indexer market snapshot',
+					},
+					{
+						label: 'validator/query app-state response',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,28 +9,89 @@
 
 	// State
 	const view = {
-		closed: [
-			'interopAddress',
-		],
-		content: {
-			dl: [
-				[
-					'interopAddress',
-				],
-			],
+	closed: [
+		{
+			label: 'owner account',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'spender address',
+		},
+		{
+			label: 'spender contract when code is detected',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'blocks',
-					when: 'open',
-					items: [
-						'$$blocks',
-					],
+					label: 'owner account',
+				},
+				{
+					label: 'spender address',
+				},
+				{
+					label: 'spender contract when code is detected',
+				},
+				{
+					label: 'token contract/asset',
+				},
+				{
+					label: 'latest block-bounded allowance amount',
+				},
+				{
+					label: 'latest block',
+				},
+				{
+					label: 'latest source',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Allowance reads',
+				items: [
+					{
+						label: 'block-bounded allowance observations',
+					},
+				],
+			},
+			{
+				label: 'Owner balance',
+				items: [
+					{
+						label: 'owner/token balance row',
+					},
+				],
+			},
+			{
+				label: 'Token contract',
+				items: [
+					{
+						label: 'ERC-20 token contract',
+					},
+				],
+			},
+			{
+				label: 'Spender',
+				items: [
+					{
+						label: 'spender EVM account/contract',
+					},
+				],
+			},
+			{
+				label: 'Approval events',
+				items: [
+					{
+						label: 'EVM logs scoped to ERC-20 Approval topic when an indexer/log resolver exists',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,21 +9,55 @@
 
 	// State
 	const view = {
-		closed: [
-			'round',
-		],
-		content: {
-			dl: [
-				[
-					'round',
-					'hash',
-					'timestampMs',
-					'genesisHash',
-					'proposer',
-				],
-			],
+	closed: [
+		'round',
+		'hash',
+		{
+			label: 'timestamp',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+	],
+	content: {
+		dl: [
+			[
+				'round',
+				'hash',
+				{
+					label: 'timestamp',
+				},
+				{
+					label: 'genesis hash',
+				},
+				'proposer',
+				{
+					label: 'protocol/rewards fields when available',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'transactions included in this round when indexed',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'algod /v2/blocks/{round}',
+					},
+					{
+						label: 'indexer block/transaction windows',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

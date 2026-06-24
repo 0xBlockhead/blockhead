@@ -9,28 +9,72 @@
 
 	// State
 	const view = {
-		closed: [
-			'claimableBalanceId',
-		],
-		content: {
-			dl: [
-				[
-					'claimableBalanceId',
-				],
-			],
+	closed: [
+		{
+			label: 'claimable balance id',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'latest state observation',
+		},
+		{
+			label: 'claimed/deleted state',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'claimable balance id',
+				},
+				{
+					label: 'latest asset/amount observation',
+				},
+				{
+					label: 'latest sponsor/claimant observation',
+				},
+				{
+					label: 'claimed transaction when known',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest state',
+				items: [
+					{
+						label: 'latest ledger/source claimable-balance observation',
+					},
+				],
+			},
+			{
+				label: 'State history',
+				items: [
+					{
+						label: 'timestamped claimable-balance observations',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'create/claim transaction effects',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Horizon/RPC/indexer payloads',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

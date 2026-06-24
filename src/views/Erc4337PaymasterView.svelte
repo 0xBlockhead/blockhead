@@ -9,35 +9,90 @@
 
 	// State
 	const view = {
-		closed: [
-			'address',
+	closed: [
+		{
+			label: 'network',
+		},
+		'address',
+		{
+			label: 'paymaster contract',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				'address',
+				{
+					label: 'paymaster contract',
+				},
+				{
+					label: 'latest indexed user-operation count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'address',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Contract',
+				items: [
+					{
+						label: 'paymaster EVM contract',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'user operations',
-					when: 'open',
-					items: [
-						'$$userOperations',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'User operations',
+				items: [
+					{
+						label: 'user operations whose paymaster/paymasterAndData resolves to this paymaster',
+					},
+				],
+			},
+			{
+				label: 'Sponsorship evidence',
+				items: [
+					{
+						label: 'sponsorType',
+					},
+					{
+						label: 'paymasterAndData fields from linked operations',
+					},
+				],
+			},
+			{
+				label: 'Count snapshots',
+				items: [
+					{
+						label: 'timestamped paymaster count observations',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent EVM network',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Blockscout paymaster detail/list payload',
+					},
+					{
+						label: 'pagination context',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

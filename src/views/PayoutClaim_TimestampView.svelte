@@ -9,25 +9,95 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'eligibleAmount',
-					'claimedAmount',
-					'claimStatus',
-					'proofHash',
-					'expiresAt',
-					'error',
-				],
-			],
+	closed: [
+		{
+			label: 'payout',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'account',
+		},
+		{
+			label: 'observation time',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'payout',
+				},
+				{
+					label: 'account',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'eligible amount',
+				},
+				{
+					label: 'claimed amount',
+				},
+				{
+					label: 'claim status',
+				},
+				{
+					label: 'proof hash',
+				},
+				{
+					label: 'claim transaction',
+				},
+				{
+					label: 'expiry',
+				},
+				'error',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Payout',
+				items: [
+					{
+						label: 'parent payout',
+					},
+				],
+			},
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'claiming account',
+					},
+				],
+			},
+			{
+				label: 'Claim transaction',
+				items: [
+					{
+						label: 'EVM transaction when resolved',
+					},
+				],
+			},
+			{
+				label: 'Proof/source',
+				items: [
+					{
+						label: 'merkle proof hash',
+					},
+					{
+						label: 'event/call payload',
+					},
+					{
+						label: 'or indexer row evidence',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

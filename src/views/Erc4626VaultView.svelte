@@ -9,35 +9,100 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[
-					'name',
-					'symbol',
-					'decimals',
+	closed: [
+		{
+			label: 'vault contract',
+		},
+		{
+			label: 'network',
+		},
+		{
+			label: 'asset',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'vault contract',
+				},
+				{
+					label: 'network',
+				},
+				{
+					label: 'asset',
+				},
+				{
+					label: 'share token',
+				},
+				'name',
+				'symbol',
+				'decimals',
+				{
+					label: 'latest total assets',
+				},
+				{
+					label: 'latest total supply',
+				},
+				{
+					label: 'latest APY/TVL observation when present',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Asset',
+				items: [
+					{
+						label: 'underlying EVM coin instance',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'blocks',
-					when: 'open',
-					items: [
-						'$$blocks',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Share token',
+				items: [
+					{
+						label: 'share-token EVM coin instance',
+					},
+				],
+			},
+			{
+				label: 'Contract',
+				items: [
+					{
+						label: 'vault EVM contract with ABI/source verification',
+					},
+				],
+			},
+			{
+				label: 'On-chain state',
+				items: [
+					{
+						label: 'block-bounded ERC-4626 contract-call observations',
+					},
+				],
+			},
+			{
+				label: 'Yield observations',
+				items: [
+					{
+						label: 'timestamped off-chain APY/TVL observations',
+					},
+				],
+			},
+			{
+				label: 'Related positions',
+				items: [
+					{
+						label: 'protocol-specific position rows when indexer sources expose them',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

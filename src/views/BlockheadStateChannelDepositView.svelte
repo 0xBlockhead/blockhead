@@ -9,24 +9,75 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[],
-			],
+	closed: [
+		{
+			label: 'channel',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'account',
+		},
+		{
+			label: 'network',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'channel',
+				},
+				{
+					label: 'account',
+				},
+				{
+					label: 'network',
+				},
+				{
+					label: 'latest available/locked balance',
+				},
+				{
+					label: 'latest observation time',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Channel',
+				items: [
+					{
+						label: 'parent local state channel',
+					},
+				],
+			},
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'participant EVM account on the selected network',
+					},
+				],
+			},
+			{
+				label: 'Collateral observations',
+				items: [
+					{
+						label: 'timestamped available/locked balance rows',
+					},
+				],
+			},
+			{
+				label: 'Settlement evidence',
+				items: [
+					{
+						label: 'linked funding/withdrawal transactions when modeled',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

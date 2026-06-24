@@ -9,20 +9,70 @@
 
 	// State
 	const view = {
-		closed: [
-			'id',
-		],
-		content: {
-			dl: [
-				[
-					'id',
-					'peerId',
-					'targetPeerIds',
-					'sharedAt',
-				],
-			],
+	closed: [
+		{
+			label: 'room',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'peer id',
+		},
+		{
+			label: 'network',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'room',
+				},
+				{
+					label: 'peer id',
+				},
+				{
+					label: 'network',
+				},
+				{
+					label: 'account',
+				},
+				{
+					label: 'target peer ids',
+				},
+				{
+					label: 'shared time',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Room',
+				items: [
+					{
+						label: 'parent local room',
+					},
+				],
+			},
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'shared EVM account on the selected network',
+					},
+				],
+			},
+			{
+				label: 'Authentication',
+				items: [
+					{
+						label: 'linked SIWE challenge rows',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

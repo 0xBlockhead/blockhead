@@ -9,24 +9,75 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'totalDeposited',
-					'balance0',
-					'balance1',
-					'turnNum',
-					'status',
-				],
-			],
+	closed: [
+		{
+			label: 'channel',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'status',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'channel',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'total deposited',
+				},
+				{
+					label: 'participant balances',
+				},
+				{
+					label: 'turn number',
+				},
+				'status',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Channel',
+				items: [
+					{
+						label: 'parent local state channel',
+					},
+				],
+			},
+			{
+				label: 'Current signed state',
+				items: [
+					{
+						label: 'signed channel state near the same turn/version',
+					},
+				],
+			},
+			{
+				label: 'Deposits',
+				items: [
+					{
+						label: 'deposit observations around the same timestamp',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'local client/store/node channel snapshot',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,26 +9,82 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'blockHeight',
-					'side',
-					'size',
-					'entryPrice',
-					'unrealizedPnl',
-					'realizedPnl',
-					'fundingIndex',
-				],
-			],
+	closed: [
+		{
+			label: 'subaccount',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'market',
+		},
+		{
+			label: 'observation time',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'subaccount',
+				},
+				{
+					label: 'market',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'block height',
+				},
+				'side',
+				'size',
+				{
+					label: 'entry price',
+				},
+				{
+					label: 'unrealized PnL',
+				},
+				{
+					label: 'realized PnL',
+				},
+				{
+					label: 'funding index',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Subaccount',
+				items: [
+					{
+						label: 'parent dYdX subaccount',
+					},
+				],
+			},
+			{
+				label: 'Market',
+				items: [
+					{
+						label: 'linked dYdX market',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'indexer position payload',
+					},
+					{
+						label: 'validator app-state query',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

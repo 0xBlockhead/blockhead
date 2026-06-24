@@ -9,23 +9,88 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'latestLedger',
-					'protocolVersion',
-					'baseFee',
-					'baseReserve',
-				],
-			],
+	closed: [
+		{
+			label: 'latest ledger',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'protocol version',
+		},
+		{
+			label: 'base fee',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'latest ledger',
+				},
+				{
+					label: 'protocol version',
+				},
+				{
+					label: 'base fee',
+				},
+				{
+					label: 'base reserve',
+				},
+				'source',
+				{
+					label: 'observation time',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'StellarNetwork',
+					},
+				],
+			},
+			{
+				label: 'Ledger head',
+				items: [
+					{
+						label: 'latest ledger',
+					},
+					{
+						label: 'protocol version',
+					},
+				],
+			},
+			{
+				label: 'Fees/reserve',
+				items: [
+					{
+						label: 'base fee',
+					},
+					{
+						label: 'base reserve',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Horizon root/ledger',
+					},
+					{
+						label: 'Stellar RPC',
+					},
+					{
+						label: 'explorer/indexer stats',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

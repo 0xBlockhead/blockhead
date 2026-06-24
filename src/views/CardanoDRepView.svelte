@@ -9,36 +9,92 @@
 
 	// State
 	const view = {
-		closed: [
-			'drepCredential',
+	closed: [
+		{
+			label: 'DRep credential',
+		},
+		{
+			label: 'credential kind',
+		},
+		{
+			label: 'latest registration state',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'DRep credential',
+				},
+				{
+					label: 'credential kind',
+				},
+				{
+					label: 'latest registration state',
+				},
+				{
+					label: 'latest deposit',
+				},
+				{
+					label: 'latest anchor URL/hash',
+				},
+				{
+					label: 'latest voting power',
+				},
+				{
+					label: 'vote count',
+				},
+				{
+					label: 'latest observation',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'drepCredential',
-					'credentialKind',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Observations',
+				items: [
+					{
+						label: 'timestamped DRep state observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'votes',
-					when: 'open',
-					items: [
-						'$$votes',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Votes',
+				items: [
+					{
+						label: 'governance votes by this DRep',
+					},
+				],
+			},
+			{
+				label: 'Delegators',
+				items: [
+					{
+						label: 'stake credentials delegated to this DRep when sourceable',
+					},
+				],
+			},
+			{
+				label: 'Anchor',
+				items: [
+					{
+						label: 'off-chain anchor metadata evidence from latest timestamp',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Cardano network',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

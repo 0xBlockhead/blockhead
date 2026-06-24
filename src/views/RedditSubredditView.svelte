@@ -9,39 +9,57 @@
 
 	// State
 	const view = {
-		closed: [
-			'name',
+	closed: [
+		'name',
+		'title',
+		{
+			label: 'public description',
+		},
+	],
+	content: {
+		dl: [
+			[
+				'name',
+				'title',
+				{
+					label: 'public description',
+				},
+				{
+					label: 'created time',
+				},
+				{
+					label: 'over-18 flag',
+				},
+				{
+					label: 'icon media',
+				},
+				{
+					label: 'latest subscriber/active-user snapshot',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'name',
-					'title',
-					'publicDescription',
-					'createdAt',
-					'over18',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Links',
+				items: [
+					{
+						label: 'submission/link rows',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'links',
-					when: 'open',
-					items: [
-						'$$links',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Metric snapshots',
+				items: [
+					{
+						label: 'timestamped subscriber/active-user observations',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

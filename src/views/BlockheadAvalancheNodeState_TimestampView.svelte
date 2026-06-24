@@ -9,28 +9,92 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'networkName',
-					'nodeVersion',
-					'databaseVersion',
-					'gitCommit',
-					'rpcProtocolVersion',
-					'connectedPeerCount',
-					'uptimePercent',
-					'vmVersions',
-					'lastSyncedAt',
-				],
-			],
+	closed: [
+		{
+			label: 'node state',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'node state',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'network name',
+				},
+				{
+					label: 'node/database versions',
+				},
+				{
+					label: 'git commit',
+				},
+				{
+					label: 'RPC protocol version',
+				},
+				{
+					label: 'connected peer count',
+				},
+				{
+					label: 'uptime',
+				},
+				{
+					label: 'VM version count',
+				},
+				{
+					label: 'last synced time',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Node',
+				items: [
+					{
+						label: 'parent connected Avalanche node state',
+					},
+				],
+			},
+			{
+				label: 'Versions',
+				items: [
+					{
+						label: 'node/database/RPC/VM versions',
+					},
+				],
+			},
+			{
+				label: 'Peers/uptime',
+				items: [
+					{
+						label: 'peer count',
+					},
+					{
+						label: 'uptime observations',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'AvalancheGo Info RPC payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

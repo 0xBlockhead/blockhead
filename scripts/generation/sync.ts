@@ -4,8 +4,6 @@ import { dirname } from 'node:path'
 import { checkGenerated } from './check.ts'
 import { generateExpected } from './generate-expected.ts'
 import { ownershipDiff, staleGeneratedFiles } from './ownership.ts'
-import { validateRoundTrip } from './round-trip.ts'
-import { validateApp } from './validate-app.ts'
 import { validateExpected } from './validate-expected.ts'
 import { writeJsonl, writeText } from './files.ts'
 
@@ -16,13 +14,8 @@ export const syncGenerated = async ({
 	deleteStale: boolean
 	dryRun: boolean
 }) => {
-	if (deleteStale) {
-		await validateApp()
-		await generateExpected()
-		await validateExpected()
-	}
-	else
-		await checkGenerated()
+	await generateExpected()
+	await validateExpected()
 
 	const diff = ownershipDiff(JSON.parse(readFileSync('.generated/expected/ownership.json', 'utf8')) as Parameters<typeof ownershipDiff>[0])
 	const generatedRows = diff.filter((row) => row.ownership === 'generated')

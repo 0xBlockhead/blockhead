@@ -9,34 +9,76 @@
 
 	// State
 	const view = {
-		closed: [
-			'blockNumber',
-		],
-		content: {
-			dl: [
-				[
-					'blockNumber',
-					'blockHash',
-					'consensusStartTimestamp',
-					'consensusEndTimestamp',
-					'gasUsed',
-					'recordFileName',
-					'transactionCount',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'block number',
+		},
+		{
+			label: 'block hash',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
+					label: 'network',
+				},
+				{
+					label: 'block number',
+				},
+				{
+					label: 'block hash',
+				},
+				{
+					label: 'consensus start/end',
+				},
+				{
+					label: 'gas used',
+				},
+				{
+					label: 'record file',
+				},
+				{
+					label: 'transaction count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'Hedera transactions in this block range',
+					},
+				],
+			},
+			{
+				label: 'Record file',
+				items: [
+					{
+						label: 'record-file metadata',
+					},
+				],
+			},
+			{
+				label: 'Lookup evidence',
+				items: [
+					{
+						label: 'mirror block lookup by number or hash',
+					},
+					{
+						label: 'mirror/explorer block payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,42 +9,92 @@
 
 	// State
 	const view = {
-		closed: [
-			'scriptHash',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'script hash',
+		},
+		{
+			label: 'code hash',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'script hash',
+				},
+				{
+					label: 'code hash',
+				},
+				{
+					label: 'parameter/storage type availability',
+				},
+				{
+					label: 'TZIP-16 metadata URI',
+				},
+				{
+					label: 'contract count',
+				},
+				{
+					label: 'entrypoint count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'scriptHash',
-					'codeHash',
-					'parameterType',
-					'storageType',
-					'code',
-					'micheline',
-					'michelson',
-					'tzip16MetadataUri',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Contracts',
+				items: [
+					{
+						label: 'contracts using the script',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'contracts',
-					when: 'open',
-					items: [
-						'$$contracts',
-					],
-				},
-				{
-					label: 'entrypoints',
-					when: 'open',
-					items: [
-						'$$entrypoints',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Entrypoints',
+				items: [
+					{
+						label: 'entrypoint rows',
+					},
+				],
+			},
+			{
+				label: 'Code',
+				items: [
+					{
+						label: 'Micheline/Michelson code',
+					},
+				],
+			},
+			{
+				label: 'Types',
+				items: [
+					{
+						label: 'parameter',
+					},
+					{
+						label: 'storage type trees',
+					},
+				],
+			},
+			{
+				label: 'Metadata',
+				items: [
+					{
+						label: 'TZIP-16 metadata source evidence',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

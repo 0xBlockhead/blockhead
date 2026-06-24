@@ -9,44 +9,73 @@
 
 	// State
 	const view = {
-		closed: [
-			'programHash',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'program hash',
+		},
+		{
+			label: 'program kind',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'program hash',
+				},
+				{
+					label: 'program kind',
+				},
+				{
+					label: 'TEAL version',
+				},
+				{
+					label: 'latest bytecode/disassembly availability',
+				},
+				{
+					label: 'application count',
+				},
+				{
+					label: 'transaction count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'programHash',
-					'programKind',
-					'tealVersion',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Applications',
+				items: [
+					{
+						label: 'applications using this approval/clear program',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'applications',
-					when: 'open',
-					items: [
-						'$$applications',
-					],
-				},
-				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'transactions carrying or creating the program',
+					},
+				],
+			},
+			{
+				label: 'Program evidence',
+				items: [
+					{
+						label: 'source-scoped bytecode/disassembly/source-map observations',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

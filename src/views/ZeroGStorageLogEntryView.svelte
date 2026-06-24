@@ -9,19 +9,68 @@
 
 	// State
 	const view = {
-		closed: [
-			'logEntryId',
-		],
-		content: {
-			dl: [
-				[
-					'logEntryId',
-					'sequenceNumber',
-					'commitment',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'log entry id',
+		},
+		{
+			label: 'sequence number',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'log entry id',
+				},
+				{
+					label: 'sequence number',
+				},
+				'commitment',
+				{
+					label: 'data blob',
+				},
+				{
+					label: 'consensus network',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Data blob',
+				items: [
+					{
+						label: 'linked data-root blob',
+					},
+				],
+			},
+			{
+				label: 'Consensus',
+				items: [
+					{
+						label: 'linked consensus-network identity',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent 0G network',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

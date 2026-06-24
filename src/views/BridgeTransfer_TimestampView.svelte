@@ -9,29 +9,85 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'status',
-					'substatus',
-					'sourceConfirmations',
-					'requiredConfirmations',
-					'destinationTxHash',
-					'relayer',
-					'refundTxHash',
-					'estimatedCompletionMs',
-					'completedAt',
-					'error',
-				],
-			],
+	closed: [
+		{
+			label: 'transfer',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'transfer',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'status/substatus',
+				},
+				{
+					label: 'confirmations',
+				},
+				{
+					label: 'destination transaction hash',
+				},
+				'relayer',
+				{
+					label: 'refund transaction hash',
+				},
+				{
+					label: 'estimated completion time',
+				},
+				{
+					label: 'completed time',
+				},
+				'error',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transfer',
+				items: [
+					{
+						label: 'parent bridge transfer',
+					},
+				],
+			},
+			{
+				label: 'Destination evidence',
+				items: [
+					{
+						label: 'mapped destination EVM transaction when available',
+					},
+				],
+			},
+			{
+				label: 'Refund evidence',
+				items: [
+					{
+						label: 'mapped refund transaction when available',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'status/indexer/log payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,40 +9,126 @@
 
 	// State
 	const view = {
-		closed: [
-			'height',
-		],
-		content: {
-			dl: [
-				[
-					'height',
-					'indepHash',
-					'previousBlock',
-					'timestampMs',
-					'transactionRoot',
-					'walletList',
-					'rewardAddress',
-					'rewardPoolWinston',
-					'weaveSizeBytes',
-					'blockSizeBytes',
-					'cumulativeDiff',
-					'hashListMerkle',
-					'transactionCount',
-				],
-			],
+	closed: [
+		'height',
+		{
+			label: 'indep hash',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'timestamp',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
+					label: 'network',
+				},
+				'height',
+				{
+					label: 'indep hash',
+				},
+				{
+					label: 'previous block',
+				},
+				{
+					label: 'timestamp',
+				},
+				{
+					label: 'transaction count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			[
+				{
+					label: 'reward address',
+				},
+				{
+					label: 'reward pool',
+				},
+				{
+					label: 'weave size',
+				},
+				{
+					label: 'block size',
+				},
+				{
+					label: 'cumulative difficulty',
+				},
+				{
+					label: 'hash-list merkle',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'transactions included in this block',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Arweave network',
+					},
+				],
+			},
+			{
+				label: 'Block header',
+				items: [
+					{
+						label: 'transaction root',
+					},
+					{
+						label: 'wallet list',
+					},
+					{
+						label: 'reward address',
+					},
+					{
+						label: 'reward pool',
+					},
+					{
+						label: 'weave size',
+					},
+					{
+						label: 'block size',
+					},
+				],
+			},
+			{
+				label: 'Lookup evidence',
+				items: [
+					{
+						label: 'GraphQL id lookup',
+					},
+					{
+						label: 'GraphQL height/range page',
+					},
+					{
+						label: 'gateway/node block endpoint',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'confirmation/deep-history availability',
+					},
+					{
+						label: 'gateway archival behavior',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,30 +9,78 @@
 
 	// State
 	const view = {
-		closed: [
-			'methodName',
-			'methodKind',
-		],
-		content: {
-			dl: [
-				[
-					'methodName',
-					'methodKind',
-				],
-			],
+	closed: [
+		{
+			label: 'canister',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'method name',
+		},
+		{
+			label: 'method kind',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'canister',
+				},
+				{
+					label: 'method name',
+				},
+				{
+					label: 'method kind',
+				},
+				{
+					label: 'latest Candid signature',
+				},
+				{
+					label: 'certification support',
+				},
+				{
+					label: 'request count when indexed',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Canister',
+				items: [
+					{
+						label: 'parent ICP canister',
+					},
+				],
+			},
+			{
+				label: 'Interface history',
+				items: [
+					{
+						label: 'timestamped method/interface observations',
+					},
+				],
+			},
+			{
+				label: 'Requests',
+				items: [
+					{
+						label: 'request-status rows filtered by canister/method when known',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Candid interface or dashboard payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

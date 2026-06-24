@@ -9,28 +9,86 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'blockNumber',
-					'blockHash',
-					'freeBalancePlancks',
-					'reservedBalancePlancks',
-					'frozenBalancePlancks',
-					'transferableBalancePlancks',
-					'lockedBalancePlancks',
-					'status',
-					'reason',
-				],
-			],
+	closed: [
+		{
+			label: 'account',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'asset',
+		},
+		{
+			label: 'timestamp',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'account',
+				},
+				{
+					label: 'asset',
+				},
+				{
+					label: 'timestamp',
+				},
+				'source',
+				{
+					label: 'block number/hash',
+				},
+				{
+					label: 'free/reserved/frozen/transferable/locked balances',
+				},
+				'status',
+				'reason',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'parent Polkadot account',
+					},
+				],
+			},
+			{
+				label: 'Asset',
+				items: [
+					{
+						label: 'parent Polkadot asset',
+					},
+				],
+			},
+			{
+				label: 'Block',
+				items: [
+					{
+						label: 'Polkadot block when coordinates are present',
+					},
+				],
+			},
+			{
+				label: 'Transfers/extrinsics',
+				items: [
+					{
+						label: 'extrinsics filtered by account/asset when indexed',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'runtime storage/indexer balance payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

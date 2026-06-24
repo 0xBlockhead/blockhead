@@ -9,25 +9,104 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'delegatedShares',
-					'underlyingTokenAmount',
-					'depositRoot',
-					'withdrawalRoot',
-					'withdrawalQueued',
-					'withdrawalCompleted',
-				],
-			],
+	closed: [
+		{
+			label: 'staker',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'operator',
+		},
+		{
+			label: 'strategy',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'staker',
+				},
+				{
+					label: 'operator',
+				},
+				{
+					label: 'strategy',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'delegated shares',
+				},
+			],
+			[
+				{
+					label: 'underlying token amount',
+				},
+				{
+					label: 'deposit root',
+				},
+				{
+					label: 'withdrawal root',
+				},
+				{
+					label: 'queued/completed flags',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Staker',
+				items: [
+					{
+						label: 'staker EVM network account',
+					},
+				],
+			},
+			{
+				label: 'Operator',
+				items: [
+					{
+						label: 'EigenLayer operator',
+					},
+				],
+			},
+			{
+				label: 'Strategy',
+				items: [
+					{
+						label: 'EigenLayer strategy',
+					},
+				],
+			},
+			{
+				label: 'Withdrawal lifecycle',
+				items: [
+					{
+						label: 'queue/complete fields and transaction evidence',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'DelegationManager/StrategyManager reads',
+					},
+					{
+						label: 'deposit/withdrawal events',
+					},
+					{
+						label: 'indexer freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

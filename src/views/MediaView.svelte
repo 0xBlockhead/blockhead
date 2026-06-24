@@ -9,20 +9,75 @@
 
 	// State
 	const view = {
-		closed: [
-			'url',
-		],
-		content: {
-			dl: [
-				[
-					'url',
-					'type',
-					'transport',
-					'hash',
-				],
+	closed: [
+		'url',
+		'type',
+		'transport',
+	],
+	content: {
+		dl: [
+			[
+				'url',
+				'type',
+				'transport',
+				'hash',
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			[
+				{
+					label: 'original',
+				},
+				{
+					label: 'thumbnail',
+				},
+				{
+					label: 'low',
+				},
+				{
+					label: 'medium',
+				},
+				{
+					label: 'high rendition objects',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Renditions',
+				items: [
+					{
+						label: 'MediaObject refs for original/thumbnail/low/medium/high',
+					},
+				],
+			},
+			{
+				label: 'Usage',
+				items: [
+					{
+						label: 'parent entities that reference this media URL',
+					},
+				],
+			},
+			{
+				label: 'Transport',
+				items: [
+					{
+						label: 'HTTP/IPFS/Arweave classification from URL normalization',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'derived mediaFromUrl output and source payload URL',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

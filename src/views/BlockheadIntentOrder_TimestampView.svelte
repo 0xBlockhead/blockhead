@@ -9,25 +9,72 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'status',
-					'fillTxHash',
-					'claimTxHash',
-					'gasUsed',
-					'statusPayloadHash',
-					'error',
-				],
-			],
+	closed: [
+		{
+			label: 'order',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+		'status',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'order',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				'status',
+				{
+					label: 'fill tx',
+				},
+				{
+					label: 'claim tx',
+				},
+				{
+					label: 'gas used',
+				},
+				{
+					label: 'status payload hash',
+				},
+				'error',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Order',
+				items: [
+					{
+						label: 'BlockheadIntentOrderView',
+					},
+				],
+			},
+			{
+				label: 'Status evidence',
+				items: [
+					{
+						label: 'backend-specific status payload retained only when needed',
+					},
+				],
+			},
+			{
+				label: 'Chain evidence',
+				items: [
+					{
+						label: 'linked transaction/receipt/bridge transfer rows when resolved',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

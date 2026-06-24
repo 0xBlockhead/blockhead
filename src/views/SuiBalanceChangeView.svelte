@@ -9,20 +9,81 @@
 
 	// State
 	const view = {
-		closed: [
-			'changeIndex',
-		],
-		content: {
-			dl: [
-				[
-					'changeIndex',
-					'ownerSelector',
-					'coinType',
-					'amountDelta',
-				],
-			],
+	closed: [
+		{
+			label: 'owner',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'coin type',
+		},
+		{
+			label: 'amount delta',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'owner',
+				},
+				{
+					label: 'coin type',
+				},
+				{
+					label: 'resolved SuiCoinType',
+				},
+				{
+					label: 'amount delta',
+				},
+				{
+					label: 'parent transaction',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transaction',
+				items: [
+					{
+						label: 'SuiTransaction',
+					},
+				],
+			},
+			{
+				label: 'Owner/coin',
+				items: [
+					{
+						label: 'owner selector',
+					},
+					{
+						label: 'coin type',
+					},
+					{
+						label: 'SuiCoinType',
+					},
+				],
+			},
+			{
+				label: 'Delta',
+				items: [
+					{
+						label: 'amount delta',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Sui transaction effects balanceChanges payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

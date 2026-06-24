@@ -9,38 +9,84 @@
 
 	// State
 	const view = {
-		closed: [
-			'txId',
-		],
-		content: {
-			dl: [
-				[
-					'txId',
-					'round',
-					'sender',
-					'transactionType',
-					'fee',
-					'group',
-					'parentTransactionId',
-					'innerTransactionIndex',
-					'innerTxns',
-					'logs',
-					'payload',
-				],
-			],
+	closed: [
+		{
+			label: 'tx id',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'type',
+		},
+		'sender',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'proofs',
-					when: 'open',
-					items: [
-						'$$proofs',
-					],
+					label: 'tx id',
+				},
+				{
+					label: 'type',
+				},
+				'sender',
+				'round',
+				'fee',
+				{
+					label: 'group id',
+				},
+				{
+					label: 'parent/inner index when present',
+				},
+				{
+					label: 'proof count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Group',
+				items: [
+					{
+						label: 'atomic transaction group when present',
+					},
+				],
+			},
+			{
+				label: 'Inner transactions',
+				items: [
+					{
+						label: 'nested transactions by parent/index',
+					},
+				],
+			},
+			{
+				label: 'Proofs',
+				items: [
+					{
+						label: 'transaction inclusion proofs',
+					},
+				],
+			},
+			{
+				label: 'Logs',
+				items: [
+					{
+						label: 'decoded/raw logs',
+					},
+				],
+			},
+			{
+				label: 'Payload',
+				items: [
+					{
+						label: 'type-specific transaction JSON',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

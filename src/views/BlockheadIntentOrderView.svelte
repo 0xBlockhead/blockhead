@@ -9,35 +9,92 @@
 
 	// State
 	const view = {
-		closed: [
-			'id',
-		],
-		content: {
-			dl: [
-				[
-					'id',
-					'source',
-					'orderId',
-					'providerProtocol',
-					'submittedAt',
-					'signatureHash',
-					'orderPayloadHash',
-					'orderSummary',
-				],
-			],
+	closed: [
+		{
+			label: 'order record id',
 		},
-		details: {
-			tabs: [
+		'source',
+		{
+			label: 'order id',
+		},
+		{
+			label: 'latest status',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'order record id',
+				},
+				'source',
+				{
+					label: 'order id',
+				},
+				{
+					label: 'provider protocol',
+				},
+				{
+					label: 'submitted time',
+				},
+				{
+					label: 'signature hash',
+				},
+				{
+					label: 'order payload hash',
+				},
+				{
+					label: 'latest status',
+				},
+				{
+					label: 'latest fill tx',
+				},
+				{
+					label: 'latest claim tx',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Quote',
+				items: [
+					{
+						label: 'BlockheadIntentQuoteView when linked',
+					},
+				],
+			},
+			{
+				label: 'Status history',
+				items: [
+					{
+						label: 'BlockheadIntentOrder_Timestamp list',
+					},
+				],
+			},
+			{
+				label: 'Session action',
+				items: [
+					{
+						label: 'BlockheadSessionActionView when linked',
+					},
+				],
+			},
+			{
+				label: 'Order summary',
+				items: [
+					{
+						label: 'signed provider/order-server payload summary',
+					},
+					{
+						label: 'raw order retained only when needed',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

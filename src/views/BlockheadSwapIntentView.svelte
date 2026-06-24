@@ -9,38 +9,102 @@
 
 	// State
 	const view = {
-		closed: [
-			'sessionId',
-			'actionId',
-		],
-		content: {
-			dl: [
-				[
-					'sessionId',
-					'actionId',
-					'networkCaip2',
-					'assetInCaip19',
-					'assetOutCaip19',
-					'chainId',
-					'tokenInAddress',
-					'tokenOutAddress',
-					'amount',
-					'slippage',
-				],
-			],
+	closed: [
+		{
+			label: 'session action',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'asset in/out',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'quotes',
-					when: 'open',
-					items: [
-						'$$quotes',
-					],
+					label: 'session action',
 				},
+				{
+					label: 'action selected protocol',
+				},
+				{
+					label: 'network CAIP-2',
+				},
+				{
+					label: 'asset CAIP-19 in/out',
+				},
+				{
+					label: 'EVM chain id/raw token addresses',
+				},
+				{
+					label: 'resolved network/token refs',
+				},
+				'amount',
+				'slippage',
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Session action',
+				items: [
+					{
+						label: 'BlockheadSessionActionView',
+					},
+				],
+			},
+			{
+				label: 'Readiness',
+				items: [
+					{
+						label: 'BlockheadActionReadinessCheck list',
+					},
+				],
+			},
+			{
+				label: 'Intent quotes',
+				items: [
+					{
+						label: 'BlockheadIntentQuote list for signed-order/filler-market protocols',
+					},
+				],
+			},
+			{
+				label: 'Route quotes',
+				items: [
+					{
+						label: 'SwapQuote_Timestamp for executable router/aggregator quotes',
+					},
+				],
+			},
+			{
+				label: 'Execution',
+				items: [
+					{
+						label: 'orders',
+					},
+					{
+						label: 'wallet requests',
+					},
+					{
+						label: 'simulation rows when linked',
+					},
+				],
+			},
+			{
+				label: 'Outcomes',
+				items: [
+					{
+						label: 'BlockheadActionOutcome list',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

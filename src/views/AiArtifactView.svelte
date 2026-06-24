@@ -9,49 +9,101 @@
 
 	// State
 	const view = {
-		closed: [
-			'digestAlgorithm',
-			'digest',
+	closed: [
+		{
+			label: 'artifact selector',
+		},
+		{
+			label: 'media/artifact type',
+		},
+		'size',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'digest/CID/OCI/git selector',
+				},
+				{
+					label: 'URI',
+				},
+				{
+					label: 'media type',
+				},
+				{
+					label: 'artifact type',
+				},
+				'size',
+			],
+			[
+				{
+					label: 'config/layer/subject descriptors',
+				},
+				{
+					label: 'document refs',
+				},
+				{
+					label: 'attestation refs',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'digestAlgorithm',
-					'digest',
-					'ociDigest',
-					'ipfsCid',
-					'arweaveId',
-					'gitObject',
-					'uri',
-					'mediaType',
-					'artifactType',
-					'configDescriptor',
-					'layerDescriptors',
-					'subjectDescriptor',
-					'annotations',
-					'size',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Documents',
+				items: [
+					{
+						label: 'AiDocument list',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'documents',
-					when: 'open',
-					items: [
-						'$$documents',
-					],
-				},
-				{
-					label: 'attestations',
-					when: 'open',
-					items: [
-						'$$attestations',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Attestations',
+				items: [
+					{
+						label: 'AiArtifactAttestation list',
+					},
+				],
+			},
+			{
+				label: 'Content addressing',
+				items: [
+					'digest',
+					{
+						label: 'OCI digest',
+					},
+					{
+						label: 'IPFS CID',
+					},
+					{
+						label: 'Arweave ID',
+					},
+					{
+						label: 'git object',
+					},
+				],
+			},
+			{
+				label: 'OCI',
+				items: [
+					{
+						label: 'config/layer/subject descriptors',
+					},
+					'annotations',
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'source-specific artifact locator',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

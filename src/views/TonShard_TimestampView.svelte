@@ -9,27 +9,78 @@
 
 	// State
 	const view = {
-		closed: [
-			'shardPrefix',
-			'seqno',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'shardPrefix',
-					'seqno',
-					'source',
-					'timestampMs',
-					'startLt',
-					'endLt',
-					'minRefMcSeqno',
-					'rootHash',
-					'fileHash',
-				],
-			],
+	closed: [
+		{
+			label: 'workchain',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'shard prefix',
+		},
+		'seqno',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'workchain',
+				},
+				{
+					label: 'shard prefix',
+				},
+				'seqno',
+				'source',
+				{
+					label: 'root hash',
+				},
+				{
+					label: 'file hash',
+				},
+				{
+					label: 'timestamp',
+				},
+				{
+					label: 'logical-time range',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Workchain',
+				items: [
+					{
+						label: 'parent workchain identity',
+					},
+				],
+			},
+			{
+				label: 'Block',
+				items: [
+					{
+						label: 'matching block when root/file hashes resolve',
+					},
+				],
+			},
+			{
+				label: 'Masterchain reference',
+				items: [
+					{
+						label: 'min ref masterchain seqno',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'raw block id payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

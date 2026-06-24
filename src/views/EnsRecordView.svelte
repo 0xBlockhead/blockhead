@@ -9,30 +9,81 @@
 
 	// State
 	const view = {
-		closed: [
-			'recordKey',
-		],
-		content: {
-			dl: [
-				[
-					'recordKey',
-					'recordKind',
-					'coinType',
-				],
-			],
+	closed: [
+		{
+			label: 'name',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'record key',
+		},
+		{
+			label: 'record kind',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'name',
+				},
+				{
+					label: 'record key',
+				},
+				{
+					label: 'record kind',
+				},
+				{
+					label: 'coin type',
+				},
+				{
+					label: 'latest value',
+				},
+				{
+					label: 'latest block/source',
+				},
+				{
+					label: 'timestamp count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'History',
+				items: [
+					{
+						label: 'timestamped resolver record observations',
+					},
+				],
+			},
+			{
+				label: 'Name',
+				items: [
+					{
+						label: 'parent ENS name',
+					},
+				],
+			},
+			{
+				label: 'Resolver evidence',
+				items: [
+					{
+						label: 'resolver selector/call context',
+					},
+				],
+			},
+			{
+				label: 'Display',
+				items: [
+					{
+						label: 'typed rendering for addr/text/contenthash/ABI/multicoin records',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

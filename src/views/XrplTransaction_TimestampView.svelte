@@ -9,25 +9,82 @@
 
 	// State
 	const view = {
-		closed: [
-			'ledgerIndex',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'ledgerIndex',
-					'source',
-					'timestampMs',
-					'fee',
-					'status',
-					'validated',
-					'meta',
-					'resultCode',
-				],
-			],
+	closed: [
+		{
+			label: 'transaction',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'ledger index',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'transaction',
+				},
+				{
+					label: 'ledger index',
+				},
+				'source',
+				{
+					label: 'observation time',
+				},
+				'validated',
+				{
+					label: 'fee drops',
+				},
+				'status',
+				{
+					label: 'result code',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transaction',
+				items: [
+					{
+						label: 'parent transaction identity',
+					},
+				],
+			},
+			{
+				label: 'Affected ledger entries',
+				items: [
+					{
+						label: 'ledger entries from metadata AffectedNodes',
+					},
+				],
+			},
+			{
+				label: 'Metadata',
+				items: [
+					{
+						label: 'raw metadata/result inspector',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'tx method payload',
+					},
+					{
+						label: 'ledger-expanded transaction',
+					},
+					{
+						label: 'explorer/indexer payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

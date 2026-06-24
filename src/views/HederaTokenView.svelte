@@ -9,45 +9,118 @@
 
 	// State
 	const view = {
-		closed: [
-			'tokenId',
+	closed: [
+		{
+			label: 'token id',
+		},
+		{
+			label: 'token type',
+		},
+		{
+			label: 'supply type',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'token id',
+				},
+				{
+					label: 'token type',
+				},
+				{
+					label: 'supply type',
+				},
+				'decimals',
+				{
+					label: 'latest name/symbol',
+				},
+				{
+					label: 'latest treasury',
+				},
+				{
+					label: 'latest supply',
+				},
+				{
+					label: 'paused/deleted state',
+				},
+				{
+					label: 'latest custom fee count',
+				},
+				{
+					label: 'association count',
+				},
+				{
+					label: 'NFT count',
+				},
+				{
+					label: 'timestamp count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'tokenId',
-					'tokenType',
-					'supplyType',
-					'decimals',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest state',
+				items: [
+					{
+						label: 'latest token-info observation',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'associations',
-					when: 'open',
-					items: [
-						'$$associations',
-					],
-				},
-				{
-					label: 'nfts',
-					when: 'open',
-					items: [
-						'$$nfts',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'State history',
+				items: [
+					{
+						label: 'timestamped token-info observations',
+					},
+				],
+			},
+			{
+				label: 'Control keys',
+				items: [
+					{
+						label: 'latest key fields',
+					},
+				],
+			},
+			{
+				label: 'Custom fees',
+				items: [
+					{
+						label: 'custom-fee rows from latest token-info observation',
+					},
+				],
+			},
+			{
+				label: 'Account associations',
+				items: [
+					{
+						label: 'token association rows',
+					},
+				],
+			},
+			{
+				label: 'NFTs',
+				items: [
+					{
+						label: 'NFT serial rows for non-fungible tokens',
+					},
+				],
+			},
+			{
+				label: 'Transfers',
+				items: [
+					{
+						label: 'token transfer rows',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

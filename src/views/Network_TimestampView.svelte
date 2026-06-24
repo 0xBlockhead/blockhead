@@ -9,22 +9,76 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'timestamp',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'timestamp',
+				},
+				'source',
+				{
+					label: 'latest height',
+				},
+				{
+					label: 'transaction count',
+				},
+				'health',
+			],
 		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'latestHeight',
-					'txCount',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'Network',
+					},
+				],
+			},
+			{
+				label: 'Head/health',
+				items: [
+					{
+						label: 'latest height',
+					},
+					{
+						label: 'transaction count',
+					},
 					'health',
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'History',
+				items: [
+					{
+						label: 'Network_Timestamp list',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'network-specific RPC/API status response',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

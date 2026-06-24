@@ -9,46 +9,152 @@
 
 	// State
 	const view = {
-		closed: [
-			'hash',
+	lists: [
+		{
+			id: 'casts',
+			label: 'Casts',
+			limit: 25,
+			query: {
+				sources: [
+					'Snapchain_Rest',
+				],
+				limit: 25,
+			},
+			item: 'link',
+			itemHref: {
+				label: '/farcaster/cast/[hash]',
+			},
+		},
+	],
+	closed: [
+		'fid',
+		'hash',
+		{
+			label: 'username/hash-prefix or client URL selector context',
+		},
+	],
+	content: {
+		dl: [
+			[
+				'fid',
+				'hash',
+				{
+					label: 'username/hash-prefix or client URL selector context',
+				},
+				{
+					label: 'author',
+				},
+				'text',
+				'timestamp',
+				{
+					label: 'parent cast',
+				},
+				{
+					label: 'parent URL',
+				},
+				{
+					label: 'thread hash',
+				},
+				{
+					label: 'channel',
+				},
+				{
+					label: 'posted-via app',
+				},
+				'mentions',
+				{
+					label: 'mentioned profiles/channels',
+				},
+				{
+					label: 'embeds',
+				},
+				{
+					label: 'latest like/recast/reply snapshot',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Parent/thread',
+				items: [
+					{
+						label: 'parent/root cast refs and thread hash',
+					},
+				],
+			},
+			{
+				label: 'Embeds',
+				items: [
+					{
+						label: 'ordered embed rows',
+					},
+				],
+			},
+			{
+				label: 'Author',
+				items: [
+					{
+						label: 'author Farcaster user',
+					},
+				],
+			},
+			{
+				label: 'Channel',
+				items: [
+					{
+						label: 'linked channel when present',
+					},
+				],
+			},
+			{
+				label: 'Metric snapshots',
+				items: [
+					{
+						label: 'timestamped engagement observations',
+					},
+				],
+			},
+		],
+	},
+	query: {
+		policies: [
+			{
+				when: {
+					hasSelectorFields: [
+						'fid',
+						'hash',
+					],
+				},
+				sources: [
+					'Snapchain_Rest',
+				],
+				fields: [
 					'fid',
 					'hash',
+					'text',
+					'timestamp',
+				],
+			},
+			{
+				sources: [
+					'Farcaster_Rest',
+				],
+				fields: [
+					'fid',
+					'hash',
+					'text',
+					'timestamp',
 					'username',
 					'hashPrefix',
 					'clientUrl',
-					'text',
-					'parentUrl',
-					'timestamp',
-					'mentions',
 					'threadHash',
-					'mentionedProfileFids',
-					'mentionedChannelIds',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'embeds',
-					when: 'open',
-					items: [
-						'$$embeds',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,44 +9,106 @@
 
 	// State
 	const view = {
-		closed: [
-			'lt',
+	closed: [
+		{
+			label: 'account',
+		},
+		'lt',
+		'hash',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'account',
+				},
+				'lt',
+				'hash',
+				{
+					label: 'time',
+				},
+				{
+					label: 'original/end status',
+				},
+				{
+					label: 'transaction kind',
+				},
+				{
+					label: 'total fees',
+				},
+				{
+					label: 'block',
+				},
+				{
+					label: 'inbound message',
+				},
+				{
+					label: 'outbound message count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'lt',
-					'hash',
-					'nowMs',
-					'origStatus',
-					'endStatus',
-					'transactionKind',
-					'outMessageCount',
-					'totalFeesNano',
-					'previousTransactionHash',
-					'previousTransactionLt',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Inbound message',
+				items: [
+					{
+						label: 'inbound message edge',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'out messages',
-					when: 'open',
-					items: [
-						'$$outMessages',
-					],
-				},
-				{
-					label: 'phases',
-					when: 'open',
-					items: [
-						'$$phases',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Outbound messages',
+				items: [
+					{
+						label: 'outbound message edges',
+					},
+				],
+			},
+			{
+				label: 'Execution phases',
+				items: [
+					{
+						label: 'compute/storage/credit/action/bounce phases',
+					},
+				],
+			},
+			{
+				label: 'Trace',
+				items: [
+					{
+						label: 'containing trace graph',
+					},
+				],
+			},
+			{
+				label: 'Previous transaction',
+				items: [
+					{
+						label: 'previous account-local transaction',
+					},
+				],
+			},
+			{
+				label: 'Asset effects',
+				items: [
+					{
+						label: 'decoded jetton and NFT transfer effects',
+					},
+				],
+			},
+			{
+				label: 'Raw cell/proof evidence',
+				items: [
+					{
+						label: 'source payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

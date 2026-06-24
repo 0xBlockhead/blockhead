@@ -9,63 +9,67 @@
 
 	// State
 	const view = {
-		closed: [
-			'scope',
+	closed: [
+		'scope',
+		'$$timestamps',
+		'$$sourceWindowProfiles',
+	],
+	content: {
+		dl: [
+			[
+				'scope',
+				'$$timestamps',
+			],
+			[
+				'$$sourceWindowProfiles',
+				'$$sourceWindowNotes',
+				'$$sourceWindowRelays',
+				'$$sourceWindowReposts',
+				'$$sourceWindowArticles',
+			],
 		],
-		content: {
-			dl: [
-				[
-					'scope',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Source-window rows',
+				items: [
+					'$$sourceWindowProfiles',
+					'$$sourceWindowNotes',
+					'$$sourceWindowRelays',
+					'$$sourceWindowReposts',
+					'$$sourceWindowArticles',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'source window profiles',
-					when: 'open',
-					items: [
-						'$$sourceWindowProfiles',
-					],
-				},
-				{
-					label: 'source window notes',
-					when: 'open',
-					items: [
-						'$$sourceWindowNotes',
-					],
-				},
-				{
-					label: 'source window relays',
-					when: 'open',
-					items: [
-						'$$sourceWindowRelays',
-					],
-				},
-				{
-					label: 'source window reposts',
-					when: 'open',
-					items: [
-						'$$sourceWindowReposts',
-					],
-				},
-				{
-					label: 'source window articles',
-					when: 'open',
-					items: [
-						'$$sourceWindowArticles',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Hub observations',
+				items: [
+					'$$timestamps',
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'SourceBinding.Constants_Internal',
+					},
+					{
+						label: 'SourceBinding.NostrBand_Rest',
+					},
+					{
+						label: 'SourceBinding.NostrRelay_Nip11_Http',
+					},
+					{
+						label: 'SourceBinding.NostrRelay_WebSocket',
+					},
+					{
+						label: 'SourceBinding.Primal_Rest',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,28 +9,94 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'methodId',
-					'inputSchema',
-					'outputSchema',
-					'exitCode',
-					'gasUsed',
-					'stack',
-					'resultHash',
-					'blockSeqno',
-					'lastTransactionLt',
-				],
-			],
+	closed: [
+		{
+			label: 'method',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'method',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'method id',
+				},
+				{
+					label: 'schema availability',
+				},
+				{
+					label: 'exit code',
+				},
+				{
+					label: 'gas used',
+				},
+				{
+					label: 'result hash',
+				},
+				{
+					label: 'block seqno',
+				},
+				{
+					label: 'last transaction lt',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Method',
+				items: [
+					{
+						label: 'parent get-method identity',
+					},
+				],
+			},
+			{
+				label: 'Contract',
+				items: [
+					{
+						label: 'owning contract identity',
+					},
+				],
+			},
+			{
+				label: 'Schema',
+				items: [
+					{
+						label: 'input/output schema JSON',
+					},
+				],
+			},
+			{
+				label: 'Stack/result',
+				items: [
+					{
+						label: 'decoded stack JSON',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'raw run-method/verifier response',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

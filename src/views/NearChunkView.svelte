@@ -9,30 +9,84 @@
 
 	// State
 	const view = {
-		closed: [
-			'chunkHash',
-		],
-		content: {
-			dl: [
-				[
-					'chunkHash',
-					'shardId',
-					'gasUsed',
-				],
-			],
+	closed: [
+		{
+			label: 'chunk hash',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'block',
+		},
+		{
+			label: 'shard id',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
+					label: 'chunk hash',
+				},
+				{
+					label: 'block',
+				},
+				{
+					label: 'shard id',
+				},
+				{
+					label: 'gas used',
+				},
+				{
+					label: 'transaction count',
+				},
+				{
+					label: 'shard/block context',
+				},
+				{
+					label: 'raw chunk evidence',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Block',
+				items: [
+					{
+						label: 'NearBlock',
+					},
+				],
+			},
+			{
+				label: 'Shard execution',
+				items: [
+					{
+						label: 'shard id',
+					},
+					{
+						label: 'gas used',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'NearTransaction list',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'NEAR RPC chunk payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

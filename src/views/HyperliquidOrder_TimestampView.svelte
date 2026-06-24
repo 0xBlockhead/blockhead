@@ -9,26 +9,82 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'status',
-					'statusTimestampMs',
-					'size',
-					'children',
-					'filledSize',
-					'remainingSize',
-					'lastFillTid',
-				],
-			],
+	closed: [
+		{
+			label: 'order',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'order',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				'status',
+				{
+					label: 'status time',
+				},
+				'size',
+				{
+					label: 'filled size',
+				},
+				{
+					label: 'remaining size',
+				},
+				{
+					label: 'latest fill id',
+				},
+				{
+					label: 'child count',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Order',
+				items: [
+					{
+						label: 'parent Hyperliquid order',
+					},
+				],
+			},
+			{
+				label: 'Fills',
+				items: [
+					{
+						label: 'fills filtered by order id',
+					},
+				],
+			},
+			{
+				label: 'Children/TP-SL',
+				items: [
+					{
+						label: 'child order payload JSON',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'raw openOrders/frontendOpenOrders/historicalOrders/orderStatus payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

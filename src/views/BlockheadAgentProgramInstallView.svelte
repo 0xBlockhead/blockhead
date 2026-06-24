@@ -9,35 +9,71 @@
 
 	// State
 	const view = {
-		closed: [
-			'installId',
-		],
-		content: {
-			dl: [
-				[
-					'installId',
-					'installPath',
-					'command',
-					'argsHashAlgorithm',
-					'argsHash',
-					'environmentScope',
-					'createdAt',
-					'updatedAt',
-				],
-			],
+	closed: [
+		{
+			label: 'install id',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'program version',
+		},
+		'command',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'install id',
+				},
+				{
+					label: 'program version',
+				},
+				{
+					label: 'source',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			[
+				{
+					label: 'install path',
+				},
+				'command',
+				{
+					label: 'args hash algorithm/hash',
+				},
+				{
+					label: 'environment scope',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Program',
+				items: [
+					{
+						label: 'AcpAgentProgramVersion',
+					},
+				],
+			},
+			{
+				label: 'Source',
+				items: [
+					{
+						label: 'BlockheadSource',
+					},
+				],
+			},
+			{
+				label: 'Health',
+				items: [
+					{
+						label: 'BlockheadAgentProgramInstall_Timestamp list',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

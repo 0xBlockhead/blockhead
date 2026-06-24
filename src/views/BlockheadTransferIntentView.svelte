@@ -9,26 +9,85 @@
 
 	// State
 	const view = {
-		closed: [
-			'sessionId',
-			'actionId',
-		],
-		content: {
-			dl: [
-				[
-					'sessionId',
-					'actionId',
-					'networkCaip2',
-					'assetCaip19',
-					'fromAddress',
-					'toAddress',
-					'chainId',
-					'tokenAddress',
-					'amount',
-				],
-			],
+	closed: [
+		{
+			label: 'session action',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'from/to accounts',
+		},
+		{
+			label: 'network',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'session action',
+				},
+				{
+					label: 'from/to CAIP-10',
+				},
+				{
+					label: 'network CAIP-2',
+				},
+				{
+					label: 'asset CAIP-19',
+				},
+				{
+					label: 'EVM from/to/token shortcuts',
+				},
+				{
+					label: 'resolved account/network/token refs',
+				},
+				'amount',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Session action',
+				items: [
+					{
+						label: 'BlockheadSessionActionView',
+					},
+				],
+			},
+			{
+				label: 'Readiness',
+				items: [
+					{
+						label: 'BlockheadActionReadinessCheck list',
+					},
+				],
+			},
+			{
+				label: 'Execution',
+				items: [
+					{
+						label: 'authorization',
+					},
+					{
+						label: 'wallet requests',
+					},
+					{
+						label: 'receipt rows when source-proven',
+					},
+				],
+			},
+			{
+				label: 'Outcomes',
+				items: [
+					{
+						label: 'BlockheadActionOutcome list',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

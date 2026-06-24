@@ -9,25 +9,75 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'agentUri',
-					'ownerAddress',
-					'agentWalletAddress',
-					'active',
-					'blockNumber',
-					'transactionHash',
-				],
-			],
+	closed: [
+		{
+			label: 'registration',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'active',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'registration',
+				},
+				{
+					label: 'timestamp',
+				},
+				'source',
+				'active',
+			],
+			[
+				{
+					label: 'agent URI',
+				},
+				{
+					label: 'owner address',
+				},
+				{
+					label: 'agent wallet',
+				},
+				{
+					label: 'block',
+				},
+				{
+					label: 'transaction',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Registration',
+				items: [
+					{
+						label: 'Eip8004AgentRegistration',
+					},
+				],
+			},
+			{
+				label: 'On-chain evidence',
+				items: [
+					{
+						label: 'owner/agent wallet/block/transaction',
+					},
+				],
+			},
+			{
+				label: 'Metadata',
+				items: [
+					{
+						label: 'agent URI',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,25 +9,64 @@
 
 	// State
 	const view = {
-		closed: [
-			'phaseKind',
-		],
-		content: {
-			dl: [
-				[
-					'phaseKind',
-					'success',
-					'exitCode',
-					'gasUsed',
-					'gasFeesNano',
-					'storageFeesNano',
-					'actionResultCode',
-					'skippedReason',
-					'rawPhase',
-				],
-			],
+	closed: [
+		{
+			label: 'transaction',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'phase kind',
+		},
+		'success',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'transaction',
+				},
+				{
+					label: 'phase kind',
+				},
+				'success',
+				{
+					label: 'exit/action code',
+				},
+				{
+					label: 'gas used',
+				},
+				{
+					label: 'gas fees',
+				},
+				{
+					label: 'storage fees',
+				},
+				{
+					label: 'skipped reason',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transaction',
+				items: [
+					{
+						label: 'parent transaction',
+					},
+				],
+			},
+			{
+				label: 'Raw phase',
+				items: [
+					{
+						label: 'raw phase payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

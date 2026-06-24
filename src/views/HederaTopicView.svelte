@@ -9,35 +9,92 @@
 
 	// State
 	const view = {
-		closed: [
-			'topicId',
+	closed: [
+		{
+			label: 'topic id',
+		},
+		{
+			label: 'latest memo',
+		},
+		{
+			label: 'admin/submit key presence',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'topic id',
+				},
+				{
+					label: 'latest memo',
+				},
+				{
+					label: 'admin/submit key presence',
+				},
+				{
+					label: 'latest auto-renew account/period',
+				},
+				{
+					label: 'latest fee configuration summary',
+				},
+				{
+					label: 'message count',
+				},
+				{
+					label: 'timestamp count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'topicId',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Messages',
+				items: [
+					{
+						label: 'topic message rows',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'messages',
-					when: 'open',
-					items: [
-						'$$messages',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Latest config',
+				items: [
+					{
+						label: 'latest topic configuration/cursor observation',
+					},
+				],
+			},
+			{
+				label: 'Config history',
+				items: [
+					{
+						label: 'timestamped topic configuration/cursor observations',
+					},
+				],
+			},
+			{
+				label: 'Running hash checkpoints',
+				items: [
+					{
+						label: 'sequence/running-hash stream evidence',
+					},
+				],
+			},
+			{
+				label: 'Submitters/payers',
+				items: [
+					{
+						label: 'latest submit key',
+					},
+					{
+						label: 'payer account context',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

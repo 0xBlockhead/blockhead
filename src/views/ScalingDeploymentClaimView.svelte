@@ -9,38 +9,96 @@
 
 	// State
 	const view = {
-		closed: [
-			'source',
-			'sourceProjectId',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'source/sourceProjectId',
+		},
+		{
+			label: 'latest architecture summary',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'source/sourceProjectId',
+				},
+				{
+					label: 'local claim id',
+				},
+				{
+					label: 'rollup ref',
+				},
+				{
+					label: 'latest architecture/protocol/proof summary',
+				},
+			],
+			[
+				{
+					label: 'latest settlement/DA/sequencing evidence',
+				},
+				{
+					label: 'timestamp count',
+				},
+				{
+					label: 'settlement contract refs',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest claim',
+				items: [
+					{
+						label: 'latest timestamped architecture observation',
+					},
+				],
+			},
+			{
+				label: 'Claim history',
+				items: [
+					{
+						label: 'timestamped source-claim observations',
+					},
+				],
+			},
+			{
+				label: 'Settlement contracts',
+				items: [
+					{
+						label: 'contract refs only when selector evidence resolves them',
+					},
+				],
+			},
+			{
+				label: 'Rollup projection',
+				items: [
+					{
+						label: 'linked EvmRollup compatibility row when available',
+					},
+				],
+			},
+			{
+				label: 'Source identity',
+				items: [
 					'source',
 					'sourceProjectId',
-					'scalingDeploymentClaimId',
+					{
+						label: 'local display alias',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'settlement contracts',
-					when: 'open',
-					items: [
-						'$$settlementContracts',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

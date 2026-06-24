@@ -9,25 +9,96 @@
 
 	// State
 	const view = {
-		closed: [
-			'ledgerSequence',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'ledgerSequence',
-					'source',
-					'observedAtMs',
-					'wasmHash',
-					'executableKind',
-					'lastModifiedLedger',
-					'liveUntilLedger',
-					'found',
-				],
-			],
+	closed: [
+		{
+			label: 'contract',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'ledger sequence',
+		},
+		{
+			label: 'wasm hash',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'contract',
+				},
+				{
+					label: 'ledger sequence',
+				},
+				'source',
+				{
+					label: 'observed time',
+				},
+				{
+					label: 'found state',
+				},
+			],
+			[
+				{
+					label: 'executable kind',
+				},
+				{
+					label: 'wasm hash',
+				},
+				{
+					label: 'linked WASM',
+				},
+				{
+					label: 'last-modified ledger',
+				},
+				{
+					label: 'live-until ledger',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Contract',
+				items: [
+					{
+						label: 'parent Soroban contract',
+					},
+				],
+			},
+			{
+				label: 'WASM',
+				items: [
+					{
+						label: 'linked Soroban WASM',
+					},
+				],
+			},
+			{
+				label: 'Ledger',
+				items: [
+					{
+						label: 'Stellar ledger when resolved',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'ContractData/ContractCode ledger entries',
+					},
+					{
+						label: 'getLedgerEntries latestLedger payload',
+					},
+					{
+						label: 'indexer freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

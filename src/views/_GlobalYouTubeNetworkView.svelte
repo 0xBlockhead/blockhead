@@ -9,49 +9,57 @@
 
 	// State
 	const view = {
-		closed: [
-			'scope',
+	closed: [
+		'scope',
+		'$$timestamps',
+		'$$sourceWindowChannels',
+	],
+	content: {
+		dl: [
+			[
+				'scope',
+				'$$timestamps',
+			],
+			[
+				'$$sourceWindowChannels',
+				'$$sourceWindowVideos',
+				'$$sourceWindowPlaylists',
+			],
 		],
-		content: {
-			dl: [
-				[
-					'scope',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Source-window rows',
+				items: [
+					'$$sourceWindowChannels',
+					'$$sourceWindowVideos',
+					'$$sourceWindowPlaylists',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'source window channels',
-					when: 'open',
-					items: [
-						'$$sourceWindowChannels',
-					],
-				},
-				{
-					label: 'source window videos',
-					when: 'open',
-					items: [
-						'$$sourceWindowVideos',
-					],
-				},
-				{
-					label: 'source window playlists',
-					when: 'open',
-					items: [
-						'$$sourceWindowPlaylists',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Hub observations',
+				items: [
+					'$$timestamps',
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'SourceBinding.Constants_Internal',
+					},
+					{
+						label: 'SourceBinding.Piped_Rest',
+					},
+					{
+						label: 'SourceBinding.Youtube_Rest',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

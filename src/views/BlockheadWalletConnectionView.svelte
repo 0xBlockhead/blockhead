@@ -9,45 +9,99 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[
-					'status',
-					'protocol',
-					'transportKind',
-					'scopes',
-					'selected',
-					'connectedAt',
-					'disconnectedAt',
-					'sessionId',
-					'sessionTopic',
-					'error',
-					'connectionKey',
-					'apiSurfaceKind',
-					'sessionKind',
-					'authorizationKind',
-					'updatedAt',
-					'expiresAt',
-					'pairingId',
-					'transportSessionId',
-					'manifestUrl',
-					'pairingUri',
-				],
-			],
+	closed: [
+		{
+			label: 'wallet id',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'connection key',
+		},
+		'status',
+		'protocol',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'connected accounts',
-					when: 'open',
-					items: [
-						'$$connectedAccounts',
-					],
+					label: 'wallet id',
+				},
+				{
+					label: 'connection key',
+				},
+				'status',
+				'protocol',
+				{
+					label: 'transport',
+				},
+				{
+					label: 'API surface',
+				},
+				{
+					label: 'session kind',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			[
+				{
+					label: 'active account',
+				},
+				{
+					label: 'selected flag',
+				},
+				{
+					label: 'connected/updated/disconnected/expires timestamps',
+				},
+				{
+					label: 'session id/topic/pairing id',
+				},
+				'error',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Accounts',
+				items: [
+					{
+						label: 'BlockheadWalletAccount list, empty while connecting/error/disconnected',
+					},
+				],
+			},
+			{
+				label: 'Scopes',
+				items: [
+					{
+						label: 'namespace/reference/chains/accounts/methods/events/capabilities authorization rows',
+					},
+				],
+			},
+			{
+				label: 'Requests',
+				items: [
+					{
+						label: 'BlockheadWalletRequest rows',
+					},
+				],
+			},
+			{
+				label: 'Transport session',
+				items: [
+					{
+						label: 'BlockheadWalletTransportSession when durable transport identity exists',
+					},
+				],
+			},
+			{
+				label: 'Connection method',
+				items: [
+					{
+						label: 'WalletConnectionMethod',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

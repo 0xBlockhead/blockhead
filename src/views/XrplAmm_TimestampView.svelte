@@ -9,26 +9,84 @@
 
 	// State
 	const view = {
-		closed: [
-			'ledgerIndex',
-			'source',
+	closed: [
+		{
+			label: 'AMM',
+		},
+		{
+			label: 'ledger index',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'AMM',
+				},
+				{
+					label: 'ledger index',
+				},
+				'source',
+				{
+					label: 'observation time',
+				},
+				{
+					label: 'asset reserves',
+				},
+				{
+					label: 'LP token balance',
+				},
+				{
+					label: 'trading fee',
+				},
+				{
+					label: 'auction slot',
+				},
+				{
+					label: 'vote slot summary',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'ledgerIndex',
-					'source',
-					'timestampMs',
-					'assetAmount',
-					'asset2Amount',
-					'lpTokenBalance',
-					'tradingFee',
-					'auctionSlot',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'AMM',
+				items: [
+					{
+						label: 'parent AMM identity',
+					},
+				],
+			},
+			{
+				label: 'Ledger',
+				items: [
+					{
+						label: 'ledger context',
+					},
+				],
+			},
+			{
+				label: 'Auction/votes',
+				items: [
+					{
+						label: 'decoded auctionSlot',
+					},
 					'voteSlots',
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'amm_info/indexer payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

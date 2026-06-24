@@ -9,39 +9,81 @@
 
 	// State
 	const view = {
-		closed: [
-			'objectId',
-			'objectFormat',
-		],
-		content: {
-			dl: [
-				[
-					'objectId',
-					'objectFormat',
-					'treeObjectId',
-					'parentObjectIds',
-					'authorName',
-					'authorEmail',
-					'authorTimestampMs',
-					'committerName',
-					'committerEmail',
-					'committerTimestampMs',
-					'message',
-				],
-			],
+	closed: [
+		{
+			label: 'object id',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'object format',
+		},
+		{
+			label: 'title/message first line',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'signatures',
-					when: 'open',
-					items: [
-						'$$signatures',
-					],
+					label: 'object id',
+				},
+				{
+					label: 'object format',
+				},
+				{
+					label: 'title/message first line',
+				},
+				{
+					label: 'author/committer idents',
+				},
+				{
+					label: 'authored/committed timestamps',
+				},
+				{
+					label: 'root tree object id',
+				},
+				{
+					label: 'parent count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Parents',
+				items: [
+					{
+						label: 'parent commit objects',
+					},
+				],
+			},
+			{
+				label: 'Tree',
+				items: [
+					{
+						label: 'root tree object',
+					},
+				],
+			},
+			{
+				label: 'Signatures',
+				items: [
+					{
+						label: 'signatures over this commit object',
+					},
+				],
+			},
+			{
+				label: 'Object',
+				items: [
+					{
+						label: 'parent Git object',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,27 +9,100 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'reachable',
-					'health',
-					'peerStatusJson',
-					'gatewayCount',
-					'clientConfigHash',
-					'moduleConfigHash',
-					'metaJson',
-					'inviteCodeObserved',
-				],
-			],
+	closed: [
+		{
+			label: 'federation',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'federation',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'reachability',
+				},
+				'health',
+				{
+					label: 'gateway count',
+				},
+				{
+					label: 'config hash',
+				},
+				{
+					label: 'module config hash',
+				},
+				{
+					label: 'meta presence',
+				},
+				{
+					label: 'invite-code observation flag',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Federation',
+				items: [
+					{
+						label: 'parent Fedimint federation',
+					},
+				],
+			},
+			{
+				label: 'Peers',
+				items: [
+					'peerStatusJson',
+				],
+			},
+			{
+				label: 'Meta',
+				items: [
+					'metaJson',
+				],
+			},
+			{
+				label: 'Gateways',
+				items: [
+					{
+						label: 'gateway count',
+					},
+					{
+						label: 'discovered gateway refs',
+					},
+				],
+			},
+			{
+				label: 'Source',
+				items: [
+					{
+						label: 'connected client/gateway endpoint',
+					},
+					{
+						label: 'invite-code preview context',
+					},
+					{
+						label: 'errors',
+					},
+					{
+						label: 'freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

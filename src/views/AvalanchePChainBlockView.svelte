@@ -9,33 +9,88 @@
 
 	// State
 	const view = {
-		closed: [
-			'height',
-		],
-		content: {
-			dl: [
-				[
-					'height',
-					'blockId',
-					'parentBlockId',
-					'timestampMs',
-					'encoding',
-					'txCount',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'height/block id',
+		},
+		{
+			label: 'timestamp',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
+					label: 'network',
+				},
+				'height',
+				{
+					label: 'block id',
+				},
+				{
+					label: 'parent block id',
+				},
+				{
+					label: 'timestamp',
+				},
+				'encoding',
+				{
+					label: 'transaction count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'P-Chain transactions in this block',
+					},
+				],
+			},
+			{
+				label: 'Parent',
+				items: [
+					{
+						label: 'parent P-Chain block when resolved',
+					},
+				],
+			},
+			{
+				label: 'Raw block',
+				items: [
+					{
+						label: 'JSON/hex block payload',
+					},
+				],
+			},
+			{
+				label: 'Lookup evidence',
+				items: [
+					{
+						label: 'platform.getBlock blockID lookup',
+					},
+					{
+						label: 'platform.getBlockByHeight height lookup',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent network',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

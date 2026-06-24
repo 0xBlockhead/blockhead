@@ -9,25 +9,96 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'enabled',
-					'health',
-					'latencyMs',
-					'statusCode',
-					'error',
-					'rateLimitRemaining',
-					'rateLimitResetMs',
-					'resolverCount',
-				],
-			],
+	closed: [
+		{
+			label: 'source',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'health',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'source',
+				},
+				{
+					label: 'observation time',
+				},
+				{
+					label: 'enabled flag',
+				},
+				'health',
+				{
+					label: 'latency',
+				},
+				{
+					label: 'status code',
+				},
+				{
+					label: 'rate-limit remaining/reset',
+				},
+				{
+					label: 'resolver count',
+				},
+				'error',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Source',
+				items: [
+					{
+						label: 'parent local source definition',
+					},
+				],
+			},
+			{
+				label: 'Probe result',
+				items: [
+					{
+						label: 'HTTP/RPC/GraphQL status',
+					},
+					'error',
+				],
+			},
+			{
+				label: 'Rate limits',
+				items: [
+					{
+						label: 'remaining/reset fields',
+					},
+				],
+			},
+			{
+				label: 'Resolver coverage',
+				items: [
+					{
+						label: 'resolver count',
+					},
+					{
+						label: 'local capability notes',
+					},
+				],
+			},
+			{
+				label: 'Local config',
+				items: [
+					{
+						label: 'enabled state',
+					},
+					{
+						label: 'environment gating result',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

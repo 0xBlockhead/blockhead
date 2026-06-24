@@ -9,22 +9,112 @@
 
 	// State
 	const view = {
-		closed: [
-			'txHash',
-			'blobIndex',
-		],
-		content: {
-			dl: [
-				[
-					'txHash',
-					'blobIndex',
-					'versionedHash',
-					'kzgCommitment',
-					'blobDataStorageReferences',
-				],
-			],
+	display: [
+		{
+			field: 'versionedHash',
+			kind: 'truncated',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			field: 'kzgCommitment',
+			kind: 'truncated',
+		},
+	],
+	panels: [
+		{
+			id: 'semantics',
+			label: 'Blob semantics',
+			kind: 'raw',
+			slot: 'BlobSemantics',
+		},
+	],
+	decodes: [
+		{
+			field: 'blobDataStorageReferences',
+			kind: 'json',
+			slot: 'BlobStorageReferences',
+		},
+	],
+	closed: [
+		{
+			label: 'blob index',
+		},
+		{
+			label: 'versioned hash',
+		},
+		{
+			label: 'KZG commitment',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'blob index',
+				},
+				{
+					label: 'versioned hash',
+				},
+				{
+					label: 'KZG commitment',
+				},
+				{
+					label: 'Blobscan storage references',
+				},
+				{
+					label: 'transaction',
+				},
+				{
+					label: 'block',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transaction',
+				items: [
+					{
+						label: 'parent EVM blob transaction',
+					},
+				],
+			},
+			{
+				label: 'Block',
+				items: [
+					{
+						label: 'containing EVM block',
+					},
+				],
+			},
+			{
+				label: 'Data availability',
+				items: [
+					{
+						label: 'versioned hash',
+					},
+					{
+						label: 'KZG commitment',
+					},
+					{
+						label: 'storage references',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'execution payload blob versioned hashes',
+					},
+					{
+						label: 'Blobscan blob payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

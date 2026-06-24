@@ -9,50 +9,103 @@
 
 	// State
 	const view = {
-		closed: [
-			'transactionId',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'transaction id',
+		},
+		'version',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'transaction id',
+				},
+				'version',
+				{
+					label: 'subnetwork id',
+				},
+				'mass',
+				{
+					label: 'payload length',
+				},
+				{
+					label: 'block hash count',
+				},
+				{
+					label: 'accepted status',
+				},
+				{
+					label: 'accepting block count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'transactionId',
-					'version',
-					'lockTime',
-					'subnetworkId',
-					'gas',
-					'payloadHash',
-					'payloadLength',
-					'mass',
-					'blockHashes',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'UTXO inputs',
+				items: [
+					{
+						label: 'transaction input rows',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'inputs',
-					when: 'open',
-					items: [
-						'$$inputs',
-					],
-				},
-				{
-					label: 'outputs',
-					when: 'open',
-					items: [
-						'$$outputs',
-					],
-				},
-				{
-					label: 'acceptances',
-					when: 'open',
-					items: [
-						'$$acceptances',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'UTXO outputs',
+				items: [
+					{
+						label: 'transaction output rows',
+					},
+				],
+			},
+			{
+				label: 'Acceptances',
+				items: [
+					{
+						label: 'accepting block rows',
+					},
+				],
+			},
+			{
+				label: 'DAG blocks',
+				items: [
+					{
+						label: 'containing block hashes',
+					},
+				],
+			},
+			{
+				label: 'Payload',
+				items: [
+					{
+						label: 'payload hash',
+					},
+					{
+						label: 'length',
+					},
+					{
+						label: 'decoded payload preview when source provides bytes',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'node/indexer transaction payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,43 +9,103 @@
 
 	// State
 	const view = {
-		closed: [
-			'proposalTxHash',
-			'proposalIndex',
+	closed: [
+		{
+			label: 'proposal transaction hash',
+		},
+		{
+			label: 'proposal index',
+		},
+		{
+			label: 'kind',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'proposal transaction hash',
+				},
+				{
+					label: 'proposal index',
+				},
+				{
+					label: 'kind',
+				},
+				{
+					label: 'deposit',
+				},
+				{
+					label: 'return address',
+				},
+				{
+					label: 'anchor URL/hash',
+				},
+				{
+					label: 'vote count',
+				},
+				{
+					label: 'latest ratification state',
+				},
+				{
+					label: 'latest lifecycle epoch',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'proposalTxHash',
-					'proposalIndex',
-					'proposalKind',
-					'depositLovelace',
-					'returnAddress',
-					'anchorUrl',
-					'anchorHash',
-					'proposalPayload',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transaction',
+				items: [
+					{
+						label: 'proposal-bearing Cardano transaction',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'votes',
-					when: 'open',
-					items: [
-						'$$votes',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Observations',
+				items: [
+					{
+						label: 'timestamped governance proposal state observations',
+					},
+				],
+			},
+			{
+				label: 'Votes',
+				items: [
+					{
+						label: 'governance votes on this proposal',
+					},
+				],
+			},
+			{
+				label: 'Payload',
+				items: [
+					{
+						label: 'governance action JSON/CBOR fields',
+					},
+				],
+			},
+			{
+				label: 'Anchor',
+				items: [
+					{
+						label: 'off-chain anchor metadata evidence',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Cardano network',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

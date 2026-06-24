@@ -9,25 +9,63 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'health',
-					'protocolVersion',
-					'reachable',
-					'latencyMs',
-					'statusCode',
-					'error',
-				],
-			],
+	closed: [
+		{
+			label: 'service',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'health',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'service',
+				},
+				{
+					label: 'timestamp',
+				},
+				'source',
+				'health',
+				'reachable',
+			],
+			[
+				{
+					label: 'protocol version',
+				},
+				{
+					label: 'latency',
+				},
+				{
+					label: 'status code',
+				},
+				'error',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Service',
+				items: [
+					{
+						label: 'A2aAgentService',
+					},
+				],
+			},
+			{
+				label: 'Probe',
+				items: [
+					{
+						label: 'reachability/latency/status/error',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

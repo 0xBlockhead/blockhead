@@ -9,38 +9,85 @@
 
 	// State
 	const view = {
-		closed: [
-			'blockNumber',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'block number/hash',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'block number',
+				},
+				'hash',
+				{
+					label: 'parent',
+				},
+				{
+					label: 'state root',
+				},
+				{
+					label: 'extrinsics root',
+				},
+				{
+					label: 'extrinsic count',
+				},
+				{
+					label: 'event count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'blockNumber',
-					'hash',
-					'stateRoot',
-					'extrinsicsRoot',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Extrinsics',
+				items: [
+					{
+						label: 'extrinsics in this block',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'extrinsics',
-					when: 'open',
-					items: [
-						'$$extrinsics',
-					],
-				},
-				{
-					label: 'events',
-					when: 'open',
-					items: [
-						'$$events',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Events',
+				items: [
+					{
+						label: 'events in this block',
+					},
+				],
+			},
+			{
+				label: 'Parent',
+				items: [
+					{
+						label: 'parent Polkadot block',
+					},
+				],
+			},
+			{
+				label: 'Lookup evidence',
+				items: [
+					{
+						label: 'chain_getBlockHash number lookup',
+					},
+					{
+						label: 'chain_getBlock hash lookup',
+					},
+					{
+						label: 'indexer block payload fields',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

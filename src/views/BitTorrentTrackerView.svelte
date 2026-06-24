@@ -9,36 +9,72 @@
 
 	// State
 	const view = {
-		closed: [
-			'trackerUrl',
+	closed: [
+		{
+			label: 'tracker URL',
+		},
+		{
+			label: 'tracker kind',
+		},
+		{
+			label: 'latest status',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'tracker URL',
+				},
+				{
+					label: 'tracker kind',
+				},
+				{
+					label: 'latest status',
+				},
+				{
+					label: 'latest known counts',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'trackerUrl',
-					'trackerKind',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Announces',
+				items: [
+					{
+						label: 'announce observations grouped by torrent',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'announces',
-					when: 'open',
-					items: [
-						'$$announces',
-					],
-				},
-				{
-					label: 'scrapes',
-					when: 'open',
-					items: [
-						'$$scrapes',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Scrapes',
+				items: [
+					{
+						label: 'scrape observations',
+					},
+				],
+			},
+			{
+				label: 'Torrents',
+				items: [
+					{
+						label: 'metainfo rows that cite the tracker',
+					},
+				],
+			},
+			{
+				label: 'Magnets',
+				items: [
+					{
+						label: 'magnet links that cite the tracker',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

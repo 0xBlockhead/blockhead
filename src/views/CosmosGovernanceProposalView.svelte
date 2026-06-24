@@ -9,59 +9,104 @@
 
 	// State
 	const view = {
-		closed: [
-			'proposalId',
+	closed: [
+		{
+			label: 'proposal id',
+		},
+		'title',
+		{
+			label: 'latest lifecycle status',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'proposal id',
+				},
+				'title',
+				'summary',
+				{
+					label: 'metadata presence',
+				},
+			],
+			[
+				{
+					label: 'latest lifecycle status',
+				},
+				{
+					label: 'latest tally summary',
+				},
+				{
+					label: 'deposit count',
+				},
+				{
+					label: 'vote count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'proposalId',
-					'title',
-					'summary',
-					'metadata',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Lifecycle snapshots',
+				items: [
+					{
+						label: 'timestamped proposal lifecycle observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'messages',
-					when: 'open',
-					items: [
-						'$$messages',
-					],
-				},
-				{
-					label: 'deposits',
-					when: 'open',
-					items: [
-						'$$deposits',
-					],
-				},
-				{
-					label: 'votes',
-					when: 'open',
-					items: [
-						'$$votes',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'tallies',
-					when: 'open',
-					items: [
-						'$$tallies',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Messages',
+				items: [
+					{
+						label: 'executable SDK messages',
+					},
+				],
+			},
+			{
+				label: 'Deposits',
+				items: [
+					{
+						label: 'proposal depositor/denom records with timestamped amounts',
+					},
+				],
+			},
+			{
+				label: 'Votes',
+				items: [
+					{
+						label: 'proposal voter records with timestamped choices',
+					},
+				],
+			},
+			{
+				label: 'Tally snapshots',
+				items: [
+					{
+						label: 'timestamped live/final tally observations',
+					},
+				],
+			},
+			{
+				label: 'Metadata',
+				items: [
+					{
+						label: 'rendered/raw metadata',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Cosmos network',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

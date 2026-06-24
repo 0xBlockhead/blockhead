@@ -9,27 +9,91 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'serverVersion',
-					'isSynced',
-					'hasUtxoIndex',
-					'virtualDaaScore',
-					'virtualSelectedParentHash',
-					'pruningPointHash',
-					'peerCount',
-					'lastSyncedAt',
-				],
-			],
+	closed: [
+		{
+			label: 'node state',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		{
+			label: 'sync state',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'node state',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'server version',
+				},
+				{
+					label: 'sync state',
+				},
+				{
+					label: 'UTXO-index availability',
+				},
+				{
+					label: 'virtual DAA score',
+				},
+				{
+					label: 'selected parent',
+				},
+				{
+					label: 'pruning point',
+				},
+				{
+					label: 'peer count',
+				},
+				{
+					label: 'last synced time',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Node',
+				items: [
+					{
+						label: 'parent connected Kaspa node state',
+					},
+				],
+			},
+			{
+				label: 'Network observation',
+				items: [
+					{
+						label: 'network timestamp observation when materialized',
+					},
+				],
+			},
+			{
+				label: 'Virtual chain',
+				items: [
+					{
+						label: 'virtual-chain rows from this node',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'getServerInfo/getBlockDagInfo/peer payloads',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

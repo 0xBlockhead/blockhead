@@ -9,43 +9,116 @@
 
 	// State
 	const view = {
-		closed: [
-			'version',
-		],
-		content: {
-			dl: [
-				[
-					'version',
-					'releaseDate',
-					'registryStatus',
-					'publishedAt',
-					'isLatest',
-					'packageRegistryType',
-					'packageRegistryBaseUrl',
-					'packageIdentifier',
-					'runtimeHint',
-					'transportKind',
-					'packages',
-					'remotes',
-					'packageArguments',
-					'runtimeArguments',
-					'environmentVariables',
-					'publisherMeta',
-				],
-			],
+	closed: [
+		{
+			label: 'package/version or artifact',
 		},
-		details: {
-			tabs: [
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'documents',
-					when: 'open',
-					items: [
-						'$$documents',
-					],
+					label: 'package',
+				},
+				'version',
+				{
+					label: 'artifact',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			[
+				{
+					label: 'release date',
+				},
+				{
+					label: 'registry status',
+				},
+				{
+					label: 'published at',
+				},
+				{
+					label: 'latest',
+				},
+			],
+			[
+				{
+					label: 'package registry type/base URL',
+				},
+				{
+					label: 'package identifier',
+				},
+				{
+					label: 'runtime hint',
+				},
+				{
+					label: 'transport kind',
+				},
+			],
+			[
+				{
+					label: 'document refs',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Package',
+				items: [
+					{
+						label: 'McpServerPackage',
+					},
+				],
+			},
+			{
+				label: 'Artifact',
+				items: [
+					{
+						label: 'AiArtifact',
+					},
+				],
+			},
+			{
+				label: 'Packages',
+				items: [
+					{
+						label: 'packages JSON',
+					},
+					{
+						label: 'package/runtime arguments',
+					},
+					{
+						label: 'environment variables',
+					},
+				],
+			},
+			{
+				label: 'Remotes',
+				items: [
+					{
+						label: 'remotes JSON',
+					},
+				],
+			},
+			{
+				label: 'Publisher metadata',
+				items: [
+					{
+						label: 'publisherMeta JSON',
+					},
+				],
+			},
+			{
+				label: 'Documents',
+				items: [
+					{
+						label: 'AiDocument list',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

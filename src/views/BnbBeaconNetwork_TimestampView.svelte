@@ -9,25 +9,87 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'latestArchivedHeight',
-					'latestArchivedBlockTimeMs',
-					'validatorCount',
-					'tokenCount',
-					'migrationRecordCount',
-					'archiveCoverageStatus',
-				],
-			],
+	closed: [
+		{
+			label: 'observed time/source',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'latest archived height/time',
+		},
+		{
+			label: 'validator count',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'observed time/source',
+				},
+				{
+					label: 'latest archived height/time',
+				},
+				{
+					label: 'validator count',
+				},
+				{
+					label: 'token count',
+				},
+				{
+					label: 'migration record count',
+				},
+				{
+					label: 'archive coverage status',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent BNB Beacon network',
+					},
+				],
+			},
+			{
+				label: 'Archive coverage',
+				items: [
+					{
+						label: 'latest archived height/time',
+					},
+					{
+						label: 'archive coverage status',
+					},
+				],
+			},
+			{
+				label: 'Catalog counts',
+				items: [
+					{
+						label: 'validator count',
+					},
+					{
+						label: 'token count',
+					},
+					{
+						label: 'migration record count',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'API/explorer/archive freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

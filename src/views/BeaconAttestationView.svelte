@@ -9,21 +9,60 @@
 
 	// State
 	const view = {
-		closed: [
-			'slot',
-			'index',
-		],
-		content: {
-			dl: [
-				[
-					'slot',
-					'index',
-					'committeeIndex',
-					'aggregationBits',
-				],
-			],
+	closed: [
+		{
+			label: 'attestation index in the slot',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'attestation index in the slot',
+				},
+			],
+			[
+				{
+					label: 'committee index',
+				},
+				{
+					label: 'truncated aggregation bits',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Slot',
+				items: [
+					{
+						label: 'Beacon slot/block body context',
+					},
+				],
+			},
+			{
+				label: 'Committee',
+				items: [
+					{
+						label: 'committee index',
+					},
+					{
+						label: 'aggregation bits',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'beacon block/body attestation payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

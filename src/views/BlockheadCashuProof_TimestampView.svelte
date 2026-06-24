@@ -9,25 +9,87 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'y',
-					'state',
-					'witness',
-					'subscriptionId',
-					'quoteId',
-					'method',
-				],
-			],
+	closed: [
+		{
+			label: 'proof',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'proof',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'proof Y',
+				},
+				'state',
+				{
+					label: 'witness presence',
+				},
+				{
+					label: 'subscription id',
+				},
+				{
+					label: 'quote id',
+				},
+				'method',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Proof',
+				items: [
+					{
+						label: 'BlockheadCashuProofView',
+					},
+				],
+			},
+			{
+				label: 'Mint',
+				items: [
+					{
+						label: 'CashuMintView through the proof',
+					},
+				],
+			},
+			{
+				label: 'Witness',
+				items: [
+					{
+						label: 'serialized witness data when present',
+					},
+				],
+			},
+			{
+				label: 'Quote context',
+				items: [
+					{
+						label: 'BlockheadCashuMintQuoteView or BlockheadCashuMeltQuoteView when linked by local context',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'NUT-07 check-state response or NUT-17 websocket notification',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

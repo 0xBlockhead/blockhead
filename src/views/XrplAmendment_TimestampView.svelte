@@ -9,24 +9,61 @@
 
 	// State
 	const view = {
-		closed: [
-			'ledgerIndex',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'ledgerIndex',
-					'source',
-					'timestampMs',
-					'enabled',
-					'supported',
-					'status',
-					'enabledAtLedger',
-				],
-			],
+	closed: [
+		{
+			label: 'amendment',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'ledger index',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'amendment',
+				},
+				{
+					label: 'ledger index',
+				},
+				'source',
+				{
+					label: 'observation time',
+				},
+				'enabled',
+				'supported',
+				'status',
+				{
+					label: 'enabled ledger',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Amendment',
+				items: [
+					{
+						label: 'parent amendment identity',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'feature command response',
+					},
+					{
+						label: 'latest validated ledger context',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

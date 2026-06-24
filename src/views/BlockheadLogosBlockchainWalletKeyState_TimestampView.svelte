@@ -9,22 +9,60 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'tip',
-					'balance',
-					'address',
-				],
-			],
+	closed: [
+		{
+			label: 'wallet key state',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'balance',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'wallet key state',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				'tip',
+				'balance',
+				'address',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Wallet key',
+				items: [
+					{
+						label: 'BlockheadLogosBlockchainWalletKeyStateView',
+					},
+				],
+			},
+			{
+				label: 'Node',
+				items: [
+					{
+						label: 'BlockheadLogosBlockchainNodeStateView',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: '/wallet/{publicKey}/balance response',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

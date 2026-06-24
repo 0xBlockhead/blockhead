@@ -9,26 +9,86 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'blockHeight',
-					'blockHash',
-					'amountYoctoNear',
-					'lockedYoctoNear',
-					'storageUsageBytes',
-					'codeHash',
-					'deleted',
-				],
-			],
+	closed: [
+		{
+			label: 'account',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'account',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'block height/hash',
+				},
+				{
+					label: 'balance',
+				},
+				{
+					label: 'locked balance',
+				},
+				{
+					label: 'storage usage',
+				},
+				{
+					label: 'code hash',
+				},
+				{
+					label: 'deleted state',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'parent NEAR account',
+					},
+				],
+			},
+			{
+				label: 'Block',
+				items: [
+					{
+						label: 'NEAR block when block selector resolves',
+					},
+				],
+			},
+			{
+				label: 'Contract',
+				items: [
+					{
+						label: 'contract code state when code hash is non-empty',
+					},
+				],
+			},
+			{
+				label: 'Source',
+				items: [
+					{
+						label: 'view_account/account_changes/indexer payload',
+					},
+					{
+						label: 'freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

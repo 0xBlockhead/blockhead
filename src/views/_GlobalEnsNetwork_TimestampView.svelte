@@ -9,15 +9,41 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
+	closed: [
+		'$hub',
+		'timestampMs',
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				'$hub',
+				'timestampMs',
+				'source',
+			],
+			[
+				'sourceWindowNameCount',
+				'sourceWindowRecordCount',
+				'sourceWindowReverseRecordCount',
+				'localCatalogContractCount',
+				'discoveredResolverContractCount',
+				'subgraphBlockNumber',
+				'rpcBlockNumber',
+				'reachable',
+			],
 		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Hub',
+				items: [
+					'$hub',
+				],
+			},
+			{
+				label: 'Observation fields',
+				items: [
 					'sourceWindowNameCount',
 					'sourceWindowRecordCount',
 					'sourceWindowReverseRecordCount',
@@ -27,9 +53,30 @@
 					'rpcBlockNumber',
 					'reachable',
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'SourceBinding.Blockscout_Rest',
+					},
+					{
+						label: 'SourceBinding.Constants_Internal',
+					},
+					{
+						label: 'SourceBinding.Etherscan_Rest',
+					},
+					{
+						label: 'SourceBinding.TheGraph_Graphql',
+					},
+					{
+						label: 'SourceBinding.Voltaire_JsonRpc',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

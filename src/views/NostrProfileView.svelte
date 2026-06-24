@@ -9,51 +9,106 @@
 
 	// State
 	const view = {
-		closed: [
-			'pubkey',
+	closed: [
+		'pubkey',
+		{
+			label: 'display name',
+		},
+		{
+			label: 'NIP-05',
+		},
+	],
+	content: {
+		dl: [
+			[
+				'pubkey',
+				{
+					label: 'display name',
+				},
+				{
+					label: 'NIP-05',
+				},
+				{
+					label: 'banner',
+				},
+				'website',
+				{
+					label: 'lightning address/URI',
+				},
+				'metadataUpdatedAt',
+				{
+					label: 'note count',
+				},
+				{
+					label: 'article count',
+				},
+				{
+					label: 'repost count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'pubkey',
-					'displayName',
-					'about',
-					'nip05',
-					'lud16',
-					'lud06',
-					'website',
-					'metadataUpdatedAt',
-					'iconUrl',
-					'bannerUrl',
+		blocks: [
+			[
+				{
+					label: 'about text',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Profile metadata',
+				items: [
+					{
+						label: 'kind-0 content',
+					},
+					{
+						label: 'media refs',
+					},
+					{
+						label: 'NIP-05',
+					},
+					{
+						label: 'lightning fields',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'notes',
-					when: 'open',
-					items: [
-						'$$notes',
-					],
-				},
-				{
-					label: 'articles',
-					when: 'open',
-					items: [
-						'$$articles',
-					],
-				},
-				{
-					label: 'reposts',
-					when: 'open',
-					items: [
-						'$$reposts',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Notes',
+				items: [
+					{
+						label: 'notes authored by this pubkey',
+					},
+				],
+			},
+			{
+				label: 'Articles',
+				items: [
+					{
+						label: 'addressable articles authored by this pubkey',
+					},
+				],
+			},
+			{
+				label: 'Reposts',
+				items: [
+					{
+						label: 'repost events authored by this pubkey',
+					},
+				],
+			},
+			{
+				label: 'Relay evidence',
+				items: [
+					{
+						label: 'relays/indexers that returned the latest kind-0 event',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,42 +9,55 @@
 
 	// State
 	const view = {
-		closed: [
-			'scope',
+	closed: [
+		'scope',
+		'$$timestamps',
+		'$$sourceWindowFeeds',
+	],
+	content: {
+		dl: [
+			[
+				'scope',
+				'$$timestamps',
+			],
+			[
+				'$$sourceWindowFeeds',
+				'$$sourceWindowItems',
+			],
 		],
-		content: {
-			dl: [
-				[
-					'scope',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Source-window rows',
+				items: [
+					'$$sourceWindowFeeds',
+					'$$sourceWindowItems',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'source window feeds',
-					when: 'open',
-					items: [
-						'$$sourceWindowFeeds',
-					],
-				},
-				{
-					label: 'source window items',
-					when: 'open',
-					items: [
-						'$$sourceWindowItems',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Hub observations',
+				items: [
+					'$$timestamps',
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'SourceBinding.Constants_Internal',
+					},
+					{
+						label: 'SourceBinding.Rss_Rest',
+					},
+					{
+						label: 'SourceBinding.Rss2Json_Rest',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

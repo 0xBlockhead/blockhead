@@ -9,45 +9,92 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'latest height',
+		},
+		{
+			label: 'gateway/source coverage',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'blocks',
-					when: 'open',
-					items: [
-						'$$blocks',
-					],
+					label: 'network',
 				},
 				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
+					label: 'latest network timestamp height/health',
 				},
 				{
-					label: 'resources',
-					when: 'open',
-					items: [
-						'$$resources',
-					],
+					label: 'configured access coverage',
 				},
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'block count',
+				},
+				{
+					label: 'transaction count',
+				},
+				{
+					label: 'resource count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest status',
+				items: [
+					{
+						label: 'latest source-local network observation',
+					},
+				],
+			},
+			{
+				label: 'Blocks',
+				items: [
+					{
+						label: 'block rows by height or independent hash',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'transaction rows by transaction id',
+					},
+				],
+			},
+			{
+				label: 'Resources',
+				items: [
+					{
+						label: 'gateway resource rows by transaction id/path',
+					},
+				],
+			},
+			{
+				label: 'Sources',
+				items: [
+					{
+						label: 'configured access endpoint/node endpoints',
+					},
+					{
+						label: 'GraphQL transaction/block metadata',
+					},
+					{
+						label: 'archival/deep-history notes',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

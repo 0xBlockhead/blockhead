@@ -9,29 +9,86 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'title',
-					'link',
-					'description',
-					'content',
-					'author',
-					'publishedAt',
-					'updatedAt',
-					'categories',
-					'enclosureUrl',
-					'commentsUrl',
-				],
-			],
+	closed: [
+		{
+			label: 'item',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'item',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				'title',
+				'author',
+				{
+					label: 'published/updated time',
+				},
+			],
+			[
+				'link',
+				'categories',
+				{
+					label: 'enclosure URL',
+				},
+				{
+					label: 'comments URL',
+				},
+				{
+					label: 'content/description presence',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Item',
+				items: [
+					{
+						label: 'parent RSS item identity',
+					},
+				],
+			},
+			{
+				label: 'Content',
+				items: [
+					{
+						label: 'description/content rendered as syndication HTML',
+					},
+				],
+			},
+			{
+				label: 'Linked media',
+				items: [
+					{
+						label: 'enclosure URL and comments URL',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'direct XML item payload',
+					},
+					{
+						label: 'Rss2Json item payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

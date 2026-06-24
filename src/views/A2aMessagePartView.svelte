@@ -9,22 +9,72 @@
 
 	// State
 	const view = {
-		closed: [
-			'partIndex',
-		],
-		content: {
-			dl: [
-				[
-					'partIndex',
-					'partKind',
-					'text',
-					'uri',
-					'mimeType',
-					'payload',
-				],
-			],
+	closed: [
+		{
+			label: 'message/artifact',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'part index',
+		},
+		{
+			label: 'part kind',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'message/artifact',
+				},
+				{
+					label: 'part index',
+				},
+				{
+					label: 'kind',
+				},
+				{
+					label: 'mime type',
+				},
+			],
+			[
+				{
+					label: 'text/uri/payload',
+				},
+				{
+					label: 'AI artifact ref',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Message',
+				items: [
+					{
+						label: 'A2aMessage when present',
+					},
+				],
+			},
+			{
+				label: 'Artifact',
+				items: [
+					{
+						label: 'A2aArtifact when present',
+					},
+				],
+			},
+			{
+				label: 'AI artifact',
+				items: [
+					{
+						label: 'AiArtifact when materialized',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

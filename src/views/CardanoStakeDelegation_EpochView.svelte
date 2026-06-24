@@ -9,24 +9,90 @@
 
 	// State
 	const view = {
-		closed: [
-			'epoch',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'epoch',
-					'source',
-					'activeStake',
-					'rewardAmount',
-					'withdrawalAmount',
-					'registered',
-					'deregistered',
-				],
-			],
+	closed: [
+		{
+			label: 'stake credential',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'epoch',
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'stake credential',
+				},
+				'epoch',
+				'source',
+				{
+					label: 'stake pool',
+				},
+				{
+					label: 'DRep',
+				},
+				{
+					label: 'active stake',
+				},
+				{
+					label: 'reward amount',
+				},
+				{
+					label: 'withdrawal amount',
+				},
+				{
+					label: 'registered flag',
+				},
+				{
+					label: 'deregistered flag',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Stake credential',
+				items: [
+					{
+						label: 'parent Cardano stake credential',
+					},
+				],
+			},
+			{
+				label: 'Pool',
+				items: [
+					{
+						label: 'delegated Cardano stake pool',
+					},
+				],
+			},
+			{
+				label: 'DRep',
+				items: [
+					{
+						label: 'delegated Cardano DRep',
+					},
+				],
+			},
+			{
+				label: 'Epoch state',
+				items: [
+					{
+						label: 'active stake/reward/withdrawal fields',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'ledger/indexer epoch query context',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

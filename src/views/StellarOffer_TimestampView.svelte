@@ -9,27 +9,83 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'ledgerSequence',
-					'amount',
-					'price',
-					'priceNumerator',
-					'priceDenominator',
-					'sponsor',
-					'active',
-					'lastModifiedTimeMs',
-				],
-			],
+	closed: [
+		{
+			label: 'offer',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'amount',
+		'price',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'offer',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'ledger sequence',
+				},
+				'amount',
+				'price',
+			],
+			[
+				'sponsor',
+				{
+					label: 'active state',
+				},
+				{
+					label: 'last modified time',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Offer',
+				items: [
+					{
+						label: 'parent Stellar offer',
+					},
+				],
+			},
+			{
+				label: 'Ledger',
+				items: [
+					{
+						label: 'Stellar ledger when resolved',
+					},
+				],
+			},
+			{
+				label: 'Seller',
+				items: [
+					{
+						label: 'seller Stellar account',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Horizon offer payload',
+					},
+					{
+						label: 'RPC ledger entry snapshot',
+					},
+					{
+						label: 'historical offer effects when needed',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

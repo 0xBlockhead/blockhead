@@ -9,27 +9,96 @@
 
 	// State
 	const view = {
-		closed: [
-			'ledgerIndex',
-			'source',
+	closed: [
+		{
+			label: 'trustline',
+		},
+		{
+			label: 'ledger index',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'trustline',
+				},
+				{
+					label: 'ledger index',
+				},
+				'source',
+				{
+					label: 'observation time',
+				},
+				'balance',
+				{
+					label: 'limits',
+				},
+				{
+					label: 'no-ripple/authorization flags',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'ledgerIndex',
-					'source',
-					'timestampMs',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Trustline',
+				items: [
+					{
+						label: 'XrplTrustline',
+					},
+				],
+			},
+			{
+				label: 'Balances/limits',
+				items: [
 					'balance',
 					'limit',
-					'limitPeer',
-					'noRipple',
-					'noRipplePeer',
-					'authorized',
-					'peerAuthorized',
+					{
+						label: 'peer limit',
+					},
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Flags',
+				items: [
+					{
+						label: 'no-ripple',
+					},
+					{
+						label: 'peer no-ripple',
+					},
+					'authorized',
+					{
+						label: 'peer authorized',
+					},
+				],
+			},
+			{
+				label: 'Ledger context',
+				items: [
+					{
+						label: 'ledger index',
+					},
+					{
+						label: 'observation time',
+					},
+					'source',
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'account_lines/ledger entry/explorer payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

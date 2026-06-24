@@ -9,27 +9,89 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'reachable',
-					'statusCode',
-					'deliveredPayloadSampleCount',
-					'builderSampleCount',
-					'windowStartSlot',
-					'windowEndSlot',
-					'sampleLimit',
-					'error',
-				],
-			],
+	closed: [
+		{
+			label: 'relay',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'relay',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'reachable/status code',
+				},
+				{
+					label: 'delivered-payload sample count',
+				},
+				{
+					label: 'builder sample count',
+				},
+			],
+			[
+				{
+					label: 'slot window',
+				},
+				{
+					label: 'sample limit',
+				},
+				'error',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Relay',
+				items: [
+					{
+						label: 'parent MEV relay',
+					},
+				],
+			},
+			{
+				label: 'Delivered payload sample',
+				items: [
+					{
+						label: 'delivered-payload rows for same relay/window',
+					},
+				],
+			},
+			{
+				label: 'Builders',
+				items: [
+					{
+						label: 'builders observed in sample',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'relay data API URL',
+					},
+					{
+						label: 'limit/pagination parameters',
+					},
+					{
+						label: 'aggregator freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

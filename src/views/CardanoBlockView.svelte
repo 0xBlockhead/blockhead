@@ -9,33 +9,75 @@
 
 	// State
 	const view = {
-		closed: [
-			'hash',
-		],
-		content: {
-			dl: [
-				[
-					'hash',
-					'slot',
-					'blockNo',
-					'epoch',
-					'era',
-					'issuerVkey',
-				],
-			],
+	closed: [
+		'hash',
+		'slot',
+		{
+			label: 'block number',
 		},
-		details: {
-			tabs: [
+	],
+	content: {
+		dl: [
+			[
+				'hash',
+				'slot',
 				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
+					label: 'block number',
+				},
+				'epoch',
+				'era',
+				{
+					label: 'issuer VRF/key',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'transactions included in the block',
+					},
+				],
+			},
+			{
+				label: 'Navigation',
+				items: [
+					{
+						label: 'previous/next block links when sourceable',
+					},
+				],
+			},
+			{
+				label: 'Lookup evidence',
+				items: [
+					{
+						label: 'hash/block-number lookup',
+					},
+					{
+						label: 'slot lookup',
+					},
+					{
+						label: 'epoch-slot lookup',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Blockfrost block response',
+					},
+					{
+						label: 'Koios/db-sync/Ogmios block payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

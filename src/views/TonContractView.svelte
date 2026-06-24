@@ -9,31 +9,100 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[],
-			],
+	closed: [
+		{
+			label: 'account',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'latest interface observation',
+		},
+		{
+			label: 'verification observation',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'account',
 				},
 				{
-					label: 'get methods',
-					when: 'open',
-					items: [
-						'$$getMethods',
-					],
+					label: 'latest interface kind/wallet version observation',
+				},
+				{
+					label: 'latest code hash',
+				},
+				{
+					label: 'verification status',
+				},
+				{
+					label: 'verified source URL',
+				},
+				{
+					label: 'get-method/message windows',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Account state',
+				items: [
+					{
+						label: 'linked account',
+					},
+					{
+						label: 'account state snapshots',
+					},
+				],
+			},
+			{
+				label: 'Contract observations',
+				items: [
+					{
+						label: 'interface and verification snapshots',
+					},
+				],
+			},
+			{
+				label: 'Get methods',
+				items: [
+					{
+						label: 'callable get-method rows',
+					},
+				],
+			},
+			{
+				label: 'Source verification',
+				items: [
+					{
+						label: 'verified source URL',
+					},
+					{
+						label: 'verifier payload',
+					},
+				],
+			},
+			{
+				label: 'Messages',
+				items: [
+					{
+						label: 'related TON messages',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'account-local transactions',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

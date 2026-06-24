@@ -9,22 +9,64 @@
 
 	// State
 	const view = {
-		closed: [
-			'fileIndex',
-		],
-		content: {
-			dl: [
-				[
-					'fileIndex',
-					'path',
-					'pathSegments',
-					'length',
-					'piecesRoot',
-					'fileHash',
-				],
-			],
+	closed: [
+		{
+			label: 'torrent',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'file index',
+		},
+		'path',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'torrent',
+				},
+				{
+					label: 'file index',
+				},
+				'path',
+				'length',
+				{
+					label: 'pieces root',
+				},
+				{
+					label: 'file hash',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Torrent',
+				items: [
+					{
+						label: 'parent metainfo',
+					},
+				],
+			},
+			{
+				label: 'Tree entry',
+				items: [
+					{
+						label: 'file-tree entry for this path',
+					},
+				],
+			},
+			{
+				label: 'Piece span',
+				items: [
+					{
+						label: 'pieces covering this file',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

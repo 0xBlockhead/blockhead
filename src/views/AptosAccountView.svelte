@@ -9,56 +9,85 @@
 
 	// State
 	const view = {
-		closed: [
-			'address',
+	closed: [
+		'address',
+		{
+			label: 'latest account-state summary',
+		},
+		{
+			label: 'latest native coin balance',
+		},
+	],
+	content: {
+		dl: [
+			[
+				'address',
+				{
+					label: 'latest sequence/authentication-key summary',
+				},
+				{
+					label: 'latest native coin balance',
+				},
+				{
+					label: 'resource count',
+				},
+				{
+					label: 'module count',
+				},
+				{
+					label: 'transaction count',
+				},
+				{
+					label: 'network',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'address',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Account observations',
+				items: [
+					{
+						label: 'ledger-versioned account auth/state observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'balances',
-					when: 'open',
-					items: [
-						'$$balances',
-					],
-				},
-				{
-					label: 'resources',
-					when: 'open',
-					items: [
-						'$$resources',
-					],
-				},
-				{
-					label: 'modules',
-					when: 'open',
-					items: [
-						'$$modules',
-					],
-				},
-				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Balances',
+				items: [
+					{
+						label: 'coin/fungible-asset balance observations grouped by coin type',
+					},
+				],
+			},
+			{
+				label: 'Resources',
+				items: [
+					{
+						label: 'account resource identities and value observations',
+					},
+				],
+			},
+			{
+				label: 'Modules',
+				items: [
+					{
+						label: 'published Move modules',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'transactions involving this account when indexed',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

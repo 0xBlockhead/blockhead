@@ -9,23 +9,74 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
+	closed: [
+		{
+			label: 'program',
+		},
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'program',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'bytecode availability',
+				},
+				{
+					label: 'disassembly availability',
+				},
+				{
+					label: 'source map availability',
+				},
+				{
+					label: 'compile result hash',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Program',
+				items: [
+					{
+						label: 'parent TEAL program identity',
+					},
+				],
+			},
+			{
+				label: 'Artifact',
+				items: [
 					'bytecode',
 					'disassembly',
-					'sourceMap',
-					'compileResultHash',
+					{
+						label: 'source map',
+					},
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'algod compile/disassemble response',
+					},
+					{
+						label: 'transaction/application payload carrying program bytes',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

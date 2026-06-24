@@ -9,46 +9,106 @@
 
 	// State
 	const view = {
-		closed: [
-			'id',
+	closed: [
+		{
+			label: 'session',
+		},
+		'status',
+		{
+			label: 'created time',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'session',
+				},
+				'status',
+				{
+					label: 'created time',
+				},
+				{
+					label: 'completed time',
+				},
+				{
+					label: 'params hash',
+				},
+				{
+					label: 'fork block',
+				},
+				{
+					label: 'action count',
+				},
+				{
+					label: 'gas used',
+				},
+				{
+					label: 'result payload hash',
+				},
+				'error',
+			],
 		],
-		content: {
-			dl: [
-				[
-					'id',
-					'status',
-					'createdAt',
-					'completedAt',
-					'paramsHash',
-					'forkBlockNumber',
-					'forkRpcOrigin',
-					'actionCount',
-					'gasUsed',
-					'resultSummary',
-					'resultPayloadHash',
-					'error',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Session',
+				items: [
+					{
+						label: 'parent local session',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'calls',
-					when: 'open',
-					items: [
-						'$$calls',
-					],
-				},
-				{
-					label: 'logs',
-					when: 'open',
-					items: [
-						'$$logs',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Inputs',
+				items: [
+					{
+						label: 'params hash',
+					},
+					{
+						label: 'source action context',
+					},
+					{
+						label: 'fork metadata',
+					},
+				],
+			},
+			{
+				label: 'Calls',
+				items: [
+					{
+						label: 'BlockheadSessionSimulationCall tree/list',
+					},
+				],
+			},
+			{
+				label: 'Logs',
+				items: [
+					{
+						label: 'BlockheadSessionSimulationLog list',
+					},
+				],
+			},
+			{
+				label: 'Result summary',
+				items: [
+					{
+						label: 'compact local simulation output summary',
+					},
+				],
+			},
+			{
+				label: 'Raw runtime',
+				items: [
+					{
+						label: 'local simulation output retained out of band when needed',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

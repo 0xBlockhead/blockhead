@@ -9,27 +9,144 @@
 
 	// State
 	const view = {
-		closed: [
-			'timeInterval',
-			'timestampMs',
+	panels: [
+		{
+			id: 'chart',
+			label: 'Chart',
+			kind: 'chart',
+			slot: 'OhlcChart',
+		},
+	],
+	charts: [
+		{
+			id: 'ohlc',
+			label: 'OHLC history',
+			kind: 'ohlc',
+			x: 'timestampMs',
+			y: 'close',
+			controls: {
+				lookbackDays: [
+					1,
+					7,
+					30,
+					90,
+					365,
+				],
+				intervals: [
+					'1m',
+					'5m',
+					'1h',
+					'1d',
+				],
+			},
+			slot: 'OhlcChart',
+		},
+	],
+	closed: [
+		{
+			label: 'market',
+		},
+		{
+			label: 'parent market',
+		},
+		{
+			label: 'interval',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'market',
+				},
+				{
+					label: 'parent market',
+				},
+				{
+					label: 'interval',
+				},
+				{
+					label: 'interval start',
+				},
+				'open',
+				'high',
+				'low',
+				'close',
+				'volume',
+				{
+					label: 'quote volume',
+				},
+				{
+					label: 'trade count',
+				},
+				{
+					label: 'VWAP',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'timeInterval',
-					'timestampMs',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Market',
+				items: [
+					{
+						label: 'Market',
+					},
+				],
+			},
+			{
+				label: 'Candle',
+				items: [
 					'open',
 					'high',
 					'low',
 					'close',
-					'volume',
-					'quoteVolume',
-					'tradeCount',
-					'vwap',
+					{
+						label: 'interval start',
+					},
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Volume',
+				items: [
+					'volume',
+					{
+						label: 'quote volume',
+					},
+					{
+						label: 'trade count',
+					},
+					{
+						label: 'VWAP',
+					},
+				],
+			},
+			{
+				label: 'History',
+				items: [
+					{
+						label: 'Market_TimeInterval_Timestamp list grouped by interval',
+					},
+				],
+			},
+			{
+				label: 'Data provenance',
+				items: [
+					{
+						label: 'observing provider on row metadata',
+					},
+					{
+						label: 'provider OHLC/OHLCV feed',
+					},
+					{
+						label: 'provider asset mapping',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,27 +9,71 @@
 
 	// State
 	const view = {
-		closed: [
-			'magnetUri',
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'magnetUri',
-					'timestampMs',
-					'source',
-					'resolvedInfoHash',
-					'resolvedMetainfoHash',
-					'trackerCount',
-					'webSeedCount',
-					'status',
-					'error',
-				],
-			],
+	closed: [
+		{
+			label: 'magnet URI',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'source',
+		{
+			label: 'timestamp',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'magnet URI',
+				},
+				'source',
+				{
+					label: 'timestamp',
+				},
+				'status',
+				{
+					label: 'resolved info hash',
+				},
+				{
+					label: 'resolved metainfo hash',
+				},
+				{
+					label: 'tracker count',
+				},
+				{
+					label: 'web seed count',
+				},
+				'error',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Magnet',
+				items: [
+					{
+						label: 'parent magnet link',
+					},
+				],
+			},
+			{
+				label: 'Torrent',
+				items: [
+					{
+						label: 'linked metainfo row when resolved',
+					},
+				],
+			},
+			{
+				label: 'Evidence',
+				items: [
+					{
+						label: 'parser/DHT/metadata-exchange/web-seed payload when retained',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

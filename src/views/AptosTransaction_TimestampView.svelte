@@ -9,26 +9,91 @@
 
 	// State
 	const view = {
-		closed: [
-			'ledgerVersion',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'ledgerVersion',
-					'source',
-					'timestampMs',
-					'blockHeight',
-					'success',
-					'vmStatus',
-					'gasUnitPrice',
-					'gasUsed',
-					'accumulatorRootHash',
-				],
-			],
+	closed: [
+		{
+			label: 'transaction',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'ledger version',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'transaction',
+				},
+				{
+					label: 'ledger version',
+				},
+				'source',
+				{
+					label: 'observation time',
+				},
+				{
+					label: 'block height',
+				},
+				{
+					label: 'success/vm status',
+				},
+			],
+			[
+				{
+					label: 'gas unit price',
+				},
+				{
+					label: 'gas used',
+				},
+				{
+					label: 'accumulator root hash',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transaction',
+				items: [
+					{
+						label: 'parent transaction identity',
+					},
+				],
+			},
+			{
+				label: 'State changes',
+				items: [
+					{
+						label: 'state changes for the same transaction',
+					},
+				],
+			},
+			{
+				label: 'Events',
+				items: [
+					{
+						label: 'events for the same transaction',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'fullnode transaction response',
+					},
+					{
+						label: 'indexer transaction payload',
+					},
+					{
+						label: 'ledger info headers/freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

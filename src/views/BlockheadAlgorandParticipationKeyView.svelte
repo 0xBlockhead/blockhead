@@ -9,28 +9,79 @@
 
 	// State
 	const view = {
-		closed: [
-			'nodeId',
-			'participationId',
-		],
-		content: {
-			dl: [
-				[
-					'nodeId',
-					'participationId',
-					'firstValidRound',
-					'lastValidRound',
-					'keyDilution',
-					'selectionKey',
-					'votingKey',
-					'stateProofKey',
-					'effectiveFirstRound',
-					'effectiveLastRound',
-					'lastSyncedAt',
-				],
-			],
+	closed: [
+		{
+			label: 'node id',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'participation id',
+		},
+		{
+			label: 'account',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'node id',
+				},
+				{
+					label: 'participation id',
+				},
+				{
+					label: 'account',
+				},
+				{
+					label: 'network',
+				},
+				{
+					label: 'validity round range',
+				},
+				{
+					label: 'key dilution',
+				},
+				{
+					label: 'effective round range',
+				},
+				{
+					label: 'last synced time',
+				},
+				{
+					label: 'connected-node status',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'linked Algorand account',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'linked Algorand network',
+					},
+				],
+			},
+			{
+				label: 'Validity',
+				items: [
+					{
+						label: 'first/last/effective rounds',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

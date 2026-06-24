@@ -9,38 +9,107 @@
 
 	// State
 	const view = {
-		closed: [
-			'portId',
-			'channelId',
-		],
-		content: {
-			dl: [
-				[
-					'portId',
-					'channelId',
-					'counterpartyChainId',
-					'counterpartyPortId',
-					'counterpartyChannelId',
-					'state',
-					'ordering',
-					'version',
-					'nextSequenceSend',
-					'nextSequenceReceive',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'port id',
+		},
+		{
+			label: 'channel id',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'packets',
-					when: 'open',
-					items: [
-						'$$packets',
-					],
+					label: 'network',
+				},
+				{
+					label: 'port id',
+				},
+				{
+					label: 'channel id',
+				},
+				'state',
+				'ordering',
+				'version',
+				{
+					label: 'connection',
+				},
+				{
+					label: 'client',
+				},
+				{
+					label: 'next send/receive sequence',
+				},
+				{
+					label: 'counterparty ids',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Packets',
+				items: [
+					{
+						label: 'packet rows grouped by lifecycle status',
+					},
+				],
+			},
+			{
+				label: 'Connection/client',
+				items: [
+					{
+						label: 'linked IBC connection',
+					},
+					{
+						label: 'linked IBC client',
+					},
+				],
+			},
+			{
+				label: 'Counterparty',
+				items: [
+					{
+						label: 'counterparty network/channel refs',
+					},
+					{
+						label: 'registry/indexer claims',
+					},
+				],
+			},
+			{
+				label: 'Sequence state',
+				items: [
+					{
+						label: 'next send/receive sequence',
+					},
+					{
+						label: 'unreceived packet/ack summaries',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'channel',
+					},
+					{
+						label: 'channel client-state',
+					},
+					{
+						label: 'sequence query payloads',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

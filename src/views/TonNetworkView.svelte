@@ -9,94 +9,115 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[],
-			],
+	closed: [
+		{
+			label: 'linked base Network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'masterchain workchain',
+		},
+		{
+			label: 'latest network observation',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'workchains',
-					when: 'open',
-					items: [
-						'$$workchains',
-					],
+					label: 'linked base Network',
 				},
 				{
-					label: 'blocks',
-					when: 'open',
-					items: [
-						'$$blocks',
-					],
+					label: 'masterchain workchain',
 				},
 				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
+					label: 'latest masterchain seqno/shard/validator observation',
 				},
 				{
-					label: 'accounts',
-					when: 'open',
-					items: [
-						'$$accounts',
-					],
-				},
-				{
-					label: 'contracts',
-					when: 'open',
-					items: [
-						'$$contracts',
-					],
-				},
-				{
-					label: 'messages',
-					when: 'open',
-					items: [
-						'$$messages',
-					],
-				},
-				{
-					label: 'traces',
-					when: 'open',
-					items: [
-						'$$traces',
-					],
-				},
-				{
-					label: 'jettons',
-					when: 'open',
-					items: [
-						'$$jettons',
-					],
-				},
-				{
-					label: 'nft collections',
-					when: 'open',
-					items: [
-						'$$nftCollections',
-					],
-				},
-				{
-					label: 'nft items',
-					when: 'open',
-					items: [
-						'$$nftItems',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'bounded jetton/NFT/account windows',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Network history',
+				items: [
+					{
+						label: 'network status observations',
+					},
+				],
+			},
+			{
+				label: 'Workchains/shards',
+				items: [
+					{
+						label: 'workchain identities',
+					},
+					{
+						label: 'shard/block observations',
+					},
+				],
+			},
+			{
+				label: 'Blocks',
+				items: [
+					{
+						label: 'TON blocks by workchain/shard/seqno',
+					},
+				],
+			},
+			{
+				label: 'Accounts',
+				items: [
+					{
+						label: 'observed accounts',
+					},
+				],
+			},
+			{
+				label: 'Contracts',
+				items: [
+					{
+						label: 'contract classifications',
+					},
+				],
+			},
+			{
+				label: 'Messages',
+				items: [
+					{
+						label: 'message edges',
+					},
+				],
+			},
+			{
+				label: 'Traces',
+				items: [
+					{
+						label: 'source trace graphs',
+					},
+				],
+			},
+			{
+				label: 'Jettons',
+				items: [
+					{
+						label: 'jetton masters',
+					},
+				],
+			},
+			{
+				label: 'NFTs',
+				items: [
+					{
+						label: 'NFT collections and items',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

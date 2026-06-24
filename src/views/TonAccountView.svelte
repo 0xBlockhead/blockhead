@@ -9,58 +9,94 @@
 
 	// State
 	const view = {
-		closed: [
-			'address',
+	closed: [
+		'address',
+		'workchain',
+		{
+			label: 'latest account observation',
+		},
+	],
+	content: {
+		dl: [
+			[
+				'address',
+				'workchain',
+				{
+					label: 'latest balance/status observation',
+				},
+				{
+					label: 'last transaction lt',
+				},
+				{
+					label: 'contract/interface observation',
+				},
+				{
+					label: 'jetton balance/NFT item windows',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'address',
-					'workchain',
-					'addressHash',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'TON transactions involving this account',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
-				},
-				{
-					label: 'messages',
-					when: 'open',
-					items: [
-						'$$messages',
-					],
-				},
-				{
-					label: 'jetton balance timestamps',
-					when: 'open',
-					items: [
-						'$$jettonBalanceTimestamps',
-					],
-				},
-				{
-					label: 'nft items',
-					when: 'open',
-					items: [
-						'$$nftItems',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Messages',
+				items: [
+					{
+						label: 'TON messages involving this account',
+					},
+				],
+			},
+			{
+				label: 'Contract',
+				items: [
+					{
+						label: 'TON contract when code/interface is detected',
+					},
+				],
+			},
+			{
+				label: 'Jettons',
+				items: [
+					{
+						label: 'jetton balance observations',
+					},
+				],
+			},
+			{
+				label: 'NFTs',
+				items: [
+					{
+						label: 'TON NFT item rows',
+					},
+				],
+			},
+			{
+				label: 'Account history',
+				items: [
+					{
+						label: 'timestamped account-state observations',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'raw account-state payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

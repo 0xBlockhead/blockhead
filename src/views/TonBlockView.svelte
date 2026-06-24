@@ -9,45 +9,84 @@
 
 	// State
 	const view = {
-		closed: [
-			'workchain',
-			'shardPrefix',
-			'seqno',
+	closed: [
+		'workchain',
+		{
+			label: 'shard prefix',
+		},
+		'seqno',
+	],
+	content: {
+		dl: [
+			[
+				'workchain',
+				{
+					label: 'shard prefix',
+				},
+				'seqno',
+				{
+					label: 'root hash',
+				},
+				{
+					label: 'file hash',
+				},
+				{
+					label: 'generated time',
+				},
+				{
+					label: 'logical-time range',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'workchain',
-					'shardPrefix',
-					'seqno',
-					'rootHash',
-					'fileHash',
-					'genUtimeMs',
-					'startLt',
-					'endLt',
-					'minRefMcSeqno',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'transactions in this block',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
-				},
-				{
-					label: 'messages',
-					when: 'open',
-					items: [
-						'$$messages',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Messages',
+				items: [
+					{
+						label: 'messages in this block',
+					},
+				],
+			},
+			{
+				label: 'Workchain',
+				items: [
+					{
+						label: 'parent TON workchain',
+					},
+				],
+			},
+			{
+				label: 'Neighboring shards',
+				items: [
+					{
+						label: 'timestamped shard observations',
+					},
+				],
+			},
+			{
+				label: 'Proof/cell evidence',
+				items: [
+					{
+						label: 'raw block id',
+					},
+					{
+						label: 'proof payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

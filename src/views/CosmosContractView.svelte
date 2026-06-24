@@ -9,18 +9,75 @@
 
 	// State
 	const view = {
-		closed: [
-			'address',
-		],
-		content: {
-			dl: [
-				[
-					'address',
-					'codeId',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'contract address',
+		},
+		{
+			label: 'code id',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'contract address',
+				},
+				{
+					label: 'code id',
+				},
+				{
+					label: 'creator',
+				},
+				{
+					label: 'admin',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Creator',
+				items: [
+					{
+						label: 'creator Cosmos account',
+					},
+				],
+			},
+			{
+				label: 'Admin',
+				items: [
+					{
+						label: 'admin Cosmos account',
+					},
+				],
+			},
+			{
+				label: 'Messages',
+				items: [
+					{
+						label: 'Cosmos messages when contract messages are resolved',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Cosmos network',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

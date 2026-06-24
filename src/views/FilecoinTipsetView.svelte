@@ -9,32 +9,80 @@
 
 	// State
 	const view = {
-		closed: [
-			'height',
-			'tipsetKey',
-		],
-		content: {
-			dl: [
-				[
-					'height',
-					'tipsetKey',
-					'parentWeight',
-					'timestampMs',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		'height',
+		{
+			label: 'tipset key',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'blocks',
-					when: 'open',
-					items: [
-						'$$blocks',
-					],
+					label: 'network',
+				},
+				'height',
+				{
+					label: 'tipset key',
+				},
+				{
+					label: 'parent',
+				},
+				{
+					label: 'parent weight',
+				},
+				{
+					label: 'timestamp',
+				},
+				{
+					label: 'block count',
+				},
+				{
+					label: 'receipt count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Blocks',
+				items: [
+					{
+						label: 'Filecoin blocks in this tipset',
+					},
+				],
+			},
+			{
+				label: 'Message receipts',
+				items: [
+					{
+						label: 'message receipts when sourced from parent receipts/search context',
+					},
+				],
+			},
+			{
+				label: 'Parent',
+				items: [
+					{
+						label: 'parent Filecoin tipset',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Filecoin network',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

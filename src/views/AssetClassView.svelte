@@ -9,50 +9,79 @@
 
 	// State
 	const view = {
-		closed: [
-			'classKind',
-			'classKey',
+	closed: [
+		{
+			label: 'asset instance',
+		},
+		{
+			label: 'class key',
+		},
+		{
+			label: 'class kind',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'asset instance',
+				},
+				{
+					label: 'class key',
+				},
+				{
+					label: 'class kind',
+				},
+				'label',
+				'slot',
+				'partition',
+				'series',
+				{
+					label: 'maturity',
+				},
+				{
+					label: 'value decimals',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'classKind',
-					'classKey',
-					'label',
-					'slot',
-					'partition',
-					'series',
-					'maturityMs',
-					'valueDecimals',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Objects',
+				items: [
+					{
+						label: 'asset objects under this class',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'objects',
-					when: 'open',
-					items: [
-						'$$objects',
-					],
-				},
-				{
-					label: 'supply ledger states',
-					when: 'open',
-					items: [
-						'$$supplyLedgerStates',
-					],
-				},
-				{
-					label: 'supply timestamps',
-					when: 'open',
-					items: [
-						'$$supplyTimestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Ledger supply',
+				items: [
+					{
+						label: 'ledger-coordinate supply observations',
+					},
+				],
+			},
+			{
+				label: 'Methodology supply',
+				items: [
+					{
+						label: 'provider-clocked supply methodology observations',
+					},
+				],
+			},
+			{
+				label: 'Rights',
+				items: [
+					{
+						label: 'UsageRight_Timestamp or restriction rows when source-backed',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

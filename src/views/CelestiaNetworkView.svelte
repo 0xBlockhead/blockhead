@@ -9,45 +9,91 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[],
-			],
+	closed: [
+		{
+			label: 'linked Network',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'latest height',
+		},
+		{
+			label: 'latest blob count',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'linked Network',
 				},
 				{
-					label: 'blocks',
-					when: 'open',
-					items: [
-						'$$blocks',
-					],
+					label: 'latest height/hash',
 				},
 				{
-					label: 'namespaces',
-					when: 'open',
-					items: [
-						'$$namespaces',
-					],
+					label: 'latest namespace/blob counts',
 				},
 				{
-					label: 'blobs',
-					when: 'open',
-					items: [
-						'$$blobs',
-					],
+					label: 'latest health',
+				},
+				{
+					label: 'source coverage',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest status',
+				items: [
+					{
+						label: 'latest timestamped network/head observation',
+					},
+				],
+			},
+			{
+				label: 'Blocks',
+				items: [
+					{
+						label: 'Celestia blocks',
+					},
+				],
+			},
+			{
+				label: 'Namespaces',
+				items: [
+					{
+						label: 'Celestia namespaces',
+					},
+				],
+			},
+			{
+				label: 'Blobs',
+				items: [
+					{
+						label: 'Celestia blobs',
+					},
+				],
+			},
+			{
+				label: 'Scaling usage',
+				items: [
+					{
+						label: 'scaling deployment claims whose DA network/selector points at Celestia',
+					},
+				],
+			},
+			{
+				label: 'Cosmos base',
+				items: [
+					{
+						label: 'Cosmos validator/governance/account rows when modeled separately',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

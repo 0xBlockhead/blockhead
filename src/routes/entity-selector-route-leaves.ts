@@ -11,12 +11,8 @@ export const entitySelectorRouteLeaves = [
 			"scope",
 		],
 		params: [
-			{
-				field: "scope",
-				name: "scope",
-			},
 		],
-		path: "(explore)/(global)/global/global/[scope]",
+		path: "(explore)",
 		emitPage: false,
 		unresolved: [
 		],
@@ -1316,7 +1312,6 @@ export const entitySelectorRouteLeaves = [
 		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/algorand-network/algorand-account/[address]/algorand-application/[applicationId]/algorand-application-local-state-round/[round=nonNegativeInteger]/[source]",
 		emitPage: false,
 		unresolved: [
-			"path-conflict:(explore)/(networks)/network/[networkSlug=networkSlug]/algorand-network/algorand-account/[address]/algorand-application/[applicationId]/algorand-application-local-state-round/[round=nonNegativeInteger]/[source]",
 		],
 	},
 	{
@@ -1437,7 +1432,6 @@ export const entitySelectorRouteLeaves = [
 		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/algorand-network/algorand-account/[address]/algorand-asset/[assetId]/algorand-asset-holding-round/[round=nonNegativeInteger]/[source]",
 		emitPage: false,
 		unresolved: [
-			"path-conflict:(explore)/(networks)/network/[networkSlug=networkSlug]/algorand-network/algorand-account/[address]/algorand-asset/[assetId]/algorand-asset-holding-round/[round=nonNegativeInteger]/[source]",
 		],
 	},
 	{
@@ -10484,7 +10478,6 @@ export const entitySelectorRouteLeaves = [
 		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/cardano-network/cardano-transaction/[hash]/cardano-tx-output/[outputIndex]/cardano-native-asset/[policyId]/[assetName]/cardano-tx-output-asset",
 		emitPage: false,
 		unresolved: [
-			"path-conflict:(explore)/(networks)/network/[networkSlug=networkSlug]/cardano-network/cardano-transaction/[hash]/cardano-tx-output/[outputIndex]/cardano-native-asset/[policyId]/[assetName]/cardano-tx-output-asset",
 		],
 	},
 	{
@@ -11333,7 +11326,6 @@ export const entitySelectorRouteLeaves = [
 		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/contract/[address=evmAddress]/evm-coin-instance/[type]/evm-coin-instance/[type]/coin-bridge-capability/[toolKey]",
 		emitPage: false,
 		unresolved: [
-			"path-conflict:(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/contract/[address=evmAddress]/evm-coin-instance/[type]/evm-coin-instance/[type]/coin-bridge-capability/[toolKey]",
 		],
 	},
 	{
@@ -11637,7 +11629,6 @@ export const entitySelectorRouteLeaves = [
 		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/cosmos-account/[address]/cosmos-validator/[operatorAddress]/cosmos-delegation",
 		emitPage: false,
 		unresolved: [
-			"path-conflict:(explore)/(networks)/network/[networkSlug=networkSlug]/cosmos-account/[address]/cosmos-validator/[operatorAddress]/cosmos-delegation",
 		],
 	},
 	{
@@ -11686,7 +11677,6 @@ export const entitySelectorRouteLeaves = [
 		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/cosmos-account/[address]/cosmos-validator/[operatorAddress]/cosmos-delegation/cosmos-delegation-timestamp/[timestampMs]/[source]",
 		emitPage: false,
 		unresolved: [
-			"path-conflict:(explore)/(networks)/network/[networkSlug=networkSlug]/cosmos-account/[address]/cosmos-validator/[operatorAddress]/cosmos-delegation/cosmos-delegation-timestamp/[timestampMs]/[source]",
 		],
 	},
 	{
@@ -11828,7 +11818,6 @@ export const entitySelectorRouteLeaves = [
 		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/cosmos-governance-proposal/[proposalId]/cosmos-account/[address]/cosmos-governance-proposal-deposit/[denom]",
 		emitPage: false,
 		unresolved: [
-			"path-conflict:(explore)/(networks)/network/[networkSlug=networkSlug]/cosmos-governance-proposal/[proposalId]/cosmos-account/[address]/cosmos-governance-proposal-deposit/[denom]",
 		],
 	},
 	{
@@ -11881,7 +11870,6 @@ export const entitySelectorRouteLeaves = [
 		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/cosmos-governance-proposal/[proposalId]/cosmos-account/[address]/cosmos-governance-proposal-deposit/[denom]/cosmos-governance-proposal-deposit-timestamp/[timestampMs]/[source]",
 		emitPage: false,
 		unresolved: [
-			"path-conflict:(explore)/(networks)/network/[networkSlug=networkSlug]/cosmos-governance-proposal/[proposalId]/cosmos-account/[address]/cosmos-governance-proposal-deposit/[denom]/cosmos-governance-proposal-deposit-timestamp/[timestampMs]/[source]",
 		],
 	},
 	{
@@ -11959,7 +11947,6 @@ export const entitySelectorRouteLeaves = [
 		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/cosmos-governance-proposal/[proposalId]/cosmos-account/[address]/cosmos-governance-proposal-vote",
 		emitPage: false,
 		unresolved: [
-			"path-conflict:(explore)/(networks)/network/[networkSlug=networkSlug]/cosmos-governance-proposal/[proposalId]/cosmos-account/[address]/cosmos-governance-proposal-vote",
 		],
 	},
 	{
@@ -12008,7 +11995,6 @@ export const entitySelectorRouteLeaves = [
 		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/cosmos-governance-proposal/[proposalId]/cosmos-account/[address]/cosmos-governance-proposal-vote/cosmos-governance-proposal-vote-timestamp/[timestampMs]/[source]",
 		emitPage: false,
 		unresolved: [
-			"path-conflict:(explore)/(networks)/network/[networkSlug=networkSlug]/cosmos-governance-proposal/[proposalId]/cosmos-account/[address]/cosmos-governance-proposal-vote/cosmos-governance-proposal-vote-timestamp/[timestampMs]/[source]",
 		],
 	},
 	{
@@ -12653,7 +12639,6 @@ export const entitySelectorRouteLeaves = [
 		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/cosmos-network/dydx-chain-network/cosmos-account/[address]/dydx-chain-subaccount/[subaccountNumber]/dydx-chain-order/[orderId]",
 		emitPage: false,
 		unresolved: [
-			"path-conflict:(explore)/(networks)/network/[networkSlug=networkSlug]/cosmos-network/dydx-chain-network/cosmos-account/[address]/dydx-chain-subaccount/[subaccountNumber]/dydx-chain-order/[orderId]",
 		],
 	},
 	{
@@ -12706,7 +12691,6 @@ export const entitySelectorRouteLeaves = [
 		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/cosmos-network/dydx-chain-network/cosmos-account/[address]/dydx-chain-subaccount/[subaccountNumber]/dydx-chain-order/[orderId]/dydx-chain-order-timestamp/[timestampMs]/[source]",
 		emitPage: false,
 		unresolved: [
-			"path-conflict:(explore)/(networks)/network/[networkSlug=networkSlug]/cosmos-network/dydx-chain-network/cosmos-account/[address]/dydx-chain-subaccount/[subaccountNumber]/dydx-chain-order/[orderId]/dydx-chain-order-timestamp/[timestampMs]/[source]",
 		],
 	},
 	{
@@ -12766,7 +12750,6 @@ export const entitySelectorRouteLeaves = [
 		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/cosmos-network/dydx-chain-network/cosmos-account/[address]/dydx-chain-subaccount/[subaccountNumber]/dydx-chain-market/[ticker]/dydx-chain-perpetual-position-timestamp/[timestampMs]/[source]",
 		emitPage: false,
 		unresolved: [
-			"path-conflict:(explore)/(networks)/network/[networkSlug=networkSlug]/cosmos-network/dydx-chain-network/cosmos-account/[address]/dydx-chain-subaccount/[subaccountNumber]/dydx-chain-market/[ticker]/dydx-chain-perpetual-position-timestamp/[timestampMs]/[source]",
 		],
 	},
 	{
@@ -12807,7 +12790,6 @@ export const entitySelectorRouteLeaves = [
 		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/cosmos-network/dydx-chain-network/cosmos-account/[address]/dydx-chain-subaccount/[subaccountNumber]",
 		emitPage: false,
 		unresolved: [
-			"path-conflict:(explore)/(networks)/network/[networkSlug=networkSlug]/cosmos-network/dydx-chain-network/cosmos-account/[address]/dydx-chain-subaccount/[subaccountNumber]",
 		],
 	},
 	{
@@ -12856,7 +12838,6 @@ export const entitySelectorRouteLeaves = [
 		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/cosmos-network/dydx-chain-network/cosmos-account/[address]/dydx-chain-subaccount/[subaccountNumber]/dydx-chain-subaccount-timestamp/[timestampMs]/[source]",
 		emitPage: false,
 		unresolved: [
-			"path-conflict:(explore)/(networks)/network/[networkSlug=networkSlug]/cosmos-network/dydx-chain-network/cosmos-account/[address]/dydx-chain-subaccount/[subaccountNumber]/dydx-chain-subaccount-timestamp/[timestampMs]/[source]",
 		],
 	},
 	{
@@ -18227,7 +18208,6 @@ export const entitySelectorRouteLeaves = [
 		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/hedera-network/hedera-account/[accountId]/hedera-account/[accountId]/hedera-allowance/[allowanceKind]/[tokenId]/[serialNumber]",
 		emitPage: false,
 		unresolved: [
-			"path-conflict:(explore)/(networks)/network/[networkSlug=networkSlug]/hedera-network/hedera-account/[accountId]/hedera-account/[accountId]/hedera-allowance/[allowanceKind]/[tokenId]/[serialNumber]",
 		],
 	},
 	{
@@ -18288,7 +18268,6 @@ export const entitySelectorRouteLeaves = [
 		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/hedera-network/hedera-account/[accountId]/hedera-account/[accountId]/hedera-allowance/[allowanceKind]/[tokenId]/[serialNumber]/hedera-allowance-timestamp/[timestampMs]/[source]",
 		emitPage: false,
 		unresolved: [
-			"path-conflict:(explore)/(networks)/network/[networkSlug=networkSlug]/hedera-network/hedera-account/[accountId]/hedera-account/[accountId]/hedera-allowance/[allowanceKind]/[tokenId]/[serialNumber]/hedera-allowance-timestamp/[timestampMs]/[source]",
 		],
 	},
 	{
@@ -19347,7 +19326,6 @@ export const entitySelectorRouteLeaves = [
 		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/hedera-network/hedera-account/[accountId]/hedera-token/[tokenId]/hedera-token-association",
 		emitPage: false,
 		unresolved: [
-			"path-conflict:(explore)/(networks)/network/[networkSlug=networkSlug]/hedera-network/hedera-account/[accountId]/hedera-token/[tokenId]/hedera-token-association",
 		],
 	},
 	{
@@ -19396,7 +19374,6 @@ export const entitySelectorRouteLeaves = [
 		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/hedera-network/hedera-account/[accountId]/hedera-token/[tokenId]/hedera-token-association/hedera-token-association-timestamp/[timestampMs]/[source]",
 		emitPage: false,
 		unresolved: [
-			"path-conflict:(explore)/(networks)/network/[networkSlug=networkSlug]/hedera-network/hedera-account/[accountId]/hedera-token/[tokenId]/hedera-token-association/hedera-token-association-timestamp/[timestampMs]/[source]",
 		],
 	},
 	{
@@ -20577,7 +20554,6 @@ export const entitySelectorRouteLeaves = [
 		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/hyperliquid-account/[address]/hyperliquid-vault/[vaultAddress]/hyperliquid-vault-equity-timestamp/[timestampMs]/[source]",
 		emitPage: false,
 		unresolved: [
-			"path-conflict:(explore)/(networks)/network/[networkSlug=networkSlug]/hyperliquid-account/[address]/hyperliquid-vault/[vaultAddress]/hyperliquid-vault-equity-timestamp/[timestampMs]/[source]",
 		],
 	},
 	{
@@ -21648,7 +21624,6 @@ export const entitySelectorRouteLeaves = [
 		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/kaspa-network/kaspa-block/[blockHash]/kaspa-transaction/[transactionId]/kaspa-accepted-transaction",
 		emitPage: false,
 		unresolved: [
-			"path-conflict:(explore)/(networks)/network/[networkSlug=networkSlug]/kaspa-network/kaspa-block/[blockHash]/kaspa-transaction/[transactionId]/kaspa-accepted-transaction",
 		],
 	},
 	{
@@ -25744,7 +25719,6 @@ export const entitySelectorRouteLeaves = [
 		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot-account/[accountId]/polkadot-asset/[assetKind]/[assetId]/polkadot-asset-balance-timestamp/[timestampMs]/[source]",
 		emitPage: false,
 		unresolved: [
-			"path-conflict:(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot-account/[accountId]/polkadot-asset/[assetKind]/[assetId]/polkadot-asset-balance-timestamp/[timestampMs]/[source]",
 		],
 	},
 	{
@@ -27380,10 +27354,10 @@ export const entitySelectorRouteLeaves = [
 			{
 				field: "caip2",
 				name: "caip2",
-				matcher: "networkCaip2",
+				matcher: "solanaNetworkCaip2",
 			},
 		],
-		path: "(explore)/(networks)/networks/solana-network/[caip2=networkCaip2]",
+		path: "(explore)/(networks)/networks/solana-network/[caip2=solanaNetworkCaip2]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -27407,7 +27381,7 @@ export const entitySelectorRouteLeaves = [
 			{
 				field: "caip2",
 				name: "caip2",
-				matcher: "networkCaip2",
+				matcher: "solanaNetworkCaip2",
 			},
 			{
 				field: "timestampMs",
@@ -27418,7 +27392,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(networks)/networks/solana-network/[caip2=networkCaip2]/solana-network-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(networks)/networks/solana-network/[caip2=solanaNetworkCaip2]/solana-network-timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -29060,7 +29034,6 @@ export const entitySelectorRouteLeaves = [
 		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/stellar-network/stellar-account/[accountId]/stellar-asset/[assetKey]/stellar-trustline",
 		emitPage: false,
 		unresolved: [
-			"path-conflict:(explore)/(networks)/network/[networkSlug=networkSlug]/stellar-network/stellar-account/[accountId]/stellar-asset/[assetKey]/stellar-trustline",
 		],
 	},
 	{
@@ -29109,7 +29082,6 @@ export const entitySelectorRouteLeaves = [
 		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/stellar-network/stellar-account/[accountId]/stellar-asset/[assetKey]/stellar-trustline/stellar-trustline-timestamp/[timestampMs]/[source]",
 		emitPage: false,
 		unresolved: [
-			"path-conflict:(explore)/(networks)/network/[networkSlug=networkSlug]/stellar-network/stellar-account/[accountId]/stellar-asset/[assetKey]/stellar-trustline/stellar-trustline-timestamp/[timestampMs]/[source]",
 		],
 	},
 	{
@@ -30965,7 +30937,6 @@ export const entitySelectorRouteLeaves = [
 		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/tezos-network/tezos-account/[address]/tezos-token/[contractAddress]/[tokenId]/tezos-token-balance-timestamp/[level]/[source]",
 		emitPage: false,
 		unresolved: [
-			"path-conflict:(explore)/(networks)/network/[networkSlug=networkSlug]/tezos-network/tezos-account/[address]/tezos-token/[contractAddress]/[tokenId]/tezos-token-balance-timestamp/[level]/[source]",
 		],
 	},
 	{
@@ -31500,7 +31471,6 @@ export const entitySelectorRouteLeaves = [
 		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/ton-network/ton-account/[address]/ton-jetton/[masterAddress]/ton-jetton-balance-timestamp/[timestampMs]/[source]",
 		emitPage: false,
 		unresolved: [
-			"path-conflict:(explore)/(networks)/network/[networkSlug=networkSlug]/ton-network/ton-account/[address]/ton-jetton/[masterAddress]/ton-jetton-balance-timestamp/[timestampMs]/[source]",
 		],
 	},
 	{
@@ -32736,7 +32706,6 @@ export const entitySelectorRouteLeaves = [
 		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/tron-account/[address]/tron-token/[tokenId]/tron-account-token-balance-timestamp/[timestampMs]/[source]",
 		emitPage: false,
 		unresolved: [
-			"path-conflict:(explore)/(networks)/network/[networkSlug=networkSlug]/tron-account/[address]/tron-token/[tokenId]/tron-account-token-balance-timestamp/[timestampMs]/[source]",
 		],
 	},
 	{

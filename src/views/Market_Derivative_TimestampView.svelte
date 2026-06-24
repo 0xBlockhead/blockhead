@@ -9,28 +9,121 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'feedKey',
+	closed: [
+		{
+			label: 'market',
+		},
+		{
+			label: 'observed time',
+		},
+		{
+			label: 'feed key',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'market',
+				},
+				{
+					label: 'observed time',
+				},
+				{
+					label: 'feed key',
+				},
+				{
+					label: 'parent market',
+				},
+				{
+					label: 'funding rate',
+				},
+				{
+					label: 'open interest USD',
+				},
+				{
+					label: 'index basis',
+				},
+				{
+					label: 'mark price',
+				},
+				{
+					label: 'index price',
+				},
+				{
+					label: 'expiry',
+				},
+				{
+					label: 'last traded time',
+				},
+				{
+					label: 'provider asset id',
+				},
+				'transport',
+			],
 		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'feedKey',
-					'fundingRate',
-					'openInterestUsd',
-					'indexBasisPercent',
-					'markPrice',
-					'indexPrice',
-					'expiredAtMs',
-					'lastTradedAtMs',
-					'providerAssetId',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Market',
+				items: [
+					{
+						label: 'Market',
+					},
+				],
+			},
+			{
+				label: 'Derivative metrics',
+				items: [
+					{
+						label: 'funding rate',
+					},
+					{
+						label: 'open interest USD',
+					},
+					{
+						label: 'index basis',
+					},
+				],
+			},
+			{
+				label: 'Prices',
+				items: [
+					{
+						label: 'mark price',
+					},
+					{
+						label: 'index price',
+					},
+				],
+			},
+			{
+				label: 'Lifecycle',
+				items: [
+					{
+						label: 'expiry',
+					},
+					{
+						label: 'last traded time',
+					},
+				],
+			},
+			{
+				label: 'Provider mapping',
+				items: [
+					{
+						label: 'feed key',
+					},
+					{
+						label: 'provider asset id',
+					},
 					'transport',
 				],
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,20 +9,54 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'sharedStakingStatusSource',
-				],
-			],
+	closed: [
+		{
+			label: 'consensus network',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		{
+			label: 'staking status source',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'consensus network',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'shared staking status source',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Consensus network',
+				items: [
+					{
+						label: 'parent consensus-network identity',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: '0G ChainScan consensus/storage status payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,23 +9,89 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'ledgerCoordinateKind',
-					'ledgerCoordinateValue',
-					'paused',
-					'registryVersion',
-				],
-			],
+	closed: [
+		{
+			label: 'regulated asset profile',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'regulated asset profile',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'ledger coordinate',
+				},
+				{
+					label: 'identity registry',
+				},
+				{
+					label: 'compliance contract',
+				},
+			],
+			[
+				{
+					label: 'trusted issuers registry',
+				},
+				{
+					label: 'claim topics registry',
+				},
+				{
+					label: 'paused state',
+				},
+				{
+					label: 'registry version',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Profile',
+				items: [
+					{
+						label: 'parent regulated asset profile',
+					},
+				],
+			},
+			{
+				label: 'Registries',
+				items: [
+					{
+						label: 'linked EVM contracts when resolved',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'contract calls/events',
+					},
+					{
+						label: 'verified ABI interpretation',
+					},
+					{
+						label: 'token-extension state',
+					},
+					{
+						label: 'indexer payload freshness',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

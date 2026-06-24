@@ -9,33 +9,91 @@
 
 	// State
 	const view = {
-		closed: [
-			'id',
-		],
-		content: {
-			dl: [
-				[
-					'id',
-					'tickLower',
-					'tickUpper',
-					'tokenId',
-					'origin',
-					'createdAtTimestamp',
-				],
-			],
+	closed: [
+		{
+			label: 'position id',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'pool',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'blocks',
-					when: 'open',
-					items: [
-						'$$blocks',
-					],
+					label: 'position id',
+				},
+				{
+					label: 'network',
+				},
+				{
+					label: 'pool',
+				},
+				{
+					label: 'tick lower',
+				},
+				{
+					label: 'tick upper',
+				},
+				{
+					label: 'token id',
+				},
+				'origin',
+				{
+					label: 'created timestamp',
+				},
+				{
+					label: 'latest owner/liquidity/owed-token block state',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Pool',
+				items: [
+					{
+						label: 'parent liquidity pool',
+					},
+				],
+			},
+			{
+				label: 'Block state',
+				items: [
+					{
+						label: 'block-coordinate position state history',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent EVM network',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'position manager positions(tokenId) call',
+					},
+					{
+						label: 'subgraph position entity',
+					},
+					{
+						label: 'local wallet-owned position list',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

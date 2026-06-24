@@ -9,22 +9,81 @@
 
 	// State
 	const view = {
-		closed: [
-			'peerNodeId',
-		],
-		content: {
-			dl: [
-				[
-					'peerNodeId',
-					'connectionKind',
-					'addresses',
-					'lastSeenMs',
-					'remoteAlias',
-					'remoteDid',
-				],
-			],
+	closed: [
+		{
+			label: 'local node',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'peer node id',
+		},
+		{
+			label: 'connection kind',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'local node',
+				},
+				{
+					label: 'peer node id',
+				},
+				{
+					label: 'connection kind',
+				},
+				{
+					label: 'address count',
+				},
+				{
+					label: 'last seen timestamp',
+				},
+				{
+					label: 'remote alias',
+				},
+				{
+					label: 'remote DID',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Local node',
+				items: [
+					{
+						label: 'parent Radicle node state',
+					},
+				],
+			},
+			{
+				label: 'Shared repositories',
+				items: [
+					{
+						label: 'seed observations when inventory links both nodes',
+					},
+				],
+			},
+			{
+				label: 'Addresses',
+				items: [
+					{
+						label: 'observed peer addresses',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'connected-node peer payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

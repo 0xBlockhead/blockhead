@@ -9,29 +9,105 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'version',
-					'revision',
-					'repoPath',
-					'listenAddresses',
-					'announceAddresses',
-					'peerCount',
-					'totalBlocks',
-					'quotaMaxBytes',
-					'quotaUsedBytes',
-					'quotaReservedBytes',
-				],
-			],
+	closed: [
+		{
+			label: 'node state',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'version',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'node state',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'version/revision',
+				},
+				{
+					label: 'repo path',
+				},
+				{
+					label: 'listen/announce address counts',
+				},
+				{
+					label: 'peer count',
+				},
+			],
+			[
+				{
+					label: 'total blocks',
+				},
+				{
+					label: 'quota max bytes',
+				},
+				{
+					label: 'quota used bytes',
+				},
+				{
+					label: 'quota reserved bytes',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Node',
+				items: [
+					{
+						label: 'parent Codex storage node state',
+					},
+				],
+			},
+			{
+				label: 'Storage space',
+				items: [
+					{
+						label: '/space quota fields',
+					},
+				],
+			},
+			{
+				label: 'Debug info',
+				items: [
+					{
+						label: '/debug/info peer table',
+					},
+					{
+						label: 'addresses',
+					},
+					{
+						label: 'repo',
+					},
+				],
+			},
+			{
+				label: 'Version',
+				items: [
+					{
+						label: 'storage version/revision',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'connected REST node payloads',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

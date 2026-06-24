@@ -9,35 +9,75 @@
 
 	// State
 	const view = {
-		closed: [
-			'originalPackageId',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'original package id',
+		},
+		{
+			label: 'latest package id/version/digest summary',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'original package id',
+				},
+				{
+					label: 'latest package id/version/digest summary',
+				},
+				{
+					label: 'version count',
+				},
+				{
+					label: 'upgrade count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'originalPackageId',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Versions',
+				items: [
+					{
+						label: 'package version rows',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'versions',
-					when: 'open',
-					items: [
-						'$$versions',
-					],
-				},
-				{
-					label: 'upgrades',
-					when: 'open',
-					items: [
-						'$$upgrades',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Upgrades',
+				items: [
+					{
+						label: 'package upgrade edges',
+					},
+				],
+			},
+			{
+				label: 'Modules',
+				items: [
+					{
+						label: 'Move modules grouped by package version',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Sui network',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

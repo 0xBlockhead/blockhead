@@ -9,46 +9,79 @@
 
 	// State
 	const view = {
-		closed: [
-			'connectionId',
-			'nodeId',
+	closed: [
+		{
+			label: 'connection id',
+		},
+		{
+			label: 'network',
+		},
+		{
+			label: 'node id',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'connection id',
+				},
+				{
+					label: 'network',
+				},
+				{
+					label: 'node id',
+				},
+				'endpoint',
+				{
+					label: 'storage path',
+				},
+				{
+					label: 'latest file/chunk/proof counts',
+				},
+				{
+					label: 'latest sync time',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'connectionId',
-					'nodeId',
-					'endpoint',
-					'storagePath',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'State observations',
+				items: [
+					{
+						label: 'local timestamped file/chunk/proof count rows',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'local chunks',
-					when: 'open',
-					items: [
-						'$$localChunks',
-					],
-				},
-				{
-					label: 'local proofs',
-					when: 'open',
-					items: [
-						'$$localProofs',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Local chunks',
+				items: [
+					{
+						label: 'stored chunks known to this connected node',
+					},
+				],
+			},
+			{
+				label: 'Local proofs',
+				items: [
+					{
+						label: 'proof material known to this connected node',
+					},
+				],
+			},
+			{
+				label: 'Public node',
+				items: [
+					{
+						label: 'public storage node when node id maps to a public row',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,32 +9,87 @@
 
 	// State
 	const view = {
-		closed: [
-			'height',
-		],
-		content: {
-			dl: [
-				[
-					'height',
-					'hash',
-					'timestampMs',
-					'difficulty',
-					'weightBytes',
-				],
-			],
+	closed: [
+		{
+			label: 'network',
 		},
-		details: {
-			tabs: [
+		'height',
+		'hash',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'transactions',
-					when: 'open',
-					items: [
-						'$$transactions',
-					],
+					label: 'network',
+				},
+				'height',
+				'hash',
+				{
+					label: 'parent',
+				},
+				{
+					label: 'timestamp',
+				},
+				'difficulty',
+				{
+					label: 'weight',
+				},
+				{
+					label: 'transaction count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Header',
+				items: [
+					{
+						label: 'parent',
+					},
+					'difficulty',
+					{
+						label: 'weight',
+					},
+					{
+						label: 'timestamp',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'Monero transactions in this block',
+					},
+				],
+			},
+			{
+				label: 'Lookup evidence',
+				items: [
+					{
+						label: 'get_block height lookup',
+					},
+					{
+						label: 'get_block hash lookup',
+					},
+					{
+						label: 'block header height/hash tuple',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Monero network',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

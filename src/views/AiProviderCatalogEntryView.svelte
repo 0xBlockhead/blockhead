@@ -9,33 +9,72 @@
 
 	// State
 	const view = {
-		closed: [
-			'catalogKind',
-			'providerEntryId',
-		],
-		content: {
-			dl: [
-				[
-					'catalogKind',
-					'providerEntryId',
-					'entryLabel',
-					'subjectKind',
-					'subjectSelector',
-				],
-			],
+	closed: [
+		{
+			label: 'provider',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'catalog kind',
+		},
+		{
+			label: 'entry id',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'provider',
+				},
+				{
+					label: 'catalog kind',
+				},
+				{
+					label: 'provider entry id',
+				},
+				{
+					label: 'label',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			[
+				{
+					label: 'subject kind/selector',
+				},
+				{
+					label: 'latest availability',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Provider',
+				items: [
+					{
+						label: 'AiModelProvider',
+					},
+				],
+			},
+			{
+				label: 'Observations',
+				items: [
+					{
+						label: 'AiProviderCatalogEntry_Timestamp list',
+					},
+				],
+			},
+			{
+				label: 'Subject',
+				items: [
+					{
+						label: 'subject selector/linked row when resolved',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

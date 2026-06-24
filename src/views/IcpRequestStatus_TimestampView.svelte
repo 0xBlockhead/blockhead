@@ -9,26 +9,85 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'status',
-					'replyHash',
-					'rejectCode',
-					'rejectMessage',
-					'certifiedAtMs',
-					'certificateHash',
-					'witness',
-				],
-			],
+	closed: [
+		{
+			label: 'request',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'status',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'request',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				'status',
+				{
+					label: 'certified time',
+				},
+				{
+					label: 'reply hash',
+				},
+				{
+					label: 'reject code/message',
+				},
+				{
+					label: 'certificate hash',
+				},
+				{
+					label: 'witness presence',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Request',
+				items: [
+					{
+						label: 'parent request-status row',
+					},
+				],
+			},
+			{
+				label: 'Certified proof',
+				items: [
+					{
+						label: 'certificate hash',
+					},
+					'witness',
+					{
+						label: 'verification context',
+					},
+				],
+			},
+			{
+				label: 'Reply/reject payload',
+				items: [
+					{
+						label: 'reply hash or reject code/message',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'read_state request_status payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

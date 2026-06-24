@@ -9,32 +9,100 @@
 
 	// State
 	const view = {
-		closed: [
-			'allowanceKind',
-			'tokenId',
-			'serialNumber',
-		],
-		content: {
-			dl: [
-				[
-					'allowanceKind',
-					'tokenId',
-					'serialNumber',
-				],
-			],
+	closed: [
+		{
+			label: 'owner',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'spender',
+		},
+		{
+			label: 'allowance kind',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
+					label: 'owner',
+				},
+				{
+					label: 'spender',
+				},
+				{
+					label: 'allowance kind',
+				},
+				{
+					label: 'token id',
+				},
+				{
+					label: 'NFT serial',
+				},
+				{
+					label: 'token/NFT refs',
+				},
+				{
+					label: 'latest amount or approved-for-all state',
+				},
+				{
+					label: 'timestamp count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest state',
+				items: [
+					{
+						label: 'latest allowance-state observation',
+					},
+				],
+			},
+			{
+				label: 'State history',
+				items: [
+					{
+						label: 'timestamped allowance-state observations',
+					},
+				],
+			},
+			{
+				label: 'Owner',
+				items: [
+					{
+						label: 'owner Hedera account',
+					},
+				],
+			},
+			{
+				label: 'Spender',
+				items: [
+					{
+						label: 'spender Hedera account',
+					},
+				],
+			},
+			{
+				label: 'Token/NFT',
+				items: [
+					{
+						label: 'linked Hedera token or NFT serial',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'allowance approve/delete transactions when indexed',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,26 +9,69 @@
 
 	// State
 	const view = {
-		closed: [
-			'operationId',
-		],
-		content: {
-			dl: [
-				[
-					'operationId',
-					'operationKind',
-					'path',
-					'startLine',
-					'endLine',
-					'contentHashAlgorithm',
-					'contentHash',
-					'timestampMs',
-					'status',
-					'error',
-				],
-			],
+	closed: [
+		{
+			label: 'session',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'operation id',
+		},
+		{
+			label: 'kind',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'session',
+				},
+				{
+					label: 'operation id',
+				},
+				{
+					label: 'kind',
+				},
+				'path',
+			],
+			[
+				{
+					label: 'line range',
+				},
+				{
+					label: 'content hash algorithm/hash',
+				},
+				{
+					label: 'timestamp',
+				},
+				'status',
+				'error',
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Session',
+				items: [
+					{
+						label: 'AcpSession',
+					},
+				],
+			},
+			{
+				label: 'File access',
+				items: [
+					'path',
+					{
+						label: 'start/end line',
+					},
+					'status',
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

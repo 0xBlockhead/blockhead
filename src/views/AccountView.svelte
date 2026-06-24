@@ -9,31 +9,67 @@
 
 	// State
 	const view = {
-		closed: [
-			'caip10',
-		],
-		content: {
-			dl: [
-				[
-					'caip10',
-					'address',
-					'canonicalAddress',
-					'nativeAccountSelector',
-				],
-			],
+	closed: [
+		{
+			label: 'CAIP-10 namespace/reference/address',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'canonical address when derivable',
+		},
+		{
+			label: 'network',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'wallet accounts',
-					when: 'open',
-					items: [
-						'$$walletAccounts',
-					],
+					label: 'CAIP-10 namespace/reference/address',
+				},
+				{
+					label: 'canonical address when derivable',
+				},
+				{
+					label: 'network',
+				},
+				{
+					label: 'EVM account/network-account refs when namespace is eip155',
+				},
+				{
+					label: 'native account selector',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Native account',
+				items: [
+					{
+						label: 'protocol-specific account identity',
+					},
+				],
+			},
+			{
+				label: 'EVM account',
+				items: [
+					{
+						label: 'EVM account and network-account identity when namespace is eip155',
+					},
+				],
+			},
+			{
+				label: 'Wallet exposure',
+				items: [
+					{
+						label: 'local wallet accounts that exposed this account',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

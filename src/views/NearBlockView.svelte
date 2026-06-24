@@ -9,31 +9,100 @@
 
 	// State
 	const view = {
-		closed: [
-			'height',
-		],
-		content: {
-			dl: [
-				[
-					'height',
-					'hash',
-					'epochId',
-					'timestampMs',
-				],
-			],
+	closed: [
+		'height',
+		'hash',
+		{
+			label: 'epoch',
 		},
-		details: {
-			tabs: [
+	],
+	content: {
+		dl: [
+			[
+				'height',
+				'hash',
 				{
-					label: 'chunks',
-					when: 'open',
-					items: [
-						'$$chunks',
-					],
+					label: 'parent',
+				},
+				{
+					label: 'epoch id',
+				},
+				{
+					label: 'timestamp',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			[
+				{
+					label: 'chunk count',
+				},
+				{
+					label: 'parent/chain context',
+				},
+				{
+					label: 'source evidence',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'NearNetwork/Network',
+					},
+				],
+			},
+			{
+				label: 'Header',
+				items: [
+					'height',
+					'hash',
+					{
+						label: 'parent',
+					},
+					{
+						label: 'epoch id',
+					},
+					{
+						label: 'timestamp',
+					},
+				],
+			},
+			{
+				label: 'Chunks',
+				items: [
+					{
+						label: 'NearChunk list',
+					},
+				],
+			},
+			{
+				label: 'Lookup evidence',
+				items: [
+					{
+						label: 'RPC block_id height lookup',
+					},
+					{
+						label: 'RPC block_id hash lookup',
+					},
+					{
+						label: 'NearBlocks indexer block lookup',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'NEAR RPC/indexer block payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

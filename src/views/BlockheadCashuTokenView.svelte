@@ -9,38 +9,87 @@
 
 	// State
 	const view = {
-		closed: [
-			'id',
-		],
-		content: {
-			dl: [
-				[
-					'id',
-					'tokenVersion',
-					'encodedToken',
-					'unit',
-					'memo',
-					'mintUrl',
-					'proofCount',
-					'totalAmount',
-					'importedAt',
-					'redeemedAt',
-					'status',
-				],
-			],
+	closed: [
+		{
+			label: 'token id',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'version',
+		},
+		{
+			label: 'mint',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'proofs',
-					when: 'open',
-					items: [
-						'$$proofs',
-					],
+					label: 'token id',
 				},
+				{
+					label: 'version',
+				},
+				{
+					label: 'mint',
+				},
+				'unit',
+				'memo',
+				{
+					label: 'proof count',
+				},
+				{
+					label: 'total amount',
+				},
+				{
+					label: 'imported time',
+				},
+				{
+					label: 'redeemed time',
+				},
+				'status',
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Proofs',
+				items: [
+					{
+						label: 'BlockheadCashuProof list',
+					},
+				],
+			},
+			{
+				label: 'Encoded token',
+				items: [
+					{
+						label: 'redacted token string with local reveal/copy controls',
+					},
+				],
+			},
+			{
+				label: 'Mint',
+				items: [
+					{
+						label: 'CashuMintView',
+					},
+				],
+			},
+			{
+				label: 'Import/redeem',
+				items: [
+					{
+						label: 'local lifecycle',
+					},
+					{
+						label: 'errors when captured',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

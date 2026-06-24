@@ -9,30 +9,86 @@
 
 	// State
 	const view = {
-		closed: [
-			'grantId',
-		],
-		content: {
-			dl: [
-				[
-					'grantId',
-					'authorizationKind',
-					'issuer',
-					'audience',
-					'scope',
-					'methods',
-					'resources',
-					'issuedAt',
-					'notBefore',
-					'expiresAt',
-					'revokedAt',
-					'proofKind',
-					'proofSummary',
-					'rawGrant',
-				],
-			],
+	closed: [
+		{
+			label: 'grant id',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'authorization kind',
+		},
+		'issuer',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'grant id',
+				},
+				{
+					label: 'authorization kind',
+				},
+				'issuer',
+				'audience',
+				{
+					label: 'issued/not-before/expires/revoked timestamps',
+				},
+			],
+			[
+				{
+					label: 'method count',
+				},
+				{
+					label: 'resource count',
+				},
+				{
+					label: 'proof kind',
+				},
+				{
+					label: 'proof summary',
+				},
+				{
+					label: 'raw grant presence',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Connection',
+				items: [
+					{
+						label: 'BlockheadWalletConnection when derived from a session',
+					},
+				],
+			},
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'BlockheadWalletAccount when scoped',
+					},
+				],
+			},
+			{
+				label: 'Scope',
+				items: [
+					{
+						label: 'redacted scope JSON',
+					},
+				],
+			},
+			{
+				label: 'Proof',
+				items: [
+					{
+						label: 'CACAO/ReCap/UCAN/SIWx/session-key/delegation proof summary',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

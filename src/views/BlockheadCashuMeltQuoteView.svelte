@@ -9,41 +9,105 @@
 
 	// State
 	const view = {
-		closed: [
-			'method',
-			'quoteId',
+	closed: [
+		{
+			label: 'mint',
+		},
+		'method',
+		{
+			label: 'quote id',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'mint',
+				},
+				'method',
+				{
+					label: 'quote id',
+				},
+				'request',
+				'amount',
+				'unit',
+				{
+					label: 'fee reserve',
+				},
+				{
+					label: 'latest observed state',
+				},
+				{
+					label: 'latest expiry',
+				},
+				{
+					label: 'payment preimage status',
+				},
+				{
+					label: 'wallet state',
+				},
+				{
+					label: 'input proof count',
+				},
+				{
+					label: 'timestamp count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'method',
-					'quoteId',
-					'request',
-					'amount',
-					'unit',
-					'feeReserve',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Latest state',
+				items: [
+					{
+						label: 'BlockheadCashuMeltQuote_TimestampView',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'input proofs',
-					when: 'open',
-					items: [
-						'$$inputProofs',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'State history',
+				items: [
+					{
+						label: 'BlockheadCashuMeltQuote_TimestampsView',
+					},
+				],
+			},
+			{
+				label: 'Mint',
+				items: [
+					{
+						label: 'CashuMintView',
+					},
+				],
+			},
+			{
+				label: 'Request',
+				items: [
+					{
+						label: 'BOLT11/BOLT12/onchain request text',
+					},
+				],
+			},
+			{
+				label: 'Proof inputs',
+				items: [
+					{
+						label: 'BlockheadCashuProof list supplied by the local wallet',
+					},
+				],
+			},
+			{
+				label: 'Wallet',
+				items: [
+					{
+						label: 'BlockheadCashuWalletStateView',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,19 +9,97 @@
 
 	// State
 	const view = {
-		closed: [
-			'publicKey',
-		],
-		content: {
-			dl: [
-				[
-					'publicKey',
-					'nonce',
-					'permission',
-				],
-			],
+	closed: [
+		{
+			label: 'account',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'public key',
+		},
+		{
+			label: 'latest nonce/permission summary',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'account',
+				},
+				{
+					label: 'public key',
+				},
+				{
+					label: 'latest nonce/permission summary',
+				},
+			],
+			[
+				{
+					label: 'latest function-call scope when implemented',
+				},
+				{
+					label: 'latest observation time',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'parent NEAR account',
+					},
+				],
+			},
+			{
+				label: 'State observations',
+				items: [
+					{
+						label: 'timestamped access-key state observations',
+					},
+				],
+			},
+			{
+				label: 'Function-call scope',
+				items: [
+					{
+						label: 'receiver',
+					},
+					{
+						label: 'method names',
+					},
+					{
+						label: 'allowance when resolved',
+					},
+				],
+			},
+			{
+				label: 'Transactions',
+				items: [
+					{
+						label: 'NEAR transactions scoped by signer/public key when indexed',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'view_access_key',
+					},
+					{
+						label: 'view_access_key_list',
+					},
+					{
+						label: 'access-key change queries when wired',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

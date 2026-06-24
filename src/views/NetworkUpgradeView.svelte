@@ -9,36 +9,85 @@
 
 	// State
 	const view = {
-		closed: [
-			'upgradeId',
+	closed: [
+		{
+			label: 'network',
+		},
+		{
+			label: 'upgrade id',
+		},
+		'name',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'upgrade id',
+				},
+				'name',
+				{
+					label: 'latest status',
+				},
+				{
+					label: 'specification proposal count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'upgradeId',
-					'name',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent Network row',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'specification proposals',
-					when: 'open',
-					items: [
-						'$$specificationProposals',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Status observations',
+				items: [
+					{
+						label: 'NetworkUpgrade_Timestamp list',
+					},
+				],
+			},
+			{
+				label: 'Domain-specific upgrade',
+				items: [
+					{
+						label: 'Ethereum execution/consensus upgrade rows or other stack-specific upgrade rows when linked',
+					},
+				],
+			},
+			{
+				label: 'Proposals',
+				items: [
+					{
+						label: 'linked SpecificationProposal rows',
+					},
+				],
+			},
+			{
+				label: 'Non-goals',
+				items: [
+					{
+						label: 'not protocol family',
+					},
+					{
+						label: 'not ecosystem roadmap',
+					},
+					{
+						label: 'not docs page identity',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

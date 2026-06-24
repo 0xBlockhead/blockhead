@@ -9,42 +9,100 @@
 
 	// State
 	const view = {
-		closed: [
-			'subaccountNumber',
+	closed: [
+		{
+			label: 'account',
+		},
+		{
+			label: 'subaccount number',
+		},
+		{
+			label: 'latest equity',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				{
+					label: 'account',
+				},
+				{
+					label: 'subaccount number',
+				},
+				{
+					label: 'latest equity/free collateral',
+				},
+				{
+					label: 'latest margin status',
+				},
+				{
+					label: 'position count',
+				},
+				{
+					label: 'open order count',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'subaccountNumber',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Subaccount observations',
+				items: [
+					{
+						label: 'timestamped subaccount risk/collateral observations',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'positions',
-					when: 'open',
-					items: [
-						'$$positions',
-					],
-				},
-				{
-					label: 'orders',
-					when: 'open',
-					items: [
-						'$$orders',
-					],
-				},
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Positions',
+				items: [
+					{
+						label: 'perpetual position observations',
+					},
+				],
+			},
+			{
+				label: 'Orders',
+				items: [
+					{
+						label: 'dYdX order rows',
+					},
+				],
+			},
+			{
+				label: 'Account',
+				items: [
+					{
+						label: 'underlying Cosmos account',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent dYdX Chain network',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'dYdX indexer subaccount payload',
+					},
+					{
+						label: 'validator app-state query',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

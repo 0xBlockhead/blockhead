@@ -9,23 +9,67 @@
 
 	// State
 	const view = {
-		closed: [
-			'protocolBinding',
-			'url',
-		],
-		content: {
-			dl: [
-				[
-					'protocolBinding',
-					'url',
-					'protocolVersion',
-					'transportKind',
-					'mediaType',
-					'serviceParameters',
-				],
-			],
+	closed: [
+		{
+			label: 'card snapshot',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'protocol binding',
+		},
+		'url',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'card snapshot',
+				},
+				{
+					label: 'protocol binding',
+				},
+				'url',
+			],
+			[
+				{
+					label: 'protocol version',
+				},
+				{
+					label: 'transport kind',
+				},
+				{
+					label: 'media type',
+				},
+				{
+					label: 'service parameters',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Card snapshot',
+				items: [
+					{
+						label: 'A2aAgentCard_Snapshot',
+					},
+				],
+			},
+			{
+				label: 'Transport',
+				items: [
+					'url',
+					{
+						label: 'protocol binding',
+					},
+					{
+						label: 'protocol version',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,21 +9,53 @@
 
 	// State
 	const view = {
-		closed: [
-			'id',
-		],
-		content: {
-			dl: [
-				[
-					'id',
-					'peerInboxId',
-					'topic',
-					'createdAtMs',
-					'consentState',
-				],
+	closed: [
+		'topic',
+		'peerInboxId',
+		'id',
+	],
+	content: {
+		dl: [
+			[
+				'consentState',
+				'peerInboxId',
+				'topic',
+				'createdAtMs',
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Network',
+				items: [
+					{
+						slot: 'XmtpNetwork',
+						label: 'XMTP network',
+					},
+				],
+			},
+			{
+				label: 'Messages',
+				items: [
+					{
+						slot: 'Messages',
+						label: 'XMTP messages when a live/local message source exists',
+					},
+				],
+			},
+			{
+				label: 'Participants',
+				items: [
+					{
+						slot: 'Participants',
+						label: 'Inbox identities and installations when modeled',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

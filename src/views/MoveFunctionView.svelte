@@ -9,23 +9,70 @@
 
 	// State
 	const view = {
-		closed: [
-			'functionName',
-		],
-		content: {
-			dl: [
-				[
-					'functionName',
-					'visibility',
-					'isEntry',
-					'isView',
-					'typeParameters',
-					'parameters',
-					'returnTypes',
-				],
-			],
+	closed: [
+		{
+			label: 'module',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'function name',
+		},
+		'visibility',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'module',
+				},
+				{
+					label: 'function name',
+				},
+				'visibility',
+				{
+					label: 'entry flag',
+				},
+				{
+					label: 'view flag',
+				},
+				{
+					label: 'type parameters',
+				},
+				'parameters',
+				{
+					label: 'returns',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Module',
+				items: [
+					{
+						label: 'parent Move module',
+					},
+				],
+			},
+			{
+				label: 'ABI evidence',
+				items: [
+					{
+						label: 'Aptos exposed_functions or Sui normalized module function payload',
+					},
+				],
+			},
+			{
+				label: 'Call sites',
+				items: [
+					{
+						label: 'Aptos transaction payloads or Sui programmable-transaction commands when indexed',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

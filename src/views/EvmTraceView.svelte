@@ -9,38 +9,90 @@
 
 	// State
 	const view = {
-		closed: [
-			'traceAddress',
-		],
-		content: {
-			dl: [
-				[
-					'traceAddress',
-					'index',
-					'type',
-					'from',
-					'to',
-					'value',
-					'gas',
-					'gasUsed',
-					'input',
-					'output',
-					'error',
-				],
-			],
+	closed: [
+		{
+			label: 'from/to accounts',
 		},
-		details: {
-			tabs: [
+		'value',
+		'gas',
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'childrenses',
-					when: 'open',
-					items: [
-						'$$children',
-					],
+					label: 'from/to accounts',
+				},
+				'value',
+				'gas',
+				{
+					label: 'gas used',
+				},
+				{
+					label: 'input selector candidates',
+				},
+				{
+					label: 'raw input/output',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Transaction',
+				items: [
+					{
+						label: 'parent EVM transaction',
+					},
+				],
+			},
+			{
+				label: 'Call',
+				items: [
+					'type',
+					{
+						label: 'from/to',
+					},
+					'value',
+					'gas',
+					{
+						label: 'gas used',
+					},
+				],
+			},
+			{
+				label: 'Input/output',
+				items: [
+					{
+						label: 'raw input',
+					},
+					{
+						label: 'raw output',
+					},
+					{
+						label: 'selector candidates',
+					},
+				],
+			},
+			{
+				label: 'Children',
+				items: [
+					{
+						label: 'recursive child call tree from trace-address children',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'debug trace call tree',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,42 +9,90 @@
 
 	// State
 	const view = {
-		closed: [
-			'address',
+	closed: [
+		{
+			label: 'network',
+		},
+		'address',
+		{
+			label: 'factory contract',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'network',
+				},
+				'address',
+				{
+					label: 'factory contract',
+				},
+				{
+					label: 'latest indexed user-operation count',
+				},
+				{
+					label: 'latest indexed smart-account count when available',
+				},
+			],
 		],
-		content: {
-			dl: [
-				[
-					'address',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Contract',
+				items: [
+					{
+						label: 'factory EVM contract',
+					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-				{
-					label: 'user operations',
-					when: 'open',
-					items: [
-						'$$userOperations',
-					],
-				},
-				{
-					label: 'smart accounts',
-					when: 'open',
-					items: [
-						'$$smartAccounts',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'User operations',
+				items: [
+					{
+						label: 'user operations whose initCode/factory evidence resolves to this factory',
+					},
+				],
+			},
+			{
+				label: 'Smart accounts',
+				items: [
+					{
+						label: 'source-returned smart-account links',
+					},
+				],
+			},
+			{
+				label: 'Count snapshots',
+				items: [
+					{
+						label: 'timestamped factory count observations',
+					},
+				],
+			},
+			{
+				label: 'Network',
+				items: [
+					{
+						label: 'parent EVM network',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'Blockscout account-abstraction factory detail/list payload',
+					},
+					{
+						label: 'pagination context',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

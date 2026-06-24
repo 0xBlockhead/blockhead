@@ -9,24 +9,55 @@
 
 	// State
 	const view = {
-		closed: [],
-		content: {
-			dl: [
-				[],
-			],
+	closed: [
+		{
+			label: 'key image',
 		},
-		details: {
-			tabs: [
+		{
+			label: 'member count',
+		},
+	],
+	content: {
+		dl: [
+			[
 				{
-					label: 'members',
-					when: 'open',
-					items: [
-						'$$members',
-					],
+					label: 'key image',
+				},
+				{
+					label: 'member count',
 				},
 			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Key image',
+				items: [
+					{
+						label: 'parent key image',
+					},
+				],
+			},
+			{
+				label: 'Members',
+				items: [
+					{
+						label: 'ring member decoy rows',
+					},
+				],
+			},
+			{
+				label: 'Transaction',
+				items: [
+					{
+						label: 'parent Monero transaction through key image',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

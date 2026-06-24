@@ -9,28 +9,62 @@
 
 	// State
 	const view = {
-		closed: [
-			'scope',
+	closed: [
+		'scope',
+		'$$timestamps',
+	],
+	content: {
+		dl: [
+			[
+				'scope',
+				'$$timestamps',
+				'$registryContract',
+				'$ethRegistrarController',
+				'$reverseRegistrar',
+				'$nameWrapper',
+			],
 		],
-		content: {
-			dl: [
-				[
-					'scope',
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Hub observations',
+				items: [
+					'$$timestamps',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'timestamps',
-					when: 'open',
-					items: [
-						'$$timestamps',
-					],
-				},
-			],
-		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+			},
+			{
+				label: 'Anchor refs',
+				items: [
+					'$registryContract',
+					'$ethRegistrarController',
+					'$reverseRegistrar',
+					'$nameWrapper',
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'SourceBinding.Blockscout_Rest',
+					},
+					{
+						label: 'SourceBinding.Constants_Internal',
+					},
+					{
+						label: 'SourceBinding.Etherscan_Rest',
+					},
+					{
+						label: 'SourceBinding.TheGraph_Graphql',
+					},
+					{
+						label: 'SourceBinding.Voltaire_JsonRpc',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

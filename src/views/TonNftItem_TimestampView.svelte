@@ -9,31 +9,99 @@
 
 	// State
 	const view = {
-		closed: [
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'timestampMs',
-					'source',
-					'ownerAddress',
-					'initialized',
-					'name',
-					'description',
-					'imageUrl',
-					'metadataUri',
-					'content',
-					'contentHash',
-					'codeHash',
-					'dataHash',
-					'verification',
-					'lastTransactionLt',
-				],
-			],
+	closed: [
+		{
+			label: 'item',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'observation time',
+		},
+		'source',
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'item',
+				},
+				{
+					label: 'observation time',
+				},
+				'source',
+				{
+					label: 'owner',
+				},
+				{
+					label: 'owner address',
+				},
+				{
+					label: 'initialized flag',
+				},
+				'name',
+				{
+					label: 'image/metadata URI',
+				},
+				{
+					label: 'content hash',
+				},
+				{
+					label: 'code/data hashes',
+				},
+				'verification',
+				{
+					label: 'last transaction lt',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Item',
+				items: [
+					{
+						label: 'parent item identity',
+					},
+				],
+			},
+			{
+				label: 'Owner',
+				items: [
+					{
+						label: 'owner account identity',
+					},
+				],
+			},
+			{
+				label: 'Collection',
+				items: [
+					{
+						label: 'collection identity',
+					},
+				],
+			},
+			{
+				label: 'Metadata/content',
+				items: [
+					{
+						label: 'description/content JSON',
+					},
+					{
+						label: 'URI evidence',
+					},
+				],
+			},
+			{
+				label: 'Source evidence',
+				items: [
+					{
+						label: 'raw item/get-method/indexer payload',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

@@ -9,18 +9,67 @@
 
 	// State
 	const view = {
-		closed: [
-			'eventIndex',
-		],
-		content: {
-			dl: [
-				[
-					'eventIndex',
-					'eventName',
-				],
-			],
+	closed: [
+		{
+			label: 'block',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		{
+			label: 'event index',
+		},
+		{
+			label: 'pallet',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'block',
+				},
+				{
+					label: 'event index',
+				},
+				{
+					label: 'pallet',
+				},
+				{
+					label: 'event name',
+				},
+				{
+					label: 'linked extrinsic when present',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Extrinsic',
+				items: [
+					{
+						label: 'linked Polkadot extrinsic',
+					},
+				],
+			},
+			{
+				label: 'Pallet',
+				items: [
+					{
+						label: 'runtime pallet',
+					},
+				],
+			},
+			{
+				label: 'Block context',
+				items: [
+					{
+						label: 'parent Polkadot block',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,

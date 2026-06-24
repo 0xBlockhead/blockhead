@@ -9,25 +9,57 @@
 
 	// State
 	const view = {
-		closed: [
-			'nodeId',
-			'timestampMs',
-			'source',
-		],
-		content: {
-			dl: [
-				[
-					'nodeId',
-					'timestampMs',
-					'source',
-					'address',
-					'port',
-					'observedInfoHashes',
-					'reachable',
-				],
-			],
+	closed: [
+		{
+			label: 'DHT node id',
 		},
-	} satisfies ComponentProps<typeof EntityView2>['view']
+		'source',
+		{
+			label: 'timestamp',
+		},
+	],
+	content: {
+		dl: [
+			[
+				{
+					label: 'DHT node id',
+				},
+				'source',
+				{
+					label: 'timestamp',
+				},
+				'address',
+				'port',
+				{
+					label: 'reachability',
+				},
+				{
+					label: 'observed info hashes',
+				},
+			],
+		],
+	},
+	details: {
+		tabs: [
+			{
+				label: 'Lookups',
+				items: [
+					{
+						label: 'BitTorrentDhtLookup_Timestamp list that returned or queried the node',
+					},
+				],
+			},
+			{
+				label: 'Routing evidence',
+				items: [
+					{
+						label: 'local routing-table/query payload when retained',
+					},
+				],
+			},
+		],
+	},
+} satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {
 		selection,
