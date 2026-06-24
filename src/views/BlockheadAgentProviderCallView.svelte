@@ -10,89 +10,27 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'turn',
-			},
-			{
-				label: 'call index',
-			},
-			{
-				label: 'operation/status',
-			},
+			'callIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'turn',
-					},
-					{
-						label: 'call index',
-					},
-					{
-						label: 'connection',
-					},
-					{
-						label: 'provider',
-					},
-					{
-						label: 'model',
-					},
-					{
-						label: 'operation',
-					},
-				],
-				[
-					{
-						label: 'provider request/response ids',
-					},
-					{
-						label: 'started/completed at',
-					},
+					'callIndex',
+					'providerRequestId',
+					'providerResponseId',
+					'startedAt',
+					'completedAt',
 					'status',
-					{
-						label: 'tokens',
-					},
+					'requestHashAlgorithm',
+					'requestHash',
+					'responseHashAlgorithm',
+					'responseHash',
+					'inputTokenCount',
+					'outputTokenCount',
 					'cost',
-					{
-						label: 'latency',
-					},
+					'latencyMs',
 					'error',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Turn',
-					items: [
-						{
-							label: 'BlockheadAgentConversationTurn',
-						},
-					],
-				},
-				{
-					label: 'Provider refs',
-					items: [
-						{
-							label: 'AiModelProvider',
-						},
-						{
-							label: 'AiModel',
-						},
-						{
-							label: 'AiProviderApiOperation',
-						},
-					],
-				},
-				{
-					label: 'Hashes',
-					items: [
-						{
-							label: 'request/response hash algorithms and hashes',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

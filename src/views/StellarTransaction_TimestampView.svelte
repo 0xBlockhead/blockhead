@@ -10,99 +10,26 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'transaction',
-			},
-			{
-				label: 'ledger',
-			},
-			{
-				label: 'success/result code',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'transaction',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'ledger',
-					},
-					{
-						label: 'success/result code',
-					},
-					{
-						label: 'fee charged/max fee',
-					},
-				],
-				[
+					'ledgerSequence',
+					'successful',
+					'resultCode',
+					'feeCharged',
+					'maxFee',
 					'memo',
-					{
-						label: 'signature count',
-					},
-					{
-						label: 'envelope/result/meta XDR availability',
-					},
-					{
-						label: 'fee meta XDR availability',
-					},
+					'envelopeXdr',
+					'resultXdr',
+					'metaXdr',
+					'feeMetaXdr',
+					'signatures',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Transaction',
-					items: [
-						{
-							label: 'parent Stellar transaction',
-						},
-					],
-				},
-				{
-					label: 'Operations',
-					items: [
-						{
-							label: 'operations for same transaction',
-						},
-					],
-				},
-				{
-					label: 'XDR',
-					items: [
-						{
-							label: 'envelope',
-						},
-						{
-							label: 'result',
-						},
-						{
-							label: 'meta',
-						},
-						{
-							label: 'fee meta',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Horizon transaction object',
-						},
-						{
-							label: 'RPC getTransaction payload',
-						},
-						{
-							label: 'explorer retention/freshness',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,64 +10,25 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'tool call',
-			},
-			{
-				label: 'observation time',
-			},
-			'status',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'tool call',
-					},
-					{
-						label: 'timestamp',
-					},
+					'timestampMs',
 					'source',
 					'status',
-					{
-						label: 'is error',
-					},
-				],
-				[
-					{
-						label: 'latency',
-					},
-					{
-						label: 'protocol error',
-					},
+					'latencyMs',
+					'isError',
+					'protocolError',
 					'content',
-					{
-						label: 'structured content',
-					},
-					{
-						label: 'resource links',
-					},
+					'structuredContent',
+					'resourceLinks',
+					'embeddedResources',
+					'error',
+					'payload',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Tool call',
-					items: [
-						{
-							label: 'McpToolCall',
-						},
-					],
-				},
-				{
-					label: 'Payload',
-					items: [
-						{
-							label: 'content/structuredContent/resource/error payloads',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

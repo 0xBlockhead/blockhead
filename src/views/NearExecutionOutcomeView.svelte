@@ -10,75 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'transaction',
-			},
-			{
-				label: 'outcome id',
-			},
-			'status',
+			'outcomeId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'transaction',
-					},
-					{
-						label: 'outcome id',
-					},
+					'outcomeId',
 					'status',
-					{
-						label: 'gas burnt',
-					},
-					{
-						label: 'spawned receipt count',
-					},
-					{
-						label: 'status payload',
-					},
-					{
-						label: 'gas/profile evidence',
-					},
+					'gasBurnt',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Transaction',
+					label: 'receipts',
+					when: 'open',
 					items: [
-						{
-							label: 'NearTransaction',
-						},
-					],
-				},
-				{
-					label: 'Outcome',
-					items: [
-						{
-							label: 'outcome id',
-						},
-						'status',
-						{
-							label: 'gas burnt',
-						},
-					],
-				},
-				{
-					label: 'Receipts',
-					items: [
-						{
-							label: 'NearReceipt list',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'NEAR transaction status outcome payload',
-						},
+						'$$receipts',
 					],
 				},
 			],

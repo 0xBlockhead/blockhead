@@ -10,63 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'proposal',
-			},
-			{
-				label: 'observation time',
-			},
-			'status',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'proposal',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'status',
-					{
-						label: 'submit/deposit/voting times',
-					},
-					{
-						label: 'metadata presence',
-					},
+					'submitTimeMs',
+					'depositEndTimeMs',
+					'votingStartTimeMs',
+					'votingEndTimeMs',
+					'metadata',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Proposal',
-					items: [
-						{
-							label: 'parent governance proposal',
-						},
-					],
-				},
-				{
-					label: 'Tally snapshots',
-					items: [
-						{
-							label: 'timestamped live/final tally observations',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'gov proposal payload',
-						},
-						{
-							label: 'module-version/status enum mapping',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

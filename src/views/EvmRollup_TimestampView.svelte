@@ -10,76 +10,20 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'rollup',
-			},
-			{
-				label: 'observation time',
-			},
-			{
-				label: 'source status',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'rollup',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'archived/upcoming/under-review flags',
-					},
-					{
-						label: 'listing stage',
-					},
-					{
-						label: 'source updated time',
-					},
+					'isArchived',
+					'isUpcoming',
+					'isUnderReview',
+					'listingStage',
+					'sourceUpdatedAt',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Rollup',
-					items: [
-						{
-							label: 'parent L2Beat compatibility row',
-						},
-					],
-				},
-				{
-					label: 'Status flags',
-					items: [
-						{
-							label: 'archived',
-						},
-						{
-							label: 'upcoming',
-						},
-						{
-							label: 'under review',
-						},
-						{
-							label: 'listing stage',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'L2Beat project payload',
-						},
-						{
-							label: 'catalog freshness',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,78 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'object id',
-			},
+			'objectId',
 			'version',
 			'digest',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'object id',
-					},
+					'objectId',
 					'version',
 					'digest',
-					{
-						label: 'owner',
-					},
-					{
-						label: 'type',
-					},
-					{
-						label: 'previous transaction',
-					},
-					{
-						label: 'storage rebate',
-					},
+					'ownerSelector',
+					'objectType',
+					'previousTransaction',
+					'storageRebate',
 					'contents',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Object',
-					items: [
-						{
-							label: 'parent Sui object',
-						},
-					],
-				},
-				{
-					label: 'Owner',
-					items: [
-						{
-							label: 'Sui account or parent Sui object when owner selector resolves',
-						},
-					],
-				},
-				{
-					label: 'Previous transaction',
-					items: [
-						{
-							label: 'Sui transaction when resolved',
-						},
-					],
-				},
-				{
-					label: 'Dynamic fields',
-					items: [
-						{
-							label: 'dynamic-field edges for this object/version when sourceable',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'object data/options from JSON-RPC or GraphQL',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

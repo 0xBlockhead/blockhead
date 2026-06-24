@@ -10,68 +10,23 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'torrent',
-			},
-			{
-				label: 'peer id',
-			},
+			'peerId',
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'torrent',
-					},
-					{
-						label: 'peer id',
-					},
+					'peerId',
+					'timestampMs',
 					'source',
-					{
-						label: 'timestamp',
-					},
 					'address',
 					'port',
 					'client',
-					{
-						label: 'completed percent',
-					},
-					{
-						label: 'DHT support',
-					},
-					{
-						label: 'PEX support',
-					},
+					'completedPercent',
+					'supportsDht',
+					'supportsPex',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Torrent',
-					items: [
-						{
-							label: 'parent metainfo',
-						},
-					],
-				},
-				{
-					label: 'Discovery evidence',
-					items: [
-						{
-							label: 'tracker/DHT/handshake/PEX payload when retained',
-						},
-					],
-				},
-				{
-					label: 'Swarm context',
-					items: [
-						{
-							label: 'swarm observations for the same torrent',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

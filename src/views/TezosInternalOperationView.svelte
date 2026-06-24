@@ -10,76 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'parent operation',
-			},
-			{
-				label: 'internal index',
-			},
-			{
-				label: 'kind',
-			},
+			'internalIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'parent operation',
-					},
-					{
-						label: 'internal index',
-					},
-					{
-						label: 'kind',
-					},
-					{
-						label: 'source',
-					},
-					{
-						label: 'destination',
-					},
-					{
-						label: 'amount',
-					},
+					'internalIndex',
+					'operationKind',
+					'sourceAddress',
+					'destinationAddress',
+					'amountMutez',
 					'nonce',
-					{
-						label: 'status',
-					},
-					{
-						label: 'consumed gas',
-					},
+					'parameters',
+					'resultStatus',
+					'consumedGas',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Parent operation',
-					items: [
-						{
-							label: 'parent Tezos operation',
-						},
-					],
-				},
-				{
-					label: 'Parameters/result',
-					items: [
-						{
-							label: 'decoded parameters',
-						},
-						{
-							label: 'result evidence',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'node/indexer payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

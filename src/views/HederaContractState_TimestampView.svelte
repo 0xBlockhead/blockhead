@@ -10,55 +10,18 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'contract',
-			},
 			'slot',
-			{
-				label: 'observed time',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'contract',
-					},
 					'slot',
-					{
-						label: 'observed time',
-					},
+					'timestampMs',
 					'source',
 					'value',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Contract',
-					items: [
-						{
-							label: 'parent Hedera contract',
-						},
-					],
-				},
-				{
-					label: 'Slot value',
-					items: [
-						{
-							label: 'raw storage value',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'raw state payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

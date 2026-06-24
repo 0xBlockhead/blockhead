@@ -10,82 +10,25 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'referendum',
-			},
-			{
-				label: 'observation time',
-			},
-			'status',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'referendum',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'block number/hash',
-					},
+					'blockNumber',
+					'blockHash',
 					'status',
-					{
-						label: 'decided/confirmation/enactment blocks',
-					},
-				],
-				[
-					{
-						label: 'aye/nay votes',
-					},
+					'decidedAtBlockNumber',
+					'confirmationStartedAtBlockNumber',
+					'enactmentAtBlockNumber',
+					'ayeVotes',
+					'nayVotes',
 					'support',
 					'approval',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Referendum',
-					items: [
-						{
-							label: 'parent Polkadot referendum',
-						},
-					],
-				},
-				{
-					label: 'Lifecycle',
-					items: [
-						'status',
-						{
-							label: 'decision/confirmation/enactment coordinates',
-						},
-					],
-				},
-				{
-					label: 'Tally',
-					items: [
-						{
-							label: 'aye/nay/support/approval fields',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'runtime storage payload',
-						},
-						{
-							label: 'Subscan governance payload',
-						},
-						{
-							label: 'block context',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

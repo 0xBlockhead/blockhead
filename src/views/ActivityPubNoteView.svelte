@@ -9,183 +9,47 @@
 
 	// State
 	const view = {
-		route: {
-			href: '/activitypub/note/[instanceOrigin]/[localStatusId]',
-			dependsOn: [
-				'instanceOrigin',
-				'localStatusId',
-			],
-		},
-		query: {
-			sources: [
-				'Mastodon_Rest',
-				'Fedi_Rest',
-			],
-			openFields: [
-				'$author',
-				'$inReplyTo',
-				'$reblogOf',
-				'$$timestamps',
-				'$$media',
-				'$$thread',
-			],
-			slot: 'ActivityPubNoteQueryPolicy',
-		},
-		media: {
-			slot: 'ActivityPubContentPreview',
-		},
-		lists: [
-			{
-				id: 'notes',
-				label: 'Notes',
-				limit: 50,
-				query: {
-					limit: 50,
-				},
-				item: 'link',
-				itemHref: {
-					label: '/activitypub/note/[instanceOrigin]/[localStatusId]',
-				},
-				key: 'localStatusId',
-			},
-		],
-		display: [
-			{
-				field: 'content',
-				kind: 'htmlText',
-				slot: 'ActivityPubContentHtml',
-			},
-			{
-				field: 'spoilerText',
-				kind: 'textPreview',
-				slot: 'ContentWarning',
-			},
-		],
-		panels: [
-			{
-				id: 'content',
-				label: 'Content',
-				kind: 'media',
-				defer: 'open',
-				slot: 'ActivityPubContentPanel',
-			},
-		],
-		slots: [
-			{
-				slot: 'ActivityPubContentPreview',
-				label: 'content warning and HTML-to-text preview',
-				for: 'Title',
-			},
-			{
-				slot: 'ActivityPubNoteContent',
-				label: 'content warning reveal and media rendering',
-				for: 'Content',
-			},
-		],
 		closed: [
-			{
-				label: 'content excerpt',
-			},
-			{
-				label: 'author',
-			},
-			{
-				label: 'created date',
-			},
+			'activityStreamsUri',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'ActivityStreams URI',
-					},
-					{
-						label: 'instance origin',
-					},
-					{
-						label: 'local status id',
-					},
-					{
-						label: 'author',
-					},
-					{
-						label: 'created date',
-					},
-					{
-						label: 'reply/reblog refs',
-					},
-				],
-				[
-					{
-						label: 'status URL',
-					},
-					{
-						label: 'visibility/sensitive/language',
-					},
-					{
-						label: 'media/thread counts',
-					},
-					{
-						label: 'latest favourite/reblog/reply counters',
-					},
+					'instanceOrigin',
+					'localStatusId',
+					'content',
+					'createdAt',
+					'editedAt',
+					'activityStreamsUri',
+					'visibility',
+					'sensitive',
+					'language',
+					'spoilerText',
+					'statusUrl',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Content',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						'content',
-						{
-							label: 'spoiler text',
-						},
-						'language',
-						'visibility',
-						{
-							label: 'sensitive flag',
-						},
-						{
-							label: 'media refs',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Metric snapshots',
+					label: 'mediases',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped favourite/reblog/reply counters',
-						},
+						'$$media',
 					],
 				},
 				{
-					label: 'Thread',
+					label: 'threadses',
+					when: 'open',
 					items: [
-						{
-							label: 'context ancestors/descendants from latest source window',
-						},
-					],
-				},
-				{
-					label: 'Author',
-					items: [
-						{
-							label: 'author ActivityPub actor',
-						},
-					],
-				},
-				{
-					label: 'Lookup evidence',
-					items: [
-						{
-							label: 'Mastodon/Fedi status id lookup',
-						},
-						{
-							label: 'ActivityStreams URI search/dereference',
-						},
-						{
-							label: 'status context lookup',
-						},
+						'$$thread',
 					],
 				},
 			],

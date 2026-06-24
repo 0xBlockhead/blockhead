@@ -10,78 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'order',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'order',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'status',
-					{
-						label: 'status time',
-					},
+					'statusTimestampMs',
 					'size',
-					{
-						label: 'filled size',
-					},
-					{
-						label: 'remaining size',
-					},
-					{
-						label: 'latest fill id',
-					},
-					{
-						label: 'child count',
-					},
+					'children',
+					'filledSize',
+					'remainingSize',
+					'lastFillTid',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Order',
-					items: [
-						{
-							label: 'parent Hyperliquid order',
-						},
-					],
-				},
-				{
-					label: 'Fills',
-					items: [
-						{
-							label: 'fills filtered by order id',
-						},
-					],
-				},
-				{
-					label: 'Children/TP-SL',
-					items: [
-						{
-							label: 'child order payload JSON',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'raw openOrders/frontendOpenOrders/historicalOrders/orderStatus payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

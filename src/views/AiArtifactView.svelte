@@ -10,95 +10,43 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'artifact selector',
-			},
-			{
-				label: 'media/artifact type',
-			},
-			'size',
+			'digestAlgorithm',
+			'digest',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'digest/CID/OCI/git selector',
-					},
-					{
-						label: 'URI',
-					},
-					{
-						label: 'media type',
-					},
-					{
-						label: 'artifact type',
-					},
+					'digestAlgorithm',
+					'digest',
+					'ociDigest',
+					'ipfsCid',
+					'arweaveId',
+					'gitObject',
+					'uri',
+					'mediaType',
+					'artifactType',
+					'configDescriptor',
+					'layerDescriptors',
+					'subjectDescriptor',
+					'annotations',
 					'size',
-				],
-				[
-					{
-						label: 'config/layer/subject descriptors',
-					},
-					{
-						label: 'document refs',
-					},
-					{
-						label: 'attestation refs',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Documents',
+					label: 'documents',
+					when: 'open',
 					items: [
-						{
-							label: 'AiDocument list',
-						},
+						'$$documents',
 					],
 				},
 				{
-					label: 'Attestations',
+					label: 'attestations',
+					when: 'open',
 					items: [
-						{
-							label: 'AiArtifactAttestation list',
-						},
-					],
-				},
-				{
-					label: 'Content addressing',
-					items: [
-						'digest',
-						{
-							label: 'OCI digest',
-						},
-						{
-							label: 'IPFS CID',
-						},
-						{
-							label: 'Arweave ID',
-						},
-						{
-							label: 'git object',
-						},
-					],
-				},
-				{
-					label: 'OCI',
-					items: [
-						{
-							label: 'config/layer/subject descriptors',
-						},
-						'annotations',
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'source-specific artifact locator',
-						},
+						'$$attestations',
 					],
 				},
 			],

@@ -9,107 +9,29 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'local node state',
-			},
-			{
-				label: 'channel',
-			},
-			{
-				label: 'private flag',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
 				[
-					{
-						label: 'local node state',
-					},
-					{
-						label: 'channel',
-					},
-					{
-						label: 'private flag',
-					},
-					{
-						label: 'initiator flag',
-					},
-					{
-						label: 'latest active state',
-					},
-					{
-						label: 'latest local/remote/unsettled balances',
-					},
-					{
-						label: 'latest commit fee/weight',
-					},
-					{
-						label: 'latest fee per kw',
-					},
-					{
-						label: 'latest update count',
-					},
-					{
-						label: 'latest sync time',
-					},
-					{
-						label: 'HTLC count',
-					},
+					'private',
+					'initiator',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest state',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'latest local channel observation',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'State history',
+					label: 'htlcs',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped local channel observations',
-						},
-					],
-				},
-				{
-					label: 'Channel',
-					items: [
-						{
-							label: 'public Lightning channel when graph identity resolves',
-						},
-					],
-				},
-				{
-					label: 'Local node',
-					items: [
-						{
-							label: 'parent connected Lightning node state',
-						},
-					],
-				},
-				{
-					label: 'HTLCs',
-					items: [
-						{
-							label: 'local HTLC rows',
-						},
-					],
-				},
-				{
-					label: 'Raw/local evidence',
-					items: [
-						{
-							label: 'LND listchannels channel identity',
-						},
-						{
-							label: 'privacy fields',
-						},
+						'$$htlcs',
 					],
 				},
 			],

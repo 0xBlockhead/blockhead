@@ -10,61 +10,18 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'transaction',
-			},
-			{
-				label: 'observation time',
-			},
-			'status',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'transaction',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'status',
-					{
-						label: 'block number',
-					},
+					'blockNumber',
 					'error',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Transaction',
-					items: [
-						{
-							label: 'parent HyperEVM transaction',
-						},
-					],
-				},
-				{
-					label: 'Block',
-					items: [
-						{
-							label: 'containing block through transaction',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'JSON-RPC transaction/receipt payload',
-						},
-						{
-							label: 'indexer freshness',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

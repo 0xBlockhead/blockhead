@@ -10,68 +10,26 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'operation hash',
-			},
-			{
-				label: 'block',
-			},
-			'branch',
+			'operationHash',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'operation hash',
-					},
-					{
-						label: 'block',
-					},
+					'operationHash',
 					'branch',
-					{
-						label: 'signature presence',
-					},
-					{
-						label: 'validation pass',
-					},
-					{
-						label: 'operation count',
-					},
+					'signature',
+					'validationPass',
+					'operationCount',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Operation contents',
+					label: 'operations',
+					when: 'open',
 					items: [
-						{
-							label: 'operations ordered by content index',
-						},
-					],
-				},
-				{
-					label: 'Block',
-					items: [
-						{
-							label: 'parent Tezos block',
-						},
-					],
-				},
-				{
-					label: 'Raw payload',
-					items: [
-						{
-							label: 'signed group JSON/Micheline when available',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'node/indexer payloads',
-						},
+						'$$operations',
 					],
 				},
 			],

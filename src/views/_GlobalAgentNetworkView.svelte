@@ -10,97 +10,59 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network id',
-			},
-			{
-				label: 'protocol kind',
-			},
-			{
-				label: 'latest discovery coverage',
-			},
+			'networkId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network id',
-					},
+					'networkId',
 					'label',
-					{
-						label: 'protocol kind',
-					},
-					{
-						label: 'latest observation',
-					},
-				],
-				[
-					{
-						label: 'ACP programs',
-					},
-					{
-						label: 'A2A cards',
-					},
-					{
-						label: 'MCP servers',
-					},
-					{
-						label: 'EIP-8004 registrations',
-					},
-					{
-						label: 'Blockhead profiles',
-					},
+					'protocolKind',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'ACP',
+					label: 'acp programs',
+					when: 'open',
 					items: [
-						{
-							label: 'AcpAgentProgram list',
-						},
+						'$$acpPrograms',
 					],
 				},
 				{
-					label: 'A2A',
+					label: 'a2a cards',
+					when: 'open',
 					items: [
-						{
-							label: 'A2aAgentCard/A2aAgentService lists',
-						},
+						'$$a2aCards',
 					],
 				},
 				{
-					label: 'MCP',
+					label: 'mcp servers',
+					when: 'open',
 					items: [
-						{
-							label: 'McpServer list',
-						},
+						'$$mcpServers',
 					],
 				},
 				{
-					label: 'EIP-8004',
+					label: 'eip8004 registrations',
+					when: 'open',
 					items: [
-						{
-							label: 'Eip8004AgentRegistration list',
-						},
+						'$$eip8004Registrations',
 					],
 				},
 				{
-					label: 'Local profiles',
+					label: 'blockhead profiles',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadAgentProfile list',
-						},
+						'$$blockheadProfiles',
 					],
 				},
 				{
-					label: 'Observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: '_GlobalAgentNetwork_Timestamp list',
-						},
+						'$$timestamps',
 					],
 				},
 			],

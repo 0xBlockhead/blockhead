@@ -10,91 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'contract',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'contract',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'interface kind',
-					},
-					{
-						label: 'wallet version',
-					},
-					{
-						label: 'code hash',
-					},
+					'interfaceKind',
+					'walletVersion',
+					'codeHash',
+					'verifiedSourceUrl',
+					'verifiedAtMs',
 					'verification',
-					{
-						label: 'verified source URL',
-					},
-					{
-						label: 'verified time',
-					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Contract',
-					items: [
-						{
-							label: 'parent contract identity',
-						},
-					],
-				},
-				{
-					label: 'Account state',
-					items: [
-						{
-							label: 'account-state snapshot near the same source time',
-						},
-					],
-				},
-				{
-					label: 'Get methods',
-					items: [
-						{
-							label: 'callable get-method rows',
-						},
-					],
-				},
-				{
-					label: 'Verifier payload',
-					items: [
-						{
-							label: 'source URL',
-						},
-						{
-							label: 'verification status',
-						},
-						{
-							label: 'compiler/build evidence when exposed',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'TonAPI/TonCenter/verifier contract payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

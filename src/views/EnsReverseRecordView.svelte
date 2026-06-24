@@ -9,73 +9,19 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'account',
-			},
-			{
-				label: 'claimed primary name',
-			},
-			{
-				label: 'latest verified status',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
-				[
-					{
-						label: 'account',
-					},
-					{
-						label: 'claimed primary name',
-					},
-					{
-						label: 'latest verified status',
-					},
-					{
-						label: 'latest source',
-					},
-					{
-						label: 'timestamp count',
-					},
-				],
+				[],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Verification history',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped reverse-record verification observations',
-						},
-					],
-				},
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'linked account/EVM account',
-						},
-					],
-				},
-				{
-					label: 'Name',
-					items: [
-						{
-							label: 'claimed ENS name',
-						},
-					],
-				},
-				{
-					label: 'Resolver evidence',
-					items: [
-						{
-							label: 'reverse node',
-						},
-						{
-							label: 'forward-resolution check',
-						},
+						'$$timestamps',
 					],
 				},
 			],

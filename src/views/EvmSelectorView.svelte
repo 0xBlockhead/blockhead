@@ -9,79 +9,23 @@
 
 	// State
 	const view = {
-		actions: [
-			{
-				id: 'copy-selector',
-				label: 'Copy selector',
-				kind: 'copy',
-				field: 'hex',
-			},
-		],
-		transforms: [
-			{
-				id: 'selector-encodings',
-				label: 'Selector encodings',
-				field: 'hex',
-				kind: 'selectorEncoding',
-				slot: 'SelectorEncodings',
-			},
-		],
 		closed: [
-			{
-				label: 'selector hex',
-			},
-			{
-				label: 'latest candidate signature',
-			},
-			{
-				label: 'candidate count',
-			},
+			'hex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'selector hex',
-					},
-					{
-						label: 'latest candidate signature',
-					},
-					{
-						label: 'latest source',
-					},
-					{
-						label: 'candidate count',
-					},
+					'hex',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Catalog observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped candidate-signature lookups',
-						},
-					],
-				},
-				{
-					label: 'Decode context',
-					items: [
-						{
-							label: 'verified contract ABI required before authoritative decode',
-						},
-					],
-				},
-				{
-					label: 'Related rows',
-					items: [
-						{
-							label: 'EvmContract ABI',
-						},
-						{
-							label: 'EvmTransaction input decode',
-						},
+						'$$timestamps',
 					],
 				},
 			],

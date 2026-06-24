@@ -10,61 +10,23 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'pool id',
-			},
-			{
-				label: 'VRF key hash',
-			},
-			{
-				label: 'latest pledge',
-			},
+			'poolId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'pool id',
-					},
-					{
-						label: 'VRF key hash',
-					},
-					{
-						label: 'latest pledge',
-					},
-					{
-						label: 'latest margin',
-					},
-					{
-						label: 'latest stake/delegator snapshot',
-					},
+					'poolId',
+					'vrfKeyHash',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Snapshots',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped stake-pool economics/stake observations',
-						},
-					],
-				},
-				{
-					label: 'Metadata',
-					items: [
-						{
-							label: 'pool metadata from latest registration/update snapshot',
-						},
-					],
-				},
-				{
-					label: 'Blocks',
-					items: [
-						{
-							label: 'produced blocks when indexing exists',
-						},
+						'$$timestamps',
 					],
 				},
 			],

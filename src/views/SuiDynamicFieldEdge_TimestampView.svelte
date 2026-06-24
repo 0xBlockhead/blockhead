@@ -10,76 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'edge',
-			},
-			{
-				label: 'checkpoint sequence',
-			},
+			'checkpointSequence',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'edge',
-					},
-					{
-						label: 'checkpoint sequence',
-					},
+					'checkpointSequence',
 					'source',
-					{
-						label: 'observation time',
-					},
-					{
-						label: 'field type',
-					},
-					{
-						label: 'child object type',
-					},
-					{
-						label: 'deleted state',
-					},
+					'timestampMs',
+					'fieldType',
+					'childObjectType',
+					'deleted',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Edge',
-					items: [
-						{
-							label: 'parent dynamic-field edge',
-						},
-					],
-				},
-				{
-					label: 'Parent object',
-					items: [
-						{
-							label: 'parent Sui object through edge',
-						},
-					],
-				},
-				{
-					label: 'Child object',
-					items: [
-						{
-							label: 'child Sui object when resolved',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'GraphQL/gRPC dynamic field payload',
-						},
-						{
-							label: 'legacy suix_getDynamicFields/suix_getDynamicFieldObject payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

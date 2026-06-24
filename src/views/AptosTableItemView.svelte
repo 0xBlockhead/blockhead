@@ -10,79 +10,27 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'table handle',
-			},
-			{
-				label: 'key hash',
-			},
+			'tableHandle',
+			'keyHash',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'table handle',
-					},
-					{
-						label: 'key hash',
-					},
-					{
-						label: 'key type',
-					},
-					{
-						label: 'value type',
-					},
-					{
-						label: 'key summary',
-					},
-					{
-						label: 'latest value/hash summary',
-					},
-					{
-						label: 'latest ledger version/source',
-					},
+					'tableHandle',
+					'keyHash',
+					'key',
+					'keyType',
+					'valueType',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Value observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'ledger-versioned table item values',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Aptos network',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'table item request body',
-						},
-						{
-							label: 'response',
-						},
-						{
-							label: 'pruning/freshness status',
-						},
-						{
-							label: 'indexer coordinates',
-						},
+						'$$timestamps',
 					],
 				},
 			],

@@ -9,94 +9,40 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'wallet id',
-			},
-			{
-				label: 'connection key',
-			},
-			'status',
-			'protocol',
-		],
+		closed: [],
 		content: {
 			dl: [
 				[
-					{
-						label: 'wallet id',
-					},
-					{
-						label: 'connection key',
-					},
 					'status',
 					'protocol',
-					{
-						label: 'transport',
-					},
-					{
-						label: 'API surface',
-					},
-					{
-						label: 'session kind',
-					},
-				],
-				[
-					{
-						label: 'active account',
-					},
-					{
-						label: 'selected flag',
-					},
-					{
-						label: 'connected/updated/disconnected/expires timestamps',
-					},
-					{
-						label: 'session id/topic/pairing id',
-					},
+					'transportKind',
+					'scopes',
+					'selected',
+					'connectedAt',
+					'disconnectedAt',
+					'sessionId',
+					'sessionTopic',
 					'error',
+					'connectionKey',
+					'apiSurfaceKind',
+					'sessionKind',
+					'authorizationKind',
+					'updatedAt',
+					'expiresAt',
+					'pairingId',
+					'transportSessionId',
+					'manifestUrl',
+					'pairingUri',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Accounts',
+					label: 'connected accounts',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadWalletAccount list, empty while connecting/error/disconnected',
-						},
-					],
-				},
-				{
-					label: 'Scopes',
-					items: [
-						{
-							label: 'namespace/reference/chains/accounts/methods/events/capabilities authorization rows',
-						},
-					],
-				},
-				{
-					label: 'Requests',
-					items: [
-						{
-							label: 'BlockheadWalletRequest rows',
-						},
-					],
-				},
-				{
-					label: 'Transport session',
-					items: [
-						{
-							label: 'BlockheadWalletTransportSession when durable transport identity exists',
-						},
-					],
-				},
-				{
-					label: 'Connection method',
-					items: [
-						{
-							label: 'WalletConnectionMethod',
-						},
+						'$$connectedAccounts',
 					],
 				},
 			],

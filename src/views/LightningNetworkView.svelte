@@ -9,99 +9,56 @@
 
 	// State
 	const view = {
-		closed: [
-			'name',
-			{
-				label: 'settlement network',
-			},
-			{
-				label: 'latest graph snapshot',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
 				[
 					'name',
-					{
-						label: 'settlement network',
-					},
-					{
-						label: 'latest graph snapshot',
-					},
-					{
-						label: 'connected local node count',
-					},
-					{
-						label: 'public node count',
-					},
-					{
-						label: 'public channel count',
-					},
-					{
-						label: 'total capacity',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Graph nodes',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'public Lightning node rows',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Graph channels',
+					label: 'nodes',
+					when: 'open',
 					items: [
-						{
-							label: 'public Lightning channel rows',
-						},
+						'$$nodes',
 					],
 				},
 				{
-					label: 'Graph snapshots',
+					label: 'channels',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped graph metric observations',
-						},
+						'$$channels',
 					],
 				},
 				{
-					label: 'Local nodes',
+					label: 'invoices',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadLightningNodeState rows from connected nodes',
-						},
+						'$$invoices',
 					],
 				},
 				{
-					label: 'Local payments',
+					label: 'payments',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadLightningInvoice and BlockheadLightningPayment rows from connected nodes',
-						},
+						'$$payments',
 					],
 				},
 				{
-					label: 'Assets',
+					label: 'local node states',
+					when: 'open',
 					items: [
-						{
-							label: 'settlement asset from the underlying Network native asset list',
-						},
-					],
-				},
-				{
-					label: 'Resources',
-					items: [
-						{
-							label: 'faucets',
-						},
-						{
-							label: 'block explorers',
-						},
+						'$$localNodeStates',
 					],
 				},
 			],

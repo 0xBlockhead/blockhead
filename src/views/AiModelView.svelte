@@ -10,76 +10,42 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'provider',
-			},
-			{
-				label: 'provider model id',
-			},
-			'label',
+			'providerModelId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'provider',
-					},
-					{
-						label: 'provider model id',
-					},
-					{
-						label: 'provider resource name',
-					},
-					{
-						label: 'base model id',
-					},
+					'providerModelId',
+					'providerResourceName',
+					'baseModelId',
 					'label',
-					{
-						label: 'model family',
-					},
-				],
-				[
-					{
-						label: 'provider owned-by/created-at',
-					},
-					{
-						label: 'latest availability/capabilities',
-					},
+					'modelFamily',
+					'providerOwnedBy',
+					'providerCreatedAt',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Versions',
+					label: 'versions',
+					when: 'open',
 					items: [
-						{
-							label: 'AiModelVersion list',
-						},
+						'$$versions',
 					],
 				},
 				{
-					label: 'Observations',
+					label: 'documents',
+					when: 'open',
 					items: [
-						{
-							label: 'AiModel_Timestamp list',
-						},
+						'$$documents',
 					],
 				},
 				{
-					label: 'Documents',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'AiDocument list',
-						},
-					],
-				},
-				{
-					label: 'Catalog entries',
-					items: [
-						{
-							label: 'AiProviderCatalogEntry list',
-						},
+						'$$timestamps',
 					],
 				},
 			],

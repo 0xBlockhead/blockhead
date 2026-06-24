@@ -10,81 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'repository',
-			},
-			{
-				label: 'seed node id',
-			},
-			{
-				label: 'observer node',
-			},
+			'nodeId',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'repository',
-					},
-					{
-						label: 'seed node id',
-					},
-					{
-						label: 'observer node',
-					},
-					{
-						label: 'timestamp',
-					},
+					'nodeId',
+					'timestampMs',
 					'source',
-					{
-						label: 'advertised flag',
-					},
-					{
-						label: 'reachable flag',
-					},
-					{
-						label: 'ref count',
-					},
-					{
-						label: 'object count',
-					},
+					'advertised',
+					'reachable',
+					'refCount',
+					'objectCount',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Repository',
-					items: [
-						{
-							label: 'parent Radicle repository',
-						},
-					],
-				},
-				{
-					label: 'Observer node',
-					items: [
-						{
-							label: 'observer Radicle node state',
-						},
-					],
-				},
-				{
-					label: 'Fetch evidence',
-					items: [
-						{
-							label: 'sync session or Git fetch observation rows when linked',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'connected-node inventory/fetch payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

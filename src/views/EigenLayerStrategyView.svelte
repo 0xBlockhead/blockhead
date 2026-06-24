@@ -10,105 +10,38 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'strategy address',
-			},
-			{
-				label: 'underlying token',
-			},
-			{
-				label: 'latest total shares',
-			},
+			'strategyAddress',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'strategy address',
-					},
-					{
-						label: 'underlying token',
-					},
-					{
-						label: 'underlying coin',
-					},
-					{
-						label: 'strategy kind',
-					},
-					{
-						label: 'latest total shares/underlying',
-					},
-				],
-				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'strategy contract',
-					},
-					{
-						label: 'delegation count',
-					},
-					{
-						label: 'allocation count',
-					},
+					'strategyAddress',
+					'underlyingToken',
+					'strategyKind',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped strategy accounting observations',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Delegations',
+					label: 'delegations',
+					when: 'open',
 					items: [
-						{
-							label: 'delegation observations filtered by strategy',
-						},
+						'$$delegations',
 					],
 				},
 				{
-					label: 'Allocations',
+					label: 'allocations',
+					when: 'open',
 					items: [
-						{
-							label: 'allocation observations filtered by strategy',
-						},
-					],
-				},
-				{
-					label: 'Token',
-					items: [
-						{
-							label: 'underlying EVM coin instance',
-						},
-					],
-				},
-				{
-					label: 'Contract',
-					items: [
-						{
-							label: 'strategy EVM contract',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'StrategyManager strategy reads',
-						},
-						{
-							label: 'strategy token/share math',
-						},
-						{
-							label: 'indexer freshness',
-						},
+						'$$allocations',
 					],
 				},
 			],

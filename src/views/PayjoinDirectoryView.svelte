@@ -10,67 +10,25 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'directory URL',
-			},
-			{
-				label: 'OHTTP gateway URL',
-			},
-			{
-				label: 'OHTTP key config presence/length',
-			},
+			'directoryUrl',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'directory URL',
-					},
-					{
-						label: 'OHTTP gateway URL',
-					},
-					{
-						label: 'OHTTP key config presence/length',
-					},
-					{
-						label: 'max payload bytes',
-					},
+					'directoryUrl',
+					'ohttpGatewayUrl',
+					'ohttpKeyConfig',
+					'maxPayloadBytes',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'OHTTP gateway',
+					label: 'blockhead sessions',
+					when: 'open',
 					items: [
-						{
-							label: 'derived gateway URL',
-						},
-						{
-							label: 'fetched key config bytes/base64 preview',
-						},
-					],
-				},
-				{
-					label: 'Receiver endpoints',
-					items: [
-						{
-							label: 'PayjoinEndpoint target rows when advertised by payment material or session evidence',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'OHTTP key-config HTTP response',
-						},
-						{
-							label: 'freshness',
-						},
-						{
-							label: 'errors',
-						},
+						'$$blockheadSessions',
 					],
 				},
 			],

@@ -10,84 +10,36 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
 			'address',
-			{
-				label: 'factory contract',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'address',
-					{
-						label: 'factory contract',
-					},
-					{
-						label: 'latest indexed user-operation count',
-					},
-					{
-						label: 'latest indexed smart-account count when available',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Contract',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'factory EVM contract',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'User operations',
+					label: 'user operations',
+					when: 'open',
 					items: [
-						{
-							label: 'user operations whose initCode/factory evidence resolves to this factory',
-						},
+						'$$userOperations',
 					],
 				},
 				{
-					label: 'Smart accounts',
+					label: 'smart accounts',
+					when: 'open',
 					items: [
-						{
-							label: 'source-returned smart-account links',
-						},
-					],
-				},
-				{
-					label: 'Count snapshots',
-					items: [
-						{
-							label: 'timestamped factory count observations',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent EVM network',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Blockscout account-abstraction factory detail/list payload',
-						},
-						{
-							label: 'pagination context',
-						},
+						'$$smartAccounts',
 					],
 				},
 			],

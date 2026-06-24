@@ -9,117 +9,32 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'linked base Network',
-			},
-			{
-				label: 'linked EVM network',
-			},
-			{
-				label: 'linked Cosmos network',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
 				[
-					{
-						label: 'linked base Network',
-					},
-					{
-						label: 'linked EVM network',
-					},
-					{
-						label: 'linked Cosmos network',
-					},
-					{
-						label: 'chain kind',
-					},
-					{
-						label: 'consensus kind',
-					},
-					{
-						label: 'EVM chain id',
-					},
-					{
-						label: 'Cosmos chain id',
-					},
-					{
-						label: 'bech32 prefix',
-					},
-					{
-						label: 'Cosmos SDK head',
-					},
-					{
-						label: 'IBC channels',
-					},
-					{
-						label: 'validators through Cosmos network',
-					},
-					{
-						label: 'timestamp history',
-					},
+					'chainKind',
+					'consensusKind',
+					'bech32Prefix',
+					'evmChainId',
+					'cosmosChainId',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Network facets',
+					label: 'ibc channels',
+					when: 'open',
 					items: [
-						{
-							label: 'base Network row',
-						},
-						{
-							label: 'EVM network row',
-						},
-						{
-							label: 'Cosmos network row',
-						},
+						'$$ibcChannels',
 					],
 				},
 				{
-					label: 'Identifiers',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'EVM chain id',
-						},
-						{
-							label: 'Cosmos chain id',
-						},
-						{
-							label: 'bech32 prefix',
-						},
-					],
-				},
-				{
-					label: 'IBC',
-					items: [
-						{
-							label: 'IBC channel rows',
-						},
-					],
-				},
-				{
-					label: 'Observations',
-					items: [
-						{
-							label: 'timestamped network/head observations',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'chain registry',
-						},
-						{
-							label: 'CometBFT/Cosmos SDK',
-						},
-						{
-							label: 'Cronos explorer payload',
-						},
+						'$$timestamps',
 					],
 				},
 			],

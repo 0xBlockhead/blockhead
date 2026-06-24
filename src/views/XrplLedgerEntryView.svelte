@@ -10,86 +10,18 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'entry type',
-			},
-			{
-				label: 'entry hash',
-			},
-			{
-				label: 'ledger',
-			},
+			'entryHash',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'entry type',
-					},
-					{
-						label: 'entry hash',
-					},
-					{
-						label: 'ledger',
-					},
+					'entryHash',
+					'entryType',
 					'account',
-					{
-						label: 'previous transaction hash/index',
-					},
-					{
-						label: 'changed-by transaction links',
-					},
+					'previousTransactionHash',
+					'previousTransactionLedgerIndex',
+					'fields',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Ledger',
-					items: [
-						{
-							label: 'parent XRPL ledger',
-						},
-					],
-				},
-				{
-					label: 'Entry fields',
-					items: [
-						{
-							label: 'raw fields',
-						},
-						{
-							label: 'entry type',
-						},
-					],
-				},
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'account when present',
-						},
-					],
-				},
-				{
-					label: 'History',
-					items: [
-						{
-							label: 'previous transaction hash/index',
-						},
-						{
-							label: 'changed-by transaction links',
-						},
-					],
-				},
-				{
-					label: 'Type-specific panels',
-					items: [
-						{
-							label: 'rendered panels when implemented',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

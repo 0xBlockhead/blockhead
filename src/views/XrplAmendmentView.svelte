@@ -10,49 +10,23 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'amendment id',
-			},
-			'name',
-			{
-				label: 'latest status',
-			},
+			'amendmentId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'amendment id',
-					},
+					'amendmentId',
 					'name',
-					{
-						label: 'latest status',
-					},
-					{
-						label: 'latest enabled ledger',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Status history',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'XrplAmendment_Timestamp list',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'feature command payload',
-						},
-						{
-							label: 'validator voting/support evidence when exposed',
-						},
+						'$$timestamps',
 					],
 				},
 			],

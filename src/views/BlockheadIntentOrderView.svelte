@@ -10,86 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'order record id',
-			},
-			'source',
-			{
-				label: 'order id',
-			},
-			{
-				label: 'latest status',
-			},
+			'id',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'order record id',
-					},
+					'id',
 					'source',
-					{
-						label: 'order id',
-					},
-					{
-						label: 'provider protocol',
-					},
-					{
-						label: 'submitted time',
-					},
-					{
-						label: 'signature hash',
-					},
-					{
-						label: 'order payload hash',
-					},
-					{
-						label: 'latest status',
-					},
-					{
-						label: 'latest fill tx',
-					},
-					{
-						label: 'latest claim tx',
-					},
+					'orderId',
+					'providerProtocol',
+					'submittedAt',
+					'signatureHash',
+					'orderPayloadHash',
+					'orderSummary',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Quote',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadIntentQuoteView when linked',
-						},
-					],
-				},
-				{
-					label: 'Status history',
-					items: [
-						{
-							label: 'BlockheadIntentOrder_Timestamp list',
-						},
-					],
-				},
-				{
-					label: 'Session action',
-					items: [
-						{
-							label: 'BlockheadSessionActionView when linked',
-						},
-					],
-				},
-				{
-					label: 'Order summary',
-					items: [
-						{
-							label: 'signed provider/order-server payload summary',
-						},
-						{
-							label: 'raw order retained only when needed',
-						},
+						'$$timestamps',
 					],
 				},
 			],

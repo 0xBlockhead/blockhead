@@ -10,87 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'transaction',
-			},
-			{
-				label: 'checkpoint sequence',
-			},
+			'checkpointSequence',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'transaction',
-					},
-					{
-						label: 'checkpoint sequence',
-					},
+					'checkpointSequence',
 					'source',
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'status',
-					{
-						label: 'confirmed local execution',
-					},
+					'gasBudget',
+					'gasPrice',
+					'gasUsed',
+					'effectsDigest',
+					'confirmedLocalExecution',
 				],
-				[
-					{
-						label: 'gas budget',
-					},
-					{
-						label: 'gas price',
-					},
-					{
-						label: 'gas used summary',
-					},
-					{
-						label: 'effects digest',
-					},
-				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Transaction',
-					items: [
-						{
-							label: 'parent Sui transaction',
-						},
-					],
-				},
-				{
-					label: 'Effects',
-					items: [
-						'status',
-						{
-							label: 'gas used',
-						},
-						{
-							label: 'effects digest',
-						},
-						{
-							label: 'local execution flag',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'sui_getTransactionBlock/GraphQL transaction block payload',
-						},
-						{
-							label: 'options used',
-						},
-						{
-							label: 'indexer freshness',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,57 +10,25 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'policy id',
-			},
-			{
-				label: 'asset name',
-			},
-			'fingerprint',
+			'policyId',
+			'assetName',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'policy id',
-					},
-					{
-						label: 'asset name',
-					},
+					'policyId',
+					'assetName',
 					'fingerprint',
-					{
-						label: 'latest supply/holder snapshot',
-					},
-					{
-						label: 'metadata summary',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Snapshots',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped native-asset supply/metadata observations',
-						},
-					],
-				},
-				{
-					label: 'UTXOs',
-					items: [
-						{
-							label: 'transaction outputs containing the asset',
-						},
-					],
-				},
-				{
-					label: 'Metadata',
-					items: [
-						{
-							label: 'CIP-25/CIP-68/source metadata',
-						},
+						'$$timestamps',
 					],
 				},
 			],

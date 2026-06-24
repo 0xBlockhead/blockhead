@@ -10,62 +10,25 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'task',
-			},
-			{
-				label: 'artifact id',
-			},
-			'name',
+			'artifactId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'task',
-					},
-					{
-						label: 'artifact id',
-					},
+					'artifactId',
 					'name',
-					{
-						label: 'created at',
-					},
-				],
-				[
-					{
-						label: 'AI artifact ref',
-					},
-					{
-						label: 'part refs',
-					},
+					'description',
+					'createdAt',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Task',
+					label: 'parts',
+					when: 'open',
 					items: [
-						{
-							label: 'A2aTask',
-						},
-					],
-				},
-				{
-					label: 'Parts',
-					items: [
-						{
-							label: 'A2aMessagePart list',
-						},
-					],
-				},
-				{
-					label: 'Artifact',
-					items: [
-						{
-							label: 'AiArtifact when materialized',
-						},
+						'$$parts',
 					],
 				},
 			],

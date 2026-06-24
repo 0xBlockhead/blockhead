@@ -11,78 +11,25 @@
 	const view = {
 		closed: [
 			'cycle',
-			{
-				label: 'first/last level',
-			},
-			{
-				label: 'snapshot level',
-			},
 		],
 		content: {
 			dl: [
 				[
 					'cycle',
-					{
-						label: 'first/last level',
-					},
-					{
-						label: 'snapshot level',
-					},
-					{
-						label: 'random seed presence',
-					},
-					{
-						label: 'baker count',
-					},
-					{
-						label: 'rights count',
-					},
+					'firstLevel',
+					'lastLevel',
+					'snapshotLevel',
+					'randomSeed',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Bakers',
+					label: 'baker timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'cycle-bounded baker observations',
-						},
-					],
-				},
-				{
-					label: 'Rights',
-					items: [
-						{
-							label: 'baking/attestation rights in this cycle',
-						},
-					],
-				},
-				{
-					label: 'Blocks',
-					items: [
-						{
-							label: 'blocks filtered by cycle',
-						},
-					],
-				},
-				{
-					label: 'Rewards/statistics',
-					items: [
-						{
-							label: 'cycle reward',
-						},
-						{
-							label: 'baker performance rows',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'cycle payloads',
-						},
+						'$$bakerTimestamps',
 					],
 				},
 			],

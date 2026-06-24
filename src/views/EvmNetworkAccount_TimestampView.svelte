@@ -10,96 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'account',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'account',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'block number',
-					},
-					{
-						label: 'transaction/token/internal/NFT counts',
-					},
-					{
-						label: 'first/last activity',
-					},
-					{
-						label: 'contract flag',
-					},
-					{
-						label: 'contract-position summary',
-					},
+					'blockNumber',
+					'transactionCount',
+					'tokenTransferCount',
+					'internalTransferCount',
+					'nftCount',
+					'firstTransactionAt',
+					'lastTransactionAt',
+					'isContract',
+					'contractPositions',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'parent EVM network account',
-						},
-					],
-				},
-				{
-					label: 'Activity evidence',
-					items: [
-						{
-							label: 'source counters',
-						},
-						{
-							label: 'pagination ranges',
-						},
-					],
-				},
-				{
-					label: 'Contract evidence',
-					items: [
-						{
-							label: 'EVM contract when code/contract metadata resolves',
-						},
-					],
-				},
-				{
-					label: 'Balances',
-					items: [
-						{
-							label: 'actor coin balances observed near the same source time',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Blockscout address detail/counters',
-						},
-						{
-							label: 'Etherscan account lists',
-						},
-						{
-							label: 'Allium wallet snapshots',
-						},
-						{
-							label: 'or RPC code/balance checks',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

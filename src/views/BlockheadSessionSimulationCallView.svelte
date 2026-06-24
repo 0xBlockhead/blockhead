@@ -10,90 +10,28 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'simulation',
-			},
-			{
-				label: 'call path',
-			},
-			{
-				label: 'to address',
-			},
+			'simulationId',
+			'callPath',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'simulation',
-					},
-					{
-						label: 'call path',
-					},
-					{
-						label: 'parent path',
-					},
+					'simulationId',
+					'callPath',
+					'parentCallPath',
 					'depth',
-					{
-						label: 'call index',
-					},
-					{
-						label: 'call type',
-					},
-					{
-						label: 'from/to addresses',
-					},
+					'callIndex',
+					'callType',
+					'fromAddress',
+					'toAddress',
 					'value',
-					{
-						label: 'selector',
-					},
-					{
-						label: 'gas used',
-					},
+					'inputSelector',
+					'inputDataHash',
+					'outputDataHash',
+					'gasUsed',
 					'reverted',
 					'error',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Simulation',
-					items: [
-						{
-							label: 'BlockheadSessionSimulationView',
-						},
-					],
-				},
-				{
-					label: 'Children',
-					items: [
-						{
-							label: 'nested call rows by parent path',
-						},
-					],
-				},
-				{
-					label: 'Input/output',
-					items: [
-						{
-							label: 'input selector',
-						},
-						{
-							label: 'input/output data hashes',
-						},
-						{
-							label: 'raw runtime payload when retained',
-						},
-					],
-				},
-				{
-					label: 'Logs',
-					items: [
-						{
-							label: 'simulation log rows emitted within this call when mapped',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

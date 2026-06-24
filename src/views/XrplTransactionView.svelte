@@ -11,64 +11,31 @@
 	const view = {
 		closed: [
 			'hash',
-			{
-				label: 'transaction type',
-			},
-			'account',
 		],
 		content: {
 			dl: [
 				[
 					'hash',
-					{
-						label: 'transaction type',
-					},
+					'transactionType',
 					'account',
 					'sequence',
-					{
-						label: 'latest ledger index',
-					},
-					{
-						label: 'latest fee drops',
-					},
-					{
-						label: 'latest result/status',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest result',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'latest execution result by ledger/source',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Result history',
+					label: 'affected entries',
+					when: 'open',
 					items: [
-						{
-							label: 'ledger/source result observations',
-						},
-					],
-				},
-				{
-					label: 'Affected ledger entries',
-					items: [
-						{
-							label: 'ledger entries from metadata AffectedNodes',
-						},
-					],
-				},
-				{
-					label: 'Metadata',
-					items: [
-						{
-							label: 'raw metadata/result inspector from latest timestamp',
-						},
+						'$$affectedEntries',
 					],
 				},
 			],

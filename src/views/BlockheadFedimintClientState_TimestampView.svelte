@@ -10,114 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'client state',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'client state',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'total balance',
-					},
-					{
-						label: 'ecash balance',
-					},
-					{
-						label: 'Lightning balance',
-					},
-					{
-						label: 'on-chain balance',
-					},
-					{
-						label: 'recovery state',
-					},
-					{
-						label: 'last synced time',
-					},
+					'balanceMsat',
+					'ecashBalanceMsat',
+					'lightningBalanceMsat',
+					'onchainBalanceSats',
+					'recoveryState',
+					'lastSyncedAt',
+					'ecashNoteCountsJson',
+					'oobNotesJson',
+					'operationSummaryJson',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Client',
-					items: [
-						{
-							label: 'parent Fedimint client state',
-						},
-					],
-				},
-				{
-					label: 'Federation',
-					items: [
-						{
-							label: 'federation reached through the client',
-						},
-					],
-				},
-				{
-					label: 'Balances',
-					items: [
-						{
-							label: 'ecash',
-						},
-						{
-							label: 'Lightning',
-						},
-						{
-							label: 'on-chain wallet balances',
-						},
-					],
-				},
-				{
-					label: 'Notes',
-					items: [
-						{
-							label: 'ecash note counts',
-						},
-						{
-							label: 'redacted OOB notes',
-						},
-					],
-				},
-				{
-					label: 'Operations',
-					items: [
-						'operationSummaryJson',
-						{
-							label: 'module-local progress',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'fedimint-client-rpc balance',
-						},
-						{
-							label: 'info',
-						},
-						{
-							label: 'recovery',
-						},
-						{
-							label: 'operation-list responses',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

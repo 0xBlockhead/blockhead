@@ -9,113 +9,70 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'parent network',
-			},
-			{
-				label: 'latest head snapshot',
-			},
-			{
-				label: 'REST endpoint count',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
 				[
-					{
-						label: 'parent network',
-					},
-					{
-						label: 'latest head snapshot',
-					},
-					{
-						label: 'REST endpoint count',
-					},
-				],
-				[
-					{
-						label: 'bounded validator count',
-					},
-					{
-						label: 'bounded governance proposal count',
-					},
-					{
-						label: 'denom/account/module entry points',
-					},
+					'restEndpoints',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Execution',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'Blocks',
-						},
-						{
-							label: 'Transactions',
-						},
-						{
-							label: 'Network snapshots',
-						},
-						{
-							label: 'Endpoints',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Consensus & Governance',
+					label: 'blocks',
+					when: 'open',
 					items: [
-						{
-							label: 'Validators',
-						},
-						{
-							label: 'Validator snapshots',
-						},
-						{
-							label: 'Governance proposals',
-						},
+						'$$blocks',
 					],
 				},
 				{
-					label: 'Accounts & Modules',
+					label: 'validators',
+					when: 'open',
 					items: [
-						{
-							label: 'Accounts',
-						},
-						{
-							label: 'Modules',
-						},
-						{
-							label: 'CosmWasm contracts',
-						},
+						'$$validators',
 					],
 				},
 				{
-					label: 'Assets',
+					label: 'governance proposals',
+					when: 'open',
 					items: [
-						{
-							label: 'native denom metadata',
-						},
-						{
-							label: 'account balance snapshots',
-						},
+						'$$governanceProposals',
 					],
 				},
 				{
-					label: 'Source coverage',
+					label: 'denoms',
+					when: 'open',
 					items: [
-						{
-							label: 'Cosmos SDK REST endpoint',
-						},
-						{
-							label: 'Cosmos Chain Registry catalog seeds',
-						},
-						{
-							label: 'CometBFT REST when wired',
-						},
+						'$$denoms',
+					],
+				},
+				{
+					label: 'accounts',
+					when: 'open',
+					items: [
+						'$$accounts',
+					],
+				},
+				{
+					label: 'contracts',
+					when: 'open',
+					items: [
+						'$$contracts',
+					],
+				},
+				{
+					label: 'modules',
+					when: 'open',
+					items: [
+						'$$modules',
 					],
 				},
 			],

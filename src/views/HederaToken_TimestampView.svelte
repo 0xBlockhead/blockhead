@@ -10,99 +10,40 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'token',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'token',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'name',
 					'symbol',
-					{
-						label: 'total supply',
-					},
-					{
-						label: 'max supply',
-					},
-					{
-						label: 'treasury',
-					},
-					{
-						label: 'deleted flag',
-					},
-					{
-						label: 'paused flag',
-					},
-					{
-						label: 'custom fee count',
-					},
-					{
-						label: 'expiry',
-					},
+					'totalSupply',
+					'maxSupply',
+					'treasuryAccount',
+					'supplyKey',
+					'adminKey',
+					'freezeKey',
+					'wipeKey',
+					'kycKey',
+					'pauseKey',
+					'feeScheduleKey',
+					'deleted',
+					'paused',
+					'customFees',
+					'expiryTimestamp',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Token',
+					label: 'custom fees',
+					when: 'open',
 					items: [
-						{
-							label: 'parent Hedera token',
-						},
-					],
-				},
-				{
-					label: 'Supply/state',
-					items: [
-						{
-							label: 'supply',
-						},
-						{
-							label: 'treasury',
-						},
-						{
-							label: 'deleted/paused',
-						},
-						{
-							label: 'expiry fields',
-						},
-					],
-				},
-				{
-					label: 'Control keys',
-					items: [
-						{
-							label: 'supply/admin/freeze/wipe/KYC/pause/fee-schedule keys',
-						},
-					],
-				},
-				{
-					label: 'Custom fees',
-					items: [
-						{
-							label: 'custom-fee rows for this observed schedule',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'raw token-info payload',
-						},
+						'$$customFees',
 					],
 				},
 			],

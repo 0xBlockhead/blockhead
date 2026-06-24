@@ -9,67 +9,19 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'delegator',
-			},
-			{
-				label: 'validator',
-			},
-			{
-				label: 'latest delegation snapshot',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
-				[
-					{
-						label: 'delegator',
-					},
-					{
-						label: 'validator',
-					},
-					{
-						label: 'latest shares/balance snapshot',
-					},
-					{
-						label: 'snapshot count',
-					},
-				],
+				[],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Delegation snapshots',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped staking delegation observations',
-						},
-					],
-				},
-				{
-					label: 'Delegator',
-					items: [
-						{
-							label: 'delegator Cosmos account',
-						},
-					],
-				},
-				{
-					label: 'Validator',
-					items: [
-						{
-							label: 'validator receiving delegated stake',
-						},
-					],
-				},
-				{
-					label: 'Rewards/unbonding',
-					items: [
-						{
-							label: 'distribution or unbonding rows when those source facets are modeled',
-						},
+						'$$timestamps',
 					],
 				},
 			],

@@ -10,74 +10,23 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'relay host',
-			},
-			{
-				label: 'URL',
-			},
+			'host',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'relay host',
-					},
-					{
-						label: 'URL',
-					},
-					{
-						label: 'latest fetchability/sample summary',
-					},
+					'host',
+					'url',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Delivered payloads',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'delivered-payload rows scoped by relay host',
-						},
-					],
-				},
-				{
-					label: 'Builders',
-					items: [
-						{
-							label: 'builders observed through this relay',
-						},
-					],
-				},
-				{
-					label: 'Relay observations',
-					items: [
-						{
-							label: 'timestamped relay reachability/sample observations',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent EVM network MEV-Boost section',
-						},
-					],
-				},
-				{
-					label: 'Catalog',
-					items: [
-						{
-							label: 'configured relay host/origin mapping',
-						},
+						'$$timestamps',
 					],
 				},
 			],

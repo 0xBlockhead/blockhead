@@ -11,49 +11,49 @@
 	const view = {
 		closed: [
 			'scope',
-			'$$timestamps',
-			'$$sourceWindowAccounts',
 		],
 		content: {
 			dl: [
 				[
 					'scope',
-					'$$timestamps',
-				],
-				[
-					'$$sourceWindowAccounts',
-					'$$sourceWindowFeeds',
-					'$$sourceWindowPosts',
-					'$$sourceWindowUsernameNamespaces',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Source-window rows',
+					label: 'source window accounts',
+					when: 'open',
 					items: [
 						'$$sourceWindowAccounts',
+					],
+				},
+				{
+					label: 'source window feeds',
+					when: 'open',
+					items: [
 						'$$sourceWindowFeeds',
+					],
+				},
+				{
+					label: 'source window posts',
+					when: 'open',
+					items: [
 						'$$sourceWindowPosts',
+					],
+				},
+				{
+					label: 'source window username namespaces',
+					when: 'open',
+					items: [
 						'$$sourceWindowUsernameNamespaces',
 					],
 				},
 				{
-					label: 'Hub observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
 						'$$timestamps',
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'SourceBinding.Constants_Internal',
-						},
-						{
-							label: 'SourceBinding.Lens_Graphql',
-						},
 					],
 				},
 			],

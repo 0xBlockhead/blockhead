@@ -10,74 +10,33 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'workchain id',
-			},
-			'label',
+			'workchain',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'workchain id',
-					},
+					'workchain',
 					'label',
-					{
-						label: 'address format',
-					},
-					{
-						label: 'transaction format',
-					},
-					{
-						label: 'VM',
-					},
-					{
-						label: 'shard count',
-					},
-					{
-						label: 'block count',
-					},
+					'addressFormat',
+					'transactionFormat',
+					'virtualMachine',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Shard history',
+					label: 'shards',
+					when: 'open',
 					items: [
-						{
-							label: 'shard/block observations',
-						},
+						'$$shards',
 					],
 				},
 				{
-					label: 'Blocks',
+					label: 'blocks',
+					when: 'open',
 					items: [
-						{
-							label: 'blocks for this workchain',
-						},
-					],
-				},
-				{
-					label: 'Accounts',
-					items: [
-						{
-							label: 'accounts filtered by workchain',
-						},
-					],
-				},
-				{
-					label: 'Messages',
-					items: [
-						{
-							label: 'messages touching this workchain',
-						},
+						'$$blocks',
 					],
 				},
 			],

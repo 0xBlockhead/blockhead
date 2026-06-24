@@ -10,79 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'validator',
-			},
-			{
-				label: 'observed time/source',
-			},
-			{
-				label: 'voting power',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'validator',
-					},
-					{
-						label: 'observed time/source',
-					},
-					{
-						label: 'voting power',
-					},
-					{
-						label: 'stake',
-					},
+					'timestampMs',
+					'source',
+					'votingPower',
+					'stakeAmount',
 					'status',
-					{
-						label: 'jailed flag',
-					},
+					'jailed',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Validator',
-					items: [
-						{
-							label: 'parent validator identity',
-						},
-					],
-				},
-				{
-					label: 'Power/status',
-					items: [
-						{
-							label: 'voting power',
-						},
-						{
-							label: 'stake',
-						},
-						'status',
-						{
-							label: 'jailed flag',
-						},
-					],
-				},
-				{
-					label: 'History',
-					items: [
-						{
-							label: 'BnbValidator_Timestamp list',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'archive/API/explorer validator payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

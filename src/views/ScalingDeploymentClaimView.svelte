@@ -10,90 +10,32 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'source/sourceProjectId',
-			},
-			{
-				label: 'latest architecture summary',
-			},
+			'source',
+			'sourceProjectId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'source/sourceProjectId',
-					},
-					{
-						label: 'local claim id',
-					},
-					{
-						label: 'rollup ref',
-					},
-					{
-						label: 'latest architecture/protocol/proof summary',
-					},
-				],
-				[
-					{
-						label: 'latest settlement/DA/sequencing evidence',
-					},
-					{
-						label: 'timestamp count',
-					},
-					{
-						label: 'settlement contract refs',
-					},
+					'source',
+					'sourceProjectId',
+					'scalingDeploymentClaimId',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest claim',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'latest timestamped architecture observation',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Claim history',
+					label: 'settlement contracts',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped source-claim observations',
-						},
-					],
-				},
-				{
-					label: 'Settlement contracts',
-					items: [
-						{
-							label: 'contract refs only when selector evidence resolves them',
-						},
-					],
-				},
-				{
-					label: 'Rollup projection',
-					items: [
-						{
-							label: 'linked EvmRollup compatibility row when available',
-						},
-					],
-				},
-				{
-					label: 'Source identity',
-					items: [
-						'source',
-						'sourceProjectId',
-						{
-							label: 'local display alias',
-						},
+						'$$settlementContracts',
 					],
 				},
 			],

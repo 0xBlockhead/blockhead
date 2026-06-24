@@ -10,80 +10,43 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'contract address',
-			},
-			{
-				label: 'account-state summary',
-			},
-			{
-				label: 'activity counts',
-			},
+			'address',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'contract address',
-					},
-					{
-						label: 'latest account-state observation',
-					},
-					{
-						label: 'storage entry count',
-					},
-					{
-						label: 'bounded event count',
-					},
-					{
-						label: 'bounded transaction count',
-					},
+					'address',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Account/state history',
+					label: 'account states',
+					when: 'open',
 					items: [
-						{
-							label: 'block/source account state observations',
-						},
+						'$$accountStates',
 					],
 				},
 				{
-					label: 'Storage',
+					label: 'storage',
+					when: 'open',
 					items: [
-						{
-							label: 'contract storage entries',
-						},
+						'$$storage',
 					],
 				},
 				{
-					label: 'Events',
+					label: 'events',
+					when: 'open',
 					items: [
-						{
-							label: 'bounded contract event windows',
-						},
+						'$$events',
 					],
 				},
 				{
-					label: 'Transactions',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'bounded contract transaction windows',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Starknet network',
-						},
+						'$$transactions',
 					],
 				},
 			],

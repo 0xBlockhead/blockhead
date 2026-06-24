@@ -10,117 +10,35 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'transaction hash',
-			},
-			{
-				label: 'block',
-			},
+			'txHash',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'transaction hash',
-					},
-					{
-						label: 'block',
-					},
-					{
-						label: 'code/codespace',
-					},
-					{
-						label: 'gas wanted',
-					},
-					{
-						label: 'gas used',
-					},
-					{
-						label: 'fee summary',
-					},
+					'txHash',
+					'code',
+					'codespace',
+					'gasWanted',
+					'gasUsed',
+					'feeAmount',
+					'feeGasLimit',
 					'memo',
-					{
-						label: 'signer count',
-					},
-					{
-						label: 'signature count',
-					},
-					{
-						label: 'event type count',
-					},
-					{
-						label: 'message count',
-					},
+					'timeoutHeight',
+					'signerAddresses',
+					'publicKeys',
+					'signatures',
+					'rawLog',
+					'eventTypes',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Messages',
+					label: 'messages',
+					when: 'open',
 					items: [
-						{
-							label: 'transaction SDK message rows',
-						},
-					],
-				},
-				{
-					label: 'Block',
-					items: [
-						{
-							label: 'containing Cosmos block',
-						},
-					],
-				},
-				{
-					label: 'Execution',
-					items: [
-						'code',
-						'codespace',
-						{
-							label: 'gas',
-						},
-						{
-							label: 'raw log',
-						},
-						{
-							label: 'event types',
-						},
-					],
-				},
-				{
-					label: 'Auth info',
-					items: [
-						{
-							label: 'fee amount/gas limit',
-						},
-						{
-							label: 'timeout height',
-						},
-						{
-							label: 'signer addresses',
-						},
-						{
-							label: 'public keys',
-						},
-						'signatures',
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Cosmos SDK tx body/auth_info/tx_response',
-						},
-						{
-							label: 'CometBFT inclusion payloads',
-						},
+						'$$messages',
 					],
 				},
 			],

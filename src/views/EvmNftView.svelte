@@ -10,14 +10,11 @@
 	// State
 	const view = {
 		closed: [
-			'$contract',
 			'tokenId',
-			'name',
 		],
 		content: {
 			dl: [
 				[
-					'$contract',
 					'tokenId',
 					'standard',
 					'format',
@@ -25,64 +22,16 @@
 					'name',
 					'description',
 					'image',
-					'fetchedAt',
-				],
-				[
 					'agentRegistry',
 					'agentId',
 					'agentUri',
 					'contactEndpoint',
-					'$agentWallet',
 					'x402Support',
 					'active',
 					'supportedTrust',
 					'registrationTypeIri',
+					'fetchedAt',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Registry',
-					items: [
-						'$contract',
-					],
-				},
-				{
-					label: 'Agent',
-					items: [
-						'agentRegistry',
-						'agentId',
-						'agentUri',
-						'contactEndpoint',
-						'$agentWallet',
-					],
-				},
-				{
-					label: 'Registration metadata',
-					items: [
-						'standard',
-						'format',
-						'tokenUri',
-						'name',
-						'description',
-						'image',
-						'fetchedAt',
-						'x402Support',
-						'active',
-						'supportedTrust',
-						'registrationTypeIri',
-					],
-				},
-				{
-					label: 'Registrations list',
-					items: [
-						{
-							slot: 'Eip8004Registrations',
-							label: 'Agent-registration NFTs',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

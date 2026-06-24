@@ -10,73 +10,37 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'registry id/package',
-			},
-			'label',
-			{
-				label: 'repository',
-			},
+			'registryAgentId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'registry agent id',
-					},
-					{
-						label: 'package name',
-					},
+					'registryAgentId',
+					'packageName',
+					'repositoryUrl',
+					'websiteUrl',
 					'label',
 					'description',
-				],
-				[
-					{
-						label: 'repository URL',
-					},
-					{
-						label: 'website URL',
-					},
 					'authors',
 					'license',
-				],
-				[
-					{
-						label: 'supports authentication',
-					},
-					{
-						label: 'version refs',
-					},
-					{
-						label: 'document refs',
-					},
+					'supportsAuthentication',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Versions',
+					label: 'versions',
+					when: 'open',
 					items: [
-						{
-							label: 'AcpAgentProgramVersion list',
-						},
+						'$$versions',
 					],
 				},
 				{
-					label: 'Documents',
+					label: 'documents',
+					when: 'open',
 					items: [
-						{
-							label: 'AiDocument list',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'ACP registry/GitHub references',
-						},
+						'$$documents',
 					],
 				},
 			],

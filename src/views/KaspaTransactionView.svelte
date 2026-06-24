@@ -10,97 +10,44 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'transaction id',
-			},
-			'version',
+			'transactionId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'transaction id',
-					},
+					'transactionId',
 					'version',
-					{
-						label: 'subnetwork id',
-					},
+					'lockTime',
+					'subnetworkId',
+					'gas',
+					'payloadHash',
+					'payloadLength',
 					'mass',
-					{
-						label: 'payload length',
-					},
-					{
-						label: 'block hash count',
-					},
-					{
-						label: 'accepted status',
-					},
-					{
-						label: 'accepting block count',
-					},
+					'blockHashes',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'UTXO inputs',
+					label: 'inputs',
+					when: 'open',
 					items: [
-						{
-							label: 'transaction input rows',
-						},
+						'$$inputs',
 					],
 				},
 				{
-					label: 'UTXO outputs',
+					label: 'outputs',
+					when: 'open',
 					items: [
-						{
-							label: 'transaction output rows',
-						},
+						'$$outputs',
 					],
 				},
 				{
-					label: 'Acceptances',
+					label: 'acceptances',
+					when: 'open',
 					items: [
-						{
-							label: 'accepting block rows',
-						},
-					],
-				},
-				{
-					label: 'DAG blocks',
-					items: [
-						{
-							label: 'containing block hashes',
-						},
-					],
-				},
-				{
-					label: 'Payload',
-					items: [
-						{
-							label: 'payload hash',
-						},
-						{
-							label: 'length',
-						},
-						{
-							label: 'decoded payload preview when source provides bytes',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'node/indexer transaction payload',
-						},
+						'$$acceptances',
 					],
 				},
 			],

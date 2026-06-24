@@ -11,54 +11,31 @@
 	const view = {
 		closed: [
 			'realm',
-			'label',
-			'slug',
 		],
 		content: {
 			dl: [
 				[
 					'realm',
 					'label',
-					{
-						label: 'plural label',
-					},
+					'labelPlural',
 					'slug',
-					{
-						label: 'proposal kind count',
-					},
-					{
-						label: 'proposal count',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Proposal kinds',
+					label: 'proposal kinds',
+					when: 'open',
 					items: [
-						{
-							label: 'SpecificationProposalKind rows',
-						},
+						'$$proposalKinds',
 					],
 				},
 				{
-					label: 'Proposals',
+					label: 'proposals',
+					when: 'open',
 					items: [
-						{
-							label: 'SpecificationProposal rows in this realm',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'checked-in realm catalog',
-						},
-						{
-							label: 'source repositories for proposals',
-						},
+						'$$proposals',
 					],
 				},
 			],

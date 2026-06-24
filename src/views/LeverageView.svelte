@@ -10,101 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'position id',
-			},
-			{
-				label: 'network derived from pool',
-			},
-			{
-				label: 'pool',
-			},
+			'id',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'position id',
-					},
-					{
-						label: 'network derived from pool',
-					},
-					{
-						label: 'pool',
-					},
-					{
-						label: 'owner',
-					},
-					{
-						label: 'tick lower',
-					},
-					{
-						label: 'tick upper',
-					},
+					'id',
+					'tickLower',
+					'tickUpper',
 					'liquidity',
-					{
-						label: 'token0 owed',
-					},
-					{
-						label: 'token1 owed',
-					},
-					{
-						label: 'token id',
-					},
+					'token0Owed',
+					'token1Owed',
+					'tokenId',
 					'origin',
-					{
-						label: 'created timestamp',
-					},
+					'createdAtTimestamp',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Pool',
-					items: [
-						{
-							label: 'parent liquidity pool',
-						},
-					],
-				},
-				{
-					label: 'Owner',
-					items: [
-						{
-							label: 'owner EVM account',
-						},
-					],
-				},
-				{
-					label: 'Range/accounting',
-					items: [
-						{
-							label: 'ticks',
-						},
-						'liquidity',
-						{
-							label: 'owed token amounts',
-						},
-					],
-				},
-				{
-					label: 'Compatibility warning',
-					items: [
-						{
-							label: 'not CEX margin',
-						},
-						{
-							label: 'borrow APR',
-						},
-						{
-							label: 'liquidation',
-						},
-						{
-							label: 'or Dexscreener pool leverage',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,40 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'object id',
-			},
-			{
-				label: 'object format',
-			},
-			{
-				label: 'target object id',
-			},
+			'objectId',
+			'objectFormat',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'object id',
-					},
-					{
-						label: 'object format',
-					},
-					{
-						label: 'target object id',
-					},
-					{
-						label: 'target kind',
-					},
-					{
-						label: 'tag name',
-					},
-					{
-						label: 'tagger selector',
-					},
-					{
-						label: 'tagger timestamp',
-					},
+					'objectId',
+					'objectFormat',
+					'targetObjectId',
+					'targetKind',
+					'tagName',
+					'taggerSelector',
+					'taggerTimestampMs',
 					'message',
 				],
 			],
@@ -51,35 +30,10 @@
 		details: {
 			tabs: [
 				{
-					label: 'Target',
+					label: 'signatures',
+					when: 'open',
 					items: [
-						{
-							label: 'target Git object',
-						},
-					],
-				},
-				{
-					label: 'Signatures',
-					items: [
-						{
-							label: 'signatures over this tag object',
-						},
-					],
-				},
-				{
-					label: 'Object',
-					items: [
-						{
-							label: 'parent Git object for the tag',
-						},
-					],
-				},
-				{
-					label: 'Ref observations',
-					items: [
-						{
-							label: 'matching tag-ref observations',
-						},
+						'$$signatures',
 					],
 				},
 			],

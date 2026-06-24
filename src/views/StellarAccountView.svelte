@@ -10,87 +10,57 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'account id',
-			},
-			{
-				label: 'latest account snapshot',
-			},
-			{
-				label: 'bounded activity',
-			},
+			'accountId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'account id',
-					},
-					{
-						label: 'latest sequence/native-balance observation',
-					},
-					{
-						label: 'subentry/signer/threshold observation',
-					},
-				],
-				[
-					{
-						label: 'trustline/offer/trade/transaction windows',
-					},
-					{
-						label: 'signer rows',
-					},
+					'accountId',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Account snapshots',
+					label: 'trustlines',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped account ledger-state observations',
-						},
+						'$$trustlines',
 					],
 				},
 				{
-					label: 'Trustlines',
+					label: 'offers',
+					when: 'open',
 					items: [
-						{
-							label: 'account trustlines',
-						},
+						'$$offers',
 					],
 				},
 				{
-					label: 'Offers',
+					label: 'trades',
+					when: 'open',
 					items: [
-						{
-							label: 'account SDEX offers',
-						},
+						'$$trades',
 					],
 				},
 				{
-					label: 'Trades',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'account trades',
-						},
+						'$$transactions',
 					],
 				},
 				{
-					label: 'Transactions',
+					label: 'signers',
+					when: 'open',
 					items: [
-						{
-							label: 'account transaction windows',
-						},
+						'$$signers',
 					],
 				},
 				{
-					label: 'Signers',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'account signer rows',
-						},
+						'$$timestamps',
 					],
 				},
 			],

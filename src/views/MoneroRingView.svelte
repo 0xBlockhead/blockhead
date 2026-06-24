@@ -9,50 +9,19 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'key image',
-			},
-			{
-				label: 'member count',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
-				[
-					{
-						label: 'key image',
-					},
-					{
-						label: 'member count',
-					},
-				],
+				[],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Key image',
+					label: 'members',
+					when: 'open',
 					items: [
-						{
-							label: 'parent key image',
-						},
-					],
-				},
-				{
-					label: 'Members',
-					items: [
-						{
-							label: 'ring member decoy rows',
-						},
-					],
-				},
-				{
-					label: 'Transaction',
-					items: [
-						{
-							label: 'parent Monero transaction through key image',
-						},
+						'$$members',
 					],
 				},
 			],

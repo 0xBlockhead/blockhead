@@ -9,76 +9,56 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'asset instance',
-			},
-			'standard',
-			{
-				label: 'latest profile state',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
 				[
-					{
-						label: 'asset instance',
-					},
 					'standard',
-					{
-						label: 'latest RegulatedAssetProfile_Timestamp registry/control state',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'State observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'RegulatedAssetProfile_Timestamp list',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Claim requirements',
+					label: 'issuer powers',
+					when: 'open',
 					items: [
-						{
-							label: 'ClaimTopicRequirement list',
-						},
+						'$$issuerPowers',
 					],
 				},
 				{
-					label: 'Trusted issuers',
+					label: 'claim requirements',
+					when: 'open',
 					items: [
-						{
-							label: 'TrustedIssuer list',
-						},
+						'$$claimRequirements',
 					],
 				},
 				{
-					label: 'Compliance modules',
+					label: 'trusted issuers',
+					when: 'open',
 					items: [
-						{
-							label: 'ComplianceModule list',
-						},
+						'$$trustedIssuers',
 					],
 				},
 				{
-					label: 'Issuer powers',
+					label: 'compliance modules',
+					when: 'open',
 					items: [
-						{
-							label: 'IssuerPower list',
-						},
+						'$$complianceModules',
 					],
 				},
 				{
-					label: 'Restrictions',
+					label: 'restrictions',
+					when: 'open',
 					items: [
-						{
-							label: 'TransferRestriction list',
-						},
+						'$$restrictions',
 					],
 				},
 			],

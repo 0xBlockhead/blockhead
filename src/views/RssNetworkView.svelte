@@ -11,8 +11,6 @@
 	const view = {
 		closed: [
 			'scope',
-			'protocolName',
-			'topology',
 		],
 		content: {
 			dl: [
@@ -24,37 +22,6 @@
 					'registryLabel',
 					'topology',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Protocol profile',
-					items: [
-						'scope',
-						'protocolName',
-						'homeUrl',
-						'docsUrl',
-						'registryLabel',
-						'topology',
-					],
-				},
-				{
-					label: 'Global coverage',
-					items: [
-						{
-							label: '_GlobalRssNetwork',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'SourceBinding.Constants_Internal',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

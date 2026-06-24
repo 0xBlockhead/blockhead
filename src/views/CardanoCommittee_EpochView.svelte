@@ -10,67 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
 			'epoch',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'epoch',
 					'source',
 					'slot',
-					{
-						label: 'quorum numerator/denominator',
-					},
-					{
-						label: 'member count',
-					},
-					{
-						label: 'threshold summary',
-					},
+					'quorumNumerator',
+					'quorumDenominator',
+					'memberCount',
+					'members',
+					'threshold',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Cardano network',
-						},
-					],
-				},
-				{
-					label: 'Members',
-					items: [
-						{
-							label: 'committee credential/expiry payload',
-						},
-					],
-				},
-				{
-					label: 'Votes',
-					items: [
-						{
-							label: 'governance votes filtered to committee voters when indexed',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'committee/local-state-query/indexer payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

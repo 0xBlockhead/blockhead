@@ -10,78 +10,32 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'source/request hash',
-			},
-			{
-				label: 'observation time',
-			},
-			{
-				label: 'network',
-			},
+			'source',
+			'quoteRequestHash',
+			'timestampMs',
 		],
 		content: {
 			dl: [
 				[
 					'source',
-					{
-						label: 'request hash',
-					},
-					{
-						label: 'observation time',
-					},
-					{
-						label: 'network',
-					},
-					{
-						label: 'token in/out',
-					},
-					{
-						label: 'amount in',
-					},
+					'quoteRequestHash',
+					'timestampMs',
+					'amountIn',
 					'slippage',
-					{
-						label: 'from/to addresses',
-					},
-					{
-						label: 'intent',
-					},
-				],
-				[
-					{
-						label: 'provider quote id',
-					},
-					{
-						label: 'amount out',
-					},
-					{
-						label: 'minimum amount out',
-					},
-					{
-						label: 'price impact',
-					},
-					{
-						label: 'gas estimate',
-					},
-					{
-						label: 'gas USD',
-					},
-					{
-						label: 'allowance target',
-					},
-					{
-						label: 'transaction target',
-					},
-					{
-						label: 'calldata hash',
-					},
+					'fromAddress',
+					'toAddress',
+					'providerQuoteId',
+					'amountOut',
+					'amountOutMin',
+					'priceImpact',
+					'estimatedGas',
+					'estimatedGasUsd',
+					'allowanceTarget',
+					'transactionTo',
+					'transactionDataHash',
 					'value',
-					{
-						label: 'valid-until time',
-					},
-					{
-						label: 'block number',
-					},
+					'validUntilMs',
+					'blockNumber',
 					'status',
 					'error',
 				],
@@ -90,52 +44,10 @@
 		details: {
 			tabs: [
 				{
-					label: 'Steps',
+					label: 'steps',
+					when: 'open',
 					items: [
-						{
-							label: 'quote-scoped route steps',
-						},
-					],
-				},
-				{
-					label: 'Tokens',
-					items: [
-						{
-							label: 'input/output EVM coin instances',
-						},
-					],
-				},
-				{
-					label: 'Session intent',
-					items: [
-						{
-							label: 'BlockheadSwapIntent when linked',
-						},
-					],
-				},
-				{
-					label: 'Transaction request',
-					items: [
-						{
-							label: 'target/value/calldata hash/allowance target',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'aggregator response',
-						},
-						{
-							label: 'request parameters',
-						},
-						{
-							label: 'block number',
-						},
-						{
-							label: 'error payload',
-						},
+						'$$steps',
 					],
 				},
 			],

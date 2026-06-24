@@ -10,85 +10,28 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'stake total',
-					},
-					{
-						label: 'reward balance',
-					},
-					{
-						label: 'max rewarded stake',
-					},
-					{
-						label: 'max reward rate',
-					},
-					{
-						label: 'staking period',
-					},
-					{
-						label: 'reward fee fractions',
-					},
+					'epochDay',
+					'maxStakeRewardedTinybar',
+					'maxStakingRewardRatePerHbar',
+					'maxTotalRewardTinybar',
+					'nodeRewardFeeFraction',
+					'reservedStakingRewardsTinybar',
+					'rewardBalanceTinybar',
+					'stakeTotalTinybar',
+					'stakingPeriod',
+					'stakingPeriodsStored',
+					'stakingRewardFeeFraction',
+					'stakingStartThresholdTinybar',
+					'unreservedStakingRewardBalanceTinybar',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Hedera network',
-						},
-					],
-				},
-				{
-					label: 'Reward economics',
-					items: [
-						{
-							label: 'reward balance',
-						},
-						{
-							label: 'reserved/unreserved rewards',
-						},
-						{
-							label: 'max reward fields',
-						},
-					],
-				},
-				{
-					label: 'Period',
-					items: [
-						{
-							label: 'staking period and stored-period count',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'network stake payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

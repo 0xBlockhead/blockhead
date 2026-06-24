@@ -10,92 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'account',
-			},
-			{
-				label: 'jetton',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'account',
-					},
-					{
-						label: 'jetton',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'jetton wallet address',
-					},
-					{
-						label: 'balance',
-					},
-					{
-						label: 'owner address',
-					},
-					{
-						label: 'master address',
-					},
-					{
-						label: 'last transaction lt',
-					},
-					{
-						label: 'locked flag',
-					},
+					'jettonWalletAddress',
+					'balanceNano',
+					'ownerAddress',
+					'masterAddress',
+					'lastTransactionLt',
+					'locked',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'holder account identity',
-						},
-					],
-				},
-				{
-					label: 'Jetton',
-					items: [
-						{
-							label: 'jetton master identity',
-						},
-					],
-				},
-				{
-					label: 'Jetton wallet',
-					items: [
-						{
-							label: 'wallet contract account when resolved',
-						},
-					],
-				},
-				{
-					label: 'Transfers',
-					items: [
-						{
-							label: 'decoded transfers for account and jetton',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'balance/get-wallet-data payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

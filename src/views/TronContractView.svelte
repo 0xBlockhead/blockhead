@@ -10,75 +10,30 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
 			'address',
-			'name',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'address',
 					'name',
-					{
-						label: 'account ref',
-					},
-					{
-						label: 'creator',
-					},
-					{
-						label: 'creation transaction',
-					},
-					{
-						label: 'latest verification/proxy snapshot',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Verification snapshots',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'contract verification/proxy observations',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Tokens',
+					label: 'tokens',
+					when: 'open',
 					items: [
-						{
-							label: 'tokens associated by source evidence',
-						},
-					],
-				},
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'contract account identity',
-						},
-					],
-				},
-				{
-					label: 'Creator',
-					items: [
-						{
-							label: 'creator account identity',
-						},
-					],
-				},
-				{
-					label: 'Creation transaction',
-					items: [
-						{
-							label: 'creation transaction',
-						},
+						'$$tokens',
 					],
 				},
 			],

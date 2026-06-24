@@ -10,69 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'original package id',
-			},
-			{
-				label: 'latest package id/version/digest summary',
-			},
+			'originalPackageId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'original package id',
-					},
-					{
-						label: 'latest package id/version/digest summary',
-					},
-					{
-						label: 'version count',
-					},
-					{
-						label: 'upgrade count',
-					},
+					'originalPackageId',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Versions',
+					label: 'versions',
+					when: 'open',
 					items: [
-						{
-							label: 'package version rows',
-						},
+						'$$versions',
 					],
 				},
 				{
-					label: 'Upgrades',
+					label: 'upgrades',
+					when: 'open',
 					items: [
-						{
-							label: 'package upgrade edges',
-						},
-					],
-				},
-				{
-					label: 'Modules',
-					items: [
-						{
-							label: 'Move modules grouped by package version',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Sui network',
-						},
+						'$$upgrades',
 					],
 				},
 			],

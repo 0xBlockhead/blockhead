@@ -10,73 +10,25 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'node id',
-			},
-			{
-				label: 'network',
-			},
-			{
-				label: 'node IP',
-			},
+			'nodeId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'node id',
-					},
-					{
-						label: 'network',
-					},
-					{
-						label: 'node IP',
-					},
-					{
-						label: 'BLS public key/proof presence',
-					},
-					{
-						label: 'latest network name',
-					},
-					{
-						label: 'latest node version',
-					},
-					{
-						label: 'latest peer/uptime summary',
-					},
+					'nodeId',
+					'nodeIp',
+					'nodePopPublicKey',
+					'nodePopProofOfPossession',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'State observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadAvalancheNodeState_Timestamp list',
-						},
-					],
-				},
-				{
-					label: 'Node identity',
-					items: [
-						{
-							label: 'node id',
-						},
-						{
-							label: 'POP public key/proof',
-						},
-						{
-							label: 'IP',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'AvalancheSubnet/AvalancheValidator context when linked',
-						},
+						'$$timestamps',
 					],
 				},
 			],

@@ -10,61 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'contract',
-			},
-			{
-				label: 'method name',
-			},
-			{
-				label: 'latest method id/schema',
-			},
+			'methodName',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'contract',
-					},
-					{
-						label: 'method name',
-					},
-					{
-						label: 'latest method id/schema availability',
-					},
-					{
-						label: 'latest invocation exit/result summary',
-					},
+					'methodName',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Contract',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'parent contract identity',
-						},
-					],
-				},
-				{
-					label: 'Schema/history',
-					items: [
-						{
-							label: 'method schema and invocation snapshots',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'callable surface',
-						},
-						{
-							label: 'verifier payload',
-						},
+						'$$timestamps',
 					],
 				},
 			],

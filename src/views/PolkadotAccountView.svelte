@@ -10,69 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'account id',
-			},
-			{
-				label: 'latest nonce/native-balance summary',
-			},
+			'accountId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'account id',
-					},
-					{
-						label: 'latest nonce/native-balance summary',
-					},
-					{
-						label: 'asset-balance snapshot count',
-					},
-					{
-						label: 'timestamp count',
-					},
+					'accountId',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Balance history',
+					label: 'asset balance timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped account-state observations',
-						},
+						'$$assetBalanceTimestamps',
 					],
 				},
 				{
-					label: 'Asset balances',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'asset balance observations grouped by asset',
-						},
-					],
-				},
-				{
-					label: 'Extrinsics',
-					items: [
-						{
-							label: 'signed Polkadot extrinsics when indexed',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'node/indexer account payload fields',
-						},
+						'$$timestamps',
 					],
 				},
 			],

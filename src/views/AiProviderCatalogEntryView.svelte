@@ -10,66 +10,27 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'provider',
-			},
-			{
-				label: 'catalog kind',
-			},
-			{
-				label: 'entry id',
-			},
+			'catalogKind',
+			'providerEntryId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'provider',
-					},
-					{
-						label: 'catalog kind',
-					},
-					{
-						label: 'provider entry id',
-					},
-					{
-						label: 'label',
-					},
-				],
-				[
-					{
-						label: 'subject kind/selector',
-					},
-					{
-						label: 'latest availability',
-					},
+					'catalogKind',
+					'providerEntryId',
+					'entryLabel',
+					'subjectKind',
+					'subjectSelector',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Provider',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'AiModelProvider',
-						},
-					],
-				},
-				{
-					label: 'Observations',
-					items: [
-						{
-							label: 'AiProviderCatalogEntry_Timestamp list',
-						},
-					],
-				},
-				{
-					label: 'Subject',
-					items: [
-						{
-							label: 'subject selector/linked row when resolved',
-						},
+						'$$timestamps',
 					],
 				},
 			],

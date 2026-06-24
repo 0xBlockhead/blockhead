@@ -11,82 +11,51 @@
 	const view = {
 		closed: [
 			'digest',
-			{
-				label: 'kind',
-			},
-			'sender',
 		],
 		content: {
 			dl: [
 				[
 					'digest',
-					{
-						label: 'kind',
-					},
+					'transactionKind',
 					'sender',
-					{
-						label: 'latest status',
-					},
-					{
-						label: 'latest checkpoint',
-					},
-					{
-						label: 'latest timestamp',
-					},
-					{
-						label: 'latest gas budget/price',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest execution',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'latest checkpoint/source execution observation',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Execution history',
+					label: 'commands',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped transaction execution observations',
-						},
+						'$$commands',
 					],
 				},
 				{
-					label: 'Commands',
+					label: 'object changes',
+					when: 'open',
 					items: [
-						{
-							label: 'programmable transaction commands',
-						},
+						'$$objectChanges',
 					],
 				},
 				{
-					label: 'Object changes',
+					label: 'balance changes',
+					when: 'open',
 					items: [
-						{
-							label: 'object effect rows',
-						},
+						'$$balanceChanges',
 					],
 				},
 				{
-					label: 'Balance changes',
+					label: 'events',
+					when: 'open',
 					items: [
-						{
-							label: 'balance delta rows',
-						},
-					],
-				},
-				{
-					label: 'Events',
-					items: [
-						{
-							label: 'Sui event rows',
-						},
+						'$$events',
 					],
 				},
 			],

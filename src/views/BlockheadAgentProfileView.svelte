@@ -10,70 +10,16 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'profile id',
-			},
-			'label',
-			{
-				label: 'primary refs',
-			},
+			'profileId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'profile id',
-					},
+					'profileId',
 					'label',
-					{
-						label: 'created/updated at',
-					},
+					'createdAt',
+					'updatedAt',
 				],
-				[
-					{
-						label: 'ACP runtime',
-					},
-					{
-						label: 'A2A service',
-					},
-					{
-						label: 'MCP server',
-					},
-					{
-						label: 'EIP-8004 registration',
-					},
-					{
-						label: 'model',
-					},
-				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Connections',
-					items: [
-						{
-							label: 'BlockheadAgentConnection list',
-						},
-					],
-				},
-				{
-					label: 'Conversations',
-					items: [
-						{
-							label: 'BlockheadAgentConversation list',
-						},
-					],
-				},
-				{
-					label: 'Protocol refs',
-					items: [
-						{
-							label: 'ACP/A2A/MCP/EIP-8004/model refs',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

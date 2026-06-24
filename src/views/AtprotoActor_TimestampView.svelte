@@ -10,69 +10,16 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'actor',
-			},
-			{
-				label: 'observation time',
-			},
-			{
-				label: 'followers',
-			},
+			'timestampMs',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'actor',
-					},
-					{
-						label: 'observation time',
-					},
-					{
-						label: 'followers',
-					},
-					{
-						label: 'follows',
-					},
-					{
-						label: 'posts count',
-					},
+					'timestampMs',
+					'followersCount',
+					'followsCount',
+					'postsCount',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Actor',
-					items: [
-						{
-							label: 'parent AT Protocol actor identity',
-						},
-					],
-				},
-				{
-					label: 'Social counters',
-					items: [
-						{
-							label: 'followers',
-						},
-						{
-							label: 'follows',
-						},
-						{
-							label: 'posts count',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'app.bsky.actor.getProfile AppView stats payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

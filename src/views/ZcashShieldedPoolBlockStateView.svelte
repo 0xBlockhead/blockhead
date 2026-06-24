@@ -10,64 +10,15 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'block',
-			},
 			'pool',
-			{
-				label: 'final root',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'block',
-					},
 					'pool',
-					{
-						label: 'final root',
-					},
-					{
-						label: 'block commitments',
-					},
+					'finalRoot',
+					'blockCommitments',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Block',
-					items: [
-						{
-							label: 'parent UTXO-family block',
-						},
-					],
-				},
-				{
-					label: 'Pool',
-					items: [
-						{
-							label: 'pool enum/constant metadata',
-						},
-					],
-				},
-				{
-					label: 'Actions',
-					items: [
-						{
-							label: 'shielded actions in transactions from this block when resolved',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'zcashd getblock finalsaplingroot/blockcommitments fields',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,71 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'repository',
-			},
-			{
-				label: 'commit object id',
-			},
+			'commitObjectId',
 			'path',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'repository',
-					},
-					{
-						label: 'commit object id',
-					},
+					'commitObjectId',
 					'path',
+					'treeObjectIds',
+					'blobObjectId',
+					'submoduleCommitId',
 					'status',
-					{
-						label: 'terminal blob object id',
-					},
-					{
-						label: 'submodule commit id',
-					},
-					{
-						label: 'traversed tree object ids',
-					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Repository',
-					items: [
-						{
-							label: 'parent Git repository',
-						},
-					],
-				},
-				{
-					label: 'Commit',
-					items: [
-						{
-							label: 'commit whose root tree is traversed',
-						},
-					],
-				},
-				{
-					label: 'Traversal',
-					items: [
-						{
-							label: 'tree objects traversed by path segments',
-						},
-					],
-				},
-				{
-					label: 'Terminal object',
-					items: [
-						{
-							label: 'terminal blob or submodule commit when resolved',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

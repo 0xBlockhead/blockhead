@@ -11,67 +11,35 @@
 	const view = {
 		closed: [
 			'address',
-			{
-				label: 'network',
-			},
-			{
-				label: 'latest SUI balance',
-			},
 		],
 		content: {
 			dl: [
 				[
 					'address',
-					{
-						label: 'network',
-					},
-					{
-						label: 'latest SUI balance',
-					},
-					{
-						label: 'owned object count',
-					},
-					{
-						label: 'transaction count',
-					},
-					{
-						label: 'balance snapshot count',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Balances',
+					label: 'balances',
+					when: 'open',
 					items: [
-						{
-							label: 'coin balance observations grouped by coin type',
-						},
+						'$$balances',
 					],
 				},
 				{
-					label: 'Owned objects',
+					label: 'objects',
+					when: 'open',
 					items: [
-						{
-							label: 'Sui objects owned by this account',
-						},
+						'$$objects',
 					],
 				},
 				{
-					label: 'Transactions',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'Sui transactions involving this account',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Sui network',
-						},
+						'$$transactions',
 					],
 				},
 			],

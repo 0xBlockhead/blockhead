@@ -10,95 +10,27 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'item',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'item',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'owner',
-					},
-					{
-						label: 'owner address',
-					},
-					{
-						label: 'initialized flag',
-					},
+					'ownerAddress',
+					'initialized',
 					'name',
-					{
-						label: 'image/metadata URI',
-					},
-					{
-						label: 'content hash',
-					},
-					{
-						label: 'code/data hashes',
-					},
+					'description',
+					'imageUrl',
+					'metadataUri',
+					'content',
+					'contentHash',
+					'codeHash',
+					'dataHash',
 					'verification',
-					{
-						label: 'last transaction lt',
-					},
+					'lastTransactionLt',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Item',
-					items: [
-						{
-							label: 'parent item identity',
-						},
-					],
-				},
-				{
-					label: 'Owner',
-					items: [
-						{
-							label: 'owner account identity',
-						},
-					],
-				},
-				{
-					label: 'Collection',
-					items: [
-						{
-							label: 'collection identity',
-						},
-					],
-				},
-				{
-					label: 'Metadata/content',
-					items: [
-						{
-							label: 'description/content JSON',
-						},
-						{
-							label: 'URI evidence',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'raw item/get-method/indexer payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

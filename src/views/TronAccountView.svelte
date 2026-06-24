@@ -10,72 +10,37 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
 			'address',
-			'name',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'address',
 					'name',
-					{
-						label: 'contract ref',
-					},
-					{
-						label: 'latest balance/resource/activity summary',
-					},
-					{
-						label: 'token-balance snapshot count',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'State observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'account/resource snapshots',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Token balances',
+					label: 'token balance timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'token balance snapshots grouped by token',
-						},
+						'$$tokenBalanceTimestamps',
 					],
 				},
 				{
-					label: 'Transactions',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'TRON transactions',
-						},
-					],
-				},
-				{
-					label: 'Contract',
-					items: [
-						{
-							label: 'contract identity when the latest snapshot or source ref marks it as a contract',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent TRON network',
-						},
+						'$$transactions',
 					],
 				},
 			],

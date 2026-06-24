@@ -10,89 +10,30 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'endpoint URL',
-			},
-			{
-				label: 'protocol version',
-			},
-			{
-				label: 'directory',
-			},
+			'endpointUrl',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'endpoint URL',
-					},
-					{
-						label: 'protocol version',
-					},
-					{
-						label: 'directory',
-					},
-					{
-						label: 'latest capability snapshot',
-					},
-					{
-						label: 'local session count',
-					},
+					'endpointUrl',
+					'protocolVersion',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Capability snapshots',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped receiver capability observations',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Local sessions',
+					label: 'blockhead sessions',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadPayjoinSession rows',
-						},
-					],
-				},
-				{
-					label: 'Directory',
-					items: [
-						{
-							label: 'Payjoin directory when an OHTTP directory is involved',
-						},
-					],
-				},
-				{
-					label: 'Receiver exchange',
-					items: [
-						{
-							label: 'accepted query parameters',
-						},
-						{
-							label: 'response status',
-						},
-						{
-							label: 'well-known error codes from local probes/sessions',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'BIP21 pj=/pjos= parameters',
-						},
-						{
-							label: 'OHTTP relay context',
-						},
-						{
-							label: 'receiver HTTP responses',
-						},
+						'$$blockheadSessions',
 					],
 				},
 			],

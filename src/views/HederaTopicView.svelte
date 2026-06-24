@@ -10,86 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'topic id',
-			},
-			{
-				label: 'latest memo',
-			},
-			{
-				label: 'admin/submit key presence',
-			},
+			'topicId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'topic id',
-					},
-					{
-						label: 'latest memo',
-					},
-					{
-						label: 'admin/submit key presence',
-					},
-					{
-						label: 'latest auto-renew account/period',
-					},
-					{
-						label: 'latest fee configuration summary',
-					},
-					{
-						label: 'message count',
-					},
-					{
-						label: 'timestamp count',
-					},
+					'topicId',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Messages',
+					label: 'messages',
+					when: 'open',
 					items: [
-						{
-							label: 'topic message rows',
-						},
+						'$$messages',
 					],
 				},
 				{
-					label: 'Latest config',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'latest topic configuration/cursor observation',
-						},
-					],
-				},
-				{
-					label: 'Config history',
-					items: [
-						{
-							label: 'timestamped topic configuration/cursor observations',
-						},
-					],
-				},
-				{
-					label: 'Running hash checkpoints',
-					items: [
-						{
-							label: 'sequence/running-hash stream evidence',
-						},
-					],
-				},
-				{
-					label: 'Submitters/payers',
-					items: [
-						{
-							label: 'latest submit key',
-						},
-						{
-							label: 'payer account context',
-						},
+						'$$timestamps',
 					],
 				},
 			],

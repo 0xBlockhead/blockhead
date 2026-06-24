@@ -10,100 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'transaction',
-			},
-			{
-				label: 'output index',
-			},
-			{
-				label: 'value',
-			},
+			'outputIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'transaction',
-					},
-					{
-						label: 'output index',
-					},
-					{
-						label: 'value',
-					},
-					{
-						label: 'address',
-					},
-					{
-						label: 'script pubkey type',
-					},
-					{
-						label: 'spent state',
-					},
-					{
-						label: 'chain-specific asset/token indicators',
-					},
+					'outputIndex',
+					'valueSats',
+					'scriptPubKeyAsm',
+					'scriptPubKeyHex',
+					'scriptPubKeyType',
+					'assetCommitment',
+					'valueCommitment',
+					'nonceCommitment',
+					'surjectionProof',
+					'rangeProof',
+					'isConfidential',
+					'isSpent',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Script',
-					items: [
-						{
-							label: 'script pubkey asm/hex/type',
-						},
-					],
-				},
-				{
-					label: 'Address',
-					items: [
-						{
-							label: 'address projection when resolved',
-						},
-					],
-				},
-				{
-					label: 'Elements',
-					items: [
-						{
-							label: 'Elements asset identity',
-						},
-						{
-							label: 'asset/value/nonce commitments',
-						},
-						{
-							label: 'surjection proof',
-						},
-						{
-							label: 'range proof',
-						},
-						{
-							label: 'confidential flag',
-						},
-					],
-				},
-				{
-					label: 'CashTokens',
-					items: [
-						{
-							label: 'fungible amount',
-						},
-						{
-							label: 'NFT facets',
-						},
-					],
-				},
-				{
-					label: 'Transaction',
-					items: [
-						{
-							label: 'parent transaction',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

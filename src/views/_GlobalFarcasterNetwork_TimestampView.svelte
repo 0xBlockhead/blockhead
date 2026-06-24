@@ -10,18 +10,14 @@
 	// State
 	const view = {
 		closed: [
-			'$hub',
 			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					'$hub',
 					'timestampMs',
 					'source',
-				],
-				[
 					'feedVariant',
 					'fid',
 					'channelId',
@@ -36,51 +32,6 @@
 					'reachable',
 					'cursor',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Hub',
-					items: [
-						'$hub',
-					],
-				},
-				{
-					label: 'Observation fields',
-					items: [
-						'feedVariant',
-						'fid',
-						'channelId',
-						'viewerFid',
-						'sourceWindowCastCount',
-						'sourceWindowUserCount',
-						'sourceWindowChannelCount',
-						'localCatalogFeedVariantCount',
-						'localCatalogChannelCount',
-						'hubHost',
-						'snapchainHost',
-						'reachable',
-						'cursor',
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'SourceBinding.Constants_Internal',
-						},
-						{
-							label: 'SourceBinding.Farcaster_Rest',
-						},
-						{
-							label: 'SourceBinding.Neynar_Rest',
-						},
-						{
-							label: 'SourceBinding.Snapchain_Rest',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

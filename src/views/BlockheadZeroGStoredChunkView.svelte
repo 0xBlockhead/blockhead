@@ -10,72 +10,20 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'node state',
-			},
-			{
-				label: 'data root',
-			},
-			{
-				label: 'chunk index',
-			},
+			'dataRoot',
+			'chunkIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'node state',
-					},
-					{
-						label: 'data root',
-					},
-					{
-						label: 'chunk index',
-					},
-					{
-						label: 'chunk root',
-					},
-					{
-						label: 'size',
-					},
-					{
-						label: 'file path',
-					},
-					{
-						label: 'present flag',
-					},
-					{
-						label: 'last checked time',
-					},
+					'dataRoot',
+					'chunkIndex',
+					'chunkRoot',
+					'sizeBytes',
+					'filePath',
+					'present',
+					'lastCheckedAt',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Data blob',
-					items: [
-						{
-							label: 'linked public data-root blob',
-						},
-					],
-				},
-				{
-					label: 'Public chunk',
-					items: [
-						{
-							label: 'public data chunk when available',
-						},
-					],
-				},
-				{
-					label: 'Proofs',
-					items: [
-						{
-							label: 'local proof material rows for this chunk',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

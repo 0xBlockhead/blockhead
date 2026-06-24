@@ -11,78 +11,35 @@
 	const view = {
 		closed: [
 			'id',
-			'username',
-			{
-				label: 'latest name',
-			},
 		],
 		content: {
 			dl: [
 				[
 					'id',
 					'username',
-					{
-						label: 'created date',
-					},
-					{
-						label: 'latest name',
-					},
-					{
-						label: 'latest description',
-					},
-					{
-						label: 'latest verified state',
-					},
-					{
-						label: 'latest location',
-					},
-					{
-						label: 'latest website URL',
-					},
-					{
-						label: 'latest media',
-					},
-					{
-						label: 'latest counters',
-					},
+					'name',
+					'description',
+					'verified',
+					'createdAt',
+					'location',
+					'websiteUrl',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest profile',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'latest profile observation by timestamp/source',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Profile history',
+					label: 'posts',
+					when: 'open',
 					items: [
-						{
-							label: 'profile observations',
-						},
-					],
-				},
-				{
-					label: 'Posts',
-					items: [
-						{
-							label: 'posts by this user',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'X v2 user lookup',
-						},
-						{
-							label: 'FxEmbed user payload',
-						},
+						'$$posts',
 					],
 				},
 			],

@@ -10,110 +10,27 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
-			{
-				label: 'latest block height/hash/time',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'latest block height/hash/time/transaction count',
-					},
+					'latestBlockHeight',
+					'latestBlockHash',
+					'latestBlockTimeMs',
+					'latestBlockTransactionCount',
+					'witnessCount',
+					'activeWitnessCount',
+					'nodeBlockHeight',
+					'solidityBlockHeight',
+					'currentPeerCount',
+					'maintenanceIntervalMs',
+					'transactionFeeSun',
+					'createAccountFeeSun',
 				],
-				[
-					{
-						label: 'witness counts',
-					},
-					{
-						label: 'node/solidity heights',
-					},
-					{
-						label: 'peer count',
-					},
-					{
-						label: 'maintenance interval',
-					},
-					{
-						label: 'transaction fee',
-					},
-					{
-						label: 'create-account fee',
-					},
-				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'TronNetwork',
-						},
-					],
-				},
-				{
-					label: 'Head',
-					items: [
-						{
-							label: 'latest block height/hash/time/transaction count',
-						},
-						{
-							label: 'node/solidity heights',
-						},
-					],
-				},
-				{
-					label: 'Witnesses',
-					items: [
-						{
-							label: 'witness count',
-						},
-						{
-							label: 'active witness count',
-						},
-					],
-				},
-				{
-					label: 'Fees/maintenance',
-					items: [
-						{
-							label: 'maintenance interval',
-						},
-						{
-							label: 'transaction fee',
-						},
-						{
-							label: 'create-account fee',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'TronGrid wallet/getnowblock',
-						},
-						{
-							label: 'wallet/listwitnesses',
-						},
-						{
-							label: 'wallet/getnodeinfo',
-						},
-						{
-							label: 'wallet/getchainparameters',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

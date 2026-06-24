@@ -10,78 +10,46 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'registration',
-			},
-			{
-				label: 'content hash/artifact',
-			},
-			'name',
+			'contentHashAlgorithm',
+			'contentHash',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'registration',
-					},
-					{
-						label: 'content hash algorithm/hash',
-					},
-					{
-						label: 'artifact',
-					},
-					{
-						label: 'fetched at',
-					},
-				],
-				[
+					'contentHashAlgorithm',
+					'contentHash',
+					'fetchedAt',
 					'type',
 					'name',
+					'description',
+					'image',
 					'active',
-					{
-						label: 'x402 support',
-					},
-					{
-						label: 'supported trust',
-					},
-					{
-						label: 'endpoint/cross-registration/document refs',
-					},
+					'x402Support',
+					'supportedTrust',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Service endpoints',
+					label: 'service endpoints',
+					when: 'open',
 					items: [
-						{
-							label: 'Eip8004AgentServiceEndpoint list',
-						},
+						'$$serviceEndpoints',
 					],
 				},
 				{
-					label: 'Cross registrations',
+					label: 'cross registrations',
+					when: 'open',
 					items: [
-						{
-							label: 'Eip8004CrossRegistration list',
-						},
+						'$$crossRegistrations',
 					],
 				},
 				{
-					label: 'Documents',
+					label: 'documents',
+					when: 'open',
 					items: [
-						{
-							label: 'AiDocument list',
-						},
-					],
-				},
-				{
-					label: 'Registration',
-					items: [
-						{
-							label: 'Eip8004AgentRegistration',
-						},
+						'$$documents',
 					],
 				},
 			],

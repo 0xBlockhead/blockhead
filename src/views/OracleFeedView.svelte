@@ -10,95 +10,31 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'feed address',
-			},
-			{
-				label: 'mapped market',
-			},
+			'address',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'feed address',
-					},
-					{
-						label: 'mapped market',
-					},
+					'address',
 					'label',
-					{
-						label: 'feed kind',
-					},
-					{
-						label: 'latest decimals/description',
-					},
-					{
-						label: 'latest round id when available',
-					},
+					'feedKind',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest config',
+					label: 'rounds',
+					when: 'open',
 					items: [
-						{
-							label: 'latest proxy/aggregator config observation',
-						},
+						'$$rounds',
 					],
 				},
 				{
-					label: 'Config history',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped proxy/aggregator config observations',
-						},
-					],
-				},
-				{
-					label: 'Rounds',
-					items: [
-						{
-							label: 'oracle round observations',
-						},
-					],
-				},
-				{
-					label: 'Market mapping',
-					items: [
-						{
-							label: 'mapped market row',
-						},
-					],
-				},
-				{
-					label: 'Contract',
-					items: [
-						{
-							label: 'EVM contract for proxy feed address',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Chainlink address catalog',
-						},
-						{
-							label: 'AggregatorV3Interface reads',
-						},
-						{
-							label: 'explorer log/indexer claims',
-						},
+						'$$timestamps',
 					],
 				},
 			],

@@ -10,83 +10,27 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'ledger',
-			},
-			{
-				label: 'block index',
-			},
-			{
-				label: 'block hash',
-			},
+			'blockIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'ledger',
-					},
-					{
-						label: 'block index',
-					},
-					{
-						label: 'block hash',
-					},
-					{
-						label: 'parent hash',
-					},
-					{
-						label: 'timestamp',
-					},
-					{
-						label: 'archive canister',
-					},
-					{
-						label: 'transaction count',
-					},
+					'blockIndex',
+					'blockHash',
+					'parentHash',
+					'timestampNs',
+					'transactionCount',
+					'archiveCanisterId',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Ledger',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'parent ICP ledger canister',
-						},
-					],
-				},
-				{
-					label: 'Transactions',
-					items: [
-						{
-							label: 'ledger transactions in this block',
-						},
-					],
-				},
-				{
-					label: 'Archive canister',
-					items: [
-						{
-							label: 'resolved archive canister when archive id is present',
-						},
-					],
-				},
-				{
-					label: 'Rosetta operations',
-					items: [
-						{
-							label: 'Rosetta operation payloads when sourced',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'ledger block/archive payload',
-						},
+						'$$transactions',
 					],
 				},
 			],

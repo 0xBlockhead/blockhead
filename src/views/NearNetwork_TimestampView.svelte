@@ -10,97 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'observed time',
-			},
+			'timestampMs',
 			'source',
-			{
-				label: 'head height/hash',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'observed time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'head height/hash',
-					},
-					{
-						label: 'epoch',
-					},
-					{
-						label: 'gas price',
-					},
-					{
-						label: 'validator counts',
-					},
-					{
-						label: 'protocol versions',
-					},
-					{
-						label: 'node version',
-					},
+					'headHeight',
+					'headHash',
+					'epochId',
+					'epochHeight',
+					'epochStartHeight',
+					'chunkCount',
+					'gasPriceYoctoNear',
+					'currentValidatorCount',
+					'nextValidatorCount',
+					'currentProposalCount',
+					'protocolVersion',
+					'latestProtocolVersion',
+					'nodeVersion',
 					'syncing',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent NEAR network',
-						},
-					],
-				},
-				{
-					label: 'Head/epoch',
-					items: [
-						{
-							label: 'head height/hash',
-						},
-						{
-							label: 'epoch id/height/start',
-						},
-					],
-				},
-				{
-					label: 'Gas/protocol',
-					items: [
-						{
-							label: 'gas price',
-						},
-						{
-							label: 'protocol versions',
-						},
-						{
-							label: 'node version',
-						},
-					],
-				},
-				{
-					label: 'Validators',
-					items: [
-						{
-							label: 'current/next validator counts',
-						},
-						{
-							label: 'proposal count',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'JSON-RPC status/gas/validators payload freshness',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

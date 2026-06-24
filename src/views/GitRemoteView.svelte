@@ -10,64 +10,17 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'repository',
-			},
-			{
-				label: 'remote name',
-			},
-			{
-				label: 'URL',
-			},
+			'remoteName',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'repository',
-					},
-					{
-						label: 'remote name',
-					},
-					{
-						label: 'URL',
-					},
-					{
-						label: 'transport kind',
-					},
-					{
-						label: 'host kind',
-					},
+					'remoteName',
+					'url',
+					'transportKind',
+					'hostKind',
 					'source',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Fetches',
-					items: [
-						{
-							label: 'fetch observations for this remote',
-						},
-					],
-				},
-				{
-					label: 'Forge mirror',
-					items: [
-						{
-							label: 'forge mirror when URL resolves to one',
-						},
-					],
-				},
-				{
-					label: 'Repository',
-					items: [
-						{
-							label: 'parent Git repository',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

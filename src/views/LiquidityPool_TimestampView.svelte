@@ -10,130 +10,33 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'observed timestamp',
-			},
-			{
-				label: 'parent pool',
-			},
-			{
-				label: 'price USD/native',
-			},
+			'timestampMs',
+			'feedKey',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'observed timestamp',
-					},
-					{
-						label: 'parent pool',
-					},
-					{
-						label: 'price USD/native',
-					},
-					{
-						label: 'liquidity USD',
-					},
-					{
-						label: '24h volume',
-					},
-					{
-						label: '24h price change',
-					},
-					{
-						label: '24h buys/sells',
-					},
-					{
-						label: 'market cap',
-					},
-					{
-						label: 'FDV',
-					},
-					{
-						label: 'feed key',
-					},
+					'timestampMs',
+					'feedKey',
+					'baseTokenSymbol',
+					'quoteTokenSymbol',
+					'baseTokenDecimals',
+					'quoteTokenDecimals',
+					'pairCreatedAtMs',
+					'dexscreenerLabels',
+					'dexId',
+					'dexscreenerPairUrl',
+					'priceUsd',
+					'priceNative',
+					'liquidityUsd',
+					'volumeUsd24h',
+					'priceChangePercent24h',
+					'transactionBuys24h',
+					'transactionSells24h',
+					'marketCapUsd',
+					'fdvUsd',
 					'transport',
 				],
-				[
-					{
-						label: 'token symbols/decimals',
-					},
-					{
-						label: 'pair created time',
-					},
-					{
-						label: 'labels',
-					},
-					{
-						label: 'DEX id',
-					},
-					{
-						label: 'Dexscreener URL',
-					},
-				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Parent pool',
-					items: [
-						{
-							label: 'parent liquidity pool',
-						},
-					],
-				},
-				{
-					label: 'Price/liquidity',
-					items: [
-						{
-							label: 'price',
-						},
-						{
-							label: 'TVL fields',
-						},
-					],
-				},
-				{
-					label: 'Activity',
-					items: [
-						{
-							label: 'volume',
-						},
-						{
-							label: 'transaction counts',
-						},
-					],
-				},
-				{
-					label: 'Display/discovery',
-					items: [
-						{
-							label: 'token symbols/decimals',
-						},
-						{
-							label: 'pair created time',
-						},
-						{
-							label: 'labels',
-						},
-						{
-							label: 'DEX id',
-						},
-						{
-							label: 'pair URL',
-						},
-					],
-				},
-				{
-					label: 'Feed context',
-					items: [
-						{
-							label: 'feedKey/transport/source metadata',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

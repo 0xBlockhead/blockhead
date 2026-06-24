@@ -10,77 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'asset instance',
-			},
-			{
-				label: 'supply scope',
-			},
-			{
-				label: 'observation time',
-			},
+			'supplyScopeKey',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'asset instance',
-					},
-					{
-						label: 'supply scope key',
-					},
-					{
-						label: 'optional class key',
-					},
-					{
-						label: 'observation time',
-					},
+					'supplyScopeKey',
+					'classKey',
+					'timestampMs',
 					'source',
-					{
-						label: 'total supply',
-					},
-					{
-						label: 'circulating supply',
-					},
-					{
-						label: 'burned supply',
-					},
+					'totalSupply',
+					'circulatingSupply',
+					'burnedSupply',
 					'methodology',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Asset',
-					items: [
-						{
-							label: 'parent asset instance',
-						},
-					],
-				},
-				{
-					label: 'Class',
-					items: [
-						{
-							label: 'parent class when supplyScopeKey maps to a class',
-						},
-					],
-				},
-				{
-					label: 'Methodology',
-					items: [
-						{
-							label: 'source clock',
-						},
-						{
-							label: 'query',
-						},
-						{
-							label: 'inclusion/exclusion notes',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

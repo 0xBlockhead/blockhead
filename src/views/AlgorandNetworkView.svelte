@@ -9,83 +9,54 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'linked Network',
-			},
-			{
-				label: 'latest round/protocol/genesis snapshot',
-			},
-			{
-				label: 'catchpoint',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
-				[
-					{
-						label: 'linked Network',
-					},
-					{
-						label: 'latest round/protocol/genesis snapshot',
-					},
-					{
-						label: 'catchpoint',
-					},
-					{
-						label: 'native ALGO asset',
-					},
-				],
+				[],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Rounds',
+					label: 'rounds',
+					when: 'open',
 					items: [
-						{
-							label: 'ledger round rows',
-						},
+						'$$rounds',
 					],
 				},
 				{
-					label: 'Transactions',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'network transaction rows',
-						},
+						'$$transactions',
 					],
 				},
 				{
-					label: 'Accounts',
+					label: 'accounts',
+					when: 'open',
 					items: [
-						{
-							label: 'account rows',
-						},
+						'$$accounts',
 					],
 				},
 				{
-					label: 'Assets',
+					label: 'assets',
+					when: 'open',
 					items: [
-						{
-							label: 'ASA rows',
-						},
+						'$$assets',
 					],
 				},
 				{
-					label: 'Applications',
+					label: 'applications',
+					when: 'open',
 					items: [
-						{
-							label: 'application rows',
-						},
+						'$$applications',
 					],
 				},
 				{
-					label: 'Network snapshots',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'source-local algod/indexer status observations',
-						},
+						'$$timestamps',
 					],
 				},
 			],

@@ -10,85 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'transaction',
-			},
-			{
-				label: 'authorization index',
-			},
-			{
-				label: 'chain id',
-			},
+			'authorizationIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'transaction',
-					},
-					{
-						label: 'authorization index',
-					},
-					{
-						label: 'chain id',
-					},
+					'authorizationIndex',
+					'chainId',
+					'delegationAddress',
 					'authority',
-					{
-						label: 'delegation address',
-					},
 					'nonce',
-					{
-						label: 'yParity/r/s',
-					},
-					{
-						label: 'verification status/time',
-					},
-					{
-						label: 'authority account',
-					},
-					{
-						label: 'delegation contract',
-					},
+					'yParity',
+					'r',
+					's',
+					'verificationStatus',
+					'verifiedAtMs',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Transaction',
-					items: [
-						{
-							label: 'parent EVM transaction',
-						},
-					],
-				},
-				{
-					label: 'Authority',
-					items: [
-						{
-							label: 'authority EVM network account',
-						},
-					],
-				},
-				{
-					label: 'Delegation contract',
-					items: [
-						{
-							label: 'delegation EVM contract',
-						},
-					],
-				},
-				{
-					label: 'Signature evidence',
-					items: [
-						{
-							label: 'raw tuple',
-						},
-						{
-							label: 'local recovery status fields',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

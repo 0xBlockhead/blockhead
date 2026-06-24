@@ -12,7 +12,6 @@
 		closed: [
 			'realm',
 			'category',
-			'label',
 		],
 		content: {
 			dl: [
@@ -20,43 +19,18 @@
 					'realm',
 					'category',
 					'label',
-					{
-						label: 'plural label',
-					},
+					'labelPlural',
 					'slug',
-					{
-						label: 'proposal count',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Realm',
+					label: 'proposals',
+					when: 'open',
 					items: [
-						{
-							label: 'parent specification realm',
-						},
-					],
-				},
-				{
-					label: 'Proposals',
-					items: [
-						{
-							label: 'SpecificationProposal rows in this family',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'checked-in proposal category catalog',
-						},
-						{
-							label: 'source repositories for proposals',
-						},
+						'$$proposals',
 					],
 				},
 			],

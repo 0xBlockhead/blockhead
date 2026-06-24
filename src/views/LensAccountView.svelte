@@ -11,95 +11,44 @@
 	const view = {
 		closed: [
 			'address',
-			{
-				label: 'local name',
-			},
-			{
-				label: 'legacy profile id',
-			},
 		],
 		content: {
 			dl: [
 				[
 					'address',
-					{
-						label: 'local name',
-					},
-					{
-						label: 'legacy profile id',
-					},
-					{
-						label: 'display name',
-					},
+					'legacyProfileId',
+					'localName',
+					'displayName',
 					'bio',
+					'createdAt',
 					'owner',
 					'score',
-					{
-						label: 'member state',
-					},
-					{
-						label: 'created time',
-					},
-					{
-						label: 'icon URL/media',
-					},
-					{
-						label: 'username',
-					},
-					{
-						label: 'latest follower/following snapshot',
-					},
+					'isMemberOf',
+					'iconUrl',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Posts',
+					label: 'account managers',
+					when: 'open',
 					items: [
-						{
-							label: 'posts authored by this account',
-						},
+						'$$accountManagers',
 					],
 				},
 				{
-					label: 'Username',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'linked Lens username',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Account managers',
+					label: 'posts',
+					when: 'open',
 					items: [
-						{
-							label: 'delegated manager permission rows',
-						},
-					],
-				},
-				{
-					label: 'Metric snapshots',
-					items: [
-						{
-							label: 'timestamped follower/following observations',
-						},
-					],
-				},
-				{
-					label: 'Owner',
-					items: [
-						{
-							label: 'owner EVM account when resolved',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'account GraphQL payload',
-						},
+						'$$posts',
 					],
 				},
 			],

@@ -10,83 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'liquidity pool id',
-			},
-			{
-				label: 'pool type',
-			},
-			{
-				label: 'asset pair',
-			},
+			'liquidityPoolId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'liquidity pool id',
-					},
-					{
-						label: 'pool type',
-					},
-					{
-						label: 'asset pair',
-					},
-					{
-						label: 'fee bps',
-					},
-					{
-						label: 'latest reserve/share observation',
-					},
+					'liquidityPoolId',
+					'poolType',
+					'feeBps',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Snapshots',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped pool reserve/share observations',
-						},
-					],
-				},
-				{
-					label: 'Assets',
-					items: [
-						{
-							label: 'asset pair',
-						},
-					],
-				},
-				{
-					label: 'Operations',
-					items: [
-						{
-							label: 'deposit/withdraw/trade operation effects',
-						},
-					],
-				},
-				{
-					label: 'Trustlines',
-					items: [
-						{
-							label: 'pool share trustlines when indexed',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Horizon liquidity-pool object',
-						},
-						{
-							label: 'RPC ledger entry',
-						},
-						{
-							label: 'indexer pool payload',
-						},
+						'$$timestamps',
 					],
 				},
 			],

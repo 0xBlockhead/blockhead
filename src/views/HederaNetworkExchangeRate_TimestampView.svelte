@@ -10,73 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'current cent/HBAR equivalents',
-					},
-					{
-						label: 'current expiration',
-					},
-					{
-						label: 'next cent/HBAR equivalents',
-					},
-					{
-						label: 'next expiration',
-					},
+					'currentRateCentEquivalent',
+					'currentRateHbarEquivalent',
+					'currentRateExpirationTime',
+					'nextRateCentEquivalent',
+					'nextRateHbarEquivalent',
+					'nextRateExpirationTime',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Hedera network',
-						},
-					],
-				},
-				{
-					label: 'Current rate',
-					items: [
-						{
-							label: 'current exchange-rate fields',
-						},
-					],
-				},
-				{
-					label: 'Next rate',
-					items: [
-						{
-							label: 'next exchange-rate fields',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'network exchange-rate payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

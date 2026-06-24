@@ -10,51 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'card snapshot',
-			},
-			{
-				label: 'skill id',
-			},
-			'name',
+			'skillId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'card snapshot',
-					},
-					{
-						label: 'skill id',
-					},
+					'skillId',
 					'name',
-				],
-				[
+					'description',
 					'tags',
-					{
-						label: 'input/output modes',
-					},
+					'examples',
+					'inputModes',
+					'outputModes',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Card snapshot',
-					items: [
-						{
-							label: 'A2aAgentCard_Snapshot',
-						},
-					],
-				},
-				{
-					label: 'Examples',
-					items: [
-						{
-							label: 'examples payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

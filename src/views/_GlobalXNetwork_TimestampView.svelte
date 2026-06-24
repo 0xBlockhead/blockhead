@@ -10,18 +10,14 @@
 	// State
 	const view = {
 		closed: [
-			'$hub',
 			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					'$hub',
 					'timestampMs',
 					'source',
-				],
-				[
 					'sourceWindowUserCount',
 					'sourceWindowPostCount',
 					'localCatalogUserCount',
@@ -31,43 +27,6 @@
 					'searchWindowStartMs',
 					'searchWindowEndMs',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Hub',
-					items: [
-						'$hub',
-					],
-				},
-				{
-					label: 'Observation fields',
-					items: [
-						'sourceWindowUserCount',
-						'sourceWindowPostCount',
-						'localCatalogUserCount',
-						'localCatalogPostCount',
-						'reachable',
-						'rateLimitRemaining',
-						'searchWindowStartMs',
-						'searchWindowEndMs',
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'SourceBinding.Constants_Internal',
-						},
-						{
-							label: 'SourceBinding.X_FxEmbed_Rest',
-						},
-						{
-							label: 'SourceBinding.X_Rest',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

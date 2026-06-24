@@ -10,78 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'chunk hash',
-			},
-			{
-				label: 'block',
-			},
-			{
-				label: 'shard id',
-			},
+			'chunkHash',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'chunk hash',
-					},
-					{
-						label: 'block',
-					},
-					{
-						label: 'shard id',
-					},
-					{
-						label: 'gas used',
-					},
-					{
-						label: 'transaction count',
-					},
-					{
-						label: 'shard/block context',
-					},
-					{
-						label: 'raw chunk evidence',
-					},
+					'chunkHash',
+					'shardId',
+					'gasUsed',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Block',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'NearBlock',
-						},
-					],
-				},
-				{
-					label: 'Shard execution',
-					items: [
-						{
-							label: 'shard id',
-						},
-						{
-							label: 'gas used',
-						},
-					],
-				},
-				{
-					label: 'Transactions',
-					items: [
-						{
-							label: 'NearTransaction list',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'NEAR RPC chunk payload',
-						},
+						'$$transactions',
 					],
 				},
 			],

@@ -10,92 +10,32 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'epoch number',
-			},
-			{
-				label: 'slot range',
-			},
-			{
-				label: 'finalized status',
-			},
+			'epoch',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'epoch number',
-					},
-					{
-						label: 'start slot',
-					},
-					{
-						label: 'end slot',
-					},
-					{
-						label: 'slot count',
-					},
-					{
-						label: 'finalized status',
-					},
-				],
-				[
-					{
-						label: 'global participation rate',
-					},
-					{
-						label: 'validator count',
-					},
-					{
-						label: 'attestation count',
-					},
-					{
-						label: 'withdrawal count',
-					},
-					{
-						label: 'attester slashing count',
-					},
-					{
-						label: 'proposer slashing count',
-					},
+					'epoch',
+					'startSlot',
+					'endSlot',
+					'slotCount',
+					'finalized',
+					'globalParticipationRate',
+					'validatorsCount',
+					'attestationsCount',
+					'attesterSlashingsCount',
+					'proposerSlashingsCount',
+					'withdrawalsCount',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Slots',
+					label: 'beacon slots',
+					when: 'open',
 					items: [
-						{
-							label: 'beacon slots in the epoch range',
-						},
-					],
-				},
-				{
-					label: 'Epoch stats',
-					items: [
-						{
-							label: 'Beaconcha.in epoch overview fields keyed by epoch',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent EVM network consensus context',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Beacon REST slot math/list expansion',
-						},
-						{
-							label: 'Beaconcha.in /epoch/{epoch} payload',
-						},
+						'$$beaconSlots',
 					],
 				},
 			],

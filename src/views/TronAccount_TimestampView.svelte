@@ -10,91 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'account',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'account',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'block height',
-					},
-					{
-						label: 'balance',
-					},
-					{
-						label: 'transaction count',
-					},
-					{
-						label: 'bandwidth usage/limit',
-					},
-					{
-						label: 'energy usage/limit',
-					},
-					{
-						label: 'TRON Power usage/limit',
-					},
-					{
-						label: 'contract flag',
-					},
+					'blockHeight',
+					'balanceSun',
+					'createdTimestampMs',
+					'latestOperationTimestampMs',
+					'totalTransactionCount',
+					'freeNetUsed',
+					'freeNetLimit',
+					'netUsed',
+					'netLimit',
+					'energyUsed',
+					'energyLimit',
+					'tronPowerUsed',
+					'tronPowerLimit',
+					'isContract',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'parent account identity',
-						},
-					],
-				},
-				{
-					label: 'Resources',
-					items: [
-						{
-							label: 'bandwidth',
-						},
-						{
-							label: 'energy',
-						},
-						{
-							label: 'TRON Power',
-						},
-						{
-							label: 'TRC-10 asset bandwidth maps when source-backed',
-						},
-					],
-				},
-				{
-					label: 'Contract',
-					items: [
-						{
-							label: 'contract identity when contract flag/ref exists',
-						},
-					],
-				},
-				{
-					label: 'Source',
-					items: [
-						{
-							label: 'getaccount/getaccountresource/indexer payload freshness',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

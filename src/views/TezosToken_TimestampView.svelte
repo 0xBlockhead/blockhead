@@ -10,98 +10,26 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'token',
-			},
 			'level',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'token',
-					},
 					'level',
 					'source',
-					{
-						label: 'timestamp',
-					},
+					'timestampMs',
+					'metadataUri',
 					'name',
 					'symbol',
 					'decimals',
-					{
-						label: 'metadata/artifact/display/thumbnail URIs',
-					},
-					{
-						label: 'total supply',
-					},
-					{
-						label: 'holder count',
-					},
-					{
-						label: 'transfer count',
-					},
+					'artifactUri',
+					'displayUri',
+					'thumbnailUri',
+					'totalSupply',
+					'holderCount',
+					'transferCount',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Token',
-					items: [
-						{
-							label: 'parent Tezos token',
-						},
-					],
-				},
-				{
-					label: 'Metadata',
-					items: [
-						{
-							label: 'token metadata fields',
-						},
-						{
-							label: 'URI evidence',
-						},
-						{
-							label: 'TZIP-12/FA2 metadata payload',
-						},
-					],
-				},
-				{
-					label: 'Supply/counts',
-					items: [
-						{
-							label: 'total supply',
-						},
-						{
-							label: 'holder count',
-						},
-						{
-							label: 'transfer count',
-						},
-					],
-				},
-				{
-					label: 'Ledger storage',
-					items: [
-						{
-							label: 'big-map key for token_metadata/ledger keys when resolved',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'token metadata/indexer payload',
-						},
-						{
-							label: 'contract storage query',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

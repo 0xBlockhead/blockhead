@@ -10,84 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'NFT',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'NFT',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'owner',
-					},
-					{
-						label: 'owner account id',
-					},
-					{
-						label: 'deleted flag',
-					},
-					{
-						label: 'spender account id',
-					},
-					{
-						label: 'modified timestamp',
-					},
+					'ownerAccountId',
+					'deleted',
+					'spenderAccountId',
+					'modifiedTimestamp',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'NFT',
-					items: [
-						{
-							label: 'parent Hedera NFT serial',
-						},
-					],
-				},
-				{
-					label: 'Owner',
-					items: [
-						{
-							label: 'owner Hedera account',
-						},
-					],
-				},
-				{
-					label: 'Token',
-					items: [
-						{
-							label: 'parent Hedera token',
-						},
-					],
-				},
-				{
-					label: 'Transfers',
-					items: [
-						{
-							label: 'token transfers near the same observation',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'raw NFT serial payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

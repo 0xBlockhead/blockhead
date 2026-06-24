@@ -10,71 +10,18 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'internal index',
-			},
+			'txHash',
+			'internalIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'internal index',
-					},
-				],
-				[
-					{
-						label: 'parent transaction link derived from selector txHash',
-					},
-					{
-						label: 'internal index',
-					},
-					{
-						label: 'call type label',
-					},
+					'txHash',
+					'internalIndex',
+					'value',
+					'callType',
 					'success',
-					{
-						label: 'created contract for create/create2 calls',
-					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Transaction',
-					items: [
-						{
-							label: 'parent EVM transaction derived from network/txHash',
-						},
-					],
-				},
-				{
-					label: 'Accounts',
-					items: [
-						{
-							label: 'from/to EVM accounts',
-						},
-					],
-				},
-				{
-					label: 'Created contract',
-					items: [
-						{
-							label: 'created EVM contract when callType creates a contract',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'explorer internals payload',
-						},
-						{
-							label: 'trace-derived transfer index',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,76 +10,32 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'transaction hash',
-			},
-			{
-				label: 'block',
-			},
+			'txHash',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'transaction hash',
-					},
-					{
-						label: 'block',
-					},
+					'txHash',
 					'version',
-					{
-						label: 'unlock time',
-					},
-					{
-						label: 'fee',
-					},
-					{
-						label: 'key-image count',
-					},
-					{
-						label: 'stealth-output count',
-					},
+					'unlockTime',
+					'feeAtomicUnits',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Key images',
+					label: 'key images',
+					when: 'open',
 					items: [
-						{
-							label: 'public key-image input rows',
-						},
+						'$$keyImages',
 					],
 				},
 				{
-					label: 'Stealth outputs',
+					label: 'stealth outputs',
+					when: 'open',
 					items: [
-						{
-							label: 'public stealth-output rows',
-						},
-					],
-				},
-				{
-					label: 'Block',
-					items: [
-						{
-							label: 'containing Monero block',
-						},
-					],
-				},
-				{
-					label: 'Local wallet interpretation',
-					items: [
-						{
-							label: 'BlockheadMoneroTransferState when a connected wallet maps this transaction',
-						},
+						'$$stealthOutputs',
 					],
 				},
 			],

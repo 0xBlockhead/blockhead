@@ -9,77 +9,49 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'head block',
-			},
-			{
-				label: 'environment',
-			},
-			{
-				label: 'native asset count',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
 				[
-					{
-						label: 'head block',
-					},
-					{
-						label: 'environment',
-					},
-					{
-						label: 'native asset count',
-					},
-					{
-						label: 'REST endpoint availability',
-					},
+					'restEndpoints',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'TRON',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'Blocks',
-						},
-						{
-							label: 'Network snapshots',
-						},
-						{
-							label: 'Witnesses',
-						},
-						{
-							label: 'Endpoints',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Assets',
+					label: 'blocks',
+					when: 'open',
 					items: [
-						{
-							label: 'Native coin',
-						},
-						{
-							label: 'TRC token browse facets',
-						},
-						{
-							label: 'token transfer feeds when source-scoped',
-						},
+						'$$blocks',
 					],
 				},
 				{
-					label: 'Resources',
+					label: 'tokens',
+					when: 'open',
 					items: [
-						{
-							label: 'Faucets',
-						},
-						{
-							label: 'Block explorers',
-						},
+						'$$tokens',
+					],
+				},
+				{
+					label: 'token transfers',
+					when: 'open',
+					items: [
+						'$$tokenTransfers',
+					],
+				},
+				{
+					label: 'witnesses',
+					when: 'open',
+					items: [
+						'$$witnesses',
 					],
 				},
 			],

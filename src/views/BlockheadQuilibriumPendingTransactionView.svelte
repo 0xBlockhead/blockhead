@@ -10,89 +10,18 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'account state',
-			},
-			{
-				label: 'transaction address',
-			},
-			{
-				label: 'account',
-			},
+			'transactionAddress',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'account state',
-					},
-					{
-						label: 'transaction address',
-					},
-					{
-						label: 'account',
-					},
-					{
-						label: 'refund account',
-					},
-					{
-						label: 'coin address',
-					},
+					'transactionAddress',
+					'coinAddress',
 					'amount',
-					{
-						label: 'delivery type/address',
-					},
-					{
-						label: 'observation time',
-					},
+					'deliveryType',
+					'deliveryAddress',
+					'observedAt',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Account state',
-					items: [
-						{
-							label: 'parent local account state',
-						},
-					],
-				},
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'public Quilibrium account when resolved',
-						},
-					],
-				},
-				{
-					label: 'Refund account',
-					items: [
-						{
-							label: 'public refund account when resolved',
-						},
-					],
-				},
-				{
-					label: 'Connected node',
-					items: [
-						{
-							label: 'parent Quilibrium node state',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'pendingTransactionsAccount response',
-						},
-						{
-							label: 'delivery method context',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,81 +10,32 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'client id',
-			},
-			{
-				label: 'client name',
-			},
-			{
-				label: 'peer id',
-			},
+			'clientId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'client id',
-					},
-					{
-						label: 'client name',
-					},
-					{
-						label: 'peer id',
-					},
-					{
-						label: 'DHT node id',
-					},
-					{
-						label: 'latest client version',
-					},
-					{
-						label: 'latest listen address count',
-					},
-					{
-						label: 'latest transfer rates',
-					},
-					{
-						label: 'latest active torrent count',
-					},
+					'clientId',
+					'clientName',
+					'peerId',
+					'dhtNodeId',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'State observations',
+					label: 'transfers',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped connected-client observations',
-						},
+						'$$transfers',
 					],
 				},
 				{
-					label: 'Transfers',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'local transfer snapshots',
-						},
-					],
-				},
-				{
-					label: 'Network identity',
-					items: [
-						{
-							label: 'peer id',
-						},
-						{
-							label: 'DHT node id',
-						},
-					],
-				},
-				{
-					label: 'Torrent catalog',
-					items: [
-						{
-							label: 'metainfo rows exposed by the client',
-						},
+						'$$timestamps',
 					],
 				},
 			],

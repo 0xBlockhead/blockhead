@@ -10,64 +10,25 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'repository',
-			},
-			{
-				label: 'ref name',
-			},
-			{
-				label: 'ref kind',
-			},
+			'refName',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'repository',
-					},
-					{
-						label: 'ref name',
-					},
-					{
-						label: 'ref kind',
-					},
-					{
-						label: 'latest target object id',
-					},
-					{
-						label: 'symbolic target',
-					},
-					{
-						label: 'latest observation time',
-					},
+					'refName',
+					'refKind',
+					'targetObjectId',
+					'symbolicTarget',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Observations',
+					label: 'observations',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped ref target observations',
-						},
-					],
-				},
-				{
-					label: 'Target',
-					items: [
-						{
-							label: 'target Git object/commit/tag when resolved',
-						},
-					],
-				},
-				{
-					label: 'Repository',
-					items: [
-						{
-							label: 'parent Git repository',
-						},
+						'$$observations',
 					],
 				},
 			],

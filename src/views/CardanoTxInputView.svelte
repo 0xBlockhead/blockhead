@@ -10,66 +10,17 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'transaction',
-			},
-			{
-				label: 'input index',
-			},
-			{
-				label: 'input kind',
-			},
+			'inputIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'transaction',
-					},
-					{
-						label: 'input index',
-					},
-					{
-						label: 'input kind',
-					},
-					{
-						label: 'spent transaction hash/output index',
-					},
-					{
-						label: 'spent output link',
-					},
-					{
-						label: 'redeemer index',
-					},
+					'inputIndex',
+					'inputKind',
+					'spentTxHash',
+					'spentOutputIndex',
+					'redeemerIndex',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Spent output',
-					items: [
-						{
-							label: 'referenced Cardano transaction output',
-						},
-					],
-				},
-				{
-					label: 'Redeemer',
-					items: [
-						{
-							label: 'linked script witness when available',
-						},
-					],
-				},
-				{
-					label: 'Transaction',
-					items: [
-						{
-							label: 'parent Cardano transaction',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

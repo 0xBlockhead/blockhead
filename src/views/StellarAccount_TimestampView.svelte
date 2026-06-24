@@ -10,80 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'native balance',
-			},
-			'sequence',
-			{
-				label: 'ledger sequence',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'native balance',
-					},
-					'sequence',
-					{
-						label: 'ledger sequence',
-					},
-					{
-						label: 'subentry count',
-					},
-					{
-						label: 'signer count',
-					},
-					'thresholds',
+					'timestampMs',
 					'source',
-					{
-						label: 'observation time',
-					},
+					'ledgerSequence',
+					'sequence',
+					'nativeBalance',
+					'subentryCount',
+					'thresholds',
+					'signerCount',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'StellarAccount',
-						},
-					],
-				},
-				{
-					label: 'Ledger state',
-					items: [
-						{
-							label: 'native balance',
-						},
-						'sequence',
-						{
-							label: 'ledger sequence',
-						},
-					],
-				},
-				{
-					label: 'Account config',
-					items: [
-						{
-							label: 'subentry count',
-						},
-						{
-							label: 'signer count',
-						},
-						'thresholds',
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Horizon/RPC/explorer account payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

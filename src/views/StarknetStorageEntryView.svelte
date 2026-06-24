@@ -10,58 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'contract',
-			},
-			{
-				label: 'storage key',
-			},
-			{
-				label: 'value observation summary',
-			},
+			'storageKey',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'contract',
-					},
-					{
-						label: 'storage key',
-					},
-					{
-						label: 'latest block/source value observation',
-					},
-					{
-						label: 'timestamp count',
-					},
+					'storageKey',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Value history',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'block-coordinate storage value observations',
-						},
-					],
-				},
-				{
-					label: 'Contract',
-					items: [
-						{
-							label: 'parent Starknet contract',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'starknet_getStorageAt block id/value',
-						},
+						'$$timestamps',
 					],
 				},
 			],

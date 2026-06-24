@@ -10,69 +10,28 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
 			'height',
-			'hash',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'height',
 					'hash',
-					{
-						label: 'parent hash/ref',
-					},
-					{
-						label: 'timestamp',
-					},
-					{
-						label: 'witness',
-					},
+					'parentHash',
+					'timestampMs',
 					'txTrieRoot',
 					'version',
-					{
-						label: 'transaction count',
-					},
+					'transactionCount',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Transactions',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'transactions in block',
-						},
-					],
-				},
-				{
-					label: 'Parent',
-					items: [
-						{
-							label: 'parent block',
-						},
-					],
-				},
-				{
-					label: 'Witness',
-					items: [
-						{
-							label: 'producing witness',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent TRON network',
-						},
+						'$$transactions',
 					],
 				},
 			],

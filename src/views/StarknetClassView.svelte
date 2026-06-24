@@ -10,93 +10,28 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'class hash',
-			},
-			{
-				label: 'class version',
-			},
-			{
-				label: 'declared block',
-			},
+			'classHash',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'class hash',
-					},
-					{
-						label: 'class version',
-					},
-					{
-						label: 'Sierra program hash',
-					},
-					{
-						label: 'CASM class hash',
-					},
-					{
-						label: 'ABI hash',
-					},
-					{
-						label: 'declared block',
-					},
-					{
-						label: 'declared transaction',
-					},
-					{
-						label: 'contract count',
-					},
+					'classHash',
+					'sierraProgramHash',
+					'casmClassHash',
+					'abiHash',
+					'contractClassVersion',
+					'declaredAtBlockNumber',
+					'declaredByTransactionHash',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Contracts',
+					label: 'contracts',
+					when: 'open',
 					items: [
-						{
-							label: 'contracts using this class',
-						},
-					],
-				},
-				{
-					label: 'Declaration',
-					items: [
-						{
-							label: 'declare transaction',
-						},
-					],
-				},
-				{
-					label: 'Class payload',
-					items: [
-						{
-							label: 'ABI',
-						},
-						{
-							label: 'Sierra/CASM hashes',
-						},
-						{
-							label: 'raw contract class',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'starknet_getClass',
-						},
-						{
-							label: 'starknet_getClassAt',
-						},
-						{
-							label: 'declare transaction payload',
-						},
+						'$$contracts',
 					],
 				},
 			],

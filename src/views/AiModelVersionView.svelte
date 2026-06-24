@@ -10,79 +10,32 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'model/version or artifact',
-			},
-			'revision',
+			'versionId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'model',
-					},
-					{
-						label: 'version id',
-					},
-					{
-						label: 'artifact',
-					},
-					{
-						label: 'HF repo/revision',
-					},
-				],
-				[
-					{
-						label: 'MLflow registered model/version',
-					},
-					{
-						label: 'ONNX IR/opsets',
-					},
-					{
-						label: 'created at',
-					},
-					{
-						label: 'training cutoff',
-					},
+					'versionId',
+					'huggingFaceRepo',
+					'revision',
+					'mlflowRegisteredModelName',
+					'mlflowModelVersion',
+					'onnxIrVersion',
+					'onnxOpsetImports',
+					'createdAt',
+					'trainingCutoff',
 					'quantization',
-					{
-						label: 'fine-tune kind',
-					},
+					'fineTuneKind',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Model',
+					label: 'documents',
+					when: 'open',
 					items: [
-						{
-							label: 'AiModel when present',
-						},
-					],
-				},
-				{
-					label: 'Artifact',
-					items: [
-						{
-							label: 'AiArtifact when present',
-						},
-					],
-				},
-				{
-					label: 'Documents',
-					items: [
-						{
-							label: 'AiDocument list',
-						},
-					],
-				},
-				{
-					label: 'Relationships',
-					items: [
-						{
-							label: 'AiRelationshipClaim list',
-						},
+						'$$documents',
 					],
 				},
 			],

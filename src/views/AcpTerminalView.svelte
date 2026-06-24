@@ -10,52 +10,26 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'session',
-			},
-			{
-				label: 'terminal id',
-			},
-			'command',
+			'terminalId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'session',
-					},
-					{
-						label: 'terminal id',
-					},
+					'terminalId',
 					'command',
 					'cwd',
-				],
-				[
-					{
-						label: 'created/released at',
-					},
-					{
-						label: 'latest status',
-					},
+					'createdAt',
+					'releasedAt',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Session',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'AcpSession',
-						},
-					],
-				},
-				{
-					label: 'Observations',
-					items: [
-						{
-							label: 'AcpTerminal_Timestamp list',
-						},
+						'$$timestamps',
 					],
 				},
 			],

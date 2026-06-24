@@ -10,82 +10,13 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'category id',
-			},
-			{
-				label: 'metadata claim',
-			},
+			'categoryId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'category id',
-					},
-					{
-						label: 'metadata claim',
-					},
-					{
-						label: 'fungible output count',
-					},
-					{
-						label: 'NFT output count',
-					},
+					'categoryId',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Metadata',
-					items: [
-						{
-							label: 'BCMR metadata claim by registry URL',
-						},
-					],
-				},
-				{
-					label: 'Fungible outputs',
-					items: [
-						{
-							label: 'UTXO outputs carrying fungible amount for this category',
-						},
-					],
-				},
-				{
-					label: 'NFT outputs',
-					items: [
-						{
-							label: 'UTXO outputs carrying NFT data for this category',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent UTXO network',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'node tokenData category observations',
-						},
-						{
-							label: 'BCMR registry lookup',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -11,89 +11,43 @@
 	const view = {
 		closed: [
 			'address',
-			{
-				label: 'account kind',
-			},
-			{
-				label: 'public key/revealed state',
-			},
 		],
 		content: {
 			dl: [
 				[
 					'address',
-					{
-						label: 'account kind',
-					},
-					{
-						label: 'public key/revealed state',
-					},
-					{
-						label: 'latest balance',
-					},
-					{
-						label: 'counter',
-					},
-					{
-						label: 'delegate',
-					},
-					{
-						label: 'token balance count',
-					},
-					{
-						label: 'token transfer count',
-					},
+					'accountKind',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Operations',
+					label: 'operations',
+					when: 'open',
 					items: [
-						{
-							label: 'Tezos operations involving this account',
-						},
+						'$$operations',
 					],
 				},
 				{
-					label: 'Token balances',
+					label: 'token balance timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'token balance observations grouped by token',
-						},
+						'$$tokenBalanceTimestamps',
 					],
 				},
 				{
-					label: 'Token transfers',
+					label: 'token transfers',
+					when: 'open',
 					items: [
-						{
-							label: 'token transfer rows',
-						},
+						'$$tokenTransfers',
 					],
 				},
 				{
-					label: 'Delegation/baker',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'Tezos baker when delegate/baker identity resolves',
-						},
-					],
-				},
-				{
-					label: 'Contract',
-					items: [
-						{
-							label: 'Tezos contract for originated accounts',
-						},
-					],
-				},
-				{
-					label: 'Account history',
-					items: [
-						{
-							label: 'level/source account-state observations',
-						},
+						'$$timestamps',
 					],
 				},
 			],

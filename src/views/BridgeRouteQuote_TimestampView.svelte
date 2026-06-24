@@ -10,108 +10,43 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'source quote id or source/request hash',
-			},
-			{
-				label: 'from-chain -> to-chain ids',
-			},
+			'source',
+			'quoteRequestHash',
+			'timestampMs',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'source quote id or source/request hash',
-					},
-					{
-						label: 'from-chain -> to-chain ids',
-					},
-				],
-				[
 					'source',
-					{
-						label: 'quote time',
-					},
-					{
-						label: 'from/to EVM network refs',
-					},
-					{
-						label: 'token addresses',
-					},
-					{
-						label: 'from/to account addresses',
-					},
-					{
-						label: 'request amount',
-					},
-					{
-						label: 'quoted amount',
-					},
-					{
-						label: 'minimum received',
-					},
-					{
-						label: 'estimated cost',
-					},
-					{
-						label: 'ETA',
-					},
-					{
-						label: 'approval address',
-					},
-					{
-						label: 'transaction target',
-					},
-					{
-						label: 'tag count',
-					},
+					'quoteRequestHash',
+					'timestampMs',
+					'providerQuoteId',
+					'fromChainId',
+					'toChainId',
+					'fromToken',
+					'toToken',
+					'fromAmount',
+					'fromAddress',
+					'slippage',
+					'toAddress',
+					'toAmount',
+					'toAmountMin',
+					'estimatedCostUsd',
+					'estimatedDurationSeconds',
+					'approvalAddress',
+					'transactionTo',
+					'transactionDataHash',
+					'tags',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Steps',
+					label: 'steps',
+					when: 'open',
 					items: [
-						{
-							label: 'ordered quote step rows',
-						},
-					],
-				},
-				{
-					label: 'Transaction request',
-					items: [
-						{
-							label: 'transaction target',
-						},
-						{
-							label: 'calldata hash',
-						},
-						{
-							label: 'approval address',
-						},
-						{
-							label: 'value/gas evidence when retained',
-						},
-					],
-				},
-				{
-					label: 'Networks',
-					items: [
-						{
-							label: 'from/to EVM network refs',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'LI.FI quote response',
-						},
-						{
-							label: 'request parameters',
-						},
+						'$$steps',
 					],
 				},
 			],

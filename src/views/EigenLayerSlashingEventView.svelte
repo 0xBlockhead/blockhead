@@ -10,97 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'operator',
-			},
-			{
-				label: 'AVS',
-			},
-			{
-				label: 'slashed shares',
-			},
+			'transactionHash',
+			'logIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'operator',
-					},
-					{
-						label: 'AVS',
-					},
-					{
-						label: 'strategy',
-					},
-					{
-						label: 'transaction/log',
-					},
-					{
-						label: 'source slash id',
-					},
-					{
-						label: 'block/timestamp',
-					},
-				],
-				[
-					{
-						label: 'slashed shares',
-					},
-					{
-						label: 'slashed amount',
-					},
+					'transactionHash',
+					'logIndex',
+					'source',
+					'slashId',
+					'slashedShares',
+					'slashedAmount',
 					'reason',
-					{
-						label: 'network',
-					},
+					'blockNumber',
+					'timestampMs',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Operator',
-					items: [
-						{
-							label: 'EigenLayer operator',
-						},
-					],
-				},
-				{
-					label: 'AVS',
-					items: [
-						{
-							label: 'EigenLayer AVS',
-						},
-					],
-				},
-				{
-					label: 'Strategy',
-					items: [
-						{
-							label: 'EigenLayer strategy',
-						},
-					],
-				},
-				{
-					label: 'Transaction',
-					items: [
-						{
-							label: 'EVM transaction when transaction hash resolves',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'slashing/allocation-manager event logs',
-						},
-						{
-							label: 'explorer/indexer payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

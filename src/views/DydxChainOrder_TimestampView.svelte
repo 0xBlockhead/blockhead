@@ -10,71 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'order',
-			},
-			{
-				label: 'observation time',
-			},
-			'status',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'order',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'block height',
-					},
+					'blockHeight',
 					'status',
 					'price',
 					'size',
-					{
-						label: 'remaining size',
-					},
-					{
-						label: 'filled size',
-					},
-					{
-						label: 'total filled',
-					},
+					'remainingSize',
+					'filledSize',
+					'totalFilled',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Order',
-					items: [
-						{
-							label: 'parent dYdX order',
-						},
-					],
-				},
-				{
-					label: 'Subaccount',
-					items: [
-						{
-							label: 'parent dYdX subaccount',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'indexer order response',
-						},
-						{
-							label: 'validator state query',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

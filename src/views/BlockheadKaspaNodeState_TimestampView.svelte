@@ -10,87 +10,23 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'node state',
-			},
-			{
-				label: 'observation time',
-			},
-			{
-				label: 'sync state',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'node state',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'server version',
-					},
-					{
-						label: 'sync state',
-					},
-					{
-						label: 'UTXO-index availability',
-					},
-					{
-						label: 'virtual DAA score',
-					},
-					{
-						label: 'selected parent',
-					},
-					{
-						label: 'pruning point',
-					},
-					{
-						label: 'peer count',
-					},
-					{
-						label: 'last synced time',
-					},
+					'serverVersion',
+					'isSynced',
+					'hasUtxoIndex',
+					'virtualDaaScore',
+					'virtualSelectedParentHash',
+					'pruningPointHash',
+					'peerCount',
+					'lastSyncedAt',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Node',
-					items: [
-						{
-							label: 'parent connected Kaspa node state',
-						},
-					],
-				},
-				{
-					label: 'Network observation',
-					items: [
-						{
-							label: 'network timestamp observation when materialized',
-						},
-					],
-				},
-				{
-					label: 'Virtual chain',
-					items: [
-						{
-							label: 'virtual-chain rows from this node',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'getServerInfo/getBlockDagInfo/peer payloads',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

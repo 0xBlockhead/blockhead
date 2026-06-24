@@ -10,57 +10,25 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'connection id',
-			},
-			{
-				label: 'peer id',
-			},
-			'endpoint',
+			'connectionId',
+			'peerId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'connection id',
-					},
-					{
-						label: 'peer id',
-					},
+					'connectionId',
+					'peerId',
 					'endpoint',
-					{
-						label: 'latest peer/connectivity observation',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'State history',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped connected-node observations',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'Logos Blockchain network when configured network resolves',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: '/network/info',
-						},
-						{
-							label: 'configured local REST API',
-						},
+						'$$timestamps',
 					],
 				},
 			],

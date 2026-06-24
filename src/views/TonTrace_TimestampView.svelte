@@ -10,71 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'trace',
-			},
-			{
-				label: 'observation time/source',
-			},
-			'status',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'trace',
-					},
-					{
-						label: 'observation time/source',
-					},
+					'timestampMs',
+					'source',
 					'status',
-					{
-						label: 'transaction count',
-					},
-					{
-						label: 'message count',
-					},
+					'transactionCount',
+					'messageCount',
 					'error',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Trace',
-					items: [
-						{
-							label: 'parent trace identity',
-						},
-					],
-				},
-				{
-					label: 'Transaction DAG',
-					items: [
-						{
-							label: 'transactions through trace',
-						},
-					],
-				},
-				{
-					label: 'Message edges',
-					items: [
-						{
-							label: 'messages through trace',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'trace payload freshness',
-						},
-						{
-							label: 'indexer graph status',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

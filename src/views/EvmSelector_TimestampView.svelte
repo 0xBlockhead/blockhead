@@ -10,71 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'selector',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'selector',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
+					'signatures',
+					'filteredSignatureCount',
+					'verifiedCandidateCount',
 					'reachable',
 				],
-				[
-					{
-						label: 'candidate signatures',
-					},
-					{
-						label: 'filtered signature count',
-					},
-					{
-						label: 'verified candidate count',
-					},
-				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Selector',
-					items: [
-						{
-							label: 'parent EvmSelector hash row',
-						},
-					],
-				},
-				{
-					label: 'Candidates',
-					items: [
-						{
-							label: 'candidate function signatures',
-						},
-						{
-							label: 'ambiguity warnings',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Openchain lookup response',
-						},
-						{
-							label: 'fallback catalog behavior',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

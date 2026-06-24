@@ -10,86 +10,33 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'post id',
-			},
-			{
-				label: 'latest text',
-			},
-			{
-				label: 'created time',
-			},
+			'id',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'post id',
-					},
-					{
-						label: 'created time',
-					},
-					{
-						label: 'author',
-					},
-					{
-						label: 'conversation id',
-					},
-					{
-						label: 'reply/quote refs',
-					},
-					{
-						label: 'latest post URL',
-					},
-					{
-						label: 'latest media attachments',
-					},
-					{
-						label: 'latest like/repost/reply/quote snapshot',
-					},
+					'id',
+					'text',
+					'createdAt',
+					'conversationId',
+					'postUrl',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest content',
+					label: 'mediases',
+					when: 'open',
 					items: [
-						{
-							label: 'latest content observation by timestamp/source',
-						},
+						'$$media',
 					],
 				},
 				{
-					label: 'Thread refs',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'reply/quote/conversation facets',
-						},
-					],
-				},
-				{
-					label: 'Author',
-					items: [
-						{
-							label: 'author profile',
-						},
-					],
-				},
-				{
-					label: 'Media',
-					items: [
-						{
-							label: 'media list from latest timestamp',
-						},
-					],
-				},
-				{
-					label: 'Metric snapshots',
-					items: [
-						{
-							label: 'post metric observations',
-						},
+						'$$timestamps',
 					],
 				},
 			],

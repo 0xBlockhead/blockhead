@@ -11,92 +11,24 @@
 	const view = {
 		closed: [
 			'ticker',
-			{
-				label: 'base/quote assets',
-			},
-			{
-				label: 'latest oracle price',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'ticker',
-					{
-						label: 'base asset',
-					},
-					{
-						label: 'quote asset',
-					},
-					{
-						label: 'market kind',
-					},
-					{
-						label: 'latest oracle price',
-					},
-					{
-						label: 'latest open interest',
-					},
-					{
-						label: 'latest status',
-					},
+					'baseAsset',
+					'quoteAsset',
+					'marketKind',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Market observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped market state observations',
-						},
-					],
-				},
-				{
-					label: 'Orders',
-					items: [
-						{
-							label: 'dYdX orders when indexed',
-						},
-					],
-				},
-				{
-					label: 'Positions',
-					items: [
-						{
-							label: 'perpetual position observations',
-						},
-					],
-				},
-				{
-					label: 'Trades/fills/funding',
-					items: [
-						{
-							label: 'source-window rows only when concrete identifiers are modeled',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent dYdX Chain network',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'dYdX indexer perpetual markets payload keyed by ticker',
-						},
-						{
-							label: 'validator app-state/query evidence',
-						},
+						'$$timestamps',
 					],
 				},
 			],

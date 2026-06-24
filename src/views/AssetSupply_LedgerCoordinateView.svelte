@@ -10,73 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'asset instance',
-			},
-			{
-				label: 'supply scope',
-			},
-			{
-				label: 'coordinate kind/value',
-			},
+			'supplyScopeKey',
+			'ledgerCoordinateKind',
+			'ledgerCoordinateValue',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'asset instance',
-					},
-					{
-						label: 'supply scope key',
-					},
-					{
-						label: 'optional class',
-					},
-					{
-						label: 'coordinate kind/value',
-					},
+					'supplyScopeKey',
+					'classKey',
+					'ledgerCoordinateKind',
+					'ledgerCoordinateValue',
 					'source',
-					{
-						label: 'total supply',
-					},
-					{
-						label: 'max supply',
-					},
-					{
-						label: 'minted supply',
-					},
-					{
-						label: 'burned supply',
-					},
+					'totalSupply',
+					'maxSupply',
+					'mintedSupply',
+					'burnedSupply',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Asset',
-					items: [
-						{
-							label: 'parent asset instance',
-						},
-					],
-				},
-				{
-					label: 'Class',
-					items: [
-						{
-							label: 'parent class when supplyScopeKey targets a class',
-						},
-					],
-				},
-				{
-					label: 'Source payload',
-					items: [
-						{
-							label: 'chain/indexer-specific raw fields',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

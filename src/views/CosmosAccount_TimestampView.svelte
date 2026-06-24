@@ -10,61 +10,17 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'account',
-			},
-			{
-				label: 'observation time',
-			},
-			'sequence',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'account',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'account number',
-					},
+					'accountNumber',
 					'sequence',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'parent Cosmos account',
-						},
-					],
-				},
-				{
-					label: 'Auth state',
-					items: [
-						{
-							label: 'account number',
-						},
-						'sequence',
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'auth account payload',
-						},
-						{
-							label: 'source freshness',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

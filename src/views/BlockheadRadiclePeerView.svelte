@@ -10,77 +10,18 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'local node',
-			},
-			{
-				label: 'peer node id',
-			},
-			{
-				label: 'connection kind',
-			},
+			'peerNodeId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'local node',
-					},
-					{
-						label: 'peer node id',
-					},
-					{
-						label: 'connection kind',
-					},
-					{
-						label: 'address count',
-					},
-					{
-						label: 'last seen timestamp',
-					},
-					{
-						label: 'remote alias',
-					},
-					{
-						label: 'remote DID',
-					},
+					'peerNodeId',
+					'connectionKind',
+					'addresses',
+					'lastSeenMs',
+					'remoteAlias',
+					'remoteDid',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Local node',
-					items: [
-						{
-							label: 'parent Radicle node state',
-						},
-					],
-				},
-				{
-					label: 'Shared repositories',
-					items: [
-						{
-							label: 'seed observations when inventory links both nodes',
-						},
-					],
-				},
-				{
-					label: 'Addresses',
-					items: [
-						{
-							label: 'observed peer addresses',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'connected-node peer payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

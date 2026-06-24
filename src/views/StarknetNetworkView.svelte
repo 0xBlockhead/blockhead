@@ -9,89 +9,49 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'linked Network',
-			},
-			{
-				label: 'chain id',
-			},
-			{
-				label: 'latest head observation',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
 				[
-					{
-						label: 'linked Network',
-					},
-					{
-						label: 'chain id',
-					},
-					{
-						label: 'latest head/sync observation',
-					},
-					{
-						label: 'bounded block count',
-					},
-					{
-						label: 'bounded contract/class/transaction counts',
-					},
-					{
-						label: 'L2Beat deployment mapping when source-backed',
-					},
+					'chainId',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Blocks',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'Starknet block rows',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Transactions',
+					label: 'blocks',
+					when: 'open',
 					items: [
-						{
-							label: 'Starknet transaction rows',
-						},
+						'$$blocks',
 					],
 				},
 				{
-					label: 'Contracts',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'Starknet contract rows',
-						},
+						'$$transactions',
 					],
 				},
 				{
-					label: 'Classes',
+					label: 'contracts',
+					when: 'open',
 					items: [
-						{
-							label: 'Starknet class rows',
-						},
+						'$$contracts',
 					],
 				},
 				{
-					label: 'Network observations',
+					label: 'classes',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped head/sync observations',
-						},
-					],
-				},
-				{
-					label: 'Scaling',
-					items: [
-						{
-							label: 'ScalingDeploymentClaim mapping when source-backed',
-						},
+						'$$classes',
 					],
 				},
 			],

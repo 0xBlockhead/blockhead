@@ -10,48 +10,15 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'API host',
-			},
-			'allowance',
-			{
-				label: 'fetched at',
-			},
+			'apiHost',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'API host',
-					},
+					'apiHost',
 					'allowance',
-					{
-						label: 'fetched at',
-					},
+					'fetchedAt',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Allowance',
-					items: [
-						{
-							label: 'global fast-burn allowance value',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Iris API host',
-						},
-						{
-							label: 'fetch timestamp',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

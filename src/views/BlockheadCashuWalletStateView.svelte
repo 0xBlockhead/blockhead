@@ -10,90 +10,52 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'wallet id',
-			},
-			{
-				label: 'mint',
-			},
+			'walletId',
 			'unit',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'wallet id',
-					},
-					{
-						label: 'mint',
-					},
+					'walletId',
 					'unit',
-					{
-						label: 'latest balance',
-					},
-					{
-						label: 'latest proof count',
-					},
-					{
-						label: 'latest active keyset count',
-					},
-					{
-						label: 'latest pending mint/melt quote counts',
-					},
-					{
-						label: 'latest sync time',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest state',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadCashuWalletState_TimestampView',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'State history',
+					label: 'proofs',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadCashuWalletState_TimestampsView',
-						},
+						'$$proofs',
 					],
 				},
 				{
-					label: 'Proofs',
+					label: 'tokens',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadCashuProof list',
-						},
+						'$$tokens',
 					],
 				},
 				{
-					label: 'Tokens',
+					label: 'mint quotes',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadCashuToken list',
-						},
+						'$$mintQuotes',
 					],
 				},
 				{
-					label: 'Mint',
+					label: 'melt quotes',
+					when: 'open',
 					items: [
-						{
-							label: 'CashuMintView',
-						},
-					],
-				},
-				{
-					label: 'Quotes',
-					items: [
-						{
-							label: 'BlockheadCashuMintQuote/BlockheadCashuMeltQuote rows known to the wallet',
-						},
+						'$$meltQuotes',
 					],
 				},
 			],

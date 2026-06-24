@@ -9,79 +9,28 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'parent network',
-			},
-			{
-				label: 'latest head snapshot',
-			},
-			{
-				label: 'environment',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
 				[
-					{
-						label: 'parent network',
-					},
-					{
-						label: 'latest head snapshot',
-					},
-					{
-						label: 'environment',
-					},
-					{
-						label: 'native asset count',
-					},
-					{
-						label: 'RPC endpoint count',
-					},
+					'rpcEndpoints',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Monero',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'Blocks',
-						},
-						{
-							label: 'Network snapshots',
-						},
-						{
-							label: 'Endpoints',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Assets',
+					label: 'blocks',
+					when: 'open',
 					items: [
-						{
-							label: 'native coin',
-						},
-					],
-				},
-				{
-					label: 'Resources',
-					items: [
-						{
-							label: 'faucets',
-						},
-						{
-							label: 'block explorers',
-						},
-					],
-				},
-				{
-					label: 'Local wallets',
-					items: [
-						{
-							label: 'BlockheadMoneroWalletState list when local wallet state exists',
-						},
+						'$$blocks',
 					],
 				},
 			],

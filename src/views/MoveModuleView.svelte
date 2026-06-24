@@ -10,74 +10,38 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'address/package id',
-			},
-			{
-				label: 'module name',
-			},
+			'address',
+			'moduleName',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'address/package id',
-					},
-					{
-						label: 'module name',
-					},
-					{
-						label: 'latest bytecode/source availability',
-					},
+					'address',
+					'moduleName',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest module state',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'latest module bytecode/ABI/source observation',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Module history',
+					label: 'functions',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped module observations',
-						},
+						'$$functions',
 					],
 				},
 				{
-					label: 'Functions',
+					label: 'structs',
+					when: 'open',
 					items: [
-						{
-							label: 'function rows from latest parsed interface',
-						},
-					],
-				},
-				{
-					label: 'Structs',
-					items: [
-						{
-							label: 'struct rows from latest parsed interface',
-						},
-					],
-				},
-				{
-					label: 'ABI/source',
-					items: [
-						{
-							label: 'structured payloads from latest timestamp',
-						},
+						'$$structs',
 					],
 				},
 			],

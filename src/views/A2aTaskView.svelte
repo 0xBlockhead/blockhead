@@ -10,86 +10,56 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'task id',
-			},
-			{
-				label: 'service',
-			},
-			{
-				label: 'context',
-			},
+			'taskId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'task id',
-					},
-					{
-						label: 'service',
-					},
-					{
-						label: 'provider task id',
-					},
-					{
-						label: 'context id',
-					},
-				],
-				[
-					{
-						label: 'created/updated/cancelled at',
-					},
+					'taskId',
+					'providerTaskId',
+					'contextId',
+					'createdAt',
+					'updatedAt',
+					'cancelledAt',
 					'listed',
-					{
-						label: 'latest state',
-					},
-					{
-						label: 'event/message/artifact refs',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Events',
+					label: 'events',
+					when: 'open',
 					items: [
-						{
-							label: 'A2aTaskEvent list',
-						},
+						'$$events',
 					],
 				},
 				{
-					label: 'Messages',
+					label: 'messages',
+					when: 'open',
 					items: [
-						{
-							label: 'A2aMessage list',
-						},
+						'$$messages',
 					],
 				},
 				{
-					label: 'Artifacts',
+					label: 'artifacts',
+					when: 'open',
 					items: [
-						{
-							label: 'A2aArtifact list',
-						},
+						'$$artifacts',
 					],
 				},
 				{
-					label: 'Status',
+					label: 'push notification configs',
+					when: 'open',
 					items: [
-						{
-							label: 'A2aTask_Timestamp list',
-						},
+						'$$pushNotificationConfigs',
 					],
 				},
 				{
-					label: 'Service',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'A2aAgentService',
-						},
+						'$$timestamps',
 					],
 				},
 			],

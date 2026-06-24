@@ -10,92 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'subnet',
-			},
-			{
-				label: 'observed time/source',
-			},
-			{
-				label: 'node count',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'subnet',
-					},
-					{
-						label: 'observed time/source',
-					},
-					{
-						label: 'subnet kind',
-					},
-					{
-						label: 'public key',
-					},
-					{
-						label: 'node count',
-					},
-					{
-						label: 'canister count',
-					},
-					{
-						label: 'replica version',
-					},
-					{
-						label: 'certified height',
-					},
-					{
-						label: 'state root hash',
-					},
+					'timestampMs',
+					'source',
+					'subnetKind',
+					'publicKey',
+					'nodeCount',
+					'canisterCount',
+					'replicaVersion',
+					'stateRootHash',
+					'certifiedHeight',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Subnet',
-					items: [
-						{
-							label: 'parent ICP subnet',
-						},
-					],
-				},
-				{
-					label: 'Node/replica state',
-					items: [
-						{
-							label: 'node count',
-						},
-						{
-							label: 'replica version',
-						},
-					],
-				},
-				{
-					label: 'Certification',
-					items: [
-						{
-							label: 'public key',
-						},
-						{
-							label: 'certified height',
-						},
-						{
-							label: 'state root hash',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'raw registry/status payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

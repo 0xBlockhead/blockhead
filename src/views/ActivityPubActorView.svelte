@@ -10,113 +10,40 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'icon/header image',
-			},
-			{
-				label: 'display name',
-			},
-			'acct',
+			'activityStreamsUri',
 		],
 		content: {
 			dl: [
 				[
+					'instanceOrigin',
+					'localAccountId',
+					'username',
 					'acct',
-					{
-						label: 'ActivityStreams URI',
-					},
-					{
-						label: 'instance origin',
-					},
-					{
-						label: 'local account id',
-					},
-					{
-						label: 'created date',
-					},
-				],
-				[
-					{
-						label: 'profile URL',
-					},
-					{
-						label: 'bot/locked flags',
-					},
-					{
-						label: 'latest follower/following/status counters',
-					},
+					'displayName',
+					'note',
+					'profileUrl',
+					'activityStreamsUri',
+					'website',
+					'bot',
+					'locked',
+					'createdAt',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Profile',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'display name',
-						},
-						'note',
-						{
-							label: 'icon',
-						},
-						{
-							label: 'header image',
-						},
-						'website',
-						{
-							label: 'profile URL',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Metric snapshots',
+					label: 'notes',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped follower/following/status counters',
-						},
-					],
-				},
-				{
-					label: 'Outbox',
-					items: [
-						{
-							label: 'note rows authored by this actor',
-						},
-					],
-				},
-				{
-					label: 'Federation identity',
-					items: [
-						{
-							label: 'ActivityStreams URI',
-						},
-						{
-							label: 'instance origin',
-						},
-						{
-							label: 'local account id',
-						},
-						{
-							label: 'acct selector',
-						},
-						{
-							label: 'WebFinger link evidence',
-						},
-					],
-				},
-				{
-					label: 'Lookup evidence',
-					items: [
-						{
-							label: 'Mastodon/Fedi account id lookup',
-						},
-						{
-							label: 'acct lookup',
-						},
-						{
-							label: 'ActivityStreams URI search/dereference',
-						},
+						'$$notes',
 					],
 				},
 			],

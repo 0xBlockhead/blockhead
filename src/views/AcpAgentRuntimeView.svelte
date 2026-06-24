@@ -10,86 +10,32 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'runtime id',
-			},
-			{
-				label: 'program version',
-			},
-			{
-				label: 'transport',
-			},
+			'runtimeId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'runtime id',
-					},
-					{
-						label: 'source',
-					},
-					{
-						label: 'program version',
-					},
-					{
-						label: 'program install',
-					},
-					{
-						label: 'transport kind',
-					},
-				],
-				[
-					{
-						label: 'process id',
-					},
-					{
-						label: 'initialized at',
-					},
-					{
-						label: 'session refs',
-					},
-					{
-						label: 'latest health',
-					},
+					'runtimeId',
+					'transportKind',
+					'processId',
+					'initializedAt',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Sessions',
+					label: 'sessions',
+					when: 'open',
 					items: [
-						{
-							label: 'AcpSession list',
-						},
+						'$$sessions',
 					],
 				},
 				{
-					label: 'Health',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'AcpAgentRuntime_Timestamp list',
-						},
-					],
-				},
-				{
-					label: 'Program',
-					items: [
-						{
-							label: 'AcpAgentProgramVersion',
-						},
-						{
-							label: 'BlockheadAgentProgramInstall',
-						},
-					],
-				},
-				{
-					label: 'Local source',
-					items: [
-						{
-							label: 'BlockheadSource',
-						},
+						'$$timestamps',
 					],
 				},
 			],

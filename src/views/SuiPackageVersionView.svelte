@@ -10,85 +10,35 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'package lineage',
-			},
-			{
-				label: 'package id',
-			},
+			'packageId',
+			'version',
+			'digest',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'package lineage',
-					},
-					{
-						label: 'package id',
-					},
+					'packageId',
 					'version',
 					'digest',
-					{
-						label: 'previous package id',
-					},
-					{
-						label: 'upgrade policy',
-					},
-					{
-						label: 'module count',
-					},
+					'previousPackageId',
+					'upgradePolicy',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Package',
+					label: 'modules',
+					when: 'open',
 					items: [
-						{
-							label: 'package lineage when resolved',
-						},
+						'$$modules',
 					],
 				},
 				{
-					label: 'Module identities',
+					label: 'module timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'Move module rows',
-						},
-					],
-				},
-				{
-					label: 'Module observations',
-					items: [
-						{
-							label: 'module bytecode/ABI/source observations for package version',
-						},
-					],
-				},
-				{
-					label: 'Publishing transaction',
-					items: [
-						{
-							label: 'Sui transaction when source object changes identify it',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'sui_getObject/GraphQL package object',
-						},
-						{
-							label: 'published-object payload',
-						},
+						'$$moduleTimestamps',
 					],
 				},
 			],

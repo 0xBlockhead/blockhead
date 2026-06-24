@@ -10,66 +10,32 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'dataset selector',
-			},
-			'label',
-			'modality',
+			'datasetUri',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'dataset URI',
-					},
-					{
-						label: 'HF dataset id/revision',
-					},
-					{
-						label: 'source dataset name/digest',
-					},
-					{
-						label: 'artifact',
-					},
-				],
-				[
+					'datasetUri',
+					'huggingFaceDatasetId',
+					'revision',
+					'source',
+					'datasetName',
+					'datasetDigest',
 					'label',
 					'license',
-					'version',
-					{
-						label: 'live dataset',
-					},
 					'modality',
-					{
-						label: 'document refs',
-					},
+					'version',
+					'isLiveDataset',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Documents',
+					label: 'documents',
+					when: 'open',
 					items: [
-						{
-							label: 'AiDocument list',
-						},
-					],
-				},
-				{
-					label: 'Benchmarks',
-					items: [
-						{
-							label: 'AiBenchmark list',
-						},
-					],
-				},
-				{
-					label: 'Artifacts',
-					items: [
-						{
-							label: 'AiArtifact when present',
-						},
+						'$$documents',
 					],
 				},
 			],

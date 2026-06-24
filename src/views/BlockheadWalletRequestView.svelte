@@ -10,127 +10,35 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'request id',
-			},
-			{
-				label: 'request kind',
-			},
-			{
-				label: 'latest status',
-			},
+			'id',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'request id',
-					},
-					{
-						label: 'wallet protocol',
-					},
-					{
-						label: 'request kind',
-					},
-					{
-						label: 'method',
-					},
-					{
-						label: 'latest status',
-					},
-					{
-						label: 'wallet connection',
-					},
-					{
-						label: 'account',
-					},
-					{
-						label: 'chain id',
-					},
-					{
-						label: 'from/to',
-					},
+					'id',
+					'walletProtocol',
+					'requestKind',
+					'requestMethod',
+					'chainId',
+					'fromAddress',
+					'toAddress',
 					'value',
-					{
-						label: 'call count',
-					},
-					{
-						label: 'atomic required',
-					},
-					{
-						label: 'requested time',
-					},
-					{
-						label: 'submitted time',
-					},
-				],
-				[
-					{
-						label: 'latest signature hash',
-					},
-					{
-						label: 'latest transaction hash',
-					},
-					{
-						label: 'latest transaction id',
-					},
-					{
-						label: 'wallet call bundle id',
-					},
-					{
-						label: 'request payload hash',
-					},
+					'callCount',
+					'atomicRequired',
+					'requestPayloadHash',
+					'walletCallBundleId',
+					'requestedAt',
+					'submittedAt',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Status history',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadWalletRequest_Timestamp list',
-						},
-					],
-				},
-				{
-					label: 'Session action',
-					items: [
-						{
-							label: 'BlockheadSessionActionView when linked',
-						},
-					],
-				},
-				{
-					label: 'Intent order',
-					items: [
-						{
-							label: 'BlockheadIntentOrderView when linked',
-						},
-					],
-				},
-				{
-					label: 'Wallet',
-					items: [
-						{
-							label: 'BlockheadWalletConnectionView when linked',
-						},
-					],
-				},
-				{
-					label: 'Chain evidence',
-					items: [
-						{
-							label: 'EvmTransaction or protocol transaction rows when the hash/id resolves publicly',
-						},
-					],
-				},
-				{
-					label: 'Request evidence',
-					items: [
-						{
-							label: 'request payload retained locally only when needed',
-						},
+						'$$timestamps',
 					],
 				},
 			],

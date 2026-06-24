@@ -9,111 +9,68 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'linked Network',
-			},
-			{
-				label: 'latest checkpoint/epoch/protocol version snapshot',
-			},
-			{
-				label: 'execution environment',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
-				[
-					{
-						label: 'linked Network',
-					},
-					{
-						label: 'latest checkpoint/epoch/protocol version snapshot',
-					},
-					{
-						label: 'execution environment',
-					},
-					{
-						label: 'account count',
-					},
-					{
-						label: 'object count',
-					},
-					{
-						label: 'package count',
-					},
-					{
-						label: 'coin type count',
-					},
-					{
-						label: 'transaction count',
-					},
-				],
+				[],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Checkpoints',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'Sui checkpoint rows',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Transactions',
+					label: 'checkpoints',
+					when: 'open',
 					items: [
-						{
-							label: 'Sui transaction rows',
-						},
+						'$$checkpoints',
 					],
 				},
 				{
-					label: 'Accounts',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'Sui account rows',
-						},
+						'$$transactions',
 					],
 				},
 				{
-					label: 'Objects',
+					label: 'accounts',
+					when: 'open',
 					items: [
-						{
-							label: 'Sui object rows',
-						},
+						'$$accounts',
 					],
 				},
 				{
-					label: 'Packages',
+					label: 'objects',
+					when: 'open',
 					items: [
-						{
-							label: 'Sui package rows',
-						},
+						'$$objects',
 					],
 				},
 				{
-					label: 'Coin types',
+					label: 'packages',
+					when: 'open',
 					items: [
-						{
-							label: 'Sui coin type rows',
-						},
+						'$$packages',
 					],
 				},
 				{
-					label: 'Balances',
+					label: 'coin types',
+					when: 'open',
 					items: [
-						{
-							label: 'coin balance observations',
-						},
+						'$$coinTypes',
 					],
 				},
 				{
-					label: 'Network snapshots',
+					label: 'coin balance timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped network observations',
-						},
+						'$$coinBalanceTimestamps',
 					],
 				},
 			],

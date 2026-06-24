@@ -10,101 +10,38 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'client id',
-			},
-			{
-				label: 'client type',
-			},
+			'clientId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'client id',
-					},
-					{
-						label: 'client type',
-					},
-					{
-						label: 'latest height',
-					},
-					{
-						label: 'frozen height',
-					},
-					{
-						label: 'counterparty chain id',
-					},
-					{
-						label: 'trust level',
-					},
-					{
-						label: 'trusting period',
-					},
-					{
-						label: 'unbonding period',
-					},
-					{
-						label: 'max clock drift',
-					},
-					{
-						label: 'connection count',
-					},
-					{
-						label: 'channel count',
-					},
+					'clientId',
+					'clientType',
+					'latestHeight',
+					'frozenHeight',
+					'trustLevel',
+					'trustingPeriodNs',
+					'unbondingPeriodNs',
+					'maxClockDriftNs',
+					'counterpartyChainId',
+					'consensusStates',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Connections',
+					label: 'connections',
+					when: 'open',
 					items: [
-						{
-							label: 'IBC connections using this client',
-						},
+						'$$connections',
 					],
 				},
 				{
-					label: 'Channels',
+					label: 'channels',
+					when: 'open',
 					items: [
-						{
-							label: 'IBC channels using this client',
-						},
-					],
-				},
-				{
-					label: 'Counterparty',
-					items: [
-						{
-							label: 'resolved network plus registry/indexer chain claims',
-						},
-					],
-				},
-				{
-					label: 'Consensus states',
-					items: [
-						{
-							label: 'decoded consensus-state list',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'client state',
-						},
-						{
-							label: 'consensus-state query payloads',
-						},
+						'$$channels',
 					],
 				},
 			],

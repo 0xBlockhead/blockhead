@@ -10,64 +10,18 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'asset',
-			},
-			{
-				label: 'observation time',
-			},
-			{
-				label: 'issued amount',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'asset',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'issued amount',
-					},
-					{
-						label: 'burned amount',
-					},
-					{
-						label: 'reissuance token count',
-					},
+					'issuedAmount',
+					'burnedAmount',
+					'reissuanceTokenCount',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Asset',
-					items: [
-						{
-							label: 'parent Elements asset',
-						},
-					],
-				},
-				{
-					label: 'Issuances',
-					items: [
-						{
-							label: 'issuance rows near this source/window',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Liquid Esplora asset registry/indexer payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

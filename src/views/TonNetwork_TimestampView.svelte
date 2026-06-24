@@ -10,61 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'observed time',
-			},
+			'timestampMs',
 			'source',
-			{
-				label: 'masterchain seqno',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'observed time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'masterchain seqno',
-					},
-					{
-						label: 'shard count',
-					},
-					{
-						label: 'validator count',
-					},
-					{
-						label: 'latest block time',
-					},
-					{
-						label: 'indexer lag',
-					},
+					'masterchainSeqno',
+					'shardCount',
+					'validatorCount',
+					'latestBlockUtimeMs',
+					'indexerLagMs',
 					'health',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent TON network identity',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'freshness',
-						},
-						{
-							label: 'raw status payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

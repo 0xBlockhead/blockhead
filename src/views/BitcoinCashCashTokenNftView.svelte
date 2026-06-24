@@ -9,65 +9,12 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'output',
-			},
-			{
-				label: 'category',
-			},
-			'capability',
-		],
+		closed: [],
 		content: {
 			dl: [
 				[
-					{
-						label: 'output',
-					},
-					{
-						label: 'category',
-					},
 					'capability',
-					{
-						label: 'commitment status',
-					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Output',
-					items: [
-						{
-							label: 'parent UTXO output',
-						},
-					],
-				},
-				{
-					label: 'Category',
-					items: [
-						{
-							label: 'parent CashToken category',
-						},
-					],
-				},
-				{
-					label: 'Commitment',
-					items: [
-						{
-							label: 'output-attached commitment',
-						},
-					],
-				},
-				{
-					label: 'Transaction',
-					items: [
-						{
-							label: 'parent UTXO transaction through the output',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,50 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'group id',
-			},
-			{
-				label: 'transaction count',
-			},
-			{
-				label: 'network',
-			},
+			'group',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'group id',
-					},
-					{
-						label: 'transaction count',
-					},
-					{
-						label: 'network',
-					},
-					{
-						label: 'member transaction rounds when available',
-					},
+					'group',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Transactions',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'transactions in group order',
-						},
-					],
-				},
-				{
-					label: 'Round context',
-					items: [
-						{
-							label: 'derive confirmation round from member transactions rather than group identity',
-						},
+						'$$transactions',
 					],
 				},
 			],

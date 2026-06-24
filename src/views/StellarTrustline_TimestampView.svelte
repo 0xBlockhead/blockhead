@@ -10,73 +10,23 @@
 	// State
 	const view = {
 		closed: [
-			'balance',
-			'limit',
-			{
-				label: 'liabilities',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
+					'timestampMs',
+					'source',
+					'ledgerSequence',
 					'balance',
 					'limit',
-					{
-						label: 'liabilities',
-					},
-					{
-						label: 'authorization/clawback flags',
-					},
-					{
-						label: 'ledger sequence',
-					},
-					'source',
-					{
-						label: 'observation time',
-					},
+					'buyingLiabilities',
+					'sellingLiabilities',
+					'authorized',
+					'authorizedToMaintainLiabilities',
+					'clawbackEnabled',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Trustline',
-					items: [
-						{
-							label: 'StellarTrustline',
-						},
-					],
-				},
-				{
-					label: 'Balances/limits',
-					items: [
-						'balance',
-						'limit',
-						{
-							label: 'buying/selling liabilities',
-						},
-					],
-				},
-				{
-					label: 'Authorization',
-					items: [
-						'authorized',
-						{
-							label: 'authorized to maintain liabilities',
-						},
-						{
-							label: 'clawback enabled',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Horizon/RPC/explorer trustline payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

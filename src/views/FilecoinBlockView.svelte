@@ -10,72 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'CID',
-			},
-			{
-				label: 'tipset',
-			},
+			'cid',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'CID',
-					},
-					{
-						label: 'tipset',
-					},
-					{
-						label: 'miner',
-					},
-					{
-						label: 'ticket VRF proof',
-					},
-					{
-						label: 'win count',
-					},
+					'cid',
+					'ticketVrFProof',
+					'winCount',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Messages',
+					label: 'messages',
+					when: 'open',
 					items: [
-						{
-							label: 'Filecoin messages included in the block',
-						},
-					],
-				},
-				{
-					label: 'Tipset',
-					items: [
-						{
-							label: 'parent Filecoin tipset',
-						},
-					],
-				},
-				{
-					label: 'Miner',
-					items: [
-						{
-							label: 'producing Filecoin miner',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Filecoin network',
-						},
+						'$$messages',
 					],
 				},
 			],

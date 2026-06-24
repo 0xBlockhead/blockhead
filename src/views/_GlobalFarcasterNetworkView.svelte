@@ -11,55 +11,49 @@
 	const view = {
 		closed: [
 			'scope',
-			'$$timestamps',
-			'$$sourceWindowUsers',
 		],
 		content: {
 			dl: [
 				[
 					'scope',
-					'$$timestamps',
-				],
-				[
-					'$$sourceWindowUsers',
-					'$$sourceWindowChannels',
-					'$$sourceWindowCasts',
-					'$$sourceWindowFeeds',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Source-window rows',
+					label: 'source window users',
+					when: 'open',
 					items: [
 						'$$sourceWindowUsers',
+					],
+				},
+				{
+					label: 'source window channels',
+					when: 'open',
+					items: [
 						'$$sourceWindowChannels',
+					],
+				},
+				{
+					label: 'source window casts',
+					when: 'open',
+					items: [
 						'$$sourceWindowCasts',
+					],
+				},
+				{
+					label: 'source window feeds',
+					when: 'open',
+					items: [
 						'$$sourceWindowFeeds',
 					],
 				},
 				{
-					label: 'Hub observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
 						'$$timestamps',
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'SourceBinding.Constants_Internal',
-						},
-						{
-							label: 'SourceBinding.Farcaster_Rest',
-						},
-						{
-							label: 'SourceBinding.Neynar_Rest',
-						},
-						{
-							label: 'SourceBinding.Snapchain_Rest',
-						},
 					],
 				},
 			],

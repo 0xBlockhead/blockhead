@@ -10,61 +10,23 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'contract',
-			},
-			{
-				label: 'key hash/key',
-			},
-			{
-				label: 'latest storage observation',
-			},
+			'keyHash',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'contract',
-					},
-					{
-						label: 'key hash/key',
-					},
-					{
-						label: 'latest value/durability/TTL observation',
-					},
-					{
-						label: 'snapshot count',
-					},
+					'keyHash',
+					'key',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Snapshots',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'ledger/source storage-entry observations',
-						},
-					],
-				},
-				{
-					label: 'Contract',
-					items: [
-						{
-							label: 'parent Soroban contract',
-						},
-					],
-				},
-				{
-					label: 'Raw key',
-					items: [
-						{
-							label: 'decoded key JSON',
-						},
-						{
-							label: 'key XDR/source evidence',
-						},
+						'$$timestamps',
 					],
 				},
 			],

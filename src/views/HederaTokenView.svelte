@@ -10,112 +10,39 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'token id',
-			},
-			{
-				label: 'token type',
-			},
-			{
-				label: 'supply type',
-			},
+			'tokenId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'token id',
-					},
-					{
-						label: 'token type',
-					},
-					{
-						label: 'supply type',
-					},
+					'tokenId',
+					'tokenType',
+					'supplyType',
 					'decimals',
-					{
-						label: 'latest name/symbol',
-					},
-					{
-						label: 'latest treasury',
-					},
-					{
-						label: 'latest supply',
-					},
-					{
-						label: 'paused/deleted state',
-					},
-					{
-						label: 'latest custom fee count',
-					},
-					{
-						label: 'association count',
-					},
-					{
-						label: 'NFT count',
-					},
-					{
-						label: 'timestamp count',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest state',
+					label: 'associations',
+					when: 'open',
 					items: [
-						{
-							label: 'latest token-info observation',
-						},
+						'$$associations',
 					],
 				},
 				{
-					label: 'State history',
+					label: 'nfts',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped token-info observations',
-						},
+						'$$nfts',
 					],
 				},
 				{
-					label: 'Control keys',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'latest key fields',
-						},
-					],
-				},
-				{
-					label: 'Custom fees',
-					items: [
-						{
-							label: 'custom-fee rows from latest token-info observation',
-						},
-					],
-				},
-				{
-					label: 'Account associations',
-					items: [
-						{
-							label: 'token association rows',
-						},
-					],
-				},
-				{
-					label: 'NFTs',
-					items: [
-						{
-							label: 'NFT serial rows for non-fungible tokens',
-						},
-					],
-				},
-				{
-					label: 'Transfers',
-					items: [
-						{
-							label: 'token transfer rows',
-						},
+						'$$timestamps',
 					],
 				},
 			],

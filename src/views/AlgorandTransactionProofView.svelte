@@ -10,77 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'transaction',
-			},
 			'round',
-			{
-				label: 'hash type',
-			},
+			'hashType',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'transaction',
-					},
 					'round',
-					{
-						label: 'hash type',
-					},
+					'hashType',
 					'source',
-					{
-						label: 'proof byte availability',
-					},
-					{
-						label: 'state-proof hash',
-					},
-					{
-						label: 'tree depth',
-					},
-					{
-						label: 'path summary',
-					},
+					'proofBytes',
+					'stibHash',
+					'treeDepth',
+					'path',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Transaction',
-					items: [
-						{
-							label: 'parent transaction',
-						},
-					],
-				},
-				{
-					label: 'Round',
-					items: [
-						{
-							label: 'ledger round coordinate',
-						},
-					],
-				},
-				{
-					label: 'Proof material',
-					items: [
-						{
-							label: 'proof bytes/path/hash fields',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'algod transaction proof payload',
-						},
-						{
-							label: 'node freshness',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

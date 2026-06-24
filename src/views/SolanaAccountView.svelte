@@ -10,89 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
 			'pubkey',
-			{
-				label: 'owner program',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'pubkey',
-					{
-						label: 'owner program',
-					},
-				],
-				[
-					{
-						label: 'latest lamports/executable/rent/data snapshot',
-					},
-					{
-						label: 'token-account count',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Account observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'slot-bounded account state observations',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Owner program',
+					label: 'token accounts',
+					when: 'open',
 					items: [
-						{
-							label: 'owning Solana program',
-						},
-					],
-				},
-				{
-					label: 'Token accounts',
-					items: [
-						{
-							label: 'SPL token accounts owned by this pubkey',
-						},
-					],
-				},
-				{
-					label: 'Transactions/instructions',
-					items: [
-						{
-							label: 'instruction references when reached from transactions',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Solana network',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'getAccountInfo',
-						},
-						{
-							label: 'getMultipleAccounts/getProgramAccounts when wired',
-						},
-						{
-							label: 'indexer account payloads',
-						},
+						'$$tokenAccounts',
 					],
 				},
 			],

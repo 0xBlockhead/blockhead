@@ -10,89 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'quote',
-			},
 			'index',
-			{
-				label: 'provider step id',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'quote',
-					},
 					'index',
-					{
-						label: 'provider step id',
-					},
-					{
-						label: 'step type',
-					},
+					'providerStepId',
+					'stepType',
 					'protocol',
-					{
-						label: 'pool id',
-					},
-					{
-						label: 'liquidity pool ref',
-					},
-					{
-						label: 'token in/out',
-					},
-					{
-						label: 'amount in/out',
-					},
-					{
-						label: 'fee bps',
-					},
-					{
-						label: 'share bps',
-					},
-					{
-						label: 'gas estimate',
-					},
+					'poolId',
+					'amountIn',
+					'amountOut',
+					'feeBps',
+					'shareBps',
+					'gasEstimate',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Quote observation',
-					items: [
-						{
-							label: 'parent swap quote observation',
-						},
-					],
-				},
-				{
-					label: 'Pool',
-					items: [
-						{
-							label: 'liquidity pool when the source gives a stable pool selector',
-						},
-					],
-				},
-				{
-					label: 'Tokens',
-					items: [
-						{
-							label: 'EVM coin instance refs',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'provider route hop payload',
-						},
-						{
-							label: 'router/path metadata',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

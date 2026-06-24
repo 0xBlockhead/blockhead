@@ -10,56 +10,18 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'session',
-			},
-			{
-				label: 'request id',
-			},
-			{
-				label: 'kind',
-			},
+			'requestId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'session',
-					},
-					{
-						label: 'request id',
-					},
-					{
-						label: 'kind',
-					},
+					'requestId',
+					'requestKind',
+					'createdAt',
+					'resolvedAt',
 					'decision',
-				],
-				[
-					{
-						label: 'created/resolved at',
-					},
 					'payload',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Session',
-					items: [
-						{
-							label: 'AcpSession',
-						},
-					],
-				},
-				{
-					label: 'Decision',
-					items: [
-						{
-							label: 'decision and payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

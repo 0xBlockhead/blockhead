@@ -10,85 +10,23 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'market key',
-			},
-			{
-				label: 'interval',
-			},
+			'marketKey',
+			'timeInterval',
+			'timestampMs',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'market key',
-					},
-					{
-						label: 'interval',
-					},
-					{
-						label: 'interval start',
-					},
-					{
-						label: 'perp market or spot pair ref',
-					},
+					'marketKey',
+					'timeInterval',
+					'timestampMs',
 					'open',
 					'high',
 					'low',
 					'close',
 					'volume',
-					{
-						label: 'trade count',
-					},
+					'tradeCount',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Perp market',
-					items: [
-						{
-							label: 'linked perp market when available',
-						},
-					],
-				},
-				{
-					label: 'Spot pair',
-					items: [
-						{
-							label: 'linked spot pair when available',
-						},
-					],
-				},
-				{
-					label: 'Candle payload',
-					items: [
-						{
-							label: 'OHLCV fields',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'observing provider on row metadata',
-						},
-						{
-							label: 'raw candleSnapshot row',
-						},
-						{
-							label: 'request range',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

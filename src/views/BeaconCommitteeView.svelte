@@ -9,68 +9,17 @@
 
 	// State
 	const view = {
-		lists: [
-			{
-				id: 'committee-validators',
-				label: 'Committee validators',
-				limit: 16,
-				query: {
-					sources: [
-						'Beacon_Rest',
-					],
-					limit: 16,
-				},
-				item: 'summary',
-			},
-		],
 		closed: [
-			{
-				label: 'committee index in the slot',
-			},
+			'slot',
+			'index',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'committee index in the slot',
-					},
+					'slot',
+					'index',
+					'validatorIndices',
 				],
-				[
-					{
-						label: 'validator count',
-					},
-				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Slot',
-					items: [
-						{
-							label: 'slot assignment context',
-						},
-					],
-				},
-				{
-					label: 'Validators',
-					items: [
-						{
-							label: 'validator index list',
-						},
-						{
-							label: 'validator count',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'beacon committee endpoint payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

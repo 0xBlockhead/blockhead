@@ -10,94 +10,36 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'account',
-			},
-			{
-				label: 'subaccount number',
-			},
-			{
-				label: 'latest equity',
-			},
+			'subaccountNumber',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'account',
-					},
-					{
-						label: 'subaccount number',
-					},
-					{
-						label: 'latest equity/free collateral',
-					},
-					{
-						label: 'latest margin status',
-					},
-					{
-						label: 'position count',
-					},
-					{
-						label: 'open order count',
-					},
+					'subaccountNumber',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Subaccount observations',
+					label: 'positions',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped subaccount risk/collateral observations',
-						},
+						'$$positions',
 					],
 				},
 				{
-					label: 'Positions',
+					label: 'orders',
+					when: 'open',
 					items: [
-						{
-							label: 'perpetual position observations',
-						},
+						'$$orders',
 					],
 				},
 				{
-					label: 'Orders',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'dYdX order rows',
-						},
-					],
-				},
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'underlying Cosmos account',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent dYdX Chain network',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'dYdX indexer subaccount payload',
-						},
-						{
-							label: 'validator app-state query',
-						},
+						'$$timestamps',
 					],
 				},
 			],

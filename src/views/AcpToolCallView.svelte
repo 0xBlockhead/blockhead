@@ -10,58 +10,30 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'prompt turn',
-			},
-			{
-				label: 'tool call id',
-			},
-			{
-				label: 'tool name',
-			},
+			'toolCallId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'prompt turn',
-					},
-					{
-						label: 'tool call id',
-					},
-					{
-						label: 'tool/server name',
-					},
-				],
-				[
-					{
-						label: 'started/completed at',
-					},
-					{
-						label: 'input/output hash algorithms and hashes',
-					},
-					{
-						label: 'latest status',
-					},
+					'toolCallId',
+					'toolName',
+					'serverName',
+					'startedAt',
+					'completedAt',
+					'inputHashAlgorithm',
+					'inputHash',
+					'outputHashAlgorithm',
+					'outputHash',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Prompt turn',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'AcpPromptTurn',
-						},
-					],
-				},
-				{
-					label: 'Observations',
-					items: [
-						{
-							label: 'AcpToolCall_Timestamp list',
-						},
+						'$$timestamps',
 					],
 				},
 			],

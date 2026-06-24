@@ -10,85 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'melt quote',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'melt quote',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'state',
-					{
-						label: 'expiry',
-					},
-					{
-						label: 'payment preimage status',
-					},
-					{
-						label: 'subscription id',
-					},
+					'expiryMs',
+					'paymentPreimage',
+					'subscriptionId',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Melt quote',
-					items: [
-						{
-							label: 'BlockheadCashuMeltQuoteView',
-						},
-					],
-				},
-				{
-					label: 'Mint',
-					items: [
-						{
-							label: 'CashuMintView through the quote',
-						},
-					],
-				},
-				{
-					label: 'Payment proof',
-					items: [
-						{
-							label: 'payment preimage when present',
-						},
-					],
-				},
-				{
-					label: 'Input proofs',
-					items: [
-						{
-							label: 'BlockheadCashuProof list from the quote',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'NUT-05 quote-state response',
-						},
-						{
-							label: 'melt execution response',
-						},
-						{
-							label: 'or NUT-17 websocket notification',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

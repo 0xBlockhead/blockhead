@@ -10,102 +10,50 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'operator address',
-			},
-			'name',
-			{
-				label: 'delegation count',
-			},
+			'operatorAddress',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'operator address',
-					},
+					'operatorAddress',
+					'earningsReceiver',
+					'delegationApprover',
+					'stakerOptOutWindowBlocks',
+					'metadataUri',
 					'name',
 					'website',
-					{
-						label: 'metadata URI',
-					},
-					{
-						label: 'earnings receiver',
-					},
-					{
-						label: 'delegation approver',
-					},
-				],
-				[
-					{
-						label: 'staker opt-out window',
-					},
-					{
-						label: 'latest delegated TVL/shares',
-					},
-					{
-						label: 'AVS allocation count',
-					},
-					{
-						label: 'slashing event count',
-					},
+					'description',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Delegations',
+					label: 'delegations',
+					when: 'open',
 					items: [
-						{
-							label: 'delegation observations grouped by staker/strategy',
-						},
+						'$$delegations',
 					],
 				},
 				{
-					label: 'AVS allocations',
+					label: 'allocations',
+					when: 'open',
 					items: [
-						{
-							label: 'allocation observations for this operator',
-						},
+						'$$allocations',
 					],
 				},
 				{
-					label: 'Rewards',
+					label: 'rewards',
+					when: 'open',
 					items: [
-						{
-							label: 'reward observations for this operator/earner context',
-						},
+						'$$rewards',
 					],
 				},
 				{
-					label: 'Slashing',
+					label: 'slashing events',
+					when: 'open',
 					items: [
-						{
-							label: 'slashing events involving this operator',
-						},
-					],
-				},
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'operator EVM network account',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'DelegationManager operator details',
-						},
-						{
-							label: 'metadata payload',
-						},
-						{
-							label: 'operator list/indexer freshness',
-						},
+						'$$slashingEvents',
 					],
 				},
 			],

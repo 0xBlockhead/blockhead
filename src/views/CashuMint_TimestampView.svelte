@@ -10,104 +10,31 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'mint',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'mint',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'reachability',
-					},
-					{
-						label: 'server time',
-					},
-					'version',
+					'reachable',
+					'name',
 					'pubkey',
+					'version',
+					'description',
+					'descriptionLong',
+					'motd',
+					'iconUrl',
+					'tosUrl',
+					'serverTimeMs',
+					'contactJson',
+					'urls',
+					'nutsJson',
+					'mintMethodsJson',
+					'meltMethodsJson',
+					'supportedNutNumbers',
 				],
-				[
-					{
-						label: 'supported NUT count',
-					},
-					{
-						label: 'mint method summary',
-					},
-					{
-						label: 'melt method summary',
-					},
-					{
-						label: 'contact/url availability',
-					},
-				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Mint',
-					items: [
-						{
-							label: 'parent Cashu mint',
-						},
-					],
-				},
-				{
-					label: 'Operator metadata',
-					items: [
-						'name',
-						{
-							label: 'descriptions',
-						},
-						{
-							label: 'icon',
-						},
-						{
-							label: 'TOS',
-						},
-						'contactJson',
-						'urls',
-					],
-				},
-				{
-					label: 'Capabilities',
-					items: [
-						'supportedNutNumbers',
-						'mintMethodsJson',
-						'meltMethodsJson',
-						'nutsJson',
-					],
-				},
-				{
-					label: 'Keysets',
-					items: [
-						{
-							label: 'public keysets advertised by the mint',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'GET /v1/info response',
-						},
-						{
-							label: 'fetch status',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

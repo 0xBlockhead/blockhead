@@ -10,117 +10,30 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'pool',
-			},
 			'epoch',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'pool',
-					},
 					'epoch',
 					'source',
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'slot',
 					'pledge',
 					'margin',
-					{
-						label: 'fixed cost',
-					},
-					{
-						label: 'reward account',
-					},
-					{
-						label: 'owner count',
-					},
-					{
-						label: 'metadata URL/hash',
-					},
-				],
-				[
-					{
-						label: 'live/active stake',
-					},
-					{
-						label: 'delegator count',
-					},
-					{
-						label: 'block count',
-					},
+					'fixedCostLovelace',
+					'rewardAccount',
+					'owners',
+					'metadataUrl',
+					'metadataHash',
+					'liveStake',
+					'activeStake',
+					'delegatorCount',
+					'blockCount',
 					'saturation',
-					{
-						label: 'retired flag',
-					},
+					'retired',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Stake pool',
-					items: [
-						{
-							label: 'CardanoStakePool',
-						},
-					],
-				},
-				{
-					label: 'Registration/economics',
-					items: [
-						'pledge',
-						'margin',
-						{
-							label: 'fixed cost',
-						},
-						{
-							label: 'reward account',
-						},
-						'owners',
-					],
-				},
-				{
-					label: 'Metadata',
-					items: [
-						{
-							label: 'metadata URL',
-						},
-						{
-							label: 'metadata hash',
-						},
-					],
-				},
-				{
-					label: 'Performance/stake',
-					items: [
-						{
-							label: 'live/active stake',
-						},
-						{
-							label: 'delegator count',
-						},
-						{
-							label: 'block count',
-						},
-						'saturation',
-						{
-							label: 'retired flag',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'epoch-scoped pool payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,54 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'task',
-			},
-			{
-				label: 'config id',
-			},
-			'url',
+			'configId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'task',
-					},
-					{
-						label: 'config id',
-					},
+					'configId',
 					'url',
-				],
-				[
-					{
-						label: 'auth kind',
-					},
-					{
-						label: 'created/deleted at',
-					},
+					'authKind',
+					'authentication',
+					'createdAt',
+					'deletedAt',
 					'status',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Task',
-					items: [
-						{
-							label: 'A2aTask',
-						},
-					],
-				},
-				{
-					label: 'Delivery',
-					items: [
-						{
-							label: 'URL/auth/status',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

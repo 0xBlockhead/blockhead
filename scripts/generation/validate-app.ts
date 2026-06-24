@@ -2,9 +2,11 @@ import { existsSync } from 'node:fs'
 
 import {
 	factsToEntityViews,
+	factsToHubCollectionRoutes,
 	factsToResolverCoverage,
 	factsToRoutePages,
 	factsToRouteSections,
+	factsToSelectorRouteMappings,
 	factsToSourceProviders,
 	factsToSources,
 	schemaFactsToEntities,
@@ -41,6 +43,8 @@ export const validateApp = async () => {
 	const expectedEntityViews = factsToEntityViews(facts)
 	const expectedRouteSections = factsToRouteSections(facts)
 	const expectedRoutePages = factsToRoutePages(facts)
+	const expectedSelectorRouteMappings = factsToSelectorRouteMappings(facts)
+	const expectedHubCollectionRoutes = factsToHubCollectionRoutes(facts)
 	const expectedResolverCoverage = factsToResolverCoverage(facts)
 	const actualEntities = app.schema.entities
 	const schemaMatches = JSON.stringify(actualEntities) === JSON.stringify(expectedEntities)
@@ -50,6 +54,8 @@ export const validateApp = async () => {
 	const entityViewsMatch = JSON.stringify(app.views.entityViews) === JSON.stringify(expectedEntityViews)
 	const routeSectionsMatch = JSON.stringify(app.routes.sections) === JSON.stringify(expectedRouteSections)
 	const routePagesMatch = JSON.stringify(app.routes.pages) === JSON.stringify(expectedRoutePages)
+	const selectorRouteMappingsMatch = JSON.stringify(app.routes.selectorMappings) === JSON.stringify(expectedSelectorRouteMappings)
+	const hubCollectionRoutesMatch = JSON.stringify(app.routes.hubCollections) === JSON.stringify(expectedHubCollectionRoutes)
 	const resolverCoverageMatch = JSON.stringify(app.resolvers.coverage) === JSON.stringify(expectedResolverCoverage)
 
 	writeText('.generated/reports/app-validation.md', [
@@ -76,6 +82,12 @@ export const validateApp = async () => {
 		`Expected route pages: ${expectedRoutePages.length}`,
 		`Actual route pages: ${app.routes.pages.length}`,
 		`Route pages match extracted evidence: ${routePagesMatch ? 'yes' : 'no'}`,
+		`Expected selector route mappings: ${expectedSelectorRouteMappings.length}`,
+		`Actual selector route mappings: ${app.routes.selectorMappings.length}`,
+		`Selector route mappings match extracted evidence: ${selectorRouteMappingsMatch ? 'yes' : 'no'}`,
+		`Expected hub collection routes: ${expectedHubCollectionRoutes.length}`,
+		`Actual hub collection routes: ${app.routes.hubCollections.length}`,
+		`Hub collection routes match extracted evidence: ${hubCollectionRoutesMatch ? 'yes' : 'no'}`,
 		`Expected resolver coverage rows: ${expectedResolverCoverage.length}`,
 		`Actual resolver coverage rows: ${app.resolvers.coverage.length}`,
 		`Resolver coverage matches extracted evidence: ${resolverCoverageMatch ? 'yes' : 'no'}`,
@@ -101,6 +113,12 @@ export const validateApp = async () => {
 
 	if (!routePagesMatch)
 		throw new Error('APP.ts route pages do not match extracted route page evidence')
+
+	if (!selectorRouteMappingsMatch)
+		throw new Error('APP.ts selector route mappings do not match extracted selector route evidence')
+
+	if (!hubCollectionRoutesMatch)
+		throw new Error('APP.ts hub collection routes do not match extracted route evidence')
 
 	if (!resolverCoverageMatch)
 		throw new Error('APP.ts resolver coverage does not match extracted resolver evidence')

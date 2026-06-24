@@ -10,41 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'slot number',
-			},
-			'epoch',
-			{
-				label: 'block root',
-			},
+			'slot',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'slot number',
-					},
+					'slot',
 					'epoch',
-					{
-						label: 'proposer index',
-					},
-					{
-						label: 'canonical flag',
-					},
-				],
-				[
-					{
-						label: 'block root',
-					},
-					{
-						label: 'parent root',
-					},
-					{
-						label: 'state root',
-					},
-					{
-						label: 'body root',
-					},
+					'proposerIndex',
+					'root',
+					'parentRoot',
+					'stateRoot',
+					'bodyRoot',
+					'canonical',
 					'signature',
 				],
 			],
@@ -52,54 +30,31 @@
 		details: {
 			tabs: [
 				{
-					label: 'Committees',
+					label: 'beacon committees',
+					when: 'open',
 					items: [
-						{
-							label: 'committee assignments for this slot',
-						},
+						'$$beaconCommittees',
 					],
 				},
 				{
-					label: 'Attestations',
+					label: 'beacon attestations',
+					when: 'open',
 					items: [
-						{
-							label: 'attestations included in this slot',
-						},
+						'$$beaconAttestations',
 					],
 				},
 				{
-					label: 'Withdrawals',
+					label: 'beacon withdrawals',
+					when: 'open',
 					items: [
-						{
-							label: 'withdrawals included in this slot',
-						},
+						'$$beaconWithdrawals',
 					],
 				},
 				{
-					label: 'Slashings',
+					label: 'beacon slashings',
+					when: 'open',
 					items: [
-						{
-							label: 'attester/proposer slashings included in this slot',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent EVM network consensus context',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: '/eth/v1/beacon/headers/{block_id}',
-						},
-						{
-							label: '/eth/v2/beacon/blocks/{block_id}',
-						},
+						'$$beaconSlashings',
 					],
 				},
 			],

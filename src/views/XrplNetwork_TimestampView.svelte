@@ -10,78 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'validated ledger',
-			},
-			{
-				label: 'complete ledger range',
-			},
-			{
-				label: 'load factor',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'validated ledger',
-					},
-					{
-						label: 'complete ledger range',
-					},
-					{
-						label: 'load factor',
-					},
-					{
-						label: 'peer count',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'observation time',
-					},
+					'validatedLedgerIndex',
+					'completeLedgers',
+					'loadFactor',
+					'peerCount',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'XrplNetwork',
-						},
-					],
-				},
-				{
-					label: 'Ledger range',
-					items: [
-						{
-							label: 'validated ledger',
-						},
-						{
-							label: 'complete ledger range',
-						},
-					],
-				},
-				{
-					label: 'Node health',
-					items: [
-						{
-							label: 'load factor',
-						},
-						{
-							label: 'peer count',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'rippled/clio/server info payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

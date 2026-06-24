@@ -10,73 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'node state',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'node state',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'synced time',
-					},
-					{
-						label: 'local file count',
-					},
-					{
-						label: 'local chunk count',
-					},
-					{
-						label: 'local proof count',
-					},
+					'syncedAt',
+					'localFileCount',
+					'localChunkCount',
+					'localProofCount',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Node',
-					items: [
-						{
-							label: 'parent connected-node state',
-						},
-					],
-				},
-				{
-					label: 'Local chunks',
-					items: [
-						{
-							label: 'stored chunks known to this connected node',
-						},
-					],
-				},
-				{
-					label: 'Local proofs',
-					items: [
-						{
-							label: 'proof material known to this connected node',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'storage-node JSON-RPC status/list payloads',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

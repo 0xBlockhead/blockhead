@@ -9,59 +9,24 @@
 
 	// State
 	const view = {
-		lists: [
-			{
-				id: 'markets',
-				label: 'Markets',
-				field: '$$markets',
-				slot: 'MarketsList',
-			},
-		],
-		slots: [
-			{
-				slot: 'MarketsList',
-				label: 'venue markets list',
-				for: 'Details',
-			},
-		],
 		closed: [
-			{
-				label: 'venue id',
-			},
-			'label',
+			'marketVenueId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'venue id',
-					},
+					'marketVenueId',
 					'label',
-					{
-						label: 'market count',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Markets',
+					label: 'markets',
+					when: 'open',
 					items: [
-						{
-							label: 'Market rows for this venue',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'checked-in venue catalog',
-						},
-						{
-							label: 'provider exchange mappings',
-						},
+						'$$markets',
 					],
 				},
 			],

@@ -10,85 +10,36 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'contract id',
-			},
-			{
-				label: 'latest executable observation',
-			},
-			{
-				label: 'storage/transaction windows',
-			},
+			'contractId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'contract id',
-					},
-					{
-						label: 'latest wasm-hash/WASM observation',
-					},
-					{
-						label: 'latest storage-entry count',
-					},
-					{
-						label: 'transaction window count',
-					},
-					{
-						label: 'network',
-					},
+					'contractId',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest executable',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'latest ledger/source executable observation',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Executable history',
+					label: 'storage entries',
+					when: 'open',
 					items: [
-						{
-							label: 'ledger/source executable observations',
-						},
+						'$$storageEntries',
 					],
 				},
 				{
-					label: 'Storage',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'contract storage entries',
-						},
-					],
-				},
-				{
-					label: 'Transactions',
-					items: [
-						{
-							label: 'Stellar transactions touching this contract',
-						},
-					],
-				},
-				{
-					label: 'Code',
-					items: [
-						{
-							label: 'linked Soroban WASM code details',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Stellar network',
-						},
+						'$$transactions',
 					],
 				},
 			],

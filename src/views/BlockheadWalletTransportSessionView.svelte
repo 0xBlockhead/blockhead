@@ -10,78 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'transport session id',
-			},
-			{
-				label: 'transport kind',
-			},
-			'status',
+			'connectionKey',
+			'transportSessionId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'transport session id',
-					},
-					{
-						label: 'transport kind',
-					},
-					{
-						label: 'session kind',
-					},
+					'connectionKey',
+					'transportSessionId',
+					'transportKind',
+					'sessionKind',
 					'status',
 					'topic',
-					{
-						label: 'peer id',
-					},
-				],
-				[
-					{
-						label: 'relay protocol',
-					},
-					{
-						label: 'bridge URL',
-					},
-					{
-						label: 'manifest URL',
-					},
+					'peerId',
+					'relayProtocol',
+					'bridgeUrl',
+					'manifestUrl',
 					'origin',
-					{
-						label: 'device id',
-					},
-					{
-						label: 'created/updated/expires timestamps',
-					},
+					'deviceId',
+					'createdAt',
+					'updatedAt',
+					'expiresAt',
+					'metadata',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Connection',
-					items: [
-						{
-							label: 'BlockheadWalletConnection',
-						},
-					],
-				},
-				{
-					label: 'Transport metadata',
-					items: [
-						{
-							label: 'redacted metadata JSON',
-						},
-					],
-				},
-				{
-					label: 'Lifecycle',
-					items: [
-						{
-							label: 'created/updated/expires/status',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

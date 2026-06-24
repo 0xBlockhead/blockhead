@@ -10,65 +10,27 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'L2Beat name',
-			},
-			'type',
-			'category',
+			'projectId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'L2Beat name',
-					},
+					'projectId',
+					'name',
+					'slug',
 					'type',
 					'category',
-					{
-						label: 'host chain',
-					},
-					{
-						label: 'settlement network',
-					},
-					{
-						label: 'latest source status',
-					},
+					'hostChain',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Settlement',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'settlement EVM network derived from L2Beat hostChain mapping',
-						},
-					],
-				},
-				{
-					label: 'Status history',
-					items: [
-						{
-							label: 'timestamped L2Beat project status observations',
-						},
-					],
-				},
-				{
-					label: 'Source identity',
-					items: [
-						{
-							label: 'L2Beat project id',
-						},
-						'slug',
-					],
-				},
-				{
-					label: 'Architecture claims',
-					items: [
-						{
-							label: 'ScalingDeploymentClaim rows may link back to this rollup when a richer source resolves them',
-						},
+						'$$timestamps',
 					],
 				},
 			],

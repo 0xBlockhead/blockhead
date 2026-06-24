@@ -11,48 +11,35 @@
 	const view = {
 		closed: [
 			'scope',
-			'$$timestamps',
-			'$$sourceWindowSubreddits',
 		],
 		content: {
 			dl: [
 				[
 					'scope',
-					'$$timestamps',
-				],
-				[
-					'$$sourceWindowSubreddits',
-					'$$sourceWindowLinks',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Source-window rows',
+					label: 'source window subreddits',
+					when: 'open',
 					items: [
 						'$$sourceWindowSubreddits',
+					],
+				},
+				{
+					label: 'source window links',
+					when: 'open',
+					items: [
 						'$$sourceWindowLinks',
 					],
 				},
 				{
-					label: 'Hub observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
 						'$$timestamps',
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'SourceBinding.Constants_Internal',
-						},
-						{
-							label: 'SourceBinding.Reddit_PublicJson',
-						},
-						{
-							label: 'SourceBinding.Reddit_Rest',
-						},
 					],
 				},
 			],

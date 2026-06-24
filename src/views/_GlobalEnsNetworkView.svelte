@@ -11,55 +11,21 @@
 	const view = {
 		closed: [
 			'scope',
-			'$$timestamps',
 		],
 		content: {
 			dl: [
 				[
 					'scope',
-					'$$timestamps',
-					'$registryContract',
-					'$ethRegistrarController',
-					'$reverseRegistrar',
-					'$nameWrapper',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Hub observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
 						'$$timestamps',
-					],
-				},
-				{
-					label: 'Anchor refs',
-					items: [
-						'$registryContract',
-						'$ethRegistrarController',
-						'$reverseRegistrar',
-						'$nameWrapper',
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'SourceBinding.Blockscout_Rest',
-						},
-						{
-							label: 'SourceBinding.Constants_Internal',
-						},
-						{
-							label: 'SourceBinding.Etherscan_Rest',
-						},
-						{
-							label: 'SourceBinding.TheGraph_Graphql',
-						},
-						{
-							label: 'SourceBinding.Voltaire_JsonRpc',
-						},
 					],
 				},
 			],

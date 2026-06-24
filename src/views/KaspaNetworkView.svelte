@@ -9,95 +9,54 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'linked base Network',
-			},
-			{
-				label: 'latest virtual selected parent',
-			},
-			{
-				label: 'pruning point',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
-				[
-					{
-						label: 'linked base Network',
-					},
-					{
-						label: 'latest virtual selected parent',
-					},
-					{
-						label: 'pruning point',
-					},
-					{
-						label: 'virtual DAA score',
-					},
-					{
-						label: 'virtual blue score',
-					},
-					{
-						label: 'indexed transaction count',
-					},
-					{
-						label: 'UTXO-index availability',
-					},
-					{
-						label: 'server version',
-					},
-				],
+				[],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Blocks',
+					label: 'blocks',
+					when: 'open',
 					items: [
-						{
-							label: 'Kaspa block rows',
-						},
+						'$$blocks',
 					],
 				},
 				{
-					label: 'Accepted transactions',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'accepted transaction rows',
-						},
+						'$$transactions',
 					],
 				},
 				{
-					label: 'Transactions',
+					label: 'accepted transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'Kaspa transaction rows',
-						},
+						'$$acceptedTransactions',
 					],
 				},
 				{
-					label: 'Addresses',
+					label: 'addresses',
+					when: 'open',
 					items: [
-						{
-							label: 'Kaspa address rows',
-						},
+						'$$addresses',
 					],
 				},
 				{
-					label: 'Virtual-chain history',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped virtual-chain movement observations',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Network timestamp history',
+					label: 'virtual chain timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped DAG head/indexer/node observations',
-						},
+						'$$virtualChainTimestamps',
 					],
 				},
 			],

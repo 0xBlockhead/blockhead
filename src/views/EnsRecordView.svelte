@@ -10,75 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'name',
-			},
-			{
-				label: 'record key',
-			},
-			{
-				label: 'record kind',
-			},
+			'recordKey',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'name',
-					},
-					{
-						label: 'record key',
-					},
-					{
-						label: 'record kind',
-					},
-					{
-						label: 'coin type',
-					},
-					{
-						label: 'latest value',
-					},
-					{
-						label: 'latest block/source',
-					},
-					{
-						label: 'timestamp count',
-					},
+					'recordKey',
+					'recordKind',
+					'coinType',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'History',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped resolver record observations',
-						},
-					],
-				},
-				{
-					label: 'Name',
-					items: [
-						{
-							label: 'parent ENS name',
-						},
-					],
-				},
-				{
-					label: 'Resolver evidence',
-					items: [
-						{
-							label: 'resolver selector/call context',
-						},
-					],
-				},
-				{
-					label: 'Display',
-					items: [
-						{
-							label: 'typed rendering for addr/text/contenthash/ABI/multicoin records',
-						},
+						'$$timestamps',
 					],
 				},
 			],

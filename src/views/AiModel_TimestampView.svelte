@@ -10,117 +10,50 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'model',
-			},
-			{
-				label: 'observation time',
-			},
-			{
-				label: 'availability',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'model',
-					},
-					{
-						label: 'timestamp',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'availability',
-					},
-					{
-						label: 'lifecycle',
-					},
-					{
-						label: 'deprecated/deleted',
-					},
+					'providerObjectType',
+					'providerDisplayName',
+					'providerDescription',
+					'providerVersion',
+					'providerOwnedBy',
+					'availabilityStatus',
+					'providerLifecycleStatus',
+					'releaseDate',
+					'deprecationDate',
+					'deprecated',
+					'deleted',
+					'contextWindowTokens',
+					'maxInputTokens',
+					'maxOutputTokens',
+					'inputModalities',
+					'outputModalities',
+					'supportedActions',
+					'supportedGenerationMethods',
+					'supportedEndpoints',
+					'defaultEndpoints',
+					'supportedCustomizationTypes',
+					'supportedInferenceTypes',
+					'supportedToolUse',
+					'supportedStructuredOutput',
+					'supportedJsonMode',
+					'supportedStreaming',
+					'supportedThinking',
+					'tokenizerUrl',
+					'samplingDefaults',
+					'inputPricePerMillionTokens',
+					'outputPricePerMillionTokens',
+					'cacheReadPricePerMillionTokens',
+					'cacheWritePricePerMillionTokens',
+					'rateLimitTier',
+					'raw',
 				],
-				[
-					{
-						label: 'provider display/description/version',
-					},
-					{
-						label: 'context/max token limits',
-					},
-					{
-						label: 'modalities',
-					},
-					{
-						label: 'actions/endpoints',
-					},
-					{
-						label: 'tool/structured/thinking/streaming support',
-					},
-					{
-						label: 'pricing',
-					},
-				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Model',
-					items: [
-						{
-							label: 'AiModel',
-						},
-					],
-				},
-				{
-					label: 'Capabilities',
-					items: [
-						{
-							label: 'modalities/actions/endpoints/customization/inference/tool/JSON/thinking/streaming fields',
-						},
-					],
-				},
-				{
-					label: 'Lifecycle',
-					items: [
-						{
-							label: 'provider lifecycle',
-						},
-						{
-							label: 'release/deprecation dates',
-						},
-						{
-							label: 'deleted/deprecated flags',
-						},
-					],
-				},
-				{
-					label: 'Defaults',
-					items: [
-						{
-							label: 'tokenizer URL',
-						},
-						{
-							label: 'sampling defaults',
-						},
-					],
-				},
-				{
-					label: 'Pricing',
-					items: [
-						{
-							label: 'token/cache pricing fields',
-						},
-					],
-				},
-				{
-					label: 'Raw',
-					items: [
-						{
-							label: 'raw provider payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

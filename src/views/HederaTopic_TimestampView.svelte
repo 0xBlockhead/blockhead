@@ -10,103 +10,26 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'topic',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'topic',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'memo',
-					{
-						label: 'admin key presence',
-					},
-					{
-						label: 'submit key presence',
-					},
-					{
-						label: 'auto-renew account/period',
-					},
-					{
-						label: 'fee schedule key',
-					},
-					{
-						label: 'exempt key count',
-					},
-					{
-						label: 'custom fee summary',
-					},
-					{
-						label: 'deleted flag',
-					},
-					{
-						label: 'sequence number',
-					},
-					{
-						label: 'running hash',
-					},
+					'adminKey',
+					'submitKey',
+					'autoRenewAccountId',
+					'autoRenewPeriodSeconds',
+					'feeScheduleKey',
+					'feeExemptKeys',
+					'customFees',
+					'deleted',
+					'sequenceNumber',
+					'runningHash',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Topic',
-					items: [
-						{
-							label: 'parent Hedera topic',
-						},
-					],
-				},
-				{
-					label: 'Fee configuration',
-					items: [
-						{
-							label: 'fee exempt keys',
-						},
-						{
-							label: 'custom fees',
-						},
-					],
-				},
-				{
-					label: 'Authorization',
-					items: [
-						{
-							label: 'admin/submit keys',
-						},
-						{
-							label: 'auto-renew account',
-						},
-					],
-				},
-				{
-					label: 'Message cursor',
-					items: [
-						{
-							label: 'latest sequence/running-hash evidence',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'raw topic payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

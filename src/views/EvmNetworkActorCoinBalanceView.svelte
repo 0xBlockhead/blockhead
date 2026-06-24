@@ -9,68 +9,29 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'formatted latest balance/symbol',
-			},
-			{
-				label: 'account link',
-			},
-			{
-				label: 'native asset or token contract',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
 				[
-					{
-						label: 'formatted latest balance/symbol',
-					},
-					{
-						label: 'account link',
-					},
-					{
-						label: 'native asset or token contract',
-					},
+					'symbol',
 					'decimals',
-					{
-						label: 'overview empty state',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped latest/current balance observations',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Block history',
+					label: 'blocks',
+					when: 'open',
 					items: [
-						{
-							label: 'block-bounded balance observations',
-						},
-					],
-				},
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'parent EVM network account',
-						},
-					],
-				},
-				{
-					label: 'Coin',
-					items: [
-						{
-							label: 'EVM coin instance or token contract',
-						},
+						'$$blocks',
 					],
 				},
 			],

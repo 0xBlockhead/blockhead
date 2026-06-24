@@ -9,81 +9,54 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'icon/name from actor ENS/blockie',
-			},
-			{
-				label: 'network icon',
-			},
-			{
-				label: 'address on network',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
-				[
-					{
-						label: 'icon/name from actor ENS/blockie',
-					},
-					{
-						label: 'network icon',
-					},
-					{
-						label: 'address on network',
-					},
-					{
-						label: 'latest activity/count/contract summary',
-					},
-				],
+				[],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Account observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped account activity/count observations',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Balances',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'network actor coin balances',
-						},
+						'$$transactions',
 					],
 				},
 				{
-					label: 'Activity',
+					label: 'token transfers',
+					when: 'open',
 					items: [
-						{
-							label: 'transactions',
-						},
-						{
-							label: 'token transfers',
-						},
-						{
-							label: 'internal transfers',
-						},
+						'$$tokenTransfers',
 					],
 				},
 				{
-					label: 'Allowances',
+					label: 'internal transfers',
+					when: 'open',
 					items: [
-						{
-							label: 'known ERC-20 allowance identities',
-						},
+						'$$internalTransfers',
 					],
 				},
 				{
-					label: 'Contract',
+					label: 'owned coins',
+					when: 'open',
 					items: [
-						{
-							label: 'linked contract row when code/source evidence resolves',
-						},
+						'$$ownedCoins',
+					],
+				},
+				{
+					label: 'erc20 token allowances',
+					when: 'open',
+					items: [
+						'$$erc20TokenAllowances',
 					],
 				},
 			],

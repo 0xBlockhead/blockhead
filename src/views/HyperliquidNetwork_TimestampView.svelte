@@ -10,113 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
-			{
-				label: 'perp market count',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'perp market count',
-					},
-					{
-						label: 'spot asset count',
-					},
-					{
-						label: 'spot pair count',
-					},
-					{
-						label: 'validator count',
-					},
-					{
-						label: 'active validator count',
-					},
-					{
-						label: 'jailed validator count',
-					},
-					{
-						label: 'total stake',
-					},
-					{
-						label: 'borrow/lend reserve count',
-					},
-					{
-						label: 'vault count',
-					},
+					'perpMarketCount',
+					'spotAssetCount',
+					'spotPairCount',
+					'validatorCount',
+					'activeValidatorCount',
+					'jailedValidatorCount',
+					'totalStake',
+					'borrowLendReserveCount',
+					'vaultCount',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Hyperliquid network',
-						},
-					],
-				},
-				{
-					label: 'Validator summary',
-					items: [
-						{
-							label: 'active/jailed/stake aggregate',
-						},
-					],
-				},
-				{
-					label: 'Market universe',
-					items: [
-						{
-							label: 'perp',
-						},
-						{
-							label: 'spot universe counts',
-						},
-					],
-				},
-				{
-					label: 'Borrow/lend reserves',
-					items: [
-						{
-							label: 'all reserve-state payload summary',
-						},
-					],
-				},
-				{
-					label: 'Vaults',
-					items: [
-						{
-							label: 'vault count/source summary',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'meta',
-						},
-						{
-							label: 'spotMeta',
-						},
-						{
-							label: 'validatorSummaries',
-						},
-						{
-							label: 'borrow/lend/vault list payload freshness',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

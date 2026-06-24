@@ -10,69 +10,23 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'observed time',
-			},
+			'timestampMs',
 			'source',
-			{
-				label: 'balance',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'observed time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'balance',
-					},
+					'balanceNano',
 					'status',
-					{
-						label: 'last transaction lt/hash',
-					},
-					{
-						label: 'code hash',
-					},
-					{
-						label: 'data hash',
-					},
-					{
-						label: 'state hash',
-					},
-					{
-						label: 'frozen-state hash',
-					},
+					'codeHash',
+					'dataHash',
+					'stateHash',
+					'frozenHash',
+					'lastTransactionLt',
+					'lastTransactionHash',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'parent TON account',
-						},
-					],
-				},
-				{
-					label: 'State hashes',
-					items: [
-						{
-							label: 'code/data/state/frozen hashes',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'raw account-state payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,66 +10,20 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'node',
-			},
-			{
-				label: 'timestamp',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'node',
-					},
-					{
-						label: 'timestamp',
-					},
+					'timestampMs',
 					'source',
+					'repositoryCount',
+					'connectedPeerCount',
+					'routingTableSize',
+					'advertisedRids',
 					'status',
-					{
-						label: 'repository count',
-					},
-					{
-						label: 'connected peer count',
-					},
-					{
-						label: 'routing table size',
-					},
-					{
-						label: 'advertised RID count',
-					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Node',
-					items: [
-						{
-							label: 'parent Radicle node state',
-						},
-					],
-				},
-				{
-					label: 'Advertised repositories',
-					items: [
-						{
-							label: 'Radicle repositories when RIDs resolve',
-						},
-					],
-				},
-				{
-					label: 'Raw inventory',
-					items: [
-						{
-							label: 'connected-node payload summary',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

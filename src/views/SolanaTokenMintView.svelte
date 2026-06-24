@@ -10,93 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'mint address',
-			},
-			{
-				label: 'latest mint snapshot',
-			},
+			'mintAddress',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'mint address',
-					},
-					{
-						label: 'token-account count',
-					},
-				],
-				[
-					{
-						label: 'latest supply/decimals snapshot',
-					},
-					{
-						label: 'latest mint authority',
-					},
-					{
-						label: 'latest freeze authority',
-					},
+					'mintAddress',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Mint observations',
+					label: 'token accounts',
+					when: 'open',
 					items: [
-						{
-							label: 'slot/source mint-account observations',
-						},
+						'$$tokenAccounts',
 					],
 				},
 				{
-					label: 'Token accounts',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'token accounts for bounded source facets',
-						},
-					],
-				},
-				{
-					label: 'Authorities',
-					items: [
-						{
-							label: 'mint authority',
-						},
-						{
-							label: 'freeze authority from latest observation',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Solana network',
-						},
-					],
-				},
-				{
-					label: 'Metadata',
-					items: [
-						{
-							label: 'Metaplex/DAS metadata row when source-backed',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'getAccountInfo jsonParsed mint account',
-						},
+						'$$timestamps',
 					],
 				},
 			],

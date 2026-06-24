@@ -10,92 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
 			'address',
-			{
-				label: 'factory',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'address',
-					{
-						label: 'factory',
-					},
-					{
-						label: 'account contract',
-					},
-					{
-						label: 'latest indexed user-operation count',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'User operations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'user operations whose sender resolves to this account',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Factory',
+					label: 'user operations',
+					when: 'open',
 					items: [
-						{
-							label: 'linked ERC-4337 account factory',
-						},
-					],
-				},
-				{
-					label: 'Contract',
-					items: [
-						{
-							label: 'smart-account EVM contract',
-						},
-					],
-				},
-				{
-					label: 'Network account',
-					items: [
-						{
-							label: 'underlying EVM network account',
-						},
-					],
-				},
-				{
-					label: 'Count snapshots',
-					items: [
-						{
-							label: 'timestamped smart-account count observations',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent EVM network',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Blockscout smart-account detail/list payload',
-						},
-						{
-							label: 'pagination context',
-						},
+						'$$userOperations',
 					],
 				},
 			],

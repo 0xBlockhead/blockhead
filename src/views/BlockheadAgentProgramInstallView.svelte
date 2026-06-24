@@ -10,65 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'install id',
-			},
-			{
-				label: 'program version',
-			},
-			'command',
+			'installId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'install id',
-					},
-					{
-						label: 'program version',
-					},
-					{
-						label: 'source',
-					},
-				],
-				[
-					{
-						label: 'install path',
-					},
+					'installId',
+					'installPath',
 					'command',
-					{
-						label: 'args hash algorithm/hash',
-					},
-					{
-						label: 'environment scope',
-					},
+					'argsHashAlgorithm',
+					'argsHash',
+					'environmentScope',
+					'createdAt',
+					'updatedAt',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Program',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'AcpAgentProgramVersion',
-						},
-					],
-				},
-				{
-					label: 'Source',
-					items: [
-						{
-							label: 'BlockheadSource',
-						},
-					],
-				},
-				{
-					label: 'Health',
-					items: [
-						{
-							label: 'BlockheadAgentProgramInstall_Timestamp list',
-						},
+						'$$timestamps',
 					],
 				},
 			],

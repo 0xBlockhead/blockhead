@@ -10,92 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'message',
-			},
-			{
-				label: 'execution tipset key',
-			},
+			'tipsetKey',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'message',
-					},
-					{
-						label: 'execution tipset key',
-					},
+					'tipsetKey',
 					'source',
 					'height',
-					{
-						label: 'block CID',
-					},
-					{
-						label: 'exit code',
-					},
-					{
-						label: 'gas used',
-					},
-					{
-						label: 'return-data status',
-					},
-					{
-						label: 'replaced message CID',
-					},
+					'blockCid',
+					'exitCode',
+					'returnData',
+					'gasUsed',
+					'replacedMessageCid',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Message',
-					items: [
-						{
-							label: 'parent Filecoin message',
-						},
-					],
-				},
-				{
-					label: 'Tipset',
-					items: [
-						{
-							label: 'execution Filecoin tipset',
-						},
-					],
-				},
-				{
-					label: 'Execution',
-					items: [
-						{
-							label: 'exit code',
-						},
-						{
-							label: 'return data',
-						},
-						{
-							label: 'gas used',
-						},
-						{
-							label: 'replacement note',
-						},
-					],
-				},
-				{
-					label: 'Source',
-					items: [
-						{
-							label: 'StateSearchMsg',
-						},
-						{
-							label: 'ChainGetParentReceipts',
-						},
-						{
-							label: 'or indexer payload evidence',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

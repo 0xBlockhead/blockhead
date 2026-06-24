@@ -10,85 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'member kind',
-			},
-			'name',
-			{
-				label: 'canonical signature',
-			},
+			'interfaceId',
+			'memberKey',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'member kind',
-					},
+					'interfaceId',
+					'memberKey',
+					'memberKind',
 					'name',
-					{
-						label: 'canonical signature',
-					},
-					{
-						label: 'selector or topic0',
-					},
+					'canonicalSignature',
+					'selector',
 					'inputs',
 					'outputs',
-					{
-						label: 'state mutability',
-					},
+					'stateMutability',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Interface',
-					items: [
-						{
-							label: 'interface id',
-						},
-						{
-							label: 'member key',
-						},
-						{
-							label: 'member kind',
-						},
-					],
-				},
-				{
-					label: 'ABI shape',
-					items: [
-						'name',
-						{
-							label: 'canonical signature',
-						},
-						'inputs',
-						'outputs',
-						{
-							label: 'state mutability',
-						},
-					],
-				},
-				{
-					label: 'Hash refs',
-					items: [
-						'selector',
-						{
-							label: 'topic0',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'verified ABI JSON',
-						},
-						{
-							label: 'checked-in interface catalogs',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

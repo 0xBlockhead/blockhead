@@ -10,91 +10,44 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'channel id or participant pair',
-			},
-			{
-				label: 'network',
-			},
-			{
-				label: 'participant accounts',
-			},
+			'id',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'channel id or participant pair',
-					},
-					{
-						label: 'network',
-					},
-					{
-						label: 'participant accounts',
-					},
-					{
-						label: 'asset',
-					},
-					{
-						label: 'linked room',
-					},
-					{
-						label: 'created timestamp',
-					},
-					{
-						label: 'latest channel state',
-					},
+					'id',
+					'createdAt',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'State observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped channel state observations',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Transfers',
+					label: 'transfers',
+					when: 'open',
 					items: [
-						{
-							label: 'local channel transfers',
-						},
+						'$$transfers',
 					],
 				},
 				{
-					label: 'States',
+					label: 'states',
+					when: 'open',
 					items: [
-						{
-							label: 'signed channel state rows',
-						},
+						'$$states',
 					],
 				},
 				{
-					label: 'Deposits',
+					label: 'deposits',
+					when: 'open',
 					items: [
-						{
-							label: 'per-account deposit slices',
-						},
-					],
-				},
-				{
-					label: 'Room',
-					items: [
-						{
-							label: 'linked local room',
-						},
-					],
-				},
-				{
-					label: 'Settlement evidence',
-					items: [
-						{
-							label: 'linked EVM transactions/contracts if later modeled',
-						},
+						'$$deposits',
 					],
 				},
 			],

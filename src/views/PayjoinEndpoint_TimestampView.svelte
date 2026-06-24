@@ -10,83 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'endpoint',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'endpoint',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'output-substitution support',
-					},
-					{
-						label: 'OHTTP requirement',
-					},
-					{
-						label: 'max payload bytes',
-					},
-					{
-						label: 'last seen time',
-					},
-					{
-						label: 'response status',
-					},
+					'supportsOutputSubstitution',
+					'requiresOhttp',
+					'maxPayloadBytes',
+					'lastSeenAt',
+					'responseStatus',
 					'error',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Endpoint',
-					items: [
-						{
-							label: 'parent Payjoin endpoint',
-						},
-					],
-				},
-				{
-					label: 'Local sessions',
-					items: [
-						{
-							label: 'BlockheadPayjoinSession rows when this observation came from a session',
-						},
-					],
-				},
-				{
-					label: 'Directory',
-					items: [
-						{
-							label: 'Payjoin directory when OHTTP-mediated',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'BIP21 parameters',
-						},
-						{
-							label: 'OHTTP relay context',
-						},
-						{
-							label: 'receiver response/error payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

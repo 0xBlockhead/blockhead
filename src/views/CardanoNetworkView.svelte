@@ -9,128 +9,96 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'linked Network',
-			},
-			{
-				label: 'latest era',
-			},
-			{
-				label: 'latest slot/block/epoch snapshot',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
-				[
-					{
-						label: 'linked Network',
-					},
-					{
-						label: 'latest era',
-					},
-					{
-						label: 'latest slot/block/epoch snapshot',
-					},
-					{
-						label: 'sync progress',
-					},
-					{
-						label: 'native ADA asset',
-					},
-					{
-						label: 'DRep count',
-					},
-					{
-						label: 'governance proposal count',
-					},
-					{
-						label: 'stake pool count',
-					},
-				],
+				[],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Blocks',
+					label: 'blocks',
+					when: 'open',
 					items: [
-						{
-							label: 'Cardano blocks',
-						},
+						'$$blocks',
 					],
 				},
 				{
-					label: 'Transactions',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'Cardano transactions',
-						},
+						'$$transactions',
 					],
 				},
 				{
-					label: 'Addresses',
+					label: 'addresses',
+					when: 'open',
 					items: [
-						{
-							label: 'Cardano addresses',
-						},
+						'$$addresses',
 					],
 				},
 				{
-					label: 'Stake credentials',
+					label: 'stake credentials',
+					when: 'open',
 					items: [
-						{
-							label: 'Cardano stake credentials',
-						},
+						'$$stakeCredentials',
 					],
 				},
 				{
-					label: 'Stake pools',
+					label: 'stake pools',
+					when: 'open',
 					items: [
-						{
-							label: 'Cardano stake pools',
-						},
+						'$$stakePools',
 					],
 				},
 				{
-					label: 'Governance',
+					label: 'd reps',
+					when: 'open',
 					items: [
-						{
-							label: 'DReps',
-						},
-						{
-							label: 'governance proposals',
-						},
-						{
-							label: 'committee epoch observations',
-						},
-						{
-							label: 'constitution epoch observations',
-						},
+						'$$dReps',
 					],
 				},
 				{
-					label: 'Native assets',
+					label: 'governance proposals',
+					when: 'open',
 					items: [
-						{
-							label: 'Cardano native assets',
-						},
+						'$$governanceProposals',
 					],
 				},
 				{
-					label: 'Protocol parameters',
+					label: 'assets',
+					when: 'open',
 					items: [
-						{
-							label: 'epoch-bounded protocol parameter rows',
-						},
+						'$$assets',
 					],
 				},
 				{
-					label: 'Network snapshots',
+					label: 'protocol parameter epochs',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped network tip/sync observations',
-						},
+						'$$protocolParameterEpochs',
+					],
+				},
+				{
+					label: 'constitution epochs',
+					when: 'open',
+					items: [
+						'$$constitutionEpochs',
+					],
+				},
+				{
+					label: 'committee epochs',
+					when: 'open',
+					items: [
+						'$$committeeEpochs',
+					],
+				},
+				{
+					label: 'timestamps',
+					when: 'open',
+					items: [
+						'$$timestamps',
 					],
 				},
 			],

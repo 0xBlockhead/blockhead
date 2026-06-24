@@ -10,68 +10,35 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'asset id',
-			},
-			{
-				label: 'ticker/name',
-			},
-			'precision',
+			'assetId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'asset id',
-					},
-					{
-						label: 'ticker/name',
-					},
+					'assetId',
+					'name',
+					'ticker',
 					'precision',
-					{
-						label: 'entity domain',
-					},
-					{
-						label: 'blinded issuance flag',
-					},
-					{
-						label: 'latest issued/burned totals',
-					},
+					'entityDomain',
+					'contractJson',
+					'hasBlindedIssuances',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Supply snapshots',
+					label: 'issuances',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped issued/burned total observations',
-						},
+						'$$issuances',
 					],
 				},
 				{
-					label: 'Network',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'parent Elements network',
-						},
-					],
-				},
-				{
-					label: 'Issuances',
-					items: [
-						{
-							label: 'Elements issuance rows',
-						},
-					],
-				},
-				{
-					label: 'Registry contract',
-					items: [
-						{
-							label: 'contractJson/source metadata',
-						},
+						'$$timestamps',
 					],
 				},
 			],

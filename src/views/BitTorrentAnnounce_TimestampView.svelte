@@ -10,74 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'torrent',
-			},
-			{
-				label: 'tracker',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'torrent',
-					},
-					{
-						label: 'tracker',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'timestamp',
-					},
-					'status',
 					'seeders',
 					'leechers',
-					{
-						label: 'downloaded count',
-					},
-					{
-						label: 'interval',
-					},
+					'downloaded',
+					'intervalSec',
+					'status',
 					'error',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Tracker',
-					items: [
-						{
-							label: 'parent tracker',
-						},
-					],
-				},
-				{
-					label: 'Torrent',
-					items: [
-						{
-							label: 'parent metainfo',
-						},
-					],
-				},
-				{
-					label: 'Peer responses',
-					items: [
-						{
-							label: 'peer observations from the announce',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'tracker response/error payload when retained',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

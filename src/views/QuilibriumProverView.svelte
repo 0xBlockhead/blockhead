@@ -10,61 +10,25 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'prover peer id',
-			},
+			'proverPeerId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'prover peer id',
-					},
-				],
-				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'prover peer id',
-					},
-					{
-						label: 'public key',
-					},
+					'proverPeerId',
+					'publicKey',
 					'version',
-					{
-						label: 'last seen time',
-					},
-					{
-						label: 'produced frame count',
-					},
+					'lastSeenAt',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Frames',
+					label: 'frames',
+					when: 'open',
 					items: [
-						{
-							label: 'frames attributed to this prover',
-						},
-					],
-				},
-				{
-					label: 'Connected nodes',
-					items: [
-						{
-							label: 'BlockheadQuilibriumNodeState rows that observed the prover',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'node peer/prover inventory payload',
-						},
+						'$$frames',
 					],
 				},
 			],

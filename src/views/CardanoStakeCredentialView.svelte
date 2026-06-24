@@ -10,93 +10,31 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
 			'credential',
-			{
-				label: 'credential kind',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'credential',
-					{
-						label: 'credential kind',
-					},
-					{
-						label: 'reward address',
-					},
-					{
-						label: 'latest registered flag',
-					},
-					{
-						label: 'latest active pool',
-					},
-					{
-						label: 'latest active DRep',
-					},
-					{
-						label: 'delegation epoch count',
-					},
-					{
-						label: 'address count',
-					},
+					'credentialKind',
+					'rewardAddress',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Delegation history',
+					label: 'delegation epochs',
+					when: 'open',
 					items: [
-						{
-							label: 'epoch-bounded stake/DRep delegation rows',
-						},
+						'$$delegationEpochs',
 					],
 				},
 				{
-					label: 'Addresses',
+					label: 'addresses',
+					when: 'open',
 					items: [
-						{
-							label: 'Cardano addresses sharing the credential',
-						},
-					],
-				},
-				{
-					label: 'Active pool',
-					items: [
-						{
-							label: 'stake pool from latest delegation epoch',
-						},
-					],
-				},
-				{
-					label: 'Active DRep',
-					items: [
-						{
-							label: 'DRep from latest delegation epoch',
-						},
-					],
-				},
-				{
-					label: 'Rewards',
-					items: [
-						{
-							label: 'epoch reward fields when sourced',
-						},
-					],
-				},
-				{
-					label: 'Certificates',
-					items: [
-						{
-							label: 'registration/delegation/withdrawal certificate effects',
-						},
+						'$$addresses',
 					],
 				},
 			],

@@ -11,8 +11,6 @@
 	const view = {
 		closed: [
 			'sequence',
-			'digest',
-			'epoch',
 		],
 		content: {
 			dl: [
@@ -20,53 +18,18 @@
 					'sequence',
 					'digest',
 					'epoch',
-					{
-						label: 'timestamp',
-					},
-					{
-						label: 'previous digest',
-					},
+					'timestampMs',
+					'previousDigest',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Network',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'SuiNetwork',
-						},
-					],
-				},
-				{
-					label: 'Checkpoint header',
-					items: [
-						'sequence',
-						'digest',
-						'epoch',
-						{
-							label: 'timestamp',
-						},
-						{
-							label: 'previous digest',
-						},
-					],
-				},
-				{
-					label: 'Transactions',
-					items: [
-						{
-							label: 'SuiTransaction list',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Sui checkpoint payload',
-						},
+						'$$transactions',
 					],
 				},
 			],

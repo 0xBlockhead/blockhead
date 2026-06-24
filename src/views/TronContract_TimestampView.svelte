@@ -10,65 +10,18 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'contract',
-			},
-			{
-				label: 'observation time',
-			},
-			{
-				label: 'verification status',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'contract',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'compiler',
-					{
-						label: 'verification status',
-					},
-					{
-						label: 'proxy state',
-					},
-					{
-						label: 'implementation',
-					},
+					'verifyStatus',
+					'isProxy',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Contract',
-					items: [
-						{
-							label: 'parent contract identity',
-						},
-					],
-				},
-				{
-					label: 'Implementation',
-					items: [
-						{
-							label: 'implementation contract when proxy target resolves',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'TronScan contract verification/proxy payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

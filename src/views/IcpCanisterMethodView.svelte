@@ -10,72 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'canister',
-			},
-			{
-				label: 'method name',
-			},
-			{
-				label: 'method kind',
-			},
+			'methodName',
+			'methodKind',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'canister',
-					},
-					{
-						label: 'method name',
-					},
-					{
-						label: 'method kind',
-					},
-					{
-						label: 'latest Candid signature',
-					},
-					{
-						label: 'certification support',
-					},
-					{
-						label: 'request count when indexed',
-					},
+					'methodName',
+					'methodKind',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Canister',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'parent ICP canister',
-						},
-					],
-				},
-				{
-					label: 'Interface history',
-					items: [
-						{
-							label: 'timestamped method/interface observations',
-						},
-					],
-				},
-				{
-					label: 'Requests',
-					items: [
-						{
-							label: 'request-status rows filtered by canister/method when known',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Candid interface or dashboard payload',
-						},
+						'$$timestamps',
 					],
 				},
 			],

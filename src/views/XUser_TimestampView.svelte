@@ -10,69 +10,17 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'user',
-			},
-			{
-				label: 'observation time',
-			},
-			{
-				label: 'followers',
-			},
+			'timestampMs',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'user',
-					},
-					{
-						label: 'observation time',
-					},
-					{
-						label: 'followers',
-					},
-					{
-						label: 'following',
-					},
-					{
-						label: 'posts',
-					},
-					{
-						label: 'listed count',
-					},
+					'timestampMs',
+					'followerCount',
+					'followingCount',
+					'tweetCount',
+					'listedCount',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'User',
-					items: [
-						{
-							label: 'parent user identity',
-						},
-					],
-				},
-				{
-					label: 'Counters',
-					items: [
-						{
-							label: 'followers/following/posts/listed counts',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'X_Rest public_metrics',
-						},
-						{
-							label: 'FxEmbed user counters',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

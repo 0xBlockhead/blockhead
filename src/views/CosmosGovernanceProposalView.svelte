@@ -10,98 +10,53 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'proposal id',
-			},
-			'title',
-			{
-				label: 'latest lifecycle status',
-			},
+			'proposalId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'proposal id',
-					},
+					'proposalId',
 					'title',
 					'summary',
-					{
-						label: 'metadata presence',
-					},
-				],
-				[
-					{
-						label: 'latest lifecycle status',
-					},
-					{
-						label: 'latest tally summary',
-					},
-					{
-						label: 'deposit count',
-					},
-					{
-						label: 'vote count',
-					},
+					'metadata',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Lifecycle snapshots',
+					label: 'messages',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped proposal lifecycle observations',
-						},
+						'$$messages',
 					],
 				},
 				{
-					label: 'Messages',
+					label: 'deposits',
+					when: 'open',
 					items: [
-						{
-							label: 'executable SDK messages',
-						},
+						'$$deposits',
 					],
 				},
 				{
-					label: 'Deposits',
+					label: 'votes',
+					when: 'open',
 					items: [
-						{
-							label: 'proposal depositor/denom records with timestamped amounts',
-						},
+						'$$votes',
 					],
 				},
 				{
-					label: 'Votes',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'proposal voter records with timestamped choices',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Tally snapshots',
+					label: 'tallies',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped live/final tally observations',
-						},
-					],
-				},
-				{
-					label: 'Metadata',
-					items: [
-						{
-							label: 'rendered/raw metadata',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Cosmos network',
-						},
+						'$$tallies',
 					],
 				},
 			],

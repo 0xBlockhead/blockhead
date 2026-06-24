@@ -10,95 +10,18 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'channel state',
-			},
-			{
-				label: 'channel',
-			},
-			{
-				label: 'HTLC index',
-			},
+			'htlcIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'channel state',
-					},
-					{
-						label: 'channel',
-					},
-					{
-						label: 'HTLC index',
-					},
+					'htlcIndex',
 					'direction',
-					{
-						label: 'amount msat',
-					},
-					{
-						label: 'expiry height',
-					},
-					{
-						label: 'hash lock',
-					},
+					'amountMsat',
+					'expiryHeight',
+					'hashLock',
 					'state',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Channel state',
-					items: [
-						{
-							label: 'parent local channel state',
-						},
-					],
-				},
-				{
-					label: 'Channel',
-					items: [
-						{
-							label: 'public Lightning channel when resolved',
-						},
-					],
-				},
-				{
-					label: 'Local node',
-					items: [
-						{
-							label: 'connected Lightning node through channel state',
-						},
-					],
-				},
-				{
-					label: 'Timing',
-					items: [
-						{
-							label: 'expiry height',
-						},
-						{
-							label: 'local state',
-						},
-					],
-				},
-				{
-					label: 'Payment hash',
-					items: [
-						{
-							label: 'hash lock display',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'LND pending_htlcs payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

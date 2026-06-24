@@ -10,65 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
 			'coin',
-			{
-				label: 'latest max leverage',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'coin',
-					{
-						label: 'latest max leverage',
-					},
-					{
-						label: 'latest isolated-only flag',
-					},
-					{
-						label: 'timestamp count',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest state',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'latest perp universe observation',
-						},
-					],
-				},
-				{
-					label: 'State history',
-					items: [
-						{
-							label: 'timestamped perp universe observations',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Hyperliquid network',
-						},
-					],
-				},
-				{
-					label: 'Related market',
-					items: [
-						{
-							label: 'generic market row only when a separate selector maps this coin to venue/base/quote identity',
-						},
+						'$$timestamps',
 					],
 				},
 			],

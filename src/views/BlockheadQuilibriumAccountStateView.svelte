@@ -10,89 +10,35 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'connection id',
-			},
-			{
-				label: 'network',
-			},
-			{
-				label: 'account',
-			},
+			'connectionId',
+			'accountAddress',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'connection id',
-					},
-					{
-						label: 'network',
-					},
-					{
-						label: 'account',
-					},
-					{
-						label: 'account kind',
-					},
-					{
-						label: 'latest balance',
-					},
-					{
-						label: 'allowance address',
-					},
-					{
-						label: 'signature key address',
-					},
-					{
-						label: 'key-ring ref count',
-					},
-					{
-						label: 'pending transaction count',
-					},
+					'connectionId',
+					'accountAddress',
+					'accountKind',
+					'allowanceAddress',
+					'signatureKeyAddress',
+					'keyRingRefCount',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'State observations',
+					label: 'pending transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped account-state observations',
-						},
+						'$$pendingTransactions',
 					],
 				},
 				{
-					label: 'Pending transactions',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'connected-node pending transaction rows',
-						},
-					],
-				},
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'public Quilibrium account when resolved',
-						},
-					],
-				},
-				{
-					label: 'Connected node',
-					items: [
-						{
-							label: 'parent Quilibrium node state',
-						},
-					],
-				},
-				{
-					label: 'Request authority',
-					items: [
-						{
-							label: 'allowance/signature/key-ring metadata with sensitive material redacted',
-						},
+						'$$timestamps',
 					],
 				},
 			],

@@ -10,89 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'operator address',
-			},
-			{
-				label: 'consensus address',
-			},
-			'moniker',
+			'operatorAddress',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'operator address',
-					},
-					{
-						label: 'consensus address',
-					},
+					'operatorAddress',
+					'consensusAddress',
 					'moniker',
-					{
-						label: 'latest voting power',
-					},
-					{
-						label: 'status',
-					},
-					{
-						label: 'jailed flag',
-					},
-					{
-						label: 'produced block count',
-					},
-					{
-						label: 'proposed blocks',
-					},
-					{
-						label: 'archive evidence',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Network',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'BnbBeaconNetwork',
-						},
-					],
-				},
-				{
-					label: 'Identity',
-					items: [
-						{
-							label: 'operator address',
-						},
-						{
-							label: 'consensus address',
-						},
-						'moniker',
-					],
-				},
-				{
-					label: 'Status history',
-					items: [
-						{
-							label: 'BnbValidator_Timestamp list',
-						},
-					],
-				},
-				{
-					label: 'Blocks',
-					items: [
-						{
-							label: 'proposed/produced block evidence',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'archive/API/explorer validator payload',
-						},
+						'$$timestamps',
 					],
 				},
 			],

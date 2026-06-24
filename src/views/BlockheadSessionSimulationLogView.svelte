@@ -10,76 +10,20 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'simulation',
-			},
-			{
-				label: 'log index',
-			},
-			'address',
+			'simulationId',
+			'logIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'simulation',
-					},
-					{
-						label: 'log index',
-					},
-					{
-						label: 'call path',
-					},
+					'simulationId',
+					'logIndex',
+					'callPath',
 					'address',
-					{
-						label: 'topic0',
-					},
-					{
-						label: 'topic count',
-					},
-					{
-						label: 'data hash',
-					},
-					{
-						label: 'removed flag',
-					},
+					'topics',
+					'dataHash',
+					'removed',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Simulation',
-					items: [
-						{
-							label: 'BlockheadSessionSimulationView',
-						},
-					],
-				},
-				{
-					label: 'Call',
-					items: [
-						{
-							label: 'simulation call row when callPath maps',
-						},
-					],
-				},
-				{
-					label: 'Topics',
-					items: [
-						{
-							label: 'topic list and decoded event when implemented',
-						},
-					],
-				},
-				{
-					label: 'Raw data',
-					items: [
-						{
-							label: 'data hash and retained runtime payload when needed',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

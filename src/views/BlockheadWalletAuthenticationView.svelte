@@ -10,79 +10,26 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'authentication id',
-			},
-			'protocol',
-			'verified',
+			'authenticationId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'authentication id',
-					},
+					'authenticationId',
 					'protocol',
+					'statement',
 					'domain',
-					{
-						label: 'URI',
-					},
-					{
-						label: 'chain/account',
-					},
-					{
-						label: 'issued/expiration/not-before times',
-					},
-				],
-				[
-					{
-						label: 'nonce presence',
-					},
-					{
-						label: 'signature presence',
-					},
+					'uri',
+					'nonce',
+					'issuedAt',
+					'expirationTime',
+					'notBefore',
+					'chainId',
+					'signature',
 					'verified',
-					{
-						label: 'verified at',
-					},
+					'verifiedAt',
 					'error',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Connection',
-					items: [
-						{
-							label: 'BlockheadWalletConnection if auth was performed through a live wallet',
-						},
-					],
-				},
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'BlockheadWalletAccount',
-						},
-					],
-				},
-				{
-					label: 'Statement',
-					items: [
-						{
-							label: 'redacted sign-in statement',
-						},
-					],
-				},
-				{
-					label: 'Verification',
-					items: [
-						{
-							label: 'nonce/domain/signature verification result',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

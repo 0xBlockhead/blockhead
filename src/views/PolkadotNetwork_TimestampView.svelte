@@ -10,105 +10,28 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'timestamp',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'timestamp',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'finalized block number/hash',
-					},
-					{
-						label: 'finalized extrinsic count',
-					},
-					{
-						label: 'runtime spec name/version',
-					},
-					{
-						label: 'transaction version',
-					},
-					{
-						label: 'state version',
-					},
-					{
-						label: 'peer count',
-					},
-					{
-						label: 'sync state',
-					},
-					{
-						label: 'era/session indexes',
-					},
-					{
-						label: 'active validator count',
-					},
+					'finalizedBlockNumber',
+					'finalizedBlockHash',
+					'finalizedExtrinsicCount',
+					'runtimeSpecName',
+					'runtimeSpecVersion',
+					'transactionVersion',
+					'stateVersion',
+					'peerCount',
+					'isSyncing',
+					'shouldHavePeers',
+					'eraIndex',
+					'sessionIndex',
+					'activeValidatorCount',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Finalized block',
-					items: [
-						{
-							label: 'finalized Polkadot block when resolved',
-						},
-					],
-				},
-				{
-					label: 'Runtime',
-					items: [
-						{
-							label: 'version fields',
-						},
-					],
-				},
-				{
-					label: 'Health',
-					items: [
-						{
-							label: 'peers',
-						},
-						{
-							label: 'sync state',
-						},
-					],
-				},
-				{
-					label: 'Staking/session',
-					items: [
-						{
-							label: 'era',
-						},
-						{
-							label: 'session',
-						},
-						{
-							label: 'active validator fields',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'JSON-RPC finalized head/header/block/runtimeVersion/system_health responses',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

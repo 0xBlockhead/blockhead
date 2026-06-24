@@ -10,39 +10,13 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'subnet',
-			},
 			'uid',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'subnet',
-					},
 					'uid',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Subnet',
-					items: [
-						{
-							label: 'parent subnet',
-						},
-					],
-				},
-				{
-					label: 'Metagraph snapshots',
-					items: [
-						{
-							label: 'metagraph observations for the subnet',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

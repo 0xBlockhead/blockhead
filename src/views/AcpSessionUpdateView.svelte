@@ -10,51 +10,16 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'session',
-			},
 			'sequence',
-			{
-				label: 'kind',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'session',
-					},
 					'sequence',
-					{
-						label: 'kind',
-					},
-					{
-						label: 'timestamp',
-					},
-				],
-				[
+					'updateKind',
+					'timestampMs',
 					'payload',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Session',
-					items: [
-						{
-							label: 'AcpSession',
-						},
-					],
-				},
-				{
-					label: 'Payload',
-					items: [
-						{
-							label: 'raw update payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

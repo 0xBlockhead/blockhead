@@ -10,103 +10,55 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'connection id',
-			},
-			{
-				label: 'node id',
-			},
-			{
-				label: 'DID',
-			},
+			'connectionId',
+			'nodeId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'connection id',
-					},
-					{
-						label: 'node id',
-					},
-					{
-						label: 'DID',
-					},
-					{
-						label: 'public key',
-					},
-					{
-						label: 'home path',
-					},
-					{
-						label: 'latest alias',
-					},
-					{
-						label: 'latest address counts',
-					},
-					{
-						label: 'latest node version',
-					},
-					{
-						label: 'latest policy',
-					},
-					{
-						label: 'peer count',
-					},
+					'connectionId',
+					'nodeId',
+					'did',
+					'publicKey',
+					'homePath',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'State observations',
+					label: 'peers',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped connected-node profile/config observations',
-						},
+						'$$peers',
 					],
 				},
 				{
-					label: 'Peers',
+					label: 'inventory timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'locally observed peer rows',
-						},
+						'$$inventoryTimestamps',
 					],
 				},
 				{
-					label: 'Inventory',
+					label: 'seed observations',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped inventory/gossip observations',
-						},
+						'$$seedObservations',
 					],
 				},
 				{
-					label: 'Seed observations',
+					label: 'sync sessions',
+					when: 'open',
 					items: [
-						{
-							label: 'repository seeding/advertisement observations',
-						},
+						'$$syncSessions',
 					],
 				},
 				{
-					label: 'Sync sessions',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'local sync/fetch sessions',
-						},
-					],
-				},
-				{
-					label: 'Local storage',
-					items: [
-						{
-							label: 'home path',
-						},
-						{
-							label: 'redacted local-node config',
-						},
+						'$$timestamps',
 					],
 				},
 			],

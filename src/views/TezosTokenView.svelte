@@ -10,90 +10,39 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'contract address',
-			},
-			{
-				label: 'token id',
-			},
+			'contractAddress',
+			'tokenId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'contract address',
-					},
-					{
-						label: 'token id',
-					},
+					'contractAddress',
+					'tokenId',
 					'standard',
-					{
-						label: 'contract ref',
-					},
-					{
-						label: 'latest name/symbol/decimals',
-					},
-					{
-						label: 'latest media URI availability',
-					},
-					{
-						label: 'latest supply',
-					},
-					{
-						label: 'holder count',
-					},
-					{
-						label: 'transfer count',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Contract',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'parent Tezos contract',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Metadata/history',
+					label: 'balance timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'level/source token metadata observations',
-						},
+						'$$balanceTimestamps',
 					],
 				},
 				{
-					label: 'Balances',
+					label: 'transfers',
+					when: 'open',
 					items: [
-						{
-							label: 'token balance observations grouped by holder',
-						},
-					],
-				},
-				{
-					label: 'Transfers',
-					items: [
-						{
-							label: 'token transfer rows',
-						},
-					],
-				},
-				{
-					label: 'Ledger storage',
-					items: [
-						{
-							label: 'big-map rows for ledger/token_metadata big maps when resolved',
-						},
+						'$$transfers',
 					],
 				},
 			],

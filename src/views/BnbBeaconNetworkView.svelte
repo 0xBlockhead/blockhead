@@ -9,102 +9,57 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'linked base Network',
-			},
-			{
-				label: 'decommissioned time',
-			},
-			{
-				label: 'fusion deadline',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
 				[
-					{
-						label: 'linked base Network',
-					},
-					{
-						label: 'decommissioned time',
-					},
-					{
-						label: 'fusion deadline',
-					},
-					{
-						label: 'latest archived height',
-					},
-					{
-						label: 'archive coverage status',
-					},
-					{
-						label: 'validator count',
-					},
-					{
-						label: 'token count',
-					},
-					{
-						label: 'archived transactions',
-					},
-					{
-						label: 'validators',
-					},
-					{
-						label: 'BEP tokens',
-					},
-					{
-						label: 'token migrations',
-					},
-					{
-						label: 'archive timestamp history',
-					},
+					'decommissionedAtMs',
+					'fusionDeadlineMs',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Archive status',
+					label: 'blocks',
+					when: 'open',
 					items: [
-						{
-							label: 'BnbBeaconNetwork_Timestamp list',
-						},
+						'$$blocks',
 					],
 				},
 				{
-					label: 'Blocks',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'BnbBeaconBlock list',
-						},
+						'$$transactions',
 					],
 				},
 				{
-					label: 'Transactions',
+					label: 'validators',
+					when: 'open',
 					items: [
-						{
-							label: 'BnbBeaconTransaction list',
-						},
+						'$$validators',
 					],
 				},
 				{
-					label: 'Validators',
+					label: 'tokens',
+					when: 'open',
 					items: [
-						{
-							label: 'BnbValidator list',
-						},
+						'$$tokens',
 					],
 				},
 				{
-					label: 'Tokens/migration',
+					label: 'migration records',
+					when: 'open',
 					items: [
-						{
-							label: 'BnbBeaconToken',
-						},
-						{
-							label: 'BnbBeaconTokenMigration',
-						},
+						'$$migrationRecords',
+					],
+				},
+				{
+					label: 'timestamps',
+					when: 'open',
+					items: [
+						'$$timestamps',
 					],
 				},
 			],

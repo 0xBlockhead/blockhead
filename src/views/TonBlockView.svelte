@@ -11,77 +11,38 @@
 	const view = {
 		closed: [
 			'workchain',
-			{
-				label: 'shard prefix',
-			},
+			'shardPrefix',
 			'seqno',
 		],
 		content: {
 			dl: [
 				[
 					'workchain',
-					{
-						label: 'shard prefix',
-					},
+					'shardPrefix',
 					'seqno',
-					{
-						label: 'root hash',
-					},
-					{
-						label: 'file hash',
-					},
-					{
-						label: 'generated time',
-					},
-					{
-						label: 'logical-time range',
-					},
+					'rootHash',
+					'fileHash',
+					'genUtimeMs',
+					'startLt',
+					'endLt',
+					'minRefMcSeqno',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Transactions',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'transactions in this block',
-						},
+						'$$transactions',
 					],
 				},
 				{
-					label: 'Messages',
+					label: 'messages',
+					when: 'open',
 					items: [
-						{
-							label: 'messages in this block',
-						},
-					],
-				},
-				{
-					label: 'Workchain',
-					items: [
-						{
-							label: 'parent TON workchain',
-						},
-					],
-				},
-				{
-					label: 'Neighboring shards',
-					items: [
-						{
-							label: 'timestamped shard observations',
-						},
-					],
-				},
-				{
-					label: 'Proof/cell evidence',
-					items: [
-						{
-							label: 'raw block id',
-						},
-						{
-							label: 'proof payload',
-						},
+						'$$messages',
 					],
 				},
 			],

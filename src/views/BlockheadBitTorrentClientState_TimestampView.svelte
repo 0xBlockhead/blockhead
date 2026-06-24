@@ -10,81 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'client state',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'client state',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'client version',
-					},
-					{
-						label: 'listen address count',
-					},
+					'clientVersion',
+					'listenAddresses',
 					'port',
-					{
-						label: 'download/upload rates',
-					},
-					{
-						label: 'downloaded/uploaded bytes',
-					},
-					{
-						label: 'active torrent count',
-					},
-					{
-						label: 'last sync time',
-					},
+					'downloadRate',
+					'uploadRate',
+					'downloadedBytes',
+					'uploadedBytes',
+					'activeTorrentCount',
+					'lastSyncedAt',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Client',
-					items: [
-						{
-							label: 'parent connected-client state',
-						},
-					],
-				},
-				{
-					label: 'Transfers',
-					items: [
-						{
-							label: 'local transfer snapshots at nearby times',
-						},
-					],
-				},
-				{
-					label: 'Network endpoints',
-					items: [
-						{
-							label: 'listen addresses',
-						},
-						'port',
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Transmission/qBittorrent/WebTorrent/libtorrent payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,118 +10,27 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'canister',
-			},
-			{
-				label: 'observed time/source',
-			},
-			'status',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'canister',
-					},
-					{
-						label: 'observed time/source',
-					},
+					'timestampMs',
+					'source',
+					'subnetId',
+					'canisterKind',
+					'candidInterfaceHash',
 					'status',
-					{
-						label: 'subnet',
-					},
-					{
-						label: 'canister kind',
-					},
-					{
-						label: 'Candid interface hash',
-					},
-					{
-						label: 'module hash',
-					},
-					{
-						label: 'cycles balance',
-					},
-					{
-						label: 'memory size',
-					},
-					{
-						label: 'canister version',
-					},
-					{
-						label: 'controller count',
-					},
+					'moduleHash',
+					'controllers',
+					'cyclesBalance',
+					'memorySizeBytes',
+					'freezingThresholdSeconds',
+					'idleCyclesBurnedPerDay',
+					'canisterVersion',
+					'reservedCycles',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Canister',
-					items: [
-						{
-							label: 'parent ICP canister',
-						},
-					],
-				},
-				{
-					label: 'Subnet',
-					items: [
-						{
-							label: 'resolved subnet when available',
-						},
-					],
-				},
-				{
-					label: 'Controllers/settings',
-					items: [
-						'controllers',
-						{
-							label: 'freezing threshold',
-						},
-						{
-							label: 'memory allocation',
-						},
-						{
-							label: 'compute allocation',
-						},
-						{
-							label: 'reserved cycles',
-						},
-					],
-				},
-				{
-					label: 'Resource use',
-					items: [
-						{
-							label: 'memory size',
-						},
-						{
-							label: 'cycles balance',
-						},
-						{
-							label: 'idle burn rate',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'canister_status',
-						},
-						{
-							label: 'registry',
-						},
-						{
-							label: 'dashboard',
-						},
-						{
-							label: 'or interface payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

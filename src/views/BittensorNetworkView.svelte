@@ -9,84 +9,33 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'linked Network',
-			},
-			{
-				label: 'latest finalized block',
-			},
-			{
-				label: 'latest runtime',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
-				[
-					{
-						label: 'linked Network',
-					},
-					{
-						label: 'latest finalized block',
-					},
-					{
-						label: 'latest runtime',
-					},
-					{
-						label: 'subnet count',
-					},
-					{
-						label: 'environment',
-					},
-					{
-						label: 'stack',
-					},
-					{
-						label: 'native asset',
-					},
-				],
+				[],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Blocks',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'Subtensor/Substrate block rows',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Subnets',
+					label: 'blocks',
+					when: 'open',
 					items: [
-						{
-							label: 'subnet rows by netuid',
-						},
+						'$$blocks',
 					],
 				},
 				{
-					label: 'Neurons',
+					label: 'subnets',
+					when: 'open',
 					items: [
-						{
-							label: 'neuron rows scoped under decoded subnets',
-						},
-					],
-				},
-				{
-					label: 'Network snapshots',
-					items: [
-						{
-							label: 'timestamped finality/runtime/node observations',
-						},
-					],
-				},
-				{
-					label: 'Resources',
-					items: [
-						{
-							label: 'faucets/block explorers from parent Network',
-						},
+						'$$subnets',
 					],
 				},
 			],

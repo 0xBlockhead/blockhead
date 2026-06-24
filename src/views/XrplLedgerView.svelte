@@ -10,73 +10,36 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'ledger index/hash',
-			},
-			{
-				label: 'validation state',
-			},
-			{
-				label: 'close time',
-			},
+			'ledgerIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'ledger index',
-					},
-					{
-						label: 'ledger hash',
-					},
-					{
-						label: 'validation state',
-					},
-					{
-						label: 'close time',
-					},
-					{
-						label: 'parent hash',
-					},
-					{
-						label: 'total XRP drops',
-					},
-					{
-						label: 'account hash',
-					},
-					{
-						label: 'transaction hash',
-					},
+					'ledgerIndex',
+					'ledgerHash',
+					'closeTimeMs',
+					'validated',
+					'totalCoinsDrops',
+					'parentHash',
+					'accountHash',
+					'transactionHash',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Transactions',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'transactions in ledger',
-						},
+						'$$transactions',
 					],
 				},
 				{
-					label: 'Ledger entries',
+					label: 'ledger entries',
+					when: 'open',
 					items: [
-						{
-							label: 'ledger object entries',
-						},
-					],
-				},
-				{
-					label: 'Lookup evidence',
-					items: [
-						{
-							label: 'rippled ledger lookup by index/hash',
-						},
-						{
-							label: 'Clio/XRPScan ledger payload',
-						},
+						'$$ledgerEntries',
 					],
 				},
 			],

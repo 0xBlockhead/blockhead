@@ -10,74 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'canister',
-			},
-			{
-				label: 'observed time/source',
-			},
-			{
-				label: 'last analyzed message time',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'canister',
-					},
-					{
-						label: 'observed time/source',
-					},
-					{
-						label: 'last analyzed message time',
-					},
-					{
-						label: 'message count',
-					},
-					{
-						label: 'log visibility',
-					},
-					{
-						label: 'payload availability',
-					},
+					'timestampMs',
+					'source',
+					'lastAnalyzedMessageTimeNs',
+					'messageCount',
+					'logVisibility',
+					'messages',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Canister',
-					items: [
-						{
-							label: 'parent ICP canister',
-						},
-					],
-				},
-				{
-					label: 'Messages',
-					items: [
-						{
-							label: 'canister log messages when caller-authorized',
-						},
-					],
-				},
-				{
-					label: 'Visibility',
-					items: [
-						{
-							label: 'controller/public log visibility context',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'fetch_canister_logs or dashboard payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

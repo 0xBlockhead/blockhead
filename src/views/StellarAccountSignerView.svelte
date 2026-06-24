@@ -10,67 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'account',
-			},
-			{
-				label: 'signer key',
-			},
-			{
-				label: 'signer type',
-			},
+			'signerKey',
+			'signerType',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'account',
-					},
-					{
-						label: 'signer key',
-					},
-					{
-						label: 'signer type',
-					},
-					{
-						label: 'latest weight/sponsor observation',
-					},
-					{
-						label: 'latest ledger state',
-					},
+					'signerKey',
+					'signerType',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Signer snapshots',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped signer weight/sponsor observations',
-						},
-					],
-				},
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'parent Stellar account',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Horizon account signers array',
-						},
-						{
-							label: 'RPC AccountEntry ledger data',
-						},
-						{
-							label: 'indexer account history',
-						},
+						'$$timestamps',
 					],
 				},
 			],

@@ -10,99 +10,47 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'contract address',
-			},
-			{
-				label: 'script hash',
-			},
-			{
-				label: 'code hash',
-			},
+			'address',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'contract address',
-					},
-					{
-						label: 'script hash',
-					},
-					{
-						label: 'code hash',
-					},
-					{
-						label: 'script ref',
-					},
-					{
-						label: 'latest balance',
-					},
-					{
-						label: 'latest storage hash',
-					},
-					{
-						label: 'entrypoint count',
-					},
+					'address',
+					'scriptHash',
+					'codeHash',
+					'storageType',
+					'parameterType',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Script',
+					label: 'entrypoints',
+					when: 'open',
 					items: [
-						{
-							label: 'Michelson script row',
-						},
+						'$$entrypoints',
 					],
 				},
 				{
-					label: 'Entrypoints',
+					label: 'big maps',
+					when: 'open',
 					items: [
-						{
-							label: 'contract entrypoint rows',
-						},
+						'$$bigMaps',
 					],
 				},
 				{
-					label: 'Parameter/storage types',
+					label: 'operations',
+					when: 'open',
 					items: [
-						{
-							label: 'decoded Michelson types',
-						},
+						'$$operations',
 					],
 				},
 				{
-					label: 'Big maps',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'contract big maps',
-						},
-					],
-				},
-				{
-					label: 'Operations',
-					items: [
-						{
-							label: 'contract operations',
-						},
-					],
-				},
-				{
-					label: 'Storage history',
-					items: [
-						{
-							label: 'level/source contract storage observations',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'node/indexer payloads',
-						},
+						'$$timestamps',
 					],
 				},
 			],

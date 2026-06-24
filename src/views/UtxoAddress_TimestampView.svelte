@@ -10,82 +10,23 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'address',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'address',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'confirmed balance',
-					},
-					{
-						label: 'funded/spent output counts',
-					},
-					{
-						label: 'values',
-					},
-					{
-						label: 'transaction count',
-					},
-					{
-						label: 'unspent output count',
-					},
-					{
-						label: 'mempool transaction count',
-					},
+					'balanceSats',
+					'fundedOutputCount',
+					'fundedValueSats',
+					'spentOutputCount',
+					'spentValueSats',
+					'transactionCount',
+					'unspentOutputCount',
+					'mempoolTransactionCount',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Address',
-					items: [
-						{
-							label: 'parent address projection',
-						},
-					],
-				},
-				{
-					label: 'UTXOs',
-					items: [
-						{
-							label: 'unspent outputs when source payload includes them',
-						},
-					],
-				},
-				{
-					label: 'Transactions',
-					items: [
-						{
-							label: 'transaction history when source payload includes it',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'address stats payload',
-						},
-						{
-							label: 'pagination cursor/range',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

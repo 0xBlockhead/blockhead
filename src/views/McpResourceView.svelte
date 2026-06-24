@@ -10,63 +10,28 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'server',
-			},
-			{
-				label: 'URI',
-			},
-			'name',
+			'uri',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'server',
-					},
-					{
-						label: 'URI',
-					},
+					'uri',
 					'name',
 					'title',
-				],
-				[
 					'description',
-					{
-						label: 'mime type',
-					},
-					'subscribed',
+					'mimeType',
 					'annotations',
-					{
-						label: 'content refs',
-					},
+					'subscribed',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Server',
+					label: 'content timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'McpServer',
-						},
-					],
-				},
-				{
-					label: 'Content',
-					items: [
-						{
-							label: 'McpResourceContent_Timestamp list',
-						},
-					],
-				},
-				{
-					label: 'Annotations',
-					items: [
-						{
-							label: 'annotations JSON',
-						},
+						'$$contentTimestamps',
 					],
 				},
 			],

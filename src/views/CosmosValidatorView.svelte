@@ -10,84 +10,35 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'operator address',
-			},
-			'moniker',
+			'operatorAddress',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'operator address',
-					},
-					{
-						label: 'consensus pubkey',
-					},
+					'operatorAddress',
+					'consensusPubkey',
 					'moniker',
-				],
-				[
-					{
-						label: 'latest jailed/status/tokens snapshot',
-					},
-					{
-						label: 'delegation count',
-					},
-					{
-						label: 'description links',
-					},
+					'identity',
+					'website',
+					'securityContact',
+					'details',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Validator snapshots',
+					label: 'delegations',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped validator stake/status observations',
-						},
+						'$$delegations',
 					],
 				},
 				{
-					label: 'Delegations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'delegations to this validator',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Cosmos network',
-						},
-					],
-				},
-				{
-					label: 'Consensus identity',
-					items: [
-						{
-							label: 'consensus pubkey',
-						},
-						{
-							label: 'proposer mapping when source-backed',
-						},
-					],
-				},
-				{
-					label: 'Description',
-					items: [
-						{
-							label: 'identity/website/security-contact/details',
-						},
+						'$$timestamps',
 					],
 				},
 			],

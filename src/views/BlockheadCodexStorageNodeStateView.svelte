@@ -10,85 +10,33 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'connection id',
-			},
-			{
-				label: 'peer id',
-			},
-			'endpoint',
+			'connectionId',
+			'peerId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'connection id',
-					},
-					{
-						label: 'peer id',
-					},
+					'connectionId',
+					'peerId',
 					'endpoint',
-					{
-						label: 'signed peer record',
-					},
-					{
-						label: 'latest space/peer observation',
-					},
-					{
-						label: 'stored data count',
-					},
+					'signedPeerRecord',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'State history',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped connected-node observations',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Stored data',
+					label: 'stored datases',
+					when: 'open',
 					items: [
-						{
-							label: 'local stored-data inventory rows',
-						},
-					],
-				},
-				{
-					label: 'Peers',
-					items: [
-						{
-							label: 'latest peer table fields from debug info',
-						},
-					],
-				},
-				{
-					label: 'Network presets',
-					items: [
-						{
-							label: 'bootstrap SPR records from presets',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: '/peerid',
-						},
-						{
-							label: '/spr',
-						},
-						{
-							label: '/debug/info',
-						},
-						{
-							label: '/space',
-						},
+						'$$storedData',
 					],
 				},
 			],

@@ -10,76 +10,36 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
 			'address',
-			{
-				label: 'latest balance',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'address',
-					{
-						label: 'latest balance',
-					},
-					{
-						label: 'latest UTXO count',
-					},
-					{
-						label: 'transaction count',
-					},
-					{
-						label: 'source freshness',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Transactions',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'Kaspa transaction rows involving this address',
-						},
+						'$$transactions',
 					],
 				},
 				{
-					label: 'UTXOs',
+					label: 'utxos',
+					when: 'open',
 					items: [
-						{
-							label: 'address UTXO observations grouped by outpoint',
-						},
+						'$$utxos',
 					],
 				},
 				{
-					label: 'Balance snapshots',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped balance observations',
-						},
-					],
-				},
-				{
-					label: 'Related outputs',
-					items: [
-						{
-							label: 'resolved UTXO outputs',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'node/indexer address payloads',
-						},
+						'$$timestamps',
 					],
 				},
 			],

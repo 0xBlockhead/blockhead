@@ -10,108 +10,38 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'module',
-			},
+			'timestampMs',
 			'source',
-			{
-				label: 'ledger/package version',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'module',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'observation time',
-					},
-					{
-						label: 'ledger version',
-					},
-					{
-						label: 'package version',
-					},
-					{
-						label: 'package digest',
-					},
-				],
-				[
-					{
-						label: 'bytecode availability',
-					},
-					{
-						label: 'ABI availability',
-					},
-					{
-						label: 'source availability',
-					},
-					{
-						label: 'source digest',
-					},
-					{
-						label: 'function count',
-					},
-					{
-						label: 'struct count',
-					},
+					'ledgerVersion',
+					'packageVersion',
+					'packageDigest',
+					'bytecode',
+					'abi',
+					'sourceCode',
+					'sourceDigest',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Module',
+					label: 'functions',
+					when: 'open',
 					items: [
-						{
-							label: 'parent Move module',
-						},
+						'$$functions',
 					],
 				},
 				{
-					label: 'Functions',
+					label: 'structs',
+					when: 'open',
 					items: [
-						{
-							label: 'function rows for parsed ABI',
-						},
-					],
-				},
-				{
-					label: 'Structs',
-					items: [
-						{
-							label: 'struct rows for parsed ABI',
-						},
-					],
-				},
-				{
-					label: 'Bytecode/ABI/source',
-					items: [
-						{
-							label: 'raw bytecode',
-						},
-						{
-							label: 'ABI JSON',
-						},
-						{
-							label: 'source text/digest',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Aptos fullnode module response',
-						},
-						{
-							label: 'Aptos indexer module payload',
-						},
-						{
-							label: 'Sui package object/version/normalized module payload',
-						},
+						'$$structs',
 					],
 				},
 			],

@@ -9,76 +9,23 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'linked Network',
-			},
-			{
-				label: 'settlement UTXO network',
-			},
-			{
-				label: 'federation name',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
 				[
-					{
-						label: 'linked Network',
-					},
-					{
-						label: 'settlement UTXO network',
-					},
-					{
-						label: 'federation name',
-					},
-					{
-						label: 'block time',
-					},
-					{
-						label: 'native asset',
-					},
-					{
-						label: 'confidential-transactions default',
-					},
-					{
-						label: 'asset count',
-					},
+					'federationName',
+					'blockTimeSeconds',
+					'confidentialTransactionsDefault',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Assets',
+					label: 'assets',
+					when: 'open',
 					items: [
-						{
-							label: 'Elements asset rows',
-						},
-					],
-				},
-				{
-					label: 'Issuances',
-					items: [
-						{
-							label: 'Elements issuance rows when scoped from transactions',
-						},
-					],
-				},
-				{
-					label: 'Pegs',
-					items: [
-						{
-							label: 'Elements peg rows when linked',
-						},
-					],
-				},
-				{
-					label: 'Settlement',
-					items: [
-						{
-							label: 'settlement UTXO network',
-						},
+						'$$assets',
 					],
 				},
 			],

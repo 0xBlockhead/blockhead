@@ -10,73 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'the finalized Beacon epoch',
-			},
+			'timestampMs',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'the finalized Beacon epoch',
-					},
+					'timestampMs',
+					'currentJustifiedCheckpointEpoch',
+					'currentJustifiedCheckpointRoot',
+					'previousJustifiedCheckpointEpoch',
+					'previousJustifiedCheckpointRoot',
+					'finalizedCheckpointEpoch',
+					'finalizedCheckpointRoot',
 				],
-				[
-					{
-						label: 'as-of timestamp',
-					},
-					{
-						label: 'current justified Beacon epoch/root',
-					},
-					{
-						label: 'finalized Beacon epoch/root',
-					},
-					{
-						label: 'previous justified Beacon epoch/root',
-					},
-				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent EVM/Beacon network',
-						},
-					],
-				},
-				{
-					label: 'Checkpoints',
-					items: [
-						{
-							label: 'current/previous justified checkpoint roots',
-						},
-						{
-							label: 'finalized checkpoint root',
-						},
-					],
-				},
-				{
-					label: 'Epochs',
-					items: [
-						{
-							label: 'checkpoint Beacon epochs when resolved',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Beacon REST finality checkpoint payload',
-						},
-						{
-							label: 'endpoint freshness',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

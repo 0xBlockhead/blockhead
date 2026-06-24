@@ -10,74 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'RID',
-			},
+			'rid',
 			'revision',
-			{
-				label: 'previous revision',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'RID',
-					},
+					'rid',
 					'revision',
-					{
-						label: 'previous revision',
-					},
-					{
-						label: 'document hash',
-					},
+					'previousRevision',
+					'documentHash',
+					'delegateDids',
 					'threshold',
-					{
-						label: 'verification status',
-					},
-					{
-						label: 'delegate DIDs',
-					},
-					{
-						label: 'signer DIDs',
-					},
+					'signedByDids',
+					'verificationStatus',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Document',
-					items: [
-						{
-							label: 'identity document for this revision',
-						},
-					],
-				},
-				{
-					label: 'Delegates',
-					items: [
-						{
-							label: 'delegate rows',
-						},
-					],
-				},
-				{
-					label: 'Previous revision',
-					items: [
-						{
-							label: 'previous identity revision',
-						},
-					],
-				},
-				{
-					label: 'Verification',
-					items: [
-						{
-							label: 'signatures/results',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

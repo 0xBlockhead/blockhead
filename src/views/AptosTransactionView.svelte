@@ -10,84 +10,39 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'version/hash',
-			},
-			{
-				label: 'kind',
-			},
-			'sender',
+			'version',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'version/hash',
-					},
-					{
-						label: 'kind',
-					},
+					'version',
+					'hash',
+					'transactionKind',
 					'sender',
-					{
-						label: 'latest success/vm status',
-					},
-					{
-						label: 'latest gas',
-					},
-					{
-						label: 'latest timestamp',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest result',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'latest ledger-version/source transaction observation',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Result history',
+					label: 'state changes',
+					when: 'open',
 					items: [
-						{
-							label: 'transaction result observations',
-						},
+						'$$stateChanges',
 					],
 				},
 				{
-					label: 'State changes',
+					label: 'events',
+					when: 'open',
 					items: [
-						{
-							label: 'state changes emitted by this transaction',
-						},
-					],
-				},
-				{
-					label: 'Events',
-					items: [
-						{
-							label: 'events emitted by this transaction',
-						},
-					],
-				},
-				{
-					label: 'Payload',
-					items: [
-						{
-							label: 'entry function/script payload JSON',
-						},
-					],
-				},
-				{
-					label: 'Lookup evidence',
-					items: [
-						{
-							label: 'fullnode/indexer version or hash lookup',
-						},
+						'$$events',
 					],
 				},
 			],

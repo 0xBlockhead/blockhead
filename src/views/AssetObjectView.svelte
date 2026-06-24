@@ -10,65 +10,26 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'asset instance',
-			},
-			{
-				label: 'object key',
-			},
-			{
-				label: 'object kind',
-			},
+			'objectKey',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'asset instance',
-					},
-					{
-						label: 'object key',
-					},
-					{
-						label: 'object kind',
-					},
-					{
-						label: 'class',
-					},
-					{
-						label: 'token id',
-					},
+					'objectKey',
+					'objectKind',
+					'tokenId',
 					'slot',
-					{
-						label: 'metadata URI',
-					},
+					'metadataUri',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Class',
+					label: 'metadatases',
+					when: 'open',
 					items: [
-						{
-							label: 'parent class when class-scoped',
-						},
-					],
-				},
-				{
-					label: 'Metadata',
-					items: [
-						{
-							label: 'token metadata document observations',
-						},
-					],
-				},
-				{
-					label: 'Ownership/balance',
-					items: [
-						{
-							label: 'account-specific balance rows when modeled separately',
-						},
+						'$$metadata',
 					],
 				},
 			],

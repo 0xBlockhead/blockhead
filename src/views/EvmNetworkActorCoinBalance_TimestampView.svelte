@@ -10,82 +10,20 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'actor coin',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'actor coin',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'block number when known',
-					},
+					'blockNumber',
 					'balance',
-					{
-						label: 'USD value',
-					},
-					{
-						label: 'price',
-					},
-					{
-						label: 'token metadata summary',
-					},
+					'usdValue',
+					'priceUsd',
+					'tokenMetadata',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Actor coin',
-					items: [
-						{
-							label: 'parent actor/coin balance identity',
-						},
-					],
-				},
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'parent EVM network account',
-						},
-					],
-				},
-				{
-					label: 'Coin',
-					items: [
-						{
-							label: 'EVM coin instance or token contract',
-						},
-					],
-				},
-				{
-					label: 'Block',
-					items: [
-						{
-							label: 'EVM block when blockNumber resolves',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Allium latest wallet balance row or RPC balanceOf/eth_getBalance response',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

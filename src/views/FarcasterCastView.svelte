@@ -2,7 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -10,147 +9,41 @@
 
 	// State
 	const view = {
-		query: {
-			policies: [
-				{
-					when: {
-						hasSelectorFields: [
-							'fid',
-							'hash',
-						],
-					},
-					sources: [
-						'Snapchain_Rest',
-					],
-					fields: [
-						'fid',
-						'hash',
-						'text',
-						'timestamp',
-					],
-				},
-				{
-					sources: [
-						'Farcaster_Rest',
-					],
-					fields: [
-						'fid',
-						'hash',
-						'text',
-						'timestamp',
-						'username',
-						'hashPrefix',
-						'clientUrl',
-						'threadHash',
-					],
-				},
-			],
-		},
-		lists: [
-			{
-				id: 'casts',
-				label: 'Casts',
-				limit: 25,
-				query: {
-					sources: [
-						'Snapchain_Rest',
-					],
-					limit: 25,
-				},
-				item: 'link',
-				itemHref: {
-					label: '/farcaster/cast/[hash]',
-				},
-			},
-		],
 		closed: [
-			'fid',
 			'hash',
-			{
-				label: 'username/hash-prefix or client URL selector context',
-			},
 		],
 		content: {
 			dl: [
 				[
 					'fid',
 					'hash',
-					{
-						label: 'username/hash-prefix or client URL selector context',
-					},
-					{
-						label: 'author',
-					},
+					'username',
+					'hashPrefix',
+					'clientUrl',
 					'text',
+					'parentUrl',
 					'timestamp',
-					{
-						label: 'parent cast',
-					},
-					{
-						label: 'parent URL',
-					},
-					{
-						label: 'thread hash',
-					},
-					{
-						label: 'channel',
-					},
-					{
-						label: 'posted-via app',
-					},
 					'mentions',
-					{
-						label: 'mentioned profiles/channels',
-					},
-					{
-						label: 'embeds',
-					},
-					{
-						label: 'latest like/recast/reply snapshot',
-					},
+					'threadHash',
+					'mentionedProfileFids',
+					'mentionedChannelIds',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Parent/thread',
+					label: 'embeds',
+					when: 'open',
 					items: [
-						{
-							label: 'parent/root cast refs and thread hash',
-						},
+						'$$embeds',
 					],
 				},
 				{
-					label: 'Embeds',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'ordered embed rows',
-						},
-					],
-				},
-				{
-					label: 'Author',
-					items: [
-						{
-							label: 'author Farcaster user',
-						},
-					],
-				},
-				{
-					label: 'Channel',
-					items: [
-						{
-							label: 'linked channel when present',
-						},
-					],
-				},
-				{
-					label: 'Metric snapshots',
-					items: [
-						{
-							label: 'timestamped engagement observations',
-						},
+						'$$timestamps',
 					],
 				},
 			],
@@ -159,17 +52,16 @@
 
 	let {
 		selection,
-		layout = view.layout === undefined ? undefined : EntityLayout[view.layout],
-		open = $bindable(view.defaultOpen ?? true),
+		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.FarcasterCast>
-			layout?: EntityLayout
 			open?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView2>,
+			| 'layout'
 			| 'showTypeAnnotation'
 		>
 	> = $props()
@@ -184,7 +76,6 @@
 	{selection}
 	entityType={EntityType.FarcasterCast}
 	entitySelector={selection.entitySelector}
-	{layout}
 	bind:open
 	{...EntityViewProps}
 	{view}

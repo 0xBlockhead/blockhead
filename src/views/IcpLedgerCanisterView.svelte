@@ -9,109 +9,42 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'canister',
-			},
-			{
-				label: 'standard',
-			},
-			{
-				label: 'latest symbol',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
 				[
-					{
-						label: 'canister',
-					},
-					{
-						label: 'standard',
-					},
-					{
-						label: 'latest symbol',
-					},
-					{
-						label: 'latest name',
-					},
-					{
-						label: 'decimals',
-					},
-					{
-						label: 'fee',
-					},
-					{
-						label: 'archive count',
-					},
-					{
-						label: 'latest block index',
-					},
-					{
-						label: 'account observation count',
-					},
+					'ledgerStandard',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Ledger state history',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped ledger metadata/archive observations',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Blocks',
+					label: 'account timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'ledger-local block rows',
-						},
+						'$$accountTimestamps',
 					],
 				},
 				{
-					label: 'Transactions',
+					label: 'blocks',
+					when: 'open',
 					items: [
-						{
-							label: 'ledger transaction rows',
-						},
+						'$$blocks',
 					],
 				},
 				{
-					label: 'Account balances',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'account balance observations',
-						},
-					],
-				},
-				{
-					label: 'Archive canisters',
-					items: [
-						{
-							label: 'canister refs from latest timestamp',
-						},
-					],
-				},
-				{
-					label: 'Methods',
-					items: [
-						{
-							label: 'canister method rows exposed by ledger interface',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'ledger metadata',
-						},
-						{
-							label: 'supported-standard payloads',
-						},
+						'$$transactions',
 					],
 				},
 			],

@@ -10,63 +10,18 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'torrent',
-			},
-			{
-				label: 'piece index',
-			},
-			'offset',
+			'pieceIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'torrent',
-					},
-					{
-						label: 'piece index',
-					},
-					'offset',
+					'pieceIndex',
+					'pieceHashV1',
+					'pieceRootV2',
+					'pieceLayerHash',
 					'length',
-					{
-						label: 'v1 piece hash',
-					},
-					{
-						label: 'v2 piece root',
-					},
-					{
-						label: 'piece-layer hash',
-					},
+					'offset',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Torrent',
-					items: [
-						{
-							label: 'parent metainfo',
-						},
-					],
-				},
-				{
-					label: 'Files',
-					items: [
-						{
-							label: 'file rows covered by the piece span',
-						},
-					],
-				},
-				{
-					label: 'Local transfers',
-					items: [
-						{
-							label: 'connected-client transfer observations exposing verified/failed piece counts',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

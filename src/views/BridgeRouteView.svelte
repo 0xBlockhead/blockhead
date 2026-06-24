@@ -10,46 +10,30 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'from-chain -> to-chain ids',
-			},
-			{
-				label: 'token pair',
-			},
-			{
-				label: 'request amount',
-			},
+			'fromChainId',
+			'toChainId',
+			'fromToken',
+			'toToken',
+			'fromAmount',
+			'fromAddress',
+			'slippage',
+			'toAddress',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'from-chain -> to-chain ids',
-					},
-					{
-						label: 'from/to token addresses',
-					},
-					{
-						label: 'from amount',
-					},
-					{
-						label: 'from/to addresses',
-					},
+					'fromChainId',
+					'toChainId',
+					'fromToken',
+					'toToken',
+					'fromAmount',
+					'fromAddress',
 					'slippage',
-				],
-				[
-					{
-						label: 'to amount',
-					},
-					{
-						label: 'minimum received',
-					},
-					{
-						label: 'estimated cost',
-					},
-					{
-						label: 'ETA',
-					},
+					'toAddress',
+					'toAmount',
+					'toAmountMin',
+					'estimatedCostUsd',
+					'estimatedDurationSeconds',
 					'tags',
 				],
 			],
@@ -57,50 +41,10 @@
 		details: {
 			tabs: [
 				{
-					label: 'Steps',
+					label: 'steps',
+					when: 'open',
 					items: [
-						{
-							label: 'ordered BridgeRouteStep rows',
-						},
-					],
-				},
-				{
-					label: 'Networks',
-					items: [
-						{
-							label: 'from/to EVM network refs',
-						},
-					],
-				},
-				{
-					label: 'Request',
-					items: [
-						{
-							label: 'quote selector fields',
-						},
-					],
-				},
-				{
-					label: 'Quote result',
-					items: [
-						{
-							label: 'amounts',
-						},
-						{
-							label: 'cost',
-						},
-						{
-							label: 'duration',
-						},
-						'tags',
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'LI.FI quote response',
-						},
+						'$$steps',
 					],
 				},
 			],

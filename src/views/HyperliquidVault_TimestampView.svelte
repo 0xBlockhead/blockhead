@@ -10,103 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'vault',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'vault',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'name',
-					{
-						label: 'APR',
-					},
-					{
-						label: 'leader fraction',
-					},
-					{
-						label: 'leader commission',
-					},
-					{
-						label: 'max distributable',
-					},
-					{
-						label: 'max withdrawable',
-					},
-					{
-						label: 'closed flag',
-					},
-					{
-						label: 'deposit flag',
-					},
-					{
-						label: 'always-close-on-withdraw flag',
-					},
-					{
-						label: 'follower count',
-					},
+					'description',
+					'apr',
+					'leaderFraction',
+					'leaderCommission',
+					'maxDistributable',
+					'maxWithdrawable',
+					'isClosed',
+					'allowDeposits',
+					'alwaysCloseOnWithdraw',
+					'relationship',
+					'portfolio',
+					'followerCount',
+					'followers',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Vault',
-					items: [
-						{
-							label: 'parent Hyperliquid vault',
-						},
-					],
-				},
-				{
-					label: 'Portfolio',
-					items: [
-						{
-							label: 'account value',
-						},
-						{
-							label: 'PnL history buckets',
-						},
-					],
-				},
-				{
-					label: 'Followers',
-					items: [
-						{
-							label: 'follower rows',
-						},
-						{
-							label: 'summary',
-						},
-					],
-				},
-				{
-					label: 'Relationship',
-					items: [
-						{
-							label: 'parent/child relationship JSON',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'raw vaultDetails payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

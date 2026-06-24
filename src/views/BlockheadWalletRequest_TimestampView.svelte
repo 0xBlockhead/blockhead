@@ -10,80 +10,25 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'wallet request',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
-			'status',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'wallet request',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'status',
-					{
-						label: 'wallet status code',
-					},
-					{
-						label: 'wallet call bundle status',
-					},
-					{
-						label: 'atomic execution',
-					},
-					{
-						label: 'receipt count',
-					},
-					{
-						label: 'transaction hash',
-					},
-					{
-						label: 'transaction id',
-					},
-					{
-						label: 'signature hash',
-					},
-					{
-						label: 'status payload hash',
-					},
+					'walletStatusCode',
+					'walletCallBundleStatus',
+					'atomic',
+					'receiptCount',
+					'transactionHash',
+					'transactionId',
+					'signatureHash',
+					'statusPayloadHash',
 					'error',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Wallet request',
-					items: [
-						{
-							label: 'BlockheadWalletRequestView',
-						},
-					],
-				},
-				{
-					label: 'Status evidence',
-					items: [
-						{
-							label: 'wallet-reported status/result payload retained only when needed',
-						},
-					],
-				},
-				{
-					label: 'Chain evidence',
-					items: [
-						{
-							label: 'linked transaction rows when resolved',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,79 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'object id',
-			},
-			{
-				label: 'object format',
-			},
-			{
-				label: 'byte source',
-			},
+			'objectId',
+			'objectFormat',
+			'byteSource',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'object id',
-					},
-					{
-						label: 'object format',
-					},
-					{
-						label: 'byte source',
-					},
-					{
-						label: 'timestamp',
-					},
+					'objectId',
+					'objectFormat',
+					'byteSource',
+					'timestampMs',
 					'source',
 					'verifier',
+					'objectKind',
+					'headerBytesHash',
+					'payloadBytesHash',
+					'computedObjectId',
+					'canonicalEncoding',
 					'status',
-					{
-						label: 'object kind',
-					},
-					{
-						label: 'computed object id',
-					},
-					{
-						label: 'canonical encoding flag',
-					},
-					{
-						label: 'header bytes hash',
-					},
-					{
-						label: 'payload bytes hash',
-					},
 					'error',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Object',
-					items: [
-						{
-							label: 'parsed Git object when verification succeeds',
-						},
-					],
-				},
-				{
-					label: 'Byte source',
-					items: [
-						{
-							label: 'loose/packed storage context when available',
-						},
-					],
-				},
-				{
-					label: 'Diagnostics',
-					items: [
-						{
-							label: 'verifier output when retained',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

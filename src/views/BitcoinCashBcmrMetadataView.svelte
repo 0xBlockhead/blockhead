@@ -10,76 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'category id',
-			},
-			{
-				label: 'registry URL',
-			},
+			'categoryId',
+			'registryUrl',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'category id',
-					},
-					{
-						label: 'registry URL',
-					},
-					{
-						label: 'token name',
-					},
+					'categoryId',
+					'registryUrl',
+					'name',
+					'description',
 					'symbol',
 					'decimals',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Category',
-					items: [
-						{
-							label: 'parent CashToken category',
-						},
-					],
-				},
-				{
-					label: 'Registry document',
-					items: [
-						{
-							label: 'selected registry URL',
-						},
-						{
-							label: 'latest revision fields',
-						},
-						{
-							label: 'raw JSON',
-						},
-					],
-				},
-				{
-					label: 'Revision modeling',
-					items: [
-						{
-							label: 'revision id/history target when schema support exists',
-						},
-					],
-				},
-				{
-					label: 'Outputs',
-					items: [
-						{
-							label: 'CashToken outputs that carry this category',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

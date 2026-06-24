@@ -10,73 +10,44 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'asset instance',
-			},
-			{
-				label: 'class key',
-			},
-			{
-				label: 'class kind',
-			},
+			'classKind',
+			'classKey',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'asset instance',
-					},
-					{
-						label: 'class key',
-					},
-					{
-						label: 'class kind',
-					},
+					'classKind',
+					'classKey',
 					'label',
 					'slot',
 					'partition',
 					'series',
-					{
-						label: 'maturity',
-					},
-					{
-						label: 'value decimals',
-					},
+					'maturityMs',
+					'valueDecimals',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Objects',
+					label: 'objects',
+					when: 'open',
 					items: [
-						{
-							label: 'asset objects under this class',
-						},
+						'$$objects',
 					],
 				},
 				{
-					label: 'Ledger supply',
+					label: 'supply ledger states',
+					when: 'open',
 					items: [
-						{
-							label: 'ledger-coordinate supply observations',
-						},
+						'$$supplyLedgerStates',
 					],
 				},
 				{
-					label: 'Methodology supply',
+					label: 'supply timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'provider-clocked supply methodology observations',
-						},
-					],
-				},
-				{
-					label: 'Rights',
-					items: [
-						{
-							label: 'UsageRight_Timestamp or restriction rows when source-backed',
-						},
+						'$$supplyTimestamps',
 					],
 				},
 			],

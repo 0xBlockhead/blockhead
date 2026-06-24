@@ -11,61 +11,35 @@
 	const view = {
 		closed: [
 			'address',
-			{
-				label: 'latest microAlgos',
-			},
-			{
-				label: 'rewards',
-			},
 		],
 		content: {
 			dl: [
 				[
 					'address',
-					{
-						label: 'latest microAlgos',
-					},
-					{
-						label: 'rewards',
-					},
-					{
-						label: 'status snapshot',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Asset holdings',
+					label: 'asset holding rounds',
+					when: 'open',
 					items: [
-						{
-							label: 'round-scoped asset holding rows',
-						},
+						'$$assetHoldingRounds',
 					],
 				},
 				{
-					label: 'Application local state',
+					label: 'application local state rounds',
+					when: 'open',
 					items: [
-						{
-							label: 'round-scoped account/application state rows',
-						},
+						'$$applicationLocalStateRounds',
 					],
 				},
 				{
-					label: 'Transactions',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'transactions involving this address when indexed',
-						},
-					],
-				},
-				{
-					label: 'Account snapshots',
-					items: [
-						{
-							label: 'round/source account observations',
-						},
+						'$$timestamps',
 					],
 				},
 			],

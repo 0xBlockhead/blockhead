@@ -10,84 +10,43 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'tx id',
-			},
-			{
-				label: 'block',
-			},
+			'txId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'tx id',
-					},
-					{
-						label: 'block',
-					},
+					'txId',
 					'version',
-					{
-						label: 'fee',
-					},
-					{
-						label: 'size/vsize/weight',
-					},
-					{
-						label: 'lock time',
-					},
-					{
-						label: 'coinbase flag',
-					},
+					'lockTime',
+					'sizeBytes',
+					'virtualSizeBytes',
+					'weightUnits',
+					'feeSats',
+					'isCoinbase',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Inputs',
+					label: 'inputs',
+					when: 'open',
 					items: [
-						{
-							label: 'transaction inputs',
-						},
+						'$$inputs',
 					],
 				},
 				{
-					label: 'Outputs',
+					label: 'outputs',
+					when: 'open',
 					items: [
-						{
-							label: 'transaction outputs',
-						},
+						'$$outputs',
 					],
 				},
 				{
-					label: 'Block',
+					label: 'zcash shielded actions',
+					when: 'open',
 					items: [
-						{
-							label: 'containing block when confirmed',
-						},
-					],
-				},
-				{
-					label: 'Shielded actions',
-					items: [
-						{
-							label: 'Zcash shielded actions when present',
-						},
-					],
-				},
-				{
-					label: 'Raw/source',
-					items: [
-						{
-							label: 'source payload fields useful for debugging resolver conflicts',
-						},
+						'$$zcashShieldedActions',
 					],
 				},
 			],

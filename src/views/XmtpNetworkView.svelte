@@ -10,44 +10,27 @@
 	// State
 	const view = {
 		closed: [
-			'protocolName',
-			'registryLabel',
+			'scope',
 		],
 		content: {
 			dl: [
 				[
+					'scope',
 					'protocolName',
-					'registryLabel',
-					'topology',
 					'homeUrl',
 					'docsUrl',
-					'$$xmtpConversations',
+					'registryLabel',
+					'topology',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Conversations',
+					label: 'xmtp conversations',
+					when: 'open',
 					items: [
 						'$$xmtpConversations',
-					],
-				},
-				{
-					label: 'Demo accounts',
-					items: [
-						{
-							slot: 'DemoAccounts',
-							label: 'Generic EVM actor examples',
-						},
-					],
-				},
-				{
-					label: 'Source coverage',
-					items: [
-						{
-							label: 'Constants and local catalog state',
-						},
 					],
 				},
 			],

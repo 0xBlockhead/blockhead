@@ -9,106 +9,71 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'head HyperEVM block',
-			},
-			{
-				label: 'environment',
-			},
-			{
-				label: 'stack',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
 				[
-					{
-						label: 'head HyperEVM block',
-					},
-					{
-						label: 'environment',
-					},
-					{
-						label: 'stack',
-					},
-					{
-						label: 'endpoint availability',
-					},
-					{
-						label: 'latest perp market count',
-					},
-					{
-						label: 'latest spot asset count',
-					},
-					{
-						label: 'latest spot pair count',
-					},
-					{
-						label: 'latest validator count',
-					},
-					{
-						label: 'latest vault count when sourced',
-					},
+					'rpcEndpoints',
+					'restEndpoints',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Execution',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'blocks',
-						},
-						{
-							label: 'transactions',
-						},
-						{
-							label: 'network snapshots',
-						},
-						{
-							label: 'validators',
-						},
-						{
-							label: 'endpoints',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Assets',
+					label: 'blocks',
+					when: 'open',
 					items: [
-						{
-							label: 'native coin',
-						},
-						{
-							label: 'perp markets',
-						},
-						{
-							label: 'spot assets',
-						},
-						{
-							label: 'spot pairs',
-						},
+						'$$blocks',
 					],
 				},
 				{
-					label: 'Vaults',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'Hyperliquid vault rows',
-						},
+						'$$transactions',
 					],
 				},
 				{
-					label: 'Resources',
+					label: 'validators',
+					when: 'open',
 					items: [
-						{
-							label: 'faucets',
-						},
-						{
-							label: 'block explorers',
-						},
+						'$$validators',
+					],
+				},
+				{
+					label: 'spot assets',
+					when: 'open',
+					items: [
+						'$$spotAssets',
+					],
+				},
+				{
+					label: 'spot pairs',
+					when: 'open',
+					items: [
+						'$$spotPairs',
+					],
+				},
+				{
+					label: 'perp markets',
+					when: 'open',
+					items: [
+						'$$perpMarkets',
+					],
+				},
+				{
+					label: 'vaults',
+					when: 'open',
+					items: [
+						'$$vaults',
 					],
 				},
 			],

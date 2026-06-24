@@ -10,77 +10,16 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'cast',
-			},
-			{
-				label: 'observation time',
-			},
-			{
-				label: 'likes',
-			},
+			'timestampMs',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'cast',
-					},
-					{
-						label: 'observation time',
-					},
-					{
-						label: 'likes',
-					},
-					{
-						label: 'recasts',
-					},
-					{
-						label: 'replies',
-					},
+					'timestampMs',
+					'likeCount',
+					'recastCount',
+					'replyCount',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Cast',
-					items: [
-						{
-							label: 'FarcasterCast',
-						},
-					],
-				},
-				{
-					label: 'Engagement',
-					items: [
-						{
-							label: 'like count',
-						},
-						{
-							label: 'recast count',
-						},
-						{
-							label: 'reply count',
-						},
-					],
-				},
-				{
-					label: 'History',
-					items: [
-						{
-							label: 'FarcasterCast_Timestamp list',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Neynar/Snapchain cast payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

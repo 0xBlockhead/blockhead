@@ -10,90 +10,23 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'log index',
-			},
-			{
-				label: 'transfer index',
-			},
-			{
-				label: 'parent transaction link from selector txHash',
-			},
+			'txHash',
+			'logIndex',
+			'transferIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'log index',
-					},
-					{
-						label: 'transfer index',
-					},
-					{
-						label: 'parent transaction link from selector txHash',
-					},
-					{
-						label: 'standard label',
-					},
+					'txHash',
+					'logIndex',
+					'transferIndex',
+					'standard',
 					'amount',
-					{
-						label: 'token id for ERC-721/ERC-1155',
-					},
-					{
-						label: 'from/to EVM network accounts',
-					},
-					{
-						label: 'token contract',
-					},
-					{
-						label: 'coin instance',
-					},
-					{
-						label: 'token metadata',
-					},
+					'tokenId',
+					'tokenSymbol',
+					'tokenName',
+					'tokenDecimals',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Transaction',
-					items: [
-						{
-							label: 'parent EVM transaction derived from network/txHash',
-						},
-					],
-				},
-				{
-					label: 'Accounts',
-					items: [
-						{
-							label: 'from/to EVM network accounts',
-						},
-					],
-				},
-				{
-					label: 'Token',
-					items: [
-						{
-							label: 'token contract',
-						},
-						{
-							label: 'EVM coin instance',
-						},
-					],
-				},
-				{
-					label: 'Log evidence',
-					items: [
-						{
-							label: 'Transfer/TransferSingle/TransferBatch log payload',
-						},
-						{
-							label: 'expanded batch item index',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

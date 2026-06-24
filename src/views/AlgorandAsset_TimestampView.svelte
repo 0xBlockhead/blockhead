@@ -10,80 +10,28 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'unit/name',
-			},
-			{
-				label: 'total supply',
-			},
 			'round',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'asset',
-					},
 					'round',
 					'source',
-					{
-						label: 'total supply',
-					},
+					'total',
 					'decimals',
-					{
-						label: 'default frozen',
-					},
+					'defaultFrozen',
+					'unitName',
+					'assetName',
+					'url',
+					'metadataHash',
+					'manager',
+					'reserve',
+					'freeze',
+					'clawback',
+					'holderCount',
+					'deleted',
 				],
-				[
-					{
-						label: 'unit/name/url/metadata hash',
-					},
-					{
-						label: 'manager/reserve/freeze/clawback',
-					},
-					{
-						label: 'holder count',
-					},
-					{
-						label: 'deleted state',
-					},
-				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Asset',
-					items: [
-						{
-							label: 'parent asset identity',
-						},
-					],
-				},
-				{
-					label: 'Holdings at round',
-					items: [
-						{
-							label: 'asset holding rows when indexed',
-						},
-					],
-				},
-				{
-					label: 'Metadata',
-					items: [
-						{
-							label: 'ARC/source metadata URL/hash',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'algod/indexer asset params payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -9,110 +9,89 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'linked base Network',
-			},
-			{
-				label: 'masterchain workchain',
-			},
-			{
-				label: 'latest network observation',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
-				[
-					{
-						label: 'linked base Network',
-					},
-					{
-						label: 'masterchain workchain',
-					},
-					{
-						label: 'latest masterchain seqno/shard/validator observation',
-					},
-					{
-						label: 'bounded jetton/NFT/account windows',
-					},
-				],
+				[],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Network history',
+					label: 'workchains',
+					when: 'open',
 					items: [
-						{
-							label: 'network status observations',
-						},
+						'$$workchains',
 					],
 				},
 				{
-					label: 'Workchains/shards',
+					label: 'blocks',
+					when: 'open',
 					items: [
-						{
-							label: 'workchain identities',
-						},
-						{
-							label: 'shard/block observations',
-						},
+						'$$blocks',
 					],
 				},
 				{
-					label: 'Blocks',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'TON blocks by workchain/shard/seqno',
-						},
+						'$$transactions',
 					],
 				},
 				{
-					label: 'Accounts',
+					label: 'accounts',
+					when: 'open',
 					items: [
-						{
-							label: 'observed accounts',
-						},
+						'$$accounts',
 					],
 				},
 				{
-					label: 'Contracts',
+					label: 'contracts',
+					when: 'open',
 					items: [
-						{
-							label: 'contract classifications',
-						},
+						'$$contracts',
 					],
 				},
 				{
-					label: 'Messages',
+					label: 'messages',
+					when: 'open',
 					items: [
-						{
-							label: 'message edges',
-						},
+						'$$messages',
 					],
 				},
 				{
-					label: 'Traces',
+					label: 'traces',
+					when: 'open',
 					items: [
-						{
-							label: 'source trace graphs',
-						},
+						'$$traces',
 					],
 				},
 				{
-					label: 'Jettons',
+					label: 'jettons',
+					when: 'open',
 					items: [
-						{
-							label: 'jetton masters',
-						},
+						'$$jettons',
 					],
 				},
 				{
-					label: 'NFTs',
+					label: 'nft collections',
+					when: 'open',
 					items: [
-						{
-							label: 'NFT collections and items',
-						},
+						'$$nftCollections',
+					],
+				},
+				{
+					label: 'nft items',
+					when: 'open',
+					items: [
+						'$$nftItems',
+					],
+				},
+				{
+					label: 'timestamps',
+					when: 'open',
+					items: [
+						'$$timestamps',
 					],
 				},
 			],

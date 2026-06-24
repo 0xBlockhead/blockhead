@@ -10,111 +10,42 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'wallet id',
-			},
-			{
-				label: 'network',
-			},
-			{
-				label: 'account index',
-			},
+			'walletId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'wallet id',
-					},
-					{
-						label: 'network',
-					},
-					{
-						label: 'account index',
-					},
-					{
-						label: 'unified address',
-					},
-					{
-						label: 'transparent/Sapling/Orchard address availability',
-					},
-					{
-						label: 'birthday height',
-					},
-					{
-						label: 'latest total balance',
-					},
-					{
-						label: 'latest spendable balance',
-					},
-					{
-						label: 'latest verified balance',
-					},
-					{
-						label: 'latest scan height',
-					},
-					{
-						label: 'latest recovery state',
-					},
+					'walletId',
+					'accountIndex',
+					'unifiedAddress',
+					'transparentAddress',
+					'saplingAddress',
+					'orchardAddress',
+					'birthdayHeight',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest state',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'latest wallet-state observation',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'State history',
+					label: 'viewing keys',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped wallet-state observations',
-						},
+						'$$viewingKeys',
 					],
 				},
 				{
-					label: 'Viewing keys',
+					label: 'notes',
+					when: 'open',
 					items: [
-						{
-							label: 'local Zcash viewing keys',
-						},
-					],
-				},
-				{
-					label: 'Notes',
-					items: [
-						{
-							label: 'local Zcash note states grouped by pool',
-						},
-					],
-				},
-				{
-					label: 'Pools',
-					items: [
-						{
-							label: 'Sapling/Orchard balance summaries from wallet timestamp fields',
-						},
-					],
-				},
-				{
-					label: 'Transparent state',
-					items: [
-						{
-							label: 'linked UTXO address/transaction rows when resolved',
-						},
-					],
-				},
-				{
-					label: 'Recovery',
-					items: [
-						{
-							label: 'local scan/recovery status',
-						},
+						'$$notes',
 					],
 				},
 			],

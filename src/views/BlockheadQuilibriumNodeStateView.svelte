@@ -10,86 +10,40 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'connection id',
-			},
-			{
-				label: 'network',
-			},
-			'endpoint',
+			'connectionId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'connection id',
-					},
-					{
-						label: 'network',
-					},
+					'connectionId',
 					'endpoint',
-					{
-						label: 'gRPC/REST ports',
-					},
-					{
-						label: 'peer id',
-					},
-					{
-						label: 'latest frame',
-					},
-					{
-						label: 'latest engine state',
-					},
-					{
-						label: 'peer/prover count',
-					},
-					{
-						label: 'latest sync time',
-					},
+					'grpcPort',
+					'restPort',
+					'peerId',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'State observations',
+					label: 'frames',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped connected-node observations',
-						},
+						'$$frames',
 					],
 				},
 				{
-					label: 'Frames',
+					label: 'provers',
+					when: 'open',
 					items: [
-						{
-							label: 'locally observed frame heads',
-						},
+						'$$provers',
 					],
 				},
 				{
-					label: 'Provers',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'peers/provers exposed by the connected node',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent network',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						'endpoint',
-						{
-							label: 'scrape/RPC freshness',
-						},
+						'$$timestamps',
 					],
 				},
 			],

@@ -10,82 +10,28 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'subaccount',
-			},
-			{
-				label: 'order id',
-			},
-			{
-				label: 'market',
-			},
+			'orderId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'subaccount',
-					},
-					{
-						label: 'order id',
-					},
-					{
-						label: 'market',
-					},
+					'orderId',
 					'side',
-					{
-						label: 'order type',
-					},
-					{
-						label: 'time in force',
-					},
-					{
-						label: 'client id',
-					},
-					{
-						label: 'good-til block/time',
-					},
-					{
-						label: 'latest status/fill summary',
-					},
+					'orderType',
+					'timeInForce',
+					'clientId',
+					'goodTilBlock',
+					'goodTilBlockTimeMs',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Order observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped order lifecycle observations',
-						},
-					],
-				},
-				{
-					label: 'Subaccount',
-					items: [
-						{
-							label: 'parent dYdX subaccount',
-						},
-					],
-				},
-				{
-					label: 'Market',
-					items: [
-						{
-							label: 'linked dYdX market',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'indexer order payload',
-						},
-						{
-							label: 'stateful order query when available',
-						},
+						'$$timestamps',
 					],
 				},
 			],

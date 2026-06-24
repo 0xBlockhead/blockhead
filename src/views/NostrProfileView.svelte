@@ -11,99 +11,44 @@
 	const view = {
 		closed: [
 			'pubkey',
-			{
-				label: 'display name',
-			},
-			{
-				label: 'NIP-05',
-			},
 		],
 		content: {
 			dl: [
 				[
 					'pubkey',
-					{
-						label: 'display name',
-					},
-					{
-						label: 'NIP-05',
-					},
-					{
-						label: 'banner',
-					},
+					'displayName',
+					'about',
+					'nip05',
+					'lud16',
+					'lud06',
 					'website',
-					{
-						label: 'lightning address/URI',
-					},
 					'metadataUpdatedAt',
-					{
-						label: 'note count',
-					},
-					{
-						label: 'article count',
-					},
-					{
-						label: 'repost count',
-					},
-				],
-			],
-			blocks: [
-				[
-					{
-						label: 'about text',
-					},
+					'iconUrl',
+					'bannerUrl',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Profile metadata',
+					label: 'notes',
+					when: 'open',
 					items: [
-						{
-							label: 'kind-0 content',
-						},
-						{
-							label: 'media refs',
-						},
-						{
-							label: 'NIP-05',
-						},
-						{
-							label: 'lightning fields',
-						},
+						'$$notes',
 					],
 				},
 				{
-					label: 'Notes',
+					label: 'articles',
+					when: 'open',
 					items: [
-						{
-							label: 'notes authored by this pubkey',
-						},
+						'$$articles',
 					],
 				},
 				{
-					label: 'Articles',
+					label: 'reposts',
+					when: 'open',
 					items: [
-						{
-							label: 'addressable articles authored by this pubkey',
-						},
-					],
-				},
-				{
-					label: 'Reposts',
-					items: [
-						{
-							label: 'repost events authored by this pubkey',
-						},
-					],
-				},
-				{
-					label: 'Relay evidence',
-					items: [
-						{
-							label: 'relays/indexers that returned the latest kind-0 event',
-						},
+						'$$reposts',
 					],
 				},
 			],

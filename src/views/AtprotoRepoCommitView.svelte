@@ -10,95 +10,43 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'repo DID',
-			},
+			'repoDid',
 			'rev',
-			{
-				label: 'commit CID',
-			},
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'repo DID',
-					},
+					'repoDid',
 					'rev',
-					{
-						label: 'commit CID',
-					},
-					{
-						label: 'previous rev',
-					},
-					{
-						label: 'data CID',
-					},
-					'sequence',
 					'source',
-					{
-						label: 'host',
-					},
+					'commitCid',
+					'previousRev',
+					'previousDataCid',
+					'dataCid',
+					'sequence',
+					'pdsHost',
+					'relayHost',
 					'time',
-					{
-						label: 'operation count',
-					},
-					{
-						label: 'blob count',
-					},
-					{
-						label: 'CAR byte length',
-					},
-					{
-						label: 'too-big/rebase flags',
-					},
+					'tooBig',
+					'rebase',
+					'operationCount',
+					'blobCount',
+					'carByteLength',
+					'operationPaths',
+					'createdRecordCids',
+					'updatedRecordCids',
+					'deletedRecordPaths',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Operations',
+					label: 'posts',
+					when: 'open',
 					items: [
-						{
-							label: 'path/action/CID summary grouped into created',
-						},
-						{
-							label: 'updated',
-						},
-						{
-							label: 'deleted records',
-						},
-					],
-				},
-				{
-					label: 'Posts',
-					items: [
-						{
-							label: 'AtprotoPost list for app.bsky.feed.post ops',
-						},
-					],
-				},
-				{
-					label: 'Repository data',
-					items: [
-						{
-							label: 'commit/data/previous-data CIDs',
-						},
-						{
-							label: 'CAR metadata',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'PDS/relay host',
-						},
-						{
-							label: 'repo sync payload fields',
-						},
+						'$$posts',
 					],
 				},
 			],

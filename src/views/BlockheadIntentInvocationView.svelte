@@ -10,88 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'session',
-			},
-			'modality',
-			{
-				label: 'source/target entity types',
-			},
+			'sessionId',
+			'invocationId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'session',
-					},
+					'sessionId',
+					'invocationId',
 					'modality',
-					{
-						label: 'source entity type',
-					},
-					{
-						label: 'target entity type',
-					},
-					{
-						label: 'placements',
-					},
-					{
-						label: 'invocation payload hash',
-					},
-					{
-						label: 'resolved intent type',
-					},
-					{
-						label: 'intent definition key/hash',
-					},
-					{
-						label: 'selected option index/hash',
-					},
-					{
-						label: 'created time',
-					},
+					'sourceEntityType',
+					'sourceSelector',
+					'targetEntityType',
+					'targetSelector',
+					'sourcePlacement',
+					'targetPlacement',
+					'invocationPayloadHash',
+					'resolvedIntentType',
+					'intentDefinitionKey',
+					'intentDefinitionHash',
+					'selectedOptionIndex',
+					'selectedOptionHash',
+					'createdAt',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Source selector',
-					items: [
-						{
-							label: 'serialized selector payload when present',
-						},
-					],
-				},
-				{
-					label: 'Target selector',
-					items: [
-						{
-							label: 'serialized selector payload when present',
-						},
-					],
-				},
-				{
-					label: 'Created action',
-					items: [
-						{
-							label: 'BlockheadSessionActionView when accepted',
-						},
-					],
-				},
-				{
-					label: 'Resolution',
-					items: [
-						{
-							label: 'catalog definition key',
-						},
-						{
-							label: 'definition hash',
-						},
-						{
-							label: 'selected option hash',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

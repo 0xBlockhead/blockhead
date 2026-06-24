@@ -10,76 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'referendum id',
-			},
-			'track',
+			'referendumId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'referendum id',
-					},
+					'referendumId',
 					'track',
-					{
-						label: 'submitted block',
-					},
-					{
-						label: 'latest lifecycle/tally observation',
-					},
+					'submittedAtBlockNumber',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Lifecycle',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped referendum lifecycle observations',
-						},
-					],
-				},
-				{
-					label: 'Tally',
-					items: [
-						{
-							label: 'aye/nay/support fields from latest runtime/indexer payload',
-						},
-					],
-				},
-				{
-					label: 'Votes/deposits',
-					items: [
-						{
-							label: 'vote',
-						},
-						{
-							label: 'deposit child rows once selectors are modeled',
-						},
-					],
-				},
-				{
-					label: 'Preimage/call',
-					items: [
-						{
-							label: 'linked preimage or call metadata',
-						},
-					],
-				},
-				{
-					label: 'Discussions',
-					items: [
-						{
-							label: 'source-attributed forum/indexer links only when selectors exist',
-						},
+						'$$timestamps',
 					],
 				},
 			],

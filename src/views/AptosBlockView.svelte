@@ -10,61 +10,26 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'block height',
-			},
-			{
-				label: 'contained version lookup',
-			},
-			{
-				label: 'first/last version',
-			},
+			'height',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'block height',
-					},
-					{
-						label: 'contained version lookup',
-					},
-					{
-						label: 'first/last version',
-					},
-					{
-						label: 'timestamp',
-					},
-					{
-						label: 'transaction count',
-					},
+					'height',
+					'containsVersion',
+					'firstVersion',
+					'lastVersion',
+					'timestampMs',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Transactions',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'transactions in the block version range',
-						},
-					],
-				},
-				{
-					label: 'Lookup evidence',
-					items: [
-						{
-							label: 'height lookup or contained-version lookup response',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Aptos network',
-						},
+						'$$transactions',
 					],
 				},
 			],

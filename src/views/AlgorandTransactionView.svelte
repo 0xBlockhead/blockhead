@@ -10,78 +10,32 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'tx id',
-			},
-			{
-				label: 'type',
-			},
-			'sender',
+			'txId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'tx id',
-					},
-					{
-						label: 'type',
-					},
-					'sender',
+					'txId',
 					'round',
+					'sender',
+					'transactionType',
 					'fee',
-					{
-						label: 'group id',
-					},
-					{
-						label: 'parent/inner index when present',
-					},
-					{
-						label: 'proof count',
-					},
+					'group',
+					'parentTransactionId',
+					'innerTransactionIndex',
+					'innerTxns',
+					'logs',
+					'payload',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Group',
+					label: 'proofs',
+					when: 'open',
 					items: [
-						{
-							label: 'atomic transaction group when present',
-						},
-					],
-				},
-				{
-					label: 'Inner transactions',
-					items: [
-						{
-							label: 'nested transactions by parent/index',
-						},
-					],
-				},
-				{
-					label: 'Proofs',
-					items: [
-						{
-							label: 'transaction inclusion proofs',
-						},
-					],
-				},
-				{
-					label: 'Logs',
-					items: [
-						{
-							label: 'decoded/raw logs',
-						},
-					],
-				},
-				{
-					label: 'Payload',
-					items: [
-						{
-							label: 'type-specific transaction JSON',
-						},
+						'$$proofs',
 					],
 				},
 			],

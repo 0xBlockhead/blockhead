@@ -10,81 +10,26 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
 			'height',
-			'hash',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'height',
 					'hash',
-					{
-						label: 'parent',
-					},
-					{
-						label: 'timestamp',
-					},
+					'timestampMs',
 					'difficulty',
-					{
-						label: 'weight',
-					},
-					{
-						label: 'transaction count',
-					},
+					'weightBytes',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Header',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'parent',
-						},
-						'difficulty',
-						{
-							label: 'weight',
-						},
-						{
-							label: 'timestamp',
-						},
-					],
-				},
-				{
-					label: 'Transactions',
-					items: [
-						{
-							label: 'Monero transactions in this block',
-						},
-					],
-				},
-				{
-					label: 'Lookup evidence',
-					items: [
-						{
-							label: 'get_block height lookup',
-						},
-						{
-							label: 'get_block hash lookup',
-						},
-						{
-							label: 'block header height/hash tuple',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Monero network',
-						},
+						'$$transactions',
 					],
 				},
 			],

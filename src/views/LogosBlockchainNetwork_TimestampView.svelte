@@ -10,65 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'observation time',
-			},
-			{
-				label: 'height/slot',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					'height',
-					'slot',
+					'lib',
+					'libSlot',
 					'tip',
-					{
-						label: 'LIB',
-					},
-					{
-						label: 'LIB slot',
-					},
+					'slot',
+					'height',
 					'mode',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Logos Blockchain network',
-						},
-					],
-				},
-				{
-					label: 'Consensus',
-					items: [
-						{
-							label: 'tip/LIB/slot/height/mode',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: '/cryptarchia/info response',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

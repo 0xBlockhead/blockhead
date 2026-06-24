@@ -9,100 +9,43 @@
 
 	// State
 	const view = {
-		actions: [
-			{
-				id: 'lock-session',
-				label: 'Lock session',
-				kind: 'createLocal',
-				slot: 'LockSessionAction',
-			},
-			{
-				id: 'delete-session',
-				label: 'Delete session',
-				kind: 'deleteLocal',
-				slot: 'DeleteSessionAction',
-			},
-		],
-		forms: [
-			{
-				id: 'create-action',
-				label: 'Create action',
-				kind: 'createLocal',
-				fields: [
-					{
-						name: 'actionType',
-						label: 'Action type',
-						kind: 'select',
-					},
-					{
-						name: 'params',
-						label: 'Parameters',
-						kind: 'textarea',
-					},
-				],
-				slot: 'CreateSessionActionForm',
-			},
-		],
 		closed: [
-			{
-				label: 'id/name',
-			},
-			'status',
-			{
-				label: 'created/updated/locked timestamps',
-			},
+			'id',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'id/name',
-					},
+					'id',
+					'name',
 					'status',
-					{
-						label: 'created/updated/locked timestamps',
-					},
-					{
-						label: 'simulation count',
-					},
-					{
-						label: 'latest simulation when linked',
-					},
+					'createdAt',
+					'updatedAt',
+					'lockedAt',
+					'simulationCount',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Actions',
+					label: 'actions',
+					when: 'open',
 					items: [
-						{
-							label: 'ordered BlockheadSessionAction list',
-						},
+						'$$actions',
 					],
 				},
 				{
-					label: 'Invocations',
+					label: 'intent invocations',
+					when: 'open',
 					items: [
-						{
-							label: 'accepted or recorded BlockheadIntentInvocation rows',
-						},
+						'$$intentInvocations',
 					],
 				},
 				{
-					label: 'Simulations',
+					label: 'simulations',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadSessionSimulation list',
-						},
-					],
-				},
-				{
-					label: 'Intents',
-					items: [
-						{
-							label: 'typed swap/bridge/transfer intent rows',
-						},
+						'$$simulations',
 					],
 				},
 			],

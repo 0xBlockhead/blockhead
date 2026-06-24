@@ -10,99 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'miner address',
-			},
-			{
-				label: 'owner actor',
-			},
+			'minerAddress',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'miner address',
-					},
-					{
-						label: 'owner actor',
-					},
-					{
-						label: 'worker actor',
-					},
-					{
-						label: 'peer id',
-					},
-				],
-				[
-					{
-						label: 'quality-adjusted power',
-					},
-					{
-						label: 'sector count',
-					},
-					{
-						label: 'deal count',
-					},
-					{
-						label: 'latest observation time',
-					},
+					'minerAddress',
+					'peerId',
+					'qualityAdjustedPower',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'State observations',
+					label: 'sectors',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped miner state observations',
-						},
-					],
-				},
-				{
-					label: 'Sectors',
-					items: [
-						{
-							label: 'Filecoin sectors',
-						},
-					],
-				},
-				{
-					label: 'Deals',
-					items: [
-						{
-							label: 'Filecoin deals when provider indexes are available',
-						},
-					],
-				},
-				{
-					label: 'Owner',
-					items: [
-						{
-							label: 'owner Filecoin actor',
-						},
-					],
-				},
-				{
-					label: 'Worker',
-					items: [
-						{
-							label: 'worker Filecoin actor',
-						},
-					],
-				},
-				{
-					label: 'Produced blocks',
-					items: [
-						{
-							label: 'Filecoin blocks when source context provides block membership',
-						},
+						'$$sectors',
 					],
 				},
 			],

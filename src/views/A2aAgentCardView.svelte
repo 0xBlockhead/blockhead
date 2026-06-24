@@ -10,55 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'agent card URL',
-			},
-			{
-				label: 'latest snapshot',
-			},
+			'agentCardUrl',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'agent card URL',
-					},
-					{
-						label: 'latest snapshot',
-					},
-					{
-						label: 'document refs',
-					},
+					'agentCardUrl',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Snapshots',
+					label: 'snapshots',
+					when: 'open',
 					items: [
-						{
-							label: 'A2aAgentCard_Snapshot list',
-						},
+						'$$snapshots',
 					],
 				},
 				{
-					label: 'Documents',
+					label: 'documents',
+					when: 'open',
 					items: [
-						{
-							label: 'AiDocument list',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'well-known URL',
-						},
-						{
-							label: 'EIP-8004 declarations',
-						},
+						'$$documents',
 					],
 				},
 			],

@@ -10,83 +10,18 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'blockchain id',
-			},
-			{
-				label: 'subnet',
-			},
-			{
-				label: 'VM id',
-			},
+			'blockchainId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'blockchain id',
-					},
-					{
-						label: 'subnet',
-					},
-					{
-						label: 'VM id',
-					},
-					{
-						label: 'chain name/alias',
-					},
-					{
-						label: 'linked Network',
-					},
-					{
-						label: 'genesis data hash',
-					},
-					{
-						label: 'creation transaction',
-					},
+					'blockchainId',
+					'vmId',
+					'chainName',
+					'chainAlias',
+					'genesisDataHash',
+					'createdAtTxId',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Subnet',
-					items: [
-						{
-							label: 'parent subnet',
-						},
-					],
-				},
-				{
-					label: 'Validators',
-					items: [
-						{
-							label: 'validators through subnet membership',
-						},
-					],
-				},
-				{
-					label: 'Creation transaction',
-					items: [
-						{
-							label: 'P-Chain creation transaction when resolved',
-						},
-					],
-				},
-				{
-					label: 'Genesis/source evidence',
-					items: [
-						{
-							label: 'genesis data hash',
-						},
-						{
-							label: 'aliases',
-						},
-						{
-							label: 'source payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

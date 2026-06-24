@@ -10,70 +10,27 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'provider',
-			},
-			{
-				label: 'operation id',
-			},
-			{
-				label: 'kind',
-			},
+			'operationId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'provider',
-					},
-					{
-						label: 'operation id',
-					},
+					'operationId',
 					'label',
-					{
-						label: 'kind',
-					},
-				],
-				[
-					{
-						label: 'HTTP method',
-					},
-					{
-						label: 'path template',
-					},
-					{
-						label: 'documentation URL',
-					},
-					{
-						label: 'latest support observation',
-					},
+					'operationKind',
+					'httpMethod',
+					'pathTemplate',
+					'documentUrl',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Provider',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'AiModelProvider',
-						},
-					],
-				},
-				{
-					label: 'Observations',
-					items: [
-						{
-							label: 'AiProviderApiOperation_Timestamp list',
-						},
-					],
-				},
-				{
-					label: 'Models',
-					items: [
-						{
-							label: 'supported model selectors from latest observation',
-						},
+						'$$timestamps',
 					],
 				},
 			],

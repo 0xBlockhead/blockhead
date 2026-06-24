@@ -10,80 +10,35 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			'name',
-			'slug',
+			'upgradeId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
+					'upgradeId',
 					'name',
 					'slug',
+					'activationBlock',
+					'activationTimestampMs',
+					'activationEpoch',
 					'protocol',
 					'layer',
-					{
-						label: 'activation block/timestamp/epoch',
-					},
-					{
-						label: 'fork hash',
-					},
-					{
-						label: 'proposal count',
-					},
-					{
-						label: 'links',
-					},
+					'forkHash',
+					'linkEthereumOrg',
+					'linkExecutionDocs',
+					'linkForkcast',
+					'executionSpecsPinnedMarkdownFilename',
+					'executionSpecsMainnetUpgradeMarkdown',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Network upgrade',
+					label: 'proposals',
+					when: 'open',
 					items: [
-						{
-							label: 'joined execution/consensus network-upgrade row when linked',
-						},
-					],
-				},
-				{
-					label: 'Activation evidence',
-					items: [
-						{
-							label: 'JSON-RPC/fork catalog evidence',
-						},
-					],
-				},
-				{
-					label: 'Proposals',
-					items: [
-						{
-							label: 'linked specification proposal rows',
-						},
-					],
-				},
-				{
-					label: 'Execution specs',
-					items: [
-						{
-							label: 'pinned markdown filename',
-						},
-						{
-							label: 'mainnet upgrade markdown when sourced',
-						},
-					],
-				},
-				{
-					label: 'References',
-					items: [
-						{
-							label: 'catalog URLs only',
-						},
+						'$$proposals',
 					],
 				},
 			],

@@ -10,77 +10,44 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'session id',
-			},
-			{
-				label: 'runtime',
-			},
-			{
-				label: 'workspace',
-			},
+			'sessionId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'session id',
-					},
-					{
-						label: 'runtime',
-					},
-					{
-						label: 'created/closed/deleted at',
-					},
-					{
-						label: 'workspace URI',
-					},
-				],
-				[
+					'sessionId',
+					'createdAt',
+					'closedAt',
+					'deletedAt',
+					'loadedFromSessionId',
+					'workspaceUri',
 					'mode',
 					'listed',
 					'status',
-					{
-						label: 'loaded-from session',
-					},
-					{
-						label: 'prompt turn/update/terminal refs',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Prompt turns',
+					label: 'prompt turns',
+					when: 'open',
 					items: [
-						{
-							label: 'AcpPromptTurn list',
-						},
+						'$$promptTurns',
 					],
 				},
 				{
-					label: 'Updates',
+					label: 'updates',
+					when: 'open',
 					items: [
-						{
-							label: 'AcpSessionUpdate list',
-						},
+						'$$updates',
 					],
 				},
 				{
-					label: 'Terminals',
+					label: 'terminals',
+					when: 'open',
 					items: [
-						{
-							label: 'AcpTerminal list',
-						},
-					],
-				},
-				{
-					label: 'Runtime',
-					items: [
-						{
-							label: 'AcpAgentRuntime',
-						},
+						'$$terminals',
 					],
 				},
 			],

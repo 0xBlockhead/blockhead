@@ -10,60 +10,41 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'provider id/domain',
-			},
-			'label',
+			'domain',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'provider id',
-					},
 					'domain',
+					'providerId',
 					'label',
-					{
-						label: 'organization kind',
-					},
-				],
-				[
-					{
-						label: 'homepage',
-					},
-					{
-						label: 'docs',
-					},
-					{
-						label: 'catalog/model/operation refs',
-					},
+					'organizationKind',
+					'homepageUrl',
+					'docsUrl',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Catalog entries',
+					label: 'catalog entries',
+					when: 'open',
 					items: [
-						{
-							label: 'AiProviderCatalogEntry list',
-						},
+						'$$catalogEntries',
 					],
 				},
 				{
-					label: 'Models',
+					label: 'api operations',
+					when: 'open',
 					items: [
-						{
-							label: 'AiModel list',
-						},
+						'$$apiOperations',
 					],
 				},
 				{
-					label: 'API operations',
+					label: 'models',
+					when: 'open',
 					items: [
-						{
-							label: 'AiProviderApiOperation list',
-						},
+						'$$models',
 					],
 				},
 			],

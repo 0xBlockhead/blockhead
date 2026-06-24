@@ -10,70 +10,28 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'block number',
-			},
-			{
-				label: 'block hash',
-			},
+			'blockNumber',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'block number',
-					},
-					{
-						label: 'block hash',
-					},
-					{
-						label: 'consensus start/end',
-					},
-					{
-						label: 'gas used',
-					},
-					{
-						label: 'record file',
-					},
-					{
-						label: 'transaction count',
-					},
+					'blockNumber',
+					'blockHash',
+					'consensusStartTimestamp',
+					'consensusEndTimestamp',
+					'gasUsed',
+					'recordFileName',
+					'transactionCount',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Transactions',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'Hedera transactions in this block range',
-						},
-					],
-				},
-				{
-					label: 'Record file',
-					items: [
-						{
-							label: 'record-file metadata',
-						},
-					],
-				},
-				{
-					label: 'Lookup evidence',
-					items: [
-						{
-							label: 'mirror block lookup by number or hash',
-						},
-						{
-							label: 'mirror/explorer block payload',
-						},
+						'$$transactions',
 					],
 				},
 			],

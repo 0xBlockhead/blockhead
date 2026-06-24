@@ -11,68 +11,26 @@
 	const view = {
 		closed: [
 			'hash',
-			'slot',
-			{
-				label: 'block number',
-			},
 		],
 		content: {
 			dl: [
 				[
 					'hash',
 					'slot',
-					{
-						label: 'block number',
-					},
+					'blockNo',
 					'epoch',
 					'era',
-					{
-						label: 'issuer VRF/key',
-					},
+					'issuerVkey',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Transactions',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'transactions included in the block',
-						},
-					],
-				},
-				{
-					label: 'Navigation',
-					items: [
-						{
-							label: 'previous/next block links when sourceable',
-						},
-					],
-				},
-				{
-					label: 'Lookup evidence',
-					items: [
-						{
-							label: 'hash/block-number lookup',
-						},
-						{
-							label: 'slot lookup',
-						},
-						{
-							label: 'epoch-slot lookup',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Blockfrost block response',
-						},
-						{
-							label: 'Koios/db-sync/Ogmios block payload',
-						},
+						'$$transactions',
 					],
 				},
 			],

@@ -11,95 +11,39 @@
 	const view = {
 		closed: [
 			'slug',
-			'name',
-			'environment',
 		],
 		content: {
 			dl: [
 				[
 					'slug',
 					'name',
+					'namespace',
 					'environment',
-					{
-						label: 'head block',
-					},
-					{
-						label: 'native asset count',
-					},
-					{
-						label: 'epoch',
-					},
-					{
-						label: 'protocol version',
-					},
-					{
-						label: 'validator counts',
-					},
-					{
-						label: 'gas price',
-					},
-					{
-						label: 'network snapshots',
-					},
-					{
-						label: 'validators',
-					},
-					{
-						label: 'endpoints',
-					},
-					{
-						label: 'native assets',
-					},
-					{
-						label: 'faucets',
-					},
-					{
-						label: 'block explorers',
-					},
+					'rpcEndpoints',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Blocks',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'NearBlock list',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Validators',
+					label: 'blocks',
+					when: 'open',
 					items: [
-						{
-							label: 'NearValidator list',
-						},
+						'$$blocks',
 					],
 				},
 				{
-					label: 'Network snapshots',
+					label: 'validators',
+					when: 'open',
 					items: [
-						{
-							label: 'NearNetwork_Timestamp list',
-						},
-					],
-				},
-				{
-					label: 'Endpoints/resources',
-					items: [
-						{
-							label: 'RPC endpoints',
-						},
-						{
-							label: 'native assets',
-						},
-						{
-							label: 'faucets',
-						},
-						{
-							label: 'block explorers',
-						},
+						'$$validators',
 					],
 				},
 			],

@@ -10,82 +10,27 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'height/block id',
-			},
-			{
-				label: 'timestamp',
-			},
+			'height',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'height',
-					{
-						label: 'block id',
-					},
-					{
-						label: 'parent block id',
-					},
-					{
-						label: 'timestamp',
-					},
+					'blockId',
+					'parentBlockId',
+					'timestampMs',
 					'encoding',
-					{
-						label: 'transaction count',
-					},
+					'txCount',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Transactions',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'P-Chain transactions in this block',
-						},
-					],
-				},
-				{
-					label: 'Parent',
-					items: [
-						{
-							label: 'parent P-Chain block when resolved',
-						},
-					],
-				},
-				{
-					label: 'Raw block',
-					items: [
-						{
-							label: 'JSON/hex block payload',
-						},
-					],
-				},
-				{
-					label: 'Lookup evidence',
-					items: [
-						{
-							label: 'platform.getBlock blockID lookup',
-						},
-						{
-							label: 'platform.getBlockByHeight height lookup',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent network',
-						},
+						'$$transactions',
 					],
 				},
 			],

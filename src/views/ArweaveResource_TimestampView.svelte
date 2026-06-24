@@ -10,86 +10,25 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'resource',
-			},
-			{
-				label: 'observation time',
-			},
-			{
-				label: 'gateway origin',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'resource',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'gateway origin',
-					},
-					{
-						label: 'gateway URL',
-					},
+					'gatewayOrigin',
+					'gatewayUrl',
 					'reachable',
-				],
-				[
-					{
-						label: 'content type',
-					},
-					{
-						label: 'content length',
-					},
-					{
-						label: 'file name',
-					},
+					'fileName',
 					'extension',
-					{
-						label: 'display type',
-					},
-					{
-						label: 'inferred-content-type status',
-					},
+					'contentType',
+					'contentLength',
+					'displayType',
+					'isContentTypeInferred',
+					'text',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Resource',
-					items: [
-						{
-							label: 'parent transaction/path identity',
-						},
-					],
-				},
-				{
-					label: 'Preview',
-					items: [
-						{
-							label: 'text/media/binary content based on displayType',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'gateway headers',
-						},
-						{
-							label: 'content-type inference',
-						},
-						{
-							label: 'payload availability',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

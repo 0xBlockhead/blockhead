@@ -10,53 +10,17 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'slashing kind',
-			},
 			'slot',
+			'kind',
+			'index',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'slashing kind',
-					},
 					'slot',
+					'kind',
+					'index',
 				],
-				[
-					{
-						label: 'slashing index',
-					},
-				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Slot',
-					items: [
-						{
-							label: 'beacon block/body context',
-						},
-					],
-				},
-				{
-					label: 'Slashing',
-					items: [
-						'kind',
-						{
-							label: 'slot-local index',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'beacon block proposer/attester slashing payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,83 +10,23 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'deal',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'deal',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'height',
-					{
-						label: 'tipset key',
-					},
-					{
-						label: 'sector start epoch',
-					},
-					{
-						label: 'last updated epoch',
-					},
-					{
-						label: 'slash epoch',
-					},
-					{
-						label: 'verified-deal flag',
-					},
-					{
-						label: 'provider collateral',
-					},
-					{
-						label: 'client collateral',
-					},
+					'tipsetKey',
+					'sectorStartEpoch',
+					'lastUpdatedEpoch',
+					'slashEpoch',
+					'verifiedDeal',
+					'providerCollateralAttoFil',
+					'clientCollateralAttoFil',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Deal',
-					items: [
-						{
-							label: 'parent Filecoin deal',
-						},
-					],
-				},
-				{
-					label: 'Tipset',
-					items: [
-						{
-							label: 'Filecoin tipset when resolved',
-						},
-					],
-				},
-				{
-					label: 'State',
-					items: [
-						{
-							label: 'activation/update/slash lifecycle fields',
-						},
-					],
-				},
-				{
-					label: 'Source',
-					items: [
-						{
-							label: 'StateMarketStorageDeal or indexer payload evidence',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

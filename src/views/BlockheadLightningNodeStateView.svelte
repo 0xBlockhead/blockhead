@@ -10,128 +10,53 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'connection id',
-			},
-			{
-				label: 'network',
-			},
-			{
-				label: 'node pubkey',
-			},
+			'connectionId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'connection id',
-					},
-					{
-						label: 'network',
-					},
-					{
-						label: 'node pubkey',
-					},
+					'connectionId',
+					'lndPubkey',
 					'alias',
-					{
-						label: 'latest chain sync',
-					},
-					{
-						label: 'latest graph sync',
-					},
-					{
-						label: 'latest block height',
-					},
-					{
-						label: 'latest balance summary',
-					},
-					{
-						label: 'latest peer/channel counts',
-					},
-					{
-						label: 'macaroon permission summary',
-					},
-					{
-						label: 'latest sync time',
-					},
+					'macaroonPermissions',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest state',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'latest connected-node observation',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'State history',
+					label: 'channel states',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped connected-node observations',
-						},
+						'$$channelStates',
 					],
 				},
 				{
-					label: 'Public node',
+					label: 'channels',
+					when: 'open',
 					items: [
-						{
-							label: 'public Lightning node when advertised',
-						},
+						'$$channels',
 					],
 				},
 				{
-					label: 'Local channel states',
+					label: 'invoices',
+					when: 'open',
 					items: [
-						{
-							label: 'local channel-state rows',
-						},
+						'$$invoices',
 					],
 				},
 				{
-					label: 'Public channel refs',
+					label: 'payments',
+					when: 'open',
 					items: [
-						{
-							label: 'public channel rows for channels with graph identities',
-						},
-					],
-				},
-				{
-					label: 'Invoices',
-					items: [
-						{
-							label: 'local invoice rows',
-						},
-					],
-				},
-				{
-					label: 'Payments',
-					items: [
-						{
-							label: 'local payment rows',
-						},
-					],
-				},
-				{
-					label: 'Permissions',
-					items: [
-						{
-							label: 'macaroon permissions',
-						},
-						{
-							label: 'connection metadata',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Lightning network',
-						},
+						'$$payments',
 					],
 				},
 			],

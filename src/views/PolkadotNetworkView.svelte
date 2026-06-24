@@ -9,94 +9,49 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'head block',
-			},
-			{
-				label: 'environment',
-			},
-			{
-				label: 'native asset count',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
 				[
-					{
-						label: 'head block',
-					},
-					{
-						label: 'environment',
-					},
-					{
-						label: 'native asset count',
-					},
-					{
-						label: 'runtime asset count',
-					},
-					{
-						label: 'validator count',
-					},
+					'rpcEndpoints',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Blocks',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'Polkadot block rows',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Runtime snapshots',
+					label: 'blocks',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped finalized-head/runtime observations',
-						},
+						'$$blocks',
 					],
 				},
 				{
-					label: 'Validators',
+					label: 'assets',
+					when: 'open',
 					items: [
-						{
-							label: 'Polkadot validator rows',
-						},
+						'$$assets',
 					],
 				},
 				{
-					label: 'Assets',
+					label: 'asset balance timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'native coin plus bounded runtime/indexer asset rows',
-						},
+						'$$assetBalanceTimestamps',
 					],
 				},
 				{
-					label: 'Asset balances',
+					label: 'validators',
+					when: 'open',
 					items: [
-						{
-							label: 'asset balance observations',
-						},
-					],
-				},
-				{
-					label: 'Endpoints',
-					items: [
-						{
-							label: 'network transport endpoints',
-						},
-					],
-				},
-				{
-					label: 'Resources',
-					items: [
-						{
-							label: 'faucet and block explorer URLs',
-						},
+						'$$validators',
 					],
 				},
 			],

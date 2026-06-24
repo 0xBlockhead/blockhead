@@ -10,18 +10,14 @@
 	// State
 	const view = {
 		closed: [
-			'$hub',
 			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					'$hub',
 					'timestampMs',
 					'source',
-				],
-				[
 					'configuredRelayCount',
 					'reachableRelayCount',
 					'sourceWindowProfileCount',
@@ -33,51 +29,6 @@
 					'reachable',
 					'filterKind',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Hub',
-					items: [
-						'$hub',
-					],
-				},
-				{
-					label: 'Observation fields',
-					items: [
-						'configuredRelayCount',
-						'reachableRelayCount',
-						'sourceWindowProfileCount',
-						'sourceWindowNoteCount',
-						'sourceWindowRelayCount',
-						'sourceWindowRepostCount',
-						'sourceWindowArticleCount',
-						'localCatalogRelayCount',
-						'reachable',
-						'filterKind',
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'SourceBinding.Constants_Internal',
-						},
-						{
-							label: 'SourceBinding.NostrBand_Rest',
-						},
-						{
-							label: 'SourceBinding.NostrRelay_Nip11_Http',
-						},
-						{
-							label: 'SourceBinding.NostrRelay_WebSocket',
-						},
-						{
-							label: 'SourceBinding.Primal_Rest',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

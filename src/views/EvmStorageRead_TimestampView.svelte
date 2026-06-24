@@ -10,48 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'contract',
-			},
 			'slot',
-			'value',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'contract',
-					},
 					'slot',
-					'value',
-					{
-						label: 'block number',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'observation timestamp',
-					},
+					'value',
+					'blockNumber',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Contract',
-					items: [
-						{
-							label: 'parent EVM contract',
-						},
-					],
-				},
-				{
-					label: 'Storage layout',
-					items: [
-						{
-							label: 'verified compilation metadata when it labels the slot',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

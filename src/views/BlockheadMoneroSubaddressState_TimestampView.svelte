@@ -10,93 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'subaddress state',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'subaddress state',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'used flag',
-					},
-					{
-						label: 'balance',
-					},
-					{
-						label: 'unlocked balance',
-					},
-					{
-						label: 'unspent output count',
-					},
-					{
-						label: 'blocks to unlock',
-					},
-					{
-						label: 'time to unlock',
-					},
-					{
-						label: 'last synced time',
-					},
+					'used',
+					'balanceAtomicUnits',
+					'unlockedBalanceAtomicUnits',
+					'numUnspentOutputs',
+					'blocksToUnlock',
+					'timeToUnlockSeconds',
+					'lastSyncedAt',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Subaddress',
-					items: [
-						{
-							label: 'BlockheadMoneroSubaddressStateView',
-						},
-					],
-				},
-				{
-					label: 'Wallet',
-					items: [
-						{
-							label: 'BlockheadMoneroWalletStateView',
-						},
-					],
-				},
-				{
-					label: 'Outputs',
-					items: [
-						{
-							label: 'BlockheadMoneroOutputState list filtered to account/subaddress',
-						},
-					],
-				},
-				{
-					label: 'Transfers',
-					items: [
-						{
-							label: 'BlockheadMoneroTransferState list filtered to account/subaddress',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'monero-wallet-rpc get_balance',
-						},
-						{
-							label: 'transfer scan payloads',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,90 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'transfer id',
-			},
+			'transferId',
 			'source',
-			{
-				label: 'token',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'transfer id',
-					},
+					'transferId',
 					'source',
-					{
-						label: 'token',
-					},
-					{
-						label: 'from account',
-					},
-					{
-						label: 'to account',
-					},
-					{
-						label: 'operation',
-					},
 					'level',
-					{
-						label: 'timestamp',
-					},
-					{
-						label: 'contract address',
-					},
-					{
-						label: 'token id',
-					},
+					'timestampMs',
+					'contractAddress',
+					'tokenId',
 					'amount',
 					'standard',
+					'transactionId',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Token',
-					items: [
-						{
-							label: 'parent Tezos token',
-						},
-					],
-				},
-				{
-					label: 'From/To',
-					items: [
-						{
-							label: 'source and destination Tezos accounts',
-						},
-					],
-				},
-				{
-					label: 'Operation',
-					items: [
-						{
-							label: 'parent Tezos operation',
-						},
-					],
-				},
-				{
-					label: 'Ledger effects',
-					items: [
-						{
-							label: 'related token balance observations when available',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'transfer payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

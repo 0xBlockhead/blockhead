@@ -9,52 +9,12 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'output',
-			},
-			{
-				label: 'commitment hex',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
 				[
-					{
-						label: 'output',
-					},
-					{
-						label: 'commitment hex',
-					},
+					'commitmentHex',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Output',
-					items: [
-						{
-							label: 'parent UTXO output',
-						},
-					],
-				},
-				{
-					label: 'NFT',
-					items: [
-						{
-							label: 'CashToken NFT carried by the same output',
-						},
-					],
-				},
-				{
-					label: 'Raw commitment',
-					items: [
-						{
-							label: 'hex display',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

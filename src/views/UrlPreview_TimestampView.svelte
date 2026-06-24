@@ -10,85 +10,20 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'URL',
-			},
-			{
-				label: 'timestamp',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'URL',
-					},
-					{
-						label: 'timestamp',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'status',
-					},
 					'title',
-					{
-						label: 'site name',
-					},
 					'description',
-					{
-						label: 'image URL',
-					},
+					'siteName',
+					'imageUrl',
+					'previewStatus',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'URL',
-					items: [
-						{
-							label: 'parent URL row',
-						},
-					],
-				},
-				{
-					label: 'Preview',
-					items: [
-						'title',
-						{
-							label: 'site name',
-						},
-						'description',
-						{
-							label: 'status',
-						},
-					],
-				},
-				{
-					label: 'Image',
-					items: [
-						{
-							label: 'embedded image URL/MIME/dimensions from this preview source',
-						},
-					],
-				},
-				{
-					label: 'History context',
-					items: [
-						{
-							label: 'sibling observations for the same Url sorted newest first',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'extracted Open Graph/card payload when exposed',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

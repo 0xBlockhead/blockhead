@@ -10,58 +10,18 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'server',
-			},
-			{
-				label: 'tool name',
-			},
-			'title',
+			'name',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'server',
-					},
 					'name',
 					'title',
-				],
-				[
 					'description',
-					{
-						label: 'input/output schemas',
-					},
+					'inputSchema',
+					'outputSchema',
 					'annotations',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Server',
-					items: [
-						{
-							label: 'McpServer',
-						},
-					],
-				},
-				{
-					label: 'Schemas',
-					items: [
-						{
-							label: 'input/output schemas',
-						},
-					],
-				},
-				{
-					label: 'Calls',
-					items: [
-						{
-							label: 'McpToolCall list',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

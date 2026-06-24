@@ -10,102 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'endpoint URL',
-			},
-			{
-				label: 'endpoint kind',
-			},
+			'endpointUrl',
+			'endpointKind',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'endpoint URL',
-					},
-					{
-						label: 'endpoint kind',
-					},
+					'endpointUrl',
+					'endpointKind',
+					'timestampMs',
 					'source',
-					{
-						label: 'timestamp',
-					},
-					{
-						label: 'CORS/proxy policy',
-					},
+					'corsEnabled',
+					'proxyAllowed',
 					'health',
-					{
-						label: 'latency',
-					},
+					'latencyMs',
 					'error',
-					{
-						label: 'source freshness',
-					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'Network',
-						},
-					],
-				},
-				{
-					label: 'Endpoint',
-					items: [
-						{
-							label: 'URL',
-						},
-						{
-							label: 'kind',
-						},
-						{
-							label: 'source definition or catalog origin',
-						},
-					],
-				},
-				{
-					label: 'Browser policy',
-					items: [
-						{
-							label: 'CORS enabled',
-						},
-						{
-							label: 'proxy allowed',
-						},
-					],
-				},
-				{
-					label: 'Health check',
-					items: [
-						'health',
-						{
-							label: 'latency',
-						},
-						'error',
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'runtime probe',
-						},
-						{
-							label: 'catalog/source freshness',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

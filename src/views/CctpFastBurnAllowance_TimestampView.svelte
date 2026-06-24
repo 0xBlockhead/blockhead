@@ -10,51 +10,18 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
-			{
-				label: 'allowance in USDC',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'allowance in USDC',
-					},
-					{
-						label: 'Circle last-updated time',
-					},
-					{
-						label: 'request id',
-					},
+					'allowanceUsdc',
+					'lastUpdatedMs',
+					'requestId',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Iris /v2/fastBurn/USDC/allowance response',
-						},
-					],
-				},
-				{
-					label: 'Related fees',
-					items: [
-						{
-							label: 'fast-transfer burn-fee observations by domain pair/finality threshold',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

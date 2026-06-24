@@ -10,69 +10,18 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'record',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'record',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'value',
-					{
-						label: 'resolver selector',
-					},
-					{
-						label: 'block number',
-					},
-					{
-						label: 'decoded display value',
-					},
+					'resolverSelector',
+					'blockNumber',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Record',
-					items: [
-						{
-							label: 'parent ENS record',
-						},
-					],
-				},
-				{
-					label: 'Name',
-					items: [
-						{
-							label: 'parent ENS name',
-						},
-					],
-				},
-				{
-					label: 'Raw call/event',
-					items: [
-						{
-							label: 'resolver calldata',
-						},
-						{
-							label: 'event id',
-						},
-						{
-							label: 'or subgraph cursor when available',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

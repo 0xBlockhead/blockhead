@@ -10,95 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'operator',
-			},
-			{
-				label: 'AVS',
-			},
-			{
-				label: 'strategy',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'operator',
-					},
-					{
-						label: 'AVS',
-					},
-					{
-						label: 'strategy',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'allocation magnitude',
-					},
-					{
-						label: 'allocated shares',
-					},
+					'allocationMagnitude',
+					'allocatedShares',
+					'slashableUntilMs',
+					'registrationStatus',
+					'operatorSetId',
+					'quorumNumbers',
 				],
-				[
-					{
-						label: 'operator set',
-					},
-					{
-						label: 'quorum numbers',
-					},
-					{
-						label: 'registration status',
-					},
-					{
-						label: 'slashable-until time',
-					},
-				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Operator',
-					items: [
-						{
-							label: 'EigenLayer operator',
-						},
-					],
-				},
-				{
-					label: 'AVS',
-					items: [
-						{
-							label: 'EigenLayer AVS',
-						},
-					],
-				},
-				{
-					label: 'Strategy',
-					items: [
-						{
-							label: 'EigenLayer strategy',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'AllocationManager/AVSDirectory reads',
-						},
-						{
-							label: 'operator-set or quorum payload',
-						},
-						{
-							label: 'indexer freshness',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

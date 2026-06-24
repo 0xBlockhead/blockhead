@@ -59,6 +59,8 @@ const REAL_URL_FIXTURES = [
 	'https://explorer.bitcoinunlimited.info/',
 ] as const
 
+const routeFixtureVariantMode = process.env.E2E_ROUTE_VARIANTS
+
 const UTXO_PROBE_ADDRESS_BY_NETWORK_SLUG: Partial<Record<string, string>> = {
 	bitcoin: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
 	'bitcoin-cash': 'bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a',
@@ -360,6 +362,11 @@ export const e2eRouteParamFixtureVariantsForContext = (
 	selectedParams: Readonly<Record<string, string>>
 ) => {
 	const path = staticSegments.join('/')
+
+	if (routeFixtureVariantMode !== 'all')
+		return [
+			e2eRouteParamFixtureForContext(paramKey, staticSegments),
+		]
 
 	if (paramKey === 'caip2Namespace' && path === 'network')
 		return [

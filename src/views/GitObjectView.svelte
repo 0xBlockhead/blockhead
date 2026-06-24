@@ -10,71 +10,17 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'object id',
-			},
-			{
-				label: 'object format',
-			},
-			{
-				label: 'object kind',
-			},
+			'objectId',
+			'objectFormat',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'object id',
-					},
-					{
-						label: 'object format',
-					},
-					{
-						label: 'object kind',
-					},
-					{
-						label: 'size',
-					},
-					{
-						label: 'repository context',
-					},
+					'objectId',
+					'objectFormat',
+					'objectKind',
+					'sizeBytes',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Typed body',
-					items: [
-						{
-							label: 'commit/tree/blob/tag body by object kind',
-						},
-					],
-				},
-				{
-					label: 'Storage',
-					items: [
-						{
-							label: 'loose and packed storage observations',
-						},
-					],
-				},
-				{
-					label: 'Verification',
-					items: [
-						{
-							label: 'timestamped byte/object-id verification observations',
-						},
-					],
-				},
-				{
-					label: 'Repository',
-					items: [
-						{
-							label: 'repository availability context',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

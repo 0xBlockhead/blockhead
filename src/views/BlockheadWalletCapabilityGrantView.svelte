@@ -10,82 +10,26 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'grant id',
-			},
-			{
-				label: 'authorization kind',
-			},
-			'issuer',
+			'grantId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'grant id',
-					},
-					{
-						label: 'authorization kind',
-					},
+					'grantId',
+					'authorizationKind',
 					'issuer',
 					'audience',
-					{
-						label: 'issued/not-before/expires/revoked timestamps',
-					},
+					'scope',
+					'methods',
+					'resources',
+					'issuedAt',
+					'notBefore',
+					'expiresAt',
+					'revokedAt',
+					'proofKind',
+					'proofSummary',
+					'rawGrant',
 				],
-				[
-					{
-						label: 'method count',
-					},
-					{
-						label: 'resource count',
-					},
-					{
-						label: 'proof kind',
-					},
-					{
-						label: 'proof summary',
-					},
-					{
-						label: 'raw grant presence',
-					},
-				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Connection',
-					items: [
-						{
-							label: 'BlockheadWalletConnection when derived from a session',
-						},
-					],
-				},
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'BlockheadWalletAccount when scoped',
-						},
-					],
-				},
-				{
-					label: 'Scope',
-					items: [
-						{
-							label: 'redacted scope JSON',
-						},
-					],
-				},
-				{
-					label: 'Proof',
-					items: [
-						{
-							label: 'CACAO/ReCap/UCAN/SIWx/session-key/delegation proof summary',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

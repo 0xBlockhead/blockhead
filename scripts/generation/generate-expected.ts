@@ -1,5 +1,7 @@
+import { rmSync } from 'node:fs'
+
 import { loadApp } from './load-app.ts'
-import { generatedOwnership } from './ownership.ts'
+import { generatedOwnership, ownershipSummary } from './ownership.ts'
 import { writeText } from './files.ts'
 
 type ExpectedApp = {
@@ -54,6 +56,24 @@ type ExpectedApp = {
 			source: string
 			target: string
 		}[]
+		runtimeBindings: {
+			provider: string
+			source: string
+			targetKind: string
+			targetKey: string
+			endpointCount: number
+			wireProtocol: string
+			apiFamily: string
+			operationGroups: string[]
+			delivery: string
+			artifactCount: number
+		}[]
+		runtimeArtifacts: {
+			source: string
+			kind: string
+			path: string
+			generated: boolean
+		}[]
 	}
 	resolvers: {
 		coverage: {
@@ -69,8 +89,73 @@ type ExpectedApp = {
 			file: string
 			ownership: string
 		}[]
+		entityViewShells: {
+			entity: string
+			viewName: string
+			file: string
+			capabilities: string[]
+			sourceText: string
+			sourceFile: string
+		}[]
 	}
 	routes: {
+		hubCollections: {
+			entity: string
+			hub: string
+			path: string
+			view: string
+			unresolved: string[]
+		}[]
+		loaderTransforms: {
+			entity: string
+			routePath: string
+			visiblePath: string
+			params: string[]
+			selectorFields: string[]
+			importedSymbols: string[]
+			selectorExpression: string
+			simpleDirectParamShape: boolean
+			sourceFile: string
+		}[]
+		pageShells: {
+			routePath: string
+			visiblePath: string
+			routeGroupPath: string
+			components: string[]
+			usesDataSelector: boolean
+			usesParams: boolean
+			usesSelect: boolean
+			sourceText: string
+			sourceFile: string
+		}[]
+		sectionShells: {
+			routePath: string
+			visiblePath: string
+			routeGroupPath: string
+			components: string[]
+			usesDataSelector: boolean
+			usesParams: boolean
+			usesSelect: boolean
+			sourceText: string
+			sourceFile: string
+		}[]
+		selectorMappings: {
+			entity: string
+			selector: string
+			fields: string[]
+			outcome: string
+			path?: string
+			visiblePath?: string
+			emitPage?: boolean
+			parentFields: string[]
+			localFields: string[]
+			params?: {
+				field: string
+				name: string
+				matcher?: string
+			}[]
+			unresolved: string[]
+		}[]
 		pages: unknown[]
 	}
 	probes: {
@@ -603,8 +688,214 @@ const sourceMarkdown = (app: ExpectedApp) => [
 	...app.sources.bindings.map((binding) => `- \`${binding.id}\` -> \`${binding.target}\``),
 ].join('\n')
 
+const generatedSelectorRouteLeavesFile = (app: ExpectedApp) => [
+	'export const entitySelectorRouteLeaves = [',
+	...app.routes.selectorMappings
+		.filter((mapping) => mapping.path !== undefined)
+		.flatMap((mapping) => [
+			'\t{',
+			`\t\tentity: ${JSON.stringify(mapping.entity)},`,
+			`\t\tselector: ${JSON.stringify(mapping.selector)},`,
+			'\t\tfields: [',
+			...mapping.fields.map((field) => `\t\t\t${JSON.stringify(field)},`),
+			'\t\t],',
+			'\t\tparentFields: [',
+			...mapping.parentFields.map((field) => `\t\t\t${JSON.stringify(field)},`),
+			'\t\t],',
+			'\t\tlocalFields: [',
+			...mapping.localFields.map((field) => `\t\t\t${JSON.stringify(field)},`),
+			'\t\t],',
+			'\t\tparams: [',
+			...(mapping.params ?? []).flatMap((param) => [
+				'\t\t\t{',
+				`\t\t\t\tfield: ${JSON.stringify(param.field)},`,
+				`\t\t\t\tname: ${JSON.stringify(param.name)},`,
+				...(param.matcher === undefined ? [] : [
+					`\t\t\t\tmatcher: ${JSON.stringify(param.matcher)},`,
+				]),
+				'\t\t\t},',
+			]),
+			'\t\t],',
+			`\t\tpath: ${JSON.stringify(mapping.path)},`,
+			`\t\temitPage: ${(mapping.emitPage ?? (mapping.outcome === 'canonical' || mapping.outcome === 'nested' || mapping.outcome === 'observation')) ? 'true' : 'false'},`,
+			'\t\tunresolved: [',
+			...mapping.unresolved.map((issue) => `\t\t\t${JSON.stringify(issue)},`),
+			'\t\t],',
+			'\t},',
+		]),
+	'] as const',
+	'',
+].join('\n')
+
+const generatedHubCollectionRoutesFile = (app: ExpectedApp) => [
+	'export const entityHubCollectionRoutes = [',
+	...app.routes.hubCollections.flatMap((route) => [
+		'\t{',
+		`\t\tentity: ${JSON.stringify(route.entity)},`,
+		`\t\thub: ${JSON.stringify(route.hub)},`,
+		`\t\tpath: ${JSON.stringify(route.path)},`,
+		`\t\tview: ${JSON.stringify(route.view)},`,
+		'\t\tunresolved: [',
+		...route.unresolved.map((issue) => `\t\t\t${JSON.stringify(issue)},`),
+		'\t\t],',
+		'\t},',
+	]),
+	'] as const',
+	'',
+].join('\n')
+
+const routeParamNames = (
+	path: string
+) => [
+	...path.matchAll(/\[([^=\]]+)(?:=[^\]]+)?\]/g),
+].map((match) => match[1] ?? '')
+
+const hasMappedRouteParams = (
+	mapping: ExpectedApp['routes']['selectorMappings'][number]
+) => (
+	mapping.path !== undefined
+	&& routeParamNames(mapping.path).every((paramName) => (mapping.params ?? []).some((param) => param.name === paramName))
+)
+
+const hasRejectedRouteShape = (
+	path: string
+) => (
+	path.includes('/by/$')
+	|| path.includes('/by/by-')
+	|| path.includes('/by/evm-coin-instance-evm-coin-instance-tool-key/')
+	|| /\/by\/[^/]+-[2-9](\/|$)/.test(path)
+	|| path.includes('/network/[caip2=networkCaip2]')
+	|| path.includes('/data/data/')
+	|| path.includes('/global/global/')
+)
+
+const emittedSelectorRouteMappings = (app: ExpectedApp) => (
+	app.routes.selectorMappings.filter((mapping) => (
+		mapping.path !== undefined
+		&& !hasRejectedRouteShape(mapping.path)
+		&& hasMappedRouteParams(mapping)
+		&& (mapping.emitPage ?? (mapping.outcome === 'canonical' || mapping.outcome === 'nested' || mapping.outcome === 'observation'))
+	))
+)
+
+const generatedRoutePageModule = (
+	transform: ExpectedApp['routes']['loaderTransforms'][number]
+) => {
+	const importsBySource = Object.groupBy(
+		transform.importedSymbols.map((importedSymbol) => {
+			const [symbol = '', source = ''] = importedSymbol.split(':')
+
+			return {
+				symbol,
+				source,
+			}
+		}),
+		(importedSymbol) => importedSymbol.source
+	)
+
+	return `import { error } from '@sveltejs/kit'
+
+import { type as arktype } from 'arktype'
+
+import { parseEntitySelector } from '$/schema/$schema.ts'
+${Object.entries(importsBySource)
+	.filter(([source]) => source !== '')
+	.map(([source, imports]) => `import { ${(imports ?? []).map((importedSymbol) => importedSymbol.symbol).join(', ')} } from '${source}'`)
+	.join('\n')}${Object.keys(importsBySource).some((source) => source !== '') ? '\n' : ''}import EntitySchema from '$/schema/${transform.entity}.ts'
+import { schema } from '$/schema/index.ts'
+
+import type { PageLoad } from './$types.ts'
+
+
+export const load: PageLoad = ({ params }) => {
+	const selector = parseEntitySelector(
+		schema,
+		EntitySchema,
+		${transform.selectorExpression}
+	)
+	if (selector instanceof arktype.errors) error(404, 'Invalid ${transform.entity} selector')
+
+	return { selector }
+}
+`
+}
+
+const generatedRoutePage = (
+	app: ExpectedApp,
+	mapping: ReturnType<typeof emittedSelectorRouteMappings>[number]
+) => {
+	const view = app.views.entityViews.find((entityView) => entityView.entity === mapping.entity && entityView.kind === 'singular')
+
+	if (view === undefined)
+		return `<script lang="ts">
+	// Types/constants
+	import type { PageProps } from './$types.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+
+
+	// State
+	let {
+		data,
+	}: PageProps = $props()
+
+	// Components
+	import EntityView from '$/components/EntityView.svelte'
+	import Page from '$/components/Page.svelte'
+</script>
+
+
+<Page>
+	<EntityView
+		entityType={EntityType.${mapping.entity}}
+		entitySelector={data.selector}
+		layout={EntityLayout.SummaryDetails}
+	/>
+</Page>
+`
+
+	const componentName = view.file.match(/\/([^/]+)\.svelte$/)?.[1] ?? `${mapping.entity}View`
+
+	return `<script lang="ts">
+	// Types/constants
+	import type { PageProps } from './$types.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
+	// State
+	let {
+		data,
+	}: PageProps = $props()
+
+
+	// Components
+	import Page from '$/components/Page.svelte'
+	import ${componentName.startsWith('_') ? componentName.slice(1) : componentName} from '$/${view.file.replace(/^src\//, '')}'
+</script>
+
+
+<Page>
+	<${componentName.startsWith('_') ? componentName.slice(1) : componentName}
+		selection={select(EntityType.${mapping.entity}, data.selector)}
+	/>
+</Page>
+`
+}
+
 export const generateExpected = async () => {
 	const app: ExpectedApp = loadApp()
+	const ownershipRows = generatedOwnership()
+	const summary = ownershipSummary(ownershipRows)
+	const emittedRouteMappings = emittedSelectorRouteMappings(app)
+
+	rmSync('.generated/expected', {
+		force: true,
+		recursive: true,
+	})
 
 	writeText('.generated/expected/APP.snapshot.json', json(app))
 	writeText('.generated/expected/SCHEMA.md', schemaMarkdown(app))
@@ -616,12 +907,26 @@ export const generateExpected = async () => {
 	for (const entity of app.schema.entities)
 		writeText(`.generated/expected/src/schema/${entity.name}.ts`, generatedEntitySchemaFile(entity))
 	writeText('.generated/expected/src/views/index.ts', generatedViewsIndexFile(app))
+	for (const shell of app.views.entityViewShells)
+		writeText(`.generated/expected/${shell.file}`, shell.sourceText)
 	writeText('.generated/expected/src/sources/sources.json', json(app.sources))
 	writeText('.generated/expected/src/resolvers/resolvers.json', json(app.resolvers))
 	writeText('.generated/expected/src/views/views.json', json(app.views))
 	writeText('.generated/expected/src/routes/routes.json', json(app.routes))
+	writeText('.generated/expected/src/routes/entity-selector-route-leaves.ts', generatedSelectorRouteLeavesFile(app))
+	writeText('.generated/expected/src/routes/entity-hub-collection-routes.ts', generatedHubCollectionRoutesFile(app))
+	for (const transform of app.routes.loaderTransforms)
+		writeText(`.generated/expected/src/routes/${transform.routePath}/+page.ts`, generatedRoutePageModule(transform))
+	for (const shell of app.routes.pageShells)
+		writeText(`.generated/expected/src/routes/${shell.routePath}/+page.svelte`, shell.sourceText)
+	for (const shell of app.routes.sectionShells)
+		writeText(`.generated/expected/src/routes/${shell.routePath}/+layout.svelte`, shell.sourceText)
+	for (const mapping of emittedRouteMappings) {
+		writeText(`.generated/expected/src/routes/${mapping.path}/+page.svelte`, generatedRoutePage(app, mapping))
+	}
 	writeText('.generated/expected/tests/probes.json', json(app.probes))
-	writeText('.generated/expected/ownership.json', json(generatedOwnership()))
+	writeText('.generated/expected/ownership.json', json(ownershipRows))
+	writeText('.generated/expected/ownership-summary.json', json(summary))
 	writeText('.generated/expected/README.md', [
 		'# Generated Expected Output',
 		'',
@@ -634,7 +939,13 @@ export const generateExpected = async () => {
 		`Resolver coverage rows: ${app.resolvers.coverage.length}`,
 		`Entity views: ${app.views.entityViews.length}`,
 		`Route pages: ${app.routes.pages.length}`,
-		`Ownership rows: ${generatedOwnership().length}`,
+		`Expected emitted route leaf pages: ${emittedRouteMappings.length}`,
+		`Ownership rows: ${ownershipRows.length}`,
+		`Generated-owned rows: ${summary.generated}`,
+		`Hand-owned rows preserved: ${summary.handOwned}`,
+		`Hand-owned entity views remaining: ${summary.remainingHandOwnedGeneratedSurface.views}`,
+		`Hand-owned route pages remaining: ${summary.remainingHandOwnedGeneratedSurface.routes}`,
+		`Hand-owned route sections remaining: ${summary.remainingHandOwnedGeneratedSurface.routeSections}`,
 	].join('\n'))
 
 	console.log('Generated .generated/expected from APP.ts')

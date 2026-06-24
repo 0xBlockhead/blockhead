@@ -10,61 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'tracker',
-			},
-			{
-				label: 'info hash',
-			},
+			'infoHash',
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'tracker',
-					},
-					{
-						label: 'info hash',
-					},
+					'infoHash',
+					'timestampMs',
 					'source',
-					{
-						label: 'timestamp',
-					},
-					'status',
 					'complete',
 					'downloaded',
 					'incomplete',
+					'status',
 					'error',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Tracker',
-					items: [
-						{
-							label: 'parent tracker endpoint',
-						},
-					],
-				},
-				{
-					label: 'Torrent',
-					items: [
-						{
-							label: 'metainfo row when the info hash resolves locally',
-						},
-					],
-				},
-				{
-					label: 'Response',
-					items: [
-						{
-							label: 'raw scrape response/error when retained',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

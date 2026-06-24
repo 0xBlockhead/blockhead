@@ -9,94 +9,19 @@
 
 	// State
 	const view = {
-		lists: [
-			{
-				id: 'reactions',
-				label: 'Reactions',
-				limit: 50,
-				query: {
-					limit: 50,
-					fields: [
-						'createdAt',
-					],
-				},
-				item: 'link',
-				itemHref: {
-					label: '/nostr/reaction/[eventId]',
-				},
-				key: 'eventId',
-				emptyText: 'No reactions yet.',
-			},
-		],
 		closed: [
-			{
-				label: 'event id',
-			},
-			'kind',
-			{
-				label: 'author',
-			},
+			'eventId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'event id',
-					},
+					'eventId',
 					'kind',
-					{
-						label: 'author',
-					},
+					'pubkey',
 					'createdAt',
-					{
-						label: 'reaction content',
-					},
-					{
-						label: 'target note',
-					},
-					{
-						label: 'target article',
-					},
+					'tags',
+					'content',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Target',
-					items: [
-						{
-							label: 'target note or article',
-						},
-					],
-				},
-				{
-					label: 'Author',
-					items: [
-						{
-							label: 'author Nostr profile',
-						},
-					],
-				},
-				{
-					label: 'Raw event',
-					items: [
-						{
-							label: 'pubkey/tags/signature/source relays',
-						},
-					],
-				},
-				{
-					label: 'Relay evidence',
-					items: [
-						{
-							label: 'filters',
-						},
-						{
-							label: 'relays/indexers that returned the reaction',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

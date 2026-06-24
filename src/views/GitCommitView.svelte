@@ -10,75 +10,33 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'object id',
-			},
-			{
-				label: 'object format',
-			},
-			{
-				label: 'title/message first line',
-			},
+			'objectId',
+			'objectFormat',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'object id',
-					},
-					{
-						label: 'object format',
-					},
-					{
-						label: 'title/message first line',
-					},
-					{
-						label: 'author/committer idents',
-					},
-					{
-						label: 'authored/committed timestamps',
-					},
-					{
-						label: 'root tree object id',
-					},
-					{
-						label: 'parent count',
-					},
+					'objectId',
+					'objectFormat',
+					'treeObjectId',
+					'parentObjectIds',
+					'authorName',
+					'authorEmail',
+					'authorTimestampMs',
+					'committerName',
+					'committerEmail',
+					'committerTimestampMs',
+					'message',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Parents',
+					label: 'signatures',
+					when: 'open',
 					items: [
-						{
-							label: 'parent commit objects',
-						},
-					],
-				},
-				{
-					label: 'Tree',
-					items: [
-						{
-							label: 'root tree object',
-						},
-					],
-				},
-				{
-					label: 'Signatures',
-					items: [
-						{
-							label: 'signatures over this commit object',
-						},
-					],
-				},
-				{
-					label: 'Object',
-					items: [
-						{
-							label: 'parent Git object',
-						},
+						'$$signatures',
 					],
 				},
 			],

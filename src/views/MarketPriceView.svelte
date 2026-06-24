@@ -9,94 +9,19 @@
 
 	// State
 	const view = {
-		charts: [
-			{
-				id: 'quotes',
-				label: 'Quote history',
-				kind: 'timeseries',
-				controls: {
-					lookbackDays: [
-						1,
-						7,
-						30,
-						90,
-					],
-				},
-				slot: 'QuoteHistoryChart',
-			},
-		],
-		closed: [
-			{
-				label: 'market',
-			},
-			{
-				label: 'latest quote',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
-				[
-					{
-						label: 'market',
-					},
-					{
-						label: 'latest quote',
-					},
-					{
-						label: 'quote count',
-					},
-				],
-				[
-					{
-						label: 'parent market',
-					},
-					{
-						label: 'base asset',
-					},
-					{
-						label: 'quote asset',
-					},
-					{
-						label: 'venue',
-					},
-					{
-						label: 'market kind',
-					},
-				],
+				[],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest quote',
+					label: 'quotes',
+					when: 'open',
 					items: [
-						{
-							label: 'head Market_Timestamp',
-						},
-					],
-				},
-				{
-					label: 'Quote history',
-					items: [
-						{
-							label: 'Market_Timestamp list sorted by timestampMs',
-						},
-					],
-				},
-				{
-					label: 'Market',
-					items: [
-						{
-							label: 'parent Market',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'provider feed mappings and quote payloads',
-						},
+						'$$quotes',
 					],
 				},
 			],

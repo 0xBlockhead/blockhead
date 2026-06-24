@@ -10,69 +10,23 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'observed time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'observed time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'latest consensus timestamp',
-					},
-					{
-						label: 'latest block number',
-					},
-					{
-						label: 'latest transaction count',
-					},
-					{
-						label: 'aggregate counts',
-					},
-					{
-						label: 'mirror-node lag',
-					},
+					'latestConsensusTimestamp',
+					'latestBlockNumber',
+					'latestTransactionCount',
+					'accountCount',
+					'tokenCount',
+					'topicCount',
+					'contractCount',
+					'mirrorNodeLagMs',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Hedera network',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'freshness',
-						},
-						{
-							label: 'status payload',
-						},
-						{
-							label: 'mirror-node base URL',
-						},
-						{
-							label: 'pagination/rate-limit context',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

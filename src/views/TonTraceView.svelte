@@ -10,98 +10,40 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'trace id/root message',
-			},
+			'traceId',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'trace id/root message',
-					},
+					'traceId',
 					'source',
-					{
-						label: 'start time',
-					},
-					{
-						label: 'latest status',
-					},
-					{
-						label: 'transaction count',
-					},
-					{
-						label: 'message count',
-					},
+					'rootTransactionSelector',
+					'startedAtMs',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Status snapshots',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'trace graph/status observations',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Transaction DAG',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'transactions in trace order',
-						},
+						'$$transactions',
 					],
 				},
 				{
-					label: 'Message edges',
+					label: 'messages',
+					when: 'open',
 					items: [
-						{
-							label: 'messages in trace graph',
-						},
-					],
-				},
-				{
-					label: 'Root message',
-					items: [
-						{
-							label: 'root message edge',
-						},
-					],
-				},
-				{
-					label: 'Asset effects',
-					items: [
-						{
-							label: 'decoded jetton and NFT transfer effects',
-						},
-					],
-				},
-				{
-					label: 'Failures',
-					items: [
-						{
-							label: 'failed phase/action summary from latest trace observation',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'trace payload',
-						},
-						{
-							label: 'indexer trace id/root-message mapping',
-						},
+						'$$messages',
 					],
 				},
 			],

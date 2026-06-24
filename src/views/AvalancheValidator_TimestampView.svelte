@@ -10,88 +10,20 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'validator',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'validator',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'connected status',
-					},
-					{
-						label: 'uptime percent',
-					},
-					{
-						label: 'validator set kind',
-					},
-					{
-						label: 'observed stake',
-					},
-					{
-						label: 'observed delegator count',
-					},
+					'connected',
+					'uptimePercent',
+					'validatorSetKind',
+					'observedStakeNavax',
+					'observedDelegatorCount',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Validator',
-					items: [
-						{
-							label: 'parent validation interval',
-						},
-					],
-				},
-				{
-					label: 'Liveness',
-					items: [
-						{
-							label: 'connected status',
-						},
-						{
-							label: 'uptime percent',
-						},
-					],
-				},
-				{
-					label: 'Set membership',
-					items: [
-						{
-							label: 'current/pending validator set context',
-						},
-						{
-							label: 'observed stake/delegator count',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Avalanche Info uptime response',
-						},
-						{
-							label: 'PlatformVM validator-set payload',
-						},
-						{
-							label: 'Avascan validator payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

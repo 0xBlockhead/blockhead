@@ -10,78 +10,23 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'observation time',
-			},
-			{
-				label: 'latest block',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'latest block number/hash',
-					},
-					{
-						label: 'finalized block number/hash',
-					},
-					{
-						label: 'health/syncing',
-					},
+					'latestBlockNumber',
+					'latestBlockHash',
+					'finalizedBlockNumber',
+					'finalizedBlockHash',
+					'health',
+					'syncing',
+					'appIdCount',
+					'dataSubmissionCount',
 				],
-				[
-					{
-						label: 'app id count',
-					},
-					{
-						label: 'data submission count',
-					},
-				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Avail network',
-						},
-					],
-				},
-				{
-					label: 'Latest block',
-					items: [
-						{
-							label: 'latest block when resolved',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'system health/status',
-						},
-						{
-							label: 'chain header/finality RPC',
-						},
-						{
-							label: 'indexer summary freshness',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

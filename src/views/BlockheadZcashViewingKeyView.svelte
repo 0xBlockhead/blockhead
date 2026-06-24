@@ -10,90 +10,33 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'wallet id',
-			},
-			{
-				label: 'network',
-			},
-			{
-				label: 'key fingerprint',
-			},
+			'walletId',
+			'keyFingerprint',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'wallet id',
-					},
-					{
-						label: 'network',
-					},
-					{
-						label: 'key fingerprint',
-					},
-					{
-						label: 'key kind',
-					},
+					'walletId',
+					'keyFingerprint',
+					'keyKind',
 					'pools',
-					{
-						label: 'account index',
-					},
-					{
-						label: 'birthday height',
-					},
-					{
-						label: 'incoming/outgoing/spend capability flags',
-					},
-					{
-						label: 'imported time',
-					},
-					{
-						label: 'latest scanned height',
-					},
+					'accountIndex',
+					'birthdayHeight',
+					'canViewIncoming',
+					'canViewOutgoing',
+					'canSpend',
+					'importedAt',
+					'viewingKeyMaterial',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest scan',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'latest viewing-key scan observation',
-						},
-					],
-				},
-				{
-					label: 'Scan history',
-					items: [
-						{
-							label: 'timestamped viewing-key scan observations',
-						},
-					],
-				},
-				{
-					label: 'Wallet',
-					items: [
-						{
-							label: 'parent local Zcash wallet state',
-						},
-					],
-				},
-				{
-					label: 'Capabilities',
-					items: [
-						{
-							label: 'incoming/outgoing/spend booleans by pool',
-						},
-					],
-				},
-				{
-					label: 'Key material',
-					items: [
-						{
-							label: 'redacted unified/Sapling/Orchard viewing or spending key string with local reveal controls',
-						},
+						'$$timestamps',
 					],
 				},
 			],

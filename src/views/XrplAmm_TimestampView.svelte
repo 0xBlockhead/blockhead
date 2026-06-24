@@ -10,80 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'AMM',
-			},
-			{
-				label: 'ledger index',
-			},
+			'ledgerIndex',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'AMM',
-					},
-					{
-						label: 'ledger index',
-					},
+					'ledgerIndex',
 					'source',
-					{
-						label: 'observation time',
-					},
-					{
-						label: 'asset reserves',
-					},
-					{
-						label: 'LP token balance',
-					},
-					{
-						label: 'trading fee',
-					},
-					{
-						label: 'auction slot',
-					},
-					{
-						label: 'vote slot summary',
-					},
+					'timestampMs',
+					'assetAmount',
+					'asset2Amount',
+					'lpTokenBalance',
+					'tradingFee',
+					'auctionSlot',
+					'voteSlots',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'AMM',
-					items: [
-						{
-							label: 'parent AMM identity',
-						},
-					],
-				},
-				{
-					label: 'Ledger',
-					items: [
-						{
-							label: 'ledger context',
-						},
-					],
-				},
-				{
-					label: 'Auction/votes',
-					items: [
-						{
-							label: 'decoded auctionSlot',
-						},
-						'voteSlots',
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'amm_info/indexer payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

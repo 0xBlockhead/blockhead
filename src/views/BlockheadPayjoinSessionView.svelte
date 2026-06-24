@@ -10,124 +10,30 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'session id',
-			},
-			'role',
-			'status',
+			'sessionId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'session id',
-					},
+					'sessionId',
 					'role',
 					'status',
-					{
-						label: 'network',
-					},
-					{
-						label: 'endpoint',
-					},
-					{
-						label: 'directory',
-					},
-					{
-						label: 'receiver address',
-					},
-					{
-						label: 'amount',
-					},
-					{
-						label: 'output-substitution flag',
-					},
-					{
-						label: 'fee constraints',
-					},
-					{
-						label: 'PSBT hash availability',
-					},
-					{
-						label: 'final transaction id',
-					},
-					{
-						label: 'error code',
-					},
-					{
-						label: 'created/updated/completed times',
-					},
-					{
-						label: 'source coverage',
-					},
+					'bip21Uri',
+					'endpointUrl',
+					'receiverAddress',
+					'amountSats',
+					'disableOutputSubstitution',
+					'minFeeRateSatPerVbyte',
+					'additionalFeeOutputIndex',
+					'maxAdditionalFeeContributionSats',
+					'originalPsbtHash',
+					'proposalPsbtHash',
+					'finalTransactionId',
+					'errorCode',
+					'createdAt',
+					'updatedAt',
+					'completedAt',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Request',
-					items: [
-						{
-							label: 'BIP21 URI',
-						},
-						{
-							label: 'endpoint URL',
-						},
-						{
-							label: 'version/fee/output-substitution parameters',
-						},
-					],
-				},
-				{
-					label: 'PSBT exchange',
-					items: [
-						{
-							label: 'original/proposal PSBT hashes',
-						},
-						{
-							label: 'validation state',
-						},
-					],
-				},
-				{
-					label: 'Final transaction',
-					items: [
-						{
-							label: 'UTXO transaction when broadcast/resolved',
-						},
-					],
-				},
-				{
-					label: 'Directory/OHTTP',
-					items: [
-						{
-							label: 'Payjoin directory',
-						},
-						{
-							label: 'relay metadata',
-						},
-					],
-				},
-				{
-					label: 'Error',
-					items: [
-						{
-							label: 'well-known BIP78 error code',
-						},
-						{
-							label: 'local debug payload',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent UTXO network',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

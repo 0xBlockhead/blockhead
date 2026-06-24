@@ -10,66 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'storage node',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'storage node',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'balance',
-					{
-						label: 'total reward',
-					},
-					{
-						label: 'win count',
-					},
-					{
-						label: 'mining attempts',
-					},
+					'totalReward',
+					'winCount',
+					'miningAttempts',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Storage node',
-					items: [
-						{
-							label: 'parent public storage node',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent 0G network',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'miner detail/list payload',
-						},
-						{
-							label: 'scan timestamp',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

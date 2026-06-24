@@ -10,99 +10,33 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'wallet id',
-			},
+			'walletId',
 			'pool',
-			{
-				label: 'note commitment',
-			},
+			'noteCommitment',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'wallet id',
-					},
+					'walletId',
 					'pool',
-					{
-						label: 'note commitment',
-					},
-					{
-						label: 'value',
-					},
+					'noteCommitment',
 					'nullifier',
-					{
-						label: 'received transaction id',
-					},
-					{
-						label: 'received height',
-					},
-					{
-						label: 'recipient address',
-					},
-					{
-						label: 'latest spent state',
-					},
-					{
-						label: 'latest spent transaction id',
-					},
-					{
-						label: 'latest spent height',
-					},
-					{
-						label: 'latest scan time',
-					},
+					'valueZatoshis',
+					'memo',
+					'diversifier',
+					'recipientAddress',
+					'receivedTransactionId',
+					'receivedAtHeight',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest state',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'latest note-state observation',
-						},
-					],
-				},
-				{
-					label: 'State history',
-					items: [
-						{
-							label: 'timestamped note-state observations',
-						},
-					],
-				},
-				{
-					label: 'Pool/action',
-					items: [
-						{
-							label: 'pool enum/constant metadata',
-						},
-						{
-							label: 'linked public shielded action when available',
-						},
-					],
-				},
-				{
-					label: 'Memo/address',
-					items: [
-						{
-							label: 'redacted memo',
-						},
-						'diversifier',
-						{
-							label: 'recipient address',
-						},
-					],
-				},
-				{
-					label: 'Wallet',
-					items: [
-						{
-							label: 'parent local Zcash wallet state',
-						},
+						'$$timestamps',
 					],
 				},
 			],

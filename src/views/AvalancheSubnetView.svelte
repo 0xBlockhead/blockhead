@@ -10,89 +10,47 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'subnet id',
-			},
-			'label',
-			'threshold',
+			'subnetId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'subnet id',
-					},
+					'subnetId',
 					'label',
+					'ownerAddresses',
 					'threshold',
-					{
-						label: 'owner address count',
-					},
-					{
-						label: 'control key count',
-					},
-					{
-						label: 'chain count',
-					},
-					{
-						label: 'validator count',
-					},
-					{
-						label: 'delegator count',
-					},
-					{
-						label: 'latest total stake',
-					},
+					'controlKeys',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Blockchains',
+					label: 'blockchains',
+					when: 'open',
 					items: [
-						{
-							label: 'blockchains in this subnet',
-						},
+						'$$blockchains',
 					],
 				},
 				{
-					label: 'Validators',
+					label: 'validators',
+					when: 'open',
 					items: [
-						{
-							label: 'validator intervals for this subnet',
-						},
+						'$$validators',
 					],
 				},
 				{
-					label: 'Delegators',
+					label: 'delegators',
+					when: 'open',
 					items: [
-						{
-							label: 'delegator intervals for this subnet',
-						},
+						'$$delegators',
 					],
 				},
 				{
-					label: 'Control keys',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'threshold/owner/control-key list',
-						},
-					],
-				},
-				{
-					label: 'State observations',
-					items: [
-						{
-							label: 'timestamped subnet stake/count observations',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'getSubnets/getCurrentValidators payloads',
-						},
+						'$$timestamps',
 					],
 				},
 			],

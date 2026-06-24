@@ -10,54 +10,26 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'credential id',
-			},
-			{
-				label: 'kind',
-			},
-			'label',
+			'credentialId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'credential id',
-					},
-					{
-						label: 'connection',
-					},
-					{
-						label: 'kind',
-					},
+					'credentialId',
+					'credentialKind',
 					'label',
-				],
-				[
-					{
-						label: 'created/updated at',
-					},
-					{
-						label: 'latest status',
-					},
+					'createdAt',
+					'updatedAt',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Connection',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadAgentConnection',
-						},
-					],
-				},
-				{
-					label: 'Status',
-					items: [
-						{
-							label: 'BlockheadAgentCredentialState_Timestamp list',
-						},
+						'$$timestamps',
 					],
 				},
 			],

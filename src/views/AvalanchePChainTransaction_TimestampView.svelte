@@ -10,63 +10,18 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'transaction',
-			},
-			{
-				label: 'observation time',
-			},
-			'status',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'transaction',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'status',
-					{
-						label: 'block height',
-					},
-					{
-						label: 'block id',
-					},
+					'blockHeight',
+					'blockId',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Transaction',
-					items: [
-						{
-							label: 'parent P-Chain transaction',
-						},
-					],
-				},
-				{
-					label: 'Block',
-					items: [
-						{
-							label: 'P-Chain block when block id/height resolves',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'PlatformVM transaction/status payload',
-						},
-						{
-							label: 'Avascan indexer status',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

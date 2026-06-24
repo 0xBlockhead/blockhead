@@ -11,93 +11,24 @@
 	const view = {
 		closed: [
 			'height',
-			'hash',
-			{
-				label: 'epoch',
-			},
 		],
 		content: {
 			dl: [
 				[
 					'height',
 					'hash',
-					{
-						label: 'parent',
-					},
-					{
-						label: 'epoch id',
-					},
-					{
-						label: 'timestamp',
-					},
-				],
-				[
-					{
-						label: 'chunk count',
-					},
-					{
-						label: 'parent/chain context',
-					},
-					{
-						label: 'source evidence',
-					},
+					'epochId',
+					'timestampMs',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Network',
+					label: 'chunks',
+					when: 'open',
 					items: [
-						{
-							label: 'NearNetwork/Network',
-						},
-					],
-				},
-				{
-					label: 'Header',
-					items: [
-						'height',
-						'hash',
-						{
-							label: 'parent',
-						},
-						{
-							label: 'epoch id',
-						},
-						{
-							label: 'timestamp',
-						},
-					],
-				},
-				{
-					label: 'Chunks',
-					items: [
-						{
-							label: 'NearChunk list',
-						},
-					],
-				},
-				{
-					label: 'Lookup evidence',
-					items: [
-						{
-							label: 'RPC block_id height lookup',
-						},
-						{
-							label: 'RPC block_id hash lookup',
-						},
-						{
-							label: 'NearBlocks indexer block lookup',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'NEAR RPC/indexer block payload',
-						},
+						'$$chunks',
 					],
 				},
 			],

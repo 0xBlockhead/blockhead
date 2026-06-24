@@ -10,95 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'trace key',
-			},
-			{
-				label: 'display denom',
-			},
+			'traceKey',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'trace key',
-					},
-					{
-						label: 'display denom',
-					},
-					{
-						label: 'denom hash',
-					},
-					{
-						label: 'base denom',
-					},
+					'traceKey',
+					'denomHash',
 					'path',
-					{
-						label: 'source port/channel',
-					},
-					{
-						label: 'local denom',
-					},
-					{
-						label: 'asset instance',
-					},
-					{
-						label: 'channel ref',
-					},
+					'baseDenom',
+					'displayDenom',
+					'sourcePort',
+					'sourceChannel',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Channel',
-					items: [
-						{
-							label: 'linked IBC transfer channel',
-						},
-					],
-				},
-				{
-					label: 'Local denom',
-					items: [
-						{
-							label: 'linked CosmosDenom for the local hashed denom when resolved',
-						},
-					],
-				},
-				{
-					label: 'Base asset',
-					items: [
-						{
-							label: 'asset instance when registry/catalog mapping resolves',
-						},
-					],
-				},
-				{
-					label: 'Path',
-					items: [
-						{
-							label: 'hop list parsed from transfer path',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'denom trace',
-						},
-						{
-							label: 'asset registry payloads',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

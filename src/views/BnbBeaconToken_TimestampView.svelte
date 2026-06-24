@@ -10,78 +10,20 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'token',
-			},
-			{
-				label: 'observation time',
-			},
-			{
-				label: 'total supply',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'token',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'total supply',
-					},
-					{
-						label: 'mintable flag',
-					},
-					{
-						label: 'mapped contract address',
-					},
+					'totalSupply',
+					'mintable',
+					'contractAddress',
+					'holderCount',
+					'transferCount',
 				],
-				[
-					{
-						label: 'holder count',
-					},
-					{
-						label: 'transfer count',
-					},
-				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Token',
-					items: [
-						{
-							label: 'parent BNB Beacon token',
-						},
-					],
-				},
-				{
-					label: 'Migrations',
-					items: [
-						{
-							label: 'migration records near the same source/window',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'archived token metadata',
-						},
-						{
-							label: 'explorer/indexer token stats',
-						},
-						{
-							label: 'fusion mapping payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

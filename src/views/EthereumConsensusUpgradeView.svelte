@@ -10,68 +10,33 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			'name',
-			'slug',
+			'upgradeId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
+					'upgradeId',
 					'name',
 					'slug',
+					'activationBlock',
+					'activationTimestampMs',
+					'activationEpoch',
+					'previousForkVersion',
+					'currentForkVersion',
 					'protocol',
-					{
-						label: 'activation block/timestamp/epoch',
-					},
-					{
-						label: 'previous/current fork versions',
-					},
-					{
-						label: 'proposal count',
-					},
-					{
-						label: 'links',
-					},
+					'linkEthereumOrg',
+					'linkConsensusDocs',
+					'linkForkcast',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Fork versions',
+					label: 'proposals',
+					when: 'open',
 					items: [
-						{
-							label: 'Beacon REST evidence',
-						},
-					],
-				},
-				{
-					label: 'Network upgrade',
-					items: [
-						{
-							label: 'joined execution/consensus network-upgrade row when linked',
-						},
-					],
-				},
-				{
-					label: 'Proposals',
-					items: [
-						{
-							label: 'linked specification proposal rows',
-						},
-					],
-				},
-				{
-					label: 'References',
-					items: [
-						{
-							label: 'catalog URLs only',
-						},
+						'$$proposals',
 					],
 				},
 			],

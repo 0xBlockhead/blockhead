@@ -10,57 +10,20 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'amendment',
-			},
-			{
-				label: 'ledger index',
-			},
+			'ledgerIndex',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'amendment',
-					},
-					{
-						label: 'ledger index',
-					},
+					'ledgerIndex',
 					'source',
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'enabled',
 					'supported',
 					'status',
-					{
-						label: 'enabled ledger',
-					},
+					'enabledAtLedger',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Amendment',
-					items: [
-						{
-							label: 'parent amendment identity',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'feature command response',
-						},
-						{
-							label: 'latest validated ledger context',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,89 +10,36 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'asset id',
-			},
-			{
-				label: 'latest name',
-			},
+			'assetId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'asset id',
-					},
-					{
-						label: 'latest name',
-					},
-					{
-						label: 'latest size decimals',
-					},
-					{
-						label: 'latest wei decimals',
-					},
-					{
-						label: 'latest token id',
-					},
-					{
-						label: 'base pair count',
-					},
-					{
-						label: 'quote pair count',
-					},
-					{
-						label: 'timestamp count',
-					},
+					'assetId',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest state',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'latest spot-asset universe observation',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'State history',
+					label: 'base pairs',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped spot-asset universe observations',
-						},
+						'$$basePairs',
 					],
 				},
 				{
-					label: 'Spot pairs',
+					label: 'quote pairs',
+					when: 'open',
 					items: [
-						{
-							label: 'base-side and quote-side spot pair rows',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Hyperliquid network',
-						},
-					],
-				},
-				{
-					label: 'Related markets',
-					items: [
-						{
-							label: 'generic market rows only when separate venue/base/quote selectors map spot pairs to market identity',
-						},
+						'$$quotePairs',
 					],
 				},
 			],

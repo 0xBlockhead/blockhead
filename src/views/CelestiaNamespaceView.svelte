@@ -10,73 +10,31 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'namespace id',
-			},
-			{
-				label: 'version',
-			},
-			{
-				label: 'latest blob count',
-			},
+			'namespaceId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'namespace id',
-					},
-					{
-						label: 'namespace version',
-					},
+					'namespaceId',
+					'namespaceVersion',
 					'label',
-					{
-						label: 'latest blob count',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Blob count snapshots',
+					label: 'blobs',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped namespace activity observations',
-						},
+						'$$blobs',
 					],
 				},
 				{
-					label: 'Blobs',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'Celestia blobs filtered by namespace',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Celestia network',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'namespace-id parsing',
-						},
-						{
-							label: 'blob.GetAll namespace queries',
-						},
-						{
-							label: 'configured namespace labels when present',
-						},
+						'$$timestamps',
 					],
 				},
 			],

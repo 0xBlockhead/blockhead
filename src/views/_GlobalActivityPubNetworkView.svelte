@@ -11,48 +11,35 @@
 	const view = {
 		closed: [
 			'scope',
-			'$$timestamps',
-			'$$sourceWindowActors',
 		],
 		content: {
 			dl: [
 				[
 					'scope',
-					'$$timestamps',
-				],
-				[
-					'$$sourceWindowActors',
-					'$$sourceWindowNotes',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Source-window rows',
+					label: 'source window actors',
+					when: 'open',
 					items: [
 						'$$sourceWindowActors',
+					],
+				},
+				{
+					label: 'source window notes',
+					when: 'open',
+					items: [
 						'$$sourceWindowNotes',
 					],
 				},
 				{
-					label: 'Hub observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
 						'$$timestamps',
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'SourceBinding.Constants_Internal',
-						},
-						{
-							label: 'SourceBinding.Fedi_Rest',
-						},
-						{
-							label: 'SourceBinding.Mastodon_Rest',
-						},
 					],
 				},
 			],

@@ -10,58 +10,25 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'name or id',
-			},
-			{
-				label: 'created time',
-			},
-			{
-				label: 'creator',
-			},
+			'id',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'name or id',
-					},
-					{
-						label: 'created time',
-					},
-					{
-						label: 'creator',
-					},
-					{
-						label: 'peer count',
-					},
+					'id',
+					'createdAt',
+					'createdBy',
+					'name',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Peers',
+					label: 'peers',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadRoomPeer list',
-						},
-					],
-				},
-				{
-					label: 'Shared addresses',
-					items: [
-						{
-							label: 'BlockheadSharedAddress list when linked',
-						},
-					],
-				},
-				{
-					label: 'Transfer requests',
-					items: [
-						{
-							label: 'BlockheadTransferRequest list when linked',
-						},
+						'$$peers',
 					],
 				},
 			],

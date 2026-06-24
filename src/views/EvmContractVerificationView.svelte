@@ -9,74 +9,16 @@
 
 	// State
 	const view = {
-		closed: [
-			'match',
-			{
-				label: 'creation match',
-			},
-			{
-				label: 'runtime match',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
 				[
 					'match',
-					{
-						label: 'creation match',
-					},
-					{
-						label: 'runtime match',
-					},
-					{
-						label: 'verified timestamp',
-					},
-					{
-						label: 'match id',
-					},
-					{
-						label: 'source bundle',
-					},
+					'creationMatch',
+					'runtimeMatch',
+					'verifiedAtMs',
+					'matchId',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Contract',
-					items: [
-						{
-							label: 'parent EVM contract',
-						},
-					],
-				},
-				{
-					label: 'Compilation',
-					items: [
-						{
-							label: 'Sourcify compilation metadata',
-						},
-					],
-				},
-				{
-					label: 'Source bundle',
-					items: [
-						{
-							label: 'Sourcify source bundle',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Sourcify verification metadata',
-						},
-						{
-							label: 'creation/runtime match fields',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

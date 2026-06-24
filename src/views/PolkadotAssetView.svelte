@@ -10,75 +10,31 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'asset kind',
-			},
-			{
-				label: 'asset id',
-			},
+			'assetKind',
+			'assetId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'asset kind',
-					},
-					{
-						label: 'asset id',
-					},
-					{
-						label: 'latest metadata/supply/role summary',
-					},
-					{
-						label: 'balance snapshot count',
-					},
-					{
-						label: 'latest observation time',
-					},
+					'assetKind',
+					'assetId',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Asset observations',
+					label: 'balance timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped asset metadata/supply/role observations',
-						},
+						'$$balanceTimestamps',
 					],
 				},
 				{
-					label: 'Account balances',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'asset balance observations grouped by account',
-						},
-					],
-				},
-				{
-					label: 'Runtime pallet',
-					items: [
-						{
-							label: 'runtime pallet for Assets/ForeignAssets/Tokens when resolved',
-						},
-					],
-				},
-				{
-					label: 'Holders/transfers',
-					items: [
-						{
-							label: 'indexed account balances',
-						},
-						{
-							label: 'extrinsics when source-scoped',
-						},
+						'$$timestamps',
 					],
 				},
 			],

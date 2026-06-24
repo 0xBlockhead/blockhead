@@ -10,64 +10,18 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'task',
-			},
 			'sequence',
-			{
-				label: 'kind',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'task',
-					},
 					'sequence',
-					{
-						label: 'kind',
-					},
-					{
-						label: 'timestamp',
-					},
-				],
-				[
+					'eventKind',
+					'timestampMs',
 					'state',
 					'final',
-					{
-						label: 'artifact',
-					},
 					'payload',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Task',
-					items: [
-						{
-							label: 'A2aTask',
-						},
-					],
-				},
-				{
-					label: 'Artifact',
-					items: [
-						{
-							label: 'A2aArtifact when present',
-						},
-					],
-				},
-				{
-					label: 'Payload',
-					items: [
-						{
-							label: 'raw event payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

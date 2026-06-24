@@ -10,55 +10,20 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'install',
-			},
-			{
-				label: 'observation time',
-			},
-			'status',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'install',
-					},
-					{
-						label: 'timestamp',
-					},
+					'timestampMs',
 					'source',
 					'status',
-				],
-				[
-					{
-						label: 'version probe',
-					},
-					{
-						label: 'executable hash algorithm/hash',
-					},
+					'versionProbe',
+					'executableHashAlgorithm',
+					'executableHash',
 					'error',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Install',
-					items: [
-						{
-							label: 'BlockheadAgentProgramInstall',
-						},
-					],
-				},
-				{
-					label: 'Probe',
-					items: [
-						{
-							label: 'version/executable/status/error',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

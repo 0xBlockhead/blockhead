@@ -10,70 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'info hash',
-			},
-			{
-				label: 'observer',
-			},
-			{
-				label: 'timestamp',
-			},
+			'infoHash',
+			'observerKey',
+			'timestampMs',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'info hash',
-					},
-					{
-						label: 'observer',
-					},
-					{
-						label: 'timestamp',
-					},
+					'infoHash',
+					'observerKey',
+					'timestampMs',
+					'queriedNodeCount',
+					'responsiveNodeCount',
+					'peerCount',
+					'closestNodeIds',
 					'status',
-					{
-						label: 'queried node count',
-					},
-					{
-						label: 'responsive node count',
-					},
-					{
-						label: 'peer count',
-					},
-					{
-						label: 'closest node ids',
-					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Closest nodes',
-					items: [
-						{
-							label: 'BitTorrentDhtNode_Timestamp list',
-						},
-					],
-				},
-				{
-					label: 'Swarm context',
-					items: [
-						{
-							label: 'BitTorrentSwarmObservation_Timestamp list for the same info hash',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'get_peers query/response summary when retained',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

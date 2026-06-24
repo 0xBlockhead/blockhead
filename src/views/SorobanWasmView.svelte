@@ -10,91 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'wasm hash',
-			},
-			{
-				label: 'latest bytecode availability',
-			},
+			'wasmHash',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'wasm hash',
-					},
-					{
-						label: 'latest bytecode availability',
-					},
-					{
-						label: 'latest interface version',
-					},
-					{
-						label: 'latest spec-entry count',
-					},
-					{
-						label: 'contract count',
-					},
+					'wasmHash',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest code',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'latest ledger/source WASM-code observation',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Code history',
+					label: 'contracts',
+					when: 'open',
 					items: [
-						{
-							label: 'ledger/source WASM-code observations',
-						},
-					],
-				},
-				{
-					label: 'Contracts',
-					items: [
-						{
-							label: 'contracts using this WASM',
-						},
-					],
-				},
-				{
-					label: 'Bytes',
-					items: [
-						{
-							label: 'raw WASM bytes when fetched',
-						},
-					],
-				},
-				{
-					label: 'Spec',
-					items: [
-						{
-							label: 'contract spec entries',
-						},
-						{
-							label: 'environment metadata',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'RPC/indexer payloads',
-						},
+						'$$contracts',
 					],
 				},
 			],

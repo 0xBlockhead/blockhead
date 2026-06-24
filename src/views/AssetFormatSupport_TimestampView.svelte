@@ -10,108 +10,27 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'asset instance',
-			},
-			{
-				label: 'format id',
-			},
-			'confidence',
+			'formatId',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'asset instance',
-					},
-					{
-						label: 'format id',
-					},
-					{
-						label: 'observation time',
-					},
+					'formatId',
+					'timestampMs',
 					'source',
 					'confidence',
-					{
-						label: 'evidence kind',
-					},
-					{
-						label: 'ledger coordinate',
-					},
-				],
-				[
-					{
-						label: 'interface id',
-					},
-					{
-						label: 'program/module/contract/token program',
-					},
+					'evidenceKind',
+					'ledgerCoordinateKind',
+					'ledgerCoordinateValue',
+					'interfaceId',
+					'programId',
+					'moduleId',
+					'contractAddress',
+					'tokenProgram',
 					'notes',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Asset',
-					items: [
-						{
-							label: 'parent asset instance',
-						},
-					],
-				},
-				{
-					label: 'Format semantics',
-					items: [
-						{
-							label: 'formatId enum/catalog label',
-						},
-						{
-							label: 'standard/spec reference from constants',
-						},
-					],
-				},
-				{
-					label: 'Extensions',
-					items: [
-						{
-							label: 'TokenProgramExtension_Timestamp observations filtered by asset',
-						},
-					],
-				},
-				{
-					label: 'Regulated controls',
-					items: [
-						{
-							label: 'regulated asset profile when format implies compliance/issuer controls',
-						},
-					],
-				},
-				{
-					label: 'Class/object rows',
-					items: [
-						{
-							label: 'class/object rows when format implies slot/partition/token id/object identity',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'supportsInterface or ABI evidence',
-						},
-						{
-							label: 'program owner/account data',
-						},
-						{
-							label: 'module/resource type',
-						},
-						{
-							label: 'indexer classification',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

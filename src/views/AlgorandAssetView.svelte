@@ -10,70 +10,30 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'asset id',
-			},
-			'creator',
-			{
-				label: 'latest unit/name',
-			},
+			'assetId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'asset id',
-					},
+					'assetId',
 					'creator',
-					{
-						label: 'network',
-					},
-				],
-				[
-					{
-						label: 'latest unit/name/decimals',
-					},
-					{
-						label: 'latest manager/reserve/freeze/clawback addresses',
-					},
-					{
-						label: 'latest supply snapshot',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest params',
+					label: 'holding rounds',
+					when: 'open',
 					items: [
-						{
-							label: 'latest round/source asset observation',
-						},
+						'$$holdingRounds',
 					],
 				},
 				{
-					label: 'Param history',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'round/source asset parameter observations',
-						},
-					],
-				},
-				{
-					label: 'Holdings',
-					items: [
-						{
-							label: 'account holding rows for this asset',
-						},
-					],
-				},
-				{
-					label: 'Metadata',
-					items: [
-						{
-							label: 'ARC/source metadata from latest params URL/hash',
-						},
+						'$$timestamps',
 					],
 				},
 			],

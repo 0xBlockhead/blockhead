@@ -10,95 +10,25 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'canonical URI',
-			},
-			{
-				label: 'latest gateway origin',
-			},
-			{
-				label: 'latest content type',
-			},
+			'transactionId',
+			'contentPath',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'canonical URI',
-					},
-					{
-						label: 'transaction id',
-					},
-					{
-						label: 'content path',
-					},
-					{
-						label: 'linked transaction',
-					},
-					{
-						label: 'latest gateway/source',
-					},
-				],
-				[
-					{
-						label: 'latest content type',
-					},
-					{
-						label: 'latest content length',
-					},
-					{
-						label: 'latest display type',
-					},
-					{
-						label: 'latest inferred-content-type status',
-					},
+					'transactionId',
+					'contentPath',
+					'canonicalUri',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Address',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'transaction id',
-						},
-						{
-							label: 'content path',
-						},
-						{
-							label: 'linked Arweave transaction when resolved',
-						},
-					],
-				},
-				{
-					label: 'Latest retrieval',
-					items: [
-						{
-							label: 'latest gateway retrieval observation',
-						},
-					],
-				},
-				{
-					label: 'Retrieval history',
-					items: [
-						{
-							label: 'timestamped gateway/source observations',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'gateway headers',
-						},
-						{
-							label: 'content-type inference',
-						},
-						{
-							label: 'payload availability',
-						},
+						'$$timestamps',
 					],
 				},
 			],

@@ -10,86 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'node state',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'node state',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'node version',
-					},
-					{
-						label: 'engine state',
-					},
-					{
-						label: 'latest frame number/hash',
-					},
+					'nodeVersion',
+					'engineState',
+					'latestFrameNumber',
+					'latestFrameHash',
 					'difficulty',
-					{
-						label: 'peer count',
-					},
-					{
-						label: 'pending message count',
-					},
-					{
-						label: 'frame-store head',
-					},
-					{
-						label: 'last synced time',
-					},
+					'peerCount',
+					'pendingMessageCount',
+					'frameStoreHead',
+					'lastSyncedAt',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Node',
-					items: [
-						{
-							label: 'parent Quilibrium node state',
-						},
-					],
-				},
-				{
-					label: 'Frames',
-					items: [
-						{
-							label: 'Quilibrium frame refs for latest heads',
-						},
-					],
-				},
-				{
-					label: 'Metrics',
-					items: [
-						{
-							label: 'Prometheus/node-status counters',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'node gRPC/status payload',
-						},
-						{
-							label: 'metrics scrape freshness',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

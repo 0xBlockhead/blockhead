@@ -10,89 +10,30 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
 			'height',
-			'hash',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'height',
 					'hash',
-					{
-						label: 'parent',
-					},
-					{
-						label: 'timestamp',
-					},
-					{
-						label: 'transaction count',
-					},
-					{
-						label: 'size',
-					},
-					{
-						label: 'weight',
-					},
+					'timestampMs',
+					'merkleRoot',
+					'nonce',
+					'difficulty',
+					'sizeBytes',
+					'weightUnits',
+					'transactionCount',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Header',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'merkle root',
-						},
-						'nonce',
-						'difficulty',
-						{
-							label: 'size/weight',
-						},
-					],
-				},
-				{
-					label: 'Transactions',
-					items: [
-						{
-							label: 'transactions in block',
-						},
-					],
-				},
-				{
-					label: 'Parent',
-					items: [
-						{
-							label: 'parent block',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent UTXO-family network',
-						},
-					],
-				},
-				{
-					label: 'Lookup evidence',
-					items: [
-						{
-							label: 'node getblock hash lookup',
-						},
-						{
-							label: 'Esplora/mempool.space height-to-hash lookup',
-						},
-						{
-							label: 'explorer block payload',
-						},
+						'$$transactions',
 					],
 				},
 			],

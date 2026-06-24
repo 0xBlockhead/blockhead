@@ -10,82 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'transfer state',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'transfer state',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'confirmations',
-					{
-						label: 'unlock time',
-					},
-					{
-						label: 'spent state',
-					},
-					{
-						label: 'last checked time',
-					},
+					'unlockTime',
+					'spent',
+					'lastCheckedAt',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Transfer',
-					items: [
-						{
-							label: 'BlockheadMoneroTransferStateView',
-						},
-					],
-				},
-				{
-					label: 'Transaction',
-					items: [
-						{
-							label: 'MoneroTransactionView when resolved',
-						},
-					],
-				},
-				{
-					label: 'Outputs',
-					items: [
-						{
-							label: 'BlockheadMoneroOutputState rows for wallet-owned outputs in the tx',
-						},
-					],
-				},
-				{
-					label: 'Subaddress',
-					items: [
-						{
-							label: 'BlockheadMoneroSubaddressStateView',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'monero-wallet-rpc transfer/payment',
-						},
-						{
-							label: 'key-image payloads',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

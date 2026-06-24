@@ -10,54 +10,16 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
 			'denom',
-			'display',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'denom',
 					'display',
 					'base',
 					'symbol',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Cosmos network',
-						},
-					],
-				},
-				{
-					label: 'Asset metadata',
-					items: [
-						{
-							label: 'asset instance/class link when Cosmos Chain Registry asset metadata resolves',
-						},
-					],
-				},
-				{
-					label: 'Bank state',
-					items: [
-						{
-							label: 'account balance snapshots',
-						},
-						{
-							label: 'supply observations when modeled',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

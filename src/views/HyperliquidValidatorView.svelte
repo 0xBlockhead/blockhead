@@ -10,77 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'validator address',
-			},
-			{
-				label: 'latest name',
-			},
+			'validator',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'validator address',
-					},
-					{
-						label: 'latest observed name/signer',
-					},
-					{
-						label: 'latest commission/stake/activity summary',
-					},
-					{
-						label: 'observation count',
-					},
+					'validator',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped validator summary observations',
-						},
-					],
-				},
-				{
-					label: 'Latest signer',
-					items: [
-						{
-							label: 'Hyperliquid account from latest signer observation',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Hyperliquid network',
-						},
-					],
-				},
-				{
-					label: 'Produced blocks',
-					items: [
-						{
-							label: 'HyperEVM blocks when source context provides validator/block linkage',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'validatorSummaries payload freshness',
-						},
+						'$$timestamps',
 					],
 				},
 			],

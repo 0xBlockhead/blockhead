@@ -10,60 +10,15 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'transaction',
-			},
-			{
-				label: 'input index',
-			},
-			{
-				label: 'key image',
-			},
+			'inputIndex',
+			'keyImage',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'transaction',
-					},
-					{
-						label: 'input index',
-					},
-					{
-						label: 'key image',
-					},
-					{
-						label: 'ring status',
-					},
+					'inputIndex',
+					'keyImage',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Ring',
-					items: [
-						{
-							label: 'ring/decoy set for this key image',
-						},
-					],
-				},
-				{
-					label: 'Transaction',
-					items: [
-						{
-							label: 'parent Monero transaction',
-						},
-					],
-				},
-				{
-					label: 'Wallet interpretation',
-					items: [
-						{
-							label: 'BlockheadMoneroTransferState only when a connected wallet links this key image',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,88 +10,37 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'MWEB block',
-			},
-			{
-				label: 'transaction index',
-			},
-			{
-				label: 'kernel offset',
-			},
+			'transactionIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'MWEB block',
-					},
-					{
-						label: 'transaction index',
-					},
-					{
-						label: 'kernel offset',
-					},
-					{
-						label: 'output count',
-					},
-					{
-						label: 'peg-in count',
-					},
-					{
-						label: 'peg-out count',
-					},
+					'transactionIndex',
+					'kernelOffset',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Outputs',
+					label: 'outputs',
+					when: 'open',
 					items: [
-						{
-							label: 'MWEB public output rows',
-						},
+						'$$outputs',
 					],
 				},
 				{
-					label: 'Peg-ins',
+					label: 'peg ins',
+					when: 'open',
 					items: [
-						{
-							label: 'MWEB peg-in rows',
-						},
+						'$$pegIns',
 					],
 				},
 				{
-					label: 'Peg-outs',
+					label: 'peg outs',
+					when: 'open',
 					items: [
-						{
-							label: 'MWEB peg-out rows',
-						},
-					],
-				},
-				{
-					label: 'Block',
-					items: [
-						{
-							label: 'parent MWEB block',
-						},
-					],
-				},
-				{
-					label: 'Wallet matches',
-					items: [
-						{
-							label: 'BlockheadLitecoinMwebOutputState rows for locally recognized outputs',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Litecoin Core MWEB transaction payload',
-						},
+						'$$pegOuts',
 					],
 				},
 			],

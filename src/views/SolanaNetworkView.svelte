@@ -10,100 +10,66 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'CAIP-2',
-			},
-			{
-				label: 'parent network',
-			},
-			'environment',
+			'caip2',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'CAIP-2',
-					},
-					{
-						label: 'parent network',
-					},
+					'caip2',
 					'environment',
-					{
-						label: 'latest head snapshot',
-					},
-					{
-						label: 'endpoint count',
-					},
-				],
-				[
-					{
-						label: 'bounded recent account count',
-					},
-					{
-						label: 'bounded transaction count',
-					},
-					{
-						label: 'validator count',
-					},
-					{
-						label: 'token mint entry points',
-					},
+					'rpcEndpoints',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Execution',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'Blocks',
-						},
-						{
-							label: 'Transactions',
-						},
-						{
-							label: 'Accounts',
-						},
-						{
-							label: 'Network snapshots',
-						},
-						{
-							label: 'Endpoints',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Consensus & Block Production',
+					label: 'blocks',
+					when: 'open',
 					items: [
-						{
-							label: 'Validators',
-						},
+						'$$blocks',
 					],
 				},
 				{
-					label: 'Assets',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'native coin',
-						},
-						{
-							label: 'token mints from selectors or parsed token-account state',
-						},
+						'$$transactions',
 					],
 				},
 				{
-					label: 'Resources',
+					label: 'accounts',
+					when: 'open',
 					items: [
-						{
-							label: 'faucets',
-						},
-						{
-							label: 'block explorers',
-						},
-						{
-							label: 'source coverage',
-						},
+						'$$accounts',
+					],
+				},
+				{
+					label: 'token accounts',
+					when: 'open',
+					items: [
+						'$$tokenAccounts',
+					],
+				},
+				{
+					label: 'token mints',
+					when: 'open',
+					items: [
+						'$$tokenMints',
+					],
+				},
+				{
+					label: 'validators',
+					when: 'open',
+					items: [
+						'$$validators',
 					],
 				},
 			],

@@ -10,75 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'node id',
-			},
-			{
-				label: 'participation id',
-			},
-			{
-				label: 'account',
-			},
+			'nodeId',
+			'participationId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'node id',
-					},
-					{
-						label: 'participation id',
-					},
-					{
-						label: 'account',
-					},
-					{
-						label: 'network',
-					},
-					{
-						label: 'validity round range',
-					},
-					{
-						label: 'key dilution',
-					},
-					{
-						label: 'effective round range',
-					},
-					{
-						label: 'last synced time',
-					},
-					{
-						label: 'connected-node status',
-					},
+					'nodeId',
+					'participationId',
+					'firstValidRound',
+					'lastValidRound',
+					'keyDilution',
+					'selectionKey',
+					'votingKey',
+					'stateProofKey',
+					'effectiveFirstRound',
+					'effectiveLastRound',
+					'lastSyncedAt',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'linked Algorand account',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'linked Algorand network',
-						},
-					],
-				},
-				{
-					label: 'Validity',
-					items: [
-						{
-							label: 'first/last/effective rounds',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

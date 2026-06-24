@@ -10,81 +10,16 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
 			'address',
-			{
-				label: 'actor code CID',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'address',
-					{
-						label: 'actor code CID',
-					},
-				],
-				[
+					'actorCodeCid',
 					'nonce',
-					{
-						label: 'balance in attoFIL',
-					},
-					{
-						label: 'latest observation row',
-					},
+					'balanceAttoFil',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'State observations',
-					items: [
-						{
-							label: 'timestamped actor state observations',
-						},
-					],
-				},
-				{
-					label: 'Messages',
-					items: [
-						{
-							label: 'Filecoin messages when scoped by source context',
-						},
-					],
-				},
-				{
-					label: 'Miner',
-					items: [
-						{
-							label: 'Filecoin miner row when the address is a miner actor',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Filecoin network',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'StateGetActor',
-						},
-						{
-							label: 'indexer address payloads',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

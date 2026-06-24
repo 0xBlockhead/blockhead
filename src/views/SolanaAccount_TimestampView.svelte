@@ -10,79 +10,23 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'account',
-			},
 			'slot',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'account',
-					},
 					'slot',
 					'source',
-					{
-						label: 'timestamp',
-					},
+					'timestampMs',
 					'lamports',
-					{
-						label: 'owner program id',
-					},
-					{
-						label: 'executable flag',
-					},
-					{
-						label: 'rent epoch',
-					},
-					{
-						label: 'space bytes',
-					},
-					{
-						label: 'data encoding',
-					},
+					'ownerProgramId',
+					'executable',
+					'rentEpoch',
+					'spaceBytes',
+					'dataEncoding',
+					'parsedData',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'parent Solana account',
-						},
-					],
-				},
-				{
-					label: 'Owner program',
-					items: [
-						{
-							label: 'Solana program when ownerProgramId resolves',
-						},
-					],
-				},
-				{
-					label: 'Parsed data',
-					items: [
-						{
-							label: 'parsedData JSON',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'getAccountInfo/getMultipleAccounts/getProgramAccounts context',
-						},
-						{
-							label: 'payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

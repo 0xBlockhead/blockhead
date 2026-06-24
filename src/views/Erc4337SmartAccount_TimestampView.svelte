@@ -10,64 +10,16 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'smart account',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'smart account',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'indexed user-operation count',
-					},
+					'userOperationsCount',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Smart account',
-					items: [
-						{
-							label: 'parent ERC-4337 smart account',
-						},
-					],
-				},
-				{
-					label: 'User operations',
-					items: [
-						{
-							label: 'user operations for the same source scope',
-						},
-					],
-				},
-				{
-					label: 'Factory',
-					items: [
-						{
-							label: 'linked factory when available',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Blockscout smart-account detail/list payload fields such as total_ops',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

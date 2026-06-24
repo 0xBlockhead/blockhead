@@ -10,117 +10,26 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'request id',
-			},
-			{
-				label: 'canister',
-			},
+			'requestId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'request id',
-					},
-					{
-						label: 'canister',
-					},
-					{
-						label: 'method',
-					},
-					{
-						label: 'request kind',
-					},
-					{
-						label: 'caller',
-					},
-					{
-						label: 'ingress expiry',
-					},
-					{
-						label: 'latest status',
-					},
-					{
-						label: 'certified time',
-					},
-					{
-						label: 'reply hash',
-					},
-					{
-						label: 'reject summary',
-					},
+					'requestId',
+					'methodName',
+					'requestKind',
+					'callerPrincipal',
+					'ingressExpiryNs',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Status history',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped request-status observations',
-						},
-					],
-				},
-				{
-					label: 'Canister',
-					items: [
-						{
-							label: 'target ICP canister',
-						},
-					],
-				},
-				{
-					label: 'Method',
-					items: [
-						{
-							label: 'canister method when resolved',
-						},
-					],
-				},
-				{
-					label: 'Request metadata',
-					items: [
-						{
-							label: 'caller',
-						},
-						{
-							label: 'ingress expiry',
-						},
-						{
-							label: 'request kind',
-						},
-					],
-				},
-				{
-					label: 'Certified status proof',
-					items: [
-						{
-							label: 'certificate/witness evidence',
-						},
-					],
-				},
-				{
-					label: 'Reply/reject payload',
-					items: [
-						{
-							label: 'reply hash or reject code/message',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'read_state request_status payload',
-						},
+						'$$timestamps',
 					],
 				},
 			],

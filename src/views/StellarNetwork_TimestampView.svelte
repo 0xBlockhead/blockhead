@@ -10,84 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'latest ledger',
-			},
-			{
-				label: 'protocol version',
-			},
-			{
-				label: 'base fee',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'latest ledger',
-					},
-					{
-						label: 'protocol version',
-					},
-					{
-						label: 'base fee',
-					},
-					{
-						label: 'base reserve',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'observation time',
-					},
+					'latestLedger',
+					'protocolVersion',
+					'baseFee',
+					'baseReserve',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'StellarNetwork',
-						},
-					],
-				},
-				{
-					label: 'Ledger head',
-					items: [
-						{
-							label: 'latest ledger',
-						},
-						{
-							label: 'protocol version',
-						},
-					],
-				},
-				{
-					label: 'Fees/reserve',
-					items: [
-						{
-							label: 'base fee',
-						},
-						{
-							label: 'base reserve',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Horizon root/ledger',
-						},
-						{
-							label: 'Stellar RPC',
-						},
-						{
-							label: 'explorer/indexer stats',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

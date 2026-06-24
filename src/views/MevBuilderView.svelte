@@ -10,80 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'builder public key',
-			},
-			{
-				label: 'latest delivered-payload count',
-			},
+			'builderPubkey',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'builder public key',
-					},
-					{
-						label: 'latest delivered-payload count',
-					},
-					{
-						label: 'latest delivered value sum when available',
-					},
-					{
-						label: 'delivered-payload row count',
-					},
+					'builderPubkey',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Delivered payloads',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'relay delivered-payload rows scoped by builder',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Count snapshots',
+					label: 'delivered payloads',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped builder activity observations',
-						},
-					],
-				},
-				{
-					label: 'Relays',
-					items: [
-						{
-							label: 'relay hosts that have observed this builder',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent EVM network MEV-Boost section',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'relay bidtrace windows',
-						},
-						{
-							label: 'pagination/limit context',
-						},
+						'$$deliveredPayloads',
 					],
 				},
 			],

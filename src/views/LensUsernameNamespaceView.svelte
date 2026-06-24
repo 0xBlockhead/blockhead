@@ -10,78 +10,30 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'namespace address',
-			},
-			{
-				label: 'namespace string',
-			},
-			'owner',
+			'address',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'namespace address',
-					},
-					{
-						label: 'namespace string',
-					},
+					'address',
+					'namespace',
 					'owner',
-					{
-						label: 'token name',
-					},
-					{
-						label: 'token symbol',
-					},
-					{
-						label: 'created time',
-					},
+					'tokenName',
+					'tokenSymbol',
+					'createdAt',
 					'description',
-					{
-						label: 'total usernames',
-					},
-					{
-						label: 'rule summary',
-					},
+					'totalUsernames',
+					'rules',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Usernames',
+					label: 'usernames',
+					when: 'open',
 					items: [
-						{
-							label: 'username rows minted in this namespace',
-						},
-					],
-				},
-				{
-					label: 'Owner',
-					items: [
-						{
-							label: 'owner EVM account when resolved',
-						},
-					],
-				},
-				{
-					label: 'Rules',
-					items: [
-						{
-							label: 'namespace rules JSON',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'namespace GraphQL payload',
-						},
-						{
-							label: 'namespace contract events when available',
-						},
+						'$$usernames',
 					],
 				},
 			],

@@ -10,69 +10,18 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'box',
-			},
 			'round',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'box',
-					},
 					'round',
 					'source',
-					{
-						label: 'value hash',
-					},
-					{
-						label: 'deleted state',
-					},
-					{
-						label: 'raw value availability',
-					},
+					'value',
+					'valueHash',
+					'deleted',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Box',
-					items: [
-						{
-							label: 'parent application box identity',
-						},
-					],
-				},
-				{
-					label: 'Application',
-					items: [
-						{
-							label: 'application reached through the box',
-						},
-					],
-				},
-				{
-					label: 'Value',
-					items: [
-						{
-							label: 'raw value when fetched',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'algod application box by name',
-						},
-						{
-							label: 'indexer application boxes/history payload when available',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

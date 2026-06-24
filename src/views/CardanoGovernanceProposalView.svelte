@@ -10,97 +10,37 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'proposal transaction hash',
-			},
-			{
-				label: 'proposal index',
-			},
-			{
-				label: 'kind',
-			},
+			'proposalTxHash',
+			'proposalIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'proposal transaction hash',
-					},
-					{
-						label: 'proposal index',
-					},
-					{
-						label: 'kind',
-					},
-					{
-						label: 'deposit',
-					},
-					{
-						label: 'return address',
-					},
-					{
-						label: 'anchor URL/hash',
-					},
-					{
-						label: 'vote count',
-					},
-					{
-						label: 'latest ratification state',
-					},
-					{
-						label: 'latest lifecycle epoch',
-					},
+					'proposalTxHash',
+					'proposalIndex',
+					'proposalKind',
+					'depositLovelace',
+					'returnAddress',
+					'anchorUrl',
+					'anchorHash',
+					'proposalPayload',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Transaction',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'proposal-bearing Cardano transaction',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Observations',
+					label: 'votes',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped governance proposal state observations',
-						},
-					],
-				},
-				{
-					label: 'Votes',
-					items: [
-						{
-							label: 'governance votes on this proposal',
-						},
-					],
-				},
-				{
-					label: 'Payload',
-					items: [
-						{
-							label: 'governance action JSON/CBOR fields',
-						},
-					],
-				},
-				{
-					label: 'Anchor',
-					items: [
-						{
-							label: 'off-chain anchor metadata evidence',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Cardano network',
-						},
+						'$$votes',
 					],
 				},
 			],

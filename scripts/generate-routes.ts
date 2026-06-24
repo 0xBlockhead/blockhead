@@ -19,6 +19,7 @@ import {
 } from '../ROUTE-DEFINITIONS.ts'
 import { schema } from '../src/schema/index.ts'
 import { EntityFieldType } from '../src/schema/$schema.ts'
+import { generatedOwnership } from './generation/ownership.ts'
 
 
 const bridgeRouteFileIds = [
@@ -737,8 +738,10 @@ const generatedEntitySelectorRouteFiles = () => [
 	'src/routes/entity-selector-route-leaves.ts',
 	'src/routes/entity-hub-collection-routes.ts',
 	...entitySelectorRouteLeaves().flatMap((leaf) => [
-		`src/routes/${leaf.path}/+page.ts`,
-		`src/routes/${leaf.path}/+page.svelte`,
+		...(leaf.emitPage ? [
+			`src/routes/${leaf.path}/+page.ts`,
+			`src/routes/${leaf.path}/+page.svelte`,
+		] : []),
 	]),
 ]
 
@@ -936,7 +939,7 @@ const routeParamSegment = (
 
 const routeDiscriminatorSegment = (
 	value: string
-) => kebabCase(value)
+) => kebabCase(value.replace(/^by(?=[A-Z])/, ''))
 	.replace(/[^a-z0-9-]/g, '-')
 	.replace(/-+/g, '-')
 	.replace(/^-|-$/g, '')
@@ -1109,6 +1112,7 @@ type RouteSelectorPlan = {
 	readonly localFields: readonly string[]
 	readonly path: string
 	readonly relativePath: string
+	readonly emitPage: boolean
 	readonly params: readonly {
 		readonly field: string
 		readonly name: string
@@ -1162,6 +1166,7 @@ const routeSelectorPlansFor = (
 			localFields: [],
 			path: `${routeEntitySegment(entity)}/[${safeParamName(selectorName)}]`,
 			relativePath: `${routeEntitySegment(entity)}/[${safeParamName(selectorName)}]`,
+			emitPage: false,
 			params: [],
 			selectorExpression: `{}`,
 			unresolved: [
@@ -1276,6 +1281,7 @@ const routeSelectorPlansFor = (
 				...discriminatorSegments,
 				...params.map((param) => routeParamSegment(entity, param.name, param.field)),
 			].join('/'),
+			emitPage: true,
 			params: [
 				...parentPlans.flatMap((plan) => plan.params),
 				...params,
@@ -1308,8 +1314,14 @@ const entitySelectorRouteLeaves = () => {
 
 		return {
 			...leaf,
-			path: `${leaf.path}/by/${kebabCase(leaf.selector)}${seenPathCountByPath[leaf.path] === 1 ? '' : `-${seenPathCountByPath[leaf.path]}`}`,
-			unresolved: leaf.unresolved,
+			emitPage: seenPathCountByPath[leaf.path] === 1,
+			unresolved: seenPathCountByPath[leaf.path] === 1 ?
+				leaf.unresolved
+			:
+				[
+					...leaf.unresolved,
+					`path-conflict:${leaf.path}`,
+				],
 		}
 	}).filter((leaf) => {
 		const pathParamNames = new Set([...leaf.path.matchAll(/\[([^=\]]+)(?:=[^\]]+)?\]/g)].map((match) => match[1]!))
@@ -1343,6 +1355,7 @@ ${leaf.params.map((param) => `			{
 			},`).join('\n')}
 		],
 		path: ${stringLiteral(leaf.path)},
+		emitPage: ${leaf.emitPage ? 'true' : 'false'},
 		unresolved: [
 ${leaf.unresolved.map((issue) => `			${stringLiteral(issue)},`).join('\n')}
 		],
@@ -1524,7 +1537,7 @@ const writeEntitySelectorRouteLeaves = (
 	writeGeneratedFile(outDirectory, 'entity-selector-route-leaves.ts', entitySelectorRouteLeavesRegistry())
 	writeGeneratedFile(outDirectory, 'entity-hub-collection-routes.ts', entityHubCollectionRoutesRegistry())
 
-	for (const leaf of entitySelectorRouteLeaves()) {
+	for (const leaf of entitySelectorRouteLeaves().filter((leaf) => leaf.emitPage)) {
 		writeGeneratedFile(outDirectory, `${leaf.path}/+page.ts`, entitySelectorRouteLeafPageModule(leaf))
 		writeGeneratedFile(outDirectory, `${leaf.path}/+page.svelte`, entitySelectorRouteLeafPage(leaf.entity))
 	}
@@ -1570,10 +1583,11 @@ const simpleEntityPageCandidate = (file: string, content: string) => {
 }
 
 const routeAudit = () => {
-	const generatedFileSet = new Set([
-		...generatedFiles(),
-		...generatedEntitySelectorRouteFiles(),
-	])
+	const generatedRouteOwnershipRows = generatedOwnership().filter((row) => (
+		row.ownership === 'generated'
+		&& (row.kind === 'route' || row.kind === 'route-section')
+	))
+	const generatedFileSet = new Set(generatedRouteOwnershipRows.map((row) => row.activePath))
 	const generatedStaticParentPageLayoutFiles = new Set(staticParentPageLayoutRoutes.map((route) => route.file))
 	const generatedStaticEntityParentPageLayoutFiles = new Set(staticEntityParentPageLayoutRoutes.map((route) => route.file))
 	const generatedParamEntityParentPageLayoutFiles = new Set(paramEntityParentPageLayoutRoutes.map((route) => route.file))

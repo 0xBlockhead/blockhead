@@ -10,72 +10,23 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'tx hash',
-			},
-			{
-				label: 'block',
-			},
+			'txHash',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'tx hash',
-					},
-					{
-						label: 'block',
-					},
-					{
-						label: 'account',
-					},
-					{
-						label: 'action type',
-					},
-					{
-						label: 'latest status',
-					},
+					'txHash',
+					'actionType',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped execution/status observations',
-						},
-					],
-				},
-				{
-					label: 'Block',
-					items: [
-						{
-							label: 'containing HyperEVM block',
-						},
-					],
-				},
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'linked Hyperliquid account when source context provides it',
-						},
-					],
-				},
-				{
-					label: 'Raw execution payload',
-					items: [
-						{
-							label: 'future decoded HyperEVM transaction fields when modeled',
-						},
+						'$$timestamps',
 					],
 				},
 			],

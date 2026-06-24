@@ -10,77 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'account id',
-			},
-			{
-				label: 'latest balance/storage/code summary',
-			},
-			{
-				label: 'contract link when latest code observation indicates deployed code',
-			},
+			'accountId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'account id',
-					},
-					{
-						label: 'latest balance/storage/code summary',
-					},
-					{
-						label: 'contract link when latest code observation indicates deployed code',
-					},
-					{
-						label: 'access-key count',
-					},
-					{
-						label: 'latest observation time',
-					},
+					'accountId',
+					'amountYoctoNear',
+					'storageUsageBytes',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'State observations',
+					label: 'access keys',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped account balance/storage/code observations',
-						},
-					],
-				},
-				{
-					label: 'Access keys',
-					items: [
-						{
-							label: 'access-key rows for this account',
-						},
-					],
-				},
-				{
-					label: 'Contract',
-					items: [
-						{
-							label: 'account-scoped contract code state',
-						},
-					],
-				},
-				{
-					label: 'Transactions/receipts',
-					items: [
-						{
-							label: 'transactions and receipts when indexed',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'RPC/indexer payload freshness',
-						},
+						'$$accessKeys',
 					],
 				},
 			],

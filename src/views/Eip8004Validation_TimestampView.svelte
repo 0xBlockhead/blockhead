@@ -10,68 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'request hash',
-			},
-			{
-				label: 'validator',
-			},
-			'response',
+			'requestHashAlgorithm',
+			'requestHash',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'request hash algorithm/hash',
-					},
-					{
-						label: 'registration',
-					},
-					{
-						label: 'validator',
-					},
+					'requestHashAlgorithm',
+					'requestHash',
+					'timestampMs',
+					'source',
+					'validatorAddress',
+					'requestUri',
 					'response',
-				],
-				[
-					{
-						label: 'request URI',
-					},
-					{
-						label: 'response URI/hash algorithm/hash',
-					},
+					'responseUri',
+					'responseHashAlgorithm',
+					'responseHash',
 					'tag',
-					{
-						label: 'last update',
-					},
+					'lastUpdate',
+					'blockNumber',
+					'transactionHash',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Registration',
-					items: [
-						{
-							label: 'Eip8004AgentRegistration when known',
-						},
-					],
-				},
-				{
-					label: 'Evidence',
-					items: [
-						{
-							label: 'request/response URI/hash algorithm/hash',
-						},
-					],
-				},
-				{
-					label: 'On-chain evidence',
-					items: [
-						{
-							label: 'block/transaction',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

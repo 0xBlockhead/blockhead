@@ -9,143 +9,19 @@
 
 	// State
 	const view = {
-		display: [
-			{
-				kind: 'code',
-				slot: 'ContractBytecode',
-			},
-		],
-		decodes: [
-			{
-				kind: 'abi',
-				slot: 'EvmAbiView',
-			},
-			{
-				kind: 'bytecode',
-				slot: 'BytecodeView',
-			},
-		],
-		renderers: [
-			{
-				slot: 'EvmAbiView',
-				component: 'EvmAbiView',
-				label: 'ABI renderer',
-				for: 'decode',
-			},
-			{
-				slot: 'ContractBytecode',
-				component: 'TruncatedValue',
-				label: 'contract bytecode renderer',
-				for: 'value',
-			},
-		],
 		closed: [
-			{
-				label: 'chain id',
-			},
-			{
-				label: 'precompile address when applicable',
-			},
-			{
-				label: 'deployer',
-			},
+			'address',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'chain id',
-					},
-					{
-						label: 'precompile address when applicable',
-					},
-					{
-						label: 'deployer',
-					},
-					{
-						label: 'creation transaction',
-					},
-					{
-						label: 'implementation contract',
-					},
-					{
-						label: 'inline ABI',
-					},
-					{
-						label: 'bytecode hash',
-					},
-					{
-						label: 'truncated runtime bytecode',
-					},
-					{
-						label: 'verification summary',
-					},
-					{
-						label: 'account address',
-					},
+					'address',
+					'precompileName',
+					'codeHash',
+					'code',
+					'abi',
+					'storageSlotReads',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'EvmNetworkAccount address/activity/balance context',
-						},
-					],
-				},
-				{
-					label: 'Creation',
-					items: [
-						{
-							label: 'deployer',
-						},
-						{
-							label: 'creation transaction',
-						},
-					],
-				},
-				{
-					label: 'Code',
-					items: [
-						{
-							label: 'runtime bytecode',
-						},
-						{
-							label: 'code hash',
-						},
-						{
-							label: 'precompile catalog name',
-						},
-					],
-				},
-				{
-					label: 'Verification',
-					items: [
-						{
-							label: 'Sourcify-backed EvmContractVerification',
-						},
-						{
-							label: 'EvmContractCompilation',
-						},
-						{
-							label: 'EvmContractSourceBundle',
-						},
-					],
-				},
-				{
-					label: 'Proxy/storage',
-					items: [
-						{
-							label: 'implementation contract',
-						},
-						{
-							label: 'storage slot reads',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

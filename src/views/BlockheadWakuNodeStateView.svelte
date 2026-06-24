@@ -10,76 +10,32 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'connection id',
-			},
-			{
-				label: 'node id',
-			},
-			'endpoint',
+			'connectionId',
+			'nodeId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'connection id',
-					},
-					{
-						label: 'node id',
-					},
+					'connectionId',
+					'nodeId',
 					'endpoint',
-					{
-						label: 'latest health/capability observation',
-					},
-					{
-						label: 'message observation count',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Health history',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped Waku node observations',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Messages',
+					label: 'message observations',
+					when: 'open',
 					items: [
-						{
-							label: 'message observations grouped by content topic',
-						},
-					],
-				},
-				{
-					label: 'Peer identity',
-					items: [
-						{
-							label: 'node id',
-						},
-						{
-							label: 'ENR/multiaddrs from latest observation',
-						},
-					],
-				},
-				{
-					label: 'Protocols',
-					items: [
-						{
-							label: 'relay/store/filter/lightpush/RLN capability flags',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'connected Waku REST node',
-						},
+						'$$messageObservations',
 					],
 				},
 			],

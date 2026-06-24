@@ -10,66 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'stash account id',
-			},
-			{
-				label: 'latest era controller/commission/stake summary',
-			},
+			'stashAccountId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'stash account id',
-					},
-					{
-						label: 'latest era controller/commission/stake summary',
-					},
-					{
-						label: 'era count',
-					},
+					'stashAccountId',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Era history',
+					label: 'eras',
+					when: 'open',
 					items: [
-						{
-							label: 'era-bounded validator observations',
-						},
-					],
-				},
-				{
-					label: 'Controller',
-					items: [
-						{
-							label: 'Polkadot account through the latest era when resolved',
-						},
-					],
-				},
-				{
-					label: 'Network set',
-					items: [
-						{
-							label: 'validator-set context',
-						},
-					],
-				},
-				{
-					label: 'Nominators/exposure',
-					items: [
-						{
-							label: 'era-bounded exposure rows when modeled',
-						},
+						'$$eras',
 					],
 				},
 			],

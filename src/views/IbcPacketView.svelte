@@ -10,114 +10,30 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'channel',
-			},
 			'sequence',
 			'direction',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'channel',
-					},
 					'sequence',
 					'direction',
+					'sourcePort',
+					'sourceChannel',
+					'destinationPort',
+					'destinationChannel',
+					'timeoutHeight',
+					'timeoutTimestampNs',
+					'dataHash',
+					'commitmentHash',
+					'acknowledgementHash',
+					'receiptExists',
 					'status',
-					{
-						label: 'source/destination port/channel',
-					},
-					{
-						label: 'timeout',
-					},
-					{
-						label: 'commitment hash',
-					},
-					{
-						label: 'acknowledgement hash',
-					},
-					{
-						label: 'receipt state',
-					},
-					{
-						label: 'transaction hashes',
-					},
+					'sendTxHash',
+					'receiveTxHash',
+					'acknowledgeTxHash',
+					'timeoutTxHash',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Lifecycle transactions',
-					items: [
-						{
-							label: 'send',
-						},
-						{
-							label: 'receive',
-						},
-						{
-							label: 'acknowledge',
-						},
-						{
-							label: 'timeout transaction refs or hashes',
-						},
-					],
-				},
-				{
-					label: 'Commitment/receipt/ack',
-					items: [
-						{
-							label: 'packet commitment',
-						},
-						{
-							label: 'receipt',
-						},
-						{
-							label: 'acknowledgement',
-						},
-						{
-							label: 'unreceived packet',
-						},
-						{
-							label: 'unreceived ack evidence',
-						},
-					],
-				},
-				{
-					label: 'Transfer payload',
-					items: [
-						{
-							label: 'data hash',
-						},
-						{
-							label: 'denom trace',
-						},
-						{
-							label: 'amount/receiver fields when decoded by source',
-						},
-					],
-				},
-				{
-					label: 'Counterparty',
-					items: [
-						{
-							label: 'source/destination channel context',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'SDK query',
-						},
-						{
-							label: 'indexer event payloads',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -9,100 +9,61 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'linked Network',
-			},
-			{
-				label: 'latest ledger version/block/chain id snapshot',
-			},
-			{
-				label: 'epoch',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
-				[
-					{
-						label: 'linked Network',
-					},
-					{
-						label: 'latest ledger version/block/chain id snapshot',
-					},
-					{
-						label: 'epoch',
-					},
-					{
-						label: 'execution environment',
-					},
-					{
-						label: 'account count',
-					},
-					{
-						label: 'module count',
-					},
-					{
-						label: 'transaction count',
-					},
-				],
+				[],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Blocks',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'block rows by height/version range',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Transactions',
+					label: 'blocks',
+					when: 'open',
 					items: [
-						{
-							label: 'transaction rows by version/hash',
-						},
+						'$$blocks',
 					],
 				},
 				{
-					label: 'Accounts',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'account rows',
-						},
+						'$$transactions',
 					],
 				},
 				{
-					label: 'Modules',
+					label: 'accounts',
+					when: 'open',
 					items: [
-						{
-							label: 'published Move modules',
-						},
+						'$$accounts',
 					],
 				},
 				{
-					label: 'Events',
+					label: 'modules',
+					when: 'open',
 					items: [
-						{
-							label: 'transaction event rows',
-						},
+						'$$modules',
 					],
 				},
 				{
-					label: 'Balances',
+					label: 'events',
+					when: 'open',
 					items: [
-						{
-							label: 'account coin-balance observations',
-						},
+						'$$events',
 					],
 				},
 				{
-					label: 'Network snapshots',
+					label: 'coin balance timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'ledger-head and node-retention observations',
-						},
+						'$$coinBalanceTimestamps',
 					],
 				},
 			],

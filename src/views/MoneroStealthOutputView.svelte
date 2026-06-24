@@ -10,61 +10,15 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'transaction',
-			},
-			{
-				label: 'output index',
-			},
-			{
-				label: 'one-time public key',
-			},
+			'outputIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'transaction',
-					},
-					{
-						label: 'output index',
-					},
-					{
-						label: 'one-time public key',
-					},
+					'outputIndex',
+					'publicKey',
 					'commitment',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Transaction',
-					items: [
-						{
-							label: 'parent Monero transaction',
-						},
-					],
-				},
-				{
-					label: 'Output data',
-					items: [
-						{
-							label: 'public key',
-						},
-						{
-							label: 'RingCT commitment',
-						},
-					],
-				},
-				{
-					label: 'Wallet match',
-					items: [
-						{
-							label: 'BlockheadMoneroTransferState only when local wallet scanning identifies ownership',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

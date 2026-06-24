@@ -10,102 +10,36 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'public key',
-			},
-			{
-				label: 'latest observed alias/color/capacity/channel count',
-			},
+			'publicKey',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'public key',
-					},
-					{
-						label: 'latest observed alias/color/capacity/channel count',
-					},
-					{
-						label: 'latest location/address summary',
-					},
-					{
-						label: 'channel count',
-					},
-					{
-						label: 'local-node-state count when connected',
-					},
+					'publicKey',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Channels',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'public channels connected to this node',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Public observations',
+					label: 'channels',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped graph/node observations',
-						},
+						'$$channels',
 					],
 				},
 				{
-					label: 'Location',
+					label: 'local node states',
+					when: 'open',
 					items: [
-						{
-							label: 'country/city',
-						},
-						{
-							label: 'source labels',
-						},
-					],
-				},
-				{
-					label: 'Addresses',
-					items: [
-						{
-							label: 'advertised network addresses from timestamp observations',
-						},
-					],
-				},
-				{
-					label: 'Local node state',
-					items: [
-						{
-							label: 'BlockheadLightningNodeState when connected locally',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Lightning network',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'public graph',
-						},
-						{
-							label: 'LND node payloads',
-						},
+						'$$localNodeStates',
 					],
 				},
 			],

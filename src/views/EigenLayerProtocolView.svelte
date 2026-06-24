@@ -9,122 +9,49 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'protocol name',
-			},
-			{
-				label: 'operator/AVS counts',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'protocol name',
-					},
-					{
-						label: 'delegation manager',
-					},
-					{
-						label: 'strategy manager',
-					},
-					{
-						label: 'AVS directory',
-					},
-				],
-				[
-					{
-						label: 'allocation manager',
-					},
-					{
-						label: 'rewards coordinator',
-					},
-					{
-						label: 'slasher',
-					},
-					{
-						label: 'operator count',
-					},
-					{
-						label: 'AVS count',
-					},
-					{
-						label: 'strategy count',
-					},
+					'protocolName',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Operators',
+					label: 'operators',
+					when: 'open',
 					items: [
-						{
-							label: 'EigenLayer operator rows',
-						},
+						'$$operators',
 					],
 				},
 				{
-					label: 'AVSs',
+					label: 'avss',
+					when: 'open',
 					items: [
-						{
-							label: 'EigenLayer AVS rows',
-						},
+						'$$avss',
 					],
 				},
 				{
-					label: 'Strategies',
+					label: 'strategies',
+					when: 'open',
 					items: [
-						{
-							label: 'EigenLayer strategy rows',
-						},
+						'$$strategies',
 					],
 				},
 				{
-					label: 'Delegations',
+					label: 'rewards',
+					when: 'open',
 					items: [
-						{
-							label: 'delegation observations',
-						},
+						'$$rewards',
 					],
 				},
 				{
-					label: 'Allocations',
+					label: 'slashing events',
+					when: 'open',
 					items: [
-						{
-							label: 'allocation observations',
-						},
-					],
-				},
-				{
-					label: 'Rewards',
-					items: [
-						{
-							label: 'reward observations',
-						},
-					],
-				},
-				{
-					label: 'Slashing',
-					items: [
-						{
-							label: 'slashing events',
-						},
-					],
-				},
-				{
-					label: 'Contracts',
-					items: [
-						{
-							label: 'linked EVM contract rows for core deployments',
-						},
+						'$$slashingEvents',
 					],
 				},
 			],

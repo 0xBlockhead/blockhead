@@ -11,52 +11,49 @@
 	const view = {
 		closed: [
 			'scope',
-			'$$timestamps',
-			'$$sourceWindowNetworks',
 		],
 		content: {
 			dl: [
 				[
 					'scope',
-					'$$timestamps',
-				],
-				[
-					'$$sourceWindowNetworks',
-					'$$sourceWindowBlocks',
-					'$$sourceWindowTransactions',
-					'$$sourceWindowResources',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Source-window rows',
+					label: 'source window networks',
+					when: 'open',
 					items: [
 						'$$sourceWindowNetworks',
+					],
+				},
+				{
+					label: 'source window blocks',
+					when: 'open',
+					items: [
 						'$$sourceWindowBlocks',
+					],
+				},
+				{
+					label: 'source window transactions',
+					when: 'open',
+					items: [
 						'$$sourceWindowTransactions',
+					],
+				},
+				{
+					label: 'source window resources',
+					when: 'open',
+					items: [
 						'$$sourceWindowResources',
 					],
 				},
 				{
-					label: 'Hub observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
 						'$$timestamps',
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'SourceBinding.Arweave_Graphql',
-						},
-						{
-							label: 'SourceBinding.Arweave_Rest',
-						},
-						{
-							label: 'SourceBinding.Constants_Internal',
-						},
 					],
 				},
 			],

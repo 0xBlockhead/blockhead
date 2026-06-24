@@ -10,69 +10,27 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'AMM account',
-			},
-			{
-				label: 'asset pair',
-			},
-			{
-				label: 'latest trading fee',
-			},
+			'ammAccount',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'AMM account',
-					},
-					{
-						label: 'asset pair',
-					},
-					{
-						label: 'LP token currency',
-					},
-					{
-						label: 'latest trading fee',
-					},
-					{
-						label: 'latest reserve snapshot',
-					},
+					'ammAccount',
+					'assetCurrency',
+					'assetIssuer',
+					'asset2Currency',
+					'asset2Issuer',
+					'lpTokenCurrency',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Snapshots',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'ledger-indexed AMM observations',
-						},
-					],
-				},
-				{
-					label: 'Ledger entry',
-					items: [
-						{
-							label: 'ledger entry from latest snapshot',
-						},
-					],
-				},
-				{
-					label: 'Transactions',
-					items: [
-						{
-							label: 'AMMCreate/AMMDeposit/AMMWithdraw/AMMVote/AMMBid transactions',
-						},
-					],
-				},
-				{
-					label: 'Trust lines',
-					items: [
-						{
-							label: 'LP token holder trust lines when indexed',
-						},
+						'$$timestamps',
 					],
 				},
 			],

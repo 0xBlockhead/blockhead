@@ -10,80 +10,23 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'validator',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'validator',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'commission',
-					{
-						label: 'recent block count',
-					},
+					'recentBlockCount',
+					'isActive',
 					'stake',
-					{
-						label: 'active state',
-					},
-					{
-						label: 'jailed state',
-					},
-					{
-						label: 'signer address',
-					},
+					'isJailed',
+					'signerAddress',
 					'name',
 					'description',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Validator',
-					items: [
-						{
-							label: 'parent Hyperliquid validator',
-						},
-					],
-				},
-				{
-					label: 'Signer',
-					items: [
-						{
-							label: 'Hyperliquid account when signer resolves',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Hyperliquid network through validator',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'raw validatorSummaries row',
-						},
-						{
-							label: 'source freshness',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

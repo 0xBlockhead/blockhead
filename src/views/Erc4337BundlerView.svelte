@@ -10,84 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
 			'address',
-			{
-				label: 'latest indexed user-operation count',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'address',
-					{
-						label: 'latest indexed user-operation count',
-					},
-					{
-						label: 'optional contract',
-					},
-					{
-						label: 'operator account address',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'User operations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'user operations bundled by this address when source-filtered or operation detail links exist',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Count snapshots',
+					label: 'user operations',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped bundler count observations',
-						},
-					],
-				},
-				{
-					label: 'Operator account',
-					items: [
-						{
-							label: 'bundler EVM account',
-						},
-					],
-				},
-				{
-					label: 'Contract',
-					items: [
-						{
-							label: 'bundler EVM contract when code is detected',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent EVM network',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Blockscout bundler detail/list payload',
-						},
-						{
-							label: 'pagination context',
-						},
+						'$$userOperations',
 					],
 				},
 			],

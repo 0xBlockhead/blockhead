@@ -10,87 +10,35 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'federation id',
-			},
-			'name',
-			{
-				label: 'guardian count',
-			},
+			'federationId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'federation id',
-					},
+					'federationId',
 					'name',
-					{
-						label: 'guardian count',
-					},
-					{
-						label: 'guardian threshold',
-					},
-					{
-						label: 'consensus version',
-					},
-					{
-						label: 'module count',
-					},
-					{
-						label: 'latest health',
-					},
-					{
-						label: 'latest meta summary',
-					},
-					{
-						label: 'gateway count',
-					},
+					'guardianCount',
+					'guardianThreshold',
+					'clientConfigJson',
+					'moduleConfigJson',
+					'consensusVersion',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Config',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						'clientConfigJson',
-						{
-							label: 'guardian/module config summaries',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Modules',
+					label: 'gateways',
+					when: 'open',
 					items: [
-						{
-							label: 'mint',
-						},
-						{
-							label: 'wallet',
-						},
-						{
-							label: 'Lightning',
-						},
-						{
-							label: 'meta module config facets',
-						},
-					],
-				},
-				{
-					label: 'Gateways',
-					items: [
-						{
-							label: 'Fedimint gateway rows',
-						},
-					],
-				},
-				{
-					label: 'Observations',
-					items: [
-						{
-							label: 'timestamped federation health/meta observations',
-						},
+						'$$gateways',
 					],
 				},
 			],

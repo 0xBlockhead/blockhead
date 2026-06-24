@@ -10,103 +10,50 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'account id',
-			},
-			{
-				label: 'latest alias',
-			},
-			{
-				label: 'latest EVM address',
-			},
+			'accountId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'account id',
-					},
-					{
-						label: 'latest alias',
-					},
-					{
-						label: 'latest EVM address',
-					},
-					{
-						label: 'receiver signature requirement',
-					},
-					{
-						label: 'memo',
-					},
-					{
-						label: 'latest balance',
-					},
-					{
-						label: 'staking state',
-					},
-					{
-						label: 'allowance count',
-					},
-					{
-						label: 'token association count',
-					},
-					{
-						label: 'NFT count',
-					},
-					{
-						label: 'deleted flag',
-					},
+					'accountId',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest state',
+					label: 'allowances',
+					when: 'open',
 					items: [
-						{
-							label: 'latest account-info observation',
-						},
+						'$$allowances',
 					],
 				},
 				{
-					label: 'Account history',
+					label: 'tokens',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped account-info observations',
-						},
+						'$$tokens',
 					],
 				},
 				{
-					label: 'Transactions',
+					label: 'nfts',
+					when: 'open',
 					items: [
-						{
-							label: 'Hedera transactions involving this account',
-						},
+						'$$nfts',
 					],
 				},
 				{
-					label: 'HTS token associations',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'token association rows',
-						},
+						'$$transactions',
 					],
 				},
 				{
-					label: 'NFTs',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'HTS NFT serial rows',
-						},
-					],
-				},
-				{
-					label: 'Allowances',
-					items: [
-						{
-							label: 'Hedera allowance rows',
-						},
+						'$$timestamps',
 					],
 				},
 			],

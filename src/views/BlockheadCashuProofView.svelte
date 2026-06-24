@@ -10,91 +10,33 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'wallet id',
-			},
-			{
-				label: 'mint',
-			},
-			{
-				label: 'keyset id',
-			},
+			'walletId',
+			'keysetId',
+			'secretHash',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'wallet id',
-					},
-					{
-						label: 'mint',
-					},
-					{
-						label: 'keyset id',
-					},
-					{
-						label: 'secret hash',
-					},
+					'walletId',
+					'keysetId',
+					'secretHash',
+					'secret',
 					'amount',
 					'unit',
-					{
-						label: 'latest observed proof state',
-					},
-					{
-						label: 'received time',
-					},
-					{
-						label: 'source token id',
-					},
-					{
-						label: 'timestamp count',
-					},
+					'signature',
+					'dleqJson',
+					'receivedAt',
+					'sourceTokenId',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest state',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadCashuProof_TimestampView',
-						},
-					],
-				},
-				{
-					label: 'State history',
-					items: [
-						{
-							label: 'BlockheadCashuProof_TimestampsView',
-						},
-					],
-				},
-				{
-					label: 'Mint/keyset',
-					items: [
-						{
-							label: 'CashuMintView',
-						},
-						{
-							label: 'CashuKeysetView',
-						},
-					],
-				},
-				{
-					label: 'Secret material',
-					items: [
-						{
-							label: 'redacted secret/signature/DLEQ fields with reveal controls only in local trusted UI',
-						},
-					],
-				},
-				{
-					label: 'Source token',
-					items: [
-						{
-							label: 'BlockheadCashuTokenView when imported from a token string',
-						},
+						'$$timestamps',
 					],
 				},
 			],

@@ -10,86 +10,36 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'video id',
-			},
-			{
-				label: 'comment id',
-			},
-			{
-				label: 'latest text',
-			},
+			'videoId',
+			'commentId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'video id',
-					},
-					{
-						label: 'comment id',
-					},
-					{
-						label: 'published date',
-					},
-					{
-						label: 'video ref',
-					},
-					{
-						label: 'parent comment ref',
-					},
-					{
-						label: 'latest text',
-					},
-					{
-						label: 'latest author',
-					},
-					{
-						label: 'latest like/reply snapshot',
-					},
+					'videoId',
+					'commentId',
+					'text',
+					'authorDisplayName',
+					'authorChannelId',
+					'publishedAt',
+					'publishedAtMs',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest content',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'latest comment content observation',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Replies',
+					label: 'replies',
+					when: 'open',
 					items: [
-						{
-							label: 'reply comments',
-						},
-					],
-				},
-				{
-					label: 'Video',
-					items: [
-						{
-							label: 'parent video',
-						},
-					],
-				},
-				{
-					label: 'Author',
-					items: [
-						{
-							label: 'author channel when resolved',
-						},
-					],
-				},
-				{
-					label: 'Metric snapshots',
-					items: [
-						{
-							label: 'comment metric observations',
-						},
+						'$$replies',
 					],
 				},
 			],

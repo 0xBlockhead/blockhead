@@ -10,58 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'object id',
-			},
-			{
-				label: 'object format',
-			},
-			{
-				label: 'object link',
-			},
+			'objectId',
+			'objectFormat',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'object id',
-					},
-					{
-						label: 'object format',
-					},
-					{
-						label: 'object link',
-					},
-					{
-						label: 'entry count',
-					},
+					'objectId',
+					'objectFormat',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Entries',
+					label: 'entries',
+					when: 'open',
 					items: [
-						{
-							label: 'tree entries grouped by file/tree/symlink/submodule modes',
-						},
-					],
-				},
-				{
-					label: 'Object',
-					items: [
-						{
-							label: 'parent Git object',
-						},
-					],
-				},
-				{
-					label: 'Commits',
-					items: [
-						{
-							label: 'commits whose root tree matches when available',
-						},
+						'$$entries',
 					],
 				},
 			],

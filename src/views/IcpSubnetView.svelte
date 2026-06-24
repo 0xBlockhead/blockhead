@@ -10,94 +10,36 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'subnet id',
-			},
-			{
-				label: 'latest subnet kind',
-			},
+			'subnetId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'subnet id',
-					},
-					{
-						label: 'latest subnet kind',
-					},
-					{
-						label: 'public key',
-					},
-					{
-						label: 'latest replica version',
-					},
-					{
-						label: 'latest node count',
-					},
-					{
-						label: 'latest canister count',
-					},
-					{
-						label: 'latest certified height',
-					},
+					'subnetId',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Hosted canisters',
+					label: 'canister ranges',
+					when: 'open',
 					items: [
-						{
-							label: 'canisters hosted on this subnet',
-						},
+						'$$canisterRanges',
 					],
 				},
 				{
-					label: 'Canister ranges',
+					label: 'canisters',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped canister-range routing observations',
-						},
+						'$$canisters',
 					],
 				},
 				{
-					label: 'Node/replica observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped subnet registry/status observations',
-						},
-					],
-				},
-				{
-					label: 'Certified-state evidence',
-					items: [
-						{
-							label: 'certificate/witness rows for canisters on this subnet',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent ICP network',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'registry subnet record payloads',
-						},
+						'$$timestamps',
 					],
 				},
 			],

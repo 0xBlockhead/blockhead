@@ -10,85 +10,36 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'collection address',
-			},
-			{
-				label: 'account',
-			},
+			'collectionAddress',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'collection address',
-					},
-					{
-						label: 'account',
-					},
-					{
-						label: 'latest owner/metadata/item-count observation',
-					},
-					{
-						label: 'item/transfer/timestamp windows',
-					},
+					'collectionAddress',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Account',
+					label: 'items',
+					when: 'open',
 					items: [
-						{
-							label: 'collection contract account',
-						},
+						'$$items',
 					],
 				},
 				{
-					label: 'Latest state',
+					label: 'transfers',
+					when: 'open',
 					items: [
-						{
-							label: 'latest collection-state observation',
-						},
+						'$$transfers',
 					],
 				},
 				{
-					label: 'History',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'collection-state observation history',
-						},
-					],
-				},
-				{
-					label: 'Items',
-					items: [
-						{
-							label: 'collection item contracts',
-						},
-					],
-				},
-				{
-					label: 'Transfers',
-					items: [
-						{
-							label: 'decoded item transfer effects',
-						},
-					],
-				},
-				{
-					label: 'Contract',
-					items: [
-						{
-							label: 'contract classification when interface detection resolves',
-						},
+						'$$timestamps',
 					],
 				},
 			],

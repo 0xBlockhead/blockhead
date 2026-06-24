@@ -10,110 +10,37 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'package/version or artifact',
-			},
+			'version',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'package',
-					},
 					'version',
-					{
-						label: 'artifact',
-					},
-				],
-				[
-					{
-						label: 'release date',
-					},
-					{
-						label: 'registry status',
-					},
-					{
-						label: 'published at',
-					},
-					{
-						label: 'latest',
-					},
-				],
-				[
-					{
-						label: 'package registry type/base URL',
-					},
-					{
-						label: 'package identifier',
-					},
-					{
-						label: 'runtime hint',
-					},
-					{
-						label: 'transport kind',
-					},
-				],
-				[
-					{
-						label: 'document refs',
-					},
+					'releaseDate',
+					'registryStatus',
+					'publishedAt',
+					'isLatest',
+					'packageRegistryType',
+					'packageRegistryBaseUrl',
+					'packageIdentifier',
+					'runtimeHint',
+					'transportKind',
+					'packages',
+					'remotes',
+					'packageArguments',
+					'runtimeArguments',
+					'environmentVariables',
+					'publisherMeta',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Package',
+					label: 'documents',
+					when: 'open',
 					items: [
-						{
-							label: 'McpServerPackage',
-						},
-					],
-				},
-				{
-					label: 'Artifact',
-					items: [
-						{
-							label: 'AiArtifact',
-						},
-					],
-				},
-				{
-					label: 'Packages',
-					items: [
-						{
-							label: 'packages JSON',
-						},
-						{
-							label: 'package/runtime arguments',
-						},
-						{
-							label: 'environment variables',
-						},
-					],
-				},
-				{
-					label: 'Remotes',
-					items: [
-						{
-							label: 'remotes JSON',
-						},
-					],
-				},
-				{
-					label: 'Publisher metadata',
-					items: [
-						{
-							label: 'publisherMeta JSON',
-						},
-					],
-				},
-				{
-					label: 'Documents',
-					items: [
-						{
-							label: 'AiDocument list',
-						},
+						'$$documents',
 					],
 				},
 			],

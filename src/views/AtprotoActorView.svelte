@@ -10,87 +10,33 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'DID',
-			},
-			'handle',
-			{
-				label: 'display name',
-			},
+			'did',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'DID',
-					},
+					'did',
+					'displayName',
 					'handle',
-					{
-						label: 'display name',
-					},
+					'indexedAt',
 					'description',
-					{
-						label: 'indexed time',
-					},
-					{
-						label: 'icon/banner',
-					},
-				],
-				[
-					{
-						label: 'latest follower/follow/post snapshot',
-					},
-					{
-						label: 'post count',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Profile',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'display name',
-						},
-						'description',
-						{
-							label: 'icon',
-						},
-						{
-							label: 'banner',
-						},
-						{
-							label: 'indexed time',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Metric snapshots',
+					label: 'posts',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped follower/follow/post counts',
-						},
-					],
-				},
-				{
-					label: 'Posts',
-					items: [
-						{
-							label: 'posts authored by this actor',
-						},
-					],
-				},
-				{
-					label: 'Lookup evidence',
-					items: [
-						{
-							label: 'app.bsky.actor.getProfile actor parameter by DID or handle',
-						},
-						{
-							label: 'resolved DID/current handle tuple',
-						},
+						'$$posts',
 					],
 				},
 			],

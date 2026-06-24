@@ -10,80 +10,39 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'CCTP version/domain id',
-			},
-			'name',
-			{
-				label: 'linked network',
-			},
+			'cctpVersion',
+			'domainId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'CCTP version',
-					},
-					{
-						label: 'domain id',
-					},
+					'cctpVersion',
+					'domainId',
 					'name',
-					{
-						label: 'linked network',
-					},
-					{
-						label: 'standard/fast source support',
-					},
-					{
-						label: 'forwarding destination support',
-					},
-					{
-						label: 'supported token count',
-					},
-					{
-						label: 'contract address availability',
-					},
+					'standardTransferSource',
+					'fastTransferSource',
+					'forwardingDestination',
+					'supportedTokens',
+					'tokenMessengerAddress',
+					'messageTransmitterAddress',
+					'tokenMinterAddress',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Messages',
+					label: 'messages',
+					when: 'open',
 					items: [
-						{
-							label: 'CCTP messages scoped to the domain support entry',
-						},
+						'$$messages',
 					],
 				},
 				{
-					label: 'Burn fees',
+					label: 'burn fee timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped burn-fee observations for source/destination pairs',
-						},
-					],
-				},
-				{
-					label: 'Contracts',
-					items: [
-						{
-							label: 'token messenger',
-						},
-						{
-							label: 'message transmitter',
-						},
-						{
-							label: 'token minter addresses',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'mapped Network row when available',
-						},
+						'$$burnFeeTimestamps',
 					],
 				},
 			],

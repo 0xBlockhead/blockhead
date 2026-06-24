@@ -10,109 +10,74 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'info hash',
-			},
-			{
-				label: 'hash version',
-			},
-			{
-				label: 'v1/v2 hashes',
-			},
+			'infoHash',
+			'hashVersion',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'info hash',
-					},
-					{
-						label: 'hash version',
-					},
-					{
-						label: 'v1/v2 hashes',
-					},
-					{
-						label: 'metainfo hash',
-					},
-					{
-						label: 'bencoded info hash',
-					},
+					'infoHash',
+					'hashVersion',
+					'infoHashV1',
+					'infoHashV2',
+					'metainfoHash',
+					'bencodedInfoHash',
 					'name',
-					{
-						label: 'piece length',
-					},
-					{
-						label: 'total length',
-					},
-					{
-						label: 'private flag',
-					},
-					{
-						label: 'tracker count',
-					},
-					{
-						label: 'file count',
-					},
+					'pieceLength',
+					'totalLength',
+					'private',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Files',
+					label: 'files',
+					when: 'open',
 					items: [
-						{
-							label: 'flattened file layout rows',
-						},
+						'$$files',
 					],
 				},
 				{
-					label: 'File tree',
+					label: 'file tree entries',
+					when: 'open',
 					items: [
-						{
-							label: 'BEP-52 or path-tree entries',
-						},
+						'$$fileTreeEntries',
 					],
 				},
 				{
-					label: 'Pieces',
+					label: 'pieces',
+					when: 'open',
 					items: [
-						{
-							label: 'piece integrity/order rows',
-						},
+						'$$pieces',
 					],
 				},
 				{
-					label: 'Trackers',
+					label: 'trackers',
+					when: 'open',
 					items: [
-						{
-							label: 'tracker endpoint rows',
-						},
+						'$$trackers',
 					],
 				},
 				{
-					label: 'Magnets',
+					label: 'magnets',
+					when: 'open',
 					items: [
-						{
-							label: 'magnet links referencing this info hash',
-						},
+						'$$magnets',
 					],
 				},
 				{
-					label: 'Swarm',
+					label: 'swarm timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'tracker/DHT/client swarm observations',
-						},
+						'$$swarmTimestamps',
 					],
 				},
 				{
-					label: 'Local transfers',
+					label: 'client transfers',
+					when: 'open',
 					items: [
-						{
-							label: 'connected-client transfer observations',
-						},
+						'$$clientTransfers',
 					],
 				},
 			],

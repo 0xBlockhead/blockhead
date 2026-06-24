@@ -10,74 +10,14 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'source/target networks',
-			},
-			{
-				label: 'bridge URL',
-			},
-			{
-				label: 'registry relationship type',
-			},
+			'url',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'source/target networks',
-					},
-					{
-						label: 'bridge URL',
-					},
-					{
-						label: 'registry relationship type',
-					},
+					'url',
+					'relationshipType',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Networks',
-					items: [
-						{
-							label: 'from/to EVM networks',
-						},
-					],
-				},
-				{
-					label: 'Navigation',
-					items: [
-						{
-							label: 'bridge URL',
-						},
-					],
-				},
-				{
-					label: 'Registry evidence',
-					items: [
-						{
-							label: 'Chainlist parent.bridges URL row',
-						},
-					],
-				},
-				{
-					label: 'Non-goals',
-					items: [
-						{
-							label: 'not bridge protocol identity',
-						},
-						{
-							label: 'not route support',
-						},
-						{
-							label: 'not liquidity',
-						},
-						{
-							label: 'not settlement proof',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

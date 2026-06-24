@@ -10,70 +10,16 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'action kind',
-			},
-			{
-				label: 'asset instance',
-			},
-			{
-				label: 'target selector',
-			},
+			'issuerActionId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'action kind',
-					},
-					{
-						label: 'asset instance',
-					},
-					{
-						label: 'target selector',
-					},
+					'issuerActionId',
+					'actionKind',
+					'targetSelector',
 					'amount',
-					{
-						label: 'linked issuer power',
-					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Asset',
-					items: [
-						{
-							label: 'affected asset instance',
-						},
-					],
-				},
-				{
-					label: 'Issuer power',
-					items: [
-						{
-							label: 'authority row linked to this action',
-						},
-					],
-				},
-				{
-					label: 'Evidence',
-					items: [
-						{
-							label: 'transaction',
-						},
-						{
-							label: 'event/log',
-						},
-						{
-							label: 'instruction',
-						},
-						{
-							label: 'or mirror-node action payload when modeled',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,91 +10,23 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'contract',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'contract',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'linked account id',
-					},
-					{
-						label: 'runtime bytecode hash',
-					},
-					{
-						label: 'deleted flag',
-					},
-					{
-						label: 'file id',
-					},
+					'accountId',
+					'runtimeBytecodeHash',
+					'deleted',
+					'fileId',
 					'memo',
-					{
-						label: 'obtainer id',
-					},
-					{
-						label: 'expiration timestamp',
-					},
-					{
-						label: 'auto-renew period',
-					},
+					'obtainerId',
+					'expirationTimestamp',
+					'autoRenewPeriodSeconds',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Contract',
-					items: [
-						{
-							label: 'parent Hedera contract',
-						},
-					],
-				},
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'linked Hedera account when available',
-						},
-					],
-				},
-				{
-					label: 'Storage slots',
-					items: [
-						{
-							label: 'storage-slot observations near the same observation',
-						},
-					],
-				},
-				{
-					label: 'Verification metadata',
-					items: [
-						{
-							label: 'verified source/ABI payloads when matched',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'raw contract info payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

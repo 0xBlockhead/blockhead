@@ -10,79 +10,32 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'block number/hash',
-			},
+			'blockNumber',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'block number',
-					},
+					'blockNumber',
 					'hash',
-					{
-						label: 'parent',
-					},
-					{
-						label: 'state root',
-					},
-					{
-						label: 'extrinsics root',
-					},
-					{
-						label: 'extrinsic count',
-					},
-					{
-						label: 'event count',
-					},
+					'stateRoot',
+					'extrinsicsRoot',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Extrinsics',
+					label: 'extrinsics',
+					when: 'open',
 					items: [
-						{
-							label: 'extrinsics in this block',
-						},
+						'$$extrinsics',
 					],
 				},
 				{
-					label: 'Events',
+					label: 'events',
+					when: 'open',
 					items: [
-						{
-							label: 'events in this block',
-						},
-					],
-				},
-				{
-					label: 'Parent',
-					items: [
-						{
-							label: 'parent Polkadot block',
-						},
-					],
-				},
-				{
-					label: 'Lookup evidence',
-					items: [
-						{
-							label: 'chain_getBlockHash number lookup',
-						},
-						{
-							label: 'chain_getBlock hash lookup',
-						},
-						{
-							label: 'indexer block payload fields',
-						},
+						'$$events',
 					],
 				},
 			],

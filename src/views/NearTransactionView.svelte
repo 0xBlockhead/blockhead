@@ -10,105 +10,31 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'transaction key',
-			},
 			'hash',
-			{
-				label: 'signer',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'transaction key',
-					},
 					'hash',
-					{
-						label: 'signer',
-					},
-					{
-						label: 'receiver',
-					},
+					'signerAccountId',
 					'nonce',
-				],
-				[
-					{
-						label: 'action count',
-					},
-					{
-						label: 'outcome count',
-					},
-					{
-						label: 'status when available',
-					},
-					{
-						label: 'chunk/block context',
-					},
-					{
-						label: 'source evidence',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Accounts',
+					label: 'actions',
+					when: 'open',
 					items: [
-						{
-							label: 'signer NearAccount',
-						},
-						{
-							label: 'receiver NearAccount',
-						},
+						'$$actions',
 					],
 				},
 				{
-					label: 'Actions',
+					label: 'execution outcomes',
+					when: 'open',
 					items: [
-						{
-							label: 'NearAction list',
-						},
-					],
-				},
-				{
-					label: 'Execution',
-					items: [
-						{
-							label: 'NearExecutionOutcome list',
-						},
-						{
-							label: 'NearReceipt list',
-						},
-					],
-				},
-				{
-					label: 'Block/chunk',
-					items: [
-						{
-							label: 'NearBlock/NearChunk context when resolved',
-						},
-					],
-				},
-				{
-					label: 'Lookup evidence',
-					items: [
-						{
-							label: 'RPC tx/status hash+sender lookup',
-						},
-						{
-							label: 'indexer hash lookup',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'NEAR RPC transaction status/indexer payload',
-						},
+						'$$executionOutcomes',
 					],
 				},
 			],

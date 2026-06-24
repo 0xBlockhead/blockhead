@@ -9,89 +9,40 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'linked Network',
-			},
-			{
-				label: 'latest block',
-			},
-			{
-				label: 'latest app/submission counts',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
-				[
-					{
-						label: 'linked Network',
-					},
-					{
-						label: 'latest block number/hash',
-					},
-					{
-						label: 'latest health/finality',
-					},
-					{
-						label: 'app id count',
-					},
-					{
-						label: 'data submission count',
-					},
-					{
-						label: 'source coverage',
-					},
-				],
+				[],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest status',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'latest head/finality/indexer observation',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Blocks',
+					label: 'blocks',
+					when: 'open',
 					items: [
-						{
-							label: 'Avail block rows',
-						},
+						'$$blocks',
 					],
 				},
 				{
-					label: 'App ids',
+					label: 'app ids',
+					when: 'open',
 					items: [
-						{
-							label: 'DA app id rows',
-						},
+						'$$appIds',
 					],
 				},
 				{
-					label: 'Data submissions',
+					label: 'data submissions',
+					when: 'open',
 					items: [
-						{
-							label: 'DA data submission rows',
-						},
-					],
-				},
-				{
-					label: 'Scaling usage',
-					items: [
-						{
-							label: 'scaling deployment claims whose DA network/selector points at Avail',
-						},
-					],
-				},
-				{
-					label: 'Substrate base',
-					items: [
-						{
-							label: 'Substrate/Polkadot rows when runtime/account rows are sourced',
-						},
+						'$$dataSubmissions',
 					],
 				},
 			],

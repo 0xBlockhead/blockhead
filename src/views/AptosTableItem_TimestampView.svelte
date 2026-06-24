@@ -10,68 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'table item',
-			},
-			{
-				label: 'ledger version',
-			},
+			'ledgerVersion',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'table item',
-					},
-					{
-						label: 'ledger version',
-					},
+					'ledgerVersion',
 					'source',
-					{
-						label: 'observation time',
-					},
-					{
-						label: 'value hash',
-					},
-					{
-						label: 'pruned state',
-					},
-					{
-						label: 'value summary',
-					},
+					'timestampMs',
+					'value',
+					'valueHash',
+					'pruned',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Table item',
-					items: [
-						{
-							label: 'parent table item identity',
-						},
-					],
-				},
-				{
-					label: 'Value',
-					items: [
-						{
-							label: 'structured JSON',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'get table item request/response',
-						},
-						{
-							label: 'ledger-version pruning status',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,64 +10,31 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'block number',
-			},
-			'hash',
-			{
-				label: 'transaction count',
-			},
+			'blockNumber',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'block number',
-					},
+					'blockNumber',
 					'hash',
+					'parentHash',
 					'timestamp',
-					{
-						label: 'gas/base fee/blob gas',
-					},
-					{
-						label: 'parent block',
-					},
-					{
-						label: 'miner/validator account',
-					},
+					'gasUsed',
+					'gasLimit',
+					'baseFeePerGas',
+					'blobGasUsed',
+					'excessBlobGas',
+					'transactionCount',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Chain',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'parent EVM network',
-						},
-					],
-				},
-				{
-					label: 'Transactions',
-					items: [
-						{
-							label: 'transactions included in the block',
-						},
-					],
-				},
-				{
-					label: 'Lookup evidence',
-					items: [
-						{
-							label: 'eth_getBlockByNumber',
-						},
-						{
-							label: 'eth_getBlockByHash',
-						},
-						{
-							label: 'explorer block detail/list payload',
-						},
+						'$$transactions',
 					],
 				},
 			],

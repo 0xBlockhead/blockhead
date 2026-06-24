@@ -10,65 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'ref',
-			},
-			{
-				label: 'timestamp',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'ref',
-					},
-					{
-						label: 'timestamp',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'target object id',
-					},
-					{
-						label: 'peeled object id',
-					},
-					{
-						label: 'advertised flag',
-					},
-					{
-						label: 'protection JSON',
-					},
+					'targetObjectId',
+					'peeledObjectId',
+					'advertised',
+					'protection',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Ref',
-					items: [
-						{
-							label: 'parent Git ref',
-						},
-					],
-				},
-				{
-					label: 'Target',
-					items: [
-						{
-							label: 'target Git object',
-						},
-					],
-				},
-				{
-					label: 'Protection',
-					items: [
-						{
-							label: 'host-specific branch/tag protection details when captured',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

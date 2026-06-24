@@ -10,63 +10,16 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'regulated asset profile',
-			},
-			{
-				label: 'topic key',
-			},
-			{
-				label: 'claim topic',
-			},
+			'topicKey',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'regulated asset profile',
-					},
-					{
-						label: 'topic key',
-					},
-					{
-						label: 'claim topic',
-					},
-					{
-						label: 'required issuer selector',
-					},
-					{
-						label: 'country scope',
-					},
+					'topicKey',
+					'claimTopic',
+					'requiredIssuerSelector',
+					'countryScope',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Profile',
-					items: [
-						{
-							label: 'parent regulated asset profile',
-						},
-					],
-				},
-				{
-					label: 'Trusted issuers',
-					items: [
-						{
-							label: 'trusted issuer rows filtered by accepted claim topic',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'registry call/event payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

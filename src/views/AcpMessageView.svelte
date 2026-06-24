@@ -10,51 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'session',
-			},
-			{
-				label: 'message id',
-			},
-			'role',
+			'messageId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'session',
-					},
-					{
-						label: 'message id',
-					},
+					'messageId',
 					'role',
-					{
-						label: 'created at',
-					},
-				],
-				[
-					{
-						label: 'part refs',
-					},
+					'createdAt',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Parts',
+					label: 'parts',
+					when: 'open',
 					items: [
-						{
-							label: 'AcpMessagePart list',
-						},
-					],
-				},
-				{
-					label: 'Session',
-					items: [
-						{
-							label: 'AcpSession',
-						},
+						'$$parts',
 					],
 				},
 			],

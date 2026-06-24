@@ -10,92 +10,25 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'baker',
-			},
 			'cycle',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'baker',
-					},
 					'cycle',
 					'source',
-					{
-						label: 'snapshot level',
-					},
-					{
-						label: 'staking balance',
-					},
-					{
-						label: 'produced/missed blocks',
-					},
-					{
-						label: 'endorsements',
-					},
-					{
-						label: 'rewards',
-					},
-					{
-						label: 'fees',
-					},
+					'snapshotLevel',
+					'stakingBalanceMutez',
+					'delegatedBalanceMutez',
+					'expectedBlocks',
+					'producedBlocks',
+					'missedBlocks',
+					'expectedEndorsements',
+					'missedEndorsements',
+					'rewardsMutez',
+					'feesMutez',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Baker',
-					items: [
-						{
-							label: 'parent Tezos baker',
-						},
-					],
-				},
-				{
-					label: 'Cycle',
-					items: [
-						{
-							label: 'Tezos cycle',
-						},
-					],
-				},
-				{
-					label: 'Rights',
-					items: [
-						{
-							label: 'baking rights for baker/cycle',
-						},
-					],
-				},
-				{
-					label: 'Performance',
-					items: [
-						{
-							label: 'produced/missed blocks',
-						},
-						{
-							label: 'endorsements',
-						},
-						{
-							label: 'rewards',
-						},
-						{
-							label: 'fees',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'rewards/performance payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

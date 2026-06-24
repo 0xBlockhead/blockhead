@@ -10,42 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'session',
-			},
-			'status',
-			{
-				label: 'created time',
-			},
+			'id',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'session',
-					},
+					'id',
 					'status',
-					{
-						label: 'created time',
-					},
-					{
-						label: 'completed time',
-					},
-					{
-						label: 'params hash',
-					},
-					{
-						label: 'fork block',
-					},
-					{
-						label: 'action count',
-					},
-					{
-						label: 'gas used',
-					},
-					{
-						label: 'result payload hash',
-					},
+					'createdAt',
+					'completedAt',
+					'paramsHash',
+					'forkBlockNumber',
+					'forkRpcOrigin',
+					'actionCount',
+					'gasUsed',
+					'resultSummary',
+					'resultPayloadHash',
 					'error',
 				],
 			],
@@ -53,57 +33,17 @@
 		details: {
 			tabs: [
 				{
-					label: 'Session',
+					label: 'calls',
+					when: 'open',
 					items: [
-						{
-							label: 'parent local session',
-						},
+						'$$calls',
 					],
 				},
 				{
-					label: 'Inputs',
+					label: 'logs',
+					when: 'open',
 					items: [
-						{
-							label: 'params hash',
-						},
-						{
-							label: 'source action context',
-						},
-						{
-							label: 'fork metadata',
-						},
-					],
-				},
-				{
-					label: 'Calls',
-					items: [
-						{
-							label: 'BlockheadSessionSimulationCall tree/list',
-						},
-					],
-				},
-				{
-					label: 'Logs',
-					items: [
-						{
-							label: 'BlockheadSessionSimulationLog list',
-						},
-					],
-				},
-				{
-					label: 'Result summary',
-					items: [
-						{
-							label: 'compact local simulation output summary',
-						},
-					],
-				},
-				{
-					label: 'Raw runtime',
-					items: [
-						{
-							label: 'local simulation output retained out of band when needed',
-						},
+						'$$logs',
 					],
 				},
 			],

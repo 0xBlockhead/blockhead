@@ -9,67 +9,23 @@
 
 	// State
 	const view = {
-		actions: [
-			{
-				id: 'copy-url',
-				label: 'Copy URL',
-				kind: 'copy',
-				field: 'url',
-			},
-			{
-				id: 'open-url',
-				label: 'Open URL',
-				kind: 'externalLink',
-				field: 'url',
-			},
-		],
 		closed: [
-			{
-				label: 'URL',
-			},
-			{
-				label: 'latest preview timestamp',
-			},
+			'url',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'URL',
-					},
-					{
-						label: 'latest preview timestamp',
-					},
+					'url',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Preview history',
+					label: 'preview timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'preview observations sorted newest first',
-						},
-					],
-				},
-				{
-					label: 'References',
-					items: [
-						{
-							label: 'parent rows that link this URL',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'catalog rows',
-						},
-						{
-							label: 'preview extractor payloads',
-						},
+						'$$previewTimestamps',
 					],
 				},
 			],

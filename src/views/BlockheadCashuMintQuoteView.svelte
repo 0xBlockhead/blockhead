@@ -10,92 +10,27 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'mint',
-			},
 			'method',
-			{
-				label: 'quote id',
-			},
+			'quoteId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'mint',
-					},
 					'method',
-					{
-						label: 'quote id',
-					},
-					{
-						label: 'payment request',
-					},
+					'quoteId',
+					'request',
 					'unit',
 					'amount',
-					{
-						label: 'latest observed state',
-					},
-					{
-						label: 'latest expiry',
-					},
-					{
-						label: 'wallet state',
-					},
-					{
-						label: 'timestamp count',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest state',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadCashuMintQuote_TimestampView',
-						},
-					],
-				},
-				{
-					label: 'State history',
-					items: [
-						{
-							label: 'BlockheadCashuMintQuote_TimestampsView',
-						},
-					],
-				},
-				{
-					label: 'Mint',
-					items: [
-						{
-							label: 'CashuMintView',
-						},
-					],
-				},
-				{
-					label: 'Payment request',
-					items: [
-						{
-							label: 'BOLT11/BOLT12/onchain request text',
-						},
-					],
-				},
-				{
-					label: 'Wallet',
-					items: [
-						{
-							label: 'BlockheadCashuWalletStateView',
-						},
-					],
-				},
-				{
-					label: 'Outputs',
-					items: [
-						{
-							label: 'local blinded-message/signature summary only in trusted local contexts',
-						},
+						'$$timestamps',
 					],
 				},
 			],

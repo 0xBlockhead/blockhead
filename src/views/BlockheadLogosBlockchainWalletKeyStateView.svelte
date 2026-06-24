@@ -10,61 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'node state',
-			},
-			{
-				label: 'public key',
-			},
-			{
-				label: 'latest balance',
-			},
+			'publicKey',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'node state',
-					},
-					{
-						label: 'public key',
-					},
-					{
-						label: 'latest balance',
-					},
-					{
-						label: 'latest tip',
-					},
+					'publicKey',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Balance history',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadLogosBlockchainWalletKeyState_TimestampsView',
-						},
-					],
-				},
-				{
-					label: 'Node',
-					items: [
-						{
-							label: 'BlockheadLogosBlockchainNodeStateView',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'user_config.yaml known_keys',
-						},
-						{
-							label: '/wallet/{publicKey}/balance',
-						},
+						'$$timestamps',
 					],
 				},
 			],

@@ -10,122 +10,31 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'deal id',
-			},
-			{
-				label: 'provider miner',
-			},
+			'dealId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'deal id',
-					},
-					{
-						label: 'provider miner',
-					},
-					{
-						label: 'client actor',
-					},
-					{
-						label: 'piece CID',
-					},
-					{
-						label: 'piece size',
-					},
-				],
-				[
-					{
-						label: 'verified-deal flag',
-					},
+					'dealId',
+					'pieceCid',
+					'pieceSizeBytes',
+					'verifiedDeal',
 					'label',
-					{
-						label: 'start/end epochs',
-					},
-					{
-						label: 'price per epoch',
-					},
-					{
-						label: 'provider/client collateral',
-					},
-					{
-						label: 'latest state',
-					},
+					'startEpoch',
+					'endEpoch',
+					'storagePricePerEpochAttoFil',
+					'providerCollateralAttoFil',
+					'clientCollateralAttoFil',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Provider',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'provider Filecoin miner',
-						},
-					],
-				},
-				{
-					label: 'Client',
-					items: [
-						{
-							label: 'client Filecoin actor',
-						},
-					],
-				},
-				{
-					label: 'State observations',
-					items: [
-						{
-							label: 'timestamped deal lifecycle observations',
-						},
-					],
-				},
-				{
-					label: 'Piece/proposal',
-					items: [
-						{
-							label: 'piece CID',
-						},
-						'label',
-						{
-							label: 'size',
-						},
-						{
-							label: 'price',
-						},
-						{
-							label: 'collateral fields',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Filecoin network',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'market-state methods',
-						},
-						{
-							label: 'indexer deal payloads',
-						},
-						{
-							label: 'sector deal ids when only partial',
-						},
+						'$$timestamps',
 					],
 				},
 			],

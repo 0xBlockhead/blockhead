@@ -10,57 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
 			'address',
-			{
-				label: 'latest URL/vote/production summary',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'address',
-					{
-						label: 'latest URL/vote/production summary',
-					},
-					{
-						label: 'active state',
-					},
-					{
-						label: 'latest observation time',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Witness observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'witness vote/production observations',
-						},
-					],
-				},
-				{
-					label: 'Produced blocks',
-					items: [
-						{
-							label: 'produced blocks when source supports witness filtering',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent TRON network',
-						},
+						'$$timestamps',
 					],
 				},
 			],

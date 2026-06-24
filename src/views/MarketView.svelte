@@ -10,97 +10,51 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'kind',
-			},
-			{
-				label: 'venue',
-			},
-			{
-				label: 'latest derivative observation for non-spot markets',
-			},
+			'$base',
+			'$quote',
+			'$marketVenue',
+			'marketKind',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'kind',
-					},
-					{
-						label: 'venue id/label',
-					},
-					{
-						label: 'latest derivative observation for non-spot markets',
-					},
-					{
-						label: 'base asset',
-					},
-					{
-						label: 'quote asset',
-					},
-				],
-				[
-					{
-						label: 'provider exchange id mappings',
-					},
-					{
-						label: 'quote stream count',
-					},
-					{
-						label: 'OHLC interval count',
-					},
-					{
-						label: 'derivative observation count',
-					},
-					{
-						label: 'oracle feed count',
-					},
+					'$base',
+					'$quote',
+					'$marketVenue',
+					'marketKind',
+					'venueLabel',
+					'providerExchangeIds',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Quote streams',
+					label: 'market prices',
+					when: 'open',
 					items: [
-						{
-							label: 'MarketPrice rows',
-						},
+						'$$marketPrices',
 					],
 				},
 				{
-					label: 'OHLC',
+					label: 'market time interval timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'Market_TimeInterval_Timestamp history grouped by interval',
-						},
+						'$$marketTimeIntervalTimestamps',
 					],
 				},
 				{
-					label: 'Derivative observations',
+					label: 'derivative timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'Market_Derivative_Timestamp list for non-spot markets',
-						},
+						'$$derivativeTimestamps',
 					],
 				},
 				{
-					label: 'Oracle feeds',
+					label: 'oracle feeds',
+					when: 'open',
 					items: [
-						{
-							label: 'linked OracleFeed rows',
-						},
-					],
-				},
-				{
-					label: 'Source mappings',
-					items: [
-						{
-							label: 'provider exchange ids',
-						},
-						{
-							label: 'provider pair/feed ids stay on timestamp rows',
-						},
+						'$$oracleFeeds',
 					],
 				},
 			],

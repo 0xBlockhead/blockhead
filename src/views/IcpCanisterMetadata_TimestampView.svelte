@@ -10,77 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'metadata',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'metadata',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'visibility',
-					{
-						label: 'content hash',
-					},
-					{
-						label: 'content type',
-					},
-					{
-						label: 'value size',
-					},
+					'contentHash',
+					'contentType',
+					'value',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Metadata',
-					items: [
-						{
-							label: 'parent metadata section',
-						},
-					],
-				},
-				{
-					label: 'Canister',
-					items: [
-						{
-							label: 'parent ICP canister through metadata',
-						},
-					],
-				},
-				{
-					label: 'Decoded value',
-					items: [
-						{
-							label: 'Candid/service metadata or text/blob preview',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'certified metadata',
-						},
-						{
-							label: 'custom-section',
-						},
-						{
-							label: 'or dashboard payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

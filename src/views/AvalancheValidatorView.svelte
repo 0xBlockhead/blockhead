@@ -10,105 +10,32 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'node id',
-			},
-			{
-				label: 'subnet',
-			},
-			{
-				label: 'start/end time',
-			},
+			'nodeId',
+			'subnetId',
+			'startTimeMs',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'node id',
-					},
-					{
-						label: 'subnet',
-					},
-					{
-						label: 'start/end time',
-					},
-					{
-						label: 'stake',
-					},
-					{
-						label: 'delegation fee',
-					},
-					{
-						label: 'reward owner count',
-					},
-					{
-						label: 'validation transaction id',
-					},
-					{
-						label: 'latest uptime/connected observation',
-					},
+					'nodeId',
+					'subnetId',
+					'startTimeMs',
+					'endTimeMs',
+					'stakeAmountNavax',
+					'txId',
+					'rewardOwnerAddresses',
+					'potentialRewardNavax',
+					'delegationFeePercent',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Delegators',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'delegations under this validation interval',
-						},
-					],
-				},
-				{
-					label: 'Validation transaction',
-					items: [
-						{
-							label: 'P-Chain validation transaction when resolved',
-						},
-					],
-				},
-				{
-					label: 'Reward owners',
-					items: [
-						{
-							label: 'reward owner address list',
-						},
-					],
-				},
-				{
-					label: 'Subnet',
-					items: [
-						{
-							label: 'parent subnet',
-						},
-					],
-				},
-				{
-					label: 'Linked network',
-					items: [
-						{
-							label: 'member chain/network context',
-						},
-					],
-				},
-				{
-					label: 'Validator observations',
-					items: [
-						{
-							label: 'timestamped connected/uptime/source observations',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'validator set payload',
-						},
-						{
-							label: 'uptime payload',
-						},
+						'$$timestamps',
 					],
 				},
 			],

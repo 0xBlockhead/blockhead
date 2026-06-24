@@ -10,69 +10,16 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'regulated asset profile',
-			},
-			{
-				label: 'module key',
-			},
-			{
-				label: 'module selector',
-			},
+			'moduleKey',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'regulated asset profile',
-					},
-					{
-						label: 'module key',
-					},
-					{
-						label: 'module selector',
-					},
-					{
-						label: 'rule kind',
-					},
-					{
-						label: 'config summary',
-					},
+					'moduleKey',
+					'moduleSelector',
+					'ruleKind',
+					'config',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Profile',
-					items: [
-						{
-							label: 'parent regulated asset profile',
-						},
-					],
-				},
-				{
-					label: 'Restrictions',
-					items: [
-						{
-							label: 'transfer restrictions derived from this module',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'contract calls/events',
-						},
-						{
-							label: 'verified ABI',
-						},
-						{
-							label: 'or Token-2022 extension payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

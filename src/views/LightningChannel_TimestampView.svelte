@@ -10,91 +10,23 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'channel',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'channel',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'status',
-					{
-						label: 'capacity',
-					},
-					{
-						label: 'fee rate',
-					},
-					{
-						label: 'updated time',
-					},
-					{
-						label: 'closing transaction',
-					},
-					{
-						label: 'closing fee',
-					},
-					{
-						label: 'closing reason',
-					},
-					{
-						label: 'closed time',
-					},
+					'capacitySats',
+					'feeRatePpm',
+					'updatedAtMs',
+					'closingTransactionId',
+					'closingFeeSats',
+					'closingReason',
+					'closedAtMs',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Channel',
-					items: [
-						{
-							label: 'parent Lightning channel',
-						},
-					],
-				},
-				{
-					label: 'Nodes',
-					items: [
-						{
-							label: 'node endpoints through the channel',
-						},
-					],
-				},
-				{
-					label: 'Closing',
-					items: [
-						{
-							label: 'closing transaction/reason/fee fields',
-						},
-					],
-				},
-				{
-					label: 'Local state',
-					items: [
-						{
-							label: 'BlockheadLightningChannelState when the same source is a connected node',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'public graph channel or LND channel payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

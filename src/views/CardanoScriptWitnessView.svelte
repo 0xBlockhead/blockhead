@@ -10,63 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'witness index',
-			},
-			{
-				label: 'script kind/language',
-			},
-			{
-				label: 'script hash',
-			},
+			'witnessIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'witness index',
-					},
-					{
-						label: 'script kind/language',
-					},
-					{
-						label: 'script hash',
-					},
-					{
-						label: 'execution units',
-					},
-					{
-						label: 'parent transaction',
-					},
+					'witnessIndex',
+					'scriptKind',
+					'language',
+					'scriptHash',
+					'datum',
+					'redeemer',
+					'executionUnits',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Datum',
-					items: [
-						{
-							label: 'datum JSON/hash',
-						},
-					],
-				},
-				{
-					label: 'Redeemer',
-					items: [
-						{
-							label: 'redeemer JSON/ex-units',
-						},
-					],
-				},
-				{
-					label: 'Script',
-					items: [
-						{
-							label: 'script bytes/source when sourceable',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

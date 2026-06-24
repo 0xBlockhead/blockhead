@@ -10,90 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'payment',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'payment',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'status',
-					{
-						label: 'fee msat',
-					},
-					{
-						label: 'failure reason',
-					},
-					{
-						label: 'preimage status',
-					},
+					'feeMsat',
+					'failureReason',
+					'preimage',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Payment',
-					items: [
-						{
-							label: 'parent local payment',
-						},
-					],
-				},
-				{
-					label: 'Local node',
-					items: [
-						{
-							label: 'connected Lightning node state',
-						},
-					],
-				},
-				{
-					label: 'Invoice',
-					items: [
-						{
-							label: 'linked local invoice when resolved',
-						},
-					],
-				},
-				{
-					label: 'Result',
-					items: [
-						'status',
-						{
-							label: 'fee',
-						},
-						{
-							label: 'failure reason',
-						},
-						'preimage',
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'LND listpayments',
-						},
-						{
-							label: 'trackpayment',
-						},
-						{
-							label: 'or payment subscription payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

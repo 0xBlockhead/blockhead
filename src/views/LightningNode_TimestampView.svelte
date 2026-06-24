@@ -10,90 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'node',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'node',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'alias',
 					'color',
-					{
-						label: 'capacity',
-					},
-					{
-						label: 'channel count',
-					},
-					{
-						label: 'first seen',
-					},
-					{
-						label: 'updated time',
-					},
-					{
-						label: 'country',
-					},
+					'capacitySats',
+					'channelCount',
+					'firstSeenMs',
+					'updatedAtMs',
+					'countryCode',
 					'city',
-					{
-						label: 'advertised address count',
-					},
+					'networkAddresses',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Node',
-					items: [
-						{
-							label: 'parent Lightning node',
-						},
-					],
-				},
-				{
-					label: 'Channels',
-					items: [
-						{
-							label: 'channels in the same source slice when available',
-						},
-					],
-				},
-				{
-					label: 'Location',
-					items: [
-						{
-							label: 'country/city/source labels',
-						},
-					],
-				},
-				{
-					label: 'Addresses',
-					items: [
-						{
-							label: 'advertised socket list',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'public graph node or LND getinfo payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,113 +10,57 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'canister id',
-			},
-			{
-				label: 'latest subnet',
-			},
-			{
-				label: 'latest canister kind',
-			},
+			'canisterId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'canister id',
-					},
-					{
-						label: 'latest subnet',
-					},
-					{
-						label: 'latest canister kind',
-					},
-					{
-						label: 'latest module hash',
-					},
-					{
-						label: 'latest status',
-					},
-					{
-						label: 'cycles balance',
-					},
-					{
-						label: 'controller count',
-					},
-					{
-						label: 'method count',
-					},
-					{
-						label: 'certified-state count',
-					},
+					'canisterId',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Methods',
+					label: 'methods',
+					when: 'open',
 					items: [
-						{
-							label: 'callable method/interface rows',
-						},
+						'$$methods',
 					],
 				},
 				{
-					label: 'Metadata',
+					label: 'metadatases',
+					when: 'open',
 					items: [
-						{
-							label: 'public custom-section metadata rows',
-						},
+						'$$metadata',
 					],
 				},
 				{
-					label: 'Certified states',
+					label: 'logs',
+					when: 'open',
 					items: [
-						{
-							label: 'certificate/witness rows',
-						},
+						'$$logs',
 					],
 				},
 				{
-					label: 'Request statuses',
+					label: 'certified states',
+					when: 'open',
 					items: [
-						{
-							label: 'ingress request-status rows',
-						},
+						'$$certifiedStates',
 					],
 				},
 				{
-					label: 'Logs',
+					label: 'request statuses',
+					when: 'open',
 					items: [
-						{
-							label: 'caller-authorized log observations',
-						},
+						'$$requestStatuses',
 					],
 				},
 				{
-					label: 'Lifecycle/state history',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped canister status/settings observations',
-						},
-					],
-				},
-				{
-					label: 'Ledger surface',
-					items: [
-						{
-							label: 'ledger canister row when canister exposes ledger methods',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'canister info/status payloads',
-						},
+						'$$timestamps',
 					],
 				},
 			],

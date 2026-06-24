@@ -9,94 +9,29 @@
 
 	// State
 	const view = {
-		panels: [
-			{
-				id: 'accounts',
-				label: 'Accounts',
-				kind: 'details',
-				slot: 'InstructionAccounts',
-			},
-		],
-		decodes: [
-			{
-				field: 'data',
-				kind: 'rawBytes',
-				slot: 'SolanaInstructionData',
-			},
-		],
 		closed: [
-			{
-				label: 'transaction',
-			},
-			{
-				label: 'instruction kind',
-			},
-			{
-				label: 'instruction index',
-			},
+			'instructionKind',
+			'instructionIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'transaction',
-					},
-					{
-						label: 'instruction kind',
-					},
-					{
-						label: 'instruction index',
-					},
-					{
-						label: 'inner instruction index',
-					},
-					{
-						label: 'program',
-					},
-					{
-						label: 'parsed type',
-					},
-					{
-						label: 'stack height',
-					},
-					{
-						label: 'account count',
-					},
+					'instructionKind',
+					'instructionIndex',
+					'innerInstructionIndex',
+					'parsedType',
+					'data',
+					'stackHeight',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Program',
+					label: 'accounts',
+					when: 'open',
 					items: [
-						{
-							label: 'executing Solana program',
-						},
-					],
-				},
-				{
-					label: 'Accounts',
-					items: [
-						{
-							label: 'account refs touched by instruction',
-						},
-					],
-				},
-				{
-					label: 'Transaction',
-					items: [
-						{
-							label: 'parent Solana transaction',
-						},
-					],
-				},
-				{
-					label: 'Raw instruction',
-					items: [
-						{
-							label: 'data/base64/parsed payload',
-						},
+						'$$accounts',
 					],
 				},
 			],

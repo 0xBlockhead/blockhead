@@ -10,93 +10,52 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'server key',
-			},
-			{
-				label: 'transport',
-			},
-			{
-				label: 'endpoint',
-			},
+			'serverKey',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'server key',
-					},
-					{
-						label: 'source',
-					},
-					{
-						label: 'package version',
-					},
-					{
-						label: 'transport kind',
-					},
-				],
-				[
-					{
-						label: 'endpoint URL',
-					},
-					{
-						label: 'tool/resource/template/prompt refs',
-					},
-					{
-						label: 'latest health',
-					},
+					'serverKey',
+					'transportKind',
+					'endpointUrl',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Tools',
+					label: 'tools',
+					when: 'open',
 					items: [
-						{
-							label: 'McpTool list',
-						},
+						'$$tools',
 					],
 				},
 				{
-					label: 'Resources',
+					label: 'resources',
+					when: 'open',
 					items: [
-						{
-							label: 'McpResource list',
-						},
+						'$$resources',
 					],
 				},
 				{
-					label: 'Resource templates',
+					label: 'resource templates',
+					when: 'open',
 					items: [
-						{
-							label: 'McpResourceTemplate list',
-						},
+						'$$resourceTemplates',
 					],
 				},
 				{
-					label: 'Prompts',
+					label: 'prompts',
+					when: 'open',
 					items: [
-						{
-							label: 'McpPrompt list',
-						},
+						'$$prompts',
 					],
 				},
 				{
-					label: 'Health',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'McpServer_Timestamp list',
-						},
-					],
-				},
-				{
-					label: 'Package',
-					items: [
-						{
-							label: 'McpServerPackageVersion',
-						},
+						'$$timestamps',
 					],
 				},
 			],

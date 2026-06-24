@@ -10,64 +10,15 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'log entry id',
-			},
-			{
-				label: 'sequence number',
-			},
+			'logEntryId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'log entry id',
-					},
-					{
-						label: 'sequence number',
-					},
+					'logEntryId',
+					'sequenceNumber',
 					'commitment',
-					{
-						label: 'data blob',
-					},
-					{
-						label: 'consensus network',
-					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Data blob',
-					items: [
-						{
-							label: 'linked data-root blob',
-						},
-					],
-				},
-				{
-					label: 'Consensus',
-					items: [
-						{
-							label: 'linked consensus-network identity',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent 0G network',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

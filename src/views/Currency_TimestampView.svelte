@@ -10,57 +10,14 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'currency',
-			},
-			{
-				label: 'snapshot time',
-			},
-			{
-				label: 'market cap',
-			},
+			'timestampMs',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'currency',
-					},
-					{
-						label: 'snapshot time',
-					},
-					{
-						label: 'market cap',
-					},
+					'timestampMs',
+					'marketCap',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Currency',
-					items: [
-						{
-							label: 'parent Currency row',
-						},
-					],
-				},
-				{
-					label: 'Catalog snapshot',
-					items: [
-						{
-							label: 'static market cap snapshot from checked-in constants',
-						},
-					],
-				},
-				{
-					label: 'Markets',
-					items: [
-						{
-							label: 'Market_Timestamp rows for live FX/quote observations',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

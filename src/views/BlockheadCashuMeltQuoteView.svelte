@@ -10,99 +10,35 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'mint',
-			},
 			'method',
-			{
-				label: 'quote id',
-			},
+			'quoteId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'mint',
-					},
 					'method',
-					{
-						label: 'quote id',
-					},
+					'quoteId',
 					'request',
 					'amount',
 					'unit',
-					{
-						label: 'fee reserve',
-					},
-					{
-						label: 'latest observed state',
-					},
-					{
-						label: 'latest expiry',
-					},
-					{
-						label: 'payment preimage status',
-					},
-					{
-						label: 'wallet state',
-					},
-					{
-						label: 'input proof count',
-					},
-					{
-						label: 'timestamp count',
-					},
+					'feeReserve',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest state',
+					label: 'input proofs',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadCashuMeltQuote_TimestampView',
-						},
+						'$$inputProofs',
 					],
 				},
 				{
-					label: 'State history',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadCashuMeltQuote_TimestampsView',
-						},
-					],
-				},
-				{
-					label: 'Mint',
-					items: [
-						{
-							label: 'CashuMintView',
-						},
-					],
-				},
-				{
-					label: 'Request',
-					items: [
-						{
-							label: 'BOLT11/BOLT12/onchain request text',
-						},
-					],
-				},
-				{
-					label: 'Proof inputs',
-					items: [
-						{
-							label: 'BlockheadCashuProof list supplied by the local wallet',
-						},
-					],
-				},
-				{
-					label: 'Wallet',
-					items: [
-						{
-							label: 'BlockheadCashuWalletStateView',
-						},
+						'$$timestamps',
 					],
 				},
 			],

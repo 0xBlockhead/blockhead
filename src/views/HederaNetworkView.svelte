@@ -9,119 +9,113 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'linked base Network',
-			},
-			'shard',
-			'realm',
-		],
+		closed: [],
 		content: {
 			dl: [
 				[
-					{
-						label: 'linked base Network',
-					},
 					'shard',
 					'realm',
-					{
-						label: 'latest consensus timestamp',
-					},
-					{
-						label: 'latest block number',
-					},
-					{
-						label: 'node count',
-					},
-					{
-						label: 'mirror-node lag',
-					},
-					{
-						label: 'latest fee/exchange/stake/supply snapshots',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Blocks',
+					label: 'blocks',
+					when: 'open',
 					items: [
-						{
-							label: 'Hedera block rows',
-						},
+						'$$blocks',
 					],
 				},
 				{
-					label: 'Transactions',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'Hedera transaction rows',
-						},
+						'$$transactions',
 					],
 				},
 				{
-					label: 'Accounts',
+					label: 'accounts',
+					when: 'open',
 					items: [
-						{
-							label: 'Hedera account rows',
-						},
+						'$$accounts',
 					],
 				},
 				{
-					label: 'HTS tokens',
+					label: 'tokens',
+					when: 'open',
 					items: [
-						{
-							label: 'Hedera token rows',
-						},
+						'$$tokens',
 					],
 				},
 				{
-					label: 'NFTs',
+					label: 'nfts',
+					when: 'open',
 					items: [
-						{
-							label: 'Hedera NFT serial rows',
-						},
+						'$$nfts',
 					],
 				},
 				{
-					label: 'Contracts',
+					label: 'contracts',
+					when: 'open',
 					items: [
-						{
-							label: 'Hedera contract rows',
-						},
+						'$$contracts',
 					],
 				},
 				{
-					label: 'Consensus topics',
+					label: 'topics',
+					when: 'open',
 					items: [
-						{
-							label: 'Hedera consensus topic rows',
-						},
+						'$$topics',
 					],
 				},
 				{
-					label: 'Schedules',
+					label: 'schedules',
+					when: 'open',
 					items: [
-						{
-							label: 'Hedera schedule rows',
-						},
+						'$$schedules',
 					],
 				},
 				{
-					label: 'Nodes',
+					label: 'nodes',
+					when: 'open',
 					items: [
-						{
-							label: 'Hedera node rows',
-						},
+						'$$nodes',
 					],
 				},
 				{
-					label: 'Network observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped head/count/fee/exchange/stake/supply observations',
-						},
+						'$$timestamps',
+					],
+				},
+				{
+					label: 'fee timestamps',
+					when: 'open',
+					items: [
+						'$$feeTimestamps',
+					],
+				},
+				{
+					label: 'exchange rate timestamps',
+					when: 'open',
+					items: [
+						'$$exchangeRateTimestamps',
+					],
+				},
+				{
+					label: 'stake timestamps',
+					when: 'open',
+					items: [
+						'$$stakeTimestamps',
+					],
+				},
+				{
+					label: 'supply timestamps',
+					when: 'open',
+					items: [
+						'$$supplyTimestamps',
 					],
 				},
 			],

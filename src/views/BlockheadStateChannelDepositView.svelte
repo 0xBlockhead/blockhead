@@ -9,70 +9,19 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'channel',
-			},
-			{
-				label: 'account',
-			},
-			{
-				label: 'network',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
-				[
-					{
-						label: 'channel',
-					},
-					{
-						label: 'account',
-					},
-					{
-						label: 'network',
-					},
-					{
-						label: 'latest available/locked balance',
-					},
-					{
-						label: 'latest observation time',
-					},
-				],
+				[],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Channel',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'parent local state channel',
-						},
-					],
-				},
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'participant EVM account on the selected network',
-						},
-					],
-				},
-				{
-					label: 'Collateral observations',
-					items: [
-						{
-							label: 'timestamped available/locked balance rows',
-						},
-					],
-				},
-				{
-					label: 'Settlement evidence',
-					items: [
-						{
-							label: 'linked funding/withdrawal transactions when modeled',
-						},
+						'$$timestamps',
 					],
 				},
 			],

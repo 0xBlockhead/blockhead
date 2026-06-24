@@ -10,123 +10,32 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'transaction id',
-			},
-			{
-				label: 'block ref/height',
-			},
+			'transactionId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'transaction id',
-					},
-					{
-						label: 'block ref/height',
-					},
-					{
-						label: 'timestamp',
-					},
-					{
-						label: 'expiration',
-					},
-					{
-						label: 'contract type',
-					},
+					'transactionId',
+					'blockHeight',
+					'timestampMs',
+					'expirationTimestampMs',
+					'contractType',
 					'result',
-					{
-						label: 'fee',
-					},
-					{
-						label: 'owner',
-					},
-					{
-						label: 'recipient',
-					},
-					{
-						label: 'contract',
-					},
-					{
-						label: 'amount',
-					},
-					{
-						label: 'asset name',
-					},
-					{
-						label: 'raw data hash/hex summary',
-					},
-					{
-						label: 'signature count',
-					},
-					{
-						label: 'receipt status',
-					},
+					'feeSun',
+					'amountSun',
+					'assetName',
+					'rawDataHex',
+					'signatures',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Receipt',
+					label: 'token transfers',
+					when: 'open',
 					items: [
-						{
-							label: 'execution receipt/resource row',
-						},
-					],
-				},
-				{
-					label: 'Token transfers',
-					items: [
-						{
-							label: 'indexed token transfer effects',
-						},
-					],
-				},
-				{
-					label: 'Block',
-					items: [
-						{
-							label: 'containing block',
-						},
-					],
-				},
-				{
-					label: 'Owner',
-					items: [
-						{
-							label: 'owner account',
-						},
-					],
-				},
-				{
-					label: 'Recipient',
-					items: [
-						{
-							label: 'recipient account',
-						},
-					],
-				},
-				{
-					label: 'Contract',
-					items: [
-						{
-							label: 'called or created contract',
-						},
-					],
-				},
-				{
-					label: 'Raw/signatures',
-					items: [
-						'rawDataHex',
-						'signatures',
+						'$$tokenTransfers',
 					],
 				},
 			],

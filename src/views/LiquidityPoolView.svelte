@@ -10,87 +10,32 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'pool id',
-			},
-			{
-				label: 'base/quote token contracts',
-			},
-			{
-				label: 'on-chain curve fields',
-			},
+			'id',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'pool id',
-					},
-					{
-						label: 'base/quote token contracts',
-					},
+					'id',
 					'fee',
-					{
-						label: 'tick spacing',
-					},
-					{
-						label: 'hooks',
-					},
-					{
-						label: 'v4 pool id',
-					},
-					{
-						label: 'latest pair-indexer observation',
-					},
-					{
-						label: 'latest block state',
-					},
+					'tickSpacing',
+					'v4PoolId',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped pair-indexer observations',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Block state',
+					label: 'blocks',
+					when: 'open',
 					items: [
-						{
-							label: 'block-coordinate on-chain curve state',
-						},
-					],
-				},
-				{
-					label: 'Base token',
-					items: [
-						{
-							label: 'base token contract',
-						},
-					],
-				},
-				{
-					label: 'Quote token',
-					items: [
-						{
-							label: 'quote token contract',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Dexscreener pair id mapping',
-						},
-						{
-							label: 'execution RPC or pool indexer calls',
-						},
+						'$$blocks',
 					],
 				},
 			],

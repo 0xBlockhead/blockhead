@@ -10,75 +10,30 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'block number',
-			},
-			{
-				label: 'block hash',
-			},
-			'status',
+			'blockNumber',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'block number',
-					},
-					{
-						label: 'block hash',
-					},
-					{
-						label: 'parent hash',
-					},
-					{
-						label: 'state root',
-					},
-					{
-						label: 'timestamp',
-					},
-					{
-						label: 'sequencer address',
-					},
-					{
-						label: 'gas price summary',
-					},
+					'blockNumber',
+					'blockHash',
+					'parentHash',
+					'newRoot',
+					'timestampMs',
+					'sequencerAddress',
+					'l1GasPrice',
+					'l1DataGasPrice',
 					'status',
-					{
-						label: 'transaction count',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Transactions',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'transactions in this block',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Starknet network',
-						},
-					],
-				},
-				{
-					label: 'Lookup evidence',
-					items: [
-						{
-							label: 'starknet_getBlockWithTxs block_id',
-						},
-						{
-							label: 'starknet_getBlockWithTxHashes block_id',
-						},
-						{
-							label: 'indexer block payload',
-						},
+						'$$transactions',
 					],
 				},
 			],

@@ -10,75 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'node state',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'node state',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'alias',
-					{
-						label: 'listen address count',
-					},
-					{
-						label: 'external address count',
-					},
-					{
-						label: 'node version',
-					},
+					'listenAddresses',
+					'externalAddresses',
+					'nodeVersion',
 					'policy',
-					{
-						label: 'last sync time',
-					},
+					'lastSyncedAt',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Node',
-					items: [
-						{
-							label: 'parent Radicle node state',
-						},
-					],
-				},
-				{
-					label: 'Addresses',
-					items: [
-						{
-							label: 'listen/external address lists',
-						},
-					],
-				},
-				{
-					label: 'Inventory',
-					items: [
-						{
-							label: 'inventory observations at nearby times',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'radicle-node control or rad CLI payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,67 +10,27 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			'name',
-			'slug',
+			'upgradeId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
+					'upgradeId',
 					'name',
 					'slug',
-					{
-						label: 'activation block/timestamp/epoch',
-					},
-					{
-						label: 'execution upgrade',
-					},
-					{
-						label: 'optional consensus upgrade',
-					},
-					{
-						label: 'proposal count',
-					},
+					'activationBlock',
+					'activationTimestampMs',
+					'activationEpoch',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Execution',
+					label: 'proposals',
+					when: 'open',
 					items: [
-						{
-							label: 'linked execution upgrade row',
-						},
-					],
-				},
-				{
-					label: 'Consensus',
-					items: [
-						{
-							label: 'linked consensus upgrade row',
-						},
-					],
-				},
-				{
-					label: 'Proposals',
-					items: [
-						{
-							label: 'linked specification proposal rows',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent EVM network',
-						},
+						'$$proposals',
 					],
 				},
 			],

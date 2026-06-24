@@ -10,80 +10,18 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'account',
-			},
-			{
-				label: 'application',
-			},
 			'round',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'account',
-					},
-					{
-						label: 'application',
-					},
 					'round',
 					'source',
+					'keyValues',
 					'schema',
-					{
-						label: 'deleted state',
-					},
-					{
-						label: 'key-value state summary',
-					},
+					'deleted',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'parent Algorand account',
-						},
-					],
-				},
-				{
-					label: 'Application',
-					items: [
-						{
-							label: 'parent application',
-						},
-					],
-				},
-				{
-					label: 'Key/value state',
-					items: [
-						{
-							label: 'decoded',
-						},
-						{
-							label: 'raw state JSON',
-						},
-					],
-				},
-				{
-					label: 'Round context',
-					items: [
-						{
-							label: 'ledger round coordinate',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'account application local-state payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

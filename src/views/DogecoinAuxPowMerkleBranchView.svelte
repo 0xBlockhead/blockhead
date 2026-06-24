@@ -10,50 +10,15 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'AuxPoW ref',
-			},
-			{
-				label: 'branch kind',
-			},
-			{
-				label: 'branch hash count',
-			},
+			'branchKind',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'AuxPoW ref',
-					},
-					{
-						label: 'branch kind',
-					},
-					{
-						label: 'branch hash count',
-					},
+					'branchKind',
+					'branchHashes',
 					'index',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Hashes',
-					items: [
-						{
-							label: 'ordered branch hash list',
-						},
-					],
-				},
-				{
-					label: 'AuxPoW',
-					items: [
-						{
-							label: 'parent Dogecoin AuxPoW proof',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

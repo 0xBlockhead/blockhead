@@ -10,80 +10,20 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'validator account',
-			},
-			{
-				label: 'public key',
-			},
-			{
-				label: 'latest stake/status/performance observation',
-			},
+			'accountId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'validator account',
-					},
-					{
-						label: 'public key',
-					},
-					{
-						label: 'latest stake/status/performance observation',
-					},
-					{
-						label: 'account link',
-					},
+					'accountId',
+					'publicKey',
+					'stakeYoctoNear',
+					'isSlashed',
+					'expectedBlocks',
+					'producedBlocks',
+					'expectedChunks',
+					'producedChunks',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Validator observations',
-					items: [
-						{
-							label: 'epoch-scoped validator-set observations',
-						},
-					],
-				},
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'validator NEAR account',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent NEAR network',
-						},
-					],
-				},
-				{
-					label: 'Epoch groups',
-					items: [
-						{
-							label: 'current',
-						},
-						{
-							label: 'next',
-						},
-						{
-							label: 'proposal',
-						},
-						{
-							label: 'fisherman',
-						},
-						{
-							label: 'kickout facets when source payloads expose them',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

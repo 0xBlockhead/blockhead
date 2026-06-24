@@ -10,73 +10,32 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'catalog',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
-			'status',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'catalog',
-					},
-					{
-						label: 'timestamp',
-					},
+					'timestampMs',
 					'source',
+					'sourceReportedArtifactCount',
+					'localCatalogArtifactCount',
+					'sourceReportedDocumentCount',
+					'localCatalogDocumentCount',
+					'ociManifestCount',
+					'spdxDocumentCount',
+					'cycloneDxDocumentCount',
+					'croissantDocumentCount',
+					'mlflowModelCount',
+					'onnxModelCount',
+					'configuredEndpointCount',
+					'reachableEndpointCount',
+					'queryHashAlgorithm',
+					'queryHash',
+					'lastCursor',
 					'status',
 					'error',
 				],
-				[
-					{
-						label: 'source-reported/local artifact counts',
-					},
-					{
-						label: 'source-reported/local document counts',
-					},
-					{
-						label: 'format counts',
-					},
-				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Catalog',
-					items: [
-						{
-							label: '_GlobalAiArtifactCatalog',
-						},
-					],
-				},
-				{
-					label: 'Format coverage',
-					items: [
-						{
-							label: 'OCI/SPDX/CycloneDX/Croissant/MLflow/ONNX counts',
-						},
-					],
-				},
-				{
-					label: 'Source window',
-					items: [
-						{
-							label: 'query hash algorithm/hash',
-						},
-						{
-							label: 'cursor',
-						},
-						{
-							label: 'endpoint coverage',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

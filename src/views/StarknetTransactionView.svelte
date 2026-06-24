@@ -10,88 +10,37 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'transaction hash',
-			},
-			{
-				label: 'kind',
-			},
-			{
-				label: 'latest status',
-			},
+			'transactionHash',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'transaction hash',
-					},
-					{
-						label: 'kind',
-					},
-					{
-						label: 'block',
-					},
-					{
-						label: 'sender',
-					},
+					'transactionHash',
+					'transactionKind',
+					'senderAddress',
 					'nonce',
 					'version',
-					{
-						label: 'fee/resource bounds',
-					},
-					{
-						label: 'calldata count',
-					},
-					{
-						label: 'signature count',
-					},
-					{
-						label: 'latest status/fee',
-					},
+					'maxFee',
+					'resourceBounds',
+					'calldata',
+					'signature',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Execution observations',
+					label: 'events',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped receipt/status observations',
-						},
+						'$$events',
 					],
 				},
 				{
-					label: 'Events',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'transaction event rows',
-						},
-					],
-				},
-				{
-					label: 'Sender',
-					items: [
-						{
-							label: 'sender Starknet contract',
-						},
-					],
-				},
-				{
-					label: 'Block',
-					items: [
-						{
-							label: 'parent Starknet block',
-						},
-					],
-				},
-				{
-					label: 'Payload',
-					items: [
-						{
-							label: 'calldata/signature/resource bounds',
-						},
+						'$$timestamps',
 					],
 				},
 			],

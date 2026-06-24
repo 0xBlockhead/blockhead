@@ -10,84 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
 			'address',
-			{
-				label: 'paymaster contract',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'address',
-					{
-						label: 'paymaster contract',
-					},
-					{
-						label: 'latest indexed user-operation count',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Contract',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'paymaster EVM contract',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'User operations',
+					label: 'user operations',
+					when: 'open',
 					items: [
-						{
-							label: 'user operations whose paymaster/paymasterAndData resolves to this paymaster',
-						},
-					],
-				},
-				{
-					label: 'Sponsorship evidence',
-					items: [
-						{
-							label: 'sponsorType',
-						},
-						{
-							label: 'paymasterAndData fields from linked operations',
-						},
-					],
-				},
-				{
-					label: 'Count snapshots',
-					items: [
-						{
-							label: 'timestamped paymaster count observations',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent EVM network',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Blockscout paymaster detail/list payload',
-						},
-						{
-							label: 'pagination context',
-						},
+						'$$userOperations',
 					],
 				},
 			],

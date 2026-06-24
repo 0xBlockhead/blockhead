@@ -11,49 +11,25 @@
 	const view = {
 		closed: [
 			'variant',
-			'label',
-			{
-				label: 'scope',
-			},
 		],
 		content: {
 			dl: [
 				[
 					'variant',
+					'fid',
+					'channelId',
+					'viewerFid',
 					'label',
-					{
-						label: 'FID/channel/viewer selector',
-					},
-					{
-						label: 'entry count',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Entries',
+					label: 'entries',
+					when: 'open',
 					items: [
-						{
-							label: 'FarcasterCast rows returned for this feed request',
-						},
-					],
-				},
-				{
-					label: 'Scope',
-					items: [
-						{
-							label: 'trending/by-user/by-channel/following selector fields',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Farcaster_Rest feed route and pagination context',
-						},
+						'$$entries',
 					],
 				},
 			],

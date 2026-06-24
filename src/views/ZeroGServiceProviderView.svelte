@@ -10,69 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'provider id',
-			},
-			{
-				label: 'service kind',
-			},
+			'providerId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'provider id',
-					},
-					{
-						label: 'service kind',
-					},
-					{
-						label: 'operator',
-					},
-					{
-						label: 'verification method',
-					},
+					'providerId',
+					'serviceKind',
+					'verificationMethod',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Requests',
+					label: 'requests',
+					when: 'open',
 					items: [
-						{
-							label: 'service request rows scoped to this provider',
-						},
-					],
-				},
-				{
-					label: 'Operator',
-					items: [
-						{
-							label: 'operator EVM account when resolved',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent 0G network',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'registry/indexer/connected-node provider id payload',
-						},
+						'$$requests',
 					],
 				},
 			],

@@ -10,78 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'big map',
-			},
-			{
-				label: 'key hash',
-			},
-			{
-				label: 'latest key summary',
-			},
+			'keyHash',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'big map',
-					},
-					{
-						label: 'key hash',
-					},
-					{
-						label: 'latest key summary',
-					},
-					{
-						label: 'latest value summary',
-					},
-					{
-						label: 'first/last level',
-					},
-					{
-						label: 'update count',
-					},
-					{
-						label: 'active state',
-					},
+					'keyHash',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Big map',
+					label: 'updates',
+					when: 'open',
 					items: [
-						{
-							label: 'parent Tezos big map',
-						},
+						'$$updates',
 					],
 				},
 				{
-					label: 'Current/history',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'level/source key-value observations',
-						},
-					],
-				},
-				{
-					label: 'Updates',
-					items: [
-						{
-							label: 'big-map diffs for this key',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'key lookup',
-						},
-						{
-							label: 'history payloads',
-						},
+						'$$timestamps',
 					],
 				},
 			],

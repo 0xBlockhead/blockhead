@@ -10,97 +10,33 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'tx hash',
-			},
-			{
-				label: 'type',
-			},
-			{
-				label: 'block',
-			},
+			'txHash',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'tx hash',
-					},
-					{
-						label: 'type',
-					},
-					{
-						label: 'block',
-					},
-					{
-						label: 'source',
-					},
-					{
-						label: 'destination',
-					},
-					{
-						label: 'token symbol',
-					},
-					'amount',
-					{
-						label: 'fee',
-					},
-					'code',
+					'txHash',
+					'txType',
 					'memo',
-					{
-						label: 'order/trade fields when present',
-					},
-					{
-						label: 'raw archive payload',
-					},
-					{
-						label: 'migration linkage',
-					},
+					'sourceAddress',
+					'destinationAddress',
+					'amount',
+					'feeAmount',
+					'tokenSymbol',
+					'orderId',
+					'sequence',
+					'code',
+					'log',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Block',
+					label: 'token effects',
+					when: 'open',
 					items: [
-						{
-							label: 'BnbBeaconBlock',
-						},
-					],
-				},
-				{
-					label: 'Transfer/order fields',
-					items: [
-						{
-							label: 'source',
-						},
-						{
-							label: 'destination',
-						},
-						{
-							label: 'token symbol',
-						},
-						'amount',
-						{
-							label: 'order id',
-						},
-					],
-				},
-				{
-					label: 'Effects',
-					items: [
-						{
-							label: 'BnbBeaconTokenTransfer list',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'archive/API/explorer transaction payload',
-						},
+						'$$tokenEffects',
 					],
 				},
 			],

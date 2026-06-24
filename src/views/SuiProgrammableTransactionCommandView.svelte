@@ -10,86 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'command index/kind',
-			},
-			{
-				label: 'package/module/function',
-			},
-			{
-				label: 'type arguments',
-			},
+			'commandIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'command index/kind',
-					},
-					{
-						label: 'package/module/function',
-					},
-					{
-						label: 'type arguments',
-					},
+					'commandIndex',
+					'commandKind',
+					'packageId',
+					'moduleName',
+					'functionName',
+					'typeArguments',
 					'arguments',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Transaction',
-					items: [
-						{
-							label: 'SuiTransaction',
-						},
-					],
-				},
-				{
-					label: 'Command',
-					items: [
-						{
-							label: 'command index',
-						},
-						{
-							label: 'command kind',
-						},
-					],
-				},
-				{
-					label: 'Move call',
-					items: [
-						{
-							label: 'package id',
-						},
-						{
-							label: 'module name',
-						},
-						{
-							label: 'function name',
-						},
-						{
-							label: 'type arguments',
-						},
-					],
-				},
-				{
-					label: 'Arguments',
-					items: [
-						{
-							label: 'arguments JSON',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Sui programmable transaction block payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

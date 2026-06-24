@@ -10,77 +10,30 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
-			'status',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'timestamp',
-					},
+					'timestampMs',
 					'source',
+					'sourceReportedAgentCount',
+					'localCatalogAgentCount',
+					'sourceReportedRegistrationCount',
+					'localCatalogRegistrationCount',
+					'sourceReportedServerCount',
+					'localCatalogServerCount',
+					'configuredEndpointCount',
+					'reachableEndpointCount',
+					'searchResultCount',
+					'queryHashAlgorithm',
+					'queryHash',
+					'lastCursor',
+					'rateLimitRemaining',
 					'status',
 					'error',
 				],
-				[
-					{
-						label: 'scoped agent/registration/server counts',
-					},
-					{
-						label: 'endpoint reachability',
-					},
-					{
-						label: 'cursor',
-					},
-				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Network',
-					items: [
-						{
-							label: '_GlobalAgentNetwork',
-						},
-					],
-				},
-				{
-					label: 'Discovery windows',
-					items: [
-						{
-							label: 'query hash algorithm/hash',
-						},
-						{
-							label: 'cursor',
-						},
-						{
-							label: 'search result count',
-						},
-					],
-				},
-				{
-					label: 'Source health',
-					items: [
-						{
-							label: 'reachable endpoint count',
-						},
-						{
-							label: 'rate limit',
-						},
-						'error',
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,63 +10,25 @@
 	// State
 	const view = {
 		closed: [
-			'sizeBytes',
-			'erasureCodingScheme',
-			'aggregatedSignature',
+			'dataRoot',
 		],
 		content: {
 			dl: [
 				[
+					'dataRoot',
 					'sizeBytes',
 					'erasureCodingScheme',
 					'aggregatedSignature',
-					{
-						label: 'consensus network',
-					},
-					{
-						label: 'DA quorum',
-					},
-					{
-						label: 'storage log entry when present',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Consensus/DA',
+					label: 'chunks',
+					when: 'open',
 					items: [
-						{
-							label: 'ZeroGConsensusNetwork',
-						},
-						{
-							label: 'ZeroGDaQuorum',
-						},
-					],
-				},
-				{
-					label: 'Chunks',
-					items: [
-						{
-							label: 'ZeroGDataChunk list',
-						},
-					],
-				},
-				{
-					label: 'Storage log',
-					items: [
-						{
-							label: 'ZeroGStorageLogEntry when present',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: '0G ChainScan/storage scan/storage node payload',
-						},
+						'$$chunks',
 					],
 				},
 			],

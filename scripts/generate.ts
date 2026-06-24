@@ -27,6 +27,7 @@ else if (command === 'check')
 else if (command === 'sync')
 	await syncGenerated({
 		dryRun: flags.has('--dry-run'),
+		deleteStale: flags.has('--delete-stale'),
 	})
 else if (command === 'clean')
 	rmSync('.generated', {
@@ -34,6 +35,6 @@ else if (command === 'clean')
 		recursive: true,
 	})
 else {
-	console.error('Usage: tsx scripts/generate.ts <audit|extract|assemble|generate|check|sync|clean> [--dry-run]')
+	console.error('Usage: tsx scripts/generate.ts <audit|extract|assemble|generate|check|sync|clean> [--dry-run] [--delete-stale]')
 	process.exit(1)
 }

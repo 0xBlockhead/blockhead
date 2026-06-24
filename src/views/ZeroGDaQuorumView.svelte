@@ -10,66 +10,23 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'quorum id',
-			},
-			{
-				label: 'consensus network',
-			},
+			'quorumId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'quorum id',
-					},
-					{
-						label: 'consensus network',
-					},
-					{
-						label: 'selection method',
-					},
+					'quorumId',
+					'selectionMethod',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'DA nodes',
+					label: 'da nodes',
+					when: 'open',
 					items: [
-						{
-							label: 'node rows in this quorum',
-						},
-					],
-				},
-				{
-					label: 'Consensus',
-					items: [
-						{
-							label: 'linked consensus-network identity',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent 0G network',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: '0G DA/consensus payload exposing quorum id',
-						},
+						'$$daNodes',
 					],
 				},
 			],

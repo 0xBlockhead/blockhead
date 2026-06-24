@@ -11,88 +11,29 @@
 	const view = {
 		closed: [
 			'height',
-			'hash',
-			{
-				label: 'timestamp',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'height',
 					'hash',
-					{
-						label: 'timestamp',
-					},
-					{
-						label: 'proposer',
-					},
-					{
-						label: 'transaction count',
-					},
-					{
-						label: 'blob count',
-					},
-					{
-						label: 'namespace count',
-					},
-				],
-				[
-					{
-						label: 'app hash',
-					},
-					{
-						label: 'data hash',
-					},
+					'appHash',
+					'dataHash',
+					'proposerAddress',
+					'timestampMs',
+					'blobCount',
+					'namespaceCount',
+					'transactionCount',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Blobs',
+					label: 'blobs',
+					when: 'open',
 					items: [
-						{
-							label: 'Celestia blobs included at this height',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Celestia network',
-						},
-					],
-				},
-				{
-					label: 'Consensus evidence',
-					items: [
-						{
-							label: 'CometBFT block/header fields',
-						},
-					],
-				},
-				{
-					label: 'Lookup evidence',
-					items: [
-						{
-							label: 'CometBFT height lookup',
-						},
-						{
-							label: 'Celenium/indexer hash lookup when source-backed',
-						},
-					],
-				},
-				{
-					label: 'DA evidence',
-					items: [
-						{
-							label: 'namespaced blob availability at height',
-						},
+						'$$blobs',
 					],
 				},
 			],

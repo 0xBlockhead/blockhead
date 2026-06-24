@@ -10,81 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'repository',
-			},
-			{
-				label: 'remote name',
-			},
+			'remoteName',
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'repository',
-					},
-					{
-						label: 'remote name',
-					},
+					'remoteName',
+					'timestampMs',
 					'source',
-					{
-						label: 'timestamp',
-					},
+					'protocolVersion',
+					'advertisedRefs',
+					'wantedObjects',
+					'receivedObjects',
+					'packfileHash',
 					'status',
-					{
-						label: 'protocol version',
-					},
-					{
-						label: 'advertised ref count',
-					},
-					{
-						label: 'wanted object count',
-					},
-					{
-						label: 'received object count',
-					},
-					{
-						label: 'packfile hash',
-					},
 					'error',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Repository',
-					items: [
-						{
-							label: 'parent Git repository',
-						},
-					],
-				},
-				{
-					label: 'Remote',
-					items: [
-						{
-							label: 'repository remote config',
-						},
-					],
-				},
-				{
-					label: 'Packfile',
-					items: [
-						{
-							label: 'captured packfile when available',
-						},
-					],
-				},
-				{
-					label: 'Raw exchange',
-					items: [
-						{
-							label: 'protocol request/response summary',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

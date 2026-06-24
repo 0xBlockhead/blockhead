@@ -10,81 +10,33 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'relay',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'relay',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'software/version',
-					},
-					{
-						label: 'supported NIP count',
-					},
-					{
-						label: 'paid/restricted flags',
-					},
-					{
-						label: 'active users',
-					},
-					{
-						label: 'events per day',
-					},
+					'name',
+					'description',
+					'software',
+					'version',
+					'supportedNips',
+					'limitation',
+					'fees',
+					'paymentsUrl',
+					'termsOfServiceUrl',
+					'iconUrl',
+					'bannerUrl',
+					'pubkey',
+					'isPaid',
+					'activeUsers',
+					'eventsPerDay',
 					'rank',
-					{
-						label: 'reachability',
-					},
+					'reachable',
 					'error',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'NIP-11 document',
-					items: [
-						{
-							label: 'metadata/limitations/fees',
-						},
-					],
-				},
-				{
-					label: 'Indexer metrics',
-					items: [
-						{
-							label: 'active users/events/rank',
-						},
-					],
-				},
-				{
-					label: 'Relay',
-					items: [
-						{
-							label: 'parent Nostr relay',
-						},
-					],
-				},
-				{
-					label: 'Raw evidence',
-					items: [
-						{
-							label: 'JSON document or indexer payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

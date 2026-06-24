@@ -10,71 +10,14 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'contract address',
-			},
-			{
-				label: 'code id',
-			},
+			'address',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'contract address',
-					},
-					{
-						label: 'code id',
-					},
-					{
-						label: 'creator',
-					},
-					{
-						label: 'admin',
-					},
+					'address',
+					'codeId',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Creator',
-					items: [
-						{
-							label: 'creator Cosmos account',
-						},
-					],
-				},
-				{
-					label: 'Admin',
-					items: [
-						{
-							label: 'admin Cosmos account',
-						},
-					],
-				},
-				{
-					label: 'Messages',
-					items: [
-						{
-							label: 'Cosmos messages when contract messages are resolved',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Cosmos network',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

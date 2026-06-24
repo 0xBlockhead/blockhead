@@ -10,80 +10,23 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'collection',
-			},
-			{
-				label: 'token key',
-			},
-			{
-				label: 'token id',
-			},
+			'tokenKey',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'collection',
-					},
-					{
-						label: 'token key',
-					},
-					{
-						label: 'token id',
-					},
-					{
-						label: 'asset object',
-					},
-					{
-						label: 'metadata link',
-					},
-					{
-						label: 'usage-right observation count',
-					},
+					'tokenKey',
+					'tokenId',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Collection',
+					label: 'usage right timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'parent NFT collection',
-						},
-					],
-				},
-				{
-					label: 'Asset object',
-					items: [
-						{
-							label: 'linked AssetObject when canonical object identity is available',
-						},
-					],
-				},
-				{
-					label: 'Metadata',
-					items: [
-						{
-							label: 'linked token metadata document',
-						},
-					],
-				},
-				{
-					label: 'Usage-right observations',
-					items: [
-						{
-							label: 'timestamped usage-right observations',
-						},
-					],
-				},
-				{
-					label: 'Ownership/balance evidence',
-					items: [
-						{
-							label: 'token transfers or future account-scoped ownership/balance rows',
-						},
+						'$$usageRightTimestamps',
 					],
 				},
 			],

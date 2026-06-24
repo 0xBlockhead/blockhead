@@ -10,55 +10,25 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'server',
-			},
 			'name',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'server',
-					},
 					'name',
 					'title',
 					'description',
-				],
-				[
-					{
-						label: 'arguments schema',
-					},
-					{
-						label: 'result refs',
-					},
+					'argumentsSchema',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Server',
+					label: 'results',
+					when: 'open',
 					items: [
-						{
-							label: 'McpServer',
-						},
-					],
-				},
-				{
-					label: 'Schema',
-					items: [
-						{
-							label: 'arguments schema',
-						},
-					],
-				},
-				{
-					label: 'Results',
-					items: [
-						{
-							label: 'McpPromptResult list',
-						},
+						'$$results',
 					],
 				},
 			],

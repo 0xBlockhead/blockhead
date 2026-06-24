@@ -10,128 +10,48 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'wallet id',
-			},
-			{
-				label: 'network',
-			},
-			{
-				label: 'primary address',
-			},
+			'walletId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'wallet id',
-					},
-					{
-						label: 'network',
-					},
-					{
-						label: 'primary address',
-					},
-					{
-						label: 'view-only flag',
-					},
-					{
-						label: 'trusted-daemon flag',
-					},
-					{
-						label: 'latest height',
-					},
-					{
-						label: 'latest balance',
-					},
-					{
-						label: 'latest unlocked balance',
-					},
-					{
-						label: 'latest multisig import status',
-					},
-					{
-						label: 'latest sync time',
-					},
-					{
-						label: 'view-key fingerprint',
-					},
-					{
-						label: 'spend-key availability',
-					},
-					{
-						label: 'timestamp count',
-					},
+					'walletId',
+					'primaryAddress',
+					'viewOnly',
+					'trustedDaemon',
+					'viewKeyFingerprint',
+					'spendKeyAvailable',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest state',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadMoneroWalletState_TimestampView',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'State history',
+					label: 'subaddresses',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadMoneroWalletState_TimestampsView',
-						},
+						'$$subaddresses',
 					],
 				},
 				{
-					label: 'Subaddresses',
+					label: 'outputs',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadMoneroSubaddressState list',
-						},
+						'$$outputs',
 					],
 				},
 				{
-					label: 'Outputs',
+					label: 'transfers',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadMoneroOutputState list',
-						},
-					],
-				},
-				{
-					label: 'Transfers',
-					items: [
-						{
-							label: 'BlockheadMoneroTransferState list',
-						},
-					],
-				},
-				{
-					label: 'Sync/export',
-					items: [
-						{
-							label: 'output export',
-						},
-						{
-							label: 'key-image export times',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'MoneroNetworkView',
-						},
-					],
-				},
-				{
-					label: 'Key material',
-					items: [
-						{
-							label: 'redacted view/spend/multisig fields',
-						},
+						'$$transfers',
 					],
 				},
 			],

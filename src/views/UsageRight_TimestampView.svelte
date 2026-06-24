@@ -10,101 +10,26 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'subject key',
-			},
-			{
-				label: 'right key',
-			},
-			{
-				label: 'observation time',
-			},
+			'subjectKey',
+			'rightKey',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'subject key',
-					},
-					{
-						label: 'right key',
-					},
-					{
-						label: 'observation time',
-					},
+					'subjectKey',
+					'rightKey',
+					'timestampMs',
 					'source',
-					{
-						label: 'source kind',
-					},
-					{
-						label: 'right kind',
-					},
+					'sourceKind',
+					'rightKind',
+					'userSelector',
+					'expiresAt',
+					'ledgerCoordinateKind',
+					'ledgerCoordinateValue',
+					'contractAddress',
 				],
-				[
-					{
-						label: 'asset object/token',
-					},
-					{
-						label: 'user/account selector',
-					},
-					{
-						label: 'expiry',
-					},
-					{
-						label: 'ledger coordinate',
-					},
-					{
-						label: 'contract address',
-					},
-				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Subject',
-					items: [
-						{
-							label: 'AssetObject preferred',
-						},
-						{
-							label: 'NftToken facade when only collection-scoped token identity is available',
-						},
-					],
-				},
-				{
-					label: 'User',
-					items: [
-						{
-							label: 'account identity when resolved',
-						},
-					],
-				},
-				{
-					label: 'Format support',
-					items: [
-						{
-							label: 'ERC-4907/interface evidence observation',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'userOf/userExpires call',
-						},
-						{
-							label: 'event',
-						},
-						{
-							label: 'explicit license entitlement',
-						},
-						{
-							label: 'or local entitlement record',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,60 +10,15 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'contract',
-			},
-			{
-				label: 'entrypoint name',
-			},
-			{
-				label: 'annotation count',
-			},
+			'entrypointName',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'contract',
-					},
-					{
-						label: 'entrypoint name',
-					},
-					{
-						label: 'annotation count',
-					},
-					{
-						label: 'parameter type summary',
-					},
+					'entrypointName',
+					'parameterType',
+					'annotations',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Contract',
-					items: [
-						{
-							label: 'parent Tezos contract',
-						},
-					],
-				},
-				{
-					label: 'Parameter type',
-					items: [
-						{
-							label: 'decoded Michelson parameter type',
-						},
-					],
-				},
-				{
-					label: 'Operations',
-					items: [
-						{
-							label: 'operations filtered to entrypoint when indexed',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,80 +10,30 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'quote request id',
-			},
-			'source',
-			{
-				label: 'provider protocol',
-			},
+			'id',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'quote request id',
-					},
+					'id',
 					'source',
-					{
-						label: 'request hash',
-					},
-					{
-						label: 'provider protocol',
-					},
-					{
-						label: 'intent type',
-					},
-					{
-						label: 'session action',
-					},
-					{
-						label: 'user interop address',
-					},
-					{
-						label: 'requested time',
-					},
-					{
-						label: 'request payload hash',
-					},
+					'quoteRequestHash',
+					'providerProtocol',
+					'intentType',
+					'userInteropAddress',
+					'requestedAt',
+					'requestPayloadHash',
+					'requestSummary',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Quote observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadIntentQuote_Timestamp list',
-						},
-					],
-				},
-				{
-					label: 'Session action',
-					items: [
-						{
-							label: 'BlockheadSessionActionView when linked',
-						},
-					],
-				},
-				{
-					label: 'Request summary',
-					items: [
-						{
-							label: 'normalized signed-order/filler-market request summary',
-						},
-						{
-							label: 'raw provider request retained only when needed',
-						},
-					],
-				},
-				{
-					label: 'Specialized quotes',
-					items: [
-						{
-							label: 'SwapQuote_Timestamp or BridgeRouteQuote_Timestamp when the provider returns executable route quotes instead of intent orders',
-						},
+						'$$timestamps',
 					],
 				},
 			],

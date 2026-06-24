@@ -9,73 +9,19 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'account',
-			},
-			{
-				label: 'asset',
-			},
-			{
-				label: 'latest trustline observation',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
-				[
-					{
-						label: 'account',
-					},
-					{
-						label: 'asset',
-					},
-					{
-						label: 'latest balance/limit/liability observation',
-					},
-					{
-						label: 'latest authorization/clawback observation',
-					},
-				],
+				[],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Snapshots',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped trustline ledger-state observations',
-						},
-					],
-				},
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'parent Stellar account',
-						},
-					],
-				},
-				{
-					label: 'Asset',
-					items: [
-						{
-							label: 'trusted Stellar asset',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Horizon balances array',
-						},
-						{
-							label: 'RPC trustline ledger entry',
-						},
-						{
-							label: 'indexer account asset payload',
-						},
+						'$$timestamps',
 					],
 				},
 			],

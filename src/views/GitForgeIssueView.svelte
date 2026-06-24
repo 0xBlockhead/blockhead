@@ -10,61 +10,20 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'forge mirror',
-			},
-			{
-				label: 'issue number',
-			},
-			'title',
+			'issueNumber',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'forge mirror',
-					},
-					{
-						label: 'issue number',
-					},
+					'issueNumber',
 					'title',
 					'state',
-					{
-						label: 'author selector',
-					},
+					'authorSelector',
 					'labels',
-					{
-						label: 'created/updated/closed timestamps',
-					},
+					'createdAt',
+					'updatedAt',
+					'closedAt',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Forge mirror',
-					items: [
-						{
-							label: 'parent forge mirror',
-						},
-					],
-				},
-				{
-					label: 'Timeline',
-					items: [
-						{
-							label: 'issue comments/events when modeled',
-						},
-					],
-				},
-				{
-					label: 'References',
-					items: [
-						{
-							label: 'linked commits/PRs when parsed from source payloads',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

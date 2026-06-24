@@ -11,74 +11,46 @@
 	const view = {
 		closed: [
 			'name',
-			{
-				label: 'normalized name',
-			},
-			'node',
 		],
 		content: {
 			dl: [
 				[
 					'name',
-					{
-						label: 'normalized name',
-					},
+					'normalizedName',
 					'node',
-					{
-						label: 'label name/hash',
-					},
-					{
-						label: 'parent',
-					},
-					{
-						label: 'latest owner/resolver snapshot',
-					},
-					{
-						label: 'latest reverse-record status',
-					},
+					'labelName',
+					'labelhash',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Name snapshots',
+					label: 'subdomains',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped ENS name registry/index state',
-						},
+						'$$subdomains',
 					],
 				},
 				{
-					label: 'Records',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'ENS records grouped by addr/text/contenthash/ABI/multicoin',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Subdomains',
+					label: 'records',
+					when: 'open',
 					items: [
-						{
-							label: 'ENS subdomain rows',
-						},
+						'$$records',
 					],
 				},
 				{
-					label: 'Reverse records',
+					label: 'reverse records',
+					when: 'open',
 					items: [
-						{
-							label: 'ENS reverse-record rows',
-						},
-					],
-				},
-				{
-					label: 'Linked accounts',
-					items: [
-						{
-							label: 'EVM account refs from latest snapshot/records',
-						},
+						'$$reverseRecords',
 					],
 				},
 			],

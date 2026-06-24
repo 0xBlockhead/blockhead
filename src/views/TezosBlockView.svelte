@@ -10,99 +10,39 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'level/hash',
-			},
-			{
-				label: 'timestamp',
-			},
-			{
-				label: 'baker',
-			},
+			'level',
 		],
 		content: {
 			dl: [
 				[
 					'level',
 					'hash',
-					{
-						label: 'timestamp',
-					},
-					{
-						label: 'protocol',
-					},
-					{
-						label: 'baker',
-					},
+					'timestampMs',
+					'protocolHash',
+					'predecessorHash',
+					'bakerAddress',
 					'round',
 					'cycle',
-					{
-						label: 'predecessor',
-					},
-					{
-						label: 'operation count',
-					},
+					'payloadHash',
+					'operationsHash',
+					'fitness',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Operation groups',
+					label: 'operation groups',
+					when: 'open',
 					items: [
-						{
-							label: 'operation groups included in block',
-						},
+						'$$operationGroups',
 					],
 				},
 				{
-					label: 'Operations',
+					label: 'operations',
+					when: 'open',
 					items: [
-						{
-							label: 'operations by validation pass/kind',
-						},
-					],
-				},
-				{
-					label: 'Baker',
-					items: [
-						{
-							label: 'producing Tezos baker',
-						},
-					],
-				},
-				{
-					label: 'Cycle',
-					items: [
-						{
-							label: 'Tezos cycle',
-						},
-					],
-				},
-				{
-					label: 'Header',
-					items: [
-						{
-							label: 'payload hash',
-						},
-						{
-							label: 'operations hash',
-						},
-						'fitness',
-						{
-							label: 'predecessor/successor context',
-						},
-					],
-				},
-				{
-					label: 'Lookup evidence',
-					items: [
-						{
-							label: 'node RPC block lookup by level or hash',
-						},
-						{
-							label: 'TzKT/indexer block payload',
-						},
+						'$$operations',
 					],
 				},
 			],

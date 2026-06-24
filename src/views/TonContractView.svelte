@@ -9,95 +9,26 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'account',
-			},
-			{
-				label: 'latest interface observation',
-			},
-			{
-				label: 'verification observation',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
-				[
-					{
-						label: 'account',
-					},
-					{
-						label: 'latest interface kind/wallet version observation',
-					},
-					{
-						label: 'latest code hash',
-					},
-					{
-						label: 'verification status',
-					},
-					{
-						label: 'verified source URL',
-					},
-					{
-						label: 'get-method/message windows',
-					},
-				],
+				[],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Account state',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'linked account',
-						},
-						{
-							label: 'account state snapshots',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Contract observations',
+					label: 'get methods',
+					when: 'open',
 					items: [
-						{
-							label: 'interface and verification snapshots',
-						},
-					],
-				},
-				{
-					label: 'Get methods',
-					items: [
-						{
-							label: 'callable get-method rows',
-						},
-					],
-				},
-				{
-					label: 'Source verification',
-					items: [
-						{
-							label: 'verified source URL',
-						},
-						{
-							label: 'verifier payload',
-						},
-					],
-				},
-				{
-					label: 'Messages',
-					items: [
-						{
-							label: 'related TON messages',
-						},
-					],
-				},
-				{
-					label: 'Transactions',
-					items: [
-						{
-							label: 'account-local transactions',
-						},
+						'$$getMethods',
 					],
 				},
 			],

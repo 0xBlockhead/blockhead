@@ -10,57 +10,43 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'classic address',
-			},
-			{
-				label: 'latest XRP balance/owner count/sequence snapshot',
-			},
+			'account',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'classic address',
-					},
-					{
-						label: 'latest XRP balance/owner count/sequence snapshot',
-					},
+					'account',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Ledger entries',
+					label: 'ledger entries',
+					when: 'open',
 					items: [
-						{
-							label: 'ledger objects for account',
-						},
+						'$$ledgerEntries',
 					],
 				},
 				{
-					label: 'Transactions',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'account transactions',
-						},
+						'$$transactions',
 					],
 				},
 				{
-					label: 'Trust lines',
+					label: 'trustlines',
+					when: 'open',
 					items: [
-						{
-							label: 'trust lines',
-						},
+						'$$trustlines',
 					],
 				},
 				{
-					label: 'Account snapshots',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'ledger-indexed account observations',
-						},
+						'$$timestamps',
 					],
 				},
 			],

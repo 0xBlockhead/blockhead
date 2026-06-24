@@ -10,98 +10,26 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'account',
-			},
-			{
-				label: 'trade id',
-			},
-			{
-				label: 'order id',
-			},
+			'tid',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'account',
-					},
-					{
-						label: 'trade id',
-					},
-					{
-						label: 'order id',
-					},
+					'tid',
+					'oid',
 					'coin',
 					'side',
 					'direction',
 					'price',
 					'size',
+					'startPosition',
+					'closedPnl',
 					'fee',
-					{
-						label: 'fee token',
-					},
-					{
-						label: 'closed PnL',
-					},
-					{
-						label: 'time',
-					},
+					'feeToken',
+					'timeMs',
 					'hash',
-					{
-						label: 'crossed flag',
-					},
+					'crossed',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'parent Hyperliquid account',
-						},
-					],
-				},
-				{
-					label: 'Order',
-					items: [
-						{
-							label: 'linked Hyperliquid order when order id resolves',
-						},
-					],
-				},
-				{
-					label: 'Transaction',
-					items: [
-						{
-							label: 'HyperEVM transaction when hash maps to execution',
-						},
-					],
-				},
-				{
-					label: 'Fill economics',
-					items: [
-						'price',
-						'size',
-						'fee',
-						{
-							label: 'start position',
-						},
-						{
-							label: 'PnL fields',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'userFills or userFillsByTime payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

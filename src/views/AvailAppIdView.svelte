@@ -10,71 +10,31 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'app id',
-			},
-			'label',
-			{
-				label: 'latest submission count',
-			},
+			'appId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'app id',
-					},
+					'appId',
 					'label',
-					{
-						label: 'owner selector',
-					},
-					{
-						label: 'latest data submission count',
-					},
+					'ownerSelector',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Data submissions',
+					label: 'data submissions',
+					when: 'open',
 					items: [
-						{
-							label: 'data submissions filtered by app id',
-						},
+						'$$dataSubmissions',
 					],
 				},
 				{
-					label: 'Observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped app-id observations',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Avail network',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'app-id registry/indexer payload',
-						},
-						{
-							label: 'extrinsic app-id evidence',
-						},
-						{
-							label: 'configured app labels',
-						},
+						'$$timestamps',
 					],
 				},
 			],

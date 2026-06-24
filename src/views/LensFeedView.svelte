@@ -10,68 +10,27 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'feed address',
-			},
-			'owner',
-			'name',
+			'address',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'feed address',
-					},
+					'address',
 					'owner',
 					'name',
 					'description',
-					{
-						label: 'created time',
-					},
-					{
-						label: 'rule summary',
-					},
-					{
-						label: 'post count',
-					},
+					'createdAt',
+					'rules',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Posts',
+					label: 'posts',
+					when: 'open',
 					items: [
-						{
-							label: 'posts published to this feed',
-						},
-					],
-				},
-				{
-					label: 'Owner',
-					items: [
-						{
-							label: 'owner EVM account when resolved',
-						},
-					],
-				},
-				{
-					label: 'Rules',
-					items: [
-						{
-							label: 'feed rules JSON',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'feed GraphQL payload',
-						},
-						{
-							label: 'feed contract events when available',
-						},
+						'$$posts',
 					],
 				},
 			],

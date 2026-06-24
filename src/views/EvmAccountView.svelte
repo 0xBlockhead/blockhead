@@ -10,69 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'global address identity',
-			},
+			'address',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'global address identity',
-					},
-					{
-						label: 'primary ENS name',
-					},
-					{
-						label: 'avatar URL/media when resolver-backed',
-					},
+					'address',
+					'interopAddress',
+					'avatarUrl',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Identity',
+					label: 'ENS names ownedses',
+					when: 'open',
 					items: [
-						{
-							label: 'ENS names owned',
-						},
-						{
-							label: 'primary ENS name',
-						},
-						{
-							label: 'resolver-backed avatar media or generated blockie fallback',
-						},
-					],
-				},
-				{
-					label: 'Network accounts',
-					items: [
-						{
-							label: 'per-chain EVM network accounts',
-						},
-					],
-				},
-				{
-					label: 'Balances',
-					items: [
-						{
-							label: 'network-actor coin balances when available',
-						},
-					],
-				},
-				{
-					label: 'Activity',
-					items: [
-						{
-							label: 'transactions',
-						},
-						{
-							label: 'token transfers',
-						},
-						{
-							label: 'internal transfers through network accounts',
-						},
+						'$$ensNamesOwned',
 					],
 				},
 			],

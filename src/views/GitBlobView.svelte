@@ -10,64 +10,27 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'object id',
-			},
-			{
-				label: 'object format',
-			},
-			{
-				label: 'object link',
-			},
+			'objectId',
+			'objectFormat',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'object id',
-					},
-					{
-						label: 'object format',
-					},
-					{
-						label: 'object link',
-					},
-					{
-						label: 'byte size',
-					},
-					{
-						label: 'MIME',
-					},
-					{
-						label: 'text sample when safe',
-					},
+					'objectId',
+					'objectFormat',
+					'mime',
+					'byteSize',
+					'textSample',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Paths',
+					label: 'paths',
+					when: 'open',
 					items: [
-						{
-							label: 'tree entries that reference this blob',
-						},
-					],
-				},
-				{
-					label: 'Object',
-					items: [
-						{
-							label: 'parent Git object',
-						},
-					],
-				},
-				{
-					label: 'Content preview',
-					items: [
-						{
-							label: 'local byte preview when available',
-						},
+						'$$paths',
 					],
 				},
 			],

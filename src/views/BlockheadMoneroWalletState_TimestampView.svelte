@@ -10,99 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'wallet state',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'wallet state',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'wallet height',
-					},
-					{
-						label: 'balance',
-					},
-					{
-						label: 'unlocked balance',
-					},
-					{
-						label: 'multisig import-needed flag',
-					},
-					{
-						label: 'outputs exported time',
-					},
-					{
-						label: 'key images exported time',
-					},
-					{
-						label: 'last synced time',
-					},
+					'height',
+					'balanceAtomicUnits',
+					'unlockedBalanceAtomicUnits',
+					'multisigImportNeeded',
+					'outputsExportedAt',
+					'keyImagesExportedAt',
+					'lastSyncedAt',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Wallet',
-					items: [
-						{
-							label: 'BlockheadMoneroWalletStateView',
-						},
-					],
-				},
-				{
-					label: 'Subaddresses',
-					items: [
-						{
-							label: 'BlockheadMoneroSubaddressState list',
-						},
-					],
-				},
-				{
-					label: 'Outputs',
-					items: [
-						{
-							label: 'BlockheadMoneroOutputState list',
-						},
-					],
-				},
-				{
-					label: 'Transfers',
-					items: [
-						{
-							label: 'BlockheadMoneroTransferState list',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'monero-wallet-rpc get_height',
-						},
-						{
-							label: 'get_balance',
-						},
-						{
-							label: 'output export',
-						},
-						{
-							label: 'key-image export/import payloads',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

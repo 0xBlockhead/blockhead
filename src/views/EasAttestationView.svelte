@@ -10,116 +10,30 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'UID',
-			},
-			{
-				label: 'schema',
-			},
-			{
-				label: 'recipient/attester',
-			},
+			'uid',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'UID',
-					},
-					{
-						label: 'network',
-					},
-					{
-						label: 'schema UID',
-					},
+					'uid',
+					'schemaUid',
 					'recipient',
 					'attester',
-					{
-						label: 'ref UID',
-					},
-					{
-						label: 'attested time',
-					},
-					{
-						label: 'expiration time',
-					},
-					{
-						label: 'revocable flag',
-					},
-					{
-						label: 'latest revocation/validity status',
-					},
-				],
-				[
-					{
-						label: 'data byte length',
-					},
-					{
-						label: 'schema resolver',
-					},
-					{
-						label: 'source transaction/log',
-					},
-					{
-						label: 'linked recipient/attester accounts',
-					},
+					'refUid',
+					'attestedAt',
+					'expirationTime',
+					'revocable',
+					'data',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Schema',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'parent EAS schema',
-						},
-					],
-				},
-				{
-					label: 'Status history',
-					items: [
-						{
-							label: 'timestamped attestation lifecycle/status observations',
-						},
-					],
-				},
-				{
-					label: 'Accounts',
-					items: [
-						{
-							label: 'recipient and attester EVM network accounts',
-						},
-					],
-				},
-				{
-					label: 'Reference',
-					items: [
-						{
-							label: 'ref attestation chain when present',
-						},
-					],
-				},
-				{
-					label: 'Decoded data',
-					items: [
-						{
-							label: 'schema-string decoded fields when resolver supports ABI-style schema',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'EAS contract getAttestation',
-						},
-						{
-							label: 'Attested/Revoked logs',
-						},
-						{
-							label: 'EAS Scan/indexer payload',
-						},
+						'$$timestamps',
 					],
 				},
 			],

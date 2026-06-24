@@ -9,106 +9,47 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'linked Cosmos network',
-			},
-			{
-				label: 'latest block/indexer height',
-			},
-			{
-				label: 'market count',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
-				[
-					{
-						label: 'linked Cosmos network',
-					},
-					{
-						label: 'latest block height',
-					},
-					{
-						label: 'latest indexer height',
-					},
-					{
-						label: 'market count',
-					},
-					{
-						label: 'subaccount count',
-					},
-					{
-						label: 'open order count',
-					},
-					{
-						label: 'open position count',
-					},
-				],
+				[],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Network observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped dYdX Chain status/coverage observations',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Markets',
+					label: 'markets',
+					when: 'open',
 					items: [
-						{
-							label: 'dYdX market rows',
-						},
+						'$$markets',
 					],
 				},
 				{
-					label: 'Subaccounts',
+					label: 'subaccounts',
+					when: 'open',
 					items: [
-						{
-							label: 'dYdX subaccount rows',
-						},
+						'$$subaccounts',
 					],
 				},
 				{
-					label: 'Orders',
+					label: 'orders',
+					when: 'open',
 					items: [
-						{
-							label: 'dYdX order rows',
-						},
+						'$$orders',
 					],
 				},
 				{
-					label: 'Positions',
+					label: 'positions',
+					when: 'open',
 					items: [
-						{
-							label: 'perpetual position observations',
-						},
-					],
-				},
-				{
-					label: 'Cosmos base',
-					items: [
-						{
-							label: 'underlying Cosmos network row',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'dYdX indexer status/height',
-						},
-						{
-							label: 'validator Cosmos SDK node status',
-						},
-						{
-							label: 'app-state query support',
-						},
+						'$$positions',
 					],
 				},
 			],

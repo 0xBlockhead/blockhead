@@ -10,18 +10,14 @@
 	// State
 	const view = {
 		closed: [
-			'$hub',
 			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					'$hub',
 					'timestampMs',
 					'source',
-				],
-				[
 					'sourceWindowNameCount',
 					'sourceWindowRecordCount',
 					'sourceWindowReverseRecordCount',
@@ -31,49 +27,6 @@
 					'rpcBlockNumber',
 					'reachable',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Hub',
-					items: [
-						'$hub',
-					],
-				},
-				{
-					label: 'Observation fields',
-					items: [
-						'sourceWindowNameCount',
-						'sourceWindowRecordCount',
-						'sourceWindowReverseRecordCount',
-						'localCatalogContractCount',
-						'discoveredResolverContractCount',
-						'subgraphBlockNumber',
-						'rpcBlockNumber',
-						'reachable',
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'SourceBinding.Blockscout_Rest',
-						},
-						{
-							label: 'SourceBinding.Constants_Internal',
-						},
-						{
-							label: 'SourceBinding.Etherscan_Rest',
-						},
-						{
-							label: 'SourceBinding.TheGraph_Graphql',
-						},
-						{
-							label: 'SourceBinding.Voltaire_JsonRpc',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,76 +10,14 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'transaction',
-			},
-			{
-				label: 'peg-in index',
-			},
-			{
-				label: 'transparent output',
-			},
+			'pegInIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'transaction',
-					},
-					{
-						label: 'peg-in index',
-					},
-					{
-						label: 'transparent output',
-					},
-					{
-						label: 'amount in litoshis',
-					},
+					'pegInIndex',
+					'amountLitoshis',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Transaction',
-					items: [
-						{
-							label: 'parent MWEB transaction',
-						},
-					],
-				},
-				{
-					label: 'Transparent output',
-					items: [
-						{
-							label: 'linked transparent UTXO output',
-						},
-					],
-				},
-				{
-					label: 'Wallet context',
-					items: [
-						{
-							label: 'connected wallet ownership only through BlockheadLitecoinMwebWalletState',
-						},
-					],
-				},
-				{
-					label: 'Amount',
-					items: [
-						{
-							label: 'peg-in accounting context',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Litecoin Core MWEB peg-in payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,71 +10,15 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'channel',
-			},
-			{
-				label: 'observation time',
-			},
-			{
-				label: 'follower count',
-			},
+			'timestampMs',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'channel',
-					},
-					{
-						label: 'observation time',
-					},
-					{
-						label: 'follower count',
-					},
-					{
-						label: 'member count',
-					},
+					'timestampMs',
+					'followerCount',
+					'memberCount',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Channel',
-					items: [
-						{
-							label: 'parent Farcaster channel',
-						},
-					],
-				},
-				{
-					label: 'Membership',
-					items: [
-						{
-							label: 'follower count',
-						},
-						{
-							label: 'member count',
-						},
-					],
-				},
-				{
-					label: 'History',
-					items: [
-						{
-							label: 'timestamped channel metric observations',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Farcaster channel payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

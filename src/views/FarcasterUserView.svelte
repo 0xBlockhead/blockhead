@@ -11,62 +11,40 @@
 	const view = {
 		closed: [
 			'fid',
-			'username',
-			{
-				label: 'display name',
-			},
 		],
 		content: {
 			dl: [
 				[
 					'fid',
 					'username',
-					{
-						label: 'display name',
-					},
-					{
-						label: 'icon URL/media',
-					},
+					'displayName',
+					'iconUrl',
 					'bio',
-					{
-						label: 'URL',
-					},
-					{
-						label: 'primary EVM account',
-					},
-					{
-						label: 'verified address count',
-					},
-					{
-						label: 'latest follower/following snapshot',
-					},
+					'url',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Casts',
+					label: 'verified addresses',
+					when: 'open',
 					items: [
-						{
-							label: 'casts authored by this FID',
-						},
+						'$$verifiedAddresses',
 					],
 				},
 				{
-					label: 'Verified addresses',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'verified-address rows',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Metric snapshots',
+					label: 'casts',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped follower/following observations',
-						},
+						'$$casts',
 					],
 				},
 			],

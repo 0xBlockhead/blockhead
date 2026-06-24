@@ -11,87 +11,51 @@
 	const view = {
 		closed: [
 			'address',
-			'workchain',
-			{
-				label: 'latest account observation',
-			},
 		],
 		content: {
 			dl: [
 				[
 					'address',
 					'workchain',
-					{
-						label: 'latest balance/status observation',
-					},
-					{
-						label: 'last transaction lt',
-					},
-					{
-						label: 'contract/interface observation',
-					},
-					{
-						label: 'jetton balance/NFT item windows',
-					},
+					'addressHash',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Transactions',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'TON transactions involving this account',
-						},
+						'$$transactions',
 					],
 				},
 				{
-					label: 'Messages',
+					label: 'messages',
+					when: 'open',
 					items: [
-						{
-							label: 'TON messages involving this account',
-						},
+						'$$messages',
 					],
 				},
 				{
-					label: 'Contract',
+					label: 'jetton balance timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'TON contract when code/interface is detected',
-						},
+						'$$jettonBalanceTimestamps',
 					],
 				},
 				{
-					label: 'Jettons',
+					label: 'nft items',
+					when: 'open',
 					items: [
-						{
-							label: 'jetton balance observations',
-						},
+						'$$nftItems',
 					],
 				},
 				{
-					label: 'NFTs',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'TON NFT item rows',
-						},
-					],
-				},
-				{
-					label: 'Account history',
-					items: [
-						{
-							label: 'timestamped account-state observations',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'raw account-state payload',
-						},
+						'$$timestamps',
 					],
 				},
 			],

@@ -10,86 +10,36 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'script hash',
-			},
-			{
-				label: 'code hash',
-			},
+			'scriptHash',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'script hash',
-					},
-					{
-						label: 'code hash',
-					},
-					{
-						label: 'parameter/storage type availability',
-					},
-					{
-						label: 'TZIP-16 metadata URI',
-					},
-					{
-						label: 'contract count',
-					},
-					{
-						label: 'entrypoint count',
-					},
+					'scriptHash',
+					'codeHash',
+					'parameterType',
+					'storageType',
+					'code',
+					'micheline',
+					'michelson',
+					'tzip16MetadataUri',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Contracts',
+					label: 'contracts',
+					when: 'open',
 					items: [
-						{
-							label: 'contracts using the script',
-						},
+						'$$contracts',
 					],
 				},
 				{
-					label: 'Entrypoints',
+					label: 'entrypoints',
+					when: 'open',
 					items: [
-						{
-							label: 'entrypoint rows',
-						},
-					],
-				},
-				{
-					label: 'Code',
-					items: [
-						{
-							label: 'Micheline/Michelson code',
-						},
-					],
-				},
-				{
-					label: 'Types',
-					items: [
-						{
-							label: 'parameter',
-						},
-						{
-							label: 'storage type trees',
-						},
-					],
-				},
-				{
-					label: 'Metadata',
-					items: [
-						{
-							label: 'TZIP-16 metadata source evidence',
-						},
+						'$$entrypoints',
 					],
 				},
 			],

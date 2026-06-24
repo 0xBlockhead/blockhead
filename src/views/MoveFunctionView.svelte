@@ -10,66 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'module',
-			},
-			{
-				label: 'function name',
-			},
-			'visibility',
+			'functionName',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'module',
-					},
-					{
-						label: 'function name',
-					},
+					'functionName',
 					'visibility',
-					{
-						label: 'entry flag',
-					},
-					{
-						label: 'view flag',
-					},
-					{
-						label: 'type parameters',
-					},
+					'isEntry',
+					'isView',
+					'typeParameters',
 					'parameters',
-					{
-						label: 'returns',
-					},
+					'returnTypes',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Module',
-					items: [
-						{
-							label: 'parent Move module',
-						},
-					],
-				},
-				{
-					label: 'ABI evidence',
-					items: [
-						{
-							label: 'Aptos exposed_functions or Sui normalized module function payload',
-						},
-					],
-				},
-				{
-					label: 'Call sites',
-					items: [
-						{
-							label: 'Aptos transaction payloads or Sui programmable-transaction commands when indexed',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

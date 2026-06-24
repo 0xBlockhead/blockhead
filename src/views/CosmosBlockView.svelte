@@ -10,74 +10,26 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
 			'height',
-			'hash',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'height',
 					'hash',
-					{
-						label: 'timestamp',
-					},
-				],
-				[
-					{
-						label: 'proposer consensus address',
-					},
-					{
-						label: 'transaction count',
-					},
+					'proposerConsensusAddress',
+					'timestampMs',
+					'transactionCount',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Transactions',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'Cosmos transactions included in the block',
-						},
-					],
-				},
-				{
-					label: 'Header',
-					items: [
-						'height',
-						'hash',
-						{
-							label: 'proposer consensus address',
-						},
-						{
-							label: 'time',
-						},
-					],
-				},
-				{
-					label: 'Lookup evidence',
-					items: [
-						{
-							label: 'height lookup',
-						},
-						{
-							label: 'hash lookup only when source-backed',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Cosmos network',
-						},
+						'$$transactions',
 					],
 				},
 			],

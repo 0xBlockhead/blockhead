@@ -10,79 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'validator',
-			},
 			'slot',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'validator',
-					},
 					'slot',
 					'source',
-					{
-						label: 'timestamp',
-					},
-					{
-						label: 'activated stake',
-					},
+					'timestampMs',
+					'activatedStakeLamports',
 					'commission',
-					{
-						label: 'delinquent flag',
-					},
-					{
-						label: 'last vote slot',
-					},
-					{
-						label: 'root slot',
-					},
-					{
-						label: 'epoch-credit summary',
-					},
+					'delinquent',
+					'lastVoteSlot',
+					'rootSlot',
+					'epochCredits',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Validator',
-					items: [
-						{
-							label: 'parent Solana validator',
-						},
-					],
-				},
-				{
-					label: 'Vote account',
-					items: [
-						{
-							label: 'validator vote account',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Solana network',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'getVoteAccounts current/delinquent payload',
-						},
-						{
-							label: 'commitment',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -658,7 +658,12 @@
 				[
 					...declaredContentDl.flat(),
 					...declaredContentBlocks.flat(),
-					...declaredDetailTabs.flatMap((tab) => tab.items ?? []),
+		...declaredDetailTabs.flatMap((tab) => (
+			tab.when === 'open' && open !== true ?
+				[]
+			:
+				tab.items ?? []
+		)),
 					...declaredDetailCarousels.flatMap((carousel) => (
 						carousel.sections.flatMap((section) => section.items ?? [])
 					)),

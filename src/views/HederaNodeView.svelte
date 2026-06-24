@@ -10,89 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'node id',
-			},
-			{
-				label: 'latest node account',
-			},
+			'nodeId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'node id',
-					},
-					{
-						label: 'latest node account',
-					},
-					{
-						label: 'latest endpoint count',
-					},
-					{
-						label: 'latest stake',
-					},
-					{
-						label: 'rewarded/not-rewarded stake',
-					},
-					{
-						label: 'min/max stake',
-					},
-					{
-						label: 'deleted flag',
-					},
-					{
-						label: 'timestamp count',
-					},
+					'nodeId',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest state',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'latest node/address-book observation',
-						},
-					],
-				},
-				{
-					label: 'State history',
-					items: [
-						{
-							label: 'timestamped node/address-book observations',
-						},
-					],
-				},
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'node Hedera account from latest state',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Hedera network',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'registered-node/address-book payload',
-						},
+						'$$timestamps',
 					],
 				},
 			],

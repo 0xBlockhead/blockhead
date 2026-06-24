@@ -10,63 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'spot asset',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'spot asset',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'name',
-					{
-						label: 'size decimals',
-					},
-					{
-						label: 'wei decimals',
-					},
-					{
-						label: 'token id',
-					},
+					'szDecimals',
+					'weiDecimals',
+					'tokenId',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Spot asset',
-					items: [
-						{
-							label: 'parent spot asset',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Hyperliquid network through spot asset',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'raw spotMeta.tokens row',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

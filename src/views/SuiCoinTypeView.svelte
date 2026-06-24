@@ -10,107 +10,41 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'coin type',
-			},
-			{
-				label: 'symbol/name',
-			},
-			'decimals',
+			'coinType',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'coin type',
-					},
+					'coinType',
+					'decimals',
 					'symbol',
 					'name',
-					'decimals',
 					'description',
-					{
-						label: 'icon URL',
-					},
-				],
-				[
-					{
-						label: 'defining Move struct',
-					},
-					{
-						label: 'treasury cap',
-					},
-					{
-						label: 'asset instance',
-					},
-					{
-						label: 'balance count',
-					},
-					{
-						label: 'object count',
-					},
-					{
-						label: 'regulated-state count',
-					},
+					'iconUrl',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Balances',
+					label: 'balances',
+					when: 'open',
 					items: [
-						{
-							label: 'coin balance observations grouped by account',
-						},
+						'$$balances',
 					],
 				},
 				{
-					label: 'Coin objects',
+					label: 'objects',
+					when: 'open',
 					items: [
-						{
-							label: 'Sui objects filtered by coin type',
-						},
+						'$$objects',
 					],
 				},
 				{
-					label: 'Regulated state',
+					label: 'regulated states',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped regulated-coin state observations',
-						},
-					],
-				},
-				{
-					label: 'Move definition',
-					items: [
-						{
-							label: 'defining Move struct',
-						},
-					],
-				},
-				{
-					label: 'Asset mapping',
-					items: [
-						{
-							label: 'asset instance and format-support observations when resolved',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'suix_getCoinMetadata',
-						},
-						{
-							label: 'GraphQL coin metadata',
-						},
-						{
-							label: 'treasury-cap/object ownership evidence',
-						},
+						'$$regulatedStates',
 					],
 				},
 			],

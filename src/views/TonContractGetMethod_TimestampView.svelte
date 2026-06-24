@@ -10,90 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'method',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'method',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'method id',
-					},
-					{
-						label: 'schema availability',
-					},
-					{
-						label: 'exit code',
-					},
-					{
-						label: 'gas used',
-					},
-					{
-						label: 'result hash',
-					},
-					{
-						label: 'block seqno',
-					},
-					{
-						label: 'last transaction lt',
-					},
+					'methodId',
+					'inputSchema',
+					'outputSchema',
+					'exitCode',
+					'gasUsed',
+					'stack',
+					'resultHash',
+					'blockSeqno',
+					'lastTransactionLt',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Method',
-					items: [
-						{
-							label: 'parent get-method identity',
-						},
-					],
-				},
-				{
-					label: 'Contract',
-					items: [
-						{
-							label: 'owning contract identity',
-						},
-					],
-				},
-				{
-					label: 'Schema',
-					items: [
-						{
-							label: 'input/output schema JSON',
-						},
-					],
-				},
-				{
-					label: 'Stack/result',
-					items: [
-						{
-							label: 'decoded stack JSON',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'raw run-method/verifier response',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

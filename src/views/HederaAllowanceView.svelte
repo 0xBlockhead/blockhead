@@ -10,94 +10,26 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'owner',
-			},
-			{
-				label: 'spender',
-			},
-			{
-				label: 'allowance kind',
-			},
+			'allowanceKind',
+			'tokenId',
+			'serialNumber',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'owner',
-					},
-					{
-						label: 'spender',
-					},
-					{
-						label: 'allowance kind',
-					},
-					{
-						label: 'token id',
-					},
-					{
-						label: 'NFT serial',
-					},
-					{
-						label: 'token/NFT refs',
-					},
-					{
-						label: 'latest amount or approved-for-all state',
-					},
-					{
-						label: 'timestamp count',
-					},
+					'allowanceKind',
+					'tokenId',
+					'serialNumber',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest state',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'latest allowance-state observation',
-						},
-					],
-				},
-				{
-					label: 'State history',
-					items: [
-						{
-							label: 'timestamped allowance-state observations',
-						},
-					],
-				},
-				{
-					label: 'Owner',
-					items: [
-						{
-							label: 'owner Hedera account',
-						},
-					],
-				},
-				{
-					label: 'Spender',
-					items: [
-						{
-							label: 'spender Hedera account',
-						},
-					],
-				},
-				{
-					label: 'Token/NFT',
-					items: [
-						{
-							label: 'linked Hedera token or NFT serial',
-						},
-					],
-				},
-				{
-					label: 'Transactions',
-					items: [
-						{
-							label: 'allowance approve/delete transactions when indexed',
-						},
+						'$$timestamps',
 					],
 				},
 			],

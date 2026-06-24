@@ -10,107 +10,47 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'AVS address',
-			},
-			'name',
-			{
-				label: 'latest operator count',
-			},
+			'avsAddress',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'AVS address',
-					},
+					'avsAddress',
+					'metadataUri',
 					'name',
 					'website',
-					{
-						label: 'metadata URI',
-					},
-					{
-						label: 'latest operator/strategy counts',
-					},
-				],
-				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'AVS account',
-					},
-					{
-						label: 'latest allocation/slashing activity',
-					},
+					'description',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped AVS aggregate observations',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Operators',
+					label: 'operators',
+					when: 'open',
 					items: [
-						{
-							label: 'EigenLayer operators filtered by AVS',
-						},
+						'$$operators',
 					],
 				},
 				{
-					label: 'Allocations',
+					label: 'allocations',
+					when: 'open',
 					items: [
-						{
-							label: 'allocation observations grouped by operator/strategy',
-						},
+						'$$allocations',
 					],
 				},
 				{
-					label: 'Slashing',
+					label: 'slashing events',
+					when: 'open',
 					items: [
-						{
-							label: 'EigenLayer slashing events',
-						},
-					],
-				},
-				{
-					label: 'Metadata',
-					items: [
-						{
-							label: 'metadata URI payload',
-						},
-						{
-							label: 'display fields',
-						},
-					],
-				},
-				{
-					label: 'Contracts',
-					items: [
-						{
-							label: 'AVS and middleware EVM contracts when resolved',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'AVSDirectory registration',
-						},
-						{
-							label: 'metadata fetch/indexer payload',
-						},
-						{
-							label: 'event logs',
-						},
+						'$$slashingEvents',
 					],
 				},
 			],

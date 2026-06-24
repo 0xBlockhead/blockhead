@@ -10,72 +10,38 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'catalog id',
-			},
-			{
-				label: 'catalog kind',
-			},
-			{
-				label: 'latest artifact/document coverage',
-			},
+			'catalogId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'catalog id',
-					},
+					'catalogId',
 					'label',
-					{
-						label: 'catalog kind',
-					},
-					{
-						label: 'latest observation',
-					},
-				],
-				[
-					{
-						label: 'artifact refs',
-					},
-					{
-						label: 'document refs',
-					},
+					'catalogKind',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Artifacts',
+					label: 'artifacts',
+					when: 'open',
 					items: [
-						{
-							label: 'AiArtifact list',
-						},
+						'$$artifacts',
 					],
 				},
 				{
-					label: 'Documents',
+					label: 'documents',
+					when: 'open',
 					items: [
-						{
-							label: 'AiDocument list',
-						},
+						'$$documents',
 					],
 				},
 				{
-					label: 'Claims',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'AiDocumentClaim and AiRelationshipClaim lists',
-						},
-					],
-				},
-				{
-					label: 'Observations',
-					items: [
-						{
-							label: '_GlobalAiArtifactCatalog_Timestamp list',
-						},
+						'$$timestamps',
 					],
 				},
 			],

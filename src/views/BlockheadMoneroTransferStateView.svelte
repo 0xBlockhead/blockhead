@@ -10,122 +10,35 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'wallet id',
-			},
-			{
-				label: 'transaction hash',
-			},
-			'direction',
+			'walletId',
+			'txHash',
+			'transferIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'wallet id',
-					},
-					{
-						label: 'transaction hash',
-					},
+					'walletId',
+					'txHash',
+					'transferIndex',
 					'direction',
-					{
-						label: 'amount',
-					},
-					{
-						label: 'fee',
-					},
-					{
-						label: 'account/subaddress indexes',
-					},
-					{
-						label: 'payment id',
-					},
-					{
-						label: 'note presence',
-					},
-					{
-						label: 'key-image presence',
-					},
-					{
-						label: 'first observed timestamp',
-					},
-					{
-						label: 'latest confirmations',
-					},
-					{
-						label: 'latest unlock time',
-					},
-					{
-						label: 'latest spent state',
-					},
+					'accountIndex',
+					'addressIndex',
+					'amountAtomicUnits',
+					'feeAtomicUnits',
+					'paymentId',
+					'note',
+					'keyImage',
+					'timestampMs',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest state',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadMoneroTransferState_TimestampView',
-						},
-					],
-				},
-				{
-					label: 'State history',
-					items: [
-						{
-							label: 'BlockheadMoneroTransferState_TimestampsView',
-						},
-					],
-				},
-				{
-					label: 'Transaction',
-					items: [
-						{
-							label: 'MoneroTransactionView when public tx data is resolved',
-						},
-					],
-				},
-				{
-					label: 'Subaddress',
-					items: [
-						{
-							label: 'BlockheadMoneroSubaddressStateView',
-						},
-					],
-				},
-				{
-					label: 'Outputs',
-					items: [
-						{
-							label: 'BlockheadMoneroOutputState rows for wallet-owned outputs in the tx',
-						},
-					],
-				},
-				{
-					label: 'Proofs/keys',
-					items: [
-						{
-							label: 'redacted tx key',
-						},
-						{
-							label: 'spend proof',
-						},
-						{
-							label: 'reserve proof',
-						},
-						{
-							label: 'key image material',
-						},
-					],
-				},
-				{
-					label: 'Notes',
-					items: [
-						{
-							label: 'local tx note',
-						},
+						'$$timestamps',
 					],
 				},
 			],

@@ -10,78 +10,23 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'host',
-			},
+			'forgeHost',
 			'owner',
-			{
-				label: 'repository name',
-			},
+			'repositoryName',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'host',
-					},
+					'forgeHost',
 					'owner',
-					{
-						label: 'repository name',
-					},
-					{
-						label: 'provider repository id',
-					},
+					'repositoryName',
+					'defaultBranch',
 					'visibility',
-					{
-						label: 'default branch',
-					},
-					{
-						label: 'clone URLs',
-					},
-					{
-						label: 'HTML URL',
-					},
+					'cloneUrls',
+					'htmlUrl',
+					'providerRepositoryId',
 					'source',
-					{
-						label: 'linked Git repository',
-					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Repository',
-					items: [
-						{
-							label: 'linked Git repository when clone/object evidence ties it',
-						},
-					],
-				},
-				{
-					label: 'Pull requests',
-					items: [
-						{
-							label: 'forge pull request records',
-						},
-					],
-				},
-				{
-					label: 'Issues',
-					items: [
-						{
-							label: 'forge issue records',
-						},
-					],
-				},
-				{
-					label: 'Releases',
-					items: [
-						{
-							label: 'forge release records',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

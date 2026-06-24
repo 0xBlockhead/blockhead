@@ -10,42 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'token id',
-			},
-			{
-				label: 'version',
-			},
-			{
-				label: 'mint',
-			},
+			'id',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'token id',
-					},
-					{
-						label: 'version',
-					},
-					{
-						label: 'mint',
-					},
+					'id',
+					'tokenVersion',
+					'encodedToken',
 					'unit',
 					'memo',
-					{
-						label: 'proof count',
-					},
-					{
-						label: 'total amount',
-					},
-					{
-						label: 'imported time',
-					},
-					{
-						label: 'redeemed time',
-					},
+					'mintUrl',
+					'proofCount',
+					'totalAmount',
+					'importedAt',
+					'redeemedAt',
 					'status',
 				],
 			],
@@ -53,38 +32,10 @@
 		details: {
 			tabs: [
 				{
-					label: 'Proofs',
+					label: 'proofs',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadCashuProof list',
-						},
-					],
-				},
-				{
-					label: 'Encoded token',
-					items: [
-						{
-							label: 'redacted token string with local reveal/copy controls',
-						},
-					],
-				},
-				{
-					label: 'Mint',
-					items: [
-						{
-							label: 'CashuMintView',
-						},
-					],
-				},
-				{
-					label: 'Import/redeem',
-					items: [
-						{
-							label: 'local lifecycle',
-						},
-						{
-							label: 'errors when captured',
-						},
+						'$$proofs',
 					],
 				},
 			],

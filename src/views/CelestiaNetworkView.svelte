@@ -9,86 +9,40 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'linked Network',
-			},
-			{
-				label: 'latest height',
-			},
-			{
-				label: 'latest blob count',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
-				[
-					{
-						label: 'linked Network',
-					},
-					{
-						label: 'latest height/hash',
-					},
-					{
-						label: 'latest namespace/blob counts',
-					},
-					{
-						label: 'latest health',
-					},
-					{
-						label: 'source coverage',
-					},
-				],
+				[],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest status',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'latest timestamped network/head observation',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Blocks',
+					label: 'blocks',
+					when: 'open',
 					items: [
-						{
-							label: 'Celestia blocks',
-						},
+						'$$blocks',
 					],
 				},
 				{
-					label: 'Namespaces',
+					label: 'namespaces',
+					when: 'open',
 					items: [
-						{
-							label: 'Celestia namespaces',
-						},
+						'$$namespaces',
 					],
 				},
 				{
-					label: 'Blobs',
+					label: 'blobs',
+					when: 'open',
 					items: [
-						{
-							label: 'Celestia blobs',
-						},
-					],
-				},
-				{
-					label: 'Scaling usage',
-					items: [
-						{
-							label: 'scaling deployment claims whose DA network/selector points at Celestia',
-						},
-					],
-				},
-				{
-					label: 'Cosmos base',
-					items: [
-						{
-							label: 'Cosmos validator/governance/account rows when modeled separately',
-						},
+						'$$blobs',
 					],
 				},
 			],

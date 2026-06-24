@@ -10,83 +10,20 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'position',
-			},
-			{
-				label: 'block number',
-			},
+			'blockNumber',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'position',
-					},
-					{
-						label: 'block number',
-					},
+					'blockNumber',
 					'source',
-					{
-						label: 'owner',
-					},
 					'liquidity',
-					{
-						label: 'token0 owed',
-					},
-					{
-						label: 'token1 owed',
-					},
-					{
-						label: 'fee growth inside token0',
-					},
-					{
-						label: 'fee growth inside token1',
-					},
+					'token0Owed',
+					'token1Owed',
+					'feeGrowthInside0LastX128',
+					'feeGrowthInside1LastX128',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Position',
-					items: [
-						{
-							label: 'parent liquidity position',
-						},
-					],
-				},
-				{
-					label: 'Pool',
-					items: [
-						{
-							label: 'liquidity pool through parent position',
-						},
-					],
-				},
-				{
-					label: 'Owner',
-					items: [
-						{
-							label: 'EVM account when resolved',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'NonfungiblePositionManager positions() result',
-						},
-						{
-							label: 'subgraph position snapshot',
-						},
-						{
-							label: 'local wallet position state',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

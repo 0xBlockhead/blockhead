@@ -11,115 +11,26 @@
 	const view = {
 		closed: [
 			'source',
-			{
-				label: 'submission key',
-			},
-			{
-				label: 'app id',
-			},
+			'submissionKey',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'source',
-					{
-						label: 'submission key',
-					},
-					{
-						label: 'app id',
-					},
-					{
-						label: 'block number',
-					},
-					{
-						label: 'extrinsic index',
-					},
-					{
-						label: 'transaction hash',
-					},
-					{
-						label: 'sender selector',
-					},
-				],
-				[
-					{
-						label: 'data hash',
-					},
+					'submissionKey',
+					'blockNumber',
+					'extrinsicIndex',
+					'transactionHash',
+					'appId',
+					'dataHash',
 					'commitment',
-					{
-						label: 'size bytes',
-					},
-					{
-						label: 'proof availability',
-					},
-					{
-						label: 'payload requested',
-					},
+					'senderSelector',
+					'sizeBytes',
+					'proof',
+					'proofAvailable',
+					'payload',
+					'payloadRequested',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'App id',
-					items: [
-						{
-							label: 'parent app id when resolved',
-						},
-					],
-				},
-				{
-					label: 'Block',
-					items: [
-						{
-							label: 'containing block when resolved',
-						},
-					],
-				},
-				{
-					label: 'Payload',
-					items: [
-						{
-							label: 'payload bytes only when requested',
-						},
-						{
-							label: 'hash/size summary otherwise',
-						},
-					],
-				},
-				{
-					label: 'Proof',
-					items: [
-						{
-							label: 'proof JSON when source supports it',
-						},
-					],
-				},
-				{
-					label: 'Scaling usage',
-					items: [
-						{
-							label: 'scaling deployment claims whose DA selector references this app/submission when mapped',
-						},
-					],
-				},
-				{
-					label: 'Lookup evidence',
-					items: [
-						{
-							label: 'data submission extrinsic',
-						},
-						{
-							label: 'indexer transaction payload',
-						},
-						{
-							label: 'RPC proof/payload endpoint',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

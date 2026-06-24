@@ -10,86 +10,30 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'DRep credential',
-			},
-			{
-				label: 'credential kind',
-			},
-			{
-				label: 'latest registration state',
-			},
+			'drepCredential',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'DRep credential',
-					},
-					{
-						label: 'credential kind',
-					},
-					{
-						label: 'latest registration state',
-					},
-					{
-						label: 'latest deposit',
-					},
-					{
-						label: 'latest anchor URL/hash',
-					},
-					{
-						label: 'latest voting power',
-					},
-					{
-						label: 'vote count',
-					},
-					{
-						label: 'latest observation',
-					},
+					'drepCredential',
+					'credentialKind',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped DRep state observations',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Votes',
+					label: 'votes',
+					when: 'open',
 					items: [
-						{
-							label: 'governance votes by this DRep',
-						},
-					],
-				},
-				{
-					label: 'Delegators',
-					items: [
-						{
-							label: 'stake credentials delegated to this DRep when sourceable',
-						},
-					],
-				},
-				{
-					label: 'Anchor',
-					items: [
-						{
-							label: 'off-chain anchor metadata evidence from latest timestamp',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Cardano network',
-						},
+						'$$votes',
 					],
 				},
 			],

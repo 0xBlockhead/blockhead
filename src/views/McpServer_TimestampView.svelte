@@ -10,80 +10,27 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'server',
-			},
-			{
-				label: 'observation time',
-			},
-			'health',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'server',
-					},
-					{
-						label: 'timestamp',
-					},
+					'timestampMs',
 					'source',
 					'health',
-					{
-						label: 'protocol version',
-					},
-				],
-				[
-					{
-						label: 'capabilities',
-					},
-					{
-						label: 'listChanged/subscribe flags',
-					},
-					{
-						label: 'tool/resource/prompt counts',
-					},
-					{
-						label: 'cursor',
-					},
+					'protocolVersion',
+					'serverCapabilities',
+					'toolsListChanged',
+					'resourcesListChanged',
+					'resourcesSubscribe',
+					'promptsListChanged',
+					'toolCount',
+					'resourceCount',
+					'promptCount',
+					'nextCursor',
 					'error',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Server',
-					items: [
-						{
-							label: 'McpServer',
-						},
-					],
-				},
-				{
-					label: 'Capabilities',
-					items: [
-						{
-							label: 'server capabilities and feature flags',
-						},
-					],
-				},
-				{
-					label: 'Counts',
-					items: [
-						{
-							label: 'scoped tool/resource/prompt counts',
-						},
-					],
-				},
-				{
-					label: 'Error',
-					items: [
-						{
-							label: 'error field',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

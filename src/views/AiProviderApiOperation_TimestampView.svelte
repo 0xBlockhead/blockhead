@@ -10,77 +10,28 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'operation',
-			},
-			{
-				label: 'observation time',
-			},
-			{
-				label: 'availability',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'operation',
-					},
-					{
-						label: 'timestamp',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'availability',
-					},
+					'availabilityStatus',
+					'supportedModelSelectors',
+					'inputModalities',
+					'outputModalities',
+					'supportedStreaming',
+					'supportedToolUse',
+					'supportedStructuredOutput',
+					'supportedJsonMode',
+					'supportedReasoningEffort',
+					'contextPolicy',
+					'rateLimitPolicy',
+					'pricingPolicy',
+					'error',
 				],
-				[
-					{
-						label: 'supported model selectors',
-					},
-					{
-						label: 'modalities',
-					},
-					{
-						label: 'streaming/tool/structured support',
-					},
-				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Operation',
-					items: [
-						{
-							label: 'AiProviderApiOperation',
-						},
-					],
-				},
-				{
-					label: 'Model support',
-					items: [
-						{
-							label: 'supported model selectors',
-						},
-					],
-				},
-				{
-					label: 'Policies',
-					items: [
-						{
-							label: 'context/rate-limit/pricing policies',
-						},
-					],
-				},
-				{
-					label: 'Error',
-					items: [
-						{
-							label: 'error field',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

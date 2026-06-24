@@ -10,68 +10,17 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'operation index/type',
-			},
-			{
-				label: 'source account',
-			},
-			{
-				label: 'result code',
-			},
+			'operationIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'operation index/type',
-					},
-					{
-						label: 'source account',
-					},
-					{
-						label: 'result code',
-					},
-					{
-						label: 'parent transaction',
-					},
+					'operationIndex',
+					'operationType',
+					'sourceAccount',
+					'body',
+					'resultCode',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Transaction',
-					items: [
-						{
-							label: 'parent Stellar transaction',
-						},
-					],
-				},
-				{
-					label: 'Operation body',
-					items: [
-						{
-							label: 'operation body by type',
-						},
-					],
-				},
-				{
-					label: 'Result',
-					items: [
-						{
-							label: 'result code',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Horizon/RPC/indexer operation payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

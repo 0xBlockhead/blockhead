@@ -10,63 +10,16 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'channel',
-			},
-			{
-				label: 'observation time',
-			},
-			{
-				label: 'subscriber count',
-			},
+			'timestampMs',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'channel',
-					},
-					{
-						label: 'observation time',
-					},
-					{
-						label: 'subscriber count',
-					},
-					{
-						label: 'video count',
-					},
-					{
-						label: 'view count',
-					},
+					'timestampMs',
+					'subscriberCount',
+					'videoCount',
+					'viewCount',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Channel',
-					items: [
-						{
-							label: 'parent channel identity',
-						},
-					],
-				},
-				{
-					label: 'Statistics',
-					items: [
-						{
-							label: 'subscriber/video/view counts',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'YouTube Data API channels.list statistics payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

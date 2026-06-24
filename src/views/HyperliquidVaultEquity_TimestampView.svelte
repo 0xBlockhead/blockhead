@@ -10,82 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'account',
-			},
-			{
-				label: 'vault',
-			},
-			{
-				label: 'observed time',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'account',
-					},
-					{
-						label: 'vault',
-					},
-					{
-						label: 'observed time',
-					},
+					'timestampMs',
 					'source',
 					'equity',
-					{
-						label: 'PnL',
-					},
-					{
-						label: 'all-time PnL',
-					},
-					{
-						label: 'days following',
-					},
-					{
-						label: 'entry time',
-					},
-					{
-						label: 'lockup time',
-					},
+					'pnl',
+					'allTimePnl',
+					'daysFollowing',
+					'vaultEntryTimeMs',
+					'lockupUntilMs',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'parent Hyperliquid account',
-						},
-					],
-				},
-				{
-					label: 'Vault',
-					items: [
-						{
-							label: 'parent Hyperliquid vault',
-						},
-					],
-				},
-				{
-					label: 'Equity history',
-					items: [
-						{
-							label: 'same account/vault observations',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'userVaultEquities or vaultDetails follower payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

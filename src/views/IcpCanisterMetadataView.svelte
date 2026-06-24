@@ -10,80 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'canister',
-			},
-			{
-				label: 'metadata name',
-			},
-			{
-				label: 'latest visibility',
-			},
+			'metadataName',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'canister',
-					},
-					{
-						label: 'metadata name',
-					},
-					{
-						label: 'latest visibility',
-					},
-					{
-						label: 'latest content hash',
-					},
-					{
-						label: 'content type',
-					},
-					{
-						label: 'value size',
-					},
+					'metadataName',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Canister',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'parent ICP canister',
-						},
-					],
-				},
-				{
-					label: 'Metadata history',
-					items: [
-						{
-							label: 'timestamped metadata observations',
-						},
-					],
-				},
-				{
-					label: 'Decoded value',
-					items: [
-						{
-							label: 'Candid/service metadata or text/blob preview',
-						},
-					],
-				},
-				{
-					label: 'Methods',
-					items: [
-						{
-							label: 'method rows when metadata contains Candid service',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'certified canister metadata or custom-section payload',
-						},
+						'$$timestamps',
 					],
 				},
 			],

@@ -10,93 +10,44 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
 			'address',
-			{
-				label: 'account role',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'address',
-					{
-						label: 'account role',
-					},
-					{
-						label: 'master account',
-					},
-					{
-						label: 'agent account',
-					},
-					{
-						label: 'latest account value',
-					},
-					{
-						label: 'latest withdrawable amount',
-					},
-					{
-						label: 'latest spot balance count',
-					},
-					{
-						label: 'latest open order count',
-					},
+					'accountRole',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Account state',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped clearinghouse/user-state observations',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Orders',
+					label: 'orders',
+					when: 'open',
 					items: [
-						{
-							label: 'Hyperliquid order rows',
-						},
+						'$$orders',
 					],
 				},
 				{
-					label: 'Fills',
+					label: 'fills',
+					when: 'open',
 					items: [
-						{
-							label: 'Hyperliquid fill rows',
-						},
+						'$$fills',
 					],
 				},
 				{
-					label: 'Vault equities',
+					label: 'vault equities',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped vault equity observations',
-						},
-					],
-				},
-				{
-					label: 'Master/agent',
-					items: [
-						{
-							label: 'Hyperliquid account role links',
-						},
-					],
-				},
-				{
-					label: 'Transactions',
-					items: [
-						{
-							label: 'HyperEVM transactions when source context provides activity',
-						},
+						'$$vaultEquities',
 					],
 				},
 			],

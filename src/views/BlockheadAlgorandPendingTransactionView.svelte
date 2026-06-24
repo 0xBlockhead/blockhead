@@ -10,82 +10,25 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'node id',
-			},
-			{
-				label: 'tx id',
-			},
-			{
-				label: 'observed time',
-			},
+			'nodeId',
+			'txId',
+			'observedAtMs',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'node id',
-					},
-					{
-						label: 'tx id',
-					},
-					{
-						label: 'observed time',
-					},
-					{
-						label: 'network',
-					},
+					'nodeId',
+					'txId',
+					'observedAtMs',
 					'sender',
-					{
-						label: 'transaction type',
-					},
+					'transactionType',
 					'fee',
-					{
-						label: 'validity round range',
-					},
-					{
-						label: 'group id',
-					},
-					{
-						label: 'pool priority',
-					},
+					'firstValidRound',
+					'lastValidRound',
+					'group',
+					'poolPriority',
+					'payload',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Payload',
-					items: [
-						{
-							label: 'pending transaction JSON/msgpack summary',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'linked Algorand network',
-						},
-					],
-				},
-				{
-					label: 'Group',
-					items: [
-						{
-							label: 'sibling pending transactions with the same group id',
-						},
-					],
-				},
-				{
-					label: 'Confirmation',
-					items: [
-						{
-							label: 'confirmed Algorand transaction when the tx id resolves on-chain',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

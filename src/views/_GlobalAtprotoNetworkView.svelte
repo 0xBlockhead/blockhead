@@ -11,53 +11,42 @@
 	const view = {
 		closed: [
 			'scope',
-			'$$timestamps',
-			'$$sourceWindowActors',
 		],
 		content: {
 			dl: [
 				[
 					'scope',
-					'$$timestamps',
-				],
-				[
-					'$$sourceWindowActors',
-					'$$sourceWindowPosts',
-					'$$sourceWindowRepoCommits',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Source-window rows',
+					label: 'source window actors',
+					when: 'open',
 					items: [
 						'$$sourceWindowActors',
+					],
+				},
+				{
+					label: 'source window posts',
+					when: 'open',
+					items: [
 						'$$sourceWindowPosts',
+					],
+				},
+				{
+					label: 'source window repo commits',
+					when: 'open',
+					items: [
 						'$$sourceWindowRepoCommits',
 					],
 				},
 				{
-					label: 'Hub observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
 						'$$timestamps',
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'SourceBinding.Atproto_BskySocial_Xrpc',
-						},
-						{
-							label: 'SourceBinding.Atproto_Xrpc',
-						},
-						{
-							label: 'SourceBinding.AtprotoSync_Xrpc',
-						},
-						{
-							label: 'SourceBinding.Constants_Internal',
-						},
 					],
 				},
 			],

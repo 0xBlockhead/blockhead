@@ -10,59 +10,17 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'perp market',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'perp market',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'max leverage',
-					},
-					{
-						label: 'isolated-only flag',
-					},
+					'maxLeverage',
+					'onlyIsolated',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Perp market',
-					items: [
-						{
-							label: 'parent perp market',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Hyperliquid network through perp market',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'raw meta.universe row',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,62 +10,17 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'subnet',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'subnet',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'metagraph byte length',
-					},
-					{
-						label: 'neuron count',
-					},
+					'metagraphByteLength',
+					'neuronCount',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Subnet',
-					items: [
-						{
-							label: 'parent subnet',
-						},
-					],
-				},
-				{
-					label: 'Neurons',
-					items: [
-						{
-							label: 'neuron rows by uid when decoded',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'subnetInfo_getMetagraph payload',
-						},
-						{
-							label: 'decoder/version context',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

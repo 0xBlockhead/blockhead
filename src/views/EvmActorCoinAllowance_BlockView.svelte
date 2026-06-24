@@ -10,84 +10,18 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'allowance identity',
-			},
-			{
-				label: 'block number',
-			},
-			{
-				label: 'block tag',
-			},
+			'blockNumber',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'allowance identity',
-					},
-					{
-						label: 'block number',
-					},
-					{
-						label: 'block tag',
-					},
+					'blockNumber',
 					'source',
-					{
-						label: 'raw allowance amount',
-					},
-					{
-						label: 'checked timestamp',
-					},
-					{
-						label: 'owner',
-					},
-					{
-						label: 'spender',
-					},
-					{
-						label: 'token contract',
-					},
+					'allowance',
+					'blockTag',
+					'checkedAt',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Allowance',
-					items: [
-						{
-							label: 'parent allowance identity',
-						},
-					],
-				},
-				{
-					label: 'Block',
-					items: [
-						{
-							label: 'EVM block when resolved',
-						},
-					],
-				},
-				{
-					label: 'Contract call',
-					items: [
-						{
-							label: 'allowance(owner,spender) calldata/return value',
-						},
-						{
-							label: 'RPC block tag',
-						},
-					],
-				},
-				{
-					label: 'Actor balance',
-					items: [
-						{
-							label: 'same-block actor/token balance observation when available',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

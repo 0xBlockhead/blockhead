@@ -10,79 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'stored data',
-			},
-			{
-				label: 'observation time',
-			},
-			{
-				label: 'local availability',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'stored data',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'has local block',
-					},
-					{
-						label: 'available locally',
-					},
-					{
-						label: 'download status',
-					},
+					'hasLocalBlock',
+					'availableLocally',
+					'downloadStatus',
 					'error',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Stored data',
-					items: [
-						{
-							label: 'parent local stored-data row',
-						},
-					],
-				},
-				{
-					label: 'Dataset',
-					items: [
-						{
-							label: 'Codex dataset when resolved',
-						},
-					],
-				},
-				{
-					label: 'Node',
-					items: [
-						{
-							label: 'parent Codex storage node state',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: '/data/{cid}/exists',
-						},
-						{
-							label: '/data/{cid}',
-						},
-						{
-							label: '/data/{cid}/network responses',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

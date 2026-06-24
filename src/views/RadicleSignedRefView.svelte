@@ -10,76 +10,26 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'repository',
-			},
-			{
-				label: 'node id',
-			},
-			{
-				label: 'ref name',
-			},
+			'nodeId',
+			'refName',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'repository',
-					},
-					{
-						label: 'node id',
-					},
-					{
-						label: 'ref name',
-					},
-					{
-						label: 'target object id',
-					},
-					{
-						label: 'Git ref',
-					},
-					{
-						label: 'Git ref observation',
-					},
-					{
-						label: 'latest signed-ref verification',
-					},
+					'nodeId',
+					'refName',
+					'targetObjectId',
+					'signature',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Proof',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						'signature',
-						{
-							label: 'delegate authorization details',
-						},
-					],
-				},
-				{
-					label: 'Target',
-					items: [
-						{
-							label: 'Git object or commit target',
-						},
-					],
-				},
-				{
-					label: 'Git ref',
-					items: [
-						{
-							label: 'Git ref and ref observation',
-						},
-					],
-				},
-				{
-					label: 'Verification history',
-					items: [
-						{
-							label: 'timestamped signed-ref verification observations',
-						},
+						'$$timestamps',
 					],
 				},
 			],

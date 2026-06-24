@@ -10,86 +10,25 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'connection id',
-			},
-			{
-				label: 'network',
-			},
-			{
-				label: 'RPC URL',
-			},
+			'connectionId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'connection id',
-					},
-					{
-						label: 'network',
-					},
-					{
-						label: 'RPC URL',
-					},
+					'connectionId',
+					'rpcUrl',
 					'encoding',
-					{
-						label: 'network id',
-					},
-					{
-						label: 'latest server version/sync/head state',
-					},
+					'networkId',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Node observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped connected-node observations',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Kaspa network',
-						},
-					],
-				},
-				{
-					label: 'Node head',
-					items: [
-						{
-							label: 'network timestamp observation when materialized from this connected node',
-						},
-					],
-				},
-				{
-					label: 'Virtual chain',
-					items: [
-						{
-							label: 'virtual-chain observations from local checkpoint pulls',
-						},
-					],
-				},
-				{
-					label: 'Transport',
-					items: [
-						{
-							label: 'wRPC/gRPC connection metadata',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'local node RPC payloads',
-						},
+						'$$timestamps',
 					],
 				},
 			],

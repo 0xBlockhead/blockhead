@@ -10,95 +10,17 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'CID',
-			},
-			{
-				label: 'from actor',
-			},
+			'cid',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'CID',
-					},
-					{
-						label: 'from actor',
-					},
-					{
-						label: 'to actor',
-					},
-					{
-						label: 'method number',
-					},
+					'cid',
+					'method',
 					'nonce',
-					{
-						label: 'value in attoFIL',
-					},
-					{
-						label: 'gas limit',
-					},
-					{
-						label: 'fee cap',
-					},
-					{
-						label: 'premium',
-					},
-					{
-						label: 'receipt count',
-					},
+					'valueAttoFil',
+					'gasLimit',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'From',
-					items: [
-						{
-							label: 'from Filecoin actor',
-						},
-					],
-				},
-				{
-					label: 'To',
-					items: [
-						{
-							label: 'to Filecoin actor',
-						},
-					],
-				},
-				{
-					label: 'Receipts',
-					items: [
-						{
-							label: 'Filecoin message receipts',
-						},
-					],
-				},
-				{
-					label: 'Blocks/tipsets',
-					items: [
-						{
-							label: 'block/tipset refs when source context provides inclusion',
-						},
-					],
-				},
-				{
-					label: 'Params',
-					items: [
-						{
-							label: 'raw params preview when source-backed',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,70 +10,26 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'connection id',
-			},
-			{
-				label: 'profile',
-			},
-			{
-				label: 'kind',
-			},
+			'connectionId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'connection id',
-					},
-					{
-						label: 'profile',
-					},
-					{
-						label: 'source',
-					},
-					{
-						label: 'kind',
-					},
-				],
-				[
-					{
-						label: 'endpoint URL',
-					},
-					{
-						label: 'auth kind',
-					},
+					'connectionId',
+					'connectionKind',
+					'endpointUrl',
+					'authKind',
 					'enabled',
-					{
-						label: 'latest health',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Profile',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadAgentProfile',
-						},
-					],
-				},
-				{
-					label: 'Source',
-					items: [
-						{
-							label: 'BlockheadSource',
-						},
-					],
-				},
-				{
-					label: 'Health',
-					items: [
-						{
-							label: 'BlockheadAgentConnection_Timestamp list',
-						},
+						'$$timestamps',
 					],
 				},
 			],

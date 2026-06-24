@@ -9,94 +9,61 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'linked Network',
-			},
-			{
-				label: 'latest validated ledger/range snapshot',
-			},
-			{
-				label: 'load factor',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
-				[
-					{
-						label: 'linked Network',
-					},
-					{
-						label: 'latest validated ledger/range snapshot',
-					},
-					{
-						label: 'load factor',
-					},
-					{
-						label: 'peer count',
-					},
-					{
-						label: 'native XRP asset',
-					},
-				],
+				[],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Ledgers',
+					label: 'ledgers',
+					when: 'open',
 					items: [
-						{
-							label: 'validated ledgers',
-						},
+						'$$ledgers',
 					],
 				},
 				{
-					label: 'Transactions',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'ledger transactions',
-						},
+						'$$transactions',
 					],
 				},
 				{
-					label: 'Accounts',
+					label: 'accounts',
+					when: 'open',
 					items: [
-						{
-							label: 'XRPL accounts',
-						},
+						'$$accounts',
 					],
 				},
 				{
-					label: 'Ledger entries',
+					label: 'ledger entries',
+					when: 'open',
 					items: [
-						{
-							label: 'ledger object entries',
-						},
+						'$$ledgerEntries',
 					],
 				},
 				{
-					label: 'Amendments',
+					label: 'amendments',
+					when: 'open',
 					items: [
-						{
-							label: 'amendment feature gates',
-						},
+						'$$amendments',
 					],
 				},
 				{
-					label: 'AMMs',
+					label: 'amms',
+					when: 'open',
 					items: [
-						{
-							label: 'AMM ledger objects',
-						},
+						'$$amms',
 					],
 				},
 				{
-					label: 'Network snapshots',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'node/network observations',
-						},
+						'$$timestamps',
 					],
 				},
 			],

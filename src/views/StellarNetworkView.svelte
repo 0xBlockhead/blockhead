@@ -9,131 +9,91 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'linked Network',
-			},
-			{
-				label: 'network passphrase',
-			},
-			{
-				label: 'latest network observation',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
 				[
-					{
-						label: 'linked Network',
-					},
-					{
-						label: 'network passphrase',
-					},
-					{
-						label: 'latest ledger/protocol observation',
-					},
-					{
-						label: 'base fee/reserve observation',
-					},
-				],
-				[
-					{
-						label: 'native XLM asset',
-					},
-					{
-						label: 'bounded contract/liquidity-pool/account/transaction windows',
-					},
+					'passphrase',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Network snapshots',
+					label: 'ledgers',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped network observations',
-						},
+						'$$ledgers',
 					],
 				},
 				{
-					label: 'Ledgers',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'Stellar ledger rows',
-						},
+						'$$transactions',
 					],
 				},
 				{
-					label: 'Transactions',
+					label: 'operations',
+					when: 'open',
 					items: [
-						{
-							label: 'Stellar transaction rows',
-						},
+						'$$operations',
 					],
 				},
 				{
-					label: 'Operations',
+					label: 'accounts',
+					when: 'open',
 					items: [
-						{
-							label: 'Stellar operation rows',
-						},
+						'$$accounts',
 					],
 				},
 				{
-					label: 'Accounts',
+					label: 'assets',
+					when: 'open',
 					items: [
-						{
-							label: 'Stellar account rows',
-						},
+						'$$assets',
 					],
 				},
 				{
-					label: 'Assets',
+					label: 'claimable balances',
+					when: 'open',
 					items: [
-						{
-							label: 'Stellar asset rows',
-						},
+						'$$claimableBalances',
 					],
 				},
 				{
-					label: 'Claimable balances',
+					label: 'contracts',
+					when: 'open',
 					items: [
-						{
-							label: 'Stellar claimable balance rows',
-						},
+						'$$contracts',
 					],
 				},
 				{
-					label: 'Liquidity pools',
+					label: 'liquidity pools',
+					when: 'open',
 					items: [
-						{
-							label: 'Stellar liquidity pool rows',
-						},
+						'$$liquidityPools',
 					],
 				},
 				{
-					label: 'Offers',
+					label: 'offers',
+					when: 'open',
 					items: [
-						{
-							label: 'Stellar offer rows',
-						},
+						'$$offers',
 					],
 				},
 				{
-					label: 'Trades',
+					label: 'trades',
+					when: 'open',
 					items: [
-						{
-							label: 'Stellar trade rows',
-						},
+						'$$trades',
 					],
 				},
 				{
-					label: 'Soroban contracts',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'Soroban contract rows',
-						},
+						'$$timestamps',
 					],
 				},
 			],

@@ -10,89 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'feed',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'feed',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'decimals',
 					'description',
-					{
-						label: 'proxy version',
-					},
-					{
-						label: 'aggregator address',
-					},
-					{
-						label: 'aggregator type/version',
-					},
+					'version',
+					'aggregatorAddress',
+					'typeAndVersion',
+					'latestRoundId',
+					'latestUpdatedAtMs',
+					'configDigest',
+					'configBlockNumber',
 				],
-				[
-					{
-						label: 'latest round id',
-					},
-					{
-						label: 'latest updated time',
-					},
-					{
-						label: 'config digest',
-					},
-					{
-						label: 'config block number',
-					},
-				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Feed',
-					items: [
-						{
-							label: 'parent oracle feed',
-						},
-					],
-				},
-				{
-					label: 'Aggregator',
-					items: [
-						{
-							label: 'EVM contract when aggregatorAddress is present',
-						},
-					],
-				},
-				{
-					label: 'Latest round',
-					items: [
-						{
-							label: 'oracle round when latestRoundId resolves',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'AggregatorV3Interface decimals/description/version/latestRoundData',
-						},
-						{
-							label: 'aggregator typeAndVersion/latestConfigDetails',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

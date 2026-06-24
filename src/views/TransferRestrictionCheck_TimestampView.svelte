@@ -10,91 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'restriction',
-			},
-			{
-				label: 'observation time',
-			},
-			{
-				label: 'subject',
-			},
+			'timestampMs',
+			'source',
+			'subjectKey',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'restriction',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'subject key',
-					},
-					{
-						label: 'account',
-					},
+					'subjectKey',
 					'amount',
-				],
-				[
-					{
-						label: 'can transfer',
-					},
+					'canTransfer',
 					'reason',
-					{
-						label: 'ledger coordinate',
-					},
-					{
-						label: 'validity window',
-					},
+					'ledgerCoordinateKind',
+					'ledgerCoordinateValue',
+					'validFromMs',
+					'validToMs',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Restriction',
-					items: [
-						{
-							label: 'parent restriction rule',
-						},
-					],
-				},
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'scoped account when resolved',
-						},
-					],
-				},
-				{
-					label: 'Eligibility',
-					items: [
-						{
-							label: 'materialized account/asset eligibility row',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'canTransfer/isVerified call',
-						},
-						{
-							label: 'transfer-hook simulation',
-						},
-						{
-							label: 'account-set membership',
-						},
-						{
-							label: 'event/indexer payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

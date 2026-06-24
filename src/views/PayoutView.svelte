@@ -11,108 +11,30 @@
 	const view = {
 		closed: [
 			'source',
-			{
-				label: 'payout id',
-			},
-			{
-				label: 'network',
-			},
+			'payoutId',
 		],
 		content: {
 			dl: [
 				[
 					'source',
-					{
-						label: 'payout id',
-					},
-					{
-						label: 'network',
-					},
-					{
-						label: 'asset instance/class',
-					},
-					{
-						label: 'distributor contract',
-					},
-					{
-						label: 'snapshot coordinate',
-					},
-					{
-						label: 'merkle root',
-					},
-					{
-						label: 'payment asset',
-					},
-					{
-						label: 'total amount',
-					},
-					{
-						label: 'recipient count',
-					},
-					{
-						label: 'opened/closed times',
-					},
-					{
-						label: 'latest claim count',
-					},
+					'payoutId',
+					'snapshotCoordinate',
+					'merkleRoot',
+					'paymentAsset',
+					'totalAmount',
+					'recipientCount',
+					'openedAt',
+					'closedAt',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Claims',
+					label: 'claims',
+					when: 'open',
 					items: [
-						{
-							label: 'account-scoped claim observations grouped by status',
-						},
-					],
-				},
-				{
-					label: 'Asset',
-					items: [
-						{
-							label: 'asset instance or asset class',
-						},
-					],
-				},
-				{
-					label: 'Distributor',
-					items: [
-						{
-							label: 'distributor EVM contract',
-						},
-						{
-							label: 'source event/call evidence',
-						},
-					],
-				},
-				{
-					label: 'Snapshot',
-					items: [
-						{
-							label: 'block/round/record coordinate',
-						},
-						{
-							label: 'merkle root',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Lens tokenDistribution',
-						},
-						{
-							label: 'distributor contract',
-						},
-						{
-							label: 'indexer',
-						},
-						{
-							label: 'or analytics payload',
-						},
+						'$$claims',
 					],
 				},
 			],

@@ -9,115 +9,39 @@
 
 	// State
 	const view = {
-		route: {
-			href: '/youtube/video/[videoId]',
-			dependsOn: [
-				'videoId',
-			],
-		},
-		query: {
-			sources: [
-				'Youtube_Rest',
-				'Piped_Rest',
-			],
-			openFields: [
-				'$author',
-				'$$timestamps',
-				'$$comments',
-			],
-			slot: 'YouTubeVideoQueryPolicy',
-		},
-		media: {
-			thumbnail: 'thumbnailUrl',
-			title: 'title',
-			fallbackIcon: 'video',
-			slot: 'YouTubeVideoThumbnail',
-		},
-		latest: [
-			{
-				field: '$$timestamps',
-				sort: 'timestampMs',
-				direction: 'desc',
-				view: 'YouTubeVideo_TimestampView',
-				slot: 'LatestYouTubeVideoMetrics',
-			},
-		],
 		closed: [
-			{
-				label: 'video id',
-			},
-			{
-				label: 'latest title',
-			},
-			{
-				label: 'latest description',
-			},
+			'videoId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'video id',
-					},
-					{
-						label: 'published date',
-					},
-					{
-						label: 'duration',
-					},
-					{
-						label: 'author channel',
-					},
-					{
-						label: 'latest title',
-					},
-					{
-						label: 'latest description',
-					},
-					{
-						label: 'latest live state',
-					},
-					{
-						label: 'latest thumbnail',
-					},
-					{
-						label: 'latest view/like/comment snapshot',
-					},
+					'videoId',
+					'publishedAt',
+					'publishedAtMs',
+					'durationSeconds',
+					'title',
+					'description',
+					'categoryId',
+					'liveBroadcastContent',
+					'tags',
+					'thumbnailUrl',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest metadata',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'latest video metadata observation',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Comments',
+					label: 'comments',
+					when: 'open',
 					items: [
-						{
-							label: 'video comments',
-						},
-					],
-				},
-				{
-					label: 'Author',
-					items: [
-						{
-							label: 'author channel',
-						},
-					],
-				},
-				{
-					label: 'Metric snapshots',
-					items: [
-						{
-							label: 'video metric observations',
-						},
+						'$$comments',
 					],
 				},
 			],

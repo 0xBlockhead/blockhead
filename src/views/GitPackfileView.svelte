@@ -10,66 +10,17 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'pack hash',
-			},
-			{
-				label: 'object format',
-			},
-			{
-				label: 'object count',
-			},
+			'packHash',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'pack hash',
-					},
-					{
-						label: 'object format',
-					},
-					{
-						label: 'object count',
-					},
-					{
-						label: 'pack size',
-					},
-					{
-						label: 'index hash',
-					},
-					{
-						label: 'repository context',
-					},
+					'packHash',
+					'objectFormat',
+					'objectCount',
+					'packSizeBytes',
+					'indexHash',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Objects',
-					items: [
-						{
-							label: 'packed-object storage observations',
-						},
-					],
-				},
-				{
-					label: 'Repository',
-					items: [
-						{
-							label: 'repository availability context',
-						},
-					],
-				},
-				{
-					label: 'Fetches',
-					items: [
-						{
-							label: 'fetch observations that captured the pack',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

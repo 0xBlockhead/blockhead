@@ -10,87 +10,20 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'relay host',
-			},
+			'relayHost',
 			'slot',
+			'blockHash',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'relay host',
-					},
+					'relayHost',
 					'slot',
-					{
-						label: 'block hash',
-					},
-					{
-						label: 'builder pubkey/builder ref',
-					},
-					{
-						label: 'bid value',
-					},
-					{
-						label: 'execution block number',
-					},
-					{
-						label: 'execution block ref when available',
-					},
+					'blockHash',
+					'builderPubkey',
+					'value',
+					'blockNumber',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Execution block',
-					items: [
-						{
-							label: 'linked EVM execution block',
-						},
-					],
-				},
-				{
-					label: 'Builder',
-					items: [
-						{
-							label: 'linked MEV builder',
-						},
-					],
-				},
-				{
-					label: 'Relay',
-					items: [
-						{
-							label: 'publishing relay host',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent EVM network consensus/MEV-Boost section',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'relay proposer_payload_delivered bidtrace fields',
-						},
-						{
-							label: 'relay host used',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

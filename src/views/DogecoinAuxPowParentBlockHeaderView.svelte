@@ -9,55 +9,14 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'AuxPoW ref',
-			},
-			{
-				label: 'parent header hash',
-			},
-			{
-				label: 'merkle root',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
 				[
-					{
-						label: 'AuxPoW ref',
-					},
-					{
-						label: 'parent header hash',
-					},
-					{
-						label: 'merkle root',
-					},
+					'hash',
+					'merkleRoot',
 					'nonce',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'AuxPoW',
-					items: [
-						{
-							label: 'parent Dogecoin AuxPoW proof',
-						},
-					],
-				},
-				{
-					label: 'Header evidence',
-					items: [
-						{
-							label: 'parent hash',
-						},
-						{
-							label: 'merkle root',
-						},
-						'nonce',
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

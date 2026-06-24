@@ -9,106 +9,47 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'linked base Network',
-			},
-			{
-				label: 'latest registry version',
-			},
-			{
-				label: 'subnet count',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
-				[
-					{
-						label: 'linked base Network',
-					},
-					{
-						label: 'latest registry version',
-					},
-					{
-						label: 'subnet count',
-					},
-					{
-						label: 'canister count',
-					},
-					{
-						label: 'boundary node count',
-					},
-					{
-						label: 'root-key hash',
-					},
-					{
-						label: 'certification summary',
-					},
-				],
+				[],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Subnets',
+					label: 'subnets',
+					when: 'open',
 					items: [
-						{
-							label: 'ICP subnet rows',
-						},
+						'$$subnets',
 					],
 				},
 				{
-					label: 'Canisters',
+					label: 'canisters',
+					when: 'open',
 					items: [
-						{
-							label: 'ICP canister rows',
-						},
+						'$$canisters',
 					],
 				},
 				{
-					label: 'Ledger canisters',
+					label: 'ledger canisters',
+					when: 'open',
 					items: [
-						{
-							label: 'ledger-interface canister rows',
-						},
+						'$$ledgerCanisters',
 					],
 				},
 				{
-					label: 'Request statuses',
+					label: 'request statuses',
+					when: 'open',
 					items: [
-						{
-							label: 'ingress request-status rows',
-						},
+						'$$requestStatuses',
 					],
 				},
 				{
-					label: 'Certified-state proofs',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'certificate/witness rows grouped by canister',
-						},
-					],
-				},
-				{
-					label: 'Timestamp history',
-					items: [
-						{
-							label: 'timestamped network registry/status observations',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'registry',
-						},
-						{
-							label: 'status',
-						},
-						{
-							label: 'dashboard payloads',
-						},
+						'$$timestamps',
 					],
 				},
 			],

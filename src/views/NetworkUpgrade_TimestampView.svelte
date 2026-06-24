@@ -10,63 +10,18 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'upgrade',
-			},
-			{
-				label: 'observation time',
-			},
-			'status',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'upgrade',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'status',
-					{
-						label: 'activation height',
-					},
-					{
-						label: 'activation timestamp',
-					},
+					'activationHeight',
+					'activationTimestampMs',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Upgrade',
-					items: [
-						{
-							label: 'parent network-upgrade row',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent network',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'catalog rollout state',
-						},
-						{
-							label: 'activation coordinate evidence when available',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,79 +10,23 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'offer',
-			},
-			'amount',
-			'price',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'offer',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'ledger sequence',
-					},
+					'ledgerSequence',
 					'amount',
 					'price',
-				],
-				[
+					'priceNumerator',
+					'priceDenominator',
 					'sponsor',
-					{
-						label: 'active state',
-					},
-					{
-						label: 'last modified time',
-					},
+					'active',
+					'lastModifiedTimeMs',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Offer',
-					items: [
-						{
-							label: 'parent Stellar offer',
-						},
-					],
-				},
-				{
-					label: 'Ledger',
-					items: [
-						{
-							label: 'Stellar ledger when resolved',
-						},
-					],
-				},
-				{
-					label: 'Seller',
-					items: [
-						{
-							label: 'seller Stellar account',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Horizon offer payload',
-						},
-						{
-							label: 'RPC ledger entry snapshot',
-						},
-						{
-							label: 'historical offer effects when needed',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

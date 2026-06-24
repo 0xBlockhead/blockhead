@@ -10,94 +10,53 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'asset key',
-			},
-			{
-				label: 'asset kind',
-			},
-			{
-				label: 'issuer account',
-			},
+			'assetKey',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'asset key',
-					},
-					{
-						label: 'asset kind',
-					},
-					{
-						label: 'asset code',
-					},
-					{
-						label: 'issuer account',
-					},
-					{
-						label: 'trustline count',
-					},
-					{
-						label: 'claimable balance count',
-					},
-					{
-						label: 'liquidity pool count',
-					},
-					{
-						label: 'asset metadata',
-					},
+					'assetKey',
+					'assetKind',
+					'assetCode',
+					'issuer',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Trustlines',
+					label: 'claimable balances',
+					when: 'open',
 					items: [
-						{
-							label: 'asset trustlines',
-						},
+						'$$claimableBalances',
 					],
 				},
 				{
-					label: 'Claimable balances',
+					label: 'liquidity pools',
+					when: 'open',
 					items: [
-						{
-							label: 'claimable balances denominated in this asset',
-						},
+						'$$liquidityPools',
 					],
 				},
 				{
-					label: 'Liquidity pools',
+					label: 'trustlines',
+					when: 'open',
 					items: [
-						{
-							label: 'liquidity pools containing this asset',
-						},
+						'$$trustlines',
 					],
 				},
 				{
-					label: 'Offers',
+					label: 'offers',
+					when: 'open',
 					items: [
-						{
-							label: 'offers selling/buying this asset',
-						},
+						'$$offers',
 					],
 				},
 				{
-					label: 'Trades',
+					label: 'trades',
+					when: 'open',
 					items: [
-						{
-							label: 'trades involving this asset',
-						},
-					],
-				},
-				{
-					label: 'Metadata',
-					items: [
-						{
-							label: 'TOML/explorer metadata when available',
-						},
+						'$$trades',
 					],
 				},
 			],

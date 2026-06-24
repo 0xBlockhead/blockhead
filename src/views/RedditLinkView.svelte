@@ -11,8 +11,6 @@
 	const view = {
 		closed: [
 			'fullname',
-			'title',
-			'selftext',
 		],
 		content: {
 			dl: [
@@ -20,47 +18,27 @@
 					'fullname',
 					'title',
 					'selftext',
-					{
-						label: 'URL',
-					},
+					'url',
 					'permalink',
 					'author',
-					{
-						label: 'created time',
-					},
-					{
-						label: 'subreddit',
-					},
-					{
-						label: 'latest score/comment-count snapshot',
-					},
+					'createdAt',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Comments',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'comment tree rows',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Subreddit',
+					label: 'comments',
+					when: 'open',
 					items: [
-						{
-							label: 'parent subreddit',
-						},
-					],
-				},
-				{
-					label: 'Metric snapshots',
-					items: [
-						{
-							label: 'timestamped score/comment-count observations',
-						},
+						'$$comments',
 					],
 				},
 			],

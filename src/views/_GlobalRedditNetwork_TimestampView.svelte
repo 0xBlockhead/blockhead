@@ -10,18 +10,14 @@
 	// State
 	const view = {
 		closed: [
-			'$hub',
 			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					'$hub',
 					'timestampMs',
 					'source',
-				],
-				[
 					'sourceWindowSubredditCount',
 					'sourceWindowLinkCount',
 					'localCatalogSubredditCount',
@@ -30,42 +26,6 @@
 					'rateLimitRemaining',
 					'listingWindowKind',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Hub',
-					items: [
-						'$hub',
-					],
-				},
-				{
-					label: 'Observation fields',
-					items: [
-						'sourceWindowSubredditCount',
-						'sourceWindowLinkCount',
-						'localCatalogSubredditCount',
-						'localCatalogLinkCount',
-						'reachable',
-						'rateLimitRemaining',
-						'listingWindowKind',
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'SourceBinding.Constants_Internal',
-						},
-						{
-							label: 'SourceBinding.Reddit_PublicJson',
-						},
-						{
-							label: 'SourceBinding.Reddit_Rest',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

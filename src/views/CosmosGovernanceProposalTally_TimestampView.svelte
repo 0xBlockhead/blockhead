@@ -10,59 +10,20 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'proposal',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'proposal',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'yes/abstain/no/no-with-veto counts',
-					},
-					{
-						label: 'turnout when sourced',
-					},
+					'yesCount',
+					'abstainCount',
+					'noCount',
+					'noWithVetoCount',
+					'turnout',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Proposal',
-					items: [
-						{
-							label: 'parent governance proposal',
-						},
-					],
-				},
-				{
-					label: 'Votes',
-					items: [
-						{
-							label: 'proposal vote records',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'live/final tally payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

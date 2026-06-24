@@ -10,55 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'terminal',
-			},
-			{
-				label: 'observation time',
-			},
-			'status',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'terminal',
-					},
-					{
-						label: 'timestamp',
-					},
+					'timestampMs',
 					'source',
+					'exitCode',
 					'status',
-					{
-						label: 'exit code',
-					},
-				],
-				[
-					{
-						label: 'output bytes',
-					},
+					'outputBytes',
 					'error',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Terminal',
-					items: [
-						{
-							label: 'AcpTerminal',
-						},
-					],
-				},
-				{
-					label: 'Status',
-					items: [
-						{
-							label: 'exit/status/output/error',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

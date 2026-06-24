@@ -10,55 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'task',
-			},
-			{
-				label: 'observation time',
-			},
-			'state',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'task',
-					},
-					{
-						label: 'timestamp',
-					},
+					'timestampMs',
 					'source',
 					'state',
-				],
-				[
-					{
-						label: 'status message',
-					},
+					'statusMessage',
 					'error',
-					{
-						label: 'raw status',
-					},
+					'rawStatus',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Task',
-					items: [
-						{
-							label: 'A2aTask',
-						},
-					],
-				},
-				{
-					label: 'Status',
-					items: [
-						{
-							label: 'state/message/error/raw payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

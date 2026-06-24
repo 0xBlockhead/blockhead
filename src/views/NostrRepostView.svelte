@@ -10,74 +10,18 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'event id',
-			},
-			'kind',
-			{
-				label: 'author',
-			},
+			'eventId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'event id',
-					},
+					'eventId',
 					'kind',
-					{
-						label: 'author',
-					},
+					'pubkey',
 					'createdAt',
-					{
-						label: 'reposted event id',
-					},
-					{
-						label: 'reposted note',
-					},
-					{
-						label: 'reposted article',
-					},
+					'tags',
+					'repostedEventId',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Reposted target',
-					items: [
-						{
-							label: 'target note or article',
-						},
-					],
-				},
-				{
-					label: 'Author',
-					items: [
-						{
-							label: 'author Nostr profile',
-						},
-					],
-				},
-				{
-					label: 'Raw event',
-					items: [
-						{
-							label: 'kind/pubkey/tags/signature/source relays',
-						},
-					],
-				},
-				{
-					label: 'Relay evidence',
-					items: [
-						{
-							label: 'filters',
-						},
-						{
-							label: 'relays/indexers that returned the repost',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

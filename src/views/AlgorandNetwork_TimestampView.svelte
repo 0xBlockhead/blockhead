@@ -10,74 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'latest round',
-			},
-			{
-				label: 'protocol version',
-			},
-			{
-				label: 'genesis hash',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'latest round',
-					},
-					{
-						label: 'protocol version',
-					},
-					{
-						label: 'genesis hash',
-					},
-					'catchpoint',
+					'timestampMs',
 					'source',
-					{
-						label: 'observation time',
-					},
+					'latestRound',
+					'catchpoint',
+					'genesisHash',
+					'protocolVersion',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'AlgorandNetwork',
-						},
-					],
-				},
-				{
-					label: 'Node status',
-					items: [
-						{
-							label: 'latest round',
-						},
-						'catchpoint',
-						{
-							label: 'protocol version',
-						},
-					],
-				},
-				{
-					label: 'Genesis',
-					items: [
-						{
-							label: 'genesis hash',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'algod/indexer status payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

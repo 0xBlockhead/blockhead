@@ -10,55 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'connection',
-			},
-			{
-				label: 'observation time',
-			},
-			'health',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'connection',
-					},
-					{
-						label: 'timestamp',
-					},
+					'timestampMs',
 					'source',
 					'health',
-				],
-				[
-					{
-						label: 'latency',
-					},
-					{
-						label: 'status code',
-					},
+					'latencyMs',
+					'statusCode',
 					'error',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Connection',
-					items: [
-						{
-							label: 'BlockheadAgentConnection',
-						},
-					],
-				},
-				{
-					label: 'Probe',
-					items: [
-						{
-							label: 'latency/status/error',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

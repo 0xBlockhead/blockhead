@@ -11,83 +11,31 @@
 	const view = {
 		closed: [
 			'height',
-			'hash',
-			{
-				label: 'timestamp',
-			},
 		],
 		content: {
 			dl: [
 				[
 					'height',
 					'hash',
-					{
-						label: 'timestamp',
-					},
-					{
-						label: 'proposer',
-					},
-					{
-						label: 'transaction count',
-					},
-					{
-						label: 'app hash',
-					},
-					{
-						label: 'validators hash',
-					},
-					{
-						label: 'header hashes',
-					},
-					{
-						label: 'validator/proposer context',
-					},
-					{
-						label: 'archive source evidence',
-					},
+					'timestampMs',
+					'proposerAddress',
+					'appHash',
+					'dataHash',
+					'validatorsHash',
+					'nextValidatorsHash',
+					'consensusHash',
+					'evidenceHash',
+					'transactionCount',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Network',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'BnbBeaconNetwork',
-						},
-					],
-				},
-				{
-					label: 'Header',
-					items: [
-						'height',
-						'hash',
-						{
-							label: 'timestamp',
-						},
-						{
-							label: 'proposer',
-						},
-						{
-							label: 'app/data/validator hashes',
-						},
-					],
-				},
-				{
-					label: 'Transactions',
-					items: [
-						{
-							label: 'BnbBeaconTransaction list',
-						},
-					],
-				},
-				{
-					label: 'Lookup evidence',
-					items: [
-						{
-							label: 'archive/API/explorer block payload by height or hash',
-						},
+						'$$transactions',
 					],
 				},
 			],

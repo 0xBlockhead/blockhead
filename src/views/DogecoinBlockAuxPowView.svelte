@@ -9,64 +9,10 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'Dogecoin block',
-			},
-			{
-				label: 'parent block header ref',
-			},
-			{
-				label: 'coinbase branch ref',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
-				[
-					{
-						label: 'Dogecoin block',
-					},
-					{
-						label: 'parent block header ref',
-					},
-					{
-						label: 'coinbase branch ref',
-					},
-					{
-						label: 'chain branch ref',
-					},
-				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Block',
-					items: [
-						{
-							label: 'parent Dogecoin UTXO block',
-						},
-					],
-				},
-				{
-					label: 'Parent header',
-					items: [
-						{
-							label: 'merged-mining parent header evidence',
-						},
-					],
-				},
-				{
-					label: 'Merkle branches',
-					items: [
-						{
-							label: 'coinbase branch',
-						},
-						{
-							label: 'chain branch',
-						},
-					],
-				},
+				[],
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

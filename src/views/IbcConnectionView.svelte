@@ -10,82 +10,27 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'connection id',
-			},
-			{
-				label: 'client id',
-			},
+			'connectionId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'connection id',
-					},
-					{
-						label: 'client id',
-					},
-					{
-						label: 'client ref',
-					},
-					{
-						label: 'counterparty client/connection',
-					},
+					'connectionId',
+					'clientId',
+					'counterpartyClientId',
+					'counterpartyConnectionId',
 					'state',
-					{
-						label: 'delay period',
-					},
-					{
-						label: 'channel count',
-					},
+					'delayPeriodNs',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Channels',
+					label: 'channels',
+					when: 'open',
 					items: [
-						{
-							label: 'IBC channels over this connection',
-						},
-					],
-				},
-				{
-					label: 'Client',
-					items: [
-						{
-							label: 'linked IBC client',
-						},
-					],
-				},
-				{
-					label: 'Counterparty',
-					items: [
-						{
-							label: 'counterparty client/connection ids',
-						},
-						{
-							label: 'resolved network when available',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'connection',
-						},
-						{
-							label: 'connection-channels query payloads',
-						},
+						'$$channels',
 					],
 				},
 			],

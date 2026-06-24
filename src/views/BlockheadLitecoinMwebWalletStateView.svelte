@@ -10,86 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'wallet id',
-			},
-			{
-				label: 'network',
-			},
-			{
-				label: 'latest MWEB address',
-			},
+			'walletId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'wallet id',
-					},
-					{
-						label: 'network',
-					},
-					{
-						label: 'latest MWEB address',
-					},
-					{
-						label: 'latest transparent address',
-					},
-					{
-						label: 'latest balance summary',
-					},
-					{
-						label: 'latest scanned height',
-					},
-					{
-						label: 'output count',
-					},
+					'walletId',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest state',
+					label: 'outputs',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadLitecoinMwebWalletState_TimestampView',
-						},
+						'$$outputs',
 					],
 				},
 				{
-					label: 'State history',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadLitecoinMwebWalletState_TimestampsView',
-						},
-					],
-				},
-				{
-					label: 'Outputs',
-					items: [
-						{
-							label: 'BlockheadLitecoinMwebOutputState list',
-						},
-					],
-				},
-				{
-					label: 'Public MWEB blocks',
-					items: [
-						{
-							label: 'LitecoinMwebBlock list at scanned heights',
-						},
-					],
-				},
-				{
-					label: 'Peg flows',
-					items: [
-						{
-							label: 'LitecoinMwebPegIn',
-						},
-						{
-							label: 'LitecoinMwebPegOut rows involving exposed wallet outputs',
-						},
+						'$$timestamps',
 					],
 				},
 			],

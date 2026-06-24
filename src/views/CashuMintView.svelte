@@ -10,81 +10,30 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'mint URL',
-			},
-			'name',
-			'pubkey',
+			'mintUrl',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'mint URL',
-					},
+					'mintUrl',
 					'name',
 					'pubkey',
 					'version',
-					{
-						label: 'server time',
-					},
-				],
-				[
-					{
-						label: 'keyset count',
-					},
-					{
-						label: 'MOTD',
-					},
-					{
-						label: 'icon/TOS availability',
-					},
+					'description',
+					'motd',
+					'iconUrl',
+					'tosUrl',
+					'timeMs',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Keysets',
+					label: 'keysets',
+					when: 'open',
 					items: [
-						{
-							label: 'public CashuKeyset rows',
-						},
-					],
-				},
-				{
-					label: 'Operator metadata',
-					items: [
-						'name',
-						'description',
-						{
-							label: 'MOTD',
-						},
-						{
-							label: 'icon',
-						},
-						{
-							label: 'TOS',
-						},
-					],
-				},
-				{
-					label: 'Capability target',
-					items: [
-						{
-							label: 'CashuMint_Timestamp when timestamp schema exists',
-						},
-					],
-				},
-				{
-					label: 'Endpoint/source',
-					items: [
-						{
-							label: 'normalized endpoint URL',
-						},
-						{
-							label: 'source freshness',
-						},
+						'$$keysets',
 					],
 				},
 			],

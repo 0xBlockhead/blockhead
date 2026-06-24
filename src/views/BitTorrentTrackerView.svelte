@@ -10,66 +10,30 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'tracker URL',
-			},
-			{
-				label: 'tracker kind',
-			},
-			{
-				label: 'latest status',
-			},
+			'trackerUrl',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'tracker URL',
-					},
-					{
-						label: 'tracker kind',
-					},
-					{
-						label: 'latest status',
-					},
-					{
-						label: 'latest known counts',
-					},
+					'trackerUrl',
+					'trackerKind',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Announces',
+					label: 'announces',
+					when: 'open',
 					items: [
-						{
-							label: 'announce observations grouped by torrent',
-						},
+						'$$announces',
 					],
 				},
 				{
-					label: 'Scrapes',
+					label: 'scrapes',
+					when: 'open',
 					items: [
-						{
-							label: 'scrape observations',
-						},
-					],
-				},
-				{
-					label: 'Torrents',
-					items: [
-						{
-							label: 'metainfo rows that cite the tracker',
-						},
-					],
-				},
-				{
-					label: 'Magnets',
-					items: [
-						{
-							label: 'magnet links that cite the tracker',
-						},
+						'$$scrapes',
 					],
 				},
 			],

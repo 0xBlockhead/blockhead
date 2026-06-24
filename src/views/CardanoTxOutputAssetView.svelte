@@ -9,54 +9,12 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'output',
-			},
-			{
-				label: 'asset policy/name/fingerprint',
-			},
-			'quantity',
-		],
+		closed: [],
 		content: {
 			dl: [
 				[
-					{
-						label: 'output',
-					},
-					{
-						label: 'asset policy/name/fingerprint',
-					},
 					'quantity',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Output',
-					items: [
-						{
-							label: 'parent Cardano transaction output',
-						},
-					],
-				},
-				{
-					label: 'Asset',
-					items: [
-						{
-							label: 'linked Cardano native asset',
-						},
-					],
-				},
-				{
-					label: 'Transaction',
-					items: [
-						{
-							label: 'Cardano transaction through the parent output',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,81 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'request',
-			},
-			{
-				label: 'observation time',
-			},
-			'status',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'request',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'status',
-					{
-						label: 'certified time',
-					},
-					{
-						label: 'reply hash',
-					},
-					{
-						label: 'reject code/message',
-					},
-					{
-						label: 'certificate hash',
-					},
-					{
-						label: 'witness presence',
-					},
+					'replyHash',
+					'rejectCode',
+					'rejectMessage',
+					'certifiedAtMs',
+					'certificateHash',
+					'witness',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Request',
-					items: [
-						{
-							label: 'parent request-status row',
-						},
-					],
-				},
-				{
-					label: 'Certified proof',
-					items: [
-						{
-							label: 'certificate hash',
-						},
-						'witness',
-						{
-							label: 'verification context',
-						},
-					],
-				},
-				{
-					label: 'Reply/reject payload',
-					items: [
-						{
-							label: 'reply hash or reject code/message',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'read_state request_status payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

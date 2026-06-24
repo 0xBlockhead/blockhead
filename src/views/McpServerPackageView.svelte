@@ -10,69 +10,37 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'registry server name/repository',
-			},
-			'label',
+			'registryServerName',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'registry server name',
-					},
-					{
-						label: 'repository URL',
-					},
-					{
-						label: 'repository source/id',
-					},
-				],
-				[
-					{
-						label: 'repository subfolder',
-					},
-					{
-						label: 'website URL',
-					},
+					'registryServerName',
+					'repositoryUrl',
+					'repositorySource',
+					'repositoryId',
+					'repositorySubfolder',
+					'websiteUrl',
 					'label',
 					'description',
 					'license',
-				],
-				[
-					{
-						label: 'version refs',
-					},
-					{
-						label: 'document refs',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Versions',
+					label: 'versions',
+					when: 'open',
 					items: [
-						{
-							label: 'McpServerPackageVersion list',
-						},
+						'$$versions',
 					],
 				},
 				{
-					label: 'Documents',
+					label: 'documents',
+					when: 'open',
 					items: [
-						{
-							label: 'AiDocument list',
-						},
-					],
-				},
-				{
-					label: 'Repository',
-					items: [
-						{
-							label: 'repository source/id/subfolder',
-						},
+						'$$documents',
 					],
 				},
 			],

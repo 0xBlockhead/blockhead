@@ -10,76 +10,41 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'protocol',
-			},
-			{
-				label: 'registry',
-			},
+			'scope',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'protocol',
-					},
-					{
-						label: 'registry',
-					},
-					{
-						label: 'home URL',
-					},
-					{
-						label: 'docs URL',
-					},
+					'scope',
+					'protocolName',
+					'homeUrl',
+					'docsUrl',
+					'registryLabel',
 					'topology',
-					{
-						label: 'topic count',
-					},
-					{
-						label: 'selector count',
-					},
-					{
-						label: 'error count',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Topics',
+					label: 'evm topics',
+					when: 'open',
 					items: [
-						{
-							label: 'EvmTopic rows',
-						},
+						'$$evmTopics',
 					],
 				},
 				{
-					label: 'Selectors',
+					label: 'evm selectors',
+					when: 'open',
 					items: [
-						{
-							label: 'EvmSelector rows',
-						},
+						'$$evmSelectors',
 					],
 				},
 				{
-					label: 'Errors',
+					label: 'evm errors',
+					when: 'open',
 					items: [
-						{
-							label: 'EvmError rows',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'local signature catalogs',
-						},
-						{
-							label: 'OpenChain lookup context',
-						},
+						'$$evmErrors',
 					],
 				},
 			],

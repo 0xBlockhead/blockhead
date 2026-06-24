@@ -9,65 +9,19 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'account',
-			},
-			{
-				label: 'token',
-			},
-			{
-				label: 'latest association state',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
-				[
-					{
-						label: 'account',
-					},
-					{
-						label: 'token',
-					},
-					{
-						label: 'latest association state',
-					},
-					{
-						label: 'latest balance',
-					},
-					{
-						label: 'KYC status',
-					},
-					{
-						label: 'freeze status',
-					},
-				],
+				[],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Relationship-state history',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped association/balance observations',
-						},
-					],
-				},
-				{
-					label: 'Transfers',
-					items: [
-						{
-							label: 'token transfers for this account/token',
-						},
-					],
-				},
-				{
-					label: 'NFT holdings',
-					items: [
-						{
-							label: 'NFT serial rows for this account/token',
-						},
+						'$$timestamps',
 					],
 				},
 			],

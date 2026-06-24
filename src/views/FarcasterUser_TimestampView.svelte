@@ -10,71 +10,15 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'user',
-			},
-			{
-				label: 'observation time',
-			},
-			{
-				label: 'follower count',
-			},
+			'timestampMs',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'user',
-					},
-					{
-						label: 'observation time',
-					},
-					{
-						label: 'follower count',
-					},
-					{
-						label: 'following count',
-					},
+					'timestampMs',
+					'followerCount',
+					'followingCount',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'User',
-					items: [
-						{
-							label: 'parent Farcaster user',
-						},
-					],
-				},
-				{
-					label: 'Social graph counters',
-					items: [
-						{
-							label: 'follower count',
-						},
-						{
-							label: 'following count',
-						},
-					],
-				},
-				{
-					label: 'History',
-					items: [
-						{
-							label: 'timestamped user metric observations',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Neynar/Snapchain profile payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

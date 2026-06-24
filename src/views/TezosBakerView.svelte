@@ -10,91 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'baker address',
-			},
-			{
-				label: 'consensus key',
-			},
-			{
-				label: 'latest staking balance',
-			},
+			'address',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'baker address',
-					},
-					{
-						label: 'consensus key',
-					},
-					{
-						label: 'latest staking balance',
-					},
-					{
-						label: 'voting power',
-					},
-					{
-						label: 'active status',
-					},
-					{
-						label: 'cycle snapshot count',
-					},
-					{
-						label: 'rights count',
-					},
+					'address',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Cycle snapshots',
+					label: 'cycle timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'cycle-bounded baker performance observations',
-						},
+						'$$cycleTimestamps',
 					],
 				},
 				{
-					label: 'Rights',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'baking/attestation rights',
-						},
-					],
-				},
-				{
-					label: 'Produced blocks',
-					items: [
-						{
-							label: 'blocks filtered by baker',
-						},
-					],
-				},
-				{
-					label: 'Delegators',
-					items: [
-						{
-							label: 'accounts delegated to baker',
-						},
-					],
-				},
-				{
-					label: 'Baker history',
-					items: [
-						{
-							label: 'level/source baker-state observations',
-						},
-					],
-				},
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'underlying Tezos account',
-						},
+						'$$timestamps',
 					],
 				},
 			],

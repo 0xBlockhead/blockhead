@@ -10,109 +10,44 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'timestamp',
-			},
+			'timestampMs',
 			'source',
-			'height',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'timestamp',
-					},
+					'timestampMs',
 					'source',
 					'height',
-					{
-						label: 'target height',
-					},
-					{
-						label: 'block hash',
-					},
-					{
-						label: 'sync status',
-					},
-					{
-						label: 'txpool size',
-					},
-					{
-						label: 'peer counts',
-					},
+					'targetHeight',
+					'topBlockHash',
 					'difficulty',
+					'wideDifficulty',
+					'cumulativeDifficulty',
+					'wideCumulativeDifficulty',
+					'blockSizeLimit',
+					'blockSizeMedian',
+					'blockWeightLimit',
+					'blockWeightMedian',
+					'databaseSize',
+					'freeSpace',
+					'greyPeerlistSize',
+					'whitePeerlistSize',
+					'incomingConnections',
+					'outgoingConnections',
+					'txCount',
+					'txPoolSize',
+					'altBlocksCount',
+					'targetSeconds',
+					'rpcConnections',
+					'mainnet',
+					'nettype',
+					'offline',
+					'synchronized',
+					'wasBootstrapEverUsed',
 					'version',
 					'status',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Head',
-					items: [
-						{
-							label: 'height/hash/target',
-						},
-					],
-				},
-				{
-					label: 'Difficulty',
-					items: [
-						'difficulty',
-						{
-							label: 'cumulative difficulty fields',
-						},
-					],
-				},
-				{
-					label: 'Blocks',
-					items: [
-						{
-							label: 'block size/weight limits',
-						},
-						{
-							label: 'medians',
-						},
-					],
-				},
-				{
-					label: 'Peers/mempool',
-					items: [
-						{
-							label: 'grey/white peer counts',
-						},
-						{
-							label: 'connections',
-						},
-						{
-							label: 'txpool size',
-						},
-						{
-							label: 'tx count',
-						},
-					],
-				},
-				{
-					label: 'Daemon',
-					items: [
-						'nettype',
-						'mainnet',
-						{
-							label: 'offline/synchronized/bootstrap/version/status',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'get_info payload',
-						},
-						{
-							label: 'RPC endpoint freshness',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

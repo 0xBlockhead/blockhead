@@ -10,66 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'account',
-			},
-			{
-				label: 'resource type',
-			},
-			{
-				label: 'latest value summary',
-			},
+			'resourceType',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'account',
-					},
-					{
-						label: 'resource type',
-					},
-					{
-						label: 'latest value summary',
-					},
-					{
-						label: 'latest ledger version/source',
-					},
+					'resourceType',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Resource observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'ledger-versioned resource values',
-						},
-					],
-				},
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'parent Aptos account',
-						},
-					],
-				},
-				{
-					label: 'Move struct',
-					items: [
-						{
-							label: 'Move struct type when the type tag resolves',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'account resource lookup/indexer payload',
-						},
+						'$$timestamps',
 					],
 				},
 			],

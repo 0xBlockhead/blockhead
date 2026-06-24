@@ -9,80 +9,37 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'transaction',
-			},
-			{
-				label: 'contract',
-			},
-			'status',
-		],
+		closed: [],
 		content: {
 			dl: [
 				[
-					{
-						label: 'transaction',
-					},
-					{
-						label: 'contract',
-					},
+					'contractId',
+					'evmAddress',
+					'ethereumHash',
+					'functionParameters',
+					'gasLimit',
+					'gasUsed',
+					'amountTinybar',
 					'status',
-					{
-						label: 'gas used/limit',
-					},
-					{
-						label: 'amount',
-					},
-					{
-						label: 'Ethereum hash',
-					},
-					{
-						label: 'error',
-					},
+					'errorMessage',
+					'bloom',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Actions',
+					label: 'actions',
+					when: 'open',
 					items: [
-						{
-							label: 'contract action trace rows',
-						},
+						'$$actions',
 					],
 				},
 				{
-					label: 'Logs',
+					label: 'logs',
+					when: 'open',
 					items: [
-						{
-							label: 'contract log rows',
-						},
-					],
-				},
-				{
-					label: 'Function parameters',
-					items: [
-						{
-							label: 'raw input',
-						},
-					],
-				},
-				{
-					label: 'Bloom',
-					items: [
-						{
-							label: 'bloom/filter evidence',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'contract result payload',
-						},
+						'$$logs',
 					],
 				},
 			],

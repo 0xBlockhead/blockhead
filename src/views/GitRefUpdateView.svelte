@@ -10,81 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'repository',
-			},
-			{
-				label: 'ref name',
-			},
-			{
-				label: 'old object id',
-			},
+			'refName',
+			'oldObjectId',
+			'newObjectId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'repository',
-					},
-					{
-						label: 'ref name',
-					},
-					{
-						label: 'old object id',
-					},
-					{
-						label: 'new object id',
-					},
-					{
-						label: 'update kind',
-					},
-					{
-						label: 'actor selector',
-					},
-					{
-						label: 'timestamp',
-					},
-					{
-						label: 'signature',
-					},
+					'refName',
+					'oldObjectId',
+					'newObjectId',
+					'updateKind',
+					'actorSelector',
+					'timestampMs',
 					'source',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Ref',
-					items: [
-						{
-							label: 'affected Git ref',
-						},
-					],
-				},
-				{
-					label: 'Old target',
-					items: [
-						{
-							label: 'old target Git object',
-						},
-					],
-				},
-				{
-					label: 'New target',
-					items: [
-						{
-							label: 'new target Git object',
-						},
-					],
-				},
-				{
-					label: 'Evidence',
-					items: [
-						{
-							label: 'signature/audit/reflog payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,40 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'session action',
-			},
-			{
-				label: 'from/to networks',
-			},
-			{
-				label: 'asset',
-			},
+			'sessionId',
+			'actionId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'session action',
-					},
-					{
-						label: 'action selected protocol',
-					},
-					{
-						label: 'from/to CAIP-2',
-					},
-					{
-						label: 'asset CAIP-19 values',
-					},
-					{
-						label: 'EVM chain ids/raw token addresses',
-					},
-					{
-						label: 'coin id',
-					},
-					{
-						label: 'resolved network/token refs',
-					},
+					'sessionId',
+					'actionId',
+					'fromNetworkCaip2',
+					'toNetworkCaip2',
+					'assetCaip19',
+					'fromAssetCaip19',
+					'toAssetCaip19',
+					'fromChainId',
+					'toChainId',
+					'coinId',
+					'fromTokenAddress',
+					'toTokenAddress',
 					'amount',
 					'slippage',
 				],
@@ -52,57 +36,10 @@
 		details: {
 			tabs: [
 				{
-					label: 'Session action',
+					label: 'quotes',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadSessionActionView',
-						},
-					],
-				},
-				{
-					label: 'Readiness',
-					items: [
-						{
-							label: 'BlockheadActionReadinessCheck list',
-						},
-					],
-				},
-				{
-					label: 'Intent quotes',
-					items: [
-						{
-							label: 'BlockheadIntentQuote list for signed-order/filler-market protocols',
-						},
-					],
-				},
-				{
-					label: 'Route quotes',
-					items: [
-						{
-							label: 'BridgeRouteQuote_Timestamp for executable route quotes',
-						},
-					],
-				},
-				{
-					label: 'Execution',
-					items: [
-						{
-							label: 'orders',
-						},
-						{
-							label: 'wallet requests',
-						},
-						{
-							label: 'bridge transfer rows when source-proven',
-						},
-					],
-				},
-				{
-					label: 'Outcomes',
-					items: [
-						{
-							label: 'BlockheadActionOutcome list',
-						},
+						'$$quotes',
 					],
 				},
 			],

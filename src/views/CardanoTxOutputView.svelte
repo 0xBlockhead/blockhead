@@ -10,70 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'output index',
-			},
-			'address',
-			'lovelace',
+			'outputIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'output index',
-					},
+					'outputIndex',
 					'address',
 					'lovelace',
-					{
-						label: 'datum hash/inline datum presence',
-					},
-					{
-						label: 'reference script hash',
-					},
-					{
-						label: 'spent transaction hash/input index',
-					},
-					{
-						label: 'asset count',
-					},
+					'datumHash',
+					'inlineDatum',
+					'referenceScriptHash',
+					'spentByTxHash',
+					'spentByInputIndex',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Assets',
+					label: 'assets',
+					when: 'open',
 					items: [
-						{
-							label: 'multi-asset output amounts',
-						},
-					],
-				},
-				{
-					label: 'Datum/script',
-					items: [
-						{
-							label: 'structured datum',
-						},
-						{
-							label: 'reference script panels',
-						},
-					],
-				},
-				{
-					label: 'Address',
-					items: [
-						{
-							label: 'linked Cardano address',
-						},
-					],
-				},
-				{
-					label: 'Spending transaction',
-					items: [
-						{
-							label: 'spending Cardano transaction when spentByTxHash resolves',
-						},
+						'$$assets',
 					],
 				},
 			],

@@ -10,92 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'contract',
-			},
-			{
-				label: 'ledger sequence',
-			},
-			{
-				label: 'wasm hash',
-			},
+			'ledgerSequence',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'contract',
-					},
-					{
-						label: 'ledger sequence',
-					},
+					'ledgerSequence',
 					'source',
-					{
-						label: 'observed time',
-					},
-					{
-						label: 'found state',
-					},
+					'observedAtMs',
+					'wasmHash',
+					'executableKind',
+					'lastModifiedLedger',
+					'liveUntilLedger',
+					'found',
 				],
-				[
-					{
-						label: 'executable kind',
-					},
-					{
-						label: 'wasm hash',
-					},
-					{
-						label: 'linked WASM',
-					},
-					{
-						label: 'last-modified ledger',
-					},
-					{
-						label: 'live-until ledger',
-					},
-				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Contract',
-					items: [
-						{
-							label: 'parent Soroban contract',
-						},
-					],
-				},
-				{
-					label: 'WASM',
-					items: [
-						{
-							label: 'linked Soroban WASM',
-						},
-					],
-				},
-				{
-					label: 'Ledger',
-					items: [
-						{
-							label: 'Stellar ledger when resolved',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'ContractData/ContractCode ledger entries',
-						},
-						{
-							label: 'getLedgerEntries latestLedger payload',
-						},
-						{
-							label: 'indexer freshness',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

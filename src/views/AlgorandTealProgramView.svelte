@@ -10,67 +10,38 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'program hash',
-			},
-			{
-				label: 'program kind',
-			},
+			'programHash',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'program hash',
-					},
-					{
-						label: 'program kind',
-					},
-					{
-						label: 'TEAL version',
-					},
-					{
-						label: 'latest bytecode/disassembly availability',
-					},
-					{
-						label: 'application count',
-					},
-					{
-						label: 'transaction count',
-					},
+					'programHash',
+					'programKind',
+					'tealVersion',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Applications',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'applications using this approval/clear program',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Transactions',
+					label: 'applications',
+					when: 'open',
 					items: [
-						{
-							label: 'transactions carrying or creating the program',
-						},
+						'$$applications',
 					],
 				},
 				{
-					label: 'Program evidence',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'source-scoped bytecode/disassembly/source-map observations',
-						},
+						'$$transactions',
 					],
 				},
 			],

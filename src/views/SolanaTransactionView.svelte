@@ -10,76 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
 			'signature',
-			{
-				label: 'block',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'signature',
-					{
-						label: 'block',
-					},
-					{
-						label: 'fee payer',
-					},
-					{
-						label: 'latest status/fee/compute snapshot',
-					},
-					{
-						label: 'instruction count',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'slot/source transaction observations',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Instructions',
+					label: 'instructions',
+					when: 'open',
 					items: [
-						{
-							label: 'instructions grouped by top-level/inner kind',
-						},
-					],
-				},
-				{
-					label: 'Block',
-					items: [
-						{
-							label: 'parent Solana block',
-						},
-					],
-				},
-				{
-					label: 'Fee payer',
-					items: [
-						{
-							label: 'fee-payer Solana account',
-						},
-					],
-				},
-				{
-					label: 'Raw message',
-					items: [
-						{
-							label: 'account keys/address lookup table data when modeled',
-						},
+						'$$instructions',
 					],
 				},
 			],

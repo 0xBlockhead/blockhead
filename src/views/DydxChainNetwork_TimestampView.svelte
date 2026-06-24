@@ -10,78 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'block height',
-					},
-					{
-						label: 'indexer height',
-					},
-					{
-						label: 'market count',
-					},
-					{
-						label: 'subaccount count',
-					},
-					{
-						label: 'open order count',
-					},
-					{
-						label: 'open position count',
-					},
+					'blockHeight',
+					'indexerHeight',
+					'marketCount',
+					'subaccountCount',
+					'openOrderCount',
+					'openPositionCount',
 					'health',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent dYdX Chain network',
-						},
-					],
-				},
-				{
-					label: 'Markets',
-					items: [
-						{
-							label: 'market rows at same source/head when available',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'indexer status/height payload',
-						},
-						{
-							label: 'validator node status',
-						},
-						{
-							label: 'app-state query freshness',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

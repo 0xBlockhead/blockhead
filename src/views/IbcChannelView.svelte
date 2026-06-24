@@ -10,101 +10,32 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'port id',
-			},
-			{
-				label: 'channel id',
-			},
+			'portId',
+			'channelId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'port id',
-					},
-					{
-						label: 'channel id',
-					},
+					'portId',
+					'channelId',
+					'counterpartyChainId',
+					'counterpartyPortId',
+					'counterpartyChannelId',
 					'state',
 					'ordering',
 					'version',
-					{
-						label: 'connection',
-					},
-					{
-						label: 'client',
-					},
-					{
-						label: 'next send/receive sequence',
-					},
-					{
-						label: 'counterparty ids',
-					},
+					'nextSequenceSend',
+					'nextSequenceReceive',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Packets',
+					label: 'packets',
+					when: 'open',
 					items: [
-						{
-							label: 'packet rows grouped by lifecycle status',
-						},
-					],
-				},
-				{
-					label: 'Connection/client',
-					items: [
-						{
-							label: 'linked IBC connection',
-						},
-						{
-							label: 'linked IBC client',
-						},
-					],
-				},
-				{
-					label: 'Counterparty',
-					items: [
-						{
-							label: 'counterparty network/channel refs',
-						},
-						{
-							label: 'registry/indexer claims',
-						},
-					],
-				},
-				{
-					label: 'Sequence state',
-					items: [
-						{
-							label: 'next send/receive sequence',
-						},
-						{
-							label: 'unreceived packet/ack summaries',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'channel',
-						},
-						{
-							label: 'channel client-state',
-						},
-						{
-							label: 'sequence query payloads',
-						},
+						'$$packets',
 					],
 				},
 			],

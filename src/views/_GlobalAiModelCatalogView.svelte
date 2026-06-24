@@ -10,85 +10,66 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'catalog id',
-			},
-			{
-				label: 'catalog kind',
-			},
-			{
-				label: 'latest model/provider coverage',
-			},
+			'catalogId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'catalog id',
-					},
+					'catalogId',
 					'label',
-					{
-						label: 'catalog kind',
-					},
-					{
-						label: 'latest observation',
-					},
-				],
-				[
-					{
-						label: 'provider/model/dataset/benchmark entry points',
-					},
+					'catalogKind',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Providers',
+					label: 'providers',
+					when: 'open',
 					items: [
-						{
-							label: 'AiModelProvider list',
-						},
+						'$$providers',
 					],
 				},
 				{
-					label: 'Catalog entries',
+					label: 'catalog entries',
+					when: 'open',
 					items: [
-						{
-							label: 'AiProviderCatalogEntry list',
-						},
+						'$$catalogEntries',
 					],
 				},
 				{
-					label: 'Models',
+					label: 'models',
+					when: 'open',
 					items: [
-						{
-							label: 'AiModel list',
-						},
+						'$$models',
 					],
 				},
 				{
-					label: 'Datasets',
+					label: 'datasets',
+					when: 'open',
 					items: [
-						{
-							label: 'AiDataset list',
-						},
+						'$$datasets',
 					],
 				},
 				{
-					label: 'Evaluations',
+					label: 'benchmarks',
+					when: 'open',
 					items: [
-						{
-							label: 'AiEvaluation_Timestamp list',
-						},
+						'$$benchmarks',
 					],
 				},
 				{
-					label: 'Observations',
+					label: 'evaluations',
+					when: 'open',
 					items: [
-						{
-							label: '_GlobalAiModelCatalog_Timestamp list',
-						},
+						'$$evaluations',
+					],
+				},
+				{
+					label: 'timestamps',
+					when: 'open',
+					items: [
+						'$$timestamps',
 					],
 				},
 			],

@@ -10,72 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'peg',
-			},
-			{
-				label: 'observation time',
-			},
-			'status',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'peg',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'status',
 					'confirmations',
-					{
-						label: 'observed Bitcoin height',
-					},
-					{
-						label: 'observed Elements height',
-					},
+					'observedBitcoinHeight',
+					'observedElementsHeight',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Peg',
-					items: [
-						{
-							label: 'parent Elements peg',
-						},
-					],
-				},
-				{
-					label: 'Bitcoin side',
-					items: [
-						{
-							label: 'Bitcoin-side UTXO transaction when resolved',
-						},
-					],
-				},
-				{
-					label: 'Elements side',
-					items: [
-						{
-							label: 'Elements-side UTXO transaction when resolved',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'explorer/indexer status payload',
-						},
-						{
-							label: 'block-height freshness',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

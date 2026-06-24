@@ -10,107 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'timestamp',
-			},
+			'timestampMs',
 			'source',
-			{
-				label: 'best block height/hash',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'timestamp',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'best block height/hash',
-					},
-					{
-						label: 'mempool transaction count',
-					},
-					{
-						label: 'mempool size',
-					},
-					{
-						label: 'suggested fee',
-					},
+					'bestBlockHeight',
+					'bestBlockHash',
+					'bestBlockTimeMs',
+					'blockCount',
+					'transactionCount',
+					'blocks24h',
+					'transactions24h',
+					'mempoolTransactionCount',
+					'mempoolSizeBytes',
+					'mempoolTps',
+					'averageTransactionFee24hSats',
+					'medianTransactionFee24hSats',
+					'suggestedTransactionFeePerByteSats',
+					'blockchainSizeBytes',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Head',
-					items: [
-						{
-							label: 'best block time/hash',
-						},
-					],
-				},
-				{
-					label: 'Chain totals',
-					items: [
-						{
-							label: 'block count',
-						},
-						{
-							label: 'transaction count',
-						},
-						{
-							label: 'chain size',
-						},
-					],
-				},
-				{
-					label: 'Recent activity',
-					items: [
-						{
-							label: '24h block/transaction counts',
-						},
-					],
-				},
-				{
-					label: 'Mempool',
-					items: [
-						{
-							label: 'count',
-						},
-						{
-							label: 'bytes',
-						},
-						{
-							label: 'TPS',
-						},
-						{
-							label: 'suggested fee',
-						},
-					],
-				},
-				{
-					label: 'Fee summary',
-					items: [
-						{
-							label: 'average/median 24h fees',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'node RPC',
-						},
-						{
-							label: 'Blockchair dashboard stats',
-						},
-						{
-							label: 'Esplora/mempool.space mempool and fee payloads',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

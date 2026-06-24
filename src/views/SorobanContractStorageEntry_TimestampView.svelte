@@ -10,88 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'storage entry',
-			},
-			{
-				label: 'ledger sequence',
-			},
+			'ledgerSequence',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'storage entry',
-					},
-					{
-						label: 'ledger sequence',
-					},
+					'ledgerSequence',
 					'source',
-					{
-						label: 'observed time',
-					},
-					{
-						label: 'found state',
-					},
+					'observedAtMs',
+					'value',
+					'valueXdr',
 					'durability',
-					{
-						label: 'last-modified ledger',
-					},
-					{
-						label: 'live-until ledger',
-					},
-					{
-						label: 'value summary',
-					},
+					'lastModifiedLedger',
+					'liveUntilLedger',
+					'found',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Storage entry',
-					items: [
-						{
-							label: 'parent Soroban storage entry',
-						},
-					],
-				},
-				{
-					label: 'Contract',
-					items: [
-						{
-							label: 'parent Soroban contract',
-						},
-					],
-				},
-				{
-					label: 'Ledger',
-					items: [
-						{
-							label: 'Stellar ledger when resolved',
-						},
-					],
-				},
-				{
-					label: 'Value',
-					items: [
-						{
-							label: 'decoded JSON',
-						},
-						{
-							label: 'raw XDR',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'getLedgerEntries key/xdr/latestLedger payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

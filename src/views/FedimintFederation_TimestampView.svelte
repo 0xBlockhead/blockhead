@@ -10,96 +10,23 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'federation',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'federation',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'reachability',
-					},
+					'reachable',
 					'health',
-					{
-						label: 'gateway count',
-					},
-					{
-						label: 'config hash',
-					},
-					{
-						label: 'module config hash',
-					},
-					{
-						label: 'meta presence',
-					},
-					{
-						label: 'invite-code observation flag',
-					},
+					'peerStatusJson',
+					'gatewayCount',
+					'clientConfigHash',
+					'moduleConfigHash',
+					'metaJson',
+					'inviteCodeObserved',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Federation',
-					items: [
-						{
-							label: 'parent Fedimint federation',
-						},
-					],
-				},
-				{
-					label: 'Peers',
-					items: [
-						'peerStatusJson',
-					],
-				},
-				{
-					label: 'Meta',
-					items: [
-						'metaJson',
-					],
-				},
-				{
-					label: 'Gateways',
-					items: [
-						{
-							label: 'gateway count',
-						},
-						{
-							label: 'discovered gateway refs',
-						},
-					],
-				},
-				{
-					label: 'Source',
-					items: [
-						{
-							label: 'connected client/gateway endpoint',
-						},
-						{
-							label: 'invite-code preview context',
-						},
-						{
-							label: 'errors',
-						},
-						{
-							label: 'freshness',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

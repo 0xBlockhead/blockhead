@@ -10,66 +10,16 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'transaction',
-			},
-			{
-				label: 'action index',
-			},
-			{
-				label: 'action kind',
-			},
+			'actionIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'transaction',
-					},
-					{
-						label: 'action index',
-					},
-					{
-						label: 'action kind',
-					},
-					{
-						label: 'method name',
-					},
-					{
-						label: 'deposit',
-					},
-					{
-						label: 'receiver context',
-					},
+					'actionIndex',
+					'actionKind',
+					'methodName',
+					'depositYoctoNear',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Transaction',
-					items: [
-						{
-							label: 'parent NEAR transaction',
-						},
-					],
-				},
-				{
-					label: 'Payload',
-					items: [
-						{
-							label: 'action-specific transfer/stake/key/deploy/function-call fields when source-backed',
-						},
-					],
-				},
-				{
-					label: 'Effects',
-					items: [
-						{
-							label: 'execution outcomes produced by the transaction status payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

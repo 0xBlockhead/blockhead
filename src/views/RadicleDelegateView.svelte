@@ -10,59 +10,16 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'repository',
-			},
-			{
-				label: 'DID',
-			},
-			'role',
+			'did',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'repository',
-					},
-					{
-						label: 'DID',
-					},
+					'did',
 					'role',
-					{
-						label: 'valid-from revision',
-					},
-					{
-						label: 'valid-to revision',
-					},
+					'validFromRevision',
+					'validToRevision',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Repository',
-					items: [
-						{
-							label: 'parent Radicle repository',
-						},
-					],
-				},
-				{
-					label: 'Identity revisions',
-					items: [
-						{
-							label: 'identity revisions where the delegate appears',
-						},
-					],
-				},
-				{
-					label: 'Signatures',
-					items: [
-						{
-							label: 'Git signatures for signed identity/ref material',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

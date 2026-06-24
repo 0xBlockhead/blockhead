@@ -10,101 +10,25 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'node state',
-			},
-			{
-				label: 'observation time',
-			},
-			'version',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'node state',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'version/revision',
-					},
-					{
-						label: 'repo path',
-					},
-					{
-						label: 'listen/announce address counts',
-					},
-					{
-						label: 'peer count',
-					},
+					'version',
+					'revision',
+					'repoPath',
+					'listenAddresses',
+					'announceAddresses',
+					'peerCount',
+					'totalBlocks',
+					'quotaMaxBytes',
+					'quotaUsedBytes',
+					'quotaReservedBytes',
 				],
-				[
-					{
-						label: 'total blocks',
-					},
-					{
-						label: 'quota max bytes',
-					},
-					{
-						label: 'quota used bytes',
-					},
-					{
-						label: 'quota reserved bytes',
-					},
-				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Node',
-					items: [
-						{
-							label: 'parent Codex storage node state',
-						},
-					],
-				},
-				{
-					label: 'Storage space',
-					items: [
-						{
-							label: '/space quota fields',
-						},
-					],
-				},
-				{
-					label: 'Debug info',
-					items: [
-						{
-							label: '/debug/info peer table',
-						},
-						{
-							label: 'addresses',
-						},
-						{
-							label: 'repo',
-						},
-					],
-				},
-				{
-					label: 'Version',
-					items: [
-						{
-							label: 'storage version/revision',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'connected REST node payloads',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

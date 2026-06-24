@@ -9,78 +9,19 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'proposal',
-			},
-			{
-				label: 'voter',
-			},
-			{
-				label: 'latest option',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
-				[
-					{
-						label: 'proposal',
-					},
-					{
-						label: 'voter',
-					},
-					{
-						label: 'latest option/weight',
-					},
-					{
-						label: 'latest vote time',
-					},
-					{
-						label: 'metadata presence',
-					},
-				],
+				[],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Proposal',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'parent governance proposal',
-						},
-					],
-				},
-				{
-					label: 'Voter',
-					items: [
-						{
-							label: 'voter Cosmos account',
-						},
-					],
-				},
-				{
-					label: 'Vote observations',
-					items: [
-						{
-							label: 'timestamped option/weight rows',
-						},
-					],
-				},
-				{
-					label: 'Weighted options',
-					items: [
-						{
-							label: 'raw weighted-vote JSON when present',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'x/gov vote payload',
-						},
+						'$$timestamps',
 					],
 				},
 			],

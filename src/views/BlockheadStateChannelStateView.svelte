@@ -10,70 +10,20 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'channel',
-			},
 			'version',
-			'intent',
+			'stateData',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'channel',
-					},
 					'version',
+					'stateData',
 					'intent',
-					{
-						label: 'final flag',
-					},
+					'allocations',
+					'signatures',
+					'isFinal',
 					'timestamp',
-					{
-						label: 'allocation count',
-					},
-					{
-						label: 'signature count',
-					},
-					{
-						label: 'state data hash/hex',
-					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Channel',
-					items: [
-						{
-							label: 'parent local state channel',
-						},
-					],
-				},
-				{
-					label: 'Allocations',
-					items: [
-						{
-							label: 'destination/token/amount table',
-						},
-					],
-				},
-				{
-					label: 'Signatures',
-					items: [
-						{
-							label: 'participant co-signature list',
-						},
-					],
-				},
-				{
-					label: 'Settlement evidence',
-					items: [
-						{
-							label: 'linked checkpoint/challenge/finalization rows when modeled',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

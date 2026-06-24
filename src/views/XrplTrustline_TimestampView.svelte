@@ -10,92 +10,23 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'trustline',
-			},
-			{
-				label: 'ledger index',
-			},
+			'ledgerIndex',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'trustline',
-					},
-					{
-						label: 'ledger index',
-					},
+					'ledgerIndex',
 					'source',
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'balance',
-					{
-						label: 'limits',
-					},
-					{
-						label: 'no-ripple/authorization flags',
-					},
+					'limit',
+					'limitPeer',
+					'noRipple',
+					'noRipplePeer',
+					'authorized',
+					'peerAuthorized',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Trustline',
-					items: [
-						{
-							label: 'XrplTrustline',
-						},
-					],
-				},
-				{
-					label: 'Balances/limits',
-					items: [
-						'balance',
-						'limit',
-						{
-							label: 'peer limit',
-						},
-					],
-				},
-				{
-					label: 'Flags',
-					items: [
-						{
-							label: 'no-ripple',
-						},
-						{
-							label: 'peer no-ripple',
-						},
-						'authorized',
-						{
-							label: 'peer authorized',
-						},
-					],
-				},
-				{
-					label: 'Ledger context',
-					items: [
-						{
-							label: 'ledger index',
-						},
-						{
-							label: 'observation time',
-						},
-						'source',
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'account_lines/ledger entry/explorer payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

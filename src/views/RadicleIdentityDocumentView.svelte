@@ -10,66 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'RID',
-			},
+			'rid',
 			'revision',
-			{
-				label: 'document hash',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'RID',
-					},
+					'rid',
 					'revision',
-					{
-						label: 'document hash',
-					},
-					{
-						label: 'repository',
-					},
-					{
-						label: 'signature threshold',
-					},
-					{
-						label: 'verified signature count',
-					},
-					{
-						label: 'verification status',
-					},
-					{
-						label: 'payload summary',
-					},
+					'documentHash',
+					'payload',
+					'signatureThreshold',
+					'verifiedSignatureCount',
+					'verificationStatus',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Payload',
+					label: 'signatures',
+					when: 'open',
 					items: [
-						{
-							label: 'name/description/default branch/visibility/delegates JSON',
-						},
-					],
-				},
-				{
-					label: 'Signatures',
-					items: [
-						{
-							label: 'Git signatures',
-						},
-					],
-				},
-				{
-					label: 'Repository',
-					items: [
-						{
-							label: 'linked Radicle repository',
-						},
+						'$$signatures',
 					],
 				},
 			],

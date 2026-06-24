@@ -10,82 +10,27 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'token',
-			},
-			{
-				label: 'target network',
-			},
-			{
-				label: 'target address/contract',
-			},
+			'targetAddress',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'token',
-					},
-					{
-						label: 'target network',
-					},
-					{
-						label: 'target address/contract',
-					},
-					{
-						label: 'migration kind',
-					},
+					'targetAddress',
+					'migrationKind',
+					'sourceAddress',
+					'targetContractAddress',
 					'amount',
-					{
-						label: 'target-chain evidence',
-					},
-					{
-						label: 'mapping metadata',
-					},
-					{
-						label: 'latest status',
-					},
+					'eventTxHash',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped migration/fusion status observations',
-						},
-					],
-				},
-				{
-					label: 'Token',
-					items: [
-						{
-							label: 'source BNB Beacon token',
-						},
-					],
-				},
-				{
-					label: 'Target network',
-					items: [
-						{
-							label: 'target Network row',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'fusion mapping payload',
-						},
-						{
-							label: 'archive migration record',
-						},
-						{
-							label: 'target-chain event evidence',
-						},
+						'$$timestamps',
 					],
 				},
 			],

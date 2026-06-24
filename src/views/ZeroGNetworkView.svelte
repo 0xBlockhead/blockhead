@@ -10,60 +10,50 @@
 	// State
 	const view = {
 		closed: [
-			'name',
-			'environment',
-			{
-				label: 'native assets',
-			},
+			'slug',
 		],
 		content: {
 			dl: [
 				[
+					'slug',
 					'name',
+					'namespace',
 					'environment',
-					{
-						label: 'native assets',
-					},
-					{
-						label: 'execution network',
-					},
-					{
-						label: 'consensus network',
-					},
-					{
-						label: 'latest execution/storage snapshot',
-					},
+					'chainId',
+					'rpcEndpoints',
+					'explorerEndpoints',
+					'storageEndpoints',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Execution',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'Blocks',
-						},
-						{
-							label: 'Network snapshots',
-						},
-						{
-							label: 'Consensus',
-						},
-						{
-							label: 'Endpoints',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Data & Storage',
+					label: 'blocks',
+					when: 'open',
 					items: [
-						{
-							label: 'Data blobs',
-						},
-						{
-							label: 'Storage nodes',
-						},
+						'$$blocks',
+					],
+				},
+				{
+					label: 'storage nodes',
+					when: 'open',
+					items: [
+						'$$storageNodes',
+					],
+				},
+				{
+					label: 'data blobs',
+					when: 'open',
+					items: [
+						'$$dataBlobs',
 					],
 				},
 			],

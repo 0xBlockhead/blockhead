@@ -10,69 +10,30 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'benchmark id/URI',
-			},
-			'label',
-			{
-				label: 'task type',
-			},
+			'benchmarkId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'benchmark id',
-					},
-					{
-						label: 'benchmark URI',
-					},
-					{
-						label: 'source benchmark id',
-					},
+					'benchmarkId',
+					'benchmarkUri',
+					'source',
+					'sourceBenchmarkId',
 					'label',
-				],
-				[
-					{
-						label: 'task type',
-					},
-					{
-						label: 'metric name/type',
-					},
-					{
-						label: 'dataset ref',
-					},
+					'taskType',
+					'metricName',
+					'metricType',
 					'license',
-					{
-						label: 'document refs',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Dataset',
+					label: 'documents',
+					when: 'open',
 					items: [
-						{
-							label: 'AiDataset',
-						},
-					],
-				},
-				{
-					label: 'Evaluations',
-					items: [
-						{
-							label: 'AiEvaluation_Timestamp list',
-						},
-					],
-				},
-				{
-					label: 'Documents',
-					items: [
-						{
-							label: 'AiDocument list',
-						},
+						'$$documents',
 					],
 				},
 			],

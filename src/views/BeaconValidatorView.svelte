@@ -10,82 +10,23 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'validator index',
-			},
-			{
-				label: 'pubkey when resolved',
-			},
+			'validatorIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'validator index',
-					},
-					{
-						label: 'pubkey when resolved',
-					},
-				],
-				[
-					{
-						label: 'latest validator observation',
-					},
-					{
-						label: 'balance',
-					},
-					{
-						label: 'effective balance',
-					},
-					{
-						label: 'status',
-					},
-					{
-						label: 'slashed flag',
-					},
+					'validatorIndex',
+					'pubkey',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Validator observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'state-scoped validator observations',
-						},
-					],
-				},
-				{
-					label: 'Withdrawals',
-					items: [
-						{
-							label: 'withdrawals for this validator when sourceable',
-						},
-					],
-				},
-				{
-					label: 'Committees',
-					items: [
-						{
-							label: 'committee rows containing the validator index when bounded by slot/period',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent EVM network consensus context',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: '/eth/v1/beacon/states/{state_id}/validators/{validator_id}',
-						},
+						'$$timestamps',
 					],
 				},
 			],

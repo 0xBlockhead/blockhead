@@ -10,132 +10,34 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'head height',
-					},
-					{
-						label: 'head tipset key',
-					},
-					{
-						label: 'head block count',
-					},
-					{
-						label: 'head timestamp',
-					},
-				],
-				[
-					{
-						label: 'head tipset',
-					},
-					{
-						label: 'head miners',
-					},
-					{
-						label: 'network version',
-					},
-					{
-						label: 'Lotus version/agent',
-					},
-					{
-						label: 'block delay',
-					},
-					{
-						label: 'total power',
-					},
+					'headHeight',
+					'headTipsetKey',
+					'headBlockCount',
+					'headTimestampMs',
+					'networkVersion',
+					'lotusVersion',
+					'lotusAgent',
+					'blockDelaySeconds',
+					'totalRawBytePower',
+					'totalQualityAdjustedPower',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Network',
+					label: 'head miners',
+					when: 'open',
 					items: [
-						{
-							label: 'Filecoin network identity',
-						},
-					],
-				},
-				{
-					label: 'Head',
-					items: [
-						{
-							label: 'head height',
-						},
-						{
-							label: 'tipset key',
-						},
-						{
-							label: 'block count',
-						},
-						{
-							label: 'head timestamp',
-						},
-						{
-							label: 'head tipset',
-						},
-					],
-				},
-				{
-					label: 'Miners/power',
-					items: [
-						{
-							label: 'head block producers',
-						},
-						{
-							label: 'raw byte power',
-						},
-						{
-							label: 'quality-adjusted power',
-						},
-					],
-				},
-				{
-					label: 'Node',
-					items: [
-						{
-							label: 'network version',
-						},
-						{
-							label: 'Lotus version/agent',
-						},
-						{
-							label: 'block delay',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'ChainHead',
-						},
-						{
-							label: 'StateNetworkVersion',
-						},
-						{
-							label: 'Version',
-						},
-						{
-							label: 'StateMinerPower',
-						},
+						'$$headMiners',
 					],
 				},
 			],

@@ -10,63 +10,15 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'data blob',
-			},
-			{
-				label: 'chunk index',
-			},
-			{
-				label: 'chunk root',
-			},
+			'chunkIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'data blob',
-					},
-					{
-						label: 'chunk index',
-					},
-					{
-						label: 'chunk root',
-					},
-					{
-						label: 'size',
-					},
-					{
-						label: 'storage node',
-					},
+					'chunkIndex',
+					'chunkRoot',
+					'sizeBytes',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Data blob',
-					items: [
-						{
-							label: 'parent data-root blob',
-						},
-					],
-				},
-				{
-					label: 'Storage node',
-					items: [
-						{
-							label: 'public storage node when linked',
-						},
-					],
-				},
-				{
-					label: 'Local availability',
-					items: [
-						{
-							label: 'Blockhead stored-chunk state when a connected node exposes ownership/storage state',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

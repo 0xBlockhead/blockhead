@@ -10,45 +10,40 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'ISO code',
-			},
-			'name',
-			'symbol',
+			'iso4217',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'ISO code',
-					},
+					'iso4217',
 					'name',
 					'symbol',
-					{
-						label: 'minor unit exponent',
-					},
-					{
-						label: 'catalog sort weight',
-					},
+					'minorUnitExponent',
+					'catalogSortWeight',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Markets as base',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'Market list',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Markets as quote',
+					label: 'markets with currency as base',
+					when: 'open',
 					items: [
-						{
-							label: 'Market list',
-						},
+						'$$marketsWithCurrencyAsBase',
+					],
+				},
+				{
+					label: 'markets with currency as quote',
+					when: 'open',
+					items: [
+						'$$marketsWithCurrencyAsQuote',
 					],
 				},
 			],

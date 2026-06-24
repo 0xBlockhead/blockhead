@@ -10,100 +10,41 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'subject',
-			},
-			{
-				label: 'payment protocol',
-			},
-			'required',
+			'subjectKind',
+			'subjectSelector',
+			'paymentProtocol',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'subject kind/selector',
-					},
-					{
-						label: 'payment protocol',
-					},
-					{
-						label: 'timestamp',
-					},
+					'subjectKind',
+					'subjectSelector',
+					'paymentProtocol',
+					'timestampMs',
 					'source',
-				],
-				[
 					'required',
-					{
-						label: 'HTTP status',
-					},
-					{
-						label: 'request method',
-					},
-					{
-						label: 'resource URL',
-					},
-				],
-				[
+					'httpStatus',
+					'requestMethod',
+					'resourceUrl',
+					'paymentRequiredHeader',
+					'paymentSignatureHeader',
+					'paymentResponseHeader',
+					'paymentRequirements',
+					'paymentPayload',
+					'paymentResponsePayload',
+					'facilitatorUrl',
 					'scheme',
-					{
-						label: 'asset/network selectors',
-					},
+					'assetSelector',
+					'networkSelector',
 					'price',
-					{
-						label: 'pay-to',
-					},
-					{
-						label: 'facilitator',
-					},
-					{
-						label: 'timeout',
-					},
+					'payTo',
+					'maxAmountRequired',
+					'maxTimeoutSeconds',
+					'evidenceUri',
 					'error',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Concrete refs',
-					items: [
-						{
-							label: 'A2A/MCP/EIP-8004/Blockhead refs when known',
-						},
-					],
-				},
-				{
-					label: 'Evidence',
-					items: [
-						{
-							label: 'PAYMENT-REQUIRED/PAYMENT-SIGNATURE/PAYMENT-RESPONSE headers',
-						},
-						{
-							label: 'evidence URI',
-						},
-						{
-							label: 'source payload',
-						},
-					],
-				},
-				{
-					label: 'Payment',
-					items: [
-						{
-							label: 'requirements JSON',
-						},
-						{
-							label: 'payment payload',
-						},
-						{
-							label: 'response payload',
-						},
-						{
-							label: 'asset/network/price/payTo/facilitator',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

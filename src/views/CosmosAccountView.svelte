@@ -10,84 +10,43 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
 			'address',
-			{
-				label: 'latest account-state snapshot',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'address',
-					{
-						label: 'latest account number/sequence',
-					},
-					{
-						label: 'latest native-denom balance',
-					},
-					{
-						label: 'delegation count',
-					},
-					{
-						label: 'transaction count',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Account snapshots',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped account/auth state observations',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Balances',
+					label: 'balances',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped account balance observations grouped by denom',
-						},
+						'$$balances',
 					],
 				},
 				{
-					label: 'Delegations',
+					label: 'delegations',
+					when: 'open',
 					items: [
-						{
-							label: 'staking delegations from this account',
-						},
+						'$$delegations',
 					],
 				},
 				{
-					label: 'Transactions',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'Cosmos transactions involving this account when indexed',
-						},
-					],
-				},
-				{
-					label: 'Contracts/modules',
-					items: [
-						{
-							label: 'creator/admin/authority refs when linked by CosmosContract or CosmosModule',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Cosmos network',
-						},
+						'$$transactions',
 					],
 				},
 			],

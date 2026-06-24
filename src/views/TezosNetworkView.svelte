@@ -9,125 +9,89 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'linked base Network',
-			},
-			{
-				label: 'latest level',
-			},
-			{
-				label: 'protocol hash',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
-				[
-					{
-						label: 'linked base Network',
-					},
-					{
-						label: 'latest level',
-					},
-					{
-						label: 'protocol hash',
-					},
-					{
-						label: 'cycle',
-					},
-					{
-						label: 'total supply',
-					},
-					{
-						label: 'active baker count',
-					},
-					{
-						label: 'token count',
-					},
-					{
-						label: 'indexer lag',
-					},
-				],
+				[],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Blocks',
+					label: 'blocks',
+					when: 'open',
 					items: [
-						{
-							label: 'Tezos block rows',
-						},
+						'$$blocks',
 					],
 				},
 				{
-					label: 'Operation groups',
+					label: 'operation groups',
+					when: 'open',
 					items: [
-						{
-							label: 'operation group rows',
-						},
+						'$$operationGroups',
 					],
 				},
 				{
-					label: 'Operations',
+					label: 'operations',
+					when: 'open',
 					items: [
-						{
-							label: 'Tezos operation rows',
-						},
+						'$$operations',
 					],
 				},
 				{
-					label: 'Accounts',
+					label: 'accounts',
+					when: 'open',
 					items: [
-						{
-							label: 'Tezos account rows',
-						},
+						'$$accounts',
 					],
 				},
 				{
-					label: 'Contracts',
+					label: 'contracts',
+					when: 'open',
 					items: [
-						{
-							label: 'Tezos contract rows',
-						},
+						'$$contracts',
 					],
 				},
 				{
-					label: 'Bakers',
+					label: 'bakers',
+					when: 'open',
 					items: [
-						{
-							label: 'Tezos baker rows',
-						},
+						'$$bakers',
 					],
 				},
 				{
-					label: 'Cycles/rights',
+					label: 'cycles',
+					when: 'open',
 					items: [
-						{
-							label: 'cycle rows',
-						},
-						{
-							label: 'baking right rows',
-						},
+						'$$cycles',
 					],
 				},
 				{
-					label: 'Tokens',
+					label: 'baking rights',
+					when: 'open',
 					items: [
-						{
-							label: 'token rows',
-						},
-						{
-							label: 'token transfer rows',
-						},
+						'$$bakingRights',
 					],
 				},
 				{
-					label: 'Network history',
+					label: 'tokens',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped network observations',
-						},
+						'$$tokens',
+					],
+				},
+				{
+					label: 'token transfers',
+					when: 'open',
+					items: [
+						'$$tokenTransfers',
+					],
+				},
+				{
+					label: 'timestamps',
+					when: 'open',
+					items: [
+						'$$timestamps',
 					],
 				},
 			],

@@ -10,92 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'contract',
-			},
-			{
-				label: 'key',
-			},
-			{
-				label: 'block height',
-			},
+			'keyBase64',
+			'blockHeight',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'contract',
-					},
-					{
-						label: 'key',
-					},
-					{
-						label: 'block height',
-					},
+					'keyBase64',
+					'blockHeight',
 					'source',
-					{
-						label: 'block hash',
-					},
-					{
-						label: 'value availability/hash',
-					},
-					{
-						label: 'prefix',
-					},
-					{
-						label: 'deleted state',
-					},
+					'blockHash',
+					'valueBase64',
+					'valueHash',
+					'prefixBase64',
+					'deleted',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Contract',
-					items: [
-						{
-							label: 'parent NEAR contract',
-						},
-					],
-				},
-				{
-					label: 'Block',
-					items: [
-						{
-							label: 'NEAR block when coordinates resolve',
-						},
-					],
-				},
-				{
-					label: 'Raw state',
-					items: [
-						{
-							label: 'base64 key/value',
-						},
-						{
-							label: 'decoded previews',
-						},
-					],
-				},
-				{
-					label: 'Change history',
-					items: [
-						{
-							label: 'storage entries for the same key across blocks when indexed',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'view_state/data_changes payload',
-						},
-						{
-							label: 'pagination context',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

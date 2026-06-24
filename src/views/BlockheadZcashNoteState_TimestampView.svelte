@@ -10,86 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'note state',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'note state',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'spent state',
-					},
-					{
-						label: 'spend transaction id',
-					},
-					{
-						label: 'spent height',
-					},
+					'spent',
+					'spendTransactionId',
+					'spentAtHeight',
 					'confirmations',
-					{
-						label: 'witness availability',
-					},
-					{
-						label: 'last scanned height',
-					},
-					{
-						label: 'last scanned time',
-					},
+					'witnessAvailable',
+					'lastScannedHeight',
+					'lastScannedAt',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Note',
-					items: [
-						{
-							label: 'parent local Zcash note state',
-						},
-					],
-				},
-				{
-					label: 'Wallet',
-					items: [
-						{
-							label: 'parent local Zcash wallet state',
-						},
-					],
-				},
-				{
-					label: 'Public action',
-					items: [
-						{
-							label: 'linked public shielded action when available',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'zcashd wallet',
-						},
-						{
-							label: 'lightwalletd compact block/subtree',
-						},
-						{
-							label: 'or local SDK wallet-store payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,72 +10,28 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'repository',
-			},
-			{
-				label: 'issue id',
-			},
-			'title',
+			'issueId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'repository',
-					},
-					{
-						label: 'issue id',
-					},
+					'issueId',
 					'title',
+					'authorDid',
 					'state',
-					{
-						label: 'author DID',
-					},
-					{
-						label: 'created/updated timestamps',
-					},
-					{
-						label: 'payload object id',
-					},
-					{
-						label: 'payload object',
-					},
+					'createdAt',
+					'updatedAt',
+					'payloadObjectId',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Comments',
+					label: 'comments',
+					when: 'open',
 					items: [
-						{
-							label: 'discussion comments',
-						},
-					],
-				},
-				{
-					label: 'Events',
-					items: [
-						{
-							label: 'collaboration events',
-						},
-					],
-				},
-				{
-					label: 'Payload',
-					items: [
-						{
-							label: 'Git object payload',
-						},
-					],
-				},
-				{
-					label: 'Repository',
-					items: [
-						{
-							label: 'parent Radicle repository',
-						},
+						'$$comments',
 					],
 				},
 			],

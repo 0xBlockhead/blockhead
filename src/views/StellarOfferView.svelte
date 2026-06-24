@@ -10,91 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'offer id',
-			},
-			{
-				label: 'seller',
-			},
-			{
-				label: 'asset pair',
-			},
+			'offerId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'offer id',
-					},
-					{
-						label: 'seller',
-					},
-					{
-						label: 'asset pair',
-					},
-					{
-						label: 'latest amount/price observation',
-					},
-					{
-						label: 'latest modified ledger observation',
-					},
+					'offerId',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest state',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'latest ledger/source offer observation',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'State history',
+					label: 'trades',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped offer observations',
-						},
-					],
-				},
-				{
-					label: 'Trades',
-					items: [
-						{
-							label: 'trades against this offer',
-						},
-					],
-				},
-				{
-					label: 'Seller',
-					items: [
-						{
-							label: 'seller Stellar account',
-						},
-					],
-				},
-				{
-					label: 'Assets',
-					items: [
-						{
-							label: 'selling/buying assets',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Horizon offer object',
-						},
-						{
-							label: 'RPC offer ledger entry',
-						},
-						{
-							label: 'indexer orderbook history',
-						},
+						'$$trades',
 					],
 				},
 			],

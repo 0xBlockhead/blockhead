@@ -10,85 +10,31 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'source id',
-			},
-			'label',
-			'provider',
+			'id',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'source id',
-					},
-					'label',
+					'id',
+					'source',
 					'provider',
-					{
-						label: 'source enum',
-					},
-					{
-						label: 'endpoint URL',
-					},
-					{
-						label: 'transport kind',
-					},
-					{
-						label: 'auth kind',
-					},
-					{
-						label: 'CORS/proxy mode',
-					},
-					{
-						label: 'environment scope',
-					},
+					'label',
+					'endpointUrl',
+					'transportKind',
+					'authKind',
+					'corsMode',
+					'proxyMode',
+					'environmentScope',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Health',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadSource_Timestamp list',
-						},
-					],
-				},
-				{
-					label: 'Transport',
-					items: [
-						{
-							label: 'endpoint URL',
-						},
-						{
-							label: 'auth kind',
-						},
-						{
-							label: 'CORS/proxy policy',
-						},
-						{
-							label: 'local env scope',
-						},
-					],
-				},
-				{
-					label: 'Source catalog',
-					items: [
-						{
-							label: 'Source/SourceProvider enum ids',
-						},
-						{
-							label: 'resolver coverage notes',
-						},
-					],
-				},
-				{
-					label: 'Usage',
-					items: [
-						{
-							label: 'routes or resolver families that selected this local source config',
-						},
+						'$$timestamps',
 					],
 				},
 			],

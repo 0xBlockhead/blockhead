@@ -9,64 +9,26 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'asset instance',
-			},
-			{
-				label: 'token count',
-			},
-			{
-				label: 'royalty observation count',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
-				[
-					{
-						label: 'asset instance',
-					},
-					{
-						label: 'token count',
-					},
-					{
-						label: 'royalty observation count',
-					},
-				],
+				[],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Tokens',
+					label: 'tokens',
+					when: 'open',
 					items: [
-						{
-							label: 'collection-scoped token rows',
-						},
+						'$$tokens',
 					],
 				},
 				{
-					label: 'Asset instance',
+					label: 'royalty timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'parent asset instance',
-						},
-					],
-				},
-				{
-					label: 'Royalty observations',
-					items: [
-						{
-							label: 'timestamped royalty-right observations',
-						},
-					],
-				},
-				{
-					label: 'Metadata',
-					items: [
-						{
-							label: 'collection-level token metadata documents',
-						},
+						'$$royaltyTimestamps',
 					],
 				},
 			],

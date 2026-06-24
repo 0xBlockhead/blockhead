@@ -10,129 +10,35 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
-			{
-				label: 'head block',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'head block',
-					},
-					{
-						label: 'head hash/time',
-					},
-					{
-						label: 'transaction count',
-					},
-					{
-						label: 'gas used/limit/base fee',
-					},
-					{
-						label: 'storage sync heights',
-					},
-					{
-						label: 'storage transaction count',
-					},
-					{
-						label: 'latest data root/size/tx',
-					},
-					{
-						label: 'miner count/latest miner',
-					},
-					{
-						label: 'fee/reward totals',
-					},
-					{
-						label: 'win count',
-					},
-					{
-						label: 'expired files',
-					},
-					{
-						label: 'pruned files',
-					},
+					'headBlockNumber',
+					'headBlockHash',
+					'headTimestampMs',
+					'transactionCount',
+					'gasUsed',
+					'gasLimit',
+					'baseFeePerGas',
+					'storageLogSyncHeight',
+					'storageLayer1LogSyncHeight',
+					'storageTransactionCount',
+					'latestDataRoot',
+					'latestDataSizeBytes',
+					'latestStorageTxHash',
+					'storageMinerCount',
+					'latestStorageMiner',
+					'storageFeeTotal',
+					'storageRewardTotal',
+					'storageTotalWinCount',
+					'expiredFileCount',
+					'prunedFileCount',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'ZeroGNetwork',
-						},
-					],
-				},
-				{
-					label: 'Execution head',
-					items: [
-						{
-							label: 'head block',
-						},
-						{
-							label: 'hash/time',
-						},
-						{
-							label: 'transaction count',
-						},
-						{
-							label: 'gas used/limit/base fee',
-						},
-					],
-				},
-				{
-					label: 'Storage sync',
-					items: [
-						{
-							label: 'storage sync heights',
-						},
-						{
-							label: 'storage transaction count',
-						},
-						{
-							label: 'latest data root/size/tx',
-						},
-					],
-				},
-				{
-					label: 'Storage miners',
-					items: [
-						{
-							label: 'miner count',
-						},
-						{
-							label: 'latest miner',
-						},
-						{
-							label: 'fee/reward totals',
-						},
-						{
-							label: 'win/expired/pruned counts',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: '0G JSON-RPC',
-						},
-						{
-							label: '0G storage scan payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

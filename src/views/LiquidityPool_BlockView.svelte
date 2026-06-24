@@ -10,73 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'pool',
-			},
-			{
-				label: 'block number',
-			},
-			{
-				label: 'parent pool',
-			},
+			'blockNumber',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'pool',
-					},
-					{
-						label: 'block number',
-					},
-					{
-						label: 'parent pool',
-					},
-					{
-						label: 'sqrt price',
-					},
-					{
-						label: 'in-range liquidity',
-					},
+					'blockNumber',
+					'sqrtPriceX96',
+					'liquidity',
 					'tick',
-					{
-						label: 'observation index/cardinality/cardinality next',
-					},
-					{
-						label: 'fee protocol',
-					},
-					{
-						label: 'unlocked state',
-					},
+					'observationIndex',
+					'observationCardinality',
+					'observationCardinalityNext',
+					'feeProtocol',
+					'unlocked',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Parent pool',
-					items: [
-						{
-							label: 'parent liquidity pool',
-						},
-					],
-				},
-				{
-					label: 'On-chain curve state',
-					items: [
-						{
-							label: 'slot0/liquidity values',
-						},
-					],
-				},
-				{
-					label: 'Block context',
-					items: [
-						{
-							label: 'EVM block when the network block is resolved',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

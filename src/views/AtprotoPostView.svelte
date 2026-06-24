@@ -10,103 +10,34 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'AT URI',
-			},
-			{
-				label: 'author',
-			},
-			'text',
+			'uri',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'AT URI',
-					},
-					{
-						label: 'author',
-					},
-					{
-						label: 'created time',
-					},
-					{
-						label: 'indexed time',
-					},
+					'uri',
 					'text',
-				],
-				[
-					{
-						label: 'languages',
-					},
-					{
-						label: 'self-label values',
-					},
-					{
-						label: 'parent',
-					},
-					{
-						label: 'root',
-					},
-					{
-						label: 'latest engagement snapshot',
-					},
+					'createdAt',
+					'indexedAt',
+					'langs',
+					'selfLabelValues',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Content',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						'text',
-						{
-							label: 'languages',
-						},
-						{
-							label: 'self-label values',
-						},
-						{
-							label: 'created/indexed times',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Thread',
+					label: 'threadses',
+					when: 'open',
 					items: [
-						{
-							label: 'parent/root/thread post relationships',
-						},
-					],
-				},
-				{
-					label: 'Author',
-					items: [
-						{
-							label: 'author AT Protocol actor',
-						},
-					],
-				},
-				{
-					label: 'Metric snapshots',
-					items: [
-						{
-							label: 'timestamped like/repost/reply/quote counts',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'app.bsky.feed.getPosts',
-						},
-						{
-							label: 'app.bsky.feed.getPostThread',
-						},
-						{
-							label: 'AppView post payload',
-						},
+						'$$thread',
 					],
 				},
 			],

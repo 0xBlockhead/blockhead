@@ -10,69 +10,25 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'parent object',
-			},
-			{
-				label: 'field name hash/value',
-			},
-			{
-				label: 'child object id',
-			},
+			'fieldNameHash',
+			'childObjectId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'parent object',
-					},
-					{
-						label: 'field name hash/value',
-					},
-					{
-						label: 'child object id',
-					},
-					{
-						label: 'latest field/child type',
-					},
-					{
-						label: 'latest observation time',
-					},
+					'fieldNameHash',
+					'childObjectId',
+					'fieldName',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'State observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'checkpoint/source dynamic-field observations',
-						},
-					],
-				},
-				{
-					label: 'Parent object',
-					items: [
-						{
-							label: 'parent Sui object',
-						},
-					],
-				},
-				{
-					label: 'Child object',
-					items: [
-						{
-							label: 'child Sui object when child id resolves',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'dynamic field listing/read payload',
-						},
+						'$$timestamps',
 					],
 				},
 			],

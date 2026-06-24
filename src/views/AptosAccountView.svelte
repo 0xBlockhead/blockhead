@@ -11,78 +11,49 @@
 	const view = {
 		closed: [
 			'address',
-			{
-				label: 'latest account-state summary',
-			},
-			{
-				label: 'latest native coin balance',
-			},
 		],
 		content: {
 			dl: [
 				[
 					'address',
-					{
-						label: 'latest sequence/authentication-key summary',
-					},
-					{
-						label: 'latest native coin balance',
-					},
-					{
-						label: 'resource count',
-					},
-					{
-						label: 'module count',
-					},
-					{
-						label: 'transaction count',
-					},
-					{
-						label: 'network',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Account observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'ledger-versioned account auth/state observations',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Balances',
+					label: 'balances',
+					when: 'open',
 					items: [
-						{
-							label: 'coin/fungible-asset balance observations grouped by coin type',
-						},
+						'$$balances',
 					],
 				},
 				{
-					label: 'Resources',
+					label: 'resources',
+					when: 'open',
 					items: [
-						{
-							label: 'account resource identities and value observations',
-						},
+						'$$resources',
 					],
 				},
 				{
-					label: 'Modules',
+					label: 'modules',
+					when: 'open',
 					items: [
-						{
-							label: 'published Move modules',
-						},
+						'$$modules',
 					],
 				},
 				{
-					label: 'Transactions',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'transactions involving this account when indexed',
-						},
+						'$$transactions',
 					],
 				},
 			],

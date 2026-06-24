@@ -10,65 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'asset',
-			},
 			'slot',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'asset',
-					},
 					'slot',
 					'source',
-					{
-						label: 'observation time',
-					},
-					{
-						label: 'block hash',
-					},
+					'timestampMs',
+					'blockHash',
 					'supply',
-					{
-						label: 'transaction count',
-					},
-					{
-						label: 'holder count',
-					},
-					{
-						label: 'metadata snapshot hash/summary',
-					},
+					'transactionCount',
+					'metadata',
+					'holderCount',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Asset',
-					items: [
-						{
-							label: 'parent Cardano native asset',
-						},
-					],
-				},
-				{
-					label: 'Metadata',
-					items: [
-						{
-							label: 'CIP-25/CIP-68/source payload',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Blockfrost/Koios/db-sync query context',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -11,107 +11,34 @@
 	const view = {
 		closed: [
 			'id',
-			{
-				label: 'author',
-			},
-			{
-				label: 'feed',
-			},
 		],
 		content: {
 			dl: [
 				[
 					'id',
-					{
-						label: 'author',
-					},
-					{
-						label: 'feed',
-					},
-					{
-						label: 'text preview',
-					},
+					'text',
 					'timestamp',
-					{
-						label: 'edit/delete state',
-					},
-					{
-						label: 'content URI',
-					},
-					{
-						label: 'metadata hash',
-					},
-					{
-						label: 'comment/quote/repost/root refs',
-					},
-					{
-						label: 'latest comment/repost/quote/bookmark/collect/reaction snapshot',
-					},
+					'isEdited',
+					'isDeleted',
+					'contentUri',
+					'metadataHash',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Text/metadata',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'full post text',
-						},
-						{
-							label: 'content URI',
-						},
-						{
-							label: 'metadata hash',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Author',
+					label: 'comments',
+					when: 'open',
 					items: [
-						{
-							label: 'author Lens account',
-						},
-					],
-				},
-				{
-					label: 'Feed',
-					items: [
-						{
-							label: 'parent feed',
-						},
-					],
-				},
-				{
-					label: 'Comments',
-					items: [
-						{
-							label: 'comment posts linked to this post',
-						},
-					],
-				},
-				{
-					label: 'References',
-					items: [
-						{
-							label: 'comment/quote/repost/root post refs',
-						},
-					],
-				},
-				{
-					label: 'Metric snapshots',
-					items: [
-						{
-							label: 'timestamped engagement observations',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'post GraphQL payload',
-						},
+						'$$comments',
 					],
 				},
 			],

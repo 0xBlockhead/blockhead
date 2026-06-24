@@ -10,81 +10,33 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
 			'netuid',
-			'name',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'netuid',
 					'name',
-					{
-						label: 'subnet-info byte length',
-					},
-					{
-						label: 'dynamic-info byte length',
-					},
-					{
-						label: 'hyperparams byte length',
-					},
+					'subnetInfoByteLength',
+					'dynamicInfoByteLength',
+					'hyperparamsByteLength',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Payload summaries',
+					label: 'metagraph timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'subnetInfo_getSubnetInfo byte length',
-						},
-						{
-							label: 'subnetInfo_getDynamicInfo byte length',
-						},
-						{
-							label: 'subnetInfo_getSubnetHyperparams byte length',
-						},
+						'$$metagraphTimestamps',
 					],
 				},
 				{
-					label: 'Metagraph snapshots',
+					label: 'neurons',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped metagraph payload observations',
-						},
-					],
-				},
-				{
-					label: 'Neurons',
-					items: [
-						{
-							label: 'neuron rows by uid',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Bittensor network',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Bittensor JSON-RPC SCALE payloads',
-						},
-						{
-							label: 'decoder/version context',
-						},
+						'$$neurons',
 					],
 				},
 			],

@@ -10,102 +10,27 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'finalized block number/hash',
-					},
-					{
-						label: 'runtime spec/impl versions',
-					},
-					{
-						label: 'peer count',
-					},
-					{
-						label: 'sync flags',
-					},
-					{
-						label: 'subnet count',
-					},
-					{
-						label: 'SubnetsInfo byte length',
-					},
-					{
-						label: 'DynamicInfo byte length',
-					},
-					{
-						label: 'metagraph byte length',
-					},
+					'finalizedBlockNumber',
+					'finalizedBlockHash',
+					'runtimeSpecName',
+					'runtimeSpecVersion',
+					'runtimeImplVersion',
+					'peerCount',
+					'isSyncing',
+					'shouldHavePeers',
+					'subnetCount',
+					'subnetsInfoByteLength',
+					'dynamicInfoByteLength',
+					'metagraphsByteLength',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'Network',
-						},
-					],
-				},
-				{
-					label: 'Finality/runtime',
-					items: [
-						{
-							label: 'finalized block number/hash',
-						},
-						{
-							label: 'runtime spec/impl versions',
-						},
-					],
-				},
-				{
-					label: 'Node health',
-					items: [
-						{
-							label: 'peer count',
-						},
-						{
-							label: 'sync flags',
-						},
-					],
-				},
-				{
-					label: 'Subnet payloads',
-					items: [
-						{
-							label: 'subnet count',
-						},
-						{
-							label: 'SubnetsInfo/DynamicInfo/metagraph byte lengths',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Bittensor JSON-RPC responses',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

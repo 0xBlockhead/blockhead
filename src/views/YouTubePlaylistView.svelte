@@ -10,72 +10,33 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'playlist id',
-			},
-			{
-				label: 'latest title',
-			},
-			{
-				label: 'latest description',
-			},
+			'playlistId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'playlist id',
-					},
-					{
-						label: 'channel',
-					},
-					{
-						label: 'published date',
-					},
-					{
-						label: 'latest title',
-					},
-					{
-						label: 'latest description',
-					},
-					{
-						label: 'latest item-count snapshot',
-					},
+					'playlistId',
+					'title',
+					'description',
+					'publishedAt',
+					'publishedAtMs',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest metadata',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'latest playlist metadata observation',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Videos',
+					label: 'videos',
+					when: 'open',
 					items: [
-						{
-							label: 'playlist videos',
-						},
-					],
-				},
-				{
-					label: 'Channel',
-					items: [
-						{
-							label: 'owning channel',
-						},
-					],
-				},
-				{
-					label: 'Metric snapshots',
-					items: [
-						{
-							label: 'playlist metric observations',
-						},
+						'$$videos',
 					],
 				},
 			],

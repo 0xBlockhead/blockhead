@@ -9,143 +9,59 @@
 
 	// State
 	const view = {
-		actions: [
-			{
-				id: 'reveal-action-params',
-				label: 'Reveal action parameters',
-				kind: 'reveal',
-				field: 'actionParams',
-			},
-			{
-				id: 'delete-action',
-				label: 'Delete action',
-				kind: 'deleteLocal',
-				slot: 'DeleteSessionAction',
-			},
-		],
-		forms: [
-			{
-				id: 'edit-params',
-				label: 'Edit parameters',
-				kind: 'createLocal',
-				fields: [
-					{
-						name: 'actionParams',
-						label: 'Action parameters',
-						kind: 'textarea',
-					},
-				],
-				slot: 'EditActionParamsForm',
-			},
-		],
 		closed: [
-			{
-				label: 'session',
-			},
-			{
-				label: 'action id',
-			},
-			{
-				label: 'sequence index',
-			},
+			'sessionId',
+			'actionId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'session',
-					},
-					{
-						label: 'action id',
-					},
-					{
-						label: 'sequence index',
-					},
-					{
-						label: 'action type',
-					},
-					{
-						label: 'selected protocol',
-					},
-					{
-						label: 'created/updated timestamps',
-					},
+					'sessionId',
+					'actionId',
+					'indexInSequence',
+					'actionType',
+					'selectedProtocol',
+					'actionParams',
+					'createdAt',
+					'updatedAt',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Typed intent',
+					label: 'readiness checks',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadSwapIntent',
-						},
-						{
-							label: 'BlockheadBridgeIntent',
-						},
-						{
-							label: 'BlockheadTransferIntent',
-						},
-						{
-							label: 'or future typed local intent row',
-						},
+						'$$readinessChecks',
 					],
 				},
 				{
-					label: 'Readiness',
+					label: 'quotes',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadActionReadinessCheck list',
-						},
+						'$$quotes',
 					],
 				},
 				{
-					label: 'Quotes',
+					label: 'orders',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadIntentQuote list when signed-order/filler-market backed',
-						},
+						'$$orders',
 					],
 				},
 				{
-					label: 'Orders',
+					label: 'wallet requests',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadIntentOrder list when submitted',
-						},
+						'$$walletRequests',
 					],
 				},
 				{
-					label: 'Wallet requests',
+					label: 'outcomes',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadWalletRequest list when signing/submission is requested',
-						},
-					],
-				},
-				{
-					label: 'Outcomes',
-					items: [
-						{
-							label: 'BlockheadActionOutcome list',
-						},
-					],
-				},
-				{
-					label: 'Raw params',
-					items: [
-						{
-							label: 'actionParams fallback/debug payload',
-						},
-					],
-				},
-				{
-					label: 'Session',
-					items: [
-						{
-							label: 'parent local session',
-						},
+						'$$outcomes',
 					],
 				},
 			],

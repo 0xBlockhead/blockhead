@@ -10,85 +10,27 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'position id',
-			},
-			{
-				label: 'network',
-			},
-			{
-				label: 'pool',
-			},
+			'id',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'position id',
-					},
-					{
-						label: 'network',
-					},
-					{
-						label: 'pool',
-					},
-					{
-						label: 'tick lower',
-					},
-					{
-						label: 'tick upper',
-					},
-					{
-						label: 'token id',
-					},
+					'id',
+					'tickLower',
+					'tickUpper',
+					'tokenId',
 					'origin',
-					{
-						label: 'created timestamp',
-					},
-					{
-						label: 'latest owner/liquidity/owed-token block state',
-					},
+					'createdAtTimestamp',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Pool',
+					label: 'blocks',
+					when: 'open',
 					items: [
-						{
-							label: 'parent liquidity pool',
-						},
-					],
-				},
-				{
-					label: 'Block state',
-					items: [
-						{
-							label: 'block-coordinate position state history',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent EVM network',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'position manager positions(tokenId) call',
-						},
-						{
-							label: 'subgraph position entity',
-						},
-						{
-							label: 'local wallet-owned position list',
-						},
+						'$$blocks',
 					],
 				},
 			],

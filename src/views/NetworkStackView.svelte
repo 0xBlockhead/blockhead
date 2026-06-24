@@ -10,39 +10,14 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'stack id',
-			},
-			'label',
+			'networkStackId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'stack id',
-					},
+					'networkStackId',
 					'label',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Networks',
-					items: [
-						{
-							label: 'Network rows classified with this stack',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'checked-in stack catalog',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

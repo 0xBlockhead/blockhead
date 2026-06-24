@@ -10,85 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'regulated asset profile',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'regulated asset profile',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'ledger coordinate',
-					},
-					{
-						label: 'identity registry',
-					},
-					{
-						label: 'compliance contract',
-					},
+					'ledgerCoordinateKind',
+					'ledgerCoordinateValue',
+					'paused',
+					'registryVersion',
 				],
-				[
-					{
-						label: 'trusted issuers registry',
-					},
-					{
-						label: 'claim topics registry',
-					},
-					{
-						label: 'paused state',
-					},
-					{
-						label: 'registry version',
-					},
-				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Profile',
-					items: [
-						{
-							label: 'parent regulated asset profile',
-						},
-					],
-				},
-				{
-					label: 'Registries',
-					items: [
-						{
-							label: 'linked EVM contracts when resolved',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'contract calls/events',
-						},
-						{
-							label: 'verified ABI interpretation',
-						},
-						{
-							label: 'token-extension state',
-						},
-						{
-							label: 'indexer payload freshness',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

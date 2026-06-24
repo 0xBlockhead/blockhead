@@ -10,81 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'big-map key',
-			},
 			'level',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'big-map key',
-					},
 					'level',
 					'source',
-					{
-						label: 'timestamp',
-					},
-					{
-						label: 'decoded key',
-					},
-					{
-						label: 'decoded value',
-					},
-					{
-						label: 'first/last level',
-					},
-					{
-						label: 'update count',
-					},
-					{
-						label: 'active state',
-					},
+					'timestampMs',
+					'key',
+					'value',
+					'firstLevel',
+					'lastLevel',
+					'updateCount',
+					'active',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Key',
-					items: [
-						{
-							label: 'parent Tezos big-map key',
-						},
-					],
-				},
-				{
-					label: 'Big map',
-					items: [
-						{
-							label: 'parent Tezos big map',
-						},
-					],
-				},
-				{
-					label: 'Updates',
-					items: [
-						{
-							label: 'big-map diffs near this level',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'current key lookup',
-						},
-						{
-							label: 'historical context storage query',
-						},
-						{
-							label: 'indexer payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

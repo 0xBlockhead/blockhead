@@ -10,67 +10,17 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'room',
-			},
-			{
-				label: 'from/to accounts',
-			},
+			'id',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'room',
-					},
-					{
-						label: 'from/to accounts',
-					},
-					{
-						label: 'allocation count',
-					},
+					'id',
+					'allocations',
 					'status',
-					{
-						label: 'created time',
-					},
-					{
-						label: 'expiry',
-					},
+					'createdAt',
+					'expiresAt',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Allocations',
-					items: [
-						{
-							label: 'destination/token/amount table',
-						},
-					],
-				},
-				{
-					label: 'Room',
-					items: [
-						{
-							label: 'parent local room',
-						},
-					],
-				},
-				{
-					label: 'Execution',
-					items: [
-						{
-							label: 'authorization/submission/outcome rows when linked',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

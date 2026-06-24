@@ -10,59 +10,17 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'deposit',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'deposit',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'available balance',
-					},
-					{
-						label: 'locked balance',
-					},
+					'availableBalance',
+					'lockedBalance',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Deposit',
-					items: [
-						{
-							label: 'parent channel/account deposit slice',
-						},
-					],
-				},
-				{
-					label: 'Channel',
-					items: [
-						{
-							label: 'parent local state channel',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'local client/store/node collateral snapshot',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

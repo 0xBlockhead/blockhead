@@ -10,77 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'sector',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'sector',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'height',
-					{
-						label: 'tipset key',
-					},
-					{
-						label: 'sealed CID',
-					},
-					{
-						label: 'activation epoch',
-					},
-					{
-						label: 'expiration epoch',
-					},
-					{
-						label: 'deal count',
-					},
+					'tipsetKey',
+					'sealedCid',
+					'activationEpoch',
+					'expirationEpoch',
+					'dealIds',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Sector',
-					items: [
-						{
-							label: 'parent Filecoin sector',
-						},
-					],
-				},
-				{
-					label: 'Tipset',
-					items: [
-						{
-							label: 'Filecoin tipset when resolved',
-						},
-					],
-				},
-				{
-					label: 'Deals',
-					items: [
-						{
-							label: 'Filecoin deals from deal ids',
-						},
-					],
-				},
-				{
-					label: 'Source',
-					items: [
-						{
-							label: 'StateMinerSectors/StateMinerActiveSectors payload evidence',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,75 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'validator',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'validator',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'jailed state',
-					},
+					'jailed',
 					'status',
 					'tokens',
-					{
-						label: 'delegator shares',
-					},
-					{
-						label: 'commission rate',
-					},
-					{
-						label: 'minimum self-delegation',
-					},
+					'delegatorShares',
+					'commissionRate',
+					'minSelfDelegation',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Validator',
-					items: [
-						{
-							label: 'parent Cosmos validator',
-						},
-					],
-				},
-				{
-					label: 'Delegations',
-					items: [
-						{
-							label: 'delegations to this validator',
-						},
-					],
-				},
-				{
-					label: 'Consensus set',
-					items: [
-						{
-							label: 'CometBFT validator-set evidence',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'staking/indexer payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

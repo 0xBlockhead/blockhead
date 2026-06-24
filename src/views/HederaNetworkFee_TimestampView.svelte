@@ -10,77 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'transaction type',
-			},
-			{
-				label: 'observation time',
-			},
+			'transactionType',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'transaction type',
-					},
-					{
-						label: 'observation time',
-					},
+					'transactionType',
+					'timestampMs',
 					'source',
-					{
-						label: 'gas tinybar',
-					},
-					{
-						label: 'base/node/network/service/total tinycent fees',
-					},
-					{
-						label: 'extras summary',
-					},
+					'gasTinybar',
+					'baseTinycent',
+					'nodeTinycent',
+					'networkTinycent',
+					'serviceTinycent',
+					'totalTinycent',
+					'extras',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Hedera network',
-						},
-					],
-				},
-				{
-					label: 'Fee components',
-					items: [
-						{
-							label: 'node',
-						},
-						{
-							label: 'network',
-						},
-						{
-							label: 'service',
-						},
-						{
-							label: 'base',
-						},
-						'extras',
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'network fees or fee-estimate payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

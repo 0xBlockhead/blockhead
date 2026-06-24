@@ -9,141 +9,24 @@
 
 	// State
 	const view = {
-		panels: [
-			{
-				id: 'chart',
-				label: 'Chart',
-				kind: 'chart',
-				slot: 'OhlcChart',
-			},
-		],
-		charts: [
-			{
-				id: 'ohlc',
-				label: 'OHLC history',
-				kind: 'ohlc',
-				x: 'timestampMs',
-				y: 'close',
-				controls: {
-					lookbackDays: [
-						1,
-						7,
-						30,
-						90,
-						365,
-					],
-					intervals: [
-						'1m',
-						'5m',
-						'1h',
-						'1d',
-					],
-				},
-				slot: 'OhlcChart',
-			},
-		],
 		closed: [
-			{
-				label: 'market',
-			},
-			{
-				label: 'parent market',
-			},
-			{
-				label: 'interval',
-			},
+			'timeInterval',
+			'timestampMs',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'market',
-					},
-					{
-						label: 'parent market',
-					},
-					{
-						label: 'interval',
-					},
-					{
-						label: 'interval start',
-					},
+					'timeInterval',
+					'timestampMs',
 					'open',
 					'high',
 					'low',
 					'close',
 					'volume',
-					{
-						label: 'quote volume',
-					},
-					{
-						label: 'trade count',
-					},
-					{
-						label: 'VWAP',
-					},
+					'quoteVolume',
+					'tradeCount',
+					'vwap',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Market',
-					items: [
-						{
-							label: 'Market',
-						},
-					],
-				},
-				{
-					label: 'Candle',
-					items: [
-						'open',
-						'high',
-						'low',
-						'close',
-						{
-							label: 'interval start',
-						},
-					],
-				},
-				{
-					label: 'Volume',
-					items: [
-						'volume',
-						{
-							label: 'quote volume',
-						},
-						{
-							label: 'trade count',
-						},
-						{
-							label: 'VWAP',
-						},
-					],
-				},
-				{
-					label: 'History',
-					items: [
-						{
-							label: 'Market_TimeInterval_Timestamp list grouped by interval',
-						},
-					],
-				},
-				{
-					label: 'Data provenance',
-					items: [
-						{
-							label: 'observing provider on row metadata',
-						},
-						{
-							label: 'provider OHLC/OHLCV feed',
-						},
-						{
-							label: 'provider asset mapping',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

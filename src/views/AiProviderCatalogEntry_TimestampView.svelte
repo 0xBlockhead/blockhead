@@ -10,55 +10,17 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'entry',
-			},
-			{
-				label: 'observation time',
-			},
-			{
-				label: 'availability',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'entry',
-					},
-					{
-						label: 'timestamp',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'availability',
-					},
+					'availabilityStatus',
+					'raw',
 				],
-				[
-					{
-						label: 'raw provider payload',
-					},
-				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Entry',
-					items: [
-						{
-							label: 'AiProviderCatalogEntry',
-						},
-					],
-				},
-				{
-					label: 'Raw',
-					items: [
-						{
-							label: 'raw source payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

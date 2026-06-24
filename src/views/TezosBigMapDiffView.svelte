@@ -10,72 +10,18 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'operation',
-			},
-			{
-				label: 'big-map id',
-			},
-			{
-				label: 'key hash',
-			},
+			'bigMapId',
+			'keyHash',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'operation',
-					},
-					{
-						label: 'big-map id',
-					},
-					{
-						label: 'key hash',
-					},
+					'bigMapId',
+					'keyHash',
 					'action',
-					{
-						label: 'linked big map',
-					},
+					'key',
+					'value',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Operation',
-					items: [
-						{
-							label: 'parent Tezos operation',
-						},
-					],
-				},
-				{
-					label: 'Big map',
-					items: [
-						{
-							label: 'linked Tezos big map',
-						},
-					],
-				},
-				{
-					label: 'Key/value',
-					items: [
-						{
-							label: 'decoded key',
-						},
-						{
-							label: 'value payload',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'raw diff payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

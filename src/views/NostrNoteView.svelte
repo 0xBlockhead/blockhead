@@ -10,81 +10,36 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'event id',
-			},
-			'kind',
-			{
-				label: 'author pubkey/profile',
-			},
+			'eventId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'event id',
-					},
+					'eventId',
 					'kind',
-					{
-						label: 'author pubkey/profile',
-					},
+					'pubkey',
+					'content',
 					'createdAt',
-					{
-						label: 'direct reply event id',
-					},
-					{
-						label: 'root event id',
-					},
-					{
-						label: 'reply-to note',
-					},
-					{
-						label: 'reply count',
-					},
-					{
-						label: 'reaction count',
-					},
+					'tags',
+					'replyToEventId',
+					'rootEventId',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Note text',
+					label: 'replies',
+					when: 'open',
 					items: [
-						'content',
+						'$$replies',
 					],
 				},
 				{
-					label: 'Reply thread',
+					label: 'reactions',
+					when: 'open',
 					items: [
-						{
-							label: 'reply notes resolved from tags/indexer thread context',
-						},
-					],
-				},
-				{
-					label: 'Reactions',
-					items: [
-						{
-							label: 'reaction events targeting this note',
-						},
-					],
-				},
-				{
-					label: 'Author',
-					items: [
-						{
-							label: 'author Nostr profile',
-						},
-					],
-				},
-				{
-					label: 'Raw event',
-					items: [
-						{
-							label: 'kind/pubkey/tags/signature/source relays',
-						},
+						'$$reactions',
 					],
 				},
 			],

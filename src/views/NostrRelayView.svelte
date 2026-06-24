@@ -10,32 +10,18 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'relay URL',
-			},
-			{
-				label: 'latest relay snapshot',
-			},
+			'relayUrl',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'relay URL',
-					},
-					{
-						label: 'latest relay snapshot',
-					},
+					'relayUrl',
 					'name',
-					{
-						label: 'software/version',
-					},
-					{
-						label: 'supported NIP count',
-					},
-					{
-						label: 'paid flag',
-					},
+					'description',
+					'software',
+					'version',
+					'supportedNipCount',
+					'isPaid',
 					'limit',
 				],
 			],
@@ -43,33 +29,10 @@
 		details: {
 			tabs: [
 				{
-					label: 'Snapshots',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped relay metadata/activity observations',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'seed',
-						},
-						{
-							label: 'NIP-11 HTTP document',
-						},
-						{
-							label: 'NostrBand relay-list payload',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'NostrNetwork browse context',
-						},
+						'$$timestamps',
 					],
 				},
 			],

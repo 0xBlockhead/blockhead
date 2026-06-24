@@ -10,82 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'builder',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'builder',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'delivered-payload count',
-					},
-					{
-						label: 'delivered value',
-					},
-					{
-						label: 'relay count',
-					},
-					{
-						label: 'slot window',
-					},
-					{
-						label: 'sample limit',
-					},
+					'deliveredPayloadCount',
+					'deliveredValueWei',
+					'relayCount',
+					'windowStartSlot',
+					'windowEndSlot',
+					'sampleLimit',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Builder',
-					items: [
-						{
-							label: 'parent MEV builder',
-						},
-					],
-				},
-				{
-					label: 'Delivered payloads',
-					items: [
-						{
-							label: 'delivered-payload rows filtered to the same builder/window',
-						},
-					],
-				},
-				{
-					label: 'Relays',
-					items: [
-						{
-							label: 'relay hosts included in the observation',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'relay API parameters',
-						},
-						{
-							label: 'pagination/limit',
-						},
-						{
-							label: 'any aggregator freshness metadata',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

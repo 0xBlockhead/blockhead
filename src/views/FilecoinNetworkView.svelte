@@ -9,95 +9,28 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'head tipset',
-			},
-			{
-				label: 'environment',
-			},
-			{
-				label: 'RPC endpoint availability',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
 				[
-					{
-						label: 'head tipset',
-					},
-					{
-						label: 'environment',
-					},
-					{
-						label: 'RPC endpoint availability',
-					},
-					{
-						label: 'latest network version',
-					},
-				],
-				[
-					{
-						label: 'latest power summary',
-					},
-					{
-						label: 'bounded recent tipset count',
-					},
-					{
-						label: 'indexed deal count when available',
-					},
+					'rpcEndpoints',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Execution',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'tipsets',
-						},
-						{
-							label: 'timestamped network/head observations',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Consensus & Storage Power',
+					label: 'tipsets',
+					when: 'open',
 					items: [
-						{
-							label: 'head miners from latest snapshot plus miner state observations when scoped',
-						},
-					],
-				},
-				{
-					label: 'Deals',
-					items: [
-						{
-							label: 'Filecoin deals from market state/indexer sources when wired',
-						},
-					],
-				},
-				{
-					label: 'Assets',
-					items: [
-						{
-							label: 'native coin',
-						},
-					],
-				},
-				{
-					label: 'Resources',
-					items: [
-						{
-							label: 'faucets',
-						},
-						{
-							label: 'block explorers',
-						},
-						{
-							label: 'source endpoints',
-						},
+						'$$tipsets',
 					],
 				},
 			],

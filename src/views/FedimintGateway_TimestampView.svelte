@@ -10,102 +10,26 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'gateway',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'gateway',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'reachability',
-					},
-					{
-						label: 'online state',
-					},
+					'reachable',
+					'online',
 					'version',
-					{
-						label: 'Lightning alias',
-					},
-					{
-						label: 'routing-fee summary',
-					},
-					{
-						label: 'federation count',
-					},
-					{
-						label: 'Lightning balance',
-					},
-					{
-						label: 'ecash balance',
-					},
-					{
-						label: 'on-chain balance',
-					},
+					'lightningAlias',
+					'routingFeesJson',
+					'federationsCount',
+					'lightningBalanceMsat',
+					'ecashBalanceMsat',
+					'onchainBalanceSats',
+					'channelsJson',
+					'paymentSummaryJson',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Gateway',
-					items: [
-						{
-							label: 'parent Fedimint gateway',
-						},
-					],
-				},
-				{
-					label: 'Federations',
-					items: [
-						{
-							label: 'federation ids/status known to the gateway',
-						},
-					],
-				},
-				{
-					label: 'Lightning',
-					items: [
-						{
-							label: 'alias',
-						},
-						{
-							label: 'routing fees',
-						},
-						{
-							label: 'balances',
-						},
-						'channelsJson',
-					],
-				},
-				{
-					label: 'Payments',
-					items: [
-						'paymentSummaryJson',
-					],
-				},
-				{
-					label: 'Source',
-					items: [
-						{
-							label: 'endpoint',
-						},
-						{
-							label: 'freshness',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -20,31 +20,16 @@
 					'account',
 					'currency',
 					'issuer',
-					{
-						label: 'latest balance/limit flags',
-					},
-					{
-						label: 'account/issuer links',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Snapshots',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'ledger-indexed trustline observations',
-						},
-					],
-				},
-				{
-					label: 'Ledger entry',
-					items: [
-						{
-							label: 'RippleState ledger object when known',
-						},
+						'$$timestamps',
 					],
 				},
 			],

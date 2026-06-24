@@ -10,82 +10,23 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'vote pubkey',
-			},
-			{
-				label: 'node pubkey',
-			},
+			'votePubkey',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'vote pubkey',
-					},
-					{
-						label: 'node pubkey',
-					},
-				],
-				[
-					{
-						label: 'latest stake/commission/delinquency snapshot',
-					},
+					'votePubkey',
+					'nodePubkey',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Validator observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'slot/source validator vote-account observations',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Solana network',
-						},
-					],
-				},
-				{
-					label: 'Vote account',
-					items: [
-						{
-							label: 'Solana account when resolved',
-						},
-					],
-				},
-				{
-					label: 'Stake/status',
-					items: [
-						{
-							label: 'activated stake',
-						},
-						{
-							label: 'commission',
-						},
-						{
-							label: 'delinquency',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'getVoteAccounts current/delinquent payload',
-						},
+						'$$timestamps',
 					],
 				},
 			],

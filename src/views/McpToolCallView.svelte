@@ -10,66 +10,28 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'server',
-			},
-			{
-				label: 'call id',
-			},
-			{
-				label: 'tool',
-			},
+			'callId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'server',
-					},
-					{
-						label: 'call id',
-					},
-					{
-						label: 'tool',
-					},
-				],
-				[
-					{
-						label: 'started/completed at',
-					},
-					{
-						label: 'input/output hash algorithms and hashes',
-					},
-					{
-						label: 'latest status',
-					},
+					'callId',
+					'startedAt',
+					'completedAt',
+					'inputHashAlgorithm',
+					'inputHash',
+					'outputHashAlgorithm',
+					'outputHash',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Tool',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'McpTool',
-						},
-					],
-				},
-				{
-					label: 'Observations',
-					items: [
-						{
-							label: 'McpToolCall_Timestamp list',
-						},
-					],
-				},
-				{
-					label: 'Server',
-					items: [
-						{
-							label: 'McpServer',
-						},
+						'$$timestamps',
 					],
 				},
 			],

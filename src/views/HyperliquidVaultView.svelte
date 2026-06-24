@@ -10,106 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'vault address',
-			},
-			{
-				label: 'leader',
-			},
+			'vaultAddress',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'vault address',
-					},
-					{
-						label: 'leader',
-					},
-					{
-						label: 'latest name',
-					},
-					{
-						label: 'latest APR',
-					},
-					{
-						label: 'latest leader fraction/commission',
-					},
-					{
-						label: 'latest distributable/withdrawable amounts',
-					},
-					{
-						label: 'latest closed/deposit flags',
-					},
-					{
-						label: 'follower count',
-					},
-					{
-						label: 'equity observation count',
-					},
-					{
-						label: 'timestamp count',
-					},
+					'vaultAddress',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest state',
+					label: 'equities',
+					when: 'open',
 					items: [
-						{
-							label: 'latest vault-detail observation',
-						},
+						'$$equities',
 					],
 				},
 				{
-					label: 'State history',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped vault-detail observations',
-						},
-					],
-				},
-				{
-					label: 'Leader',
-					items: [
-						{
-							label: 'linked Hyperliquid leader account',
-						},
-					],
-				},
-				{
-					label: 'Portfolio',
-					items: [
-						{
-							label: 'account value',
-						},
-						{
-							label: 'PnL history buckets from latest vaultDetails',
-						},
-					],
-				},
-				{
-					label: 'Followers',
-					items: [
-						{
-							label: 'follower equity/PnL rows from latest vaultDetails',
-						},
-					],
-				},
-				{
-					label: 'User equities',
-					items: [
-						{
-							label: 'account/vault equity observations',
-						},
+						'$$timestamps',
 					],
 				},
 			],

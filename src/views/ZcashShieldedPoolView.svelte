@@ -10,61 +10,15 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
 			'pool',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'pool',
-					{
-						label: 'activation network upgrade',
-					},
-					{
-						label: 'note protocol',
-					},
+					'activationNetworkUpgrade',
+					'noteProtocol',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Actions',
-					items: [
-						{
-							label: 'shielded actions referencing this pool',
-						},
-					],
-				},
-				{
-					label: 'Blocks',
-					items: [
-						{
-							label: 'pool block-state rows when resolved',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Zcash network',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Zcashd resolver constant mapping',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

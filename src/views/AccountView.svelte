@@ -10,61 +10,25 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'CAIP-10 namespace/reference/address',
-			},
-			{
-				label: 'canonical address when derivable',
-			},
-			{
-				label: 'network',
-			},
+			'caip10',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'CAIP-10 namespace/reference/address',
-					},
-					{
-						label: 'canonical address when derivable',
-					},
-					{
-						label: 'network',
-					},
-					{
-						label: 'EVM account/network-account refs when namespace is eip155',
-					},
-					{
-						label: 'native account selector',
-					},
+					'caip10',
+					'address',
+					'canonicalAddress',
+					'nativeAccountSelector',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Native account',
+					label: 'wallet accounts',
+					when: 'open',
 					items: [
-						{
-							label: 'protocol-specific account identity',
-						},
-					],
-				},
-				{
-					label: 'EVM account',
-					items: [
-						{
-							label: 'EVM account and network-account identity when namespace is eip155',
-						},
-					],
-				},
-				{
-					label: 'Wallet exposure',
-					items: [
-						{
-							label: 'local wallet accounts that exposed this account',
-						},
+						'$$walletAccounts',
 					],
 				},
 			],

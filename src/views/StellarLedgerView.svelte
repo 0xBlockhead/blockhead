@@ -11,58 +11,35 @@
 	const view = {
 		closed: [
 			'sequence',
-			'hash',
-			{
-				label: 'close time',
-			},
 		],
 		content: {
 			dl: [
 				[
 					'sequence',
 					'hash',
-					{
-						label: 'close time',
-					},
-					{
-						label: 'protocol version',
-					},
-					{
-						label: 'transaction/operation counts',
-					},
+					'closeTimeMs',
+					'protocolVersion',
+					'transactionCount',
+					'operationCount',
+					'successfulTransactionCount',
+					'failedTransactionCount',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Transactions',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'transactions in this ledger',
-						},
+						'$$transactions',
 					],
 				},
 				{
-					label: 'Operations',
+					label: 'operations',
+					when: 'open',
 					items: [
-						{
-							label: 'operations in this ledger',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Horizon ledger payload',
-						},
-						{
-							label: 'RPC ledger/head payload',
-						},
-						{
-							label: 'explorer ledger stats',
-						},
+						'$$operations',
 					],
 				},
 			],

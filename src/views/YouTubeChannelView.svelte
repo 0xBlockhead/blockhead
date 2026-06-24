@@ -10,75 +10,41 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'channel id',
-			},
-			{
-				label: 'latest title',
-			},
-			{
-				label: 'latest description',
-			},
+			'channelId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'channel id',
-					},
-					{
-						label: 'published date',
-					},
-					{
-						label: 'latest title',
-					},
-					{
-						label: 'latest description',
-					},
-					{
-						label: 'latest custom URL',
-					},
-					{
-						label: 'latest icon media',
-					},
-					{
-						label: 'latest subscriber/video/view snapshot',
-					},
+					'channelId',
+					'publishedAt',
+					'publishedAtMs',
+					'title',
+					'description',
+					'customUrl',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest metadata',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'latest channel metadata observation',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Videos',
+					label: 'videos',
+					when: 'open',
 					items: [
-						{
-							label: 'channel videos',
-						},
+						'$$videos',
 					],
 				},
 				{
-					label: 'Playlists',
+					label: 'playlists',
+					when: 'open',
 					items: [
-						{
-							label: 'channel playlists',
-						},
-					],
-				},
-				{
-					label: 'Metric snapshots',
-					items: [
-						{
-							label: 'channel metric observations',
-						},
+						'$$playlists',
 					],
 				},
 			],

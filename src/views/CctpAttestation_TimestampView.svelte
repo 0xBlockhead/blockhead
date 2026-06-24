@@ -10,80 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'message',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'message',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'status',
-					{
-						label: 'delay reason',
-					},
-					{
-						label: 'forward state',
-					},
-					{
-						label: 'forward transaction hash',
-					},
-					{
-						label: 'attestation availability',
-					},
-					{
-						label: 'request id',
-					},
+					'attestation',
+					'delayReason',
+					'forwardState',
+					'forwardTxHash',
+					'requestId',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Message',
-					items: [
-						{
-							label: 'parent CCTP message',
-						},
-					],
-				},
-				{
-					label: 'Attestation bytes',
-					items: [
-						{
-							label: 'signature payload',
-						},
-					],
-				},
-				{
-					label: 'Forwarding',
-					items: [
-						{
-							label: 'forward state/transaction evidence',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Iris API response',
-						},
-						{
-							label: 'request id',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

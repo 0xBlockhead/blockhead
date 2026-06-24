@@ -10,77 +10,20 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'account',
-			},
-			{
-				label: 'ledger version',
-			},
+			'ledgerVersion',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'account',
-					},
-					{
-						label: 'ledger version',
-					},
+					'ledgerVersion',
 					'source',
-					{
-						label: 'observation time',
-					},
-					{
-						label: 'block height',
-					},
+					'timestampMs',
+					'blockHeight',
 					'epoch',
-					{
-						label: 'sequence number',
-					},
-					{
-						label: 'authentication key',
-					},
+					'sequenceNumber',
+					'authenticationKey',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'parent Aptos account',
-						},
-					],
-				},
-				{
-					label: 'Resources',
-					items: [
-						{
-							label: 'resource observations at the same ledger version when available',
-						},
-					],
-				},
-				{
-					label: 'Transactions',
-					items: [
-						{
-							label: 'transactions around the sequence/ledger version',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'fullnode account response headers',
-						},
-						{
-							label: 'indexer account payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

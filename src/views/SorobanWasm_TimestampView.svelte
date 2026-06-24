@@ -10,100 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'wasm',
-			},
-			{
-				label: 'ledger sequence',
-			},
-			{
-				label: 'bytecode availability',
-			},
+			'ledgerSequence',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'wasm',
-					},
-					{
-						label: 'ledger sequence',
-					},
+					'ledgerSequence',
 					'source',
-					{
-						label: 'observed time',
-					},
-					{
-						label: 'found state',
-					},
+					'observedAtMs',
+					'wasmBytes',
+					'byteLength',
+					'interfaceVersion',
+					'envMeta',
+					'specEntries',
+					'found',
 				],
-				[
-					{
-						label: 'byte length',
-					},
-					{
-						label: 'interface version',
-					},
-					{
-						label: 'spec-entry count',
-					},
-					{
-						label: 'environment metadata availability',
-					},
-				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'WASM',
-					items: [
-						{
-							label: 'parent Soroban WASM',
-						},
-					],
-				},
-				{
-					label: 'Contracts',
-					items: [
-						{
-							label: 'contracts using this WASM',
-						},
-					],
-				},
-				{
-					label: 'Bytes',
-					items: [
-						{
-							label: 'raw WASM bytes',
-						},
-					],
-				},
-				{
-					label: 'Spec',
-					items: [
-						{
-							label: 'decoded spec entries',
-						},
-						{
-							label: 'environment metadata',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'ContractCode ledger entry',
-						},
-						{
-							label: 'getLedgerEntries payload',
-						},
-						{
-							label: 'decoder/parser version when available',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

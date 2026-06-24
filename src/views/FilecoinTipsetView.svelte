@@ -10,74 +10,26 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
 			'height',
-			{
-				label: 'tipset key',
-			},
+			'tipsetKey',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'height',
-					{
-						label: 'tipset key',
-					},
-					{
-						label: 'parent',
-					},
-					{
-						label: 'parent weight',
-					},
-					{
-						label: 'timestamp',
-					},
-					{
-						label: 'block count',
-					},
-					{
-						label: 'receipt count',
-					},
+					'tipsetKey',
+					'parentWeight',
+					'timestampMs',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Blocks',
+					label: 'blocks',
+					when: 'open',
 					items: [
-						{
-							label: 'Filecoin blocks in this tipset',
-						},
-					],
-				},
-				{
-					label: 'Message receipts',
-					items: [
-						{
-							label: 'message receipts when sourced from parent receipts/search context',
-						},
-					],
-				},
-				{
-					label: 'Parent',
-					items: [
-						{
-							label: 'parent Filecoin tipset',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Filecoin network',
-						},
+						'$$blocks',
 					],
 				},
 			],

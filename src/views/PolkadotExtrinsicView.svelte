@@ -10,74 +10,16 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'block',
-			},
-			{
-				label: 'extrinsic index',
-			},
-			'hash',
+			'extrinsicIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'block',
-					},
-					{
-						label: 'extrinsic index',
-					},
+					'extrinsicIndex',
 					'hash',
-					{
-						label: 'signer',
-					},
-					{
-						label: 'pallet',
-					},
-					{
-						label: 'call name',
-					},
+					'callName',
 					'success',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Signer',
-					items: [
-						{
-							label: 'signing Polkadot account',
-						},
-					],
-				},
-				{
-					label: 'Pallet/call',
-					items: [
-						{
-							label: 'runtime pallet',
-						},
-						{
-							label: 'call metadata',
-						},
-					],
-				},
-				{
-					label: 'Events',
-					items: [
-						{
-							label: 'events filtered by extrinsic',
-						},
-					],
-				},
-				{
-					label: 'Block context',
-					items: [
-						{
-							label: 'parent Polkadot block',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,56 +10,18 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'wallet key state',
-			},
-			{
-				label: 'observation time',
-			},
-			'balance',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'wallet key state',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'tip',
 					'balance',
 					'address',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Wallet key',
-					items: [
-						{
-							label: 'BlockheadLogosBlockchainWalletKeyStateView',
-						},
-					],
-				},
-				{
-					label: 'Node',
-					items: [
-						{
-							label: 'BlockheadLogosBlockchainNodeStateView',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: '/wallet/{publicKey}/balance response',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

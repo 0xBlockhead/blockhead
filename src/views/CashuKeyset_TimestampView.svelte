@@ -10,95 +10,20 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'keyset',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'keyset',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'active state',
-					},
-					{
-						label: 'input fee ppk',
-					},
-					{
-						label: 'final expiry',
-					},
+					'active',
+					'inputFeePpk',
+					'finalExpiryMs',
+					'listedByKeysEndpoint',
+					'listedByKeysetsEndpoint',
 				],
-				[
-					{
-						label: 'keys-endpoint listing flag',
-					},
-					{
-						label: 'keysets-endpoint listing flag',
-					},
-				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Keyset',
-					items: [
-						{
-							label: 'parent Cashu keyset',
-						},
-					],
-				},
-				{
-					label: 'Mint',
-					items: [
-						{
-							label: 'parent Cashu mint',
-						},
-					],
-				},
-				{
-					label: 'Rotation/economics',
-					items: [
-						{
-							label: 'active/final-expiry/input-fee changes',
-						},
-					],
-				},
-				{
-					label: 'Endpoint coverage',
-					items: [
-						{
-							label: 'keys endpoint listing',
-						},
-						{
-							label: 'keysets endpoint listing',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'GET /v1/keys',
-						},
-						{
-							label: 'GET /v1/keys/{keyset_id}',
-						},
-						{
-							label: 'GET /v1/keysets',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

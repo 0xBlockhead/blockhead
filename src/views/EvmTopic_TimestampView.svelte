@@ -10,71 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'topic',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'topic',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
+					'signatures',
+					'filteredSignatureCount',
+					'verifiedCandidateCount',
 					'reachable',
 				],
-				[
-					{
-						label: 'candidate signatures',
-					},
-					{
-						label: 'filtered signature count',
-					},
-					{
-						label: 'verified candidate count',
-					},
-				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Topic',
-					items: [
-						{
-							label: 'parent EvmTopic hash row',
-						},
-					],
-				},
-				{
-					label: 'Candidates',
-					items: [
-						{
-							label: 'candidate event signatures',
-						},
-						{
-							label: 'ambiguity warnings',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Openchain event-signature lookup response',
-						},
-						{
-							label: 'fallback catalog behavior',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

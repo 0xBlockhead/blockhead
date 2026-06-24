@@ -9,81 +9,22 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'parent UTXO block',
-			},
-			{
-				label: 'HogEx transaction id',
-			},
-			{
-				label: 'kernel root',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
 				[
-					{
-						label: 'parent UTXO block',
-					},
-					{
-						label: 'HogEx transaction id',
-					},
-					{
-						label: 'kernel root',
-					},
-					{
-						label: 'MWEB transaction count',
-					},
-					{
-						label: 'peg-in count',
-					},
-					{
-						label: 'peg-out count',
-					},
+					'hogExTransactionId',
+					'kernelRoot',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Parent block',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'parent Litecoin UTXO block',
-						},
-					],
-				},
-				{
-					label: 'Transactions',
-					items: [
-						{
-							label: 'MWEB transactions in this extension block',
-						},
-					],
-				},
-				{
-					label: 'Peg flows',
-					items: [
-						{
-							label: 'peg-ins and peg-outs through transactions',
-						},
-					],
-				},
-				{
-					label: 'Wallet matches',
-					items: [
-						{
-							label: 'BlockheadLitecoinMwebWalletState when a connected wallet has scanned this block',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'verbose Litecoin Core block payload',
-						},
+						'$$transactions',
 					],
 				},
 			],

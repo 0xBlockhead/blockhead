@@ -20,36 +20,7 @@
 					'fid',
 					'protocol',
 					'address',
-					{
-						label: 'user',
-					},
-					{
-						label: 'EVM account',
-					},
-					{
-						label: 'Solana account',
-					},
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'User',
-					items: [
-						{
-							label: 'parent Farcaster user',
-						},
-					],
-				},
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'EVM or Solana account when refs are resolved',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

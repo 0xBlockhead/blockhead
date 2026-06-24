@@ -11,67 +11,29 @@
 	const view = {
 		closed: [
 			'hash',
-			{
-				label: 'source account',
-			},
-			{
-				label: 'latest success/result code',
-			},
 		],
 		content: {
 			dl: [
 				[
 					'hash',
-					{
-						label: 'source account',
-					},
-					{
-						label: 'latest ledger',
-					},
-					{
-						label: 'latest success/result code',
-					},
-					{
-						label: 'latest fee charged/max fee',
-					},
-					{
-						label: 'latest memo',
-					},
+					'sourceAccount',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest result',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'latest ledger/source transaction result observation',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Result history',
+					label: 'operations',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped transaction result observations',
-						},
-					],
-				},
-				{
-					label: 'Operations',
-					items: [
-						{
-							label: 'operations in this transaction',
-						},
-					],
-				},
-				{
-					label: 'XDR/result',
-					items: [
-						{
-							label: 'envelope/result/meta inspectors from latest timestamp',
-						},
+						'$$operations',
 					],
 				},
 			],

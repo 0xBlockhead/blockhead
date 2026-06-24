@@ -10,86 +10,14 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'ring',
-			},
-			{
-				label: 'member index',
-			},
-			{
-				label: 'global output index',
-			},
+			'memberIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'ring',
-					},
-					{
-						label: 'member index',
-					},
-					{
-						label: 'global output index',
-					},
-					{
-						label: 'transaction hash',
-					},
-					{
-						label: 'output index',
-					},
-					{
-						label: 'public key',
-					},
-					{
-						label: 'commitment',
-					},
-					{
-						label: 'height',
-					},
-					{
-						label: 'unlocked state',
-					},
+					'memberIndex',
+					'globalOutputIndex',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Ring',
-					items: [
-						{
-							label: 'parent Monero ring',
-						},
-					],
-				},
-				{
-					label: 'Output',
-					items: [
-						{
-							label: 'stealth output when tx/output is known',
-						},
-					],
-				},
-				{
-					label: 'Decoy context',
-					items: [
-						{
-							label: 'global output index',
-						},
-						{
-							label: 'get_outs/source payload',
-						},
-					],
-				},
-				{
-					label: 'Wallet interpretation',
-					items: [
-						{
-							label: 'BlockheadMoneroOutputState only when a connected wallet identifies ownership',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

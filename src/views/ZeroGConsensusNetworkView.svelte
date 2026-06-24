@@ -10,63 +10,36 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'consensus network id',
-			},
-			{
-				label: 'latest staking status source',
-			},
+			'consensusNetworkId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'consensus network id',
-					},
-					{
-						label: 'latest staking status source',
-					},
+					'consensusNetworkId',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped staking-status source rows',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'DA quorums',
+					label: 'da quorums',
+					when: 'open',
 					items: [
-						{
-							label: 'quorum rows scoped to this consensus network',
-						},
+						'$$daQuorums',
 					],
 				},
 				{
-					label: 'Storage proofs',
+					label: 'storage proofs',
+					when: 'open',
 					items: [
-						{
-							label: 'public proof commitments linked to this consensus network',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent 0G network',
-						},
+						'$$storageProofs',
 					],
 				},
 			],

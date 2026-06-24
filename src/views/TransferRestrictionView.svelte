@@ -10,70 +10,27 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'asset instance',
-			},
-			{
-				label: 'restriction key',
-			},
+			'restrictionKey',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'asset instance',
-					},
-					{
-						label: 'restriction key',
-					},
+					'restrictionKey',
 					'source',
-					{
-						label: 'restriction kind',
-					},
-					{
-						label: 'profile',
-					},
+					'restrictionKind',
 					'message',
-					{
-						label: 'rule selector',
-					},
+					'ruleSelector',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Profile',
+					label: 'checks',
+					when: 'open',
 					items: [
-						{
-							label: 'regulated-asset profile',
-						},
-					],
-				},
-				{
-					label: 'Checks',
-					items: [
-						{
-							label: 'source/time transfer checks',
-						},
-					],
-				},
-				{
-					label: 'Evidence',
-					items: [
-						{
-							label: 'module config',
-						},
-						{
-							label: 'restriction-code mapping',
-						},
-						{
-							label: 'transfer-hook rule',
-						},
-						{
-							label: 'or explicit registry restriction',
-						},
+						'$$checks',
 					],
 				},
 			],

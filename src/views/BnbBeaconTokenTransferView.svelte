@@ -10,76 +10,17 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'transaction',
-			},
-			{
-				label: 'transfer index',
-			},
-			{
-				label: 'token symbol',
-			},
+			'transferIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'transaction',
-					},
-					{
-						label: 'transfer index',
-					},
-					{
-						label: 'token symbol',
-					},
-					{
-						label: 'from',
-					},
-					{
-						label: 'to',
-					},
+					'transferIndex',
+					'symbol',
+					'fromAddress',
+					'toAddress',
 					'amount',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Transaction',
-					items: [
-						{
-							label: 'parent Beacon transaction',
-						},
-					],
-				},
-				{
-					label: 'Token',
-					items: [
-						{
-							label: 'linked Beacon token when symbol resolves',
-						},
-					],
-				},
-				{
-					label: 'Effect',
-					items: [
-						{
-							label: 'from',
-						},
-						{
-							label: 'to',
-						},
-						'amount',
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'archive/API/explorer transfer payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

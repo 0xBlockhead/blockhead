@@ -10,79 +10,49 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'session',
-			},
-			{
-				label: 'turn id',
-			},
-			{
-				label: 'stop reason',
-			},
+			'turnId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'session',
-					},
-					{
-						label: 'turn id',
-					},
-					{
-						label: 'started/completed/cancelled at',
-					},
-				],
-				[
-					{
-						label: 'stop reason',
-					},
-					{
-						label: 'message/tool/file/permission refs',
-					},
+					'turnId',
+					'startedAt',
+					'completedAt',
+					'cancelledAt',
+					'stopReason',
+					'userPromptHashAlgorithm',
+					'userPromptHash',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Messages',
+					label: 'messages',
+					when: 'open',
 					items: [
-						{
-							label: 'AcpMessage list',
-						},
+						'$$messages',
 					],
 				},
 				{
-					label: 'Tool calls',
+					label: 'tool calls',
+					when: 'open',
 					items: [
-						{
-							label: 'AcpToolCall list',
-						},
+						'$$toolCalls',
 					],
 				},
 				{
-					label: 'File operations',
+					label: 'file operations',
+					when: 'open',
 					items: [
-						{
-							label: 'AcpFileOperation list',
-						},
+						'$$fileOperations',
 					],
 				},
 				{
-					label: 'Permission requests',
+					label: 'permission requests',
+					when: 'open',
 					items: [
-						{
-							label: 'AcpPermissionRequest list',
-						},
-					],
-				},
-				{
-					label: 'Session',
-					items: [
-						{
-							label: 'AcpSession',
-						},
+						'$$permissionRequests',
 					],
 				},
 			],

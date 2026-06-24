@@ -10,73 +10,40 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'connection id',
-			},
-			{
-				label: 'network',
-			},
-			{
-				label: 'node id',
-			},
+			'connectionId',
+			'nodeId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'connection id',
-					},
-					{
-						label: 'network',
-					},
-					{
-						label: 'node id',
-					},
+					'connectionId',
+					'nodeId',
 					'endpoint',
-					{
-						label: 'storage path',
-					},
-					{
-						label: 'latest file/chunk/proof counts',
-					},
-					{
-						label: 'latest sync time',
-					},
+					'storagePath',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'State observations',
+					label: 'local chunks',
+					when: 'open',
 					items: [
-						{
-							label: 'local timestamped file/chunk/proof count rows',
-						},
+						'$$localChunks',
 					],
 				},
 				{
-					label: 'Local chunks',
+					label: 'local proofs',
+					when: 'open',
 					items: [
-						{
-							label: 'stored chunks known to this connected node',
-						},
+						'$$localProofs',
 					],
 				},
 				{
-					label: 'Local proofs',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'proof material known to this connected node',
-						},
-					],
-				},
-				{
-					label: 'Public node',
-					items: [
-						{
-							label: 'public storage node when node id maps to a public row',
-						},
+						'$$timestamps',
 					],
 				},
 			],

@@ -10,84 +10,27 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'collection',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'collection',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'owner address',
-					},
-					{
-						label: 'next item index',
-					},
+					'ownerAddress',
+					'nextItemIndex',
 					'name',
-					{
-						label: 'image/metadata URI',
-					},
-					{
-						label: 'item count',
-					},
-					{
-						label: 'code/data hashes',
-					},
+					'description',
+					'imageUrl',
+					'metadataUri',
+					'content',
+					'itemCount',
+					'codeHash',
+					'dataHash',
 					'verification',
-					{
-						label: 'last transaction lt',
-					},
+					'lastTransactionLt',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Collection',
-					items: [
-						{
-							label: 'parent collection identity',
-						},
-					],
-				},
-				{
-					label: 'Metadata/content',
-					items: [
-						{
-							label: 'description/content JSON',
-						},
-						{
-							label: 'URI evidence',
-						},
-					],
-				},
-				{
-					label: 'Items',
-					items: [
-						{
-							label: 'items observed from the same source/page',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'raw collection/get-method/indexer payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

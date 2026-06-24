@@ -9,291 +9,301 @@
 
 	// State
 	const view = {
-		route: {
-			href: '/network/[caip2]',
-			selectorNormalization: 'chainId to CAIP-2 eip155 selector',
-		},
-		query: {
-			sources: [
-				'Constants_Internal',
-				'Chainlist_Rest',
-				'EthereumLists_Rest',
-				'L2Beat_Rest',
-				'Superchain_Github',
-				'Voltaire_JsonRpc',
-			],
-			openFields: [
-				'$$blocks',
-				'$$transactions',
-				'$$gasFeeBlocks',
-				'$$gasEstimateTimestamps',
-				'$$txpoolTimestamps',
-				'$$beaconEpochs',
-				'$$beaconSlots',
-			],
-			slot: 'EvmNetworkQueryPolicy',
-		},
-		media: {
-			image: '$icon',
-			title: 'name',
-			fallbackIcon: 'network',
-			slot: 'EvmNetworkHeading',
-		},
-		latest: [
-			{
-				field: '$$blocks',
-				sort: 'blockNumber',
-				direction: 'desc',
-				view: 'EvmBlockView',
-				slot: 'HeadBlock',
-			},
-			{
-				field: '$$gasFeeBlocks',
-				sort: 'blockNumber',
-				direction: 'desc',
-				view: 'EvmNetwork_GasFee_BlockView',
-				slot: 'LatestGasFeeBlock',
-			},
-			{
-				field: '$$txpoolTimestamps',
-				sort: 'timestampMs',
-				direction: 'desc',
-				view: 'EvmNetwork_Txpool_TimestampView',
-				slot: 'LatestTxpool',
-			},
-		],
-		slots: [
-			{
-				slot: 'ExecutionCarousel',
-				label: 'execution carousel sections',
-				for: 'Details',
-			},
-			{
-				slot: 'ConsensusCarousel',
-				label: 'consensus and block production carousel sections',
-				for: 'Details',
-			},
-		],
 		closed: [
-			{
-				label: 'current upgrade',
-			},
-			{
-				label: 'head block',
-			},
-			{
-				label: 'consensus slot/finality',
-			},
+			'caip2',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'current upgrade',
-					},
-					{
-						label: 'head block',
-					},
-					{
-						label: 'consensus epoch/slot/finality',
-					},
-					{
-						label: 'gas/txpool',
-					},
-				],
-				[
+					'slug',
+					'name',
+					'caip2',
+					'namespace',
 					'environment',
-					{
-						label: 'layer',
-					},
-					{
-						label: 'native coin/asset',
-					},
-					{
-						label: 'parent/mainnet',
-					},
-					{
-						label: 'rollup hints',
-					},
-					{
-						label: 'consensus protocol',
-					},
-					{
-						label: 'CAIP-2',
-					},
-					{
-						label: 'registry status',
-					},
-					{
-						label: 'peering id',
-					},
-					{
-						label: 'SLIP-44',
-					},
+					'iconUrl',
+					'executionEndpoints',
+					'consensusEndpoints',
+					'shortName',
+					'registryStatus',
+					'peeringId',
+					'slip44',
+					'consensusProtocol',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Execution',
+					label: 'rpc urls',
+					when: 'open',
 					items: [
-						{
-							label: 'Upgrades',
-						},
-						{
-							label: 'Blocks',
-						},
-						{
-							label: 'Transactions',
-						},
-						{
-							label: 'Mempool',
-						},
-						{
-							label: 'Fee market',
-						},
-						{
-							label: 'Endpoints',
-						},
+						'$$rpcUrls',
 					],
 				},
 				{
-					label: 'Consensus & Block Production',
+					label: 'block explorer urls',
+					when: 'open',
 					items: [
-						{
-							label: 'Upgrades',
-						},
-						{
-							label: 'Finality',
-						},
-						{
-							label: 'Committees',
-						},
-						{
-							label: 'Sync committees',
-						},
-						{
-							label: 'Attestations',
-						},
-						{
-							label: 'Withdrawals',
-						},
-						{
-							label: 'Slashings',
-						},
-						{
-							label: 'Validators',
-						},
-						{
-							label: 'Epochs',
-						},
-						{
-							label: 'Slots',
-						},
-						{
-							label: 'Relays',
-						},
-						{
-							label: 'Builders',
-						},
-						{
-							label: 'MEV-Boost',
-						},
-						{
-							label: 'Endpoints',
-						},
+						'$$blockExplorerUrls',
 					],
 				},
 				{
-					label: 'Data Availability',
+					label: 'faucet urls',
+					when: 'open',
 					items: [
-						{
-							label: 'Blobs',
-						},
+						'$$faucetUrls',
 					],
 				},
 				{
-					label: 'Contracts & Accounts',
+					label: 'native assets',
+					when: 'open',
 					items: [
-						{
-							label: 'Precompiles',
-						},
-						{
-							label: 'Verified contracts',
-						},
-						{
-							label: 'Smart accounts',
-						},
-						{
-							label: 'Bundlers',
-						},
-						{
-							label: 'Paymasters',
-						},
-						{
-							label: 'User operations',
-						},
-						{
-							label: 'Factories',
-						},
+						'$$nativeAssets',
 					],
 				},
 				{
-					label: 'Assets',
+					label: 'testnets',
+					when: 'open',
 					items: [
-						{
-							label: 'Native coin',
-						},
-						{
-							label: 'Bridges',
-						},
-						{
-							label: 'ERC-20 transfers',
-						},
-						{
-							label: 'NFT transfers',
-						},
+						'$$testnets',
 					],
 				},
 				{
-					label: 'Resources',
+					label: 'sibling shard networks',
+					when: 'open',
 					items: [
-						{
-							label: 'Faucets',
-						},
-						{
-							label: 'Block explorers',
-						},
+						'$$siblingShardNetworks',
 					],
 				},
 				{
-					label: 'Topology',
+					label: 'upgrades',
+					when: 'open',
 					items: [
-						{
-							label: 'Upgrades',
-						},
-						{
-							label: 'Parent',
-						},
-						{
-							label: 'Rollup',
-						},
-						{
-							label: 'Shards',
-						},
-						{
-							label: 'Testnets',
-						},
-						{
-							label: 'Mainnet',
-						},
-						{
-							label: 'Layers',
-						},
-						{
-							label: 'Settled rollups',
-						},
+						'$$upgrades',
+					],
+				},
+				{
+					label: 'execution upgrades',
+					when: 'open',
+					items: [
+						'$$executionUpgrades',
+					],
+				},
+				{
+					label: 'consensus upgrades',
+					when: 'open',
+					items: [
+						'$$consensusUpgrades',
+					],
+				},
+				{
+					label: 'bridges',
+					when: 'open',
+					items: [
+						'$$bridges',
+					],
+				},
+				{
+					label: 'settled rollups',
+					when: 'open',
+					items: [
+						'$$settledRollups',
+					],
+				},
+				{
+					label: 'timestamps',
+					when: 'open',
+					items: [
+						'$$timestamps',
+					],
+				},
+				{
+					label: 'blocks',
+					when: 'open',
+					items: [
+						'$$blocks',
+					],
+				},
+				{
+					label: 'transactions',
+					when: 'open',
+					items: [
+						'$$transactions',
+					],
+				},
+				{
+					label: 'contracts',
+					when: 'open',
+					items: [
+						'$$contracts',
+					],
+				},
+				{
+					label: 'precompiles',
+					when: 'open',
+					items: [
+						'$$precompiles',
+					],
+				},
+				{
+					label: 'blobs',
+					when: 'open',
+					items: [
+						'$$blobs',
+					],
+				},
+				{
+					label: 'gas fee blocks',
+					when: 'open',
+					items: [
+						'$$gasFeeBlocks',
+					],
+				},
+				{
+					label: 'gas estimate timestamps',
+					when: 'open',
+					items: [
+						'$$gasEstimateTimestamps',
+					],
+				},
+				{
+					label: 'txpool timestamps',
+					when: 'open',
+					items: [
+						'$$txpoolTimestamps',
+					],
+				},
+				{
+					label: 'erc20 token transfers',
+					when: 'open',
+					items: [
+						'$$erc20TokenTransfers',
+					],
+				},
+				{
+					label: 'nft token transfers',
+					when: 'open',
+					items: [
+						'$$nftTokenTransfers',
+					],
+				},
+				{
+					label: 'erc4337 smart accounts',
+					when: 'open',
+					items: [
+						'$$erc4337SmartAccounts',
+					],
+				},
+				{
+					label: 'erc4337 bundlers',
+					when: 'open',
+					items: [
+						'$$erc4337Bundlers',
+					],
+				},
+				{
+					label: 'erc4337 paymasters',
+					when: 'open',
+					items: [
+						'$$erc4337Paymasters',
+					],
+				},
+				{
+					label: 'erc4337 account factories',
+					when: 'open',
+					items: [
+						'$$erc4337AccountFactories',
+					],
+				},
+				{
+					label: 'user operations',
+					when: 'open',
+					items: [
+						'$$userOperations',
+					],
+				},
+				{
+					label: 'beacon finality timestamps',
+					when: 'open',
+					items: [
+						'$$beaconFinalityTimestamps',
+					],
+				},
+				{
+					label: 'beacon epochs',
+					when: 'open',
+					items: [
+						'$$beaconEpochs',
+					],
+				},
+				{
+					label: 'beacon slots',
+					when: 'open',
+					items: [
+						'$$beaconSlots',
+					],
+				},
+				{
+					label: 'beacon committees',
+					when: 'open',
+					items: [
+						'$$beaconCommittees',
+					],
+				},
+				{
+					label: 'beacon sync committees',
+					when: 'open',
+					items: [
+						'$$beaconSyncCommittees',
+					],
+				},
+				{
+					label: 'beacon attestations',
+					when: 'open',
+					items: [
+						'$$beaconAttestations',
+					],
+				},
+				{
+					label: 'beacon withdrawals',
+					when: 'open',
+					items: [
+						'$$beaconWithdrawals',
+					],
+				},
+				{
+					label: 'beacon slashings',
+					when: 'open',
+					items: [
+						'$$beaconSlashings',
+					],
+				},
+				{
+					label: 'beacon validators',
+					when: 'open',
+					items: [
+						'$$beaconValidators',
+					],
+				},
+				{
+					label: 'mev relays',
+					when: 'open',
+					items: [
+						'$$mevRelays',
+					],
+				},
+				{
+					label: 'mev builders',
+					when: 'open',
+					items: [
+						'$$mevBuilders',
+					],
+				},
+				{
+					label: 'mev proposer payload deliveredses',
+					when: 'open',
+					items: [
+						'$$mevProposerPayloadDelivered',
 					],
 				},
 			],

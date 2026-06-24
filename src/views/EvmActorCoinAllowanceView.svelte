@@ -10,83 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'owner account',
-			},
-			{
-				label: 'spender address',
-			},
-			{
-				label: 'spender contract when code is detected',
-			},
+			'interopAddress',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'owner account',
-					},
-					{
-						label: 'spender address',
-					},
-					{
-						label: 'spender contract when code is detected',
-					},
-					{
-						label: 'token contract/asset',
-					},
-					{
-						label: 'latest block-bounded allowance amount',
-					},
-					{
-						label: 'latest block',
-					},
-					{
-						label: 'latest source',
-					},
+					'interopAddress',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Allowance reads',
+					label: 'blocks',
+					when: 'open',
 					items: [
-						{
-							label: 'block-bounded allowance observations',
-						},
-					],
-				},
-				{
-					label: 'Owner balance',
-					items: [
-						{
-							label: 'owner/token balance row',
-						},
-					],
-				},
-				{
-					label: 'Token contract',
-					items: [
-						{
-							label: 'ERC-20 token contract',
-						},
-					],
-				},
-				{
-					label: 'Spender',
-					items: [
-						{
-							label: 'spender EVM account/contract',
-						},
-					],
-				},
-				{
-					label: 'Approval events',
-					items: [
-						{
-							label: 'EVM logs scoped to ERC-20 Approval topic when an indexer/log resolver exists',
-						},
+						'$$blocks',
 					],
 				},
 			],

@@ -9,89 +9,30 @@
 
 	// State
 	const view = {
-		actions: [
-			{
-				id: 'pin-conversation',
-				label: 'Pin conversation',
-				kind: 'createLocal',
-				slot: 'PinConversationAction',
-			},
-			{
-				id: 'delete-conversation',
-				label: 'Delete conversation',
-				kind: 'deleteLocal',
-				slot: 'DeleteConversationAction',
-			},
-		],
-		forms: [
-			{
-				id: 'new-turn',
-				label: 'New turn',
-				kind: 'createLocal',
-				fields: [
-					{
-						name: 'prompt',
-						label: 'Prompt',
-						kind: 'textarea',
-					},
-				],
-				slot: 'CreateConversationTurnForm',
-			},
-		],
 		closed: [
-			'name',
 			'id',
-			'pinned',
-			{
-				slot: 'LastActivity',
-				label: 'Last activity',
-			},
 		],
 		content: {
 			dl: [
 				[
-					'name',
 					'id',
+					'name',
 					'pinned',
-					'createdAt',
-					'updatedAt',
+					'systemPrompt',
 					'defaultConnectionId',
 					'defaultModelId',
-					'$profile',
-					'$acpSession',
-					'$a2aTask',
-				],
-				[
-					'systemPrompt',
+					'createdAt',
+					'updatedAt',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Turns',
+					label: 'turns',
+					when: 'open',
 					items: [
 						'$$turns',
-					],
-				},
-				{
-					label: 'Preferences',
-					items: [
-						'defaultConnectionId',
-						'defaultModelId',
-					],
-				},
-				{
-					label: 'Protocol refs',
-					items: [
-						'$acpSession',
-						'$a2aTask',
-					],
-				},
-				{
-					label: 'Profile',
-					items: [
-						'$profile',
 					],
 				},
 			],

@@ -10,84 +10,15 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'account id',
-			},
-			{
-				label: 'latest code hash',
-			},
-			{
-				label: 'latest code size',
-			},
+			'accountId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'account id',
-					},
-					{
-						label: 'latest code hash',
-					},
-					{
-						label: 'latest code size',
-					},
+					'accountId',
+					'codeHash',
+					'codeSizeBytes',
 				],
-				[
-					{
-						label: 'storage-entry count',
-					},
-					{
-						label: 'latest observation time',
-					},
-				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Code observations',
-					items: [
-						{
-							label: 'timestamped contract-code observations',
-						},
-					],
-				},
-				{
-					label: 'Storage entries',
-					items: [
-						{
-							label: 'storage entries by prefix/source',
-						},
-					],
-				},
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'parent NEAR account',
-						},
-					],
-				},
-				{
-					label: 'Deployments',
-					items: [
-						{
-							label: 'deploy-contract action rows when indexed',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'view_account code_hash today',
-						},
-						{
-							label: 'view_code/contract_code_changes when wired',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

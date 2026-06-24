@@ -10,81 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'feed URL',
-			},
-			'title',
-			{
-				label: 'item count',
-			},
+			'feedUrl',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'feed URL',
-					},
+					'feedUrl',
 					'title',
 					'description',
-					{
-						label: 'site/link URL',
-					},
+					'link',
+					'siteUrl',
 					'language',
-					{
-						label: 'last build date',
-					},
-					{
-						label: 'image URL',
-					},
-				],
-				[
-					{
-						label: 'item count',
-					},
-					{
-						label: 'target latest metadata observation when timestamp rows exist',
-					},
+					'lastBuildDate',
+					'imageUrl',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Items',
+					label: 'items',
+					when: 'open',
 					items: [
-						{
-							label: 'RSS items from this feed',
-						},
-					],
-				},
-				{
-					label: 'Metadata',
-					items: [
-						{
-							label: 'publisher-declared title/description/link/site/language/image fields',
-						},
-					],
-				},
-				{
-					label: 'Metadata observations',
-					items: [
-						{
-							label: 'RssFeed_Timestamp target rows when implemented',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'configured feed URL',
-						},
-						{
-							label: 'direct XML fetch',
-						},
-						{
-							label: 'Rss2Json proxy payload',
-						},
+						'$$items',
 					],
 				},
 			],

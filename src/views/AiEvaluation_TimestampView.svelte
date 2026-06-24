@@ -10,92 +10,38 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'subject',
-			},
-			{
-				label: 'benchmark',
-			},
-			{
-				label: 'metric/value',
-			},
+			'subjectKind',
+			'subjectSelector',
+			'metricName',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'subject kind/selector',
-					},
-					{
-						label: 'benchmark',
-					},
-					{
-						label: 'metric',
-					},
+					'subjectKind',
+					'subjectSelector',
+					'timestampMs',
+					'source',
+					'sourceRunId',
+					'sourceResultId',
+					'metricName',
+					'metricType',
 					'value',
 					'unit',
-				],
-				[
-					{
-						label: 'timestamp',
-					},
-					'source',
-					{
-						label: 'run/result/step',
-					},
-					{
-						label: 'dataset',
-					},
+					'step',
 					'split',
 					'method',
-					{
-						label: 'harness version',
-					},
+					'harnessVersion',
+					'datasetName',
+					'datasetType',
+					'datasetConfig',
+					'datasetSplit',
+					'datasetDigest',
+					'sourceName',
+					'sourceUrl',
+					'payload',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Subject',
-					items: [
-						{
-							label: 'concrete model/modelVersion/A2A/MCP/EIP-8004 ref',
-						},
-					],
-				},
-				{
-					label: 'Benchmark',
-					items: [
-						{
-							label: 'AiBenchmark',
-						},
-					],
-				},
-				{
-					label: 'Dataset',
-					items: [
-						{
-							label: 'dataset name/type/config/split/digest',
-						},
-					],
-				},
-				{
-					label: 'Source run',
-					items: [
-						{
-							label: 'source run/result/source URL',
-						},
-					],
-				},
-				{
-					label: 'Payload',
-					items: [
-						{
-							label: 'raw eval payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -9,64 +9,13 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'block',
-			},
-			'balance',
-			'usdValue',
-		],
+		closed: [],
 		content: {
 			dl: [
 				[
-					{
-						label: 'block',
-					},
 					'balance',
 					'usdValue',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Account balance',
-					items: [
-						{
-							label: 'EvmNetworkActorCoinBalance',
-						},
-					],
-				},
-				{
-					label: 'Block',
-					items: [
-						{
-							label: 'EvmBlock',
-						},
-					],
-				},
-				{
-					label: 'Value',
-					items: [
-						{
-							label: 'raw balance',
-						},
-						{
-							label: 'USD value when quote/indexer source exists',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'eth_getBalance or ERC-20 balanceOf block-tag result',
-						},
-						{
-							label: 'indexer balance snapshot',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

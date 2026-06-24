@@ -10,116 +10,45 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'contract id',
-			},
-			{
-				label: 'EVM address',
-			},
-			{
-				label: 'created timestamp',
-			},
+			'contractId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'contract id',
-					},
-					{
-						label: 'EVM address',
-					},
-					{
-						label: 'created timestamp',
-					},
-					{
-						label: 'latest linked account id',
-					},
-					{
-						label: 'latest bytecode hash',
-					},
-					{
-						label: 'deleted flag',
-					},
-					{
-						label: 'result count',
-					},
-					{
-						label: 'log count',
-					},
-					{
-						label: 'storage slot count',
-					},
-					{
-						label: 'timestamp count',
-					},
+					'contractId',
+					'evmAddress',
+					'createdTimestamp',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest info',
+					label: 'results',
+					when: 'open',
 					items: [
-						{
-							label: 'latest contract-info observation',
-						},
+						'$$results',
 					],
 				},
 				{
-					label: 'Info history',
+					label: 'logs',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped contract-info observations',
-						},
+						'$$logs',
 					],
 				},
 				{
-					label: 'Call results',
+					label: 'state',
+					when: 'open',
 					items: [
-						{
-							label: 'contract execution result rows',
-						},
+						'$$state',
 					],
 				},
 				{
-					label: 'Actions',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'contract action trace rows',
-						},
-					],
-				},
-				{
-					label: 'Logs',
-					items: [
-						{
-							label: 'contract log rows',
-						},
-					],
-				},
-				{
-					label: 'Storage slots',
-					items: [
-						{
-							label: 'timestamped contract storage-slot observations',
-						},
-					],
-				},
-				{
-					label: 'Verification metadata',
-					items: [
-						{
-							label: 'verified source/ABI payloads when modeled',
-						},
-					],
-				},
-				{
-					label: 'Transactions',
-					items: [
-						{
-							label: 'related Hedera transactions',
-						},
+						'$$timestamps',
 					],
 				},
 			],

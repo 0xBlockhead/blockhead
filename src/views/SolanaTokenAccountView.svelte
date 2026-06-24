@@ -10,91 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'token account pubkey',
-			},
-			{
-				label: 'mint',
-			},
+			'tokenAccountPubkey',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'token account pubkey',
-					},
-					{
-						label: 'mint',
-					},
-					{
-						label: 'owner',
-					},
-					{
-						label: 'delegate',
-					},
-					{
-						label: 'close authority',
-					},
-					{
-						label: 'latest amount/state/native snapshot',
-					},
+					'tokenAccountPubkey',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'slot/source token-account state observations',
-						},
-					],
-				},
-				{
-					label: 'Mint',
-					items: [
-						{
-							label: 'parent Solana token mint',
-						},
-					],
-				},
-				{
-					label: 'Owner',
-					items: [
-						{
-							label: 'owner Solana account',
-						},
-					],
-				},
-				{
-					label: 'Underlying account',
-					items: [
-						{
-							label: 'underlying Solana account',
-						},
-					],
-				},
-				{
-					label: 'Delegate/close authority',
-					items: [
-						{
-							label: 'Solana account refs',
-						},
-					],
-				},
-				{
-					label: 'Transactions',
-					items: [
-						{
-							label: 'transactions/instructions when indexed',
-						},
+						'$$timestamps',
 					],
 				},
 			],

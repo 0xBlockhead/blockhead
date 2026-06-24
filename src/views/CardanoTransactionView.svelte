@@ -11,103 +11,70 @@
 	const view = {
 		closed: [
 			'hash',
-			{
-				label: 'block slot',
-			},
-			'fee',
 		],
 		content: {
 			dl: [
 				[
 					'hash',
-					{
-						label: 'block slot',
-					},
+					'blockSlot',
 					'fee',
 					'deposit',
-					{
-						label: 'size',
-					},
-					{
-						label: 'validity interval',
-					},
-					{
-						label: 'input count',
-					},
-					{
-						label: 'output count',
-					},
-					{
-						label: 'certificate count',
-					},
-					{
-						label: 'script witness count',
-					},
-					{
-						label: 'governance proposal count',
-					},
-					{
-						label: 'vote count',
-					},
+					'sizeBytes',
+					'validityStartSlot',
+					'ttlSlot',
+					'metadata',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Inputs',
+					label: 'inputs',
+					when: 'open',
 					items: [
-						{
-							label: 'transaction input rows',
-						},
+						'$$inputs',
 					],
 				},
 				{
-					label: 'Outputs',
+					label: 'outputs',
+					when: 'open',
 					items: [
-						{
-							label: 'transaction output rows',
-						},
+						'$$outputs',
 					],
 				},
 				{
-					label: 'Certificates',
+					label: 'certificates',
+					when: 'open',
 					items: [
-						{
-							label: 'transaction-carried certificate effects',
-						},
+						'$$certificates',
 					],
 				},
 				{
-					label: 'Script witnesses',
+					label: 'scripts',
+					when: 'open',
 					items: [
-						{
-							label: 'transaction-scoped script witnesses',
-						},
+						'$$scripts',
 					],
 				},
 				{
-					label: 'Governance',
+					label: 'governance proposals',
+					when: 'open',
 					items: [
-						{
-							label: 'governance proposals and votes carried by the transaction',
-						},
+						'$$governanceProposals',
 					],
 				},
 				{
-					label: 'Native assets',
+					label: 'governance votes',
+					when: 'open',
 					items: [
-						{
-							label: 'native assets referenced by input/output bundles',
-						},
+						'$$governanceVotes',
 					],
 				},
 				{
-					label: 'Metadata',
+					label: 'assets',
+					when: 'open',
 					items: [
-						{
-							label: 'structured transaction metadata/status',
-						},
+						'$$assets',
 					],
 				},
 			],

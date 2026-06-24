@@ -10,74 +10,20 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'latest slot',
-			},
-			{
-				label: 'block number',
-			},
-			'epoch',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'latest slot',
-					},
-					{
-						label: 'block number',
-					},
+					'timestampMs',
+					'source',
+					'latestSlot',
+					'latestBlockNo',
 					'epoch',
 					'era',
-					{
-						label: 'sync progress',
-					},
-					'source',
-					{
-						label: 'observation time',
-					},
+					'syncProgress',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'CardanoNetwork',
-						},
-					],
-				},
-				{
-					label: 'Tip',
-					items: [
-						{
-							label: 'latest slot',
-						},
-						{
-							label: 'latest block number',
-						},
-						'epoch',
-						'era',
-					],
-				},
-				{
-					label: 'Node sync',
-					items: [
-						{
-							label: 'sync progress',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Blockfrost/Koios/Ogmios/local-state-query payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -9,72 +9,14 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'accepting block',
-			},
-			{
-				label: 'transaction',
-			},
-			{
-				label: 'accepted index',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
 				[
-					{
-						label: 'accepting block',
-					},
-					{
-						label: 'transaction',
-					},
-					{
-						label: 'accepted index',
-					},
-					{
-						label: 'accepting block hash',
-					},
-					{
-						label: 'transaction id',
-					},
+					'acceptedIndex',
+					'acceptingBlockHash',
+					'transactionId',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Accepting block',
-					items: [
-						{
-							label: 'Kaspa block that accepted the transaction',
-						},
-					],
-				},
-				{
-					label: 'Transaction',
-					items: [
-						{
-							label: 'accepted Kaspa transaction',
-						},
-					],
-				},
-				{
-					label: 'Virtual-chain context',
-					items: [
-						{
-							label: 'virtual-chain observations that added or removed the accepting block',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'getVirtualChainFromBlock/getVirtualChainFromBlockV2 payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

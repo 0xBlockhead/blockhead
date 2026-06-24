@@ -10,74 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'witness',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'witness',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'URL',
-					},
-					{
-						label: 'vote count',
-					},
-					{
-						label: 'total produced',
-					},
-					{
-						label: 'total missed',
-					},
-					{
-						label: 'latest block height',
-					},
-					{
-						label: 'latest slot number',
-					},
-					{
-						label: 'active state',
-					},
+					'url',
+					'voteCount',
+					'totalProduced',
+					'totalMissed',
+					'latestBlockHeight',
+					'latestSlotNumber',
+					'active',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Witness',
-					items: [
-						{
-							label: 'parent witness identity',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent TRON network',
-						},
-					],
-				},
-				{
-					label: 'Source',
-					items: [
-						{
-							label: 'listwitnesses payload freshness',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

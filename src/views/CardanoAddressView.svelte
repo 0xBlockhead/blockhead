@@ -11,70 +11,31 @@
 	const view = {
 		closed: [
 			'address',
-			{
-				label: 'address kind',
-			},
-			{
-				label: 'payment credential',
-			},
 		],
 		content: {
 			dl: [
 				[
 					'address',
-					{
-						label: 'address kind',
-					},
-					{
-						label: 'payment credential',
-					},
-					{
-						label: 'stake credential',
-					},
-					{
-						label: 'stake credential ref',
-					},
-					{
-						label: 'latest lovelace/asset/UTXO snapshot',
-					},
-					{
-						label: 'timestamp count',
-					},
+					'addressKind',
+					'paymentCredential',
+					'stakeCredential',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'UTXOs',
+					label: 'utxos',
+					when: 'open',
 					items: [
-						{
-							label: 'Cardano transaction outputs at this address',
-						},
+						'$$utxos',
 					],
 				},
 				{
-					label: 'Snapshots',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped address balance/count observations',
-						},
-					],
-				},
-				{
-					label: 'Transactions',
-					items: [
-						{
-							label: 'Cardano transactions when indexed',
-						},
-					],
-				},
-				{
-					label: 'Stake credential',
-					items: [
-						{
-							label: 'linked Cardano stake credential',
-						},
+						'$$timestamps',
 					],
 				},
 			],

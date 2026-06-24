@@ -11,50 +11,32 @@
 	const view = {
 		closed: [
 			'name',
-			'title',
-			{
-				label: 'public description',
-			},
 		],
 		content: {
 			dl: [
 				[
 					'name',
 					'title',
-					{
-						label: 'public description',
-					},
-					{
-						label: 'created time',
-					},
-					{
-						label: 'over-18 flag',
-					},
-					{
-						label: 'icon media',
-					},
-					{
-						label: 'latest subscriber/active-user snapshot',
-					},
+					'publicDescription',
+					'createdAt',
+					'over18',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Links',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'submission/link rows',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Metric snapshots',
+					label: 'links',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped subscriber/active-user observations',
-						},
+						'$$links',
 					],
 				},
 			],

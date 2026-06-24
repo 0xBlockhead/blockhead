@@ -11,81 +11,39 @@
 	const view = {
 		closed: [
 			'symbol',
-			{
-				label: 'original symbol',
-			},
-			{
-				label: 'name',
-			},
 		],
 		content: {
 			dl: [
 				[
 					'symbol',
-					{
-						label: 'original symbol',
-					},
-					{
-						label: 'name',
-					},
-					{
-						label: 'owner',
-					},
-					{
-						label: 'token type',
-					},
-					{
-						label: 'latest supply/mintability',
-					},
-				],
-				[
-					{
-						label: 'mapped contract observation',
-					},
-					{
-						label: 'mint/burn/freeze effects',
-					},
-					{
-						label: 'migration records',
-					},
-					{
-						label: 'archive source evidence',
-					},
+					'originalSymbol',
+					'tokenName',
+					'ownerAddress',
+					'tokenType',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped token metadata/supply observations',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Transfers',
+					label: 'transfers',
+					when: 'open',
 					items: [
-						{
-							label: 'archived Beacon token transfer rows',
-						},
+						'$$transfers',
 					],
 				},
 				{
-					label: 'Migrations',
+					label: 'migrations',
+					when: 'open',
 					items: [
-						{
-							label: 'Beacon-to-target token migration records',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent BNB Beacon network',
-						},
+						'$$migrations',
 					],
 				},
 			],

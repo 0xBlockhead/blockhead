@@ -9,83 +9,19 @@
 
 	// State
 	const view = {
-		route: {
-			kind: 'browse',
-			href: '/swarm',
-			component: 'SwarmBrowseView',
-			children: 'route',
-		},
-		renderers: [
-			{
-				slot: 'SwarmBrowseChrome',
-				component: 'SwarmBrowseEntityChrome',
-				label: 'Swarm browse chrome renderer',
-				for: 'summary',
-			},
-			{
-				slot: 'SwarmBrowseForm',
-				component: 'SwarmBrowseForm',
-				label: 'Swarm browse form renderer',
-				for: 'form',
-			},
-		],
 		closed: [
-			{
-				label: 'protocol name',
-			},
-			{
-				label: 'registry label',
-			},
-			'topology',
+			'scope',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'protocol name',
-					},
-					{
-						label: 'home URL',
-					},
-					{
-						label: 'docs URL',
-					},
-					{
-						label: 'registry label',
-					},
+					'scope',
+					'protocolName',
+					'homeUrl',
+					'docsUrl',
+					'registryLabel',
 					'topology',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Resources',
-					items: [
-						{
-							label: 'SwarmResource lookup route and examples',
-						},
-					],
-				},
-				{
-					label: 'Access',
-					items: [
-						{
-							label: '_GlobalSwarmAccess source coverage hub',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'constants protocol row',
-						},
-						{
-							label: 'configured Bee gateway list',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

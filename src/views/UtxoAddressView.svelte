@@ -10,59 +10,36 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
 			'address',
-			{
-				label: 'latest balance/activity summary when present',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'address',
-					{
-						label: 'latest balance/activity summary when present',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Stats',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'address statistic observations',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Outputs',
+					label: 'outputs',
+					when: 'open',
 					items: [
-						{
-							label: 'spendable outputs when source exposes them',
-						},
+						'$$outputs',
 					],
 				},
 				{
-					label: 'Transactions',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'address history when source exposes it',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent network and UTXO-family projection',
-						},
+						'$$transactions',
 					],
 				},
 			],

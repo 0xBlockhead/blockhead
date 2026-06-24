@@ -10,85 +10,36 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'master address',
-			},
-			{
-				label: 'master account',
-			},
+			'masterAddress',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'master address',
-					},
-					{
-						label: 'master account',
-					},
-					{
-						label: 'latest metadata/supply/admin observation',
-					},
-					{
-						label: 'holder/balance/transfer windows',
-					},
+					'masterAddress',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Master account',
+					label: 'balance timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'linked master account',
-						},
+						'$$balanceTimestamps',
 					],
 				},
 				{
-					label: 'Latest state',
+					label: 'transfers',
+					when: 'open',
 					items: [
-						{
-							label: 'latest jetton master observation',
-						},
+						'$$transfers',
 					],
 				},
 				{
-					label: 'History',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'jetton master observation history',
-						},
-					],
-				},
-				{
-					label: 'Balances',
-					items: [
-						{
-							label: 'holder balance snapshots grouped by holder',
-						},
-					],
-				},
-				{
-					label: 'Transfers',
-					items: [
-						{
-							label: 'decoded jetton transfer effects',
-						},
-					],
-				},
-				{
-					label: 'Contract',
-					items: [
-						{
-							label: 'contract classification when interface detection resolves',
-						},
+						'$$timestamps',
 					],
 				},
 			],

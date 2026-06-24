@@ -10,79 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'session id',
-			},
-			{
-				label: 'local node',
-			},
-			{
-				label: 'remote node id',
-			},
+			'sessionId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'session id',
-					},
-					{
-						label: 'local node',
-					},
-					{
-						label: 'remote node id',
-					},
-					{
-						label: 'repository/RID',
-					},
-					{
-						label: 'started/completed timestamps',
-					},
-					{
-						label: 'requested ref count',
-					},
-					{
-						label: 'received object count',
-					},
+					'sessionId',
+					'remoteNodeId',
+					'rid',
+					'startedAt',
+					'completedAt',
+					'requestedRefs',
+					'receivedObjects',
 					'status',
 					'error',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Local node',
-					items: [
-						{
-							label: 'parent Radicle node state',
-						},
-					],
-				},
-				{
-					label: 'Repository',
-					items: [
-						{
-							label: 'Radicle repository when RID resolves',
-						},
-					],
-				},
-				{
-					label: 'Fetch artifacts',
-					items: [
-						{
-							label: 'Git fetch observation or packfile rows when captured',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'git-remote-rad/node fetch diagnostics',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -11,119 +11,33 @@
 	const view = {
 		closed: [
 			'height',
-			{
-				label: 'indep hash',
-			},
-			{
-				label: 'timestamp',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'height',
-					{
-						label: 'indep hash',
-					},
-					{
-						label: 'previous block',
-					},
-					{
-						label: 'timestamp',
-					},
-					{
-						label: 'transaction count',
-					},
-				],
-				[
-					{
-						label: 'reward address',
-					},
-					{
-						label: 'reward pool',
-					},
-					{
-						label: 'weave size',
-					},
-					{
-						label: 'block size',
-					},
-					{
-						label: 'cumulative difficulty',
-					},
-					{
-						label: 'hash-list merkle',
-					},
+					'indepHash',
+					'previousBlock',
+					'timestampMs',
+					'transactionRoot',
+					'walletList',
+					'rewardAddress',
+					'rewardPoolWinston',
+					'weaveSizeBytes',
+					'blockSizeBytes',
+					'cumulativeDiff',
+					'hashListMerkle',
+					'transactionCount',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Transactions',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'transactions included in this block',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Arweave network',
-						},
-					],
-				},
-				{
-					label: 'Block header',
-					items: [
-						{
-							label: 'transaction root',
-						},
-						{
-							label: 'wallet list',
-						},
-						{
-							label: 'reward address',
-						},
-						{
-							label: 'reward pool',
-						},
-						{
-							label: 'weave size',
-						},
-						{
-							label: 'block size',
-						},
-					],
-				},
-				{
-					label: 'Lookup evidence',
-					items: [
-						{
-							label: 'GraphQL id lookup',
-						},
-						{
-							label: 'GraphQL height/range page',
-						},
-						{
-							label: 'gateway/node block endpoint',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'confirmation/deep-history availability',
-						},
-						{
-							label: 'gateway archival behavior',
-						},
+						'$$transactions',
 					],
 				},
 			],

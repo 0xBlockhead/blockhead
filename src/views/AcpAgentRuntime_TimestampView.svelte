@@ -10,72 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'runtime',
-			},
-			{
-				label: 'observation time',
-			},
-			'health',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'runtime',
-					},
-					{
-						label: 'timestamp',
-					},
+					'timestampMs',
 					'source',
 					'health',
-					{
-						label: 'protocol version',
-					},
-				],
-				[
-					{
-						label: 'agent/client info',
-					},
-					{
-						label: 'auth methods',
-					},
-					{
-						label: 'agent capabilities',
-					},
-					{
-						label: 'client capabilities',
-					},
+					'protocolVersion',
+					'supportedProtocolVersions',
+					'agentCapabilities',
+					'clientCapabilities',
+					'authMethods',
+					'agentInfo',
+					'clientInfo',
 					'error',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Runtime',
-					items: [
-						{
-							label: 'AcpAgentRuntime',
-						},
-					],
-				},
-				{
-					label: 'Capabilities',
-					items: [
-						{
-							label: 'protocol/capability/auth payloads',
-						},
-					],
-				},
-				{
-					label: 'Errors',
-					items: [
-						{
-							label: 'error field',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

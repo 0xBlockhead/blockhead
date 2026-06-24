@@ -10,63 +10,23 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'account address',
-			},
+			'accountAddress',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'account address',
-					},
-				],
-				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'account address',
-					},
-					{
-						label: 'account kind',
-					},
-					{
-						label: 'connected account-state count',
-					},
+					'accountAddress',
+					'accountKind',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Connected account state',
+					label: 'blockhead account states',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadQuilibriumAccountState rows for balances',
-						},
-						{
-							label: 'pending queues',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent network',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'account ref kind',
-						},
-						{
-							label: 'address encoding',
-						},
+						'$$blockheadAccountStates',
 					],
 				},
 			],

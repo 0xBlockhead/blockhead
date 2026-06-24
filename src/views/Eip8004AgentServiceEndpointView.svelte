@@ -10,76 +10,28 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'registration file',
-			},
-			{
-				label: 'endpoint kind',
-			},
-			{
-				label: 'endpoint URL',
-			},
+			'endpointKind',
+			'endpointUrl',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'registration file',
-					},
-					{
-						label: 'endpoint kind',
-					},
-					{
-						label: 'endpoint URL',
-					},
-					{
-						label: 'name/version',
-					},
-					{
-						label: 'protocol kind',
-					},
-				],
-				[
+					'endpointKind',
+					'endpointUrl',
+					'name',
+					'version',
+					'protocolKind',
 					'active',
-					{
-						label: 'A2A card',
-					},
-					{
-						label: 'MCP server',
-					},
-					{
-						label: 'payment requirement refs',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Registration file',
+					label: 'payment requirements',
+					when: 'open',
 					items: [
-						{
-							label: 'Eip8004AgentRegistrationFile',
-						},
-					],
-				},
-				{
-					label: 'Protocol refs',
-					items: [
-						{
-							label: 'A2aAgentCard',
-						},
-						{
-							label: 'McpServer',
-						},
-					],
-				},
-				{
-					label: 'Payment',
-					items: [
-						{
-							label: 'AgentPaymentRequirement_Timestamp list',
-						},
+						'$$paymentRequirements',
 					],
 				},
 			],

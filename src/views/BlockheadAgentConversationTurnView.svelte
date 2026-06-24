@@ -10,66 +10,30 @@
 	// State
 	const view = {
 		closed: [
-			'status',
-			'createdAt',
-			'providerId',
+			'id',
 		],
 		content: {
 			dl: [
 				[
-					'status',
-					'createdAt',
-					'providerId',
-					'promptVersion',
+					'id',
 					'parentId',
-					'$acpPromptTurn',
-					'$a2aTaskEvent',
-					'$$providerCalls',
-					'error',
-				],
-			],
-			blocks: [
-				[
 					'userPrompt',
 					'assistantText',
+					'providerId',
+					'status',
+					'error',
+					'createdAt',
+					'promptVersion',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Prompt',
-					items: [
-						'userPrompt',
-					],
-				},
-				{
-					label: 'Response',
-					items: [
-						'assistantText',
-					],
-				},
-				{
-					label: 'Provider calls',
+					label: 'provider calls',
+					when: 'open',
 					items: [
 						'$$providerCalls',
-					],
-				},
-				{
-					label: 'Protocol refs',
-					items: [
-						'$acpPromptTurn',
-						'$a2aTaskEvent',
-					],
-				},
-				{
-					label: 'Branching',
-					items: [
-						'parentId',
-						{
-							slot: 'BranchContext',
-							label: 'Parent/child transcript context',
-						},
 					],
 				},
 			],

@@ -11,77 +11,46 @@
 	const view = {
 		closed: [
 			'id',
-			'name',
-			{
-				label: 'URL',
-			},
 		],
 		content: {
 			dl: [
 				[
 					'id',
 					'name',
-					{
-						label: 'URL',
-					},
+					'url',
 					'description',
-					{
-						label: 'icon URL/media',
-					},
-					{
-						label: 'header image URL/media',
-					},
-					{
-						label: 'lead',
-					},
-					{
-						label: 'moderator',
-					},
-					{
-						label: 'created time',
-					},
-					{
-						label: 'pinned cast hash',
-					},
-					{
-						label: 'public-casting policy',
-					},
-					{
-						label: 'external link',
-					},
-					{
-						label: 'followed time',
-					},
-					{
-						label: 'latest follower/member snapshot',
-					},
+					'iconUrl',
+					'headerImageUrl',
+					'createdAt',
+					'pinnedCastHash',
+					'publicCasting',
+					'externalLinkTitle',
+					'externalLinkUrl',
+					'followedAt',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Casts',
+					label: 'moderators',
+					when: 'open',
 					items: [
-						{
-							label: 'casts linked to this channel',
-						},
+						'$$moderators',
 					],
 				},
 				{
-					label: 'Moderators',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'lead/moderator user refs',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Metric snapshots',
+					label: 'casts',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped follower/member observations',
-						},
+						'$$casts',
 					],
 				},
 			],

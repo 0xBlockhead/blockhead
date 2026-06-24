@@ -10,90 +10,54 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'card',
-			},
-			{
-				label: 'content hash',
-			},
-			{
-				label: 'name/version',
-			},
+			'contentHashAlgorithm',
+			'contentHash',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'card',
-					},
-					{
-						label: 'content hash algorithm/hash',
-					},
-					{
-						label: 'fetched at',
-					},
-					{
-						label: 'snapshot kind',
-					},
-				],
-				[
+					'contentHashAlgorithm',
+					'contentHash',
+					'fetchedAt',
+					'snapshotKind',
 					'name',
+					'description',
 					'version',
-					{
-						label: 'protocol version',
-					},
-					{
-						label: 'provider',
-					},
-					{
-						label: 'preferred transport',
-					},
+					'protocolVersion',
+					'providerName',
+					'providerUrl',
+					'preferredTransport',
+					'defaultInputModes',
+					'defaultOutputModes',
+					'capabilities',
+					'extensions',
+					'securitySchemes',
+					'security',
+					'signatures',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Interfaces',
+					label: 'interfaces',
+					when: 'open',
 					items: [
-						{
-							label: 'A2aAgentInterface list',
-						},
+						'$$interfaces',
 					],
 				},
 				{
-					label: 'Services',
+					label: 'services',
+					when: 'open',
 					items: [
-						{
-							label: 'A2aAgentService list',
-						},
+						'$$services',
 					],
 				},
 				{
-					label: 'Skills',
+					label: 'skills',
+					when: 'open',
 					items: [
-						{
-							label: 'A2aAgentSkill list',
-						},
-					],
-				},
-				{
-					label: 'Capabilities',
-					items: [
-						'capabilities',
-						'extensions',
-					],
-				},
-				{
-					label: 'Security',
-					items: [
-						{
-							label: 'security schemes',
-						},
-						{
-							label: 'security requirements',
-						},
-						'signatures',
+						'$$skills',
 					],
 				},
 			],

@@ -10,71 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'resource',
-			},
-			{
-				label: 'observation time',
-			},
-			{
-				label: 'content kind',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'resource',
-					},
-					{
-						label: 'timestamp',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'kind',
-					},
-				],
-				[
-					{
-						label: 'URI',
-					},
-					{
-						label: 'mime type',
-					},
+					'contentKind',
+					'text',
+					'blobHashAlgorithm',
+					'blobHash',
+					'uri',
+					'mimeType',
 					'size',
-					{
-						label: 'blob hash algorithm/hash',
-					},
+					'annotations',
 					'error',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Resource',
-					items: [
-						{
-							label: 'McpResource',
-						},
-					],
-				},
-				{
-					label: 'Content',
-					items: [
-						{
-							label: 'text/blob hash',
-						},
-					],
-				},
-				{
-					label: 'Annotations',
-					items: [
-						{
-							label: 'annotations payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

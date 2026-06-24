@@ -9,88 +9,18 @@
 
 	// State
 	const view = {
-		closed: [
-			'language',
-			'compiler',
-			{
-				label: 'compiler version',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
 				[
 					'language',
 					'compiler',
-					{
-						label: 'compiler version',
-					},
-					{
-						label: 'fully qualified name',
-					},
-					{
-						label: 'truncated compiler settings JSON',
-					},
-					{
-						label: 'truncated storage layout JSON',
-					},
+					'compilerVersion',
+					'name',
+					'fullyQualifiedName',
+					'compilerSettingsJson',
+					'storageLayoutJson',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Contract',
-					items: [
-						{
-							label: 'EvmContract',
-						},
-					],
-				},
-				{
-					label: 'Compiler',
-					items: [
-						'language',
-						'compiler',
-						{
-							label: 'version',
-						},
-						{
-							label: 'fully qualified name',
-						},
-					],
-				},
-				{
-					label: 'Settings',
-					items: [
-						{
-							label: 'compiler settings JSON',
-						},
-					],
-				},
-				{
-					label: 'Storage layout',
-					items: [
-						{
-							label: 'storage layout JSON',
-						},
-					],
-				},
-				{
-					label: 'Verification',
-					items: [
-						{
-							label: 'Sourcify-backed EvmContractVerification',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Sourcify contract lookup compilation/metadata payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

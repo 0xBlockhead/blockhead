@@ -10,63 +10,17 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'right',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'right',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'status',
-					{
-						label: 'estimated time',
-					},
-					{
-						label: 'realized block',
-					},
+					'estimatedTimeMs',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Right',
-					items: [
-						{
-							label: 'parent Tezos baking right',
-						},
-					],
-				},
-				{
-					label: 'Block',
-					items: [
-						{
-							label: 'Tezos block when realized',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'rights payload',
-						},
-						{
-							label: 'head/freshness context',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

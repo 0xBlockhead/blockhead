@@ -10,86 +10,46 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'repository id',
-			},
-			{
-				label: 'canonical remote URL',
-			},
-			{
-				label: 'object format',
-			},
+			'repositoryId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'repository id',
-					},
-					{
-						label: 'canonical remote URL',
-					},
-					{
-						label: 'object format',
-					},
-					{
-						label: 'default ref',
-					},
-					{
-						label: 'remote count',
-					},
-					{
-						label: 'object count',
-					},
-					{
-						label: 'ref count',
-					},
-					{
-						label: 'latest fetch status',
-					},
+					'repositoryId',
+					'canonicalRemoteUrl',
+					'defaultRefName',
+					'objectFormat',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Refs',
+					label: 'refs',
+					when: 'open',
 					items: [
-						{
-							label: 'GitRef list grouped by heads/tags/symbolic refs',
-						},
+						'$$refs',
 					],
 				},
 				{
-					label: 'Objects',
+					label: 'objects',
+					when: 'open',
 					items: [
-						{
-							label: 'GitObject list grouped by commit/tree/blob/tag',
-						},
+						'$$objects',
 					],
 				},
 				{
-					label: 'Remotes',
+					label: 'remotes',
+					when: 'open',
 					items: [
-						{
-							label: 'GitRemote list',
-						},
+						'$$remotes',
 					],
 				},
 				{
-					label: 'Fetches',
+					label: 'fetches',
+					when: 'open',
 					items: [
-						{
-							label: 'GitFetchObservation history',
-						},
-					],
-				},
-				{
-					label: 'Forge mirrors',
-					items: [
-						{
-							label: 'GitForgeMirror list',
-						},
+						'$$fetches',
 					],
 				},
 			],

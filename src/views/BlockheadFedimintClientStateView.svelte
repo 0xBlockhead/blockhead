@@ -10,103 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'client id/name',
-			},
-			{
-				label: 'federation',
-			},
-			{
-				label: 'mnemonic-set status',
-			},
+			'clientId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'client id/name',
-					},
-					{
-						label: 'federation',
-					},
-					{
-						label: 'mnemonic-set status',
-					},
-					{
-						label: 'joined time',
-					},
-					{
-						label: 'invite status',
-					},
-					{
-						label: 'latest balance totals',
-					},
-					{
-						label: 'latest recovery state',
-					},
-					{
-						label: 'latest sync time',
-					},
-					{
-						label: 'timestamp count',
-					},
+					'clientId',
+					'clientName',
+					'inviteCode',
+					'mnemonicSet',
+					'guardianThreshold',
+					'moduleConfigJson',
+					'joinedAt',
+					'viewingKeyJson',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest state',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'latest connected-client observation',
-						},
-					],
-				},
-				{
-					label: 'State history',
-					items: [
-						{
-							label: 'timestamped connected-client observations',
-						},
-					],
-				},
-				{
-					label: 'Federation',
-					items: [
-						{
-							label: 'parent federation',
-						},
-					],
-				},
-				{
-					label: 'Modules',
-					items: [
-						{
-							label: 'moduleConfigJson for mint/wallet/Lightning/meta modules',
-						},
-					],
-				},
-				{
-					label: 'Recovery/viewing keys',
-					items: [
-						{
-							label: 'redacted local key material',
-						},
-					],
-				},
-				{
-					label: 'Invite',
-					items: [
-						{
-							label: 'invite code',
-						},
-						{
-							label: 'federation id',
-						},
-						{
-							label: 'preview/join status',
-						},
+						'$$timestamps',
 					],
 				},
 			],

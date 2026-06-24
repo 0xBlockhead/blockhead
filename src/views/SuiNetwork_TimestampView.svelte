@@ -10,74 +10,20 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'observed time/source',
-			},
-			{
-				label: 'latest checkpoint sequence/digest',
-			},
-			'epoch',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'observed time/source',
-					},
-					{
-						label: 'latest checkpoint sequence/digest',
-					},
+					'timestampMs',
+					'source',
+					'latestCheckpointSequence',
+					'latestCheckpointDigest',
 					'epoch',
-					{
-						label: 'protocol version',
-					},
-					{
-						label: 'transaction count',
-					},
-					{
-						label: 'history',
-					},
+					'protocolVersion',
+					'totalTransactionCount',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'SuiNetwork',
-						},
-					],
-				},
-				{
-					label: 'Checkpoint head',
-					items: [
-						{
-							label: 'latest checkpoint sequence/digest',
-						},
-						'epoch',
-					],
-				},
-				{
-					label: 'Protocol/activity',
-					items: [
-						{
-							label: 'protocol version',
-						},
-						{
-							label: 'total transaction count',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Sui GraphQL/gRPC/JSON-RPC system state payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

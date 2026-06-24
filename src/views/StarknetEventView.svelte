@@ -10,76 +10,15 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'transaction',
-			},
-			{
-				label: 'event index',
-			},
-			{
-				label: 'from contract',
-			},
+			'eventIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'transaction',
-					},
-					{
-						label: 'event index',
-					},
-					{
-						label: 'from contract',
-					},
-					{
-						label: 'key count',
-					},
-					{
-						label: 'data count',
-					},
+					'eventIndex',
+					'keys',
+					'data',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Transaction',
-					items: [
-						{
-							label: 'parent Starknet transaction',
-						},
-					],
-				},
-				{
-					label: 'Contract',
-					items: [
-						{
-							label: 'emitting Starknet contract',
-						},
-					],
-				},
-				{
-					label: 'Payload',
-					items: [
-						'keys',
-						'data',
-						{
-							label: 'decoded event when ABI is available',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'transaction receipt events',
-						},
-						{
-							label: 'indexer event payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

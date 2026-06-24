@@ -11,72 +11,34 @@
 	const view = {
 		closed: [
 			'namespace',
-			{
-				label: 'chain/registry',
-			},
-			{
-				label: 'agent id',
-			},
+			'chainId',
+			'identityRegistry',
+			'agentId',
 		],
 		content: {
 			dl: [
 				[
 					'namespace',
-					{
-						label: 'chain id',
-					},
-					{
-						label: 'identity registry',
-					},
-					{
-						label: 'agent id',
-					},
-				],
-				[
-					{
-						label: 'EVM NFT ref',
-					},
-					{
-						label: 'latest registry observation',
-					},
-					{
-						label: 'file refs',
-					},
+					'chainId',
+					'identityRegistry',
+					'agentId',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Registry observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'Eip8004AgentRegistration_Timestamp list',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Registration files',
+					label: 'files',
+					when: 'open',
 					items: [
-						{
-							label: 'Eip8004AgentRegistrationFile list',
-						},
-					],
-				},
-				{
-					label: 'EVM NFT',
-					items: [
-						{
-							label: 'EvmNft',
-						},
-					],
-				},
-				{
-					label: 'Claims',
-					items: [
-						{
-							label: 'AiRelationshipClaim list',
-						},
+						'$$files',
 					],
 				},
 			],

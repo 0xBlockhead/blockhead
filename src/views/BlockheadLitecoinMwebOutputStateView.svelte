@@ -10,107 +10,28 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'wallet id',
-			},
-			{
-				label: 'network',
-			},
+			'walletId',
 			'commitment',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'wallet id',
-					},
-					{
-						label: 'network',
-					},
+					'walletId',
 					'commitment',
-					{
-						label: 'public output',
-					},
-					{
-						label: 'amount',
-					},
-					{
-						label: 'address/account label',
-					},
-					{
-						label: 'latest spent state',
-					},
-					{
-						label: 'latest spend transaction id',
-					},
-					{
-						label: 'latest received/spent heights',
-					},
-					{
-						label: 'latest confirmations',
-					},
-					{
-						label: 'latest scan time',
-					},
+					'amountLitoshis',
+					'address',
+					'account',
+					'label',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest state',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadLitecoinMwebOutputState_TimestampView',
-						},
-					],
-				},
-				{
-					label: 'State history',
-					items: [
-						{
-							label: 'BlockheadLitecoinMwebOutputState_TimestampsView',
-						},
-					],
-				},
-				{
-					label: 'Public output',
-					items: [
-						{
-							label: 'LitecoinMwebOutputView when resolved',
-						},
-					],
-				},
-				{
-					label: 'Wallet',
-					items: [
-						{
-							label: 'BlockheadLitecoinMwebWalletStateView',
-						},
-					],
-				},
-				{
-					label: 'Ownership/value',
-					items: [
-						{
-							label: 'local address',
-						},
-						'account',
-						'label',
-						{
-							label: 'amount',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'wallet output identity',
-						},
-						{
-							label: 'label payload',
-						},
+						'$$timestamps',
 					],
 				},
 			],

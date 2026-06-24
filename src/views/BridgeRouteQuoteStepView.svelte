@@ -10,106 +10,25 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'step index or tool label',
-			},
+			'index',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'step index or tool label',
-					},
-				],
-				[
-					{
-						label: 'quote',
-					},
 					'index',
-					{
-						label: 'provider step id',
-					},
-					{
-						label: 'step type',
-					},
-					{
-						label: 'tool key/name',
-					},
-					{
-						label: 'from/to EVM network refs',
-					},
-					{
-						label: 'from/to token refs',
-					},
-					{
-						label: 'amounts',
-					},
-					{
-						label: 'estimated gas',
-					},
-					{
-						label: 'rail',
-					},
-					{
-						label: 'settlement model',
-					},
-					{
-						label: 'verification model',
-					},
-					{
-						label: 'asset outcome',
-					},
+					'providerStepId',
+					'stepType',
+					'tool',
+					'toolName',
+					'fromAmount',
+					'toAmount',
+					'toAmountMin',
+					'estimatedGas',
+					'railId',
+					'settlementModel',
+					'verificationModel',
+					'assetOutcome',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Quote',
-					items: [
-						{
-							label: 'parent bridge route quote observation',
-						},
-					],
-				},
-				{
-					label: 'Networks/tokens',
-					items: [
-						{
-							label: 'mapped network',
-						},
-						{
-							label: 'token refs',
-						},
-					],
-				},
-				{
-					label: 'Estimate',
-					items: [
-						{
-							label: 'amounts',
-						},
-						{
-							label: 'gas',
-						},
-					],
-				},
-				{
-					label: 'Tool classification',
-					items: [
-						{
-							label: 'rail/settlement/verification/asset outcome',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'LI.FI includedSteps entry',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

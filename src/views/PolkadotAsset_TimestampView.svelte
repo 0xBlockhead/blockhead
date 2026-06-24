@@ -10,78 +10,28 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'asset',
-			},
-			{
-				label: 'timestamp',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'asset',
-					},
-					{
-						label: 'timestamp',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'block number/hash',
-					},
+					'blockNumber',
+					'blockHash',
 					'supply',
-					{
-						label: 'holder count',
-					},
+					'holderCount',
 					'status',
-					{
-						label: 'metadata',
-					},
-					{
-						label: 'existential deposit',
-					},
-					{
-						label: 'role accounts',
-					},
+					'symbol',
+					'name',
+					'decimals',
+					'existentialDepositPlancks',
+					'owner',
+					'issuer',
+					'admin',
+					'freezer',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Asset',
-					items: [
-						{
-							label: 'parent Polkadot asset',
-						},
-					],
-				},
-				{
-					label: 'Role accounts',
-					items: [
-						{
-							label: 'Polkadot account refs when resolved',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'runtime storage/indexer asset payload',
-						},
-					],
-				},
-				{
-					label: 'Balances',
-					items: [
-						{
-							label: 'account-balance observations at the same source/block when available',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,70 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'proposal',
-			},
-			{
-				label: 'depositor',
-			},
 			'denom',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'proposal',
-					},
-					{
-						label: 'depositor',
-					},
 					'denom',
-					{
-						label: 'latest amount/deposit time',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Proposal',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'parent governance proposal',
-						},
-					],
-				},
-				{
-					label: 'Depositor',
-					items: [
-						{
-							label: 'depositor Cosmos account',
-						},
-					],
-				},
-				{
-					label: 'Denom',
-					items: [
-						{
-							label: 'deposit denom when resolved',
-						},
-					],
-				},
-				{
-					label: 'Deposit observations',
-					items: [
-						{
-							label: 'timestamped amount/source rows',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'x/gov deposit payload',
-						},
+						'$$timestamps',
 					],
 				},
 			],

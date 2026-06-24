@@ -10,74 +10,18 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'mint quote',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'mint quote',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'state',
-					{
-						label: 'expiry',
-					},
-					{
-						label: 'subscription id',
-					},
+					'expiryMs',
+					'subscriptionId',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Mint quote',
-					items: [
-						{
-							label: 'BlockheadCashuMintQuoteView',
-						},
-					],
-				},
-				{
-					label: 'Mint',
-					items: [
-						{
-							label: 'CashuMintView through the quote',
-						},
-					],
-				},
-				{
-					label: 'Output issuance',
-					items: [
-						{
-							label: 'local blinded output/signature summary when captured',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'NUT-04 quote-state response',
-						},
-						{
-							label: 'mint execution response',
-						},
-						{
-							label: 'or NUT-17 websocket notification',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

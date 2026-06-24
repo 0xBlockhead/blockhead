@@ -10,100 +10,45 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'type',
-			},
-			'result',
-			{
-				label: 'consensus timestamp',
-			},
+			'consensusTimestamp',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'type',
-					},
-					'result',
-					{
-						label: 'consensus timestamp',
-					},
-					{
-						label: 'transaction id',
-					},
+					'consensusTimestamp',
+					'transactionId',
 					'nonce',
-					{
-						label: 'payer',
-					},
-					{
-						label: 'node account',
-					},
-					{
-						label: 'fee',
-					},
-					{
-						label: 'scheduled flag',
-					},
+					'transactionType',
+					'payerAccount',
+					'result',
+					'chargedTxFeeTinybar',
+					'validStartTimestamp',
+					'nodeAccountId',
+					'scheduled',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'HBAR transfers',
+					label: 'hbar transfers',
+					when: 'open',
 					items: [
-						{
-							label: 'HBAR transfer effects',
-						},
+						'$$hbarTransfers',
 					],
 				},
 				{
-					label: 'Token transfers',
+					label: 'token transfers',
+					when: 'open',
 					items: [
-						{
-							label: 'HTS token/NFT transfer effects',
-						},
+						'$$tokenTransfers',
 					],
 				},
 				{
-					label: 'Contract result/actions/logs',
+					label: 'contract results',
+					when: 'open',
 					items: [
-						{
-							label: 'contract execution result',
-						},
-						{
-							label: 'actions',
-						},
-						{
-							label: 'logs',
-						},
-					],
-				},
-				{
-					label: 'Schedule',
-					items: [
-						{
-							label: 'linked schedule when present',
-						},
-					],
-				},
-				{
-					label: 'Child/duplicate records',
-					items: [
-						{
-							label: 'child',
-						},
-						{
-							label: 'duplicate transaction list',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'raw transaction record',
-						},
+						'$$contractResults',
 					],
 				},
 			],

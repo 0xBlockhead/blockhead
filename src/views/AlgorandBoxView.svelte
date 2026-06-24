@@ -10,61 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'application',
-			},
-			{
-				label: 'box name',
-			},
-			{
-				label: 'latest value hash',
-			},
+			'boxName',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'application',
-					},
-					{
-						label: 'box name',
-					},
-					{
-						label: 'latest value hash',
-					},
-					{
-						label: 'latest round/source',
-					},
+					'boxName',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Application',
+					label: 'rounds',
+					when: 'open',
 					items: [
-						{
-							label: 'parent application',
-						},
-					],
-				},
-				{
-					label: 'Round observations',
-					items: [
-						{
-							label: 'round/source box value observations',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'box name listing',
-						},
-						{
-							label: 'application box lookup payload',
-						},
+						'$$rounds',
 					],
 				},
 			],

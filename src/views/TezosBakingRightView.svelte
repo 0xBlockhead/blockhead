@@ -10,79 +10,33 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
 			'cycle',
 			'level',
+			'rightKind',
+			'bakerAddress',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'cycle',
 					'level',
-					{
-						label: 'right kind',
-					},
-					{
-						label: 'baker',
-					},
+					'rightKind',
+					'bakerAddress',
 					'source',
 					'round',
 					'slots',
 					'priority',
-					{
-						label: 'latest status',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Baker',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'assigned Tezos baker',
-						},
-					],
-				},
-				{
-					label: 'Cycle',
-					items: [
-						{
-							label: 'Tezos cycle',
-						},
-					],
-				},
-				{
-					label: 'Observations',
-					items: [
-						{
-							label: 'timestamped right status observations',
-						},
-					],
-				},
-				{
-					label: 'Rights peer group',
-					items: [
-						{
-							label: 'rights for same level/cycle',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'rights payload',
-						},
-						{
-							label: 'freshness',
-						},
+						'$$timestamps',
 					],
 				},
 			],

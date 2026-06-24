@@ -10,63 +10,17 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'migration',
-			},
-			{
-				label: 'observation time',
-			},
-			'status',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'migration',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'status',
-					{
-						label: 'source observed time',
-					},
+					'observedAtMs',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Migration',
-					items: [
-						{
-							label: 'parent token migration',
-						},
-					],
-				},
-				{
-					label: 'Token',
-					items: [
-						{
-							label: 'source BNB Beacon token',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'fusion status payload',
-						},
-						{
-							label: 'archive/indexer freshness',
-						},
-						{
-							label: 'target-chain confirmation evidence',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

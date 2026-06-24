@@ -10,68 +10,28 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
 			'kind',
-			{
-				label: 'asset key',
-			},
+			'assetKey',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'kind',
-					{
-						label: 'asset key',
-					},
-					{
-						label: 'coin id',
-					},
+					'assetKey',
+					'coinId',
 					'name',
 					'symbol',
 					'decimals',
-					{
-						label: 'icon',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Formats',
+					label: 'formats',
+					when: 'open',
 					items: [
-						{
-							label: 'format-support observations grouped by standard/profile',
-						},
-					],
-				},
-				{
-					label: 'Supply',
-					items: [
-						{
-							label: 'ledger-coordinate and provider-clocked supply rows',
-						},
-					],
-				},
-				{
-					label: 'Objects/classes',
-					items: [
-						{
-							label: 'class/object rows when source-backed',
-						},
-					],
-				},
-				{
-					label: 'Metadata',
-					items: [
-						{
-							label: 'registry/catalog display metadata and media refs',
-						},
+						'$$formats',
 					],
 				},
 			],

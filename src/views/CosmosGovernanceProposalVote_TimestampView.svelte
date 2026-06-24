@@ -10,72 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'vote',
-			},
-			{
-				label: 'observation time',
-			},
-			'option',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'vote',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'option',
 					'weight',
-					{
-						label: 'metadata presence',
-					},
-					{
-						label: 'vote time when sourced',
-					},
+					'metadata',
+					'voteTimeMs',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Vote',
-					items: [
-						{
-							label: 'parent proposal/voter row',
-						},
-					],
-				},
-				{
-					label: 'Proposal',
-					items: [
-						{
-							label: 'parent governance proposal',
-						},
-					],
-				},
-				{
-					label: 'Weighted options',
-					items: [
-						{
-							label: 'weighted vote payload when exposed',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'SDK/indexer vote payload',
-						},
-						{
-							label: 'module-version option mapping',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

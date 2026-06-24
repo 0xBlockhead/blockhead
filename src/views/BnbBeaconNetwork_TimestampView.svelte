@@ -10,83 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'observed time/source',
-			},
-			{
-				label: 'latest archived height/time',
-			},
-			{
-				label: 'validator count',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'observed time/source',
-					},
-					{
-						label: 'latest archived height/time',
-					},
-					{
-						label: 'validator count',
-					},
-					{
-						label: 'token count',
-					},
-					{
-						label: 'migration record count',
-					},
-					{
-						label: 'archive coverage status',
-					},
+					'timestampMs',
+					'source',
+					'latestArchivedHeight',
+					'latestArchivedBlockTimeMs',
+					'validatorCount',
+					'tokenCount',
+					'migrationRecordCount',
+					'archiveCoverageStatus',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent BNB Beacon network',
-						},
-					],
-				},
-				{
-					label: 'Archive coverage',
-					items: [
-						{
-							label: 'latest archived height/time',
-						},
-						{
-							label: 'archive coverage status',
-						},
-					],
-				},
-				{
-					label: 'Catalog counts',
-					items: [
-						{
-							label: 'validator count',
-						},
-						{
-							label: 'token count',
-						},
-						{
-							label: 'migration record count',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'API/explorer/archive freshness',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

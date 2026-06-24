@@ -10,90 +10,54 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'RID',
-			},
-			{
-				label: 'linked Git repository',
-			},
-			'name',
+			'rid',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'RID',
-					},
-					{
-						label: 'linked Git repository',
-					},
+					'rid',
 					'name',
 					'description',
 					'visibility',
-					{
-						label: 'default branch',
-					},
-					{
-						label: 'delegate count',
-					},
-					{
-						label: 'latest signed-ref status',
-					},
-					{
-						label: 'issue count',
-					},
-					{
-						label: 'patch count',
-					},
+					'defaultBranch',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Identity',
+					label: 'delegates',
+					when: 'open',
 					items: [
-						{
-							label: 'identity documents',
-						},
-						{
-							label: 'identity revisions',
-						},
-						{
-							label: 'delegates',
-						},
+						'$$delegates',
 					],
 				},
 				{
-					label: 'Signed refs',
+					label: 'signed refs',
+					when: 'open',
 					items: [
-						{
-							label: 'signed refs by node/ref',
-						},
+						'$$signedRefs',
 					],
 				},
 				{
-					label: 'Collaboration',
+					label: 'issues',
+					when: 'open',
 					items: [
-						{
-							label: 'issues/patches/comments/events',
-						},
+						'$$issues',
 					],
 				},
 				{
-					label: 'Replication',
+					label: 'patches',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadRadicleSeedObservation_Timestamp rows when a connected node observes availability',
-						},
+						'$$patches',
 					],
 				},
 				{
-					label: 'Git storage',
+					label: 'seed observations',
+					when: 'open',
 					items: [
-						{
-							label: 'linked Git repository',
-						},
+						'$$seedObservations',
 					],
 				},
 			],

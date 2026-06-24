@@ -10,74 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'mint',
-			},
 			'slot',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'mint',
-					},
 					'slot',
 					'source',
-					{
-						label: 'timestamp',
-					},
+					'timestampMs',
 					'supply',
 					'decimals',
-					{
-						label: 'mint authority',
-					},
-					{
-						label: 'freeze authority',
-					},
-					{
-						label: 'initialized flag',
-					},
+					'mintAuthorityPubkey',
+					'freezeAuthorityPubkey',
+					'isInitialized',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Mint',
-					items: [
-						{
-							label: 'parent Solana token mint',
-						},
-					],
-				},
-				{
-					label: 'Authorities',
-					items: [
-						{
-							label: 'Solana account refs',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'parsed mint account payload',
-						},
-						{
-							label: 'RPC context',
-						},
-					],
-				},
-				{
-					label: 'Token accounts',
-					items: [
-						{
-							label: 'bounded token-account list for the same mint when sourceable',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

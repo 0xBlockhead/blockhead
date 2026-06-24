@@ -10,73 +10,36 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'readiness check',
-			},
-			{
-				label: 'kind',
-			},
-			{
-				label: 'latest status',
-			},
+			'sessionId',
+			'actionId',
+			'checkId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'session action',
-					},
-					{
-						label: 'check id',
-					},
-					{
-						label: 'kind',
-					},
-					{
-						label: 'network/account/asset selectors',
-					},
-					{
-						label: 'EVM account/token/spender shortcuts',
-					},
-					{
-						label: 'capability key',
-					},
-					{
-						label: 'required amount',
-					},
-					{
-						label: 'created time',
-					},
-					{
-						label: 'latest status',
-					},
+					'sessionId',
+					'actionId',
+					'checkId',
+					'checkKind',
+					'networkCaip2',
+					'assetCaip19',
+					'chainId',
+					'accountAddress',
+					'tokenAddress',
+					'spenderAddress',
+					'capabilityKey',
+					'requiredAmount',
+					'createdAt',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Status history',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadActionReadinessCheck_Timestamp list',
-						},
-					],
-				},
-				{
-					label: 'Session action',
-					items: [
-						{
-							label: 'BlockheadSessionActionView',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'linked balance/allowance/capability rows when implemented',
-						},
+						'$$timestamps',
 					],
 				},
 			],

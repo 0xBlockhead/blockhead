@@ -10,63 +10,17 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'torrent',
-			},
 			'path',
-			{
-				label: 'path segments',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'torrent',
-					},
 					'path',
-					{
-						label: 'path segments',
-					},
-					{
-						label: 'entry kind',
-					},
+					'pathSegments',
+					'entryKind',
 					'length',
-					{
-						label: 'pieces root',
-					},
-					{
-						label: 'linked file',
-					},
+					'piecesRoot',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'File',
-					items: [
-						{
-							label: 'flattened file row for this leaf path',
-						},
-					],
-				},
-				{
-					label: 'Children',
-					items: [
-						{
-							label: 'child tree entries for the path prefix',
-						},
-					],
-				},
-				{
-					label: 'Torrent',
-					items: [
-						{
-							label: 'parent metainfo',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

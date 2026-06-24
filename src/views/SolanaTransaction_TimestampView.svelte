@@ -10,68 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'transaction',
-			},
 			'slot',
-			'status',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'transaction',
-					},
 					'slot',
 					'source',
-					{
-						label: 'timestamp',
-					},
+					'timestampMs',
+					'feeLamports',
+					'computeUnitsConsumed',
 					'status',
-					{
-						label: 'confirmation status',
-					},
-					{
-						label: 'fee lamports',
-					},
-					{
-						label: 'compute units consumed',
-					},
-					{
-						label: 'error presence',
-					},
+					'confirmationStatus',
+					'err',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Transaction',
-					items: [
-						{
-							label: 'parent Solana transaction',
-						},
-					],
-				},
-				{
-					label: 'Block',
-					items: [
-						{
-							label: 'Solana block through transaction block ref',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'getTransaction/getSignatureStatuses/indexer payload',
-						},
-						{
-							label: 'commitment/finality context',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

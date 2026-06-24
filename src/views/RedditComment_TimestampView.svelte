@@ -10,59 +10,16 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'comment',
-			},
-			{
-				label: 'observation time/source',
-			},
-			'score',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'comment',
-					},
-					{
-						label: 'observation time/source',
-					},
+					'timestampMs',
+					'source',
 					'score',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Comment',
-					items: [
-						{
-							label: 'RedditComment',
-						},
-					],
-				},
-				{
-					label: 'Ranking',
-					items: [
-						'score',
-					],
-				},
-				{
-					label: 'History',
-					items: [
-						{
-							label: 'RedditComment_Timestamp list',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Reddit comment payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,74 +10,30 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'proposal',
-			},
 			'epoch',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'proposal',
-					},
 					'epoch',
 					'source',
 					'slot',
 					'status',
-					{
-						label: 'ratified/enacted/expired/dropped epochs',
-					},
-					{
-						label: 'yes/no/abstain stake',
-					},
-					{
-						label: 'DRep stake totals',
-					},
-					{
-						label: 'SPO stake totals',
-					},
-					{
-						label: 'committee vote counts',
-					},
+					'enactedEpoch',
+					'expiredEpoch',
+					'droppedEpoch',
+					'ratifiedEpoch',
+					'yesStakeLovelace',
+					'noStakeLovelace',
+					'abstainStakeLovelace',
+					'drepYesStakeLovelace',
+					'drepNoStakeLovelace',
+					'spoYesStakeLovelace',
+					'spoNoStakeLovelace',
+					'committeeYesCount',
+					'committeeNoCount',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Proposal',
-					items: [
-						{
-							label: 'parent governance proposal',
-						},
-					],
-				},
-				{
-					label: 'Vote totals',
-					items: [
-						{
-							label: 'DRep/SPO/committee aggregation',
-						},
-					],
-				},
-				{
-					label: 'Votes',
-					items: [
-						{
-							label: 'governance votes for the proposal',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'governanceProposals/indexer payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

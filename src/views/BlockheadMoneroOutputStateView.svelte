@@ -10,114 +10,32 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'wallet id',
-			},
-			{
-				label: 'transaction hash',
-			},
-			{
-				label: 'output index',
-			},
+			'walletId',
+			'txHash',
+			'outputIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'wallet id',
-					},
-					{
-						label: 'transaction hash',
-					},
-					{
-						label: 'output index',
-					},
-					{
-						label: 'account/subaddress indexes',
-					},
-					{
-						label: 'amount',
-					},
-					{
-						label: 'key-image presence',
-					},
-					{
-						label: 'global output index',
-					},
-					{
-						label: 'latest spent/unlocked state',
-					},
-					{
-						label: 'latest confirmations',
-					},
-					{
-						label: 'latest export height',
-					},
-					{
-						label: 'latest checked time',
-					},
+					'walletId',
+					'txHash',
+					'outputIndex',
+					'accountIndex',
+					'addressIndex',
+					'amountAtomicUnits',
+					'keyImage',
+					'keyImageSignature',
+					'globalOutputIndex',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest state',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadMoneroOutputState_TimestampView',
-						},
-					],
-				},
-				{
-					label: 'State history',
-					items: [
-						{
-							label: 'BlockheadMoneroOutputState_TimestampsView',
-						},
-					],
-				},
-				{
-					label: 'Public output',
-					items: [
-						{
-							label: 'MoneroStealthOutputView when resolved',
-						},
-					],
-				},
-				{
-					label: 'Subaddress',
-					items: [
-						{
-							label: 'BlockheadMoneroSubaddressStateView',
-						},
-					],
-				},
-				{
-					label: 'Transfer',
-					items: [
-						{
-							label: 'BlockheadMoneroTransferState rows for the tx',
-						},
-					],
-				},
-				{
-					label: 'Key image',
-					items: [
-						{
-							label: 'redacted key image/signature',
-						},
-						{
-							label: 'import/export status',
-						},
-					],
-				},
-				{
-					label: 'Wallet',
-					items: [
-						{
-							label: 'BlockheadMoneroWalletStateView',
-						},
+						'$$timestamps',
 					],
 				},
 			],

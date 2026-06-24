@@ -10,94 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'start hash',
-			},
-			{
-				label: 'observed time/source',
-			},
+			'startHash',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'start hash',
-					},
-					{
-						label: 'observed time/source',
-					},
-					{
-						label: 'confirmation buffer',
-					},
-					{
-						label: 'added block count',
-					},
-					{
-						label: 'removed block count',
-					},
-					{
-						label: 'accepted transaction count',
-					},
-					{
-						label: 'next checkpoint',
-					},
+					'startHash',
+					'timestampMs',
+					'source',
+					'minConfirmationCount',
+					'addedChainBlockHashes',
+					'removedChainBlockHashes',
+					'acceptedTransactionCount',
+					'nextCheckpointHash',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Added blocks',
-					items: [
-						{
-							label: 'added virtual-chain block hashes',
-						},
-					],
-				},
-				{
-					label: 'Removed blocks',
-					items: [
-						{
-							label: 'rollback block hashes',
-						},
-					],
-				},
-				{
-					label: 'Accepted transactions',
-					items: [
-						{
-							label: 'accepted transactions grouped by accepting block',
-						},
-					],
-				},
-				{
-					label: 'Rollback effects',
-					items: [
-						{
-							label: 'accepted transactions invalidated by removed blocks',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'getVirtualChainFromBlock',
-						},
-						{
-							label: 'getVirtualChainFromBlockV2',
-						},
-						{
-							label: 'or SubscribeVirtualChainChanged payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

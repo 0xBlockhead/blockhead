@@ -10,55 +10,16 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'service request',
-			},
-			{
-				label: 'trace id',
-			},
-			{
-				label: 'settlement transaction hash',
-			},
+			'traceId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'service request',
-					},
-					{
-						label: 'trace id',
-					},
-					{
-						label: 'settlement transaction hash',
-					},
-					{
-						label: 'acknowledgement signature',
-					},
-					{
-						label: 'reward amount',
-					},
+					'traceId',
+					'settlementTransactionHash',
+					'acknowledgementSignature',
+					'rewardAmount',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Service request',
-					items: [
-						{
-							label: 'parent service request',
-						},
-					],
-				},
-				{
-					label: 'Settlement transaction',
-					items: [
-						{
-							label: 'EVM transaction when hash resolves on the 0G execution network',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,71 +10,15 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'account',
-			},
-			{
-				label: 'observation time',
-			},
-			{
-				label: 'follower count',
-			},
+			'timestampMs',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'account',
-					},
-					{
-						label: 'observation time',
-					},
-					{
-						label: 'follower count',
-					},
-					{
-						label: 'following count',
-					},
+					'timestampMs',
+					'followerCount',
+					'followingCount',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'LensAccount',
-						},
-					],
-				},
-				{
-					label: 'Social graph counters',
-					items: [
-						{
-							label: 'follower count',
-						},
-						{
-							label: 'following count',
-						},
-					],
-				},
-				{
-					label: 'History',
-					items: [
-						{
-							label: 'LensAccount_Timestamp list',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Lens GraphQL account stats payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

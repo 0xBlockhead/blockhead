@@ -10,65 +10,17 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'pending/queued counts',
-			},
-			{
-				label: 'observation timestamp',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'pending/queued counts',
-					},
-					{
-						label: 'observation timestamp',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'unsupported-source empty state',
-					},
+					'pendingCount',
+					'queuedCount',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent EVM network',
-						},
-					],
-				},
-				{
-					label: 'Txpool counts',
-					items: [
-						{
-							label: 'pending',
-						},
-						{
-							label: 'queued',
-						},
-						{
-							label: 'unsupported-source empty state',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'txpool_status response',
-						},
-						{
-							label: 'client-local endpoint context',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

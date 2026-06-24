@@ -10,95 +10,31 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'gateway id',
-			},
-			{
-				label: 'API URL',
-			},
-			{
-				label: 'node pubkey',
-			},
+			'gatewayId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'gateway id',
-					},
-					{
-						label: 'API URL',
-					},
-					{
-						label: 'node pubkey',
-					},
-					{
-						label: 'latest Lightning alias',
-					},
-					{
-						label: 'latest version',
-					},
-					{
-						label: 'latest routing-fee summary',
-					},
-					{
-						label: 'connected federation count',
-					},
-					{
-						label: 'latest liquidity/health status',
-					},
+					'gatewayId',
+					'apiUrl',
+					'nodePubkey',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Federations',
+					label: 'federations',
+					when: 'open',
 					items: [
-						{
-							label: 'Fedimint federations known to this gateway',
-						},
+						'$$federations',
 					],
 				},
 				{
-					label: 'Latest state',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'latest gateway operational observation',
-						},
-					],
-				},
-				{
-					label: 'Observations',
-					items: [
-						{
-							label: 'timestamped gateway operational observations',
-						},
-					],
-				},
-				{
-					label: 'Lightning',
-					items: [
-						{
-							label: 'node pubkey',
-						},
-						{
-							label: 'alias',
-						},
-						{
-							label: 'channels',
-						},
-						{
-							label: 'fee settings when source-backed',
-						},
-					],
-				},
-				{
-					label: 'Management',
-					items: [
-						{
-							label: 'admin-only config fields only in trusted local contexts',
-						},
+						'$$timestamps',
 					],
 				},
 			],

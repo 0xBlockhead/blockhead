@@ -10,83 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'object id',
-			},
-			{
-				label: 'latest type/owner/version/digest summary',
-			},
+			'objectId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'object id',
-					},
-					{
-						label: 'latest type/owner/version/digest summary',
-					},
-					{
-						label: 'version count',
-					},
-					{
-						label: 'dynamic-field count',
-					},
+					'objectId',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Versions',
+					label: 'versions',
+					when: 'open',
 					items: [
-						{
-							label: 'object version rows',
-						},
+						'$$versions',
 					],
 				},
 				{
-					label: 'Dynamic fields',
+					label: 'dynamic fields',
+					when: 'open',
 					items: [
-						{
-							label: 'dynamic-field edge rows',
-						},
-					],
-				},
-				{
-					label: 'Owner',
-					items: [
-						{
-							label: 'Sui account or parent object when owner selector resolves',
-						},
-					],
-				},
-				{
-					label: 'Contents',
-					items: [
-						{
-							label: 'latest structured JSON via object version',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'sui_getObject',
-						},
-						{
-							label: 'suix_getOwnedObjects',
-						},
-						{
-							label: 'or GraphQL object payload',
-						},
+						'$$dynamicFields',
 					],
 				},
 			],

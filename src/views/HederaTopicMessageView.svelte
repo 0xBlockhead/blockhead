@@ -10,88 +10,18 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'topic',
-			},
-			{
-				label: 'sequence number',
-			},
-			{
-				label: 'consensus timestamp',
-			},
+			'sequenceNumber',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'topic',
-					},
-					{
-						label: 'sequence number',
-					},
-					{
-						label: 'consensus timestamp',
-					},
-					{
-						label: 'payer account',
-					},
-					{
-						label: 'running hash',
-					},
-					{
-						label: 'message size',
-					},
+					'sequenceNumber',
+					'consensusTimestamp',
+					'runningHash',
+					'payerAccount',
+					'message',
+					'chunkInfo',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Topic',
-					items: [
-						{
-							label: 'parent Hedera topic',
-						},
-					],
-				},
-				{
-					label: 'Message body',
-					items: [
-						{
-							label: 'decoded/base64 message body',
-						},
-						{
-							label: 'chunk metadata',
-						},
-					],
-				},
-				{
-					label: 'Transaction',
-					items: [
-						{
-							label: 'submit Hedera transaction when resolved',
-						},
-					],
-				},
-				{
-					label: 'Running hash',
-					items: [
-						{
-							label: 'sequence',
-						},
-						{
-							label: 'running-hash evidence',
-						},
-					],
-				},
-				{
-					label: 'Payer',
-					items: [
-						{
-							label: 'payer Hedera account when resolved',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

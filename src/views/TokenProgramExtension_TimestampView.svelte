@@ -10,78 +10,23 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'asset instance',
-			},
-			{
-				label: 'extension kind',
-			},
-			{
-				label: 'scope',
-			},
+			'extensionKind',
+			'extensionScope',
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'asset instance',
-					},
-					{
-						label: 'extension kind',
-					},
-					{
-						label: 'scope',
-					},
-					{
-						label: 'observation time',
-					},
+					'extensionKind',
+					'extensionScope',
+					'timestampMs',
 					'source',
-					{
-						label: 'authority selector',
-					},
-					{
-						label: 'ledger coordinate',
-					},
-					{
-						label: 'config summary',
-					},
+					'config',
+					'authoritySelector',
+					'ledgerCoordinateKind',
+					'ledgerCoordinateValue',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Asset',
-					items: [
-						{
-							label: 'parent asset instance',
-						},
-					],
-				},
-				{
-					label: 'Config',
-					items: [
-						{
-							label: 'decoded extension config',
-						},
-					],
-				},
-				{
-					label: 'Authority',
-					items: [
-						{
-							label: 'account/EVM account/Solana account when resolved',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'raw mint/account/contract/metadata payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

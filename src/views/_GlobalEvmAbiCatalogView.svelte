@@ -11,50 +11,42 @@
 	const view = {
 		closed: [
 			'scope',
-			'$$timestamps',
-			'$$sourceWindowTopics',
 		],
 		content: {
 			dl: [
 				[
 					'scope',
-					'$$timestamps',
-				],
-				[
-					'$$sourceWindowTopics',
-					'$$sourceWindowSelectors',
-					'$$sourceWindowErrors',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Source-window rows',
+					label: 'source window topics',
+					when: 'open',
 					items: [
 						'$$sourceWindowTopics',
+					],
+				},
+				{
+					label: 'source window selectors',
+					when: 'open',
+					items: [
 						'$$sourceWindowSelectors',
+					],
+				},
+				{
+					label: 'source window errors',
+					when: 'open',
+					items: [
 						'$$sourceWindowErrors',
 					],
 				},
 				{
-					label: 'Hub observations',
+					label: 'timestamps',
+					when: 'open',
 					items: [
 						'$$timestamps',
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'SourceBinding.Constants_Internal',
-						},
-						{
-							label: 'SourceBinding.Local_Internal',
-						},
-						{
-							label: 'SourceBinding.Openchain_Rest',
-						},
 					],
 				},
 			],

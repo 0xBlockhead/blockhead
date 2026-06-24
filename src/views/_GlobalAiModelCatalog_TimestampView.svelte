@@ -10,71 +10,34 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'catalog',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
-			'status',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'catalog',
-					},
-					{
-						label: 'timestamp',
-					},
+					'timestampMs',
 					'source',
+					'sourceReportedProviderCount',
+					'localCatalogProviderCount',
+					'sourceReportedModelCount',
+					'localCatalogModelCount',
+					'sourceReportedDatasetCount',
+					'localCatalogDatasetCount',
+					'sourceReportedBenchmarkCount',
+					'localCatalogBenchmarkCount',
+					'sourceReportedEvaluationCount',
+					'localCatalogEvaluationCount',
+					'configuredEndpointCount',
+					'reachableEndpointCount',
+					'searchResultCount',
+					'queryHashAlgorithm',
+					'queryHash',
+					'lastCursor',
+					'rateLimitRemaining',
 					'status',
 					'error',
 				],
-				[
-					{
-						label: 'source-reported/local provider/model/dataset/benchmark/eval counts',
-					},
-					{
-						label: 'search result count',
-					},
-					{
-						label: 'cursor',
-					},
-				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Catalog',
-					items: [
-						{
-							label: '_GlobalAiModelCatalog',
-						},
-					],
-				},
-				{
-					label: 'Counts',
-					items: [
-						{
-							label: 'scoped provider/model/dataset/benchmark/eval counts',
-						},
-					],
-				},
-				{
-					label: 'Source health',
-					items: [
-						{
-							label: 'endpoint reachability',
-						},
-						{
-							label: 'rate limit',
-						},
-						'error',
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

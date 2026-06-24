@@ -10,67 +10,20 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'object id',
-			},
-			{
-				label: 'object format',
-			},
-			{
-				label: 'byte source',
-			},
+			'objectId',
+			'objectFormat',
+			'byteSource',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'object id',
-					},
-					{
-						label: 'object format',
-					},
-					{
-						label: 'byte source',
-					},
+					'objectId',
+					'objectFormat',
+					'byteSource',
 					'path',
-					{
-						label: 'compressed size',
-					},
-					{
-						label: 'observed timestamp',
-					},
-					{
-						label: 'object link',
-					},
+					'compressedSizeBytes',
+					'observedAtMs',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Object',
-					items: [
-						{
-							label: 'parsed Git object when bytes verify',
-						},
-					],
-				},
-				{
-					label: 'Verification',
-					items: [
-						{
-							label: 'timestamped byte/object-id verification observations',
-						},
-					],
-				},
-				{
-					label: 'Storage evidence',
-					items: [
-						{
-							label: 'local clone/object-directory context',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

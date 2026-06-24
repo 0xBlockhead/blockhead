@@ -10,52 +10,50 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'icon',
-			},
-			{
-				label: 'symbol/name fallback',
-			},
-			{
-				label: 'chain',
-			},
+			'type',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'icon',
-					},
-					{
-						label: 'symbol/name fallback',
-					},
-					{
-						label: 'chain',
-					},
-					{
-						label: 'native/token contract kind',
-					},
+					'type',
+					'coinId',
 					'name',
 					'symbol',
 					'decimals',
-					{
-						label: 'CAIP-19',
-					},
+					'iconUrl',
+					'caip19',
 					'representation',
-					{
-						label: 'canonical deployment',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Bridging',
+					label: 'markets with instance as base',
+					when: 'open',
 					items: [
-						{
-							label: 'outbound/inbound bridge capability rows',
-						},
+						'$$marketsWithInstanceAsBase',
+					],
+				},
+				{
+					label: 'markets with instance as quote',
+					when: 'open',
+					items: [
+						'$$marketsWithInstanceAsQuote',
+					],
+				},
+				{
+					label: 'outbound bridge capabilities',
+					when: 'open',
+					items: [
+						'$$outboundBridgeCapabilities',
+					],
+				},
+				{
+					label: 'inbound bridge capabilities',
+					when: 'open',
+					items: [
+						'$$inboundBridgeCapabilities',
 					],
 				},
 			],

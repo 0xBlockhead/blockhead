@@ -10,123 +10,33 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'channel id',
-			},
-			{
-				label: 'short channel id',
-			},
+			'channelId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'channel id',
-					},
-					{
-						label: 'short channel id',
-					},
-					{
-						label: 'node0',
-					},
-					{
-						label: 'node1',
-					},
-					{
-						label: 'funding outpoint',
-					},
-					{
-						label: 'opening time',
-					},
-					{
-						label: 'latest observed status/capacity/fee',
-					},
-					{
-						label: 'local-state count when connected',
-					},
+					'channelId',
+					'shortChannelId',
+					'fundingTransactionId',
+					'fundingOutputIndex',
+					'openedAtMs',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Nodes',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'node0 endpoint',
-						},
-						{
-							label: 'node1 endpoint',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Public observations',
+					label: 'local states',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped public graph/channel observations',
-						},
-					],
-				},
-				{
-					label: 'Funding',
-					items: [
-						{
-							label: 'funding transaction id/output index',
-						},
-						{
-							label: 'opening time',
-						},
-					],
-				},
-				{
-					label: 'Closing',
-					items: [
-						{
-							label: 'latest observed closing transaction',
-						},
-						{
-							label: 'fee',
-						},
-						{
-							label: 'reason',
-						},
-						{
-							label: 'closed time when present',
-						},
-					],
-				},
-				{
-					label: 'Local channel state',
-					items: [
-						{
-							label: 'BlockheadLightningChannelState rows with balances/private/active/HTLCs',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Lightning network',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'public graph',
-						},
-						{
-							label: 'LND channel payloads',
-						},
+						'$$localStates',
 					],
 				},
 			],

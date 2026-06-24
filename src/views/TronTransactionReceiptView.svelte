@@ -9,97 +9,25 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'transaction',
-			},
-			'result',
-			{
-				label: 'fee',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
 				[
-					{
-						label: 'transaction',
-					},
+					'feeSun',
 					'result',
-					{
-						label: 'fee',
-					},
-					{
-						label: 'contract address',
-					},
-					{
-						label: 'energy usage',
-					},
-					{
-						label: 'total energy',
-					},
-					{
-						label: 'energy fee',
-					},
-					{
-						label: 'net usage',
-					},
-					{
-						label: 'net fee',
-					},
-					{
-						label: 'log count',
-					},
-					{
-						label: 'internal transaction count',
-					},
-					{
-						label: 'result-message status',
-					},
+					'resMessageHex',
+					'contractAddress',
+					'energyUsage',
+					'originEnergyUsage',
+					'energyUsageTotal',
+					'energyFeeSun',
+					'energyPenaltyTotal',
+					'netUsage',
+					'netFeeSun',
+					'logCount',
+					'internalTransactionCount',
+					'contractResultHex',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Transaction',
-					items: [
-						{
-							label: 'parent transaction',
-						},
-					],
-				},
-				{
-					label: 'Resource usage',
-					items: [
-						{
-							label: 'energy/net/fee fields',
-						},
-					],
-				},
-				{
-					label: 'Logs',
-					items: [
-						{
-							label: 'event log summaries when decoded rows exist',
-						},
-					],
-				},
-				{
-					label: 'Internal transactions',
-					items: [
-						{
-							label: 'internal transfer/call summaries when modeled',
-						},
-					],
-				},
-				{
-					label: 'Contract result',
-					items: [
-						{
-							label: 'contractResultHex/resMessageHex payloads',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

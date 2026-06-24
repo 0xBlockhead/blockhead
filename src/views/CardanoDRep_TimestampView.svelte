@@ -10,76 +10,23 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'DRep',
-			},
 			'epoch',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'DRep',
-					},
 					'epoch',
 					'source',
 					'slot',
-					{
-						label: 'voting power',
-					},
-					{
-						label: 'delegator count',
-					},
-					{
-						label: 'active flag',
-					},
-					{
-						label: 'registered flag',
-					},
-					{
-						label: 'deposit',
-					},
-					{
-						label: 'anchor URL/hash',
-					},
+					'votingPowerLovelace',
+					'delegatorCount',
+					'active',
+					'registered',
+					'depositLovelace',
+					'anchorUrl',
+					'anchorHash',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'DRep',
-					items: [
-						{
-							label: 'parent Cardano DRep',
-						},
-					],
-				},
-				{
-					label: 'Delegation',
-					items: [
-						{
-							label: 'stake credential delegation summary',
-						},
-					],
-				},
-				{
-					label: 'Votes',
-					items: [
-						{
-							label: 'governance votes for the epoch',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'delegateRepresentatives/indexer payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -10,81 +10,20 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'account',
-			},
-			{
-				label: 'ledger index',
-			},
+			'ledgerIndex',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'account',
-					},
-					{
-						label: 'ledger index',
-					},
+					'ledgerIndex',
 					'source',
-					{
-						label: 'observation time',
-					},
-					{
-						label: 'account balance',
-					},
-					{
-						label: 'owner count',
-					},
+					'timestampMs',
+					'balanceDrops',
+					'ownerCount',
 					'sequence',
 					'flags',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'XrplAccount',
-						},
-					],
-				},
-				{
-					label: 'Ledger state',
-					items: [
-						{
-							label: 'balance drops',
-						},
-						{
-							label: 'owner count',
-						},
-						'sequence',
-						'flags',
-					],
-				},
-				{
-					label: 'Ledger context',
-					items: [
-						{
-							label: 'ledger index',
-						},
-						{
-							label: 'observation time',
-						},
-						'source',
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'account_info/explorer account payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

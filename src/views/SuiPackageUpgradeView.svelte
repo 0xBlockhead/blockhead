@@ -10,85 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'package lineage',
-			},
-			{
-				label: 'upgraded package id',
-			},
-			{
-				label: 'upgraded version',
-			},
+			'upgradedPackageId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'package lineage',
-					},
-					{
-						label: 'upgraded package id',
-					},
-					{
-						label: 'upgraded version',
-					},
-					{
-						label: 'previous package id',
-					},
+					'upgradedPackageId',
+					'upgradedVersion',
+					'previousPackageId',
+					'upgradeCapSelector',
 					'policy',
 					'digest',
-					{
-						label: 'transaction',
-					},
-					{
-						label: 'timestamp',
-					},
-					{
-						label: 'upgrade capability selector',
-					},
+					'timestampMs',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Package',
-					items: [
-						{
-							label: 'parent package lineage',
-						},
-					],
-				},
-				{
-					label: 'Published package',
-					items: [
-						{
-							label: 'published package version',
-						},
-					],
-				},
-				{
-					label: 'Transaction',
-					items: [
-						{
-							label: 'upgrade transaction',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'object changes',
-						},
-						{
-							label: 'published objects',
-						},
-						{
-							label: 'upgrade-cap mutation payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

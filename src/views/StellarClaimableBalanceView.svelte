@@ -10,66 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'claimable balance id',
-			},
-			{
-				label: 'latest state observation',
-			},
-			{
-				label: 'claimed/deleted state',
-			},
+			'claimableBalanceId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'claimable balance id',
-					},
-					{
-						label: 'latest asset/amount observation',
-					},
-					{
-						label: 'latest sponsor/claimant observation',
-					},
-					{
-						label: 'claimed transaction when known',
-					},
+					'claimableBalanceId',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest state',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'latest ledger/source claimable-balance observation',
-						},
-					],
-				},
-				{
-					label: 'State history',
-					items: [
-						{
-							label: 'timestamped claimable-balance observations',
-						},
-					],
-				},
-				{
-					label: 'Transactions',
-					items: [
-						{
-							label: 'create/claim transaction effects',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Horizon/RPC/indexer payloads',
-						},
+						'$$timestamps',
 					],
 				},
 			],

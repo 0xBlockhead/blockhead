@@ -10,80 +10,28 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
 			'slot',
-			{
-				label: 'block height',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
 					'slot',
-					{
-						label: 'block height',
-					},
-					{
-						label: 'block hash',
-					},
-					{
-						label: 'previous block hash',
-					},
-					{
-						label: 'parent slot/block',
-					},
-					{
-						label: 'timestamp',
-					},
-					{
-						label: 'transaction count',
-					},
+					'blockHeight',
+					'blockHash',
+					'previousBlockHash',
+					'parentSlot',
+					'timestampMs',
+					'transactionCount',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Transactions',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'transactions in this block',
-						},
-					],
-				},
-				{
-					label: 'Parent',
-					items: [
-						{
-							label: 'parent Solana block',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Solana network',
-						},
-					],
-				},
-				{
-					label: 'Lookup evidence',
-					items: [
-						{
-							label: 'getBlock slot lookup',
-						},
-						{
-							label: 'getBlocks slot range',
-						},
-						{
-							label: 'indexer block payload',
-						},
+						'$$transactions',
 					],
 				},
 			],

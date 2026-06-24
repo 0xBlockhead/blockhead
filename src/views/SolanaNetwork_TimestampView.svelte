@@ -10,108 +10,27 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'timestamp',
-			},
+			'timestampMs',
 			'source',
-			{
-				label: 'absolute slot',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'timestamp',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'absolute slot',
-					},
-					{
-						label: 'block height',
-					},
+					'absoluteSlot',
+					'blockHeight',
 					'epoch',
-					{
-						label: 'slot index',
-					},
-					{
-						label: 'slots in epoch',
-					},
-				],
-				[
-					{
-						label: 'transaction count',
-					},
-					{
-						label: 'current/delinquent validator counts',
-					},
-					{
-						label: 'activated stake',
-					},
-					{
-						label: 'core version',
-					},
-					{
-						label: 'feature set',
-					},
+					'slotIndex',
+					'slotsInEpoch',
+					'transactionCount',
+					'currentValidatorCount',
+					'delinquentValidatorCount',
+					'totalActivatedStakeLamports',
+					'solanaCoreVersion',
+					'featureSet',
 					'health',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Slot/epoch',
-					items: [
-						{
-							label: 'slot',
-						},
-						{
-							label: 'epoch progress',
-						},
-					],
-				},
-				{
-					label: 'Validators/stake',
-					items: [
-						{
-							label: 'current/delinquent counts',
-						},
-						{
-							label: 'activated stake',
-						},
-					],
-				},
-				{
-					label: 'Node/version',
-					items: [
-						'health',
-						{
-							label: 'core version',
-						},
-						{
-							label: 'feature set',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'getEpochInfo',
-						},
-						{
-							label: 'getHealth',
-						},
-						{
-							label: 'getVersion',
-						},
-						{
-							label: 'getVoteAccounts',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

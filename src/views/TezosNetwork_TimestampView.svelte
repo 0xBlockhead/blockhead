@@ -10,62 +10,21 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'observed time/source',
-			},
-			{
-				label: 'latest level',
-			},
-			{
-				label: 'protocol hash',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'observed time/source',
-					},
-					{
-						label: 'latest level',
-					},
-					{
-						label: 'protocol hash',
-					},
+					'timestampMs',
+					'source',
+					'latestLevel',
+					'protocolHash',
 					'cycle',
-					{
-						label: 'total supply',
-					},
-					{
-						label: 'active baker count',
-					},
-					{
-						label: 'indexer lag',
-					},
+					'totalSupplyMutez',
+					'activeBakerCount',
+					'indexerLagBlocks',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent Tezos network',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'head/status payload',
-						},
-						{
-							label: 'freshness',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

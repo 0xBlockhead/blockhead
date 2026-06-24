@@ -10,98 +10,23 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'token',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'token',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'block height',
-					},
+					'blockHeight',
 					'name',
 					'symbol',
 					'decimals',
+					'totalSupply',
+					'holderCount',
+					'transferCount',
+					'contractVerified',
 				],
-				[
-					{
-						label: 'total supply',
-					},
-					{
-						label: 'holder count',
-					},
-					{
-						label: 'transfer count',
-					},
-					{
-						label: 'contract verification flag',
-					},
-				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Token',
-					items: [
-						{
-							label: 'parent token identity',
-						},
-					],
-				},
-				{
-					label: 'Metadata',
-					items: [
-						'name',
-						'symbol',
-						'decimals',
-					],
-				},
-				{
-					label: 'Metrics',
-					items: [
-						{
-							label: 'supply',
-						},
-						{
-							label: 'holder count',
-						},
-						{
-							label: 'transfer count',
-						},
-						{
-							label: 'verification flag',
-						},
-					],
-				},
-				{
-					label: 'Contract',
-					items: [
-						{
-							label: 'contract identity when contract-backed',
-						},
-					],
-				},
-				{
-					label: 'Source',
-					items: [
-						{
-							label: 'token overview/indexer payload freshness',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

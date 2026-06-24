@@ -11,42 +11,23 @@
 	const view = {
 		closed: [
 			'query',
-			{
-				label: 'created time',
-			},
-			{
-				label: 'result limit',
-			},
 		],
 		content: {
 			dl: [
 				[
 					'query',
-					{
-						label: 'created time',
-					},
-					{
-						label: 'result limit',
-					},
+					'createdAt',
+					'resultLimit',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Matching names',
+					label: 'matching names',
+					when: 'open',
 					items: [
-						{
-							label: 'EnsName list from $$matchingNames',
-						},
-					],
-				},
-				{
-					label: 'Search state',
-					items: [
-						'query',
-						'createdAt',
-						'resultLimit',
+						'$$matchingNames',
 					],
 				},
 			],

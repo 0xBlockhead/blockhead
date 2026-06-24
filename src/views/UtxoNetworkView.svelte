@@ -9,87 +9,33 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'best block',
-			},
-			{
-				label: 'suggested fee',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
-				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'best block',
-					},
-					{
-						label: 'suggested fee',
-					},
-					{
-						label: 'mempool transaction count',
-					},
-					{
-						label: 'native asset',
-					},
-					{
-						label: 'chain family',
-					},
-				],
+				[],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Blocks',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'UTXO-family blocks',
-						},
+						'$$timestamps',
 					],
 				},
 				{
-					label: 'Transactions',
+					label: 'blocks',
+					when: 'open',
 					items: [
-						{
-							label: 'UTXO-family transactions',
-						},
+						'$$blocks',
 					],
 				},
 				{
-					label: 'Mempool & fees',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'network state observations',
-						},
-					],
-				},
-				{
-					label: 'Assets',
-					items: [
-						{
-							label: 'native coin plus Elements/CashToken facets when present',
-						},
-					],
-				},
-				{
-					label: 'Resources',
-					items: [
-						{
-							label: 'explorers',
-						},
-						{
-							label: 'faucets',
-						},
-						{
-							label: 'RPC endpoints',
-						},
+						'$$transactions',
 					],
 				},
 			],

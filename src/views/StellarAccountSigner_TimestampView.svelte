@@ -10,75 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'signer',
-			},
-			'weight',
-			{
-				label: 'ledger sequence',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'signer',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'ledger sequence',
-					},
+					'ledgerSequence',
 					'weight',
 					'sponsor',
-					{
-						label: 'active state',
-					},
+					'active',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Signer',
-					items: [
-						{
-							label: 'parent Stellar account signer',
-						},
-					],
-				},
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'parent Stellar account',
-						},
-					],
-				},
-				{
-					label: 'Ledger',
-					items: [
-						{
-							label: 'Stellar ledger when resolved',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Horizon signer object',
-						},
-						{
-							label: 'RPC ledger entry snapshot',
-						},
-						{
-							label: 'historical account effects when needed',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

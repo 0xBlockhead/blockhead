@@ -13,8 +13,11 @@ const expectedFiles = [
 	'.generated/expected/src/resolvers/resolvers.json',
 	'.generated/expected/src/views/views.json',
 	'.generated/expected/src/routes/routes.json',
+	'.generated/expected/src/routes/entity-selector-route-leaves.ts',
+	'.generated/expected/src/routes/entity-hub-collection-routes.ts',
 	'.generated/expected/tests/probes.json',
 	'.generated/expected/ownership.json',
+	'.generated/expected/ownership-summary.json',
 ] as const
 
 const readJson = <_Value>(path: string): _Value => (
@@ -31,6 +34,16 @@ export const validateExpected = async () => {
 	const routes = readJson<typeof app.routes>('.generated/expected/src/routes/routes.json')
 	const probes = readJson<typeof app.probes>('.generated/expected/tests/probes.json')
 	const ownership = readJson<{ activePath: string }[]>('.generated/expected/ownership.json')
+	const ownershipSummary = readJson<{
+		total: number
+		generated: number
+		handOwned: number
+		remainingHandOwnedGeneratedSurface: {
+			views: number
+			routes: number
+			routeSections: number
+		}
+	}>('.generated/expected/ownership-summary.json')
 	const mismatches = [
 		...(JSON.stringify(schema) === JSON.stringify(app.schema) ? [] : ['schema manifest content']),
 		...(JSON.stringify(sources) === JSON.stringify(app.sources) ? [] : ['sources manifest content']),
@@ -42,6 +55,8 @@ export const validateExpected = async () => {
 		...(sources.providers.length === app.sources.providers.length ? [] : ['source provider count']),
 		...(sources.sources.length === app.sources.sources.length ? [] : ['source count']),
 		...(sources.bindings.length === app.sources.bindings.length ? [] : ['source binding count']),
+		...(sources.runtimeBindings.length === app.sources.runtimeBindings.length ? [] : ['runtime source binding count']),
+		...(sources.runtimeArtifacts.length === app.sources.runtimeArtifacts.length ? [] : ['runtime source artifact count']),
 		...(resolvers.coverage.length === app.resolvers.coverage.length ? [] : ['resolver coverage count']),
 		...(views.entityViews.length === app.views.entityViews.length ? [] : ['entity view count']),
 		...(routes.sections.length === app.routes.sections.length ? [] : ['route section count']),
@@ -50,6 +65,8 @@ export const validateExpected = async () => {
 		...(probes.boundaries.length === app.probes.boundaries.length ? [] : ['boundary probe count']),
 		...(probes.cors.length === app.probes.cors.length ? [] : ['cors probe count']),
 		...(ownership.length > 0 ? [] : ['ownership rows']),
+		...(ownershipSummary.total === ownership.length ? [] : ['ownership summary total']),
+		...(ownershipSummary.generated + ownershipSummary.handOwned === ownership.length ? [] : ['ownership summary partition']),
 	]
 
 	writeText('.generated/reports/expected-validation.md', [
@@ -58,6 +75,11 @@ export const validateExpected = async () => {
 		`Expected files: ${expectedFiles.length}`,
 		`Missing files: ${missingFiles.length}`,
 		`Round-trip count mismatches: ${mismatches.length}`,
+		`Generated-owned rows: ${ownershipSummary.generated}`,
+		`Hand-owned rows preserved: ${ownershipSummary.handOwned}`,
+		`Hand-owned entity views remaining: ${ownershipSummary.remainingHandOwnedGeneratedSurface.views}`,
+		`Hand-owned route pages remaining: ${ownershipSummary.remainingHandOwnedGeneratedSurface.routes}`,
+		`Hand-owned route sections remaining: ${ownershipSummary.remainingHandOwnedGeneratedSurface.routeSections}`,
 		'',
 		'## Missing Files',
 		'',

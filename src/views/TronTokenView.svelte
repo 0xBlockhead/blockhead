@@ -10,82 +10,31 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'token id',
-			},
-			'standard',
+			'tokenId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'token id',
-					},
+					'tokenId',
 					'standard',
-					{
-						label: 'owner',
-					},
-					{
-						label: 'contract',
-					},
-					{
-						label: 'creation timestamp',
-					},
-					{
-						label: 'latest metadata/supply/holder/transfer summary',
-					},
-					{
-						label: 'latest observation time',
-					},
+					'createdTimestampMs',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Token observations',
+					label: 'account balance timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'token metadata and metric observations',
-						},
+						'$$accountBalanceTimestamps',
 					],
 				},
 				{
-					label: 'Account balances',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'account-token balance observations when source-scoped',
-						},
-					],
-				},
-				{
-					label: 'Contract',
-					items: [
-						{
-							label: 'contract identity when contract-backed',
-						},
-					],
-				},
-				{
-					label: 'Owner',
-					items: [
-						{
-							label: 'owner account identity',
-						},
-					],
-				},
-				{
-					label: 'Transfers',
-					items: [
-						{
-							label: 'token transfers when scoped by transaction/account source context',
-						},
+						'$$timestamps',
 					],
 				},
 			],

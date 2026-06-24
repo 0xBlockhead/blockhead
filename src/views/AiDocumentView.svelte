@@ -10,81 +10,33 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'document kind',
-			},
-			{
-				label: 'hash/artifact/url',
-			},
+			'documentKind',
+			'contentHashAlgorithm',
+			'contentHash',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'document kind',
-					},
-					{
-						label: 'content hash algorithm/hash',
-					},
-					{
-						label: 'artifact',
-					},
-					{
-						label: 'document URL',
-					},
-				],
-				[
-					{
-						label: 'media type',
-					},
-					{
-						label: 'source format',
-					},
-					{
-						label: 'schema version',
-					},
+					'documentKind',
+					'contentHashAlgorithm',
+					'contentHash',
+					'documentUrl',
+					'mediaType',
+					'schemaVersion',
 					'conformsTo',
-					{
-						label: 'declared subject',
-					},
-					{
-						label: 'claim refs',
-					},
+					'sourceFormat',
+					'declaredSubjectKind',
+					'declaredSubjectSelector',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Claims',
+					label: 'claims',
+					when: 'open',
 					items: [
-						{
-							label: 'AiDocumentClaim list',
-						},
-					],
-				},
-				{
-					label: 'Artifact',
-					items: [
-						{
-							label: 'AiArtifact when present',
-						},
-					],
-				},
-				{
-					label: 'Relationship claims',
-					items: [
-						{
-							label: 'AiRelationshipClaim list',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'raw document source',
-						},
+						'$$claims',
 					],
 				},
 			],

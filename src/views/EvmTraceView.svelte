@@ -10,84 +10,32 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'from/to accounts',
-			},
-			'value',
-			'gas',
+			'traceAddress',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'from/to accounts',
-					},
+					'traceAddress',
+					'index',
+					'type',
+					'from',
+					'to',
 					'value',
 					'gas',
-					{
-						label: 'gas used',
-					},
-					{
-						label: 'input selector candidates',
-					},
-					{
-						label: 'raw input/output',
-					},
+					'gasUsed',
+					'input',
+					'output',
+					'error',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Transaction',
+					label: 'childrenses',
+					when: 'open',
 					items: [
-						{
-							label: 'parent EVM transaction',
-						},
-					],
-				},
-				{
-					label: 'Call',
-					items: [
-						'type',
-						{
-							label: 'from/to',
-						},
-						'value',
-						'gas',
-						{
-							label: 'gas used',
-						},
-					],
-				},
-				{
-					label: 'Input/output',
-					items: [
-						{
-							label: 'raw input',
-						},
-						{
-							label: 'raw output',
-						},
-						{
-							label: 'selector candidates',
-						},
-					],
-				},
-				{
-					label: 'Children',
-					items: [
-						{
-							label: 'recursive child call tree from trace-address children',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'debug trace call tree',
-						},
+						'$$children',
 					],
 				},
 			],

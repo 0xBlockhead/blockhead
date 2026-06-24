@@ -10,74 +10,20 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'transaction',
-			},
 			'pool',
-			{
-				label: 'action kind',
-			},
+			'actionKind',
+			'actionIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'transaction',
-					},
 					'pool',
-					{
-						label: 'action kind',
-					},
-					{
-						label: 'action index',
-					},
-					{
-						label: 'pool ref',
-					},
+					'actionKind',
+					'actionIndex',
 					'nullifier',
-					{
-						label: 'note commitment',
-					},
-					{
-						label: 'value commitment',
-					},
+					'noteCommitment',
+					'valueCommitment',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Transaction',
-					items: [
-						{
-							label: 'parent UTXO-family transaction',
-						},
-					],
-				},
-				{
-					label: 'Pool',
-					items: [
-						{
-							label: 'ZcashShieldedPool ref and pool enum',
-						},
-					],
-				},
-				{
-					label: 'Public action data',
-					items: [
-						{
-							label: 'nullifier/note/value commitments',
-						},
-					],
-				},
-				{
-					label: 'Local note match',
-					items: [
-						{
-							label: 'Blockhead Zcash note state when wallet scanning links the action',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

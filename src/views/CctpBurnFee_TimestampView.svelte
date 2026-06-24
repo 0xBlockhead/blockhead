@@ -10,73 +10,18 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'source domain',
-			},
-			{
-				label: 'destination domain',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'source domain',
-					},
-					{
-						label: 'destination domain',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'forward flag',
-					},
-					{
-						label: 'HyperCore deposit flag',
-					},
-					{
-						label: 'fee-row count',
-					},
+					'forward',
+					'hyperCoreDeposit',
+					'feeRows',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Fee rows',
-					items: [
-						{
-							label: 'finality threshold',
-						},
-						{
-							label: 'minimum bps',
-						},
-						{
-							label: 'forward fee estimates',
-						},
-					],
-				},
-				{
-					label: 'Domains',
-					items: [
-						{
-							label: 'source/destination CCTP domain support rows',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Iris /v2/burn/USDC/fees response',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

@@ -11,75 +11,18 @@
 	const view = {
 		closed: [
 			'id',
-			{
-				label: 'network',
-			},
-			{
-				label: 'token pair',
-			},
 		],
 		content: {
 			dl: [
 				[
 					'id',
-					{
-						label: 'network',
-					},
-					{
-						label: 'token in/out',
-					},
-					{
-						label: 'amount in/out',
-					},
+					'amountIn',
+					'amountOut',
+					'priceImpact',
+					'route',
+					'gasEstimate',
 					'timestamp',
 				],
-				[
-					{
-						label: 'price impact',
-					},
-					{
-						label: 'gas estimate',
-					},
-					{
-						label: 'route hop count',
-					},
-				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Route payload',
-					items: [
-						{
-							label: 'inline route array from implemented schema',
-						},
-					],
-				},
-				{
-					label: 'Tokens',
-					items: [
-						{
-							label: 'input/output EVM coin instances',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'EVM network',
-						},
-					],
-				},
-				{
-					label: 'Target model',
-					items: [
-						{
-							label: 'SwapQuote_Timestamp and SwapQuoteStep should replace this row for sourced aggregator quotes',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

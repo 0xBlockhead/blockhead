@@ -10,71 +10,27 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'CID',
-			},
-			{
-				label: 'tree CID',
-			},
-			{
-				label: 'dataset size',
-			},
+			'cid',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'CID',
-					},
-					{
-						label: 'tree CID',
-					},
-					{
-						label: 'dataset size',
-					},
-					{
-						label: 'block size',
-					},
+					'cid',
+					'treeCid',
+					'datasetSizeBytes',
+					'blockSizeBytes',
 					'filename',
 					'mimetype',
-					{
-						label: 'local copy count',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Local copies',
+					label: 'local copies',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadCodexStoredData list',
-						},
-					],
-				},
-				{
-					label: 'Manifest',
-					items: [
-						{
-							label: 'manifest fields from /data or /data/{cid}/network/manifest',
-						},
-					],
-				},
-				{
-					label: 'Download',
-					items: [
-						{
-							label: 'BlockheadCodexStoredData_Timestamp download/availability history',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'Codex REST DataItem/ManifestItem payload',
-						},
+						'$$localCopies',
 					],
 				},
 			],

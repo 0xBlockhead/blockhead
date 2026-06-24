@@ -10,83 +10,27 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'vault',
-			},
-			{
-				label: 'block number',
-			},
+			'blockNumber',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'vault',
-					},
-					{
-						label: 'block number',
-					},
+					'blockNumber',
 					'source',
-					{
-						label: 'total assets',
-					},
-					{
-						label: 'total supply',
-					},
-					{
-						label: 'assets per share',
-					},
-					{
-						label: 'shares per asset',
-					},
-					{
-						label: 'deposit/mint/withdraw/redeem limits',
-					},
-					{
-						label: 'preview outputs',
-					},
+					'totalAssets',
+					'totalSupply',
+					'assetsPerShare',
+					'sharesPerAsset',
+					'maxDepositAssets',
+					'maxMintShares',
+					'maxWithdrawAssets',
+					'maxRedeemShares',
+					'previewDepositShares',
+					'previewMintAssets',
+					'previewWithdrawShares',
+					'previewRedeemAssets',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Vault',
-					items: [
-						{
-							label: 'parent ERC-4626 vault',
-						},
-					],
-				},
-				{
-					label: 'Contract calls',
-					items: [
-						{
-							label: 'method names',
-						},
-						{
-							label: 'arguments',
-						},
-						{
-							label: 'return values',
-						},
-						{
-							label: 'RPC block tag',
-						},
-					],
-				},
-				{
-					label: 'Asset/share context',
-					items: [
-						{
-							label: 'linked token instances',
-						},
-						{
-							label: 'raw-unit display',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

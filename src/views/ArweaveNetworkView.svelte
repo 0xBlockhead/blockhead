@@ -9,87 +9,40 @@
 
 	// State
 	const view = {
-		closed: [
-			{
-				label: 'network',
-			},
-			{
-				label: 'latest height',
-			},
-			{
-				label: 'gateway/source coverage',
-			},
-		],
+		closed: [],
 		content: {
 			dl: [
-				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'latest network timestamp height/health',
-					},
-					{
-						label: 'configured access coverage',
-					},
-					{
-						label: 'block count',
-					},
-					{
-						label: 'transaction count',
-					},
-					{
-						label: 'resource count',
-					},
-				],
+				[],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest status',
+					label: 'blocks',
+					when: 'open',
 					items: [
-						{
-							label: 'latest source-local network observation',
-						},
+						'$$blocks',
 					],
 				},
 				{
-					label: 'Blocks',
+					label: 'transactions',
+					when: 'open',
 					items: [
-						{
-							label: 'block rows by height or independent hash',
-						},
+						'$$transactions',
 					],
 				},
 				{
-					label: 'Transactions',
+					label: 'resources',
+					when: 'open',
 					items: [
-						{
-							label: 'transaction rows by transaction id',
-						},
+						'$$resources',
 					],
 				},
 				{
-					label: 'Resources',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'gateway resource rows by transaction id/path',
-						},
-					],
-				},
-				{
-					label: 'Sources',
-					items: [
-						{
-							label: 'configured access endpoint/node endpoints',
-						},
-						{
-							label: 'GraphQL transaction/block metadata',
-						},
-						{
-							label: 'archival/deep-history notes',
-						},
+						'$$timestamps',
 					],
 				},
 			],

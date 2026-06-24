@@ -10,74 +10,15 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'storage node',
-			},
-			{
-				label: 'proof id',
-			},
-			{
-				label: 'proof kind',
-			},
+			'proofId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'storage node',
-					},
-					{
-						label: 'proof id',
-					},
-					{
-						label: 'proof kind',
-					},
-					{
-						label: 'verified block',
-					},
-					{
-						label: 'data blob',
-					},
-					{
-						label: 'consensus network',
-					},
+					'proofId',
+					'proofKind',
+					'verifiedAtBlock',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Storage node',
-					items: [
-						{
-							label: 'parent public storage node',
-						},
-					],
-				},
-				{
-					label: 'Data blob',
-					items: [
-						{
-							label: 'linked data-root blob',
-						},
-					],
-				},
-				{
-					label: 'Consensus',
-					items: [
-						{
-							label: 'linked consensus-network identity',
-						},
-					],
-				},
-				{
-					label: 'Local proof material',
-					items: [
-						{
-							label: 'Blockhead proof row when a connected node exposes raw bytes/status',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

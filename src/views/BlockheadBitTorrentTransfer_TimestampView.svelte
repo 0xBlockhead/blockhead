@@ -10,90 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'client',
-			},
-			{
-				label: 'torrent',
-			},
-			{
-				label: 'timestamp',
-			},
+			'timestampMs',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'client',
-					},
-					{
-						label: 'torrent',
-					},
-					{
-						label: 'timestamp',
-					},
+					'timestampMs',
 					'status',
-					{
-						label: 'selected file count',
-					},
-					{
-						label: 'downloaded/uploaded bytes',
-					},
-					{
-						label: 'download/upload rates',
-					},
-					{
-						label: 'verified/failed pieces',
-					},
-					{
-						label: 'connected peer count',
-					},
+					'savePath',
+					'selectedFileIndexes',
+					'downloadedBytes',
+					'uploadedBytes',
+					'downloadRate',
+					'uploadRate',
+					'verifiedPieces',
+					'failedPieces',
+					'connectedPeerCount',
 					'error',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Client',
-					items: [
-						{
-							label: 'parent connected-client state',
-						},
-					],
-				},
-				{
-					label: 'Torrent',
-					items: [
-						{
-							label: 'parent metainfo',
-						},
-					],
-				},
-				{
-					label: 'Files',
-					items: [
-						{
-							label: 'selected file rows',
-						},
-					],
-				},
-				{
-					label: 'Swarm context',
-					items: [
-						{
-							label: 'public/client swarm observations',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'connected-client transfer payload with local paths redacted by default',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

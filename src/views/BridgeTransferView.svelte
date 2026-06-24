@@ -10,98 +10,31 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'transfer id or source transaction hash',
-			},
-			{
-				label: 'source -> destination network labels',
-			},
+			'source',
+			'transferId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'transfer id or source transaction hash',
-					},
-					{
-						label: 'source -> destination network labels',
-					},
-				],
-				[
 					'source',
-					{
-						label: 'rail',
-					},
-					{
-						label: 'settlement/verification/asset outcome',
-					},
-					{
-						label: 'sender',
-					},
-					{
-						label: 'recipient',
-					},
-					{
-						label: 'from/to networks',
-					},
-					{
-						label: 'from/to tokens',
-					},
-					{
-						label: 'source transaction',
-					},
-					{
-						label: 'destination transaction',
-					},
-					{
-						label: 'amount in/out',
-					},
-					{
-						label: 'latest status',
-					},
+					'transferId',
+					'logIndex',
+					'amountIn',
+					'amountOut',
+					'railId',
+					'settlementModel',
+					'verificationModel',
+					'assetOutcome',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Status history',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped bridge transfer observations',
-						},
-					],
-				},
-				{
-					label: 'Transactions',
-					items: [
-						{
-							label: 'source/destination EVM transaction rows',
-						},
-					],
-				},
-				{
-					label: 'Participants',
-					items: [
-						{
-							label: 'sender/recipient account refs',
-						},
-					],
-				},
-				{
-					label: 'Assets/networks',
-					items: [
-						{
-							label: 'token and network refs',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'status API/indexer/log payload fields',
-						},
+						'$$timestamps',
 					],
 				},
 			],

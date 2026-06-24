@@ -10,81 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'AVS',
-			},
-			{
-				label: 'observation time',
-			},
-			{
-				label: 'operator count',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'AVS',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'block number',
-					},
-					{
-						label: 'operator count',
-					},
-					{
-						label: 'strategy count',
-					},
-					{
-						label: 'registration status',
-					},
+					'blockNumber',
+					'operatorCount',
+					'strategyCount',
+					'registrationStatus',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'AVS',
-					items: [
-						{
-							label: 'parent EigenLayer AVS',
-						},
-					],
-				},
-				{
-					label: 'Operators',
-					items: [
-						{
-							label: 'operator rows for the same source/window when available',
-						},
-					],
-				},
-				{
-					label: 'Allocations',
-					items: [
-						{
-							label: 'allocation observations near the same observation',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'AVSDirectory reads/logs',
-						},
-						{
-							label: 'subgraph/indexer aggregate payload',
-						},
-						{
-							label: 'block context',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

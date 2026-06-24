@@ -10,68 +10,23 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'shard key',
-			},
+			'shardKey',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'shard key',
-					},
-				],
-				[
-					{
-						label: 'network',
-					},
-					{
-						label: 'shard key',
-					},
-					{
-						label: 'shard kind',
-					},
-					{
-						label: 'application account',
-					},
-					{
-						label: 'frame count',
-					},
+					'shardKey',
+					'shardKind',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Frames',
+					label: 'frames',
+					when: 'open',
 					items: [
-						{
-							label: 'frames in this shard',
-						},
-					],
-				},
-				{
-					label: 'Application account',
-					items: [
-						{
-							label: 'linked Quilibrium account',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'parent network',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'node RPC shard/frame payloads',
-						},
+						'$$frames',
 					],
 				},
 			],

@@ -10,71 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'account',
-			},
 			'denom',
-			{
-				label: 'observed amount',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'account',
-					},
 					'denom',
-					{
-						label: 'observed amount',
-					},
-					{
-						label: 'spendable amount when sourced',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'observation time',
-					},
+					'amount',
+					'spendableAmount',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'parent Cosmos account',
-						},
-					],
-				},
-				{
-					label: 'Denom metadata',
-					items: [
-						{
-							label: 'linked CosmosDenom when resolved',
-						},
-					],
-				},
-				{
-					label: 'History',
-					items: [
-						{
-							label: 'same account/denom snapshots',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'bank balance payload',
-						},
-						{
-							label: 'pagination context',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

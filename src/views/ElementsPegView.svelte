@@ -10,80 +10,27 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'network',
-			},
+			'pegTransactionId',
 			'direction',
-			{
-				label: 'peg transaction id',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'network',
-					},
+					'pegTransactionId',
 					'direction',
-					{
-						label: 'peg transaction id',
-					},
-					{
-						label: 'Bitcoin transaction',
-					},
-					{
-						label: 'Elements transaction',
-					},
-					{
-						label: 'amount',
-					},
-					{
-						label: 'latest status',
-					},
-					{
-						label: 'claim script',
-					},
-					{
-						label: 'PAK proof',
-					},
+					'amountSats',
+					'claimScript',
+					'pakProof',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Bitcoin side',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'Bitcoin-side UTXO transaction',
-						},
-					],
-				},
-				{
-					label: 'Elements side',
-					items: [
-						{
-							label: 'Elements-side UTXO transaction',
-						},
-					],
-				},
-				{
-					label: 'Status observations',
-					items: [
-						{
-							label: 'timestamped peg status observations',
-						},
-					],
-				},
-				{
-					label: 'Proof',
-					items: [
-						{
-							label: 'claim script',
-						},
-						{
-							label: 'PAK proof evidence',
-						},
+						'$$timestamps',
 					],
 				},
 			],

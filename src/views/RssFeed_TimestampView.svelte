@@ -10,85 +10,25 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'feed',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'feed',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
 					'reachable',
-					{
-						label: 'fetch window kind',
-					},
-				],
-				[
 					'title',
 					'description',
-					{
-						label: 'link/site URL',
-					},
+					'link',
+					'siteUrl',
 					'language',
-					{
-						label: 'last build date',
-					},
-					{
-						label: 'image URL',
-					},
-					{
-						label: 'source-window item count',
-					},
+					'lastBuildDate',
+					'imageUrl',
+					'sourceWindowItemCount',
+					'fetchWindowKind',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Feed',
-					items: [
-						{
-							label: 'parent RSS feed',
-						},
-					],
-				},
-				{
-					label: 'Document metadata',
-					items: [
-						{
-							label: 'publisher-declared channel/feed fields',
-						},
-					],
-				},
-				{
-					label: 'Item window',
-					items: [
-						{
-							label: 'bounded item count from this fetch',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'direct XML fetch response',
-						},
-						{
-							label: 'Rss2Json proxy response',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

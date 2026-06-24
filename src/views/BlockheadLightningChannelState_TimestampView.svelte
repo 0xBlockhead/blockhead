@@ -10,96 +10,24 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'channel state',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'channel state',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'active state',
-					},
-					{
-						label: 'local balance',
-					},
-					{
-						label: 'remote balance',
-					},
-					{
-						label: 'unsettled balance',
-					},
-					{
-						label: 'commit fee',
-					},
-					{
-						label: 'commit weight',
-					},
-					{
-						label: 'fee per kw',
-					},
-					{
-						label: 'update count',
-					},
-					{
-						label: 'last synced time',
-					},
+					'localBalanceSats',
+					'remoteBalanceSats',
+					'unsettledBalanceSats',
+					'active',
+					'commitFeeSats',
+					'commitWeight',
+					'feePerKw',
+					'numUpdates',
+					'lastSyncedAt',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Channel state',
-					items: [
-						{
-							label: 'parent local channel state',
-						},
-					],
-				},
-				{
-					label: 'Channel',
-					items: [
-						{
-							label: 'public Lightning channel when resolved',
-						},
-					],
-				},
-				{
-					label: 'Local node',
-					items: [
-						{
-							label: 'parent connected Lightning node state',
-						},
-					],
-				},
-				{
-					label: 'Balances',
-					items: [
-						{
-							label: 'local/remote/unsettled/commit accounting',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'LND listchannels or channel-balance payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

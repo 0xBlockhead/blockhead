@@ -10,97 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'schema UID',
-			},
-			{
-				label: 'schema string',
-			},
-			'resolver',
+			'schemaUid',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'schema UID',
-					},
-					{
-						label: 'network',
-					},
-					{
-						label: 'schema string',
-					},
+					'schemaUid',
+					'schema',
 					'resolver',
-					{
-						label: 'revocable flag',
-					},
+					'revocable',
 					'registerer',
-					{
-						label: 'registered time',
-					},
-				],
-				[
-					{
-						label: 'registered transaction/log',
-					},
-					{
-						label: 'attestation count when indexed',
-					},
-					{
-						label: 'resolver contract',
-					},
-					{
-						label: 'registerer account',
-					},
+					'registeredAt',
+					'registeredTransactionHash',
+					'registeredLogIndex',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Attestations',
+					label: 'attestations',
+					when: 'open',
 					items: [
-						{
-							label: 'attestations filtered by schema',
-						},
-					],
-				},
-				{
-					label: 'Resolver',
-					items: [
-						{
-							label: 'resolver EVM contract when nonzero',
-						},
-					],
-				},
-				{
-					label: 'Registerer',
-					items: [
-						{
-							label: 'registerer EVM network account',
-						},
-					],
-				},
-				{
-					label: 'Schema fields',
-					items: [
-						{
-							label: 'parsed ABI-style schema segments',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'SchemaRegistry getSchema',
-						},
-						{
-							label: 'Registered log',
-						},
-						{
-							label: 'deployment artifact/version',
-						},
+						'$$attestations',
 					],
 				},
 			],

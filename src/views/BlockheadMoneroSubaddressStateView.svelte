@@ -10,107 +10,28 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'wallet id',
-			},
-			{
-				label: 'account index',
-			},
-			{
-				label: 'address index',
-			},
+			'walletId',
+			'accountIndex',
+			'addressIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'wallet id',
-					},
-					{
-						label: 'account index',
-					},
-					{
-						label: 'address index',
-					},
+					'walletId',
+					'accountIndex',
+					'addressIndex',
 					'address',
 					'label',
-					{
-						label: 'latest used flag',
-					},
-					{
-						label: 'latest balance',
-					},
-					{
-						label: 'latest unlocked balance',
-					},
-					{
-						label: 'latest unspent output count',
-					},
-					{
-						label: 'latest unlock timing',
-					},
-					{
-						label: 'latest sync time',
-					},
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Latest state',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'BlockheadMoneroSubaddressState_TimestampView',
-						},
-					],
-				},
-				{
-					label: 'State history',
-					items: [
-						{
-							label: 'BlockheadMoneroSubaddressState_TimestampsView',
-						},
-					],
-				},
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'MoneroNetworkView',
-						},
-					],
-				},
-				{
-					label: 'Wallet',
-					items: [
-						{
-							label: 'BlockheadMoneroWalletStateView',
-						},
-					],
-				},
-				{
-					label: 'Outputs',
-					items: [
-						{
-							label: 'BlockheadMoneroOutputState list filtered to account/subaddress',
-						},
-					],
-				},
-				{
-					label: 'Transfers',
-					items: [
-						{
-							label: 'BlockheadMoneroTransferState list filtered to account/subaddress',
-						},
-					],
-				},
-				{
-					label: 'Address material',
-					items: [
-						{
-							label: 'redacted local address/export data',
-						},
+						'$$timestamps',
 					],
 				},
 			],

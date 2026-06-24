@@ -10,81 +10,28 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'magnet URI',
-			},
-			{
-				label: 'info hash',
-			},
-			{
-				label: 'display name',
-			},
+			'magnetUri',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'magnet URI',
-					},
-					{
-						label: 'info hash',
-					},
-					{
-						label: 'display name',
-					},
-					{
-						label: 'exact length',
-					},
-					{
-						label: 'tracker count',
-					},
-					{
-						label: 'web seed count',
-					},
-					{
-						label: 'acceptable source count',
-					},
-					{
-						label: 'linked torrent',
-					},
-					{
-						label: 'resolution count',
-					},
+					'magnetUri',
+					'infoHash',
+					'displayName',
+					'exactLength',
+					'trackers',
+					'webSeeds',
+					'acceptableSources',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Parameters',
+					label: 'resolution timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'grouped xt/dn/xl/tr/ws/as values',
-						},
-					],
-				},
-				{
-					label: 'Trackers',
-					items: [
-						{
-							label: 'tracker URLs from tr parameters',
-						},
-					],
-				},
-				{
-					label: 'Torrent',
-					items: [
-						{
-							label: 'linked metainfo row when resolved',
-						},
-					],
-				},
-				{
-					label: 'Resolution history',
-					items: [
-						{
-							label: 'timestamped resolution attempts',
-						},
+						'$$resolutionTimestamps',
 					],
 				},
 			],

@@ -10,84 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'access key',
-			},
-			{
-				label: 'observation time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'access key',
-					},
-					{
-						label: 'observation time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'block height/hash',
-					},
+					'blockHeight',
+					'blockHash',
 					'nonce',
 					'permission',
-					{
-						label: 'allowance',
-					},
-					{
-						label: 'receiver id',
-					},
-					{
-						label: 'method count',
-					},
+					'allowanceYoctoNear',
+					'receiverId',
+					'methodNames',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Access key',
-					items: [
-						{
-							label: 'parent NEAR access key',
-						},
-					],
-				},
-				{
-					label: 'Function-call scope',
-					items: [
-						{
-							label: 'receiver id',
-						},
-						{
-							label: 'method names',
-						},
-						{
-							label: 'allowance',
-						},
-					],
-				},
-				{
-					label: 'Block',
-					items: [
-						{
-							label: 'NEAR block when block hash/height resolves',
-						},
-					],
-				},
-				{
-					label: 'Source',
-					items: [
-						{
-							label: 'view_access_key/access_key_changes payload',
-						},
-						{
-							label: 'freshness',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

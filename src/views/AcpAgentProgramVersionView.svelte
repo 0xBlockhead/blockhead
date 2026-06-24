@@ -10,76 +10,28 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'program',
-			},
-			{
-				label: 'version/artifact',
-			},
+			'version',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'program',
-					},
 					'version',
-					{
-						label: 'artifact',
-					},
-				],
-				[
-					{
-						label: 'release date',
-					},
-					{
-						label: 'distribution kind',
-					},
+					'releaseDate',
+					'distributionKind',
+					'distribution',
 					'command',
-				],
-				[
 					'arguments',
-					{
-						label: 'environment keys',
-					},
-					{
-						label: 'document refs',
-					},
+					'environmentKeys',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Program',
+					label: 'documents',
+					when: 'open',
 					items: [
-						{
-							label: 'AcpAgentProgram',
-						},
-					],
-				},
-				{
-					label: 'Artifact',
-					items: [
-						{
-							label: 'AiArtifact',
-						},
-					],
-				},
-				{
-					label: 'Distribution',
-					items: [
-						{
-							label: 'distribution JSON',
-						},
-					],
-				},
-				{
-					label: 'Documents',
-					items: [
-						{
-							label: 'AiDocument list',
-						},
+						'$$documents',
 					],
 				},
 			],

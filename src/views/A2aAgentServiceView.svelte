@@ -10,69 +10,33 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'card',
-			},
-			{
-				label: 'protocol binding',
-			},
-			{
-				label: 'endpoint',
-			},
+			'protocolBinding',
+			'endpointUrl',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'card',
-					},
-					{
-						label: 'protocol binding',
-					},
-					{
-						label: 'endpoint URL',
-					},
-				],
-				[
-					{
-						label: 'transport kind',
-					},
-					{
-						label: 'auth kind',
-					},
-					{
-						label: 'task refs',
-					},
-					{
-						label: 'latest health',
-					},
+					'protocolBinding',
+					'endpointUrl',
+					'transportKind',
+					'authKind',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Tasks',
+					label: 'tasks',
+					when: 'open',
 					items: [
-						{
-							label: 'A2aTask list',
-						},
+						'$$tasks',
 					],
 				},
 				{
-					label: 'Health',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'A2aAgentService_Timestamp list',
-						},
-					],
-				},
-				{
-					label: 'Card',
-					items: [
-						{
-							label: 'A2aAgentCard',
-						},
+						'$$timestamps',
 					],
 				},
 			],

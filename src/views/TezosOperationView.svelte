@@ -10,111 +10,45 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'operation kind',
-			},
-			{
-				label: 'operation hash/content index',
-			},
-			'status',
+			'contentIndex',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'operation kind',
-					},
-					{
-						label: 'operation hash/content index',
-					},
-					'status',
-					{
-						label: 'source',
-					},
-					{
-						label: 'destination/delegate/contract',
-					},
+					'contentIndex',
+					'operationKind',
+					'sourceAddress',
+					'destinationAddress',
+					'delegateAddress',
+					'contractAddress',
 					'counter',
-					{
-						label: 'fee',
-					},
-					{
-						label: 'amount',
-					},
-					{
-						label: 'token transfer count',
-					},
-					{
-						label: 'big-map diff count',
-					},
+					'feeMutez',
+					'gasLimit',
+					'storageLimit',
+					'amountMutez',
+					'parameters',
+					'status',
+					'consumedGas',
+					'storageSize',
+					'paidStorageSizeDiff',
+					'originatedContractAddresses',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Gas/storage/result',
+					label: 'internal operations',
+					when: 'open',
 					items: [
-						{
-							label: 'consumed gas',
-						},
-						{
-							label: 'storage size',
-						},
-						{
-							label: 'paid storage diff',
-						},
-						{
-							label: 'errors',
-						},
+						'$$internalOperations',
 					],
 				},
 				{
-					label: 'Parameters',
+					label: 'big map diffs',
+					when: 'open',
 					items: [
-						{
-							label: 'decoded parameter payload',
-						},
-					],
-				},
-				{
-					label: 'Internal operations',
-					items: [
-						{
-							label: 'internal operation effects',
-						},
-					],
-				},
-				{
-					label: 'Big-map diffs',
-					items: [
-						{
-							label: 'big-map diff effects',
-						},
-					],
-				},
-				{
-					label: 'Token transfers',
-					items: [
-						{
-							label: 'token transfers sourced from this operation',
-						},
-					],
-				},
-				{
-					label: 'Originated contracts',
-					items: [
-						{
-							label: 'originated contracts',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'node/indexer operation payloads',
-						},
+						'$$bigMapDiffs',
 					],
 				},
 			],

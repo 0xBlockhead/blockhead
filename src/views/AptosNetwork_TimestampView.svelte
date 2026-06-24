@@ -10,88 +10,22 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'observed time/source',
-			},
-			{
-				label: 'ledger version',
-			},
-			{
-				label: 'block height',
-			},
+			'timestampMs',
+			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'observed time/source',
-					},
-					{
-						label: 'ledger version',
-					},
-					{
-						label: 'block height',
-					},
-					{
-						label: 'chain id',
-					},
+					'timestampMs',
+					'source',
+					'ledgerVersion',
+					'blockHeight',
+					'chainId',
 					'epoch',
-					{
-						label: 'oldest retained ledger/block versions',
-					},
-					{
-						label: 'node role',
-					},
+					'oldestLedgerVersion',
+					'oldestBlockHeight',
+					'nodeRole',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Network',
-					items: [
-						{
-							label: 'AptosNetwork',
-						},
-					],
-				},
-				{
-					label: 'Ledger head',
-					items: [
-						{
-							label: 'ledger version',
-						},
-						{
-							label: 'block height',
-						},
-						'epoch',
-					],
-				},
-				{
-					label: 'Node retention',
-					items: [
-						{
-							label: 'oldest retained ledger version',
-						},
-						{
-							label: 'oldest retained block height',
-						},
-						{
-							label: 'node role',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'ledger info response headers',
-						},
-						{
-							label: 'indexer metadata',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

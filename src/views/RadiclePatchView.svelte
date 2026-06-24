@@ -10,80 +10,29 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'repository',
-			},
-			{
-				label: 'patch id',
-			},
-			'state',
+			'patchId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'repository',
-					},
-					{
-						label: 'patch id',
-					},
+					'patchId',
+					'authorDid',
+					'targetRef',
+					'headObjectId',
+					'baseObjectId',
 					'state',
-					{
-						label: 'author DID',
-					},
-					{
-						label: 'target ref',
-					},
-					{
-						label: 'head object id',
-					},
-					{
-						label: 'base object id',
-					},
-					{
-						label: 'created/updated timestamps',
-					},
-					{
-						label: 'head commit',
-					},
-					{
-						label: 'base commit',
-					},
+					'createdAt',
+					'updatedAt',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Commits',
+					label: 'comments',
+					when: 'open',
 					items: [
-						{
-							label: 'head/base Git commits',
-						},
-					],
-				},
-				{
-					label: 'Comments',
-					items: [
-						{
-							label: 'discussion comments',
-						},
-					],
-				},
-				{
-					label: 'Events',
-					items: [
-						{
-							label: 'collaboration events',
-						},
-					],
-				},
-				{
-					label: 'Repository',
-					items: [
-						{
-							label: 'parent Radicle repository',
-						},
+						'$$comments',
 					],
 				},
 			],

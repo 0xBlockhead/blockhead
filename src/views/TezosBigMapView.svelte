@@ -10,76 +10,39 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'contract',
-			},
-			{
-				label: 'big-map id',
-			},
-			'path',
+			'bigMapId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'contract',
-					},
-					{
-						label: 'big-map id',
-					},
+					'bigMapId',
 					'path',
-					{
-						label: 'key type',
-					},
-					{
-						label: 'value type',
-					},
-					{
-						label: 'latest active/key/update counts',
-					},
+					'keyType',
+					'valueType',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Keys',
+					label: 'keys',
+					when: 'open',
 					items: [
-						{
-							label: 'big-map key rows',
-						},
+						'$$keys',
 					],
 				},
 				{
-					label: 'Updates',
+					label: 'updates',
+					when: 'open',
 					items: [
-						{
-							label: 'big-map diff rows',
-						},
+						'$$updates',
 					],
 				},
 				{
-					label: 'State history',
+					label: 'timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'level/source big-map state observations',
-						},
-					],
-				},
-				{
-					label: 'Contract',
-					items: [
-						{
-							label: 'parent Tezos contract',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'node/indexer big-map payloads',
-						},
+						'$$timestamps',
 					],
 				},
 			],

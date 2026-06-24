@@ -10,100 +10,43 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'source domain',
-			},
+			'sourceDomain',
 			'nonce',
-			{
-				label: 'version',
-			},
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'source domain',
-					},
+					'sourceDomain',
 					'nonce',
-					{
-						label: 'version',
-					},
-					{
-						label: 'message hash',
-					},
-					{
-						label: 'source transaction hash/log index',
-					},
-					{
-						label: 'destination domain',
-					},
+					'cctpVersion',
+					'messageHash',
+					'messageBytes',
+					'sourceTransactionHash',
+					'sourceLogIndex',
+					'destinationDomain',
 					'sender',
 					'recipient',
+					'destinationCaller',
+					'burnToken',
+					'mintRecipient',
 					'amount',
-					{
-						label: 'burn token',
-					},
-					{
-						label: 'mint recipient',
-					},
-					{
-						label: 'finality thresholds',
-					},
-					{
-						label: 'latest attestation status',
-					},
+					'messageSender',
+					'maxFee',
+					'feeExecuted',
+					'expirationBlock',
+					'hookData',
+					'minFinalityThreshold',
+					'finalityThresholdExecuted',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Attestations',
+					label: 'attestation timestamps',
+					when: 'open',
 					items: [
-						{
-							label: 'timestamped Iris attestation observations',
-						},
-					],
-				},
-				{
-					label: 'Domain support',
-					items: [
-						{
-							label: 'source/destination CCTP domain support when mapped',
-						},
-					],
-				},
-				{
-					label: 'Source transaction',
-					items: [
-						{
-							label: 'chain-specific transaction row when mapped',
-						},
-					],
-				},
-				{
-					label: 'Message bytes/body',
-					items: [
-						{
-							label: 'raw message',
-						},
-						{
-							label: 'decoded body',
-						},
-						{
-							label: 'hook data',
-						},
-						{
-							label: 'fee fields',
-						},
-					],
-				},
-				{
-					label: 'Forwarding',
-					items: [
-						{
-							label: 'forward state/tx hash from latest attestation observation',
-						},
+						'$$attestationTimestamps',
 					],
 				},
 			],

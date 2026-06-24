@@ -10,71 +10,19 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'association',
-			},
-			{
-				label: 'observed time',
-			},
+			'timestampMs',
 			'source',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'association',
-					},
-					{
-						label: 'observed time',
-					},
+					'timestampMs',
 					'source',
-					{
-						label: 'association status',
-					},
+					'associationStatus',
 					'balance',
-					{
-						label: 'KYC status',
-					},
-					{
-						label: 'freeze status',
-					},
+					'kycStatus',
+					'freezeStatus',
 				],
-			],
-		},
-		details: {
-			tabs: [
-				{
-					label: 'Association',
-					items: [
-						{
-							label: 'parent account/token association',
-						},
-					],
-				},
-				{
-					label: 'Account',
-					items: [
-						{
-							label: 'Hedera account through association',
-						},
-					],
-				},
-				{
-					label: 'Token',
-					items: [
-						{
-							label: 'Hedera token through association',
-						},
-					],
-				},
-				{
-					label: 'Source evidence',
-					items: [
-						{
-							label: 'account-token relationship payload',
-						},
-					],
-				},
 			],
 		},
 	} satisfies ComponentProps<typeof EntityView2>['view']

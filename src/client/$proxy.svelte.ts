@@ -322,9 +322,12 @@ export function createEntityProxy(
 export function createEntityProxy(
 	context: ClientContext,
 	entityType: EntityType<Schema>,
-	entitySelector: EntitySelector<Schema, EntityType<Schema>>,
+	entitySelector: EntitySelector<Schema, EntityType<Schema>> | undefined,
 	selection: SubscribeSelection<Schema, EntityType<Schema>, object> = {}
 ): object {
+	if (entitySelector == null)
+		throw new Error(`Cannot create ${entityType} proxy without an entity selector`)
+
 	let resource: SvelteKitResource<EntityProxyData<Schema, EntityType<Schema>>> | undefined
 	const getResource = (): SvelteKitResource<EntityProxyData<Schema, EntityType<Schema>>> => {
 		if (resource === undefined)

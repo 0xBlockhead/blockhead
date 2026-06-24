@@ -10,54 +10,25 @@
 	// State
 	const view = {
 		closed: [
-			{
-				label: 'task',
-			},
-			{
-				label: 'message id',
-			},
-			'role',
+			'messageId',
 		],
 		content: {
 			dl: [
 				[
-					{
-						label: 'task',
-					},
-					{
-						label: 'message id',
-					},
+					'messageId',
 					'role',
-					{
-						label: 'context id',
-					},
-				],
-				[
-					{
-						label: 'created at',
-					},
-					{
-						label: 'part refs',
-					},
+					'contextId',
+					'createdAt',
 				],
 			],
 		},
 		details: {
 			tabs: [
 				{
-					label: 'Parts',
+					label: 'parts',
+					when: 'open',
 					items: [
-						{
-							label: 'A2aMessagePart list',
-						},
-					],
-				},
-				{
-					label: 'Task',
-					items: [
-						{
-							label: 'A2aTask',
-						},
+						'$$parts',
 					],
 				},
 			],
