@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'observation time',
-		},
+		'timestampMs',
 		'source',
 		{
 			label: 'latest block height/hash/time',
@@ -21,9 +19,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'observation time',
-				},
+				'timestampMs',
 				'source',
 				{
 					label: 'latest block height/hash/time/transaction count',
@@ -39,9 +35,7 @@
 				{
 					label: 'peer count',
 				},
-				{
-					label: 'maintenance interval',
-				},
+				'maintenanceIntervalMs',
 				{
 					label: 'transaction fee',
 				},
@@ -75,20 +69,14 @@
 			{
 				label: 'Witnesses',
 				items: [
-					{
-						label: 'witness count',
-					},
-					{
-						label: 'active witness count',
-					},
+					'witnessCount',
+					'activeWitnessCount',
 				],
 			},
 			{
 				label: 'Fees/maintenance',
 				items: [
-					{
-						label: 'maintenance interval',
-					},
+					'maintenanceIntervalMs',
 					{
 						label: 'transaction fee',
 					},

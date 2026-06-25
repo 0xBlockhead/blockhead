@@ -22,9 +22,7 @@
 				},
 			],
 			[
-				{
-					label: 'validator index',
-				},
+				'validatorIndex',
 				{
 					label: 'BeaconValidator ref',
 				},
@@ -50,9 +48,7 @@
 			{
 				label: 'Validator',
 				items: [
-					{
-						label: 'validator index',
-					},
+					'validatorIndex',
 					{
 						label: 'BeaconValidator',
 					},

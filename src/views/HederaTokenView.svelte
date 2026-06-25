@@ -10,32 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'token id',
-		},
-		{
-			label: 'token type',
-		},
-		{
-			label: 'supply type',
-		},
+		'tokenId',
+		'tokenType',
+		'supplyType',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'token id',
-				},
-				{
-					label: 'token type',
-				},
-				{
-					label: 'supply type',
-				},
+				'tokenId',
+				'tokenType',
+				'supplyType',
 				'decimals',
 				{
 					label: 'latest name/symbol',
 				},
+			],
+			[
 				{
 					label: 'latest treasury',
 				},
@@ -48,15 +38,11 @@
 				{
 					label: 'latest custom fee count',
 				},
-				{
-					label: 'association count',
-				},
-				{
-					label: 'NFT count',
-				},
-				{
-					label: 'timestamp count',
-				},
+				'$$associations',
+			],
+			[
+				'$$nfts',
+				'$$timestamps',
 			],
 		],
 	},
@@ -120,6 +106,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'associations',
+			label: 'associations',
+			field: '$$associations',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'nfts',
+			label: 'nfts',
+			field: '$$nfts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

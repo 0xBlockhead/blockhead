@@ -10,24 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'mint',
-		},
+		'$mint',
 		'slot',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'mint',
-				},
+				'$mint',
 				'slot',
 				'source',
-				{
-					label: 'timestamp',
-				},
+				'timestampMs',
 				'supply',
+			],
+			[
 				'decimals',
 				{
 					label: 'mint authority',

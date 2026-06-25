@@ -10,34 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'invoice',
-		},
-		{
-			label: 'observation time',
-		},
+		'$invoice',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'invoice',
-				},
-				{
-					label: 'observation time',
-				},
+				'$invoice',
+				'timestampMs',
 				'source',
 				'state',
-				{
-					label: 'amount paid msat',
-				},
+				'amountPaidMsat',
 				{
 					label: 'settled time',
 				},
-				{
-					label: 'settle index',
-				},
+				'settleIndex',
 			],
 		],
 	},
@@ -62,15 +50,11 @@
 			{
 				label: 'Settlement',
 				items: [
-					{
-						label: 'amount paid',
-					},
+					'amountPaidMsat',
 					{
 						label: 'settled time',
 					},
-					{
-						label: 'settle index',
-					},
+					'settleIndex',
 				],
 			},
 			{

@@ -13,9 +13,7 @@
 		{
 			label: 'from/to EvmCoinInstance refs',
 		},
-		{
-			label: 'tool key',
-		},
+		'toolKey',
 		{
 			label: 'rail',
 		},
@@ -26,21 +24,13 @@
 				{
 					label: 'from/to EvmCoinInstance refs',
 				},
-				{
-					label: 'tool key',
-				},
+				'toolKey',
 				{
 					label: 'rail',
 				},
-				{
-					label: 'settlement model',
-				},
-				{
-					label: 'verification model',
-				},
-				{
-					label: 'asset outcome',
-				},
+				'settlementModel',
+				'verificationModel',
+				'assetOutcome',
 			],
 		],
 	},
@@ -60,9 +50,7 @@
 			{
 				label: 'Catalog tool',
 				items: [
-					{
-						label: 'tool key',
-					},
+					'toolKey',
 					{
 						label: 'LI.FI tool/source row when available',
 					},
@@ -71,15 +59,9 @@
 			{
 				label: 'Rail/trust model',
 				items: [
-					{
-						label: 'rail id',
-					},
-					{
-						label: 'settlement model',
-					},
-					{
-						label: 'verification model',
-					},
+					'railId',
+					'settlementModel',
+					'verificationModel',
 				],
 			},
 			{

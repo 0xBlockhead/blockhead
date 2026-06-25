@@ -10,39 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account',
-		},
-		{
-			label: 'vault',
-		},
-		{
-			label: 'observed time',
-		},
+		'$account',
+		'$vault',
+		'timestampMs',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'account',
-				},
-				{
-					label: 'vault',
-				},
-				{
-					label: 'observed time',
-				},
+				'$account',
+				'$vault',
+				'timestampMs',
 				'source',
 				'equity',
-				{
-					label: 'PnL',
-				},
-				{
-					label: 'all-time PnL',
-				},
-				{
-					label: 'days following',
-				},
+			],
+			[
+				'pnl',
+				'allTimePnl',
+				'daysFollowing',
 				{
 					label: 'entry time',
 				},

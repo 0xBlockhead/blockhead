@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'session id',
-		},
-		{
-			label: 'runtime',
-		},
+		'sessionId',
+		'$runtime',
 		{
 			label: 'workspace',
 		},
@@ -23,18 +19,12 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'session id',
-				},
-				{
-					label: 'runtime',
-				},
+				'sessionId',
+				'$runtime',
 				{
 					label: 'created/closed/deleted at',
 				},
-				{
-					label: 'workspace URI',
-				},
+				'workspaceUri',
 			],
 			[
 				'mode',
@@ -85,6 +75,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'prompt-turns',
+			label: 'prompt turns',
+			field: '$$promptTurns',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'updates',
+			label: 'updates',
+			field: '$$updates',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'terminals',
+			label: 'terminals',
+			field: '$$terminals',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

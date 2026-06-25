@@ -10,34 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'client id',
-		},
-		{
-			label: 'client name',
-		},
-		{
-			label: 'peer id',
-		},
+		'clientId',
+		'clientName',
+		'peerId',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'client id',
-				},
-				{
-					label: 'client name',
-				},
-				{
-					label: 'peer id',
-				},
-				{
-					label: 'DHT node id',
-				},
+				'clientId',
+				'clientName',
+				'peerId',
+				'dhtNodeId',
 				{
 					label: 'latest client version',
 				},
+			],
+			[
 				{
 					label: 'latest listen address count',
 				},
@@ -71,12 +59,8 @@
 			{
 				label: 'Network identity',
 				items: [
-					{
-						label: 'peer id',
-					},
-					{
-						label: 'DHT node id',
-					},
+					'peerId',
+					'dhtNodeId',
 				],
 			},
 			{
@@ -89,6 +73,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'transfers',
+			label: 'transfers',
+			field: '$$transfers',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

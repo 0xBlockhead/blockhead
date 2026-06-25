@@ -13,9 +13,7 @@
 		{
 			label: 'validator account',
 		},
-		{
-			label: 'public key',
-		},
+		'publicKey',
 		{
 			label: 'latest stake/status/performance observation',
 		},
@@ -26,9 +24,7 @@
 				{
 					label: 'validator account',
 				},
-				{
-					label: 'public key',
-				},
+				'publicKey',
 				{
 					label: 'latest stake/status/performance observation',
 				},

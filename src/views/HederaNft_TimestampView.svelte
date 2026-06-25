@@ -10,39 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'NFT',
-		},
-		{
-			label: 'observation time',
-		},
+		'$nft',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'NFT',
-				},
-				{
-					label: 'observation time',
-				},
+				'$nft',
+				'timestampMs',
 				'source',
-				{
-					label: 'owner',
-				},
-				{
-					label: 'owner account id',
-				},
-				{
-					label: 'deleted flag',
-				},
-				{
-					label: 'spender account id',
-				},
-				{
-					label: 'modified timestamp',
-				},
+				'$owner',
+				'ownerAccountId',
+			],
+			[
+				'deleted',
+				'spenderAccountId',
+				'modifiedTimestamp',
 			],
 		],
 	},

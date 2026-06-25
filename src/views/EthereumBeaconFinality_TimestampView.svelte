@@ -53,9 +53,7 @@
 					{
 						label: 'current/previous justified checkpoint roots',
 					},
-					{
-						label: 'finalized checkpoint root',
-					},
+					'finalizedCheckpointRoot',
 				],
 			},
 			{

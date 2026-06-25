@@ -13,9 +13,7 @@
 		{
 			label: 'client id/name',
 		},
-		{
-			label: 'federation',
-		},
+		'$federation',
 		{
 			label: 'mnemonic-set status',
 		},
@@ -26,9 +24,7 @@
 				{
 					label: 'client id/name',
 				},
-				{
-					label: 'federation',
-				},
+				'$federation',
 				{
 					label: 'mnemonic-set status',
 				},
@@ -38,6 +34,8 @@
 				{
 					label: 'invite status',
 				},
+			],
+			[
 				{
 					label: 'latest balance totals',
 				},
@@ -47,9 +45,7 @@
 				{
 					label: 'latest sync time',
 				},
-				{
-					label: 'timestamp count',
-				},
+				'$$timestamps',
 			],
 		],
 	},
@@ -74,9 +70,7 @@
 			{
 				label: 'Federation',
 				items: [
-					{
-						label: 'parent federation',
-					},
+					'$federation',
 				],
 			},
 			{
@@ -98,9 +92,7 @@
 			{
 				label: 'Invite',
 				items: [
-					{
-						label: 'invite code',
-					},
+					'inviteCode',
 					{
 						label: 'federation id',
 					},
@@ -111,6 +103,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

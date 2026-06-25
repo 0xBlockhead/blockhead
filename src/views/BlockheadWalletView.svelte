@@ -21,9 +21,7 @@
 		'id',
 		'name',
 		'protocol',
-		{
-			label: 'transport',
-		},
+		'transportKind',
 	],
 	content: {
 		dl: [
@@ -31,27 +29,17 @@
 				'id',
 				'name',
 				'protocol',
-				{
-					label: 'discovery kind',
-				},
-				{
-					label: 'transport kind',
-				},
-				{
-					label: 'connection method',
-				},
-				'rdns',
-				{
-					label: 'website URL',
-				},
+				'discoveryKind',
+				'transportKind',
 			],
 			[
-				{
-					label: 'adapter id',
-				},
-				{
-					label: 'source wallet key',
-				},
+				'$connectionMethod',
+				'rdns',
+				'websiteUrl',
+			],
+			[
+				'adapterId',
+				'sourceWalletKey',
 				{
 					label: 'detected time',
 				},

@@ -27,13 +27,9 @@
 				{
 					label: 'authorization/clawback flags',
 				},
-				{
-					label: 'ledger sequence',
-				},
+				'ledgerSequence',
 				'source',
-				{
-					label: 'observation time',
-				},
+				'timestampMs',
 			],
 		],
 	},
@@ -61,12 +57,8 @@
 				label: 'Authorization',
 				items: [
 					'authorized',
-					{
-						label: 'authorized to maintain liabilities',
-					},
-					{
-						label: 'clawback enabled',
-					},
+					'authorizedToMaintainLiabilities',
+					'clawbackEnabled',
 				],
 			},
 			{

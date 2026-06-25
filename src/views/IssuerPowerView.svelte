@@ -13,12 +13,8 @@
 		{
 			label: 'regulated asset profile',
 		},
-		{
-			label: 'power kind',
-		},
-		{
-			label: 'actor key',
-		},
+		'powerKind',
+		'actorKey',
 	],
 	content: {
 		dl: [
@@ -26,20 +22,12 @@
 				{
 					label: 'regulated asset profile',
 				},
-				{
-					label: 'power kind',
-				},
-				{
-					label: 'actor key',
-				},
+				'powerKind',
+				'actorKey',
 				'source',
-				{
-					label: 'actor selector',
-				},
+				'actorSelector',
 				'scope',
-				{
-					label: 'ledger coordinate',
-				},
+				'ledgerCoordinateKind',
 			],
 		],
 	},

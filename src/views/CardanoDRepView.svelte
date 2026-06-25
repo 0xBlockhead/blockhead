@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'DRep credential',
-		},
-		{
-			label: 'credential kind',
-		},
+		'drepCredential',
+		'credentialKind',
 		{
 			label: 'latest registration state',
 		},
@@ -23,12 +19,8 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'DRep credential',
-				},
-				{
-					label: 'credential kind',
-				},
+				'drepCredential',
+				'credentialKind',
 				{
 					label: 'latest registration state',
 				},
@@ -38,12 +30,12 @@
 				{
 					label: 'latest anchor URL/hash',
 				},
+			],
+			[
 				{
 					label: 'latest voting power',
 				},
-				{
-					label: 'vote count',
-				},
+				'$$votes',
 				{
 					label: 'latest observation',
 				},
@@ -94,6 +86,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'votes',
+			label: 'votes',
+			field: '$$votes',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

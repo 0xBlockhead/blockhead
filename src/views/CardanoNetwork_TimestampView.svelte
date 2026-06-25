@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'latest slot',
-		},
+		'latestSlot',
 		{
 			label: 'block number',
 		},
@@ -21,21 +19,15 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'latest slot',
-				},
+				'latestSlot',
 				{
 					label: 'block number',
 				},
 				'epoch',
 				'era',
-				{
-					label: 'sync progress',
-				},
+				'syncProgress',
 				'source',
-				{
-					label: 'observation time',
-				},
+				'timestampMs',
 			],
 		],
 	},
@@ -52,9 +44,7 @@
 			{
 				label: 'Tip',
 				items: [
-					{
-						label: 'latest slot',
-					},
+					'latestSlot',
 					{
 						label: 'latest block number',
 					},
@@ -65,9 +55,7 @@
 			{
 				label: 'Node sync',
 				items: [
-					{
-						label: 'sync progress',
-					},
+					'syncProgress',
 				],
 			},
 			{

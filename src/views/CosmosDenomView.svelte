@@ -10,18 +10,14 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
+		'$network',
 		'denom',
 		'display',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
+				'$network',
 				'denom',
 				'display',
 				'base',

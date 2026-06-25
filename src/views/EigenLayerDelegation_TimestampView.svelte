@@ -10,46 +10,24 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'staker',
-		},
-		{
-			label: 'operator',
-		},
-		{
-			label: 'strategy',
-		},
+		'$staker',
+		'$operator',
+		'$strategy',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'staker',
-				},
-				{
-					label: 'operator',
-				},
-				{
-					label: 'strategy',
-				},
-				{
-					label: 'observation time',
-				},
+				'$staker',
+				'$operator',
+				'$strategy',
+				'timestampMs',
 				'source',
-				{
-					label: 'delegated shares',
-				},
+				'delegatedShares',
 			],
 			[
-				{
-					label: 'underlying token amount',
-				},
-				{
-					label: 'deposit root',
-				},
-				{
-					label: 'withdrawal root',
-				},
+				'underlyingTokenAmount',
+				'depositRoot',
+				'withdrawalRoot',
 				{
 					label: 'queued/completed flags',
 				},

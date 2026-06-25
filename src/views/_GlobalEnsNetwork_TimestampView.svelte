@@ -27,6 +27,8 @@
 				'sourceWindowReverseRecordCount',
 				'localCatalogContractCount',
 				'discoveredResolverContractCount',
+			],
+			[
 				'subgraphBlockNumber',
 				'rpcBlockNumber',
 				'reachable',

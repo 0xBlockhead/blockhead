@@ -10,22 +10,14 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'agent card URL',
-		},
-		{
-			label: 'latest snapshot',
-		},
+		'agentCardUrl',
+		'$$snapshots',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'agent card URL',
-				},
-				{
-					label: 'latest snapshot',
-				},
+				'agentCardUrl',
+				'$$snapshots',
 				{
 					label: 'document refs',
 				},
@@ -63,6 +55,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'snapshots',
+			label: 'snapshots',
+			field: '$$snapshots',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'documents',
+			label: 'documents',
+			field: '$$documents',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

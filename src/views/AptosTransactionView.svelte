@@ -13,9 +13,7 @@
 		{
 			label: 'version/hash',
 		},
-		{
-			label: 'kind',
-		},
+		'transactionKind',
 		'sender',
 	],
 	content: {
@@ -24,9 +22,7 @@
 				{
 					label: 'version/hash',
 				},
-				{
-					label: 'kind',
-				},
+				'transactionKind',
 				'sender',
 				{
 					label: 'latest success/vm status',
@@ -34,9 +30,7 @@
 				{
 					label: 'latest gas',
 				},
-				{
-					label: 'latest timestamp',
-				},
+				'$$timestamps',
 			],
 		],
 	},
@@ -92,6 +86,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'state-changes',
+			label: 'state changes',
+			field: '$$stateChanges',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'events',
+			label: 'events',
+			field: '$$events',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

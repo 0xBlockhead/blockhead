@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'AVS address',
-		},
+		'avsAddress',
 		'name',
 		{
 			label: 'latest operator count',
@@ -21,25 +19,17 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'AVS address',
-				},
+				'avsAddress',
 				'name',
 				'website',
-				{
-					label: 'metadata URI',
-				},
+				'metadataUri',
 				{
 					label: 'latest operator/strategy counts',
 				},
 			],
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'AVS account',
-				},
+				'$network',
+				'$avsAccount',
 				{
 					label: 'latest allocation/slashing activity',
 				},
@@ -115,6 +105,44 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'operators',
+			label: 'operators',
+			field: '$$operators',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'allocations',
+			label: 'allocations',
+			field: '$$allocations',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'slashing-events',
+			label: 'slashing events',
+			field: '$$slashingEvents',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

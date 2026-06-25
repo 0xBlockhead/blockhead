@@ -11,36 +11,26 @@
 	const view = {
 	closed: [
 		'id',
-		{
-			label: 'author',
-		},
-		{
-			label: 'feed',
-		},
+		'$author',
+		'$feed',
 	],
 	content: {
 		dl: [
 			[
 				'id',
-				{
-					label: 'author',
-				},
-				{
-					label: 'feed',
-				},
+				'$author',
+				'$feed',
 				{
 					label: 'text preview',
 				},
 				'timestamp',
+			],
+			[
 				{
 					label: 'edit/delete state',
 				},
-				{
-					label: 'content URI',
-				},
-				{
-					label: 'metadata hash',
-				},
+				'contentUri',
+				'metadataHash',
 				{
 					label: 'comment/quote/repost/root refs',
 				},
@@ -58,12 +48,8 @@
 					{
 						label: 'full post text',
 					},
-					{
-						label: 'content URI',
-					},
-					{
-						label: 'metadata hash',
-					},
+					'contentUri',
+					'metadataHash',
 				],
 			},
 			{
@@ -77,9 +63,7 @@
 			{
 				label: 'Feed',
 				items: [
-					{
-						label: 'parent feed',
-					},
+					'$feed',
 				],
 			},
 			{
@@ -116,6 +100,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'comments',
+			label: 'comments',
+			field: '$$comments',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

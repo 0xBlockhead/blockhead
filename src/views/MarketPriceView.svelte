@@ -26,30 +26,18 @@
 		},
 	],
 	closed: [
-		{
-			label: 'market',
-		},
-		{
-			label: 'latest quote',
-		},
+		'$market',
+		'$$quotes',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'market',
-				},
-				{
-					label: 'latest quote',
-				},
-				{
-					label: 'quote count',
-				},
+				'$market',
+				'$$quotes',
+				'$$quotes',
 			],
 			[
-				{
-					label: 'parent market',
-				},
+				'$parentMarket',
 				{
 					label: 'base asset',
 				},
@@ -86,9 +74,7 @@
 			{
 				label: 'Market',
 				items: [
-					{
-						label: 'parent Market',
-					},
+					'$parentMarket',
 				],
 			},
 			{
@@ -101,6 +87,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'quotes',
+			label: 'quotes',
+			field: '$$quotes',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

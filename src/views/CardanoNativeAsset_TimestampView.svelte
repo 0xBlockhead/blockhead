@@ -10,33 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'asset',
-		},
+		'$asset',
 		'slot',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'asset',
-				},
+				'$asset',
 				'slot',
 				'source',
-				{
-					label: 'observation time',
-				},
-				{
-					label: 'block hash',
-				},
+				'timestampMs',
+				'blockHash',
+			],
+			[
 				'supply',
-				{
-					label: 'transaction count',
-				},
-				{
-					label: 'holder count',
-				},
+				'transactionCount',
+				'holderCount',
 				{
 					label: 'metadata snapshot hash/summary',
 				},

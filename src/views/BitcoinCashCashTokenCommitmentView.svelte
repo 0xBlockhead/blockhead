@@ -10,22 +10,14 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'output',
-		},
-		{
-			label: 'commitment hex',
-		},
+		'$output',
+		'commitmentHex',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'output',
-				},
-				{
-					label: 'commitment hex',
-				},
+				'$output',
+				'commitmentHex',
 			],
 		],
 	},

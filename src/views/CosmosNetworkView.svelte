@@ -10,28 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'parent network',
-		},
+		'$network',
 		{
 			label: 'latest head snapshot',
 		},
-		{
-			label: 'REST endpoint count',
-		},
+		'restEndpoints',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'parent network',
-				},
+				'$network',
 				{
 					label: 'latest head snapshot',
 				},
-				{
-					label: 'REST endpoint count',
-				},
+				'restEndpoints',
 			],
 			[
 				{
@@ -51,9 +43,7 @@
 			{
 				label: 'Execution',
 				items: [
-					{
-						label: 'Blocks',
-					},
+					'$$blocks',
 					{
 						label: 'Transactions',
 					},
@@ -68,26 +58,18 @@
 			{
 				label: 'Consensus & Governance',
 				items: [
-					{
-						label: 'Validators',
-					},
+					'$$validators',
 					{
 						label: 'Validator snapshots',
 					},
-					{
-						label: 'Governance proposals',
-					},
+					'$$governanceProposals',
 				],
 			},
 			{
 				label: 'Accounts & Modules',
 				items: [
-					{
-						label: 'Accounts',
-					},
-					{
-						label: 'Modules',
-					},
+					'$$accounts',
+					'$$modules',
 					{
 						label: 'CosmWasm contracts',
 					},
@@ -120,6 +102,80 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'blocks',
+			label: 'blocks',
+			field: '$$blocks',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'validators',
+			label: 'validators',
+			field: '$$validators',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'governance-proposals',
+			label: 'governance proposals',
+			field: '$$governanceProposals',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'denoms',
+			label: 'denoms',
+			field: '$$denoms',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'accounts',
+			label: 'accounts',
+			field: '$$accounts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'contracts',
+			label: 'contracts',
+			field: '$$contracts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'modules',
+			label: 'modules',
+			field: '$$modules',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

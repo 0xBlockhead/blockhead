@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'market cap',
-		},
+		'marketCap',
 		{
 			label: '24h change',
 		},
@@ -21,37 +19,29 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'market cap',
-				},
+				'marketCap',
 				{
 					label: '24h change',
 				},
 				'source',
 			],
 			[
-				{
-					label: 'market cap rank',
-				},
-				{
-					label: 'market cap',
-				},
+				'marketCapRank',
+				'marketCap',
 				{
 					label: '24h change',
 				},
 				{
 					label: 'snapshot wall time',
 				},
-				{
-					label: 'Coin ref',
-				},
+				'$coin',
+			],
+			[
 				{
 					label: 'recorded total supply',
 				},
 				'transport',
-				{
-					label: 'provider asset id',
-				},
+				'providerAssetId',
 			],
 		],
 	},
@@ -60,9 +50,7 @@
 			{
 				label: 'Coin',
 				items: [
-					{
-						label: 'Coin',
-					},
+					'$coin',
 				],
 			},
 			{
@@ -71,9 +59,7 @@
 					{
 						label: 'market rank',
 					},
-					{
-						label: 'market cap',
-					},
+					'marketCap',
 					{
 						label: '24h change',
 					},
@@ -82,9 +68,7 @@
 			{
 				label: 'Supply',
 				items: [
-					{
-						label: 'total supply',
-					},
+					'totalSupply',
 				],
 			},
 			{
@@ -92,9 +76,7 @@
 				items: [
 					'source',
 					'transport',
-					{
-						label: 'provider asset id',
-					},
+					'providerAssetId',
 				],
 			},
 			{

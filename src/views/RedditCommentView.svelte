@@ -20,15 +20,11 @@
 				'fullname',
 				'body',
 				'author',
-				{
-					label: 'created time',
-				},
-				{
-					label: 'parent comment',
-				},
-				{
-					label: 'link',
-				},
+				'createdAt',
+				'$parentComment',
+			],
+			[
+				'$link',
 				{
 					label: 'latest score snapshot',
 				},
@@ -74,6 +70,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'replies',
+			label: 'replies',
+			field: '$$replies',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

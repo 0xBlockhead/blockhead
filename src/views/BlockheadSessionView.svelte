@@ -62,9 +62,7 @@
 				{
 					label: 'created/updated/locked timestamps',
 				},
-				{
-					label: 'simulation count',
-				},
+				'simulationCount',
 				{
 					label: 'latest simulation when linked',
 				},
@@ -107,6 +105,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'actions',
+			label: 'actions',
+			field: '$$actions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'intent-invocations',
+			label: 'intent invocations',
+			field: '$$intentInvocations',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'simulations',
+			label: 'simulations',
+			field: '$$simulations',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

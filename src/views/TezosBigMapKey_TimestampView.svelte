@@ -10,38 +10,30 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'big-map key',
-		},
+		'$bigMapKey',
 		'level',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'big-map key',
-				},
+				'$bigMapKey',
 				'level',
 				'source',
-				{
-					label: 'timestamp',
-				},
+				'timestampMs',
 				{
 					label: 'decoded key',
 				},
+			],
+			[
 				{
 					label: 'decoded value',
 				},
 				{
 					label: 'first/last level',
 				},
-				{
-					label: 'update count',
-				},
-				{
-					label: 'active state',
-				},
+				'updateCount',
+				'active',
 			],
 		],
 	},

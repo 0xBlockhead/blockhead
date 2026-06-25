@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'attestation',
-		},
-		{
-			label: 'observation time',
-		},
+		'$attestation',
+		'timestampMs',
 		{
 			label: 'valid/revoked',
 		},
@@ -23,25 +19,13 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'attestation',
-				},
-				{
-					label: 'observation time',
-				},
+				'$attestation',
+				'timestampMs',
 				'source',
-				{
-					label: 'valid flag',
-				},
-				{
-					label: 'revoked flag',
-				},
-				{
-					label: 'expired flag',
-				},
-				{
-					label: 'revocation time',
-				},
+				'valid',
+				'revoked',
+				'expired',
+				'revocationTime',
 			],
 			[
 				{
@@ -50,9 +34,7 @@
 				{
 					label: 'revoked transaction/log',
 				},
-				{
-					label: 'block number',
-				},
+				'blockNumber',
 			],
 		],
 	},

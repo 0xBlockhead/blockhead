@@ -11,18 +11,14 @@
 	const view = {
 	closed: [
 		'hash',
-		{
-			label: 'transaction type',
-		},
+		'transactionType',
 		'account',
 	],
 	content: {
 		dl: [
 			[
 				'hash',
-				{
-					label: 'transaction type',
-				},
+				'transactionType',
 				'account',
 				'sequence',
 				{
@@ -73,6 +69,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'affected-entries',
+			label: 'affected entries',
+			field: '$$affectedEntries',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

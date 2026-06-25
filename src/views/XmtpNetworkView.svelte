@@ -52,6 +52,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'xmtp-conversations',
+			label: 'xmtp conversations',
+			field: '$$xmtpConversations',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

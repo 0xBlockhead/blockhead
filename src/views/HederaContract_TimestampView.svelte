@@ -10,46 +10,30 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'contract',
-		},
-		{
-			label: 'observation time',
-		},
+		'$contract',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'contract',
-				},
-				{
-					label: 'observation time',
-				},
+				'$contract',
+				'timestampMs',
 				'source',
 				{
 					label: 'linked account id',
 				},
-				{
-					label: 'runtime bytecode hash',
-				},
-				{
-					label: 'deleted flag',
-				},
-				{
-					label: 'file id',
-				},
+				'runtimeBytecodeHash',
+			],
+			[
+				'deleted',
+				'fileId',
 				'memo',
-				{
-					label: 'obtainer id',
-				},
-				{
-					label: 'expiration timestamp',
-				},
-				{
-					label: 'auto-renew period',
-				},
+				'obtainerId',
+				'expirationTimestamp',
+			],
+			[
+				'autoRenewPeriodSeconds',
 			],
 		],
 	},

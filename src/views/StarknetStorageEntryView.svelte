@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'contract',
-		},
-		{
-			label: 'storage key',
-		},
+		'$contract',
+		'storageKey',
 		{
 			label: 'value observation summary',
 		},
@@ -23,18 +19,12 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'contract',
-				},
-				{
-					label: 'storage key',
-				},
+				'$contract',
+				'storageKey',
 				{
 					label: 'latest block/source value observation',
 				},
-				{
-					label: 'timestamp count',
-				},
+				'$$timestamps',
 			],
 		],
 	},
@@ -66,6 +56,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

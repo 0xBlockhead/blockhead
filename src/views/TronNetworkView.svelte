@@ -43,15 +43,11 @@
 			{
 				label: 'TRON',
 				items: [
-					{
-						label: 'Blocks',
-					},
+					'$$blocks',
 					{
 						label: 'Network snapshots',
 					},
-					{
-						label: 'Witnesses',
-					},
+					'$$witnesses',
 					{
 						label: 'Endpoints',
 					},
@@ -84,6 +80,53 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'blocks',
+			label: 'blocks',
+			field: '$$blocks',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'tokens',
+			label: 'tokens',
+			field: '$$tokens',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'token-transfers',
+			label: 'token transfers',
+			field: '$$tokenTransfers',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'witnesses',
+			label: 'witnesses',
+			field: '$$witnesses',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

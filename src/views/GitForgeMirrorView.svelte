@@ -14,9 +14,7 @@
 			label: 'host',
 		},
 		'owner',
-		{
-			label: 'repository name',
-		},
+		'repositoryName',
 	],
 	content: {
 		dl: [
@@ -25,26 +23,16 @@
 					label: 'host',
 				},
 				'owner',
-				{
-					label: 'repository name',
-				},
-				{
-					label: 'provider repository id',
-				},
+				'repositoryName',
+				'providerRepositoryId',
 				'visibility',
-				{
-					label: 'default branch',
-				},
-				{
-					label: 'clone URLs',
-				},
-				{
-					label: 'HTML URL',
-				},
+			],
+			[
+				'defaultBranch',
+				'cloneUrls',
+				'htmlUrl',
 				'source',
-				{
-					label: 'linked Git repository',
-				},
+				'$gitRepository',
 			],
 		],
 	},

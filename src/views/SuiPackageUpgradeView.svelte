@@ -13,12 +13,8 @@
 		{
 			label: 'package lineage',
 		},
-		{
-			label: 'upgraded package id',
-		},
-		{
-			label: 'upgraded version',
-		},
+		'upgradedPackageId',
+		'upgradedVersion',
 	],
 	content: {
 		dl: [
@@ -26,23 +22,15 @@
 				{
 					label: 'package lineage',
 				},
-				{
-					label: 'upgraded package id',
-				},
-				{
-					label: 'upgraded version',
-				},
-				{
-					label: 'previous package id',
-				},
+				'upgradedPackageId',
+				'upgradedVersion',
+				'previousPackageId',
 				'policy',
+			],
+			[
 				'digest',
-				{
-					label: 'transaction',
-				},
-				{
-					label: 'timestamp',
-				},
+				'$transaction',
+				'timestampMs',
 				{
 					label: 'upgrade capability selector',
 				},

@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account',
-		},
-		{
-			label: 'asset',
-		},
+		'$account',
+		'$asset',
 		{
 			label: 'latest trustline observation',
 		},
@@ -23,12 +19,8 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'account',
-				},
-				{
-					label: 'asset',
-				},
+				'$account',
+				'$asset',
 				{
 					label: 'latest balance/limit/liability observation',
 				},
@@ -80,6 +72,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

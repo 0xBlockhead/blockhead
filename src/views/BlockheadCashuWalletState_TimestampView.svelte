@@ -10,43 +10,29 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'wallet state',
-		},
-		{
-			label: 'observation time',
-		},
+		'$walletState',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'wallet state',
-				},
-				{
-					label: 'observation time',
-				},
+				'$walletState',
+				'timestampMs',
 				'source',
 				'balance',
-				{
-					label: 'proof count',
-				},
+				'proofCount',
+			],
+			[
 				{
 					label: 'unspent/pending/spent proof counts',
 				},
-				{
-					label: 'active keyset count',
-				},
-				{
-					label: 'pending mint quote count',
-				},
-				{
-					label: 'pending melt quote count',
-				},
-				{
-					label: 'token count',
-				},
+				'activeKeysetCount',
+				'pendingMintQuoteCount',
+				'pendingMeltQuoteCount',
+				'tokenCount',
+			],
+			[
 				{
 					label: 'sync time',
 				},

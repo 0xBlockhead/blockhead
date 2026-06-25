@@ -12,30 +12,22 @@
 	closed: [
 		'height',
 		'hash',
-		{
-			label: 'timestamp',
-		},
+		'timestampMs',
 	],
 	content: {
 		dl: [
 			[
 				'height',
 				'hash',
-				{
-					label: 'timestamp',
-				},
+				'timestampMs',
 				{
 					label: 'proposer',
 				},
-				{
-					label: 'transaction count',
-				},
-				{
-					label: 'app hash',
-				},
-				{
-					label: 'validators hash',
-				},
+				'transactionCount',
+			],
+			[
+				'appHash',
+				'validatorsHash',
 				{
 					label: 'header hashes',
 				},
@@ -63,9 +55,7 @@
 				items: [
 					'height',
 					'hash',
-					{
-						label: 'timestamp',
-					},
+					'timestampMs',
 					{
 						label: 'proposer',
 					},
@@ -92,6 +82,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'transactions',
+			label: 'transactions',
+			field: '$$transactions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'room',
-		},
+		'$network',
+		'$room',
 		{
 			label: 'requester/responder peers',
 		},
@@ -23,44 +19,32 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'room',
-				},
+				'$network',
+				'$room',
 				{
 					label: 'requester/responder peers',
 				},
-				{
-					label: 'signer account',
-				},
+				'$signer',
 				'domain',
-				{
-					label: 'URI',
-				},
-				{
-					label: 'chain id',
-				},
+			],
+			[
+				'uri',
+				'chainId',
 				'nonce',
 				{
 					label: 'issued/expires/not-before times',
 				},
-				{
-					label: 'request origin',
-				},
+				'requestOrigin',
+			],
+			[
 				{
 					label: 'signature presence',
 				},
-				{
-					label: 'verification method',
-				},
+				'verificationMethod',
 				{
 					label: 'verified time',
 				},
-				{
-					label: 'verified state',
-				},
+				'verified',
 			],
 		],
 	},
@@ -83,9 +67,7 @@
 					{
 						label: 'EOA ERC-191 recovery or contract ERC-1271 result',
 					},
-					{
-						label: 'signature kind',
-					},
+					'signatureKind',
 					{
 						label: 'error',
 					},
@@ -116,12 +98,8 @@
 			{
 				label: 'Session scope',
 				items: [
-					{
-						label: 'URI',
-					},
-					{
-						label: 'request id',
-					},
+					'uri',
+					'requestId',
 					'resources',
 					{
 						label: 'expiration',

@@ -10,28 +10,16 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'contract',
-		},
-		{
-			label: 'entrypoint name',
-		},
-		{
-			label: 'annotation count',
-		},
+		'$contract',
+		'entrypointName',
+		'annotations',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'contract',
-				},
-				{
-					label: 'entrypoint name',
-				},
-				{
-					label: 'annotation count',
-				},
+				'$contract',
+				'entrypointName',
+				'annotations',
 				{
 					label: 'parameter type summary',
 				},

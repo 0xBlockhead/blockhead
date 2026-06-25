@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'kind',
-		},
+		'messageKind',
 		{
 			label: 'source',
 		},
@@ -23,9 +21,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'kind',
-				},
+				'messageKind',
 				{
 					label: 'source',
 				},
@@ -35,22 +31,16 @@
 				{
 					label: 'value',
 				},
-				{
-					label: 'created lt',
-				},
+				'createdLt',
+			],
+			[
 				'opcode',
 				{
 					label: 'bounce flags',
 				},
-				{
-					label: 'body hash',
-				},
-				{
-					label: 'state-init hash',
-				},
-				{
-					label: 'message hash',
-				},
+				'bodyHash',
+				'stateInitHash',
+				'messageHash',
 			],
 		],
 	},

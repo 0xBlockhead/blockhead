@@ -19,18 +19,14 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'dataset URI',
-				},
+				'datasetUri',
 				{
 					label: 'HF dataset id/revision',
 				},
 				{
 					label: 'source dataset name/digest',
 				},
-				{
-					label: 'artifact',
-				},
+				'$artifact',
 			],
 			[
 				'label',
@@ -74,6 +70,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'documents',
+			label: 'documents',
+			field: '$$documents',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

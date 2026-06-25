@@ -10,40 +10,26 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'session id',
-		},
-		{
-			label: 'local node',
-		},
-		{
-			label: 'remote node id',
-		},
+		'sessionId',
+		'$localNode',
+		'remoteNodeId',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'session id',
-				},
-				{
-					label: 'local node',
-				},
-				{
-					label: 'remote node id',
-				},
+				'sessionId',
+				'$localNode',
+				'remoteNodeId',
 				{
 					label: 'repository/RID',
 				},
 				{
 					label: 'started/completed timestamps',
 				},
-				{
-					label: 'requested ref count',
-				},
-				{
-					label: 'received object count',
-				},
+			],
+			[
+				'requestedRefs',
+				'receivedObjects',
 				'status',
 				'error',
 			],

@@ -10,28 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
+		'$network',
 		{
 			label: 'relay host',
 		},
-		{
-			label: 'URL',
-		},
+		'url',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
+				'$network',
 				{
 					label: 'relay host',
 				},
-				{
-					label: 'URL',
-				},
+				'url',
 				{
 					label: 'latest fetchability/sample summary',
 				},
@@ -82,6 +74,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

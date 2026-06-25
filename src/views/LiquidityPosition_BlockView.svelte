@@ -10,34 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'position',
-		},
-		{
-			label: 'block number',
-		},
+		'$position',
+		'blockNumber',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'position',
-				},
-				{
-					label: 'block number',
-				},
+				'$position',
+				'blockNumber',
 				'source',
-				{
-					label: 'owner',
-				},
+				'$owner',
 				'liquidity',
-				{
-					label: 'token0 owed',
-				},
-				{
-					label: 'token1 owed',
-				},
+			],
+			[
+				'token0Owed',
+				'token1Owed',
 				{
 					label: 'fee growth inside token0',
 				},

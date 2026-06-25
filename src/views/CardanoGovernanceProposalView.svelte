@@ -13,12 +13,8 @@
 		{
 			label: 'proposal transaction hash',
 		},
-		{
-			label: 'proposal index',
-		},
-		{
-			label: 'kind',
-		},
+		'proposalIndex',
+		'proposalKind',
 	],
 	content: {
 		dl: [
@@ -26,24 +22,16 @@
 				{
 					label: 'proposal transaction hash',
 				},
-				{
-					label: 'proposal index',
-				},
-				{
-					label: 'kind',
-				},
-				{
-					label: 'deposit',
-				},
-				{
-					label: 'return address',
-				},
+				'proposalIndex',
+				'proposalKind',
+				'depositLovelace',
+				'returnAddress',
+			],
+			[
 				{
 					label: 'anchor URL/hash',
 				},
-				{
-					label: 'vote count',
-				},
+				'$$votes',
 				{
 					label: 'latest ratification state',
 				},
@@ -105,6 +93,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'votes',
+			label: 'votes',
+			field: '$$votes',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

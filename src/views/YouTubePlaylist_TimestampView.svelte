@@ -10,28 +10,16 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'playlist',
-		},
-		{
-			label: 'observation time',
-		},
-		{
-			label: 'item count',
-		},
+		'$playlist',
+		'timestampMs',
+		'itemCount',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'playlist',
-				},
-				{
-					label: 'observation time',
-				},
-				{
-					label: 'item count',
-				},
+				'$playlist',
+				'timestampMs',
+				'itemCount',
 			],
 		],
 	},

@@ -13,12 +13,8 @@
 		{
 			label: 'position id',
 		},
-		{
-			label: 'network',
-		},
-		{
-			label: 'pool',
-		},
+		'$network',
+		'$pool',
 	],
 	content: {
 		dl: [
@@ -26,21 +22,13 @@
 				{
 					label: 'position id',
 				},
-				{
-					label: 'network',
-				},
-				{
-					label: 'pool',
-				},
-				{
-					label: 'tick lower',
-				},
-				{
-					label: 'tick upper',
-				},
-				{
-					label: 'token id',
-				},
+				'$network',
+				'$pool',
+				'tickLower',
+				'tickUpper',
+			],
+			[
+				'tokenId',
 				'origin',
 				{
 					label: 'created timestamp',
@@ -93,6 +81,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'blocks',
+			label: 'blocks',
+			field: '$$blocks',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

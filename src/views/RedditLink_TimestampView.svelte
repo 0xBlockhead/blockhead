@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'link',
-		},
+		'$link',
 		{
 			label: 'observation time/source',
 		},
@@ -21,16 +19,12 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'link',
-				},
+				'$link',
 				{
 					label: 'observation time/source',
 				},
 				'score',
-				{
-					label: 'comment count',
-				},
+				'commentCount',
 			],
 		],
 	},
@@ -48,9 +42,7 @@
 				label: 'Ranking/thread counters',
 				items: [
 					'score',
-					{
-						label: 'comment count',
-					},
+					'commentCount',
 				],
 			},
 			{

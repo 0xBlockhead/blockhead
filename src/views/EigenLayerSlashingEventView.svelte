@@ -10,28 +10,16 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'operator',
-		},
-		{
-			label: 'AVS',
-		},
-		{
-			label: 'slashed shares',
-		},
+		'$operator',
+		'$avs',
+		'slashedShares',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'operator',
-				},
-				{
-					label: 'AVS',
-				},
-				{
-					label: 'strategy',
-				},
+				'$operator',
+				'$avs',
+				'$strategy',
 				{
 					label: 'transaction/log',
 				},
@@ -43,16 +31,10 @@
 				},
 			],
 			[
-				{
-					label: 'slashed shares',
-				},
-				{
-					label: 'slashed amount',
-				},
+				'slashedShares',
+				'slashedAmount',
 				'reason',
-				{
-					label: 'network',
-				},
+				'$network',
 			],
 		],
 	},

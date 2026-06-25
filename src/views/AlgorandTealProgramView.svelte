@@ -10,40 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'program hash',
-		},
-		{
-			label: 'program kind',
-		},
+		'$network',
+		'programHash',
+		'programKind',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'program hash',
-				},
-				{
-					label: 'program kind',
-				},
-				{
-					label: 'TEAL version',
-				},
+				'$network',
+				'programHash',
+				'programKind',
+				'tealVersion',
 				{
 					label: 'latest bytecode/disassembly availability',
 				},
-				{
-					label: 'application count',
-				},
-				{
-					label: 'transaction count',
-				},
+				'$$applications',
+				'$$transactions',
 			],
 		],
 	},
@@ -75,6 +57,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'applications',
+			label: 'applications',
+			field: '$$applications',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'transactions',
+			label: 'transactions',
+			field: '$$transactions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

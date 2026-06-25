@@ -29,9 +29,7 @@
 			],
 			[
 				'source',
-				{
-					label: 'quote time',
-				},
+				'timestampMs',
 				{
 					label: 'from/to EVM network refs',
 				},
@@ -41,6 +39,8 @@
 				{
 					label: 'from/to account addresses',
 				},
+			],
+			[
 				{
 					label: 'request amount',
 				},
@@ -50,21 +50,17 @@
 				{
 					label: 'minimum received',
 				},
-				{
-					label: 'estimated cost',
-				},
+				'estimatedCostUsd',
 				{
 					label: 'ETA',
 				},
-				{
-					label: 'approval address',
-				},
+			],
+			[
+				'approvalAddress',
 				{
 					label: 'transaction target',
 				},
-				{
-					label: 'tag count',
-				},
+				'tags',
 			],
 		],
 	},
@@ -87,9 +83,7 @@
 					{
 						label: 'calldata hash',
 					},
-					{
-						label: 'approval address',
-					},
+					'approvalAddress',
 					{
 						label: 'value/gas evidence when retained',
 					},
@@ -116,6 +110,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'steps',
+			label: 'steps',
+			field: '$$steps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

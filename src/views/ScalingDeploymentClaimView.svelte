@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
+		'$network',
 		{
 			label: 'source/sourceProjectId',
 		},
@@ -23,18 +21,14 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
+				'$network',
 				{
 					label: 'source/sourceProjectId',
 				},
 				{
 					label: 'local claim id',
 				},
-				{
-					label: 'rollup ref',
-				},
+				'$rollup',
 				{
 					label: 'latest architecture/protocol/proof summary',
 				},
@@ -43,9 +37,7 @@
 				{
 					label: 'latest settlement/DA/sequencing evidence',
 				},
-				{
-					label: 'timestamp count',
-				},
+				'$$timestamps',
 				{
 					label: 'settlement contract refs',
 				},
@@ -98,6 +90,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'settlement-contracts',
+			label: 'settlement contracts',
+			field: '$$settlementContracts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

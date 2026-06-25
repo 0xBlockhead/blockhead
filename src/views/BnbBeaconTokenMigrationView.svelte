@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'token',
-		},
-		{
-			label: 'target network',
-		},
+		'$token',
+		'$targetNetwork',
 		{
 			label: 'target address/contract',
 		},
@@ -23,19 +19,15 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'token',
-				},
-				{
-					label: 'target network',
-				},
+				'$token',
+				'$targetNetwork',
 				{
 					label: 'target address/contract',
 				},
-				{
-					label: 'migration kind',
-				},
+				'migrationKind',
 				'amount',
+			],
+			[
 				{
 					label: 'target-chain evidence',
 				},
@@ -90,6 +82,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

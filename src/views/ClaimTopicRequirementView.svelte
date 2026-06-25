@@ -13,12 +13,8 @@
 		{
 			label: 'regulated asset profile',
 		},
-		{
-			label: 'topic key',
-		},
-		{
-			label: 'claim topic',
-		},
+		'topicKey',
+		'claimTopic',
 	],
 	content: {
 		dl: [
@@ -26,18 +22,10 @@
 				{
 					label: 'regulated asset profile',
 				},
-				{
-					label: 'topic key',
-				},
-				{
-					label: 'claim topic',
-				},
-				{
-					label: 'required issuer selector',
-				},
-				{
-					label: 'country scope',
-				},
+				'topicKey',
+				'claimTopic',
+				'requiredIssuerSelector',
+				'countryScope',
 			],
 		],
 	},

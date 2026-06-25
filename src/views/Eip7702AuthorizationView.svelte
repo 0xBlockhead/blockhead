@@ -10,32 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'transaction',
-		},
-		{
-			label: 'authorization index',
-		},
-		{
-			label: 'chain id',
-		},
+		'$transaction',
+		'authorizationIndex',
+		'chainId',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'transaction',
-				},
-				{
-					label: 'authorization index',
-				},
-				{
-					label: 'chain id',
-				},
+				'$transaction',
+				'authorizationIndex',
+				'chainId',
 				'authority',
-				{
-					label: 'delegation address',
-				},
+				'delegationAddress',
+			],
+			[
 				'nonce',
 				{
 					label: 'yParity/r/s',
@@ -43,12 +31,8 @@
 				{
 					label: 'verification status/time',
 				},
-				{
-					label: 'authority account',
-				},
-				{
-					label: 'delegation contract',
-				},
+				'$authorityAccount',
+				'$delegationContract',
 			],
 		],
 	},

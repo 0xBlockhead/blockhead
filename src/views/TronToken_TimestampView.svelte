@@ -10,41 +10,25 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'token',
-		},
-		{
-			label: 'observation time',
-		},
+		'$token',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'token',
-				},
-				{
-					label: 'observation time',
-				},
+				'$token',
+				'timestampMs',
 				'source',
-				{
-					label: 'block height',
-				},
+				'blockHeight',
 				'name',
 				'symbol',
 				'decimals',
 			],
 			[
-				{
-					label: 'total supply',
-				},
-				{
-					label: 'holder count',
-				},
-				{
-					label: 'transfer count',
-				},
+				'totalSupply',
+				'holderCount',
+				'transferCount',
 				{
 					label: 'contract verification flag',
 				},
@@ -75,12 +59,8 @@
 					{
 						label: 'supply',
 					},
-					{
-						label: 'holder count',
-					},
-					{
-						label: 'transfer count',
-					},
+					'holderCount',
+					'transferCount',
 					{
 						label: 'verification flag',
 					},

@@ -10,34 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'asset instance',
-		},
-		{
-			label: 'restriction key',
-		},
+		'$assetInstance',
+		'restrictionKey',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'asset instance',
-				},
-				{
-					label: 'restriction key',
-				},
+				'$assetInstance',
+				'restrictionKey',
 				'source',
-				{
-					label: 'restriction kind',
-				},
-				{
-					label: 'profile',
-				},
+				'restrictionKind',
+				'$profile',
 				'message',
-				{
-					label: 'rule selector',
-				},
+				'ruleSelector',
 			],
 		],
 	},
@@ -78,6 +64,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'checks',
+			label: 'checks',
+			field: '$$checks',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

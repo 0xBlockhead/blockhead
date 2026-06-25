@@ -312,6 +312,53 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'blobs',
+			label: 'blobs',
+			field: '$$blobs',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'logs',
+			label: 'logs',
+			field: '$$logs',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'internal-transfers',
+			label: 'internal transfers',
+			field: '$$internalTransfers',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'token-transfers',
+			label: 'token transfers',
+			field: '$$tokenTransfers',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'user-operations',
+			label: 'user operations',
+			field: '$$userOperations',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

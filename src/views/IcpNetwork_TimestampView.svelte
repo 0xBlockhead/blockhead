@@ -10,40 +10,24 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
+		'$network',
 		{
 			label: 'observed time/source',
 		},
-		{
-			label: 'registry version',
-		},
+		'registryVersion',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
+				'$network',
 				{
 					label: 'observed time/source',
 				},
-				{
-					label: 'registry version',
-				},
-				{
-					label: 'subnet count',
-				},
-				{
-					label: 'canister count',
-				},
-				{
-					label: 'boundary node count',
-				},
-				{
-					label: 'root-key hash',
-				},
+				'registryVersion',
+				'subnetCount',
+				'canisterCount',
+				'boundaryNodeCount',
+				'rootKeyHash',
 			],
 		],
 	},
@@ -60,9 +44,7 @@
 			{
 				label: 'Registry aggregate',
 				items: [
-					{
-						label: 'registry version',
-					},
+					'registryVersion',
 					{
 						label: 'subnet/canister counts',
 					},
@@ -71,9 +53,7 @@
 			{
 				label: 'Boundary nodes',
 				items: [
-					{
-						label: 'boundary node count',
-					},
+					'boundaryNodeCount',
 					{
 						label: 'domain evidence',
 					},
@@ -82,9 +62,7 @@
 			{
 				label: 'Root key',
 				items: [
-					{
-						label: 'root-key hash',
-					},
+					'rootKeyHash',
 					{
 						label: 'certification context',
 					},

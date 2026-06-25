@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'rollup',
-		},
-		{
-			label: 'observation time',
-		},
+		'$rollup',
+		'timestampMs',
 		{
 			label: 'source status',
 		},
@@ -23,19 +19,13 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'rollup',
-				},
-				{
-					label: 'observation time',
-				},
+				'$rollup',
+				'timestampMs',
 				'source',
 				{
 					label: 'archived/upcoming/under-review flags',
 				},
-				{
-					label: 'listing stage',
-				},
+				'listingStage',
 				{
 					label: 'source updated time',
 				},
@@ -64,9 +54,7 @@
 					{
 						label: 'under review',
 					},
-					{
-						label: 'listing stage',
-					},
+					'listingStage',
 				],
 			},
 			{

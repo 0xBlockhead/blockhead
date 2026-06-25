@@ -10,23 +10,15 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'transfer',
-		},
-		{
-			label: 'observation time',
-		},
+		'$transfer',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'transfer',
-				},
-				{
-					label: 'observation time',
-				},
+				'$transfer',
+				'timestampMs',
 				'source',
 				{
 					label: 'status/substatus',
@@ -34,6 +26,8 @@
 				{
 					label: 'confirmations',
 				},
+			],
+			[
 				{
 					label: 'destination transaction hash',
 				},
@@ -47,6 +41,8 @@
 				{
 					label: 'completed time',
 				},
+			],
+			[
 				'error',
 			],
 		],

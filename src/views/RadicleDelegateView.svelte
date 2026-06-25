@@ -10,30 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'repository',
-		},
-		{
-			label: 'DID',
-		},
+		'$repository',
+		'did',
 		'role',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'repository',
-				},
-				{
-					label: 'DID',
-				},
+				'$repository',
+				'did',
 				'role',
-				{
-					label: 'valid-from revision',
-				},
-				{
-					label: 'valid-to revision',
-				},
+				'validFromRevision',
+				'validToRevision',
 			],
 		],
 	},

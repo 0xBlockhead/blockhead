@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'canister',
-		},
+		'$canister',
 		{
 			label: 'observed time/source',
 		},
@@ -21,37 +19,23 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'canister',
-				},
+				'$canister',
 				{
 					label: 'observed time/source',
 				},
 				'status',
-				{
-					label: 'subnet',
-				},
-				{
-					label: 'canister kind',
-				},
-				{
-					label: 'Candid interface hash',
-				},
-				{
-					label: 'module hash',
-				},
-				{
-					label: 'cycles balance',
-				},
-				{
-					label: 'memory size',
-				},
-				{
-					label: 'canister version',
-				},
-				{
-					label: 'controller count',
-				},
+				'$subnet',
+				'canisterKind',
+			],
+			[
+				'candidInterfaceHash',
+				'moduleHash',
+				'cyclesBalance',
+				'memorySizeBytes',
+				'canisterVersion',
+			],
+			[
+				'controllers',
 			],
 		],
 	},
@@ -77,29 +61,21 @@
 				label: 'Controllers/settings',
 				items: [
 					'controllers',
-					{
-						label: 'freezing threshold',
-					},
+					'freezingThresholdSeconds',
 					{
 						label: 'memory allocation',
 					},
 					{
 						label: 'compute allocation',
 					},
-					{
-						label: 'reserved cycles',
-					},
+					'reservedCycles',
 				],
 			},
 			{
 				label: 'Resource use',
 				items: [
-					{
-						label: 'memory size',
-					},
-					{
-						label: 'cycles balance',
-					},
+					'memorySizeBytes',
+					'cyclesBalance',
 					{
 						label: 'idle burn rate',
 					},

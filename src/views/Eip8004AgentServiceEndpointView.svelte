@@ -10,43 +10,27 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'registration file',
-		},
-		{
-			label: 'endpoint kind',
-		},
-		{
-			label: 'endpoint URL',
-		},
+		'$registrationFile',
+		'endpointKind',
+		'endpointUrl',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'registration file',
-				},
-				{
-					label: 'endpoint kind',
-				},
-				{
-					label: 'endpoint URL',
-				},
+				'$registrationFile',
+				'endpointKind',
+				'endpointUrl',
 				{
 					label: 'name/version',
 				},
-				{
-					label: 'protocol kind',
-				},
+				'protocolKind',
 			],
 			[
 				'active',
 				{
 					label: 'A2A card',
 				},
-				{
-					label: 'MCP server',
-				},
+				'$mcpServer',
 				{
 					label: 'payment requirement refs',
 				},
@@ -66,12 +50,8 @@
 			{
 				label: 'Protocol refs',
 				items: [
-					{
-						label: 'A2aAgentCard',
-					},
-					{
-						label: 'McpServer',
-					},
+					'$a2aAgentCard',
+					'$mcpServer',
 				],
 			},
 			{
@@ -84,6 +64,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'payment-requirements',
+			label: 'payment requirements',
+			field: '$$paymentRequirements',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

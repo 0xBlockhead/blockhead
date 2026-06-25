@@ -10,18 +10,14 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account',
-		},
+		'$account',
 		'lt',
 		'hash',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'account',
-				},
+				'$account',
 				'lt',
 				'hash',
 				{
@@ -30,15 +26,13 @@
 				{
 					label: 'original/end status',
 				},
-				{
-					label: 'transaction kind',
-				},
+			],
+			[
+				'transactionKind',
 				{
 					label: 'total fees',
 				},
-				{
-					label: 'block',
-				},
+				'$block',
 				{
 					label: 'inbound message',
 				},
@@ -108,6 +102,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'out-messages',
+			label: 'out messages',
+			field: '$$outMessages',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'phases',
+			label: 'phases',
+			field: '$$phases',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

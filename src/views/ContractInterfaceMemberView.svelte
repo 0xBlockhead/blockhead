@@ -10,32 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'member kind',
-		},
+		'memberKind',
 		'name',
-		{
-			label: 'canonical signature',
-		},
+		'canonicalSignature',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'member kind',
-				},
+				'memberKind',
 				'name',
-				{
-					label: 'canonical signature',
-				},
+				'canonicalSignature',
 				{
 					label: 'selector or topic0',
 				},
 				'inputs',
 				'outputs',
-				{
-					label: 'state mutability',
-				},
+				'stateMutability',
 			],
 		],
 	},
@@ -44,29 +34,19 @@
 			{
 				label: 'Interface',
 				items: [
-					{
-						label: 'interface id',
-					},
-					{
-						label: 'member key',
-					},
-					{
-						label: 'member kind',
-					},
+					'interfaceId',
+					'memberKey',
+					'memberKind',
 				],
 			},
 			{
 				label: 'ABI shape',
 				items: [
 					'name',
-					{
-						label: 'canonical signature',
-					},
+					'canonicalSignature',
 					'inputs',
 					'outputs',
-					{
-						label: 'state mutability',
-					},
+					'stateMutability',
 				],
 			},
 			{

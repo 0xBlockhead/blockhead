@@ -26,13 +26,11 @@
 				{
 					label: 'registry',
 				},
-				{
-					label: 'home URL',
-				},
-				{
-					label: 'docs URL',
-				},
+				'homeUrl',
+				'docsUrl',
 				'topology',
+			],
+			[
 				{
 					label: 'topic count',
 				},
@@ -84,6 +82,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'evm-topics',
+			label: 'evm topics',
+			field: '$$evmTopics',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'evm-selectors',
+			label: 'evm selectors',
+			field: '$$evmSelectors',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'evm-errors',
+			label: 'evm errors',
+			field: '$$evmErrors',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

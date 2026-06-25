@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'server',
-		},
+		'$server',
 		{
 			label: 'tool name',
 		},
@@ -21,9 +19,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'server',
-				},
+				'$server',
 				'name',
 				'title',
 			],

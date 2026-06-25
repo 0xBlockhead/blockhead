@@ -10,44 +10,26 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'signature id',
-		},
-		{
-			label: 'subject object id',
-		},
-		{
-			label: 'signature kind',
-		},
+		'signatureId',
+		'subjectObjectId',
+		'signatureKind',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'signature id',
-				},
-				{
-					label: 'subject object id',
-				},
-				{
-					label: 'signature kind',
-				},
-				{
-					label: 'signer selector',
-				},
-				{
-					label: 'payload hash',
-				},
-				{
-					label: 'verification status',
-				},
+				'signatureId',
+				'subjectObjectId',
+				'signatureKind',
+				'signerSelector',
+				'payloadHash',
+			],
+			[
+				'verificationStatus',
 				{
 					label: 'verified timestamp',
 				},
 				'verifier',
-				{
-					label: 'evidence URL',
-				},
+				'evidenceUrl',
 			],
 		],
 	},

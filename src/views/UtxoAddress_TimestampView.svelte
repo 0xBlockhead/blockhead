@@ -10,23 +10,15 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'address',
-		},
-		{
-			label: 'observation time',
-		},
+		'$address',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'address',
-				},
-				{
-					label: 'observation time',
-				},
+				'$address',
+				'timestampMs',
 				'source',
 				{
 					label: 'confirmed balance',
@@ -34,18 +26,14 @@
 				{
 					label: 'funded/spent output counts',
 				},
+			],
+			[
 				{
 					label: 'values',
 				},
-				{
-					label: 'transaction count',
-				},
-				{
-					label: 'unspent output count',
-				},
-				{
-					label: 'mempool transaction count',
-				},
+				'transactionCount',
+				'unspentOutputCount',
+				'mempoolTransactionCount',
 			],
 		],
 	},

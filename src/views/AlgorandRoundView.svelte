@@ -12,21 +12,15 @@
 	closed: [
 		'round',
 		'hash',
-		{
-			label: 'timestamp',
-		},
+		'timestampMs',
 	],
 	content: {
 		dl: [
 			[
 				'round',
 				'hash',
-				{
-					label: 'timestamp',
-				},
-				{
-					label: 'genesis hash',
-				},
+				'timestampMs',
+				'genesisHash',
 				'proposer',
 				{
 					label: 'protocol/rewards fields when available',

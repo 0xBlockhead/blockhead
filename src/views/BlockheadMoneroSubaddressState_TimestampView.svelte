@@ -10,42 +10,26 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'subaddress state',
-		},
-		{
-			label: 'observation time',
-		},
+		'$subaddressState',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'subaddress state',
-				},
-				{
-					label: 'observation time',
-				},
+				'$subaddressState',
+				'timestampMs',
 				'source',
-				{
-					label: 'used flag',
-				},
-				{
-					label: 'balance',
-				},
-				{
-					label: 'unlocked balance',
-				},
+				'used',
+				'balanceAtomicUnits',
+			],
+			[
+				'unlockedBalanceAtomicUnits',
 				{
 					label: 'unspent output count',
 				},
-				{
-					label: 'blocks to unlock',
-				},
-				{
-					label: 'time to unlock',
-				},
+				'blocksToUnlock',
+				'timeToUnlockSeconds',
 				{
 					label: 'last synced time',
 				},

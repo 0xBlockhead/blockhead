@@ -10,35 +10,25 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'node state',
-		},
-		{
-			label: 'observation time',
-		},
+		'$nodeState',
+		'timestampMs',
 		'health',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'node state',
-				},
-				{
-					label: 'observation time',
-				},
+				'$nodeState',
+				'timestampMs',
 				'source',
 				'health',
 				'version',
-				{
-					label: 'peer count',
-				},
+			],
+			[
+				'peerCount',
 				{
 					label: 'listen address count',
 				},
-				{
-					label: 'ENR URI',
-				},
+				'enrUri',
 				{
 					label: 'enabled protocols',
 				},
@@ -69,12 +59,8 @@
 			{
 				label: 'Peers/addresses',
 				items: [
-					{
-						label: 'peer count',
-					},
-					{
-						label: 'listen addresses',
-					},
+					'peerCount',
+					'listenAddresses',
 					{
 						label: 'ENR',
 					},

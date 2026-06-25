@@ -10,36 +10,24 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'forge mirror',
-		},
-		{
-			label: 'release tag name',
-		},
+		'$forgeMirror',
+		'releaseTagName',
 		'name',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'forge mirror',
-				},
-				{
-					label: 'release tag name',
-				},
+				'$forgeMirror',
+				'releaseTagName',
 				'name',
-				{
-					label: 'target object id',
-				},
-				{
-					label: 'author selector',
-				},
+				'targetObjectId',
+				'authorSelector',
+			],
+			[
 				{
 					label: 'draft/prerelease flags',
 				},
-				{
-					label: 'created timestamp',
-				},
+				'createdAt',
 				{
 					label: 'published timestamp',
 				},
@@ -51,9 +39,7 @@
 			{
 				label: 'Forge mirror',
 				items: [
-					{
-						label: 'parent forge mirror',
-					},
+					'$forgeMirror',
 				],
 			},
 			{

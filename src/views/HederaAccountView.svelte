@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account id',
-		},
+		'accountId',
 		{
 			label: 'latest alias',
 		},
@@ -23,9 +21,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'account id',
-				},
+				'accountId',
 				{
 					label: 'latest alias',
 				},
@@ -38,21 +34,21 @@
 				{
 					label: 'memo',
 				},
+			],
+			[
 				{
 					label: 'latest balance',
 				},
 				{
 					label: 'staking state',
 				},
-				{
-					label: 'allowance count',
-				},
+				'$$allowances',
 				{
 					label: 'token association count',
 				},
-				{
-					label: 'NFT count',
-				},
+				'$$nfts',
+			],
+			[
 				{
 					label: 'deleted flag',
 				},
@@ -111,6 +107,53 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'allowances',
+			label: 'allowances',
+			field: '$$allowances',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'tokens',
+			label: 'tokens',
+			field: '$$tokens',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'nfts',
+			label: 'nfts',
+			field: '$$nfts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'transactions',
+			label: 'transactions',
+			field: '$$transactions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

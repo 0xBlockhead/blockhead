@@ -10,34 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'event id',
-		},
+		'eventId',
 		'kind',
-		{
-			label: 'author',
-		},
+		'$author',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'event id',
-				},
+				'eventId',
 				'kind',
-				{
-					label: 'author',
-				},
+				'$author',
 				'createdAt',
-				{
-					label: 'reposted event id',
-				},
-				{
-					label: 'reposted note',
-				},
-				{
-					label: 'reposted article',
-				},
+				'repostedEventId',
+				'$repostedNote',
+				'$repostedArticle',
 			],
 		],
 	},

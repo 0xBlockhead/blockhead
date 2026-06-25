@@ -10,30 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'signed ref',
-		},
-		{
-			label: 'timestamp',
-		},
+		'$signedRef',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'signed ref',
-				},
-				{
-					label: 'timestamp',
-				},
+				'$signedRef',
+				'timestampMs',
 				'source',
-				{
-					label: 'target object id',
-				},
-				{
-					label: 'signature status',
-				},
+				'targetObjectId',
+				'signatureStatus',
+			],
+			[
 				{
 					label: 'object availability',
 				},

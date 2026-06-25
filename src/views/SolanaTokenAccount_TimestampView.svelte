@@ -10,24 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'token account',
-		},
+		'$tokenAccount',
 		'slot',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'token account',
-				},
+				'$tokenAccount',
 				'slot',
 				'source',
-				{
-					label: 'timestamp',
-				},
+				'timestampMs',
 				'amount',
+			],
+			[
 				'decimals',
 				{
 					label: 'display amount',
@@ -36,9 +32,9 @@
 				{
 					label: 'native flag',
 				},
-				{
-					label: 'delegated amount',
-				},
+				'delegatedAmount',
+			],
+			[
 				{
 					label: 'rent reserve',
 				},

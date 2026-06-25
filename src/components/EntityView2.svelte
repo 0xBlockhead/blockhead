@@ -604,6 +604,7 @@
 
 	const declaredClosed = $derived(view?.closed ?? [])
 	const declaredMetrics = $derived(view?.metrics ?? [])
+	const declaredLists = $derived(view?.lists ?? [])
 	const declaredSummaryValue = $derived(view?.summary?.value)
 	const declaredSummaryTitle = $derived(view?.summary?.title)
 	const declaredSummaryAfter = $derived(view?.summary?.after ?? [])
@@ -791,6 +792,7 @@
 		|| closed.length > 0
 		|| declaredClosed.length > 1
 		|| declaredMetrics.length > 0
+		|| declaredLists.length > 0
 		|| declaredContentDl.length > 0
 		|| declaredContentBlocks.length > 0
 		|| (content?.dl?.length ?? 0) > 0
@@ -801,6 +803,7 @@
 		|| declaredPanels.length > 0
 		|| detailTabs.length > 0
 		|| detailItems.length > 0
+		|| declaredLists.length > 0
 		|| declaredDetailTabs.length > 0
 		|| declaredDetailCarousels.length > 0
 		|| declaredDetailItems.length > 0
@@ -1729,6 +1732,34 @@
 									{/each}
 								{/snippet}
 							</CollapsibleTabs1>
+						{/if}
+					{/each}
+				{/if}
+
+				{#if DetailsSnippet === undefined && details === undefined && declaredLists.length > 0}
+					{#each declaredLists as list (list.id)}
+						{#if list.field !== undefined}
+							<section>
+								<HeadingComponent>
+									{list.label}
+								</HeadingComponent>
+
+								<dl data-column-item="center">
+									<div>
+										<dt>{list.label}</dt>
+										<dd>
+											{@render DeclaredItemValue({
+												field: list.field,
+												label: list.label,
+												listDisplay: 'selector',
+												selection: list.query,
+												ifNonEmpty: true,
+												emptyText: list.emptyText ?? list.placeholderText ?? 'No rows',
+											})}
+										</dd>
+									</div>
+								</dl>
+							</section>
 						{/if}
 					{/each}
 				{/if}

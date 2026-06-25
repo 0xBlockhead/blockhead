@@ -10,28 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'feed',
-		},
-		{
-			label: 'publish time',
-		},
+		'$feed',
+		'publishTimeMs',
 		'price',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'feed',
-				},
-				{
-					label: 'publish time',
-				},
+				'$feed',
+				'publishTimeMs',
 				'source',
 				{
 					label: 'observed time',
 				},
 				'price',
+			],
+			[
 				{
 					label: 'confidence',
 				},
@@ -51,9 +45,7 @@
 				{
 					label: 'on-chain network/contract',
 				},
-				{
-					label: 'stale flag',
-				},
+				'stale',
 			],
 		],
 	},

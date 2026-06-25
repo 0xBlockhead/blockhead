@@ -10,27 +10,17 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'resource',
-		},
-		{
-			label: 'ledger version',
-		},
+		'$resource',
+		'ledgerVersion',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'resource',
-				},
-				{
-					label: 'ledger version',
-				},
+				'$resource',
+				'ledgerVersion',
 				'source',
-				{
-					label: 'observed time',
-				},
+				'timestampMs',
 				'value',
 			],
 		],
@@ -48,12 +38,8 @@
 			{
 				label: 'Ledger context',
 				items: [
-					{
-						label: 'ledger version',
-					},
-					{
-						label: 'observed time',
-					},
+					'ledgerVersion',
+					'timestampMs',
 					'source',
 				],
 			},

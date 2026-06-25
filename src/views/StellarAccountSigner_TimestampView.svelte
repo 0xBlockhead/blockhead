@@ -10,32 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'signer',
-		},
+		'$signer',
 		'weight',
-		{
-			label: 'ledger sequence',
-		},
+		'ledgerSequence',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'signer',
-				},
-				{
-					label: 'observation time',
-				},
+				'$signer',
+				'timestampMs',
 				'source',
-				{
-					label: 'ledger sequence',
-				},
+				'ledgerSequence',
 				'weight',
 				'sponsor',
-				{
-					label: 'active state',
-				},
+				'active',
 			],
 		],
 	},

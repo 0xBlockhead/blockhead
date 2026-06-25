@@ -10,23 +10,15 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'card snapshot',
-		},
-		{
-			label: 'skill id',
-		},
+		'$cardSnapshot',
+		'skillId',
 		'name',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'card snapshot',
-				},
-				{
-					label: 'skill id',
-				},
+				'$cardSnapshot',
+				'skillId',
 				'name',
 			],
 			[

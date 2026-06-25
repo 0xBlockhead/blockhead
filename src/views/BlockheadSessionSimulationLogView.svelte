@@ -10,39 +10,25 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'simulation',
-		},
-		{
-			label: 'log index',
-		},
+		'$simulation',
+		'logIndex',
 		'address',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'simulation',
-				},
-				{
-					label: 'log index',
-				},
-				{
-					label: 'call path',
-				},
+				'$simulation',
+				'logIndex',
+				'callPath',
 				'address',
 				{
 					label: 'topic0',
 				},
-				{
-					label: 'topic count',
-				},
-				{
-					label: 'data hash',
-				},
-				{
-					label: 'removed flag',
-				},
+			],
+			[
+				'topics',
+				'dataHash',
+				'removed',
 			],
 		],
 	},

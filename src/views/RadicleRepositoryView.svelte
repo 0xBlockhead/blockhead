@@ -10,38 +10,26 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'RID',
-		},
-		{
-			label: 'linked Git repository',
-		},
+		'rid',
+		'$gitRepository',
 		'name',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'RID',
-				},
-				{
-					label: 'linked Git repository',
-				},
+				'rid',
+				'$gitRepository',
 				'name',
 				'description',
 				'visibility',
-				{
-					label: 'default branch',
-				},
-				{
-					label: 'delegate count',
-				},
+			],
+			[
+				'defaultBranch',
+				'$$delegates',
 				{
 					label: 'latest signed-ref status',
 				},
-				{
-					label: 'issue count',
-				},
+				'$$issues',
 				{
 					label: 'patch count',
 				},
@@ -59,9 +47,7 @@
 					{
 						label: 'identity revisions',
 					},
-					{
-						label: 'delegates',
-					},
+					'$$delegates',
 				],
 			},
 			{
@@ -91,13 +77,58 @@
 			{
 				label: 'Git storage',
 				items: [
-					{
-						label: 'linked Git repository',
-					},
+					'$gitRepository',
 				],
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'delegates',
+			label: 'delegates',
+			field: '$$delegates',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'signed-refs',
+			label: 'signed refs',
+			field: '$$signedRefs',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'issues',
+			label: 'issues',
+			field: '$$issues',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'patches',
+			label: 'patches',
+			field: '$$patches',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'seed-observations',
+			label: 'seed observations',
+			field: '$$seedObservations',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

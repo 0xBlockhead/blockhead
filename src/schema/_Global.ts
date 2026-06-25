@@ -73,20 +73,6 @@ export default {
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: 'proposalRealms',
-			label: 'proposal realms',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.Many,
-		},
-		{
-			name: 'proposalCategories',
-			label: 'proposal categories',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.Many,
-		},
-		{
 			name: '$$coins',
 			label: 'coins',
 			type: EntityFieldType.EntitiesReference,

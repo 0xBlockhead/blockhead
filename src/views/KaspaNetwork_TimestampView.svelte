@@ -10,53 +10,39 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
+		'$network',
 		{
 			label: 'observed time/source',
 		},
-		{
-			label: 'virtual DAA score',
-		},
+		'virtualDaaScore',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
+				'$network',
 				{
 					label: 'observed time/source',
 				},
-				{
-					label: 'virtual DAA score',
-				},
-				{
-					label: 'virtual blue score',
-				},
+				'virtualDaaScore',
+				'virtualBlueScore',
 				{
 					label: 'selected parent',
 				},
+			],
+			[
 				{
 					label: 'pruning point',
 				},
-				{
-					label: 'sink count',
-				},
-				{
-					label: 'block count',
-				},
-				{
-					label: 'transaction count',
-				},
+				'sinkCount',
+				'blockCount',
+				'transactionCount',
 				'difficulty',
+			],
+			[
 				{
 					label: 'UTXO-index availability',
 				},
-				{
-					label: 'server version',
-				},
+				'serverVersion',
 			],
 		],
 	},
@@ -82,9 +68,7 @@
 					{
 						label: 'virtual scores',
 					},
-					{
-						label: 'sink count',
-					},
+					'sinkCount',
 				],
 			},
 			{
@@ -93,9 +77,7 @@
 					{
 						label: 'UTXO-index availability',
 					},
-					{
-						label: 'server version',
-					},
+					'serverVersion',
 				],
 			},
 			{

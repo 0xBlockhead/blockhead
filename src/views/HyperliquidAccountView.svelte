@@ -10,30 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
+		'$network',
 		'address',
-		{
-			label: 'account role',
-		},
+		'accountRole',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
+				'$network',
 				'address',
-				{
-					label: 'account role',
-				},
-				{
-					label: 'master account',
-				},
-				{
-					label: 'agent account',
-				},
+				'accountRole',
+				'$masterAccount',
+				'$agentAccount',
+			],
+			[
 				{
 					label: 'latest account value',
 				},
@@ -101,6 +91,44 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'orders',
+			label: 'orders',
+			field: '$$orders',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'fills',
+			label: 'fills',
+			field: '$$fills',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'vault-equities',
+			label: 'vault equities',
+			field: '$$vaultEquities',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

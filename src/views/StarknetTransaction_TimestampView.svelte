@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'transaction',
-		},
-		{
-			label: 'observation time',
-		},
+		'$transaction',
+		'timestampMs',
 		{
 			label: 'status',
 		},
@@ -23,28 +19,16 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'transaction',
-				},
-				{
-					label: 'observation time',
-				},
+				'$transaction',
+				'timestampMs',
 				'source',
-				{
-					label: 'block number',
-				},
-				{
-					label: 'finality status',
-				},
-				{
-					label: 'execution status',
-				},
-				{
-					label: 'actual fee',
-				},
-				{
-					label: 'revert reason',
-				},
+				'blockNumber',
+				'finalityStatus',
+			],
+			[
+				'executionStatus',
+				'actualFee',
+				'revertReason',
 				{
 					label: 'message count',
 				},

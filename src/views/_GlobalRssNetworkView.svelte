@@ -57,6 +57,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'source-window-feeds',
+			label: 'source window feeds',
+			field: '$$sourceWindowFeeds',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'source-window-items',
+			label: 'source window items',
+			field: '$$sourceWindowItems',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

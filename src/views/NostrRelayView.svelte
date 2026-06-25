@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'relay URL',
-		},
+		'relayUrl',
 		{
 			label: 'latest relay snapshot',
 		},
@@ -20,9 +18,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'relay URL',
-				},
+				'relayUrl',
 				{
 					label: 'latest relay snapshot',
 				},
@@ -30,9 +26,7 @@
 				{
 					label: 'software/version',
 				},
-				{
-					label: 'supported NIP count',
-				},
+				'supportedNipCount',
 				{
 					label: 'paid flag',
 				},
@@ -74,6 +68,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

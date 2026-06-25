@@ -22,19 +22,15 @@
 				},
 			],
 			[
-				{
-					label: 'quote',
-				},
+				'$quote',
 				'index',
-				{
-					label: 'provider step id',
-				},
-				{
-					label: 'step type',
-				},
+				'providerStepId',
+				'stepType',
 				{
 					label: 'tool key/name',
 				},
+			],
+			[
 				{
 					label: 'from/to EVM network refs',
 				},
@@ -44,21 +40,15 @@
 				{
 					label: 'amounts',
 				},
-				{
-					label: 'estimated gas',
-				},
+				'estimatedGas',
 				{
 					label: 'rail',
 				},
-				{
-					label: 'settlement model',
-				},
-				{
-					label: 'verification model',
-				},
-				{
-					label: 'asset outcome',
-				},
+			],
+			[
+				'settlementModel',
+				'verificationModel',
+				'assetOutcome',
 			],
 		],
 	},

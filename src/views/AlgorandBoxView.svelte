@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'application',
-		},
-		{
-			label: 'box name',
-		},
+		'$application',
+		'boxName',
 		{
 			label: 'latest value hash',
 		},
@@ -23,12 +19,8 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'application',
-				},
-				{
-					label: 'box name',
-				},
+				'$application',
+				'boxName',
 				{
 					label: 'latest value hash',
 				},
@@ -43,9 +35,7 @@
 			{
 				label: 'Application',
 				items: [
-					{
-						label: 'parent application',
-					},
+					'$application',
 				],
 			},
 			{
@@ -69,6 +59,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'rounds',
+			label: 'rounds',
+			field: '$$rounds',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -11,35 +11,21 @@
 	const view = {
 	closed: [
 		'address',
-		{
-			label: 'address kind',
-		},
-		{
-			label: 'payment credential',
-		},
+		'addressKind',
+		'paymentCredential',
 	],
 	content: {
 		dl: [
 			[
 				'address',
-				{
-					label: 'address kind',
-				},
-				{
-					label: 'payment credential',
-				},
-				{
-					label: 'stake credential',
-				},
-				{
-					label: 'stake credential ref',
-				},
+				'addressKind',
+				'paymentCredential',
+				'$stakeCredential',
+				'$stakeCredential',
 				{
 					label: 'latest lovelace/asset/UTXO snapshot',
 				},
-				{
-					label: 'timestamp count',
-				},
+				'$$timestamps',
 			],
 		],
 	},
@@ -79,6 +65,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'utxos',
+			label: 'utxos',
+			field: '$$utxos',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

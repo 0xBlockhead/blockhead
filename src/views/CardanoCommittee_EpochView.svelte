@@ -10,27 +10,21 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
+		'$network',
 		'epoch',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
+				'$network',
 				'epoch',
 				'source',
 				'slot',
 				{
 					label: 'quorum numerator/denominator',
 				},
-				{
-					label: 'member count',
-				},
+				'memberCount',
 				{
 					label: 'threshold summary',
 				},

@@ -10,33 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
+		'$network',
 		'height',
 		'hash',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
+				'$network',
 				'height',
 				'hash',
-				{
-					label: 'parent',
-				},
-				{
-					label: 'timestamp',
-				},
+				'$parent',
+				'timestampMs',
+			],
+			[
 				'difficulty',
-				{
-					label: 'weight',
-				},
-				{
-					label: 'transaction count',
-				},
+				'weightBytes',
+				'$$transactions',
 			],
 		],
 	},
@@ -45,16 +35,10 @@
 			{
 				label: 'Header',
 				items: [
-					{
-						label: 'parent',
-					},
+					'$parent',
 					'difficulty',
-					{
-						label: 'weight',
-					},
-					{
-						label: 'timestamp',
-					},
+					'weightBytes',
+					'timestampMs',
 				],
 			},
 			{
@@ -89,6 +73,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'transactions',
+			label: 'transactions',
+			field: '$$transactions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

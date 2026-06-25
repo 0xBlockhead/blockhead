@@ -10,33 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'torrent',
-		},
-		{
-			label: 'peer id',
-		},
+		'$torrent',
+		'peerId',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'torrent',
-				},
-				{
-					label: 'peer id',
-				},
+				'$torrent',
+				'peerId',
 				'source',
-				{
-					label: 'timestamp',
-				},
+				'timestampMs',
 				'address',
+			],
+			[
 				'port',
 				'client',
-				{
-					label: 'completed percent',
-				},
+				'completedPercent',
 				{
 					label: 'DHT support',
 				},

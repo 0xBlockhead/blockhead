@@ -10,23 +10,15 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'deposit',
-		},
-		{
-			label: 'observation time',
-		},
+		'$deposit',
+		'timestampMs',
 		'amount',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'deposit',
-				},
-				{
-					label: 'observation time',
-				},
+				'$deposit',
+				'timestampMs',
 				'source',
 				'amount',
 				{

@@ -10,28 +10,16 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'session',
-		},
-		{
-			label: 'operation id',
-		},
-		{
-			label: 'kind',
-		},
+		'$session',
+		'operationId',
+		'operationKind',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'session',
-				},
-				{
-					label: 'operation id',
-				},
-				{
-					label: 'kind',
-				},
+				'$session',
+				'operationId',
+				'operationKind',
 				'path',
 			],
 			[
@@ -41,9 +29,7 @@
 				{
 					label: 'content hash algorithm/hash',
 				},
-				{
-					label: 'timestamp',
-				},
+				'timestampMs',
 				'status',
 				'error',
 			],

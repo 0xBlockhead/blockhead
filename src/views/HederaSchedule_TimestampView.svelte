@@ -10,42 +10,26 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'schedule',
-		},
-		{
-			label: 'observation time',
-		},
+		'$schedule',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'schedule',
-				},
-				{
-					label: 'observation time',
-				},
+				'$schedule',
+				'timestampMs',
 				'source',
-				{
-					label: 'executed timestamp',
-				},
-				{
-					label: 'deleted flag',
-				},
+				'executedTimestamp',
+				'deleted',
+			],
+			[
 				{
 					label: 'expiration',
 				},
-				{
-					label: 'wait-for-expiry',
-				},
-				{
-					label: 'signature count',
-				},
-				{
-					label: 'execution transaction',
-				},
+				'waitForExpiry',
+				'signatureCount',
+				'$executionTransaction',
 			],
 		],
 	},

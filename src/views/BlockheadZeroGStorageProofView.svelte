@@ -10,37 +10,21 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'node state',
-		},
-		{
-			label: 'proof id',
-		},
-		{
-			label: 'proof kind',
-		},
+		'$nodeState',
+		'proofId',
+		'proofKind',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'node state',
-				},
-				{
-					label: 'proof id',
-				},
-				{
-					label: 'proof kind',
-				},
-				{
-					label: 'data blob',
-				},
-				{
-					label: 'chunk',
-				},
-				{
-					label: 'verified flag',
-				},
+				'$nodeState',
+				'proofId',
+				'proofKind',
+				'$dataBlob',
+				'$chunk',
+			],
+			[
+				'verified',
 				{
 					label: 'verified time',
 				},

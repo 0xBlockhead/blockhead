@@ -10,18 +10,14 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'block',
-		},
+		'$block',
 		'balance',
 		'usdValue',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'block',
-				},
+				'$block',
 				'balance',
 				'usdValue',
 			],

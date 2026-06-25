@@ -10,30 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'relay host',
-		},
+		'$network',
+		'relayHost',
 		'slot',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'relay host',
-				},
+				'$network',
+				'relayHost',
 				'slot',
-				{
-					label: 'block hash',
-				},
+				'blockHash',
 				{
 					label: 'builder pubkey/builder ref',
 				},
+			],
+			[
 				{
 					label: 'bid value',
 				},

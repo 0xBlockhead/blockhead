@@ -10,37 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'wallet id',
-		},
-		{
-			label: 'network',
-		},
-		{
-			label: 'account index',
-		},
+		'walletId',
+		'$network',
+		'accountIndex',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'wallet id',
-				},
-				{
-					label: 'network',
-				},
-				{
-					label: 'account index',
-				},
-				{
-					label: 'unified address',
-				},
+				'walletId',
+				'$network',
+				'accountIndex',
+				'unifiedAddress',
 				{
 					label: 'transparent/Sapling/Orchard address availability',
 				},
-				{
-					label: 'birthday height',
-				},
+			],
+			[
+				'birthdayHeight',
 				{
 					label: 'latest total balance',
 				},
@@ -53,6 +39,8 @@
 				{
 					label: 'latest scan height',
 				},
+			],
+			[
 				{
 					label: 'latest recovery state',
 				},
@@ -119,6 +107,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'viewing-keys',
+			label: 'viewing keys',
+			field: '$$viewingKeys',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'notes',
+			label: 'notes',
+			field: '$$notes',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

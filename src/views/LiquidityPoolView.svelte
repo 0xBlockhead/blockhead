@@ -30,21 +30,15 @@
 					label: 'base/quote token contracts',
 				},
 				'fee',
-				{
-					label: 'tick spacing',
-				},
-				{
-					label: 'hooks',
-				},
-				{
-					label: 'v4 pool id',
-				},
+				'tickSpacing',
+				'$hooks',
+			],
+			[
+				'v4PoolId',
 				{
 					label: 'latest pair-indexer observation',
 				},
-				{
-					label: 'latest block state',
-				},
+				'$$blocks',
 			],
 		],
 	},
@@ -69,17 +63,13 @@
 			{
 				label: 'Base token',
 				items: [
-					{
-						label: 'base token contract',
-					},
+					'$baseToken',
 				],
 			},
 			{
 				label: 'Quote token',
 				items: [
-					{
-						label: 'quote token contract',
-					},
+					'$quoteToken',
 				],
 			},
 			{
@@ -95,6 +85,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'blocks',
+			label: 'blocks',
+			field: '$$blocks',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

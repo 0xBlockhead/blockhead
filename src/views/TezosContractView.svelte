@@ -13,12 +13,8 @@
 		{
 			label: 'contract address',
 		},
-		{
-			label: 'script hash',
-		},
-		{
-			label: 'code hash',
-		},
+		'scriptHash',
+		'codeHash',
 	],
 	content: {
 		dl: [
@@ -26,24 +22,16 @@
 				{
 					label: 'contract address',
 				},
-				{
-					label: 'script hash',
-				},
-				{
-					label: 'code hash',
-				},
-				{
-					label: 'script ref',
-				},
+				'scriptHash',
+				'codeHash',
+				'$script',
 				{
 					label: 'latest balance',
 				},
 				{
 					label: 'latest storage hash',
 				},
-				{
-					label: 'entrypoint count',
-				},
+				'$$entrypoints',
 			],
 		],
 	},
@@ -107,6 +95,44 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'entrypoints',
+			label: 'entrypoints',
+			field: '$$entrypoints',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'big-maps',
+			label: 'big maps',
+			field: '$$bigMaps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'operations',
+			label: 'operations',
+			field: '$$operations',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,34 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'object id',
-		},
-		{
-			label: 'object format',
-		},
-		{
-			label: 'object kind',
-		},
+		'objectId',
+		'objectFormat',
+		'objectKind',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'object id',
-				},
-				{
-					label: 'object format',
-				},
-				{
-					label: 'object kind',
-				},
-				{
-					label: 'size',
-				},
-				{
-					label: 'repository context',
-				},
+				'objectId',
+				'objectFormat',
+				'objectKind',
+				'sizeBytes',
+				'$repository',
 			],
 		],
 	},

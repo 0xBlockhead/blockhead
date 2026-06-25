@@ -11,25 +11,19 @@
 	const view = {
 	closed: [
 		'name',
-		{
-			label: 'normalized name',
-		},
+		'normalizedName',
 		'node',
 	],
 	content: {
 		dl: [
 			[
 				'name',
-				{
-					label: 'normalized name',
-				},
+				'normalizedName',
 				'node',
 				{
 					label: 'label name/hash',
 				},
-				{
-					label: 'parent',
-				},
+				'$parent',
 				{
 					label: 'latest owner/resolver snapshot',
 				},
@@ -83,6 +77,44 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'subdomains',
+			label: 'subdomains',
+			field: '$$subdomains',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'records',
+			label: 'records',
+			field: '$$records',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'reverse-records',
+			label: 'reverse records',
+			field: '$$reverseRecords',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

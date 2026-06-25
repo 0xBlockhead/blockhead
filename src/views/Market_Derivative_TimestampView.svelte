@@ -10,55 +10,33 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'market',
-		},
-		{
-			label: 'observed time',
-		},
-		{
-			label: 'feed key',
-		},
+		'$market',
+		'timestampMs',
+		'feedKey',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'market',
-				},
-				{
-					label: 'observed time',
-				},
-				{
-					label: 'feed key',
-				},
-				{
-					label: 'parent market',
-				},
-				{
-					label: 'funding rate',
-				},
-				{
-					label: 'open interest USD',
-				},
-				{
-					label: 'index basis',
-				},
-				{
-					label: 'mark price',
-				},
-				{
-					label: 'index price',
-				},
+				'$market',
+				'timestampMs',
+				'feedKey',
+				'$parentMarket',
+				'fundingRate',
+			],
+			[
+				'openInterestUsd',
+				'indexBasisPercent',
+				'markPrice',
+				'indexPrice',
 				{
 					label: 'expiry',
 				},
+			],
+			[
 				{
 					label: 'last traded time',
 				},
-				{
-					label: 'provider asset id',
-				},
+				'providerAssetId',
 				'transport',
 			],
 		],
@@ -68,34 +46,22 @@
 			{
 				label: 'Market',
 				items: [
-					{
-						label: 'Market',
-					},
+					'$market',
 				],
 			},
 			{
 				label: 'Derivative metrics',
 				items: [
-					{
-						label: 'funding rate',
-					},
-					{
-						label: 'open interest USD',
-					},
-					{
-						label: 'index basis',
-					},
+					'fundingRate',
+					'openInterestUsd',
+					'indexBasisPercent',
 				],
 			},
 			{
 				label: 'Prices',
 				items: [
-					{
-						label: 'mark price',
-					},
-					{
-						label: 'index price',
-					},
+					'markPrice',
+					'indexPrice',
 				],
 			},
 			{
@@ -112,12 +78,8 @@
 			{
 				label: 'Provider mapping',
 				items: [
-					{
-						label: 'feed key',
-					},
-					{
-						label: 'provider asset id',
-					},
+					'feedKey',
+					'providerAssetId',
 					'transport',
 				],
 			},

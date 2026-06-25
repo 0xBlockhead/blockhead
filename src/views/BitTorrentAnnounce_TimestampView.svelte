@@ -10,33 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'torrent',
-		},
-		{
-			label: 'tracker',
-		},
+		'$torrent',
+		'$tracker',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'torrent',
-				},
-				{
-					label: 'tracker',
-				},
+				'$torrent',
+				'$tracker',
 				'source',
-				{
-					label: 'timestamp',
-				},
+				'timestampMs',
 				'status',
+			],
+			[
 				'seeders',
 				'leechers',
-				{
-					label: 'downloaded count',
-				},
+				'downloaded',
 				{
 					label: 'interval',
 				},
@@ -49,9 +39,7 @@
 			{
 				label: 'Tracker',
 				items: [
-					{
-						label: 'parent tracker',
-					},
+					'$tracker',
 				],
 			},
 			{

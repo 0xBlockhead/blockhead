@@ -10,48 +10,32 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'transfer id',
-		},
+		'transferId',
 		'source',
-		{
-			label: 'item',
-		},
+		'$item',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'transfer id',
-				},
+				'transferId',
 				'source',
-				{
-					label: 'item',
-				},
-				{
-					label: 'collection',
-				},
-				{
-					label: 'from account',
-				},
-				{
-					label: 'to account',
-				},
+				'$item',
+				'$collection',
+				'$from',
+			],
+			[
+				'$to',
 				{
 					label: 'transaction lt/hash',
 				},
-				{
-					label: 'timestamp',
-				},
-				{
-					label: 'query id',
-				},
+				'timestampMs',
+				'queryId',
 				{
 					label: 'forward amount',
 				},
-				{
-					label: 'response destination',
-				},
+			],
+			[
+				'responseDestination',
 				{
 					label: 'trace/message refs',
 				},

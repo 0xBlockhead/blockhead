@@ -10,38 +10,24 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'tx id',
-		},
-		{
-			label: 'block',
-		},
+		'$network',
+		'txId',
+		'$block',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'tx id',
-				},
-				{
-					label: 'block',
-				},
+				'$network',
+				'txId',
+				'$block',
 				'version',
-				{
-					label: 'fee',
-				},
+				'feeSats',
+			],
+			[
 				{
 					label: 'size/vsize/weight',
 				},
-				{
-					label: 'lock time',
-				},
+				'lockTime',
 				{
 					label: 'coinbase flag',
 				},
@@ -92,6 +78,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'inputs',
+			label: 'inputs',
+			field: '$$inputs',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'outputs',
+			label: 'outputs',
+			field: '$$outputs',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'zcash-shielded-actions',
+			label: 'zcash shielded actions',
+			field: '$$zcashShieldedActions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

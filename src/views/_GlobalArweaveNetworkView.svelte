@@ -61,6 +61,53 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'source-window-networks',
+			label: 'source window networks',
+			field: '$$sourceWindowNetworks',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'source-window-blocks',
+			label: 'source window blocks',
+			field: '$$sourceWindowBlocks',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'source-window-transactions',
+			label: 'source window transactions',
+			field: '$$sourceWindowTransactions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'source-window-resources',
+			label: 'source window resources',
+			field: '$$sourceWindowResources',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

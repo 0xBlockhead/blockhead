@@ -10,28 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'allowance',
-		},
-		{
-			label: 'observation time',
-		},
+		'$allowance',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'allowance',
-				},
-				{
-					label: 'observation time',
-				},
+				'$allowance',
+				'timestampMs',
 				'source',
 				'amount',
-				{
-					label: 'approved-for-all flag',
-				},
+				'approvedForAll',
 				{
 					label: 'deleted/absent flag',
 				},

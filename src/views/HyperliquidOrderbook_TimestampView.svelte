@@ -10,32 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'book key',
-		},
-		{
-			label: 'observation time',
-		},
+		'$network',
+		'bookKey',
+		'timestampMs',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'book key',
-				},
-				{
-					label: 'observation time',
-				},
+				'$network',
+				'bookKey',
+				'timestampMs',
 				'source',
 				{
 					label: 'perp market or spot pair ref',
 				},
+			],
+			[
 				{
 					label: 'bid level count',
 				},
@@ -46,9 +36,7 @@
 					label: 'significant-figure aggregation',
 				},
 				'mantissa',
-				{
-					label: 'depth limit',
-				},
+				'depthLimit',
 			],
 		],
 	},

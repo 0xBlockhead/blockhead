@@ -10,31 +10,17 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'CID',
-		},
-		{
-			label: 'tree CID',
-		},
-		{
-			label: 'dataset size',
-		},
+		'cid',
+		'treeCid',
+		'datasetSizeBytes',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'CID',
-				},
-				{
-					label: 'tree CID',
-				},
-				{
-					label: 'dataset size',
-				},
-				{
-					label: 'block size',
-				},
+				'cid',
+				'treeCid',
+				'datasetSizeBytes',
+				'blockSizeBytes',
 				'filename',
 				'mimetype',
 				{
@@ -79,6 +65,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'local-copies',
+			label: 'local copies',
+			field: '$$localCopies',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

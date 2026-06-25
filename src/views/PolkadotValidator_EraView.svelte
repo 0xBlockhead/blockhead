@@ -10,39 +10,27 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'validator',
-		},
-		{
-			label: 'era index',
-		},
+		'$validator',
+		'eraIndex',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'validator',
-				},
-				{
-					label: 'era index',
-				},
+				'$validator',
+				'eraIndex',
 				'source',
-				{
-					label: 'controller',
-				},
+				'$controller',
 				{
 					label: 'commission',
 				},
+			],
+			[
 				{
 					label: 'total/own/nominator stake',
 				},
-				{
-					label: 'nominator count',
-				},
-				{
-					label: 'reward points',
-				},
+				'nominatorCount',
+				'rewardPoints',
 				{
 					label: 'active status',
 				},

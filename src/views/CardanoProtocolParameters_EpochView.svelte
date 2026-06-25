@@ -10,18 +10,14 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
+		'$network',
 		'epoch',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
+				'$network',
 				'epoch',
 				'source',
 				{
@@ -30,21 +26,21 @@
 				{
 					label: 'min fee coefficients',
 				},
+			],
+			[
 				{
 					label: 'max block/transaction sizes',
 				},
 				{
 					label: 'key/pool deposits',
 				},
-				{
-					label: 'min pool cost',
-				},
-				{
-					label: 'coins per UTXO byte',
-				},
+				'minPoolCost',
+				'coinsPerUtxoByte',
 				{
 					label: 'collateral settings',
 				},
+			],
+			[
 				{
 					label: 'Plutus execution limits',
 				},

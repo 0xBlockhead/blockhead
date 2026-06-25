@@ -70,6 +70,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'asset-holding-rounds',
+			label: 'asset holding rounds',
+			field: '$$assetHoldingRounds',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'application-local-state-rounds',
+			label: 'application local state rounds',
+			field: '$$applicationLocalStateRounds',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

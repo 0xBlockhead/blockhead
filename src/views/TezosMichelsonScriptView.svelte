@@ -10,40 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'script hash',
-		},
-		{
-			label: 'code hash',
-		},
+		'$network',
+		'scriptHash',
+		'codeHash',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'script hash',
-				},
-				{
-					label: 'code hash',
-				},
+				'$network',
+				'scriptHash',
+				'codeHash',
 				{
 					label: 'parameter/storage type availability',
 				},
-				{
-					label: 'TZIP-16 metadata URI',
-				},
-				{
-					label: 'contract count',
-				},
-				{
-					label: 'entrypoint count',
-				},
+				'tzip16MetadataUri',
+				'$$contracts',
+				'$$entrypoints',
 			],
 		],
 	},
@@ -76,9 +58,7 @@
 			{
 				label: 'Types',
 				items: [
-					{
-						label: 'parameter',
-					},
+					'parameterType',
 					{
 						label: 'storage type trees',
 					},
@@ -94,6 +74,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'contracts',
+			label: 'contracts',
+			field: '$$contracts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'entrypoints',
+			label: 'entrypoints',
+			field: '$$entrypoints',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

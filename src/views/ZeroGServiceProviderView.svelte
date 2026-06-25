@@ -10,34 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'provider id',
-		},
-		{
-			label: 'service kind',
-		},
+		'$network',
+		'providerId',
+		'serviceKind',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'provider id',
-				},
-				{
-					label: 'service kind',
-				},
-				{
-					label: 'operator',
-				},
-				{
-					label: 'verification method',
-				},
+				'$network',
+				'providerId',
+				'serviceKind',
+				'$operator',
+				'verificationMethod',
 			],
 		],
 	},
@@ -77,6 +61,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'requests',
+			label: 'requests',
+			field: '$$requests',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

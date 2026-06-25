@@ -10,30 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'output state',
-		},
-		{
-			label: 'observation time',
-		},
+		'$outputState',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'output state',
-				},
-				{
-					label: 'observation time',
-				},
+				'$outputState',
+				'timestampMs',
 				'source',
-				{
-					label: 'spent state',
-				},
-				{
-					label: 'spend transaction id',
-				},
+				'spent',
+				'spendTransactionId',
+			],
+			[
 				{
 					label: 'received height',
 				},
@@ -76,9 +66,7 @@
 			{
 				label: 'Spend context',
 				items: [
-					{
-						label: 'spend transaction id',
-					},
+					'spendTransactionId',
 					{
 						label: 'spent height',
 					},

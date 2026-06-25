@@ -10,30 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'connection id',
-		},
-		{
-			label: 'node id',
-		},
+		'connectionId',
+		'nodeId',
 		'endpoint',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'connection id',
-				},
-				{
-					label: 'node id',
-				},
+				'connectionId',
+				'nodeId',
 				'endpoint',
 				{
 					label: 'latest health/capability observation',
 				},
-				{
-					label: 'message observation count',
-				},
+				'$$messageObservations',
 			],
 		],
 	},
@@ -58,9 +48,7 @@
 			{
 				label: 'Peer identity',
 				items: [
-					{
-						label: 'node id',
-					},
+					'nodeId',
 					{
 						label: 'ENR/multiaddrs from latest observation',
 					},
@@ -84,6 +72,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'message-observations',
+			label: 'message observations',
+			field: '$$messageObservations',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

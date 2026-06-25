@@ -10,33 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
+		'$network',
 		'kind',
-		{
-			label: 'asset key',
-		},
+		'assetKey',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
+				'$network',
 				'kind',
-				{
-					label: 'asset key',
-				},
-				{
-					label: 'coin id',
-				},
+				'assetKey',
+				'coinId',
 				'name',
+			],
+			[
 				'symbol',
 				'decimals',
-				{
-					label: 'icon',
-				},
+				'$icon',
 			],
 		],
 	},
@@ -76,6 +66,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'formats',
+			label: 'formats',
+			field: '$$formats',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

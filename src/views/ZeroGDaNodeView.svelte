@@ -10,31 +10,17 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'node id',
-		},
-		{
-			label: 'quorum',
-		},
+		'$network',
+		'nodeId',
+		'$quorum',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'node id',
-				},
-				{
-					label: 'quorum',
-				},
-				{
-					label: 'operator',
-				},
+				'$network',
+				'nodeId',
+				'$quorum',
+				'$operator',
 				'endpoint',
 			],
 		],

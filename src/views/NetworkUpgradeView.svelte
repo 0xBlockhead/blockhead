@@ -10,30 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'upgrade id',
-		},
+		'$network',
+		'upgradeId',
 		'name',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'upgrade id',
-				},
+				'$network',
+				'upgradeId',
 				'name',
 				{
 					label: 'latest status',
 				},
-				{
-					label: 'specification proposal count',
-				},
+				'$$specificationProposals',
 			],
 		],
 	},
@@ -87,6 +77,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'specification-proposals',
+			label: 'specification proposals',
+			field: '$$specificationProposals',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

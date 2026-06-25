@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'trace',
-		},
+		'$trace',
 		{
 			label: 'observation time/source',
 		},
@@ -21,19 +19,13 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'trace',
-				},
+				'$trace',
 				{
 					label: 'observation time/source',
 				},
 				'status',
-				{
-					label: 'transaction count',
-				},
-				{
-					label: 'message count',
-				},
+				'transactionCount',
+				'messageCount',
 				'error',
 			],
 		],

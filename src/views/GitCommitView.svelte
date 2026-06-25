@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'object id',
-		},
-		{
-			label: 'object format',
-		},
+		'objectId',
+		'objectFormat',
 		{
 			label: 'title/message first line',
 		},
@@ -23,12 +19,8 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'object id',
-				},
-				{
-					label: 'object format',
-				},
+				'objectId',
+				'objectFormat',
 				{
 					label: 'title/message first line',
 				},
@@ -83,6 +75,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'signatures',
+			label: 'signatures',
+			field: '$$signatures',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

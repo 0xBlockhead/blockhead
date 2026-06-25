@@ -10,30 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'wallet id',
-		},
-		{
-			label: 'account index',
-		},
-		{
-			label: 'address index',
-		},
+		'walletId',
+		'accountIndex',
+		'addressIndex',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'wallet id',
-				},
-				{
-					label: 'account index',
-				},
-				{
-					label: 'address index',
-				},
+				'walletId',
+				'accountIndex',
+				'addressIndex',
 				'address',
 				'label',
+			],
+			[
 				{
 					label: 'latest used flag',
 				},
@@ -49,6 +39,8 @@
 				{
 					label: 'latest unlock timing',
 				},
+			],
+			[
 				{
 					label: 'latest sync time',
 				},
@@ -115,6 +107,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

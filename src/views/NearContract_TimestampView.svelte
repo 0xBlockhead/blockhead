@@ -10,39 +10,27 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'contract',
-		},
-		{
-			label: 'observation time',
-		},
+		'$contract',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'contract',
-				},
-				{
-					label: 'observation time',
-				},
+				'$contract',
+				'timestampMs',
 				'source',
 				{
 					label: 'block height/hash',
 				},
-				{
-					label: 'code hash',
-				},
-				{
-					label: 'code size',
-				},
+				'codeHash',
+			],
+			[
+				'codeSizeBytes',
 				{
 					label: 'code byte availability',
 				},
-				{
-					label: 'deployer transaction hash',
-				},
+				'deployerTransactionHash',
 			],
 		],
 	},

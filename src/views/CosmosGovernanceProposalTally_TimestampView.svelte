@@ -10,23 +10,15 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'proposal',
-		},
-		{
-			label: 'observation time',
-		},
+		'$proposal',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'proposal',
-				},
-				{
-					label: 'observation time',
-				},
+				'$proposal',
+				'timestampMs',
 				'source',
 				{
 					label: 'yes/abstain/no/no-with-veto counts',

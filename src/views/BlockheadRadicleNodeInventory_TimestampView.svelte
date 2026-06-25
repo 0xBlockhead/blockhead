@@ -10,37 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'node',
-		},
-		{
-			label: 'timestamp',
-		},
+		'$node',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'node',
-				},
-				{
-					label: 'timestamp',
-				},
+				'$node',
+				'timestampMs',
 				'source',
 				'status',
-				{
-					label: 'repository count',
-				},
-				{
-					label: 'connected peer count',
-				},
-				{
-					label: 'routing table size',
-				},
-				{
-					label: 'advertised RID count',
-				},
+				'repositoryCount',
+			],
+			[
+				'connectedPeerCount',
+				'routingTableSize',
+				'advertisedRids',
 			],
 		],
 	},

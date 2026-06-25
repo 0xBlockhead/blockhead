@@ -10,45 +10,31 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'repo DID',
-		},
+		'repoDid',
 		'rev',
-		{
-			label: 'commit CID',
-		},
+		'commitCid',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'repo DID',
-				},
+				'repoDid',
 				'rev',
-				{
-					label: 'commit CID',
-				},
-				{
-					label: 'previous rev',
-				},
-				{
-					label: 'data CID',
-				},
+				'commitCid',
+				'previousRev',
+				'dataCid',
+			],
+			[
 				'sequence',
 				'source',
 				{
 					label: 'host',
 				},
 				'time',
-				{
-					label: 'operation count',
-				},
-				{
-					label: 'blob count',
-				},
-				{
-					label: 'CAR byte length',
-				},
+				'operationCount',
+			],
+			[
+				'blobCount',
+				'carByteLength',
 				{
 					label: 'too-big/rebase flags',
 				},
@@ -103,6 +89,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'posts',
+			label: 'posts',
+			field: '$$posts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

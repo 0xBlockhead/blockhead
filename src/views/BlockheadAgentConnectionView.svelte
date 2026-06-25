@@ -10,39 +10,21 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'connection id',
-		},
-		{
-			label: 'profile',
-		},
-		{
-			label: 'kind',
-		},
+		'connectionId',
+		'$profile',
+		'authKind',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'connection id',
-				},
-				{
-					label: 'profile',
-				},
-				{
-					label: 'source',
-				},
-				{
-					label: 'kind',
-				},
+				'connectionId',
+				'$profile',
+				'$source',
+				'authKind',
 			],
 			[
-				{
-					label: 'endpoint URL',
-				},
-				{
-					label: 'auth kind',
-				},
+				'endpointUrl',
+				'authKind',
 				'enabled',
 				{
 					label: 'latest health',
@@ -78,6 +60,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

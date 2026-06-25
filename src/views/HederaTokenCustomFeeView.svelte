@@ -10,34 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'token timestamp',
-		},
-		{
-			label: 'fee index',
-		},
-		{
-			label: 'fee kind',
-		},
+		'$tokenTimestamp',
+		'feeIndex',
+		'feeKind',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'token timestamp',
-				},
-				{
-					label: 'fee index',
-				},
-				{
-					label: 'fee kind',
-				},
-				{
-					label: 'collector',
-				},
-				{
-					label: 'denominating token',
-				},
+				'$tokenTimestamp',
+				'feeIndex',
+				'feeKind',
+				'$collector',
+				'$denominatingToken',
+			],
+			[
 				{
 					label: 'fixed amount',
 				},
@@ -47,9 +33,7 @@
 				{
 					label: 'min/max amounts',
 				},
-				{
-					label: 'net-of-transfers flag',
-				},
+				'netOfTransfers',
 				{
 					label: 'collector exemption flag',
 				},

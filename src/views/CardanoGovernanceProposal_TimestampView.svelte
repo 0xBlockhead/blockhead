@@ -10,22 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'proposal',
-		},
+		'$proposal',
 		'epoch',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'proposal',
-				},
+				'$proposal',
 				'epoch',
 				'source',
 				'slot',
 				'status',
+			],
+			[
 				{
 					label: 'ratified/enacted/expired/dropped epochs',
 				},

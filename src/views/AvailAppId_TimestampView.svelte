@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'app id',
-		},
-		{
-			label: 'observation time',
-		},
+		'$appId',
+		'timestampMs',
 		{
 			label: 'submission count',
 		},
@@ -23,22 +19,12 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'app id',
-				},
-				{
-					label: 'observation time',
-				},
+				'$appId',
+				'timestampMs',
 				'source',
-				{
-					label: 'block number',
-				},
-				{
-					label: 'data submission count',
-				},
-				{
-					label: 'source-window submission count',
-				},
+				'blockNumber',
+				'dataSubmissionCount',
+				'sourceWindowSubmissionCount',
 			],
 		],
 	},
@@ -47,9 +33,7 @@
 			{
 				label: 'App id',
 				items: [
-					{
-						label: 'parent app id',
-					},
+					'$appId',
 				],
 			},
 			{

@@ -10,38 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'pack hash',
-		},
-		{
-			label: 'object id',
-		},
-		{
-			label: 'object format',
-		},
+		'packHash',
+		'objectId',
+		'objectFormat',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'pack hash',
-				},
-				{
-					label: 'object id',
-				},
-				{
-					label: 'object format',
-				},
-				{
-					label: 'stored kind',
-				},
+				'packHash',
+				'objectId',
+				'objectFormat',
+				'storedKind',
 				'offset',
-				{
-					label: 'delta base object id',
-				},
-				{
-					label: 'packfile',
-				},
+			],
+			[
+				'deltaBaseObjectId',
+				'$packfile',
 				{
 					label: 'parsed object',
 				},

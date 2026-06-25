@@ -22,6 +22,8 @@
 				'standard',
 				'format',
 				'tokenUri',
+			],
+			[
 				'name',
 				'description',
 				'image',
@@ -33,6 +35,8 @@
 				'agentUri',
 				'contactEndpoint',
 				'$agentWallet',
+			],
+			[
 				'x402Support',
 				'active',
 				'supportedTrust',

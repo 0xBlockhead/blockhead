@@ -10,43 +10,27 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'repository',
-		},
-		{
-			label: 'remote name',
-		},
+		'$repository',
+		'remoteName',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'repository',
-				},
-				{
-					label: 'remote name',
-				},
+				'$repository',
+				'remoteName',
 				'source',
-				{
-					label: 'timestamp',
-				},
+				'timestampMs',
 				'status',
-				{
-					label: 'protocol version',
-				},
-				{
-					label: 'advertised ref count',
-				},
-				{
-					label: 'wanted object count',
-				},
-				{
-					label: 'received object count',
-				},
-				{
-					label: 'packfile hash',
-				},
+			],
+			[
+				'protocolVersion',
+				'advertisedRefs',
+				'wantedObjects',
+				'receivedObjects',
+				'packfileHash',
+			],
+			[
 				'error',
 			],
 		],

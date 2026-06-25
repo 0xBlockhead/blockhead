@@ -10,35 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'subnet',
-		},
-		{
-			label: 'range start',
-		},
-		{
-			label: 'range end',
-		},
+		'$subnet',
+		'rangeStart',
+		'rangeEnd',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'subnet',
-				},
-				{
-					label: 'range start',
-				},
-				{
-					label: 'range end',
-				},
-				{
-					label: 'registry version',
-				},
+				'$subnet',
+				'rangeStart',
+				'rangeEnd',
+				'registryVersion',
 				'source',
-				{
-					label: 'observed time',
-				},
+				'timestampMs',
 			],
 		],
 	},

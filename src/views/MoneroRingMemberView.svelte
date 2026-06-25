@@ -10,34 +10,24 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'ring',
-		},
-		{
-			label: 'member index',
-		},
-		{
-			label: 'global output index',
-		},
+		'$ring',
+		'memberIndex',
+		'globalOutputIndex',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'ring',
-				},
-				{
-					label: 'member index',
-				},
-				{
-					label: 'global output index',
-				},
+				'$ring',
+				'memberIndex',
+				'globalOutputIndex',
 				{
 					label: 'transaction hash',
 				},
 				{
 					label: 'output index',
 				},
+			],
+			[
 				{
 					label: 'public key',
 				},
@@ -74,9 +64,7 @@
 			{
 				label: 'Decoy context',
 				items: [
-					{
-						label: 'global output index',
-					},
+					'globalOutputIndex',
 					{
 						label: 'get_outs/source payload',
 					},

@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'parent network',
-		},
+		'$network',
 		{
 			label: 'latest head snapshot',
 		},
@@ -23,9 +21,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'parent network',
-				},
+				'$network',
 				{
 					label: 'latest head snapshot',
 				},
@@ -35,9 +31,7 @@
 				{
 					label: 'native asset count',
 				},
-				{
-					label: 'RPC endpoint count',
-				},
+				'rpcEndpoints',
 			],
 		],
 	},
@@ -46,9 +40,7 @@
 			{
 				label: 'Monero',
 				items: [
-					{
-						label: 'Blocks',
-					},
+					'$$blocks',
 					{
 						label: 'Network snapshots',
 					},
@@ -86,6 +78,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'blocks',
+			label: 'blocks',
+			field: '$$blocks',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

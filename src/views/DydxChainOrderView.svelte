@@ -10,41 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'subaccount',
-		},
-		{
-			label: 'order id',
-		},
-		{
-			label: 'market',
-		},
+		'$subaccount',
+		'orderId',
+		'$market',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'subaccount',
-				},
-				{
-					label: 'order id',
-				},
-				{
-					label: 'market',
-				},
+				'$subaccount',
+				'orderId',
+				'$market',
 				'side',
-				{
-					label: 'order type',
-				},
-				{
-					label: 'time in force',
-				},
-				{
-					label: 'client id',
-				},
-				{
-					label: 'good-til block/time',
-				},
+				'orderType',
+			],
+			[
+				'timeInForce',
+				'clientId',
+				'goodTilBlockTimeMs',
 				{
 					label: 'latest status/fill summary',
 				},
@@ -90,6 +72,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

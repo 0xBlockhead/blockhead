@@ -20,9 +20,7 @@
 				'name',
 				'status',
 				'protocol',
-				{
-					label: 'author id',
-				},
+				'authorId',
 				{
 					label: 'created/updated/locked timestamps',
 				},

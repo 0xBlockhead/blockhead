@@ -10,34 +10,24 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'lightning network',
-		},
+		'$lightningNetwork',
 		{
 			label: 'timestamp/source',
 		},
-		{
-			label: 'node count',
-		},
+		'nodeCount',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'lightning network',
-				},
+				'$lightningNetwork',
 				{
 					label: 'timestamp/source',
 				},
-				{
-					label: 'node count',
-				},
-				{
-					label: 'channel count',
-				},
-				{
-					label: 'total capacity',
-				},
+				'nodeCount',
+				'channelCount',
+				'totalCapacitySats',
+			],
+			[
 				{
 					label: 'Tor/clearnet/unannounced counts',
 				},
@@ -55,9 +45,7 @@
 			{
 				label: 'Network',
 				items: [
-					{
-						label: 'parent Lightning network',
-					},
+					'$lightningNetwork',
 				],
 			},
 			{

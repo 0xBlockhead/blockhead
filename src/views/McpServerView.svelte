@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'server key',
-		},
-		{
-			label: 'transport',
-		},
+		'serverKey',
+		'transportKind',
 		{
 			label: 'endpoint',
 		},
@@ -23,23 +19,13 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'server key',
-				},
-				{
-					label: 'source',
-				},
-				{
-					label: 'package version',
-				},
-				{
-					label: 'transport kind',
-				},
+				'serverKey',
+				'$source',
+				'$packageVersion',
+				'transportKind',
 			],
 			[
-				{
-					label: 'endpoint URL',
-				},
+				'endpointUrl',
 				{
 					label: 'tool/resource/template/prompt refs',
 				},
@@ -101,6 +87,53 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'tools',
+			label: 'tools',
+			field: '$$tools',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'resources',
+			label: 'resources',
+			field: '$$resources',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'resource-templates',
+			label: 'resource templates',
+			field: '$$resourceTemplates',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'prompts',
+			label: 'prompts',
+			field: '$$prompts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

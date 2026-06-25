@@ -10,33 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'table item',
-		},
-		{
-			label: 'ledger version',
-		},
+		'$tableItem',
+		'ledgerVersion',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'table item',
-				},
-				{
-					label: 'ledger version',
-				},
+				'$tableItem',
+				'ledgerVersion',
 				'source',
-				{
-					label: 'observation time',
-				},
-				{
-					label: 'value hash',
-				},
-				{
-					label: 'pruned state',
-				},
+				'timestampMs',
+				'valueHash',
+				'pruned',
 				{
 					label: 'value summary',
 				},

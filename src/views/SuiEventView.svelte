@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'event type',
-		},
+		'eventType',
 		{
 			label: 'package/module',
 		},
@@ -21,19 +19,13 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'event type',
-				},
+				'eventType',
 				{
 					label: 'package/module',
 				},
 				'sender',
-				{
-					label: 'transaction digest',
-				},
-				{
-					label: 'event index',
-				},
+				'transactionDigest',
+				'eventIndex',
 				{
 					label: 'value payload',
 				},
@@ -53,21 +45,15 @@
 			{
 				label: 'Emitter',
 				items: [
-					{
-						label: 'package id',
-					},
-					{
-						label: 'module name',
-					},
+					'packageId',
+					'moduleName',
 					'sender',
 				],
 			},
 			{
 				label: 'Event payload',
 				items: [
-					{
-						label: 'event type',
-					},
+					'eventType',
 					{
 						label: 'value JSON',
 					},

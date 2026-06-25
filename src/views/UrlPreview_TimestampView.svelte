@@ -10,35 +10,25 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'URL',
-		},
-		{
-			label: 'timestamp',
-		},
+		'$url',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'URL',
-				},
-				{
-					label: 'timestamp',
-				},
+				'$url',
+				'timestampMs',
 				'source',
 				{
 					label: 'status',
 				},
 				'title',
-				{
-					label: 'site name',
-				},
+			],
+			[
+				'siteName',
 				'description',
-				{
-					label: 'image URL',
-				},
+				'imageUrl',
 			],
 		],
 	},
@@ -56,9 +46,7 @@
 				label: 'Preview',
 				items: [
 					'title',
-					{
-						label: 'site name',
-					},
+					'siteName',
 					'description',
 					{
 						label: 'status',

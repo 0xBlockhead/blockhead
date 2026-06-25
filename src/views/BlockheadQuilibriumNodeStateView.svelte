@@ -10,33 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'connection id',
-		},
-		{
-			label: 'network',
-		},
+		'connectionId',
+		'$network',
 		'endpoint',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'connection id',
-				},
-				{
-					label: 'network',
-				},
+				'connectionId',
+				'$network',
 				'endpoint',
 				{
 					label: 'gRPC/REST ports',
 				},
-				{
-					label: 'peer id',
-				},
-				{
-					label: 'latest frame',
-				},
+				'peerId',
+			],
+			[
+				'$$frames',
 				{
 					label: 'latest engine state',
 				},
@@ -78,9 +68,7 @@
 			{
 				label: 'Network',
 				items: [
-					{
-						label: 'parent network',
-					},
+					'$network',
 				],
 			},
 			{
@@ -94,6 +82,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'frames',
+			label: 'frames',
+			field: '$$frames',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'provers',
+			label: 'provers',
+			field: '$$provers',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

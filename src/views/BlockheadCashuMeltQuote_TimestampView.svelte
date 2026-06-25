@@ -10,34 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'melt quote',
-		},
-		{
-			label: 'observation time',
-		},
+		'$meltQuote',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'melt quote',
-				},
-				{
-					label: 'observation time',
-				},
+				'$meltQuote',
+				'timestampMs',
 				'source',
 				'state',
-				{
-					label: 'expiry',
-				},
+				'expiryMs',
 				{
 					label: 'payment preimage status',
 				},
-				{
-					label: 'subscription id',
-				},
+				'subscriptionId',
 			],
 		],
 	},

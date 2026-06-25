@@ -10,32 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'task',
-		},
-		{
-			label: 'message id',
-		},
+		'$task',
+		'messageId',
 		'role',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'task',
-				},
-				{
-					label: 'message id',
-				},
+				'$task',
+				'messageId',
 				'role',
-				{
-					label: 'context id',
-				},
+				'contextId',
 			],
 			[
-				{
-					label: 'created at',
-				},
+				'createdAt',
 				{
 					label: 'part refs',
 				},
@@ -62,6 +50,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'parts',
+			label: 'parts',
+			field: '$$parts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

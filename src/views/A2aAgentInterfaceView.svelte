@@ -10,38 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'card snapshot',
-		},
-		{
-			label: 'protocol binding',
-		},
+		'$cardSnapshot',
+		'protocolBinding',
 		'url',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'card snapshot',
-				},
-				{
-					label: 'protocol binding',
-				},
+				'$cardSnapshot',
+				'protocolBinding',
 				'url',
 			],
 			[
-				{
-					label: 'protocol version',
-				},
-				{
-					label: 'transport kind',
-				},
-				{
-					label: 'media type',
-				},
-				{
-					label: 'service parameters',
-				},
+				'protocolVersion',
+				'transportKind',
+				'mediaType',
+				'serviceParameters',
 			],
 		],
 	},
@@ -59,12 +43,8 @@
 				label: 'Transport',
 				items: [
 					'url',
-					{
-						label: 'protocol binding',
-					},
-					{
-						label: 'protocol version',
-					},
+					'protocolBinding',
+					'protocolVersion',
 				],
 			},
 		],

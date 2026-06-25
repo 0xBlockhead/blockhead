@@ -10,32 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account',
-		},
-		{
-			label: 'asset',
-		},
-		{
-			label: 'timestamp',
-		},
+		'$account',
+		'$asset',
+		'timestampMs',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'account',
-				},
-				{
-					label: 'asset',
-				},
-				{
-					label: 'timestamp',
-				},
+				'$account',
+				'$asset',
+				'timestampMs',
 				'source',
 				{
 					label: 'block number/hash',
 				},
+			],
+			[
 				{
 					label: 'free/reserved/frozen/transferable/locked balances',
 				},

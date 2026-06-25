@@ -10,34 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'transaction',
-		},
-		{
-			label: 'output index',
-		},
-		{
-			label: 'value',
-		},
+		'$transaction',
+		'outputIndex',
+		'valueSats',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'transaction',
-				},
-				{
-					label: 'output index',
-				},
-				{
-					label: 'value',
-				},
-				{
-					label: 'address',
-				},
-				{
-					label: 'script pubkey type',
-				},
+				'$transaction',
+				'outputIndex',
+				'valueSats',
+				'$address',
+				'scriptPubKeyType',
 				{
 					label: 'spent state',
 				},
@@ -74,12 +58,8 @@
 					{
 						label: 'asset/value/nonce commitments',
 					},
-					{
-						label: 'surjection proof',
-					},
-					{
-						label: 'range proof',
-					},
+					'surjectionProof',
+					'rangeProof',
 					{
 						label: 'confidential flag',
 					},
@@ -99,9 +79,7 @@
 			{
 				label: 'Transaction',
 				items: [
-					{
-						label: 'parent transaction',
-					},
+					'$transaction',
 				],
 			},
 		],

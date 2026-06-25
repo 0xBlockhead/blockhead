@@ -27,6 +27,8 @@
 				'sourceWindowPostCount',
 				'sourceWindowUsernameNamespaceCount',
 				'localCatalogAccountCount',
+			],
+			[
 				'localCatalogFeedCount',
 				'localCatalogPostCount',
 				'reachable',

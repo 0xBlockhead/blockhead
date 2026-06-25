@@ -10,23 +10,15 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'observation time',
-		},
+		'$network',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'observation time',
-				},
+				'$network',
+				'timestampMs',
 				'source',
 				{
 					label: 'finalized block number/hash',
@@ -34,21 +26,17 @@
 				{
 					label: 'runtime spec/impl versions',
 				},
-				{
-					label: 'peer count',
-				},
+			],
+			[
+				'peerCount',
 				{
 					label: 'sync flags',
 				},
-				{
-					label: 'subnet count',
-				},
-				{
-					label: 'SubnetsInfo byte length',
-				},
-				{
-					label: 'DynamicInfo byte length',
-				},
+				'subnetCount',
+				'subnetsInfoByteLength',
+				'dynamicInfoByteLength',
+			],
+			[
 				{
 					label: 'metagraph byte length',
 				},
@@ -60,9 +48,7 @@
 			{
 				label: 'Network',
 				items: [
-					{
-						label: 'Network',
-					},
+					'$network',
 				],
 			},
 			{
@@ -79,9 +65,7 @@
 			{
 				label: 'Node health',
 				items: [
-					{
-						label: 'peer count',
-					},
+					'peerCount',
 					{
 						label: 'sync flags',
 					},
@@ -90,9 +74,7 @@
 			{
 				label: 'Subnet payloads',
 				items: [
-					{
-						label: 'subnet count',
-					},
+					'subnetCount',
 					{
 						label: 'SubnetsInfo/DynamicInfo/metagraph byte lengths',
 					},

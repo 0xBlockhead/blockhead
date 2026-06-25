@@ -10,23 +10,15 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'paymaster',
-		},
-		{
-			label: 'observation time',
-		},
+		'$paymaster',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'paymaster',
-				},
-				{
-					label: 'observation time',
-				},
+				'$paymaster',
+				'timestampMs',
 				'source',
 				{
 					label: 'indexed sponsored user-operation count',

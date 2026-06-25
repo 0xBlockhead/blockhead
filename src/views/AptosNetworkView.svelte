@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'linked Network',
-		},
+		'$network',
 		{
 			label: 'latest ledger version/block/chain id snapshot',
 		},
@@ -23,9 +21,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'linked Network',
-				},
+				'$network',
 				{
 					label: 'latest ledger version/block/chain id snapshot',
 				},
@@ -35,15 +31,9 @@
 				{
 					label: 'execution environment',
 				},
-				{
-					label: 'account count',
-				},
-				{
-					label: 'module count',
-				},
-				{
-					label: 'transaction count',
-				},
+				'$$accounts',
+				'$$modules',
+				'$$transactions',
 			],
 		],
 	},
@@ -107,6 +97,71 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'blocks',
+			label: 'blocks',
+			field: '$$blocks',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'transactions',
+			label: 'transactions',
+			field: '$$transactions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'accounts',
+			label: 'accounts',
+			field: '$$accounts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'modules',
+			label: 'modules',
+			field: '$$modules',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'events',
+			label: 'events',
+			field: '$$events',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'coin-balance-timestamps',
+			label: 'coin balance timestamps',
+			field: '$$coinBalanceTimestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

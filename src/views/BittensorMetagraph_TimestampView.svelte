@@ -10,30 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'subnet',
-		},
-		{
-			label: 'observation time',
-		},
+		'$subnet',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'subnet',
-				},
-				{
-					label: 'observation time',
-				},
+				'$subnet',
+				'timestampMs',
 				'source',
-				{
-					label: 'metagraph byte length',
-				},
-				{
-					label: 'neuron count',
-				},
+				'metagraphByteLength',
+				'neuronCount',
 			],
 		],
 	},
@@ -42,9 +30,7 @@
 			{
 				label: 'Subnet',
 				items: [
-					{
-						label: 'parent subnet',
-					},
+					'$subnet',
 				],
 			},
 			{

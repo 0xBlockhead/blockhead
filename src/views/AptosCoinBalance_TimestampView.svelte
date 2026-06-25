@@ -10,32 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account',
-		},
-		{
-			label: 'asset type',
-		},
-		{
-			label: 'ledger version',
-		},
+		'$account',
+		'assetType',
+		'ledgerVersion',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'account',
-				},
-				{
-					label: 'asset type',
-				},
-				{
-					label: 'ledger version',
-				},
+				'$account',
+				'assetType',
+				'ledgerVersion',
 				'source',
-				{
-					label: 'observation time',
-				},
+				'timestampMs',
 				'amount',
 				{
 					label: 'coin type when resolved',

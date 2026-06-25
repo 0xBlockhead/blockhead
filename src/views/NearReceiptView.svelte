@@ -10,28 +10,16 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'receipt id',
-		},
-		{
-			label: 'predecessor account',
-		},
-		{
-			label: 'receiver account',
-		},
+		'receiptId',
+		'$predecessor',
+		'$receiver',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'receipt id',
-				},
-				{
-					label: 'predecessor account',
-				},
-				{
-					label: 'receiver account',
-				},
+				'receiptId',
+				'$predecessor',
+				'$receiver',
 				{
 					label: 'linked outcome when available',
 				},

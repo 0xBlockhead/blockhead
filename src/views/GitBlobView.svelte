@@ -10,34 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'object id',
-		},
-		{
-			label: 'object format',
-		},
-		{
-			label: 'object link',
-		},
+		'objectId',
+		'objectFormat',
+		'$object',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'object id',
-				},
-				{
-					label: 'object format',
-				},
-				{
-					label: 'object link',
-				},
-				{
-					label: 'byte size',
-				},
-				{
-					label: 'MIME',
-				},
+				'objectId',
+				'objectFormat',
+				'$object',
+				'byteSize',
+				'mime',
 				{
 					label: 'text sample when safe',
 				},
@@ -72,6 +56,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'paths',
+			label: 'paths',
+			field: '$$paths',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

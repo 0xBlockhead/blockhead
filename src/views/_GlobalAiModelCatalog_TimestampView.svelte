@@ -10,24 +10,16 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'catalog',
-		},
-		{
-			label: 'observation time',
-		},
+		'$catalog',
+		'timestampMs',
 		'source',
 		'status',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'catalog',
-				},
-				{
-					label: 'timestamp',
-				},
+				'$catalog',
+				'timestampMs',
 				'source',
 				'status',
 				'error',
@@ -36,9 +28,7 @@
 				{
 					label: 'source-reported/local provider/model/dataset/benchmark/eval counts',
 				},
-				{
-					label: 'search result count',
-				},
+				'searchResultCount',
 				{
 					label: 'cursor',
 				},

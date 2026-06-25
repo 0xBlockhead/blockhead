@@ -10,23 +10,17 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'authentication id',
-		},
+		'authenticationId',
 		'protocol',
 		'verified',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'authentication id',
-				},
+				'authenticationId',
 				'protocol',
 				'domain',
-				{
-					label: 'URI',
-				},
+				'uri',
 				{
 					label: 'chain/account',
 				},
@@ -42,9 +36,7 @@
 					label: 'signature presence',
 				},
 				'verified',
-				{
-					label: 'verified at',
-				},
+				'verifiedAt',
 				'error',
 			],
 		],

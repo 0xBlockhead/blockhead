@@ -10,26 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'box',
-		},
+		'$box',
 		'round',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'box',
-				},
+				'$box',
 				'round',
 				'source',
-				{
-					label: 'value hash',
-				},
-				{
-					label: 'deleted state',
-				},
+				'valueHash',
+				'deleted',
 				{
 					label: 'raw value availability',
 				},

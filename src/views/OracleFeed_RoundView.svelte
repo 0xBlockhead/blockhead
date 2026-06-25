@@ -10,41 +10,25 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'oracle feed',
-		},
-		{
-			label: 'round id',
-		},
+		'$oracleFeed',
+		'roundId',
 		'answer',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'oracle feed',
-				},
-				{
-					label: 'round id',
-				},
+				'$oracleFeed',
+				'roundId',
 				'answer',
 				'startedAtMs',
 				'updatedAtMs',
 				'answeredInRound',
-				{
-					label: 'network',
-				},
+				'$network',
 			],
 			[
-				{
-					label: 'block number',
-				},
-				{
-					label: 'transaction hash',
-				},
-				{
-					label: 'log index',
-				},
+				'blockNumber',
+				'transactionHash',
+				'logIndex',
 				{
 					label: 'parent feed market mapping',
 				},
@@ -56,9 +40,7 @@
 			{
 				label: 'Feed',
 				items: [
-					{
-						label: 'parent oracle feed',
-					},
+					'$parentOracleFeed',
 				],
 			},
 			{

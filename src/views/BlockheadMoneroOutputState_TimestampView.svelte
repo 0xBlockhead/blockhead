@@ -10,34 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'output state',
-		},
-		{
-			label: 'observation time',
-		},
+		'$outputState',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'output state',
-				},
-				{
-					label: 'observation time',
-				},
+				'$outputState',
+				'timestampMs',
 				'source',
-				{
-					label: 'spent state',
-				},
-				{
-					label: 'unlocked state',
-				},
+				'spent',
+				'unlocked',
+			],
+			[
 				'confirmations',
-				{
-					label: 'export height',
-				},
+				'exportHeight',
 				{
 					label: 'last checked time',
 				},

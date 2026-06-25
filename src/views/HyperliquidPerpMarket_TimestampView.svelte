@@ -10,27 +10,17 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'perp market',
-		},
-		{
-			label: 'observation time',
-		},
+		'$perpMarket',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'perp market',
-				},
-				{
-					label: 'observation time',
-				},
+				'$perpMarket',
+				'timestampMs',
 				'source',
-				{
-					label: 'max leverage',
-				},
+				'maxLeverage',
 				{
 					label: 'isolated-only flag',
 				},
@@ -42,9 +32,7 @@
 			{
 				label: 'Perp market',
 				items: [
-					{
-						label: 'parent perp market',
-					},
+					'$perpMarket',
 				],
 			},
 			{

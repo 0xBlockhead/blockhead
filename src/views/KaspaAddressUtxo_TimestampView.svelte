@@ -10,43 +10,29 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'address',
-		},
-		{
-			label: 'outpoint transaction id',
-		},
-		{
-			label: 'outpoint index',
-		},
+		'$address',
+		'outpointTransactionId',
+		'outpointIndex',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'address',
-				},
-				{
-					label: 'outpoint transaction id',
-				},
-				{
-					label: 'outpoint index',
-				},
+				'$address',
+				'outpointTransactionId',
+				'outpointIndex',
 				{
 					label: 'observed time/source',
 				},
 				{
 					label: 'amount',
 				},
-				{
-					label: 'block DAA score',
-				},
+			],
+			[
+				'blockDaaScore',
 				{
 					label: 'coinbase flag',
 				},
-				{
-					label: 'output ref',
-				},
+				'$output',
 				{
 					label: 'spending transaction when known',
 				},

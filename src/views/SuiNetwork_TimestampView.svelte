@@ -28,9 +28,7 @@
 					label: 'latest checkpoint sequence/digest',
 				},
 				'epoch',
-				{
-					label: 'protocol version',
-				},
+				'protocolVersion',
 				{
 					label: 'transaction count',
 				},
@@ -62,12 +60,8 @@
 			{
 				label: 'Protocol/activity',
 				items: [
-					{
-						label: 'protocol version',
-					},
-					{
-						label: 'total transaction count',
-					},
+					'protocolVersion',
+					'totalTransactionCount',
 				],
 			},
 			{

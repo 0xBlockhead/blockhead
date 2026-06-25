@@ -10,33 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'latest round',
-		},
-		{
-			label: 'protocol version',
-		},
-		{
-			label: 'genesis hash',
-		},
+		'latestRound',
+		'protocolVersion',
+		'genesisHash',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'latest round',
-				},
-				{
-					label: 'protocol version',
-				},
-				{
-					label: 'genesis hash',
-				},
+				'latestRound',
+				'protocolVersion',
+				'genesisHash',
 				'catchpoint',
 				'source',
-				{
-					label: 'observation time',
-				},
+				'timestampMs',
 			],
 		],
 	},
@@ -53,21 +39,15 @@
 			{
 				label: 'Node status',
 				items: [
-					{
-						label: 'latest round',
-					},
+					'latestRound',
 					'catchpoint',
-					{
-						label: 'protocol version',
-					},
+					'protocolVersion',
 				],
 			},
 			{
 				label: 'Genesis',
 				items: [
-					{
-						label: 'genesis hash',
-					},
+					'genesisHash',
 				],
 			},
 			{

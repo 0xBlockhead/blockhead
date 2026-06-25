@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'transaction',
-		},
+		'$transaction',
 		'result',
 		{
 			label: 'fee',
@@ -21,37 +19,29 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'transaction',
-				},
+				'$transaction',
 				'result',
 				{
 					label: 'fee',
 				},
-				{
-					label: 'contract address',
-				},
-				{
-					label: 'energy usage',
-				},
+				'contractAddress',
+				'energyUsage',
+			],
+			[
 				{
 					label: 'total energy',
 				},
 				{
 					label: 'energy fee',
 				},
-				{
-					label: 'net usage',
-				},
+				'netUsage',
 				{
 					label: 'net fee',
 				},
-				{
-					label: 'log count',
-				},
-				{
-					label: 'internal transaction count',
-				},
+				'logCount',
+			],
+			[
+				'internalTransactionCount',
 				{
 					label: 'result-message status',
 				},
@@ -63,9 +53,7 @@
 			{
 				label: 'Transaction',
 				items: [
-					{
-						label: 'parent transaction',
-					},
+					'$transaction',
 				],
 			},
 			{

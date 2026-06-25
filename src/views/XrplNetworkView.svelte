@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'linked Network',
-		},
+		'$network',
 		{
 			label: 'latest validated ledger/range snapshot',
 		},
@@ -23,9 +21,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'linked Network',
-				},
+				'$network',
 				{
 					label: 'latest validated ledger/range snapshot',
 				},
@@ -101,6 +97,71 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'ledgers',
+			label: 'ledgers',
+			field: '$$ledgers',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'transactions',
+			label: 'transactions',
+			field: '$$transactions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'accounts',
+			label: 'accounts',
+			field: '$$accounts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'ledger-entries',
+			label: 'ledger entries',
+			field: '$$ledgerEntries',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'amendments',
+			label: 'amendments',
+			field: '$$amendments',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'amms',
+			label: 'amms',
+			field: '$$amms',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

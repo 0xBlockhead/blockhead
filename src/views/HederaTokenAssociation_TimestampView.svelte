@@ -10,34 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'association',
-		},
-		{
-			label: 'observed time',
-		},
+		'$association',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'association',
-				},
-				{
-					label: 'observed time',
-				},
+				'$association',
+				'timestampMs',
 				'source',
-				{
-					label: 'association status',
-				},
+				'associationStatus',
 				'balance',
-				{
-					label: 'KYC status',
-				},
-				{
-					label: 'freeze status',
-				},
+				'kycStatus',
+				'freezeStatus',
 			],
 		],
 	},

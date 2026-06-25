@@ -10,33 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'ref',
-		},
-		{
-			label: 'timestamp',
-		},
+		'$ref',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'ref',
-				},
-				{
-					label: 'timestamp',
-				},
+				'$ref',
+				'timestampMs',
 				'source',
-				{
-					label: 'target object id',
-				},
-				{
-					label: 'peeled object id',
-				},
-				{
-					label: 'advertised flag',
-				},
+				'targetObjectId',
+				'peeledObjectId',
+				'advertised',
 				{
 					label: 'protection JSON',
 				},

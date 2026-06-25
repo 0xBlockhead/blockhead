@@ -10,39 +10,29 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'transaction',
-		},
-		{
-			label: 'phase kind',
-		},
+		'$transaction',
+		'phaseKind',
 		'success',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'transaction',
-				},
-				{
-					label: 'phase kind',
-				},
+				'$transaction',
+				'phaseKind',
 				'success',
 				{
 					label: 'exit/action code',
 				},
-				{
-					label: 'gas used',
-				},
+				'gasUsed',
+			],
+			[
 				{
 					label: 'gas fees',
 				},
 				{
 					label: 'storage fees',
 				},
-				{
-					label: 'skipped reason',
-				},
+				'skippedReason',
 			],
 		],
 	},
@@ -51,9 +41,7 @@
 			{
 				label: 'Transaction',
 				items: [
-					{
-						label: 'parent transaction',
-					},
+					'$transaction',
 				],
 			},
 			{

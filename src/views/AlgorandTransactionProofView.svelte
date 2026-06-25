@@ -10,34 +10,26 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'transaction',
-		},
+		'$transaction',
 		'round',
-		{
-			label: 'hash type',
-		},
+		'hashType',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'transaction',
-				},
+				'$transaction',
 				'round',
-				{
-					label: 'hash type',
-				},
+				'hashType',
 				'source',
 				{
 					label: 'proof byte availability',
 				},
+			],
+			[
 				{
 					label: 'state-proof hash',
 				},
-				{
-					label: 'tree depth',
-				},
+				'treeDepth',
 				{
 					label: 'path summary',
 				},
@@ -49,9 +41,7 @@
 			{
 				label: 'Transaction',
 				items: [
-					{
-						label: 'parent transaction',
-					},
+					'$transaction',
 				],
 			},
 			{

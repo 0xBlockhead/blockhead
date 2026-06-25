@@ -10,31 +10,17 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'block',
-		},
-		{
-			label: 'event index',
-		},
-		{
-			label: 'pallet',
-		},
+		'$block',
+		'eventIndex',
+		'$pallet',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'block',
-				},
-				{
-					label: 'event index',
-				},
-				{
-					label: 'pallet',
-				},
-				{
-					label: 'event name',
-				},
+				'$block',
+				'eventIndex',
+				'$pallet',
+				'eventName',
 				{
 					label: 'linked extrinsic when present',
 				},

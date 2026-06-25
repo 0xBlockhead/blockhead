@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'registration',
-		},
+		'$registration',
 		{
 			label: 'content hash/artifact',
 		},
@@ -21,29 +19,19 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'registration',
-				},
+				'$registration',
 				{
 					label: 'content hash algorithm/hash',
 				},
-				{
-					label: 'artifact',
-				},
-				{
-					label: 'fetched at',
-				},
+				'$artifact',
+				'fetchedAt',
 			],
 			[
 				'type',
 				'name',
 				'active',
-				{
-					label: 'x402 support',
-				},
-				{
-					label: 'supported trust',
-				},
+				'x402Support',
+				'supportedTrust',
 				{
 					label: 'endpoint/cross-registration/document refs',
 				},
@@ -86,6 +74,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'service-endpoints',
+			label: 'service endpoints',
+			field: '$$serviceEndpoints',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'cross-registrations',
+			label: 'cross registrations',
+			field: '$$crossRegistrations',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'documents',
+			label: 'documents',
+			field: '$$documents',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

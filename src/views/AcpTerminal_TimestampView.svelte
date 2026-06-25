@@ -10,33 +10,21 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'terminal',
-		},
-		{
-			label: 'observation time',
-		},
+		'$terminal',
+		'timestampMs',
 		'status',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'terminal',
-				},
-				{
-					label: 'timestamp',
-				},
+				'$terminal',
+				'timestampMs',
 				'source',
 				'status',
-				{
-					label: 'exit code',
-				},
+				'exitCode',
 			],
 			[
-				{
-					label: 'output bytes',
-				},
+				'outputBytes',
 				'error',
 			],
 		],

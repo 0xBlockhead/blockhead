@@ -12,41 +12,27 @@
 	closed: [
 		'height',
 		'hash',
-		{
-			label: 'timestamp',
-		},
+		'timestampMs',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
+				'$network',
 				'height',
 				'hash',
-				{
-					label: 'timestamp',
-				},
+				'timestampMs',
 				{
 					label: 'proposer',
 				},
-				{
-					label: 'transaction count',
-				},
-				{
-					label: 'blob count',
-				},
-				{
-					label: 'namespace count',
-				},
 			],
 			[
-				{
-					label: 'app hash',
-				},
-				{
-					label: 'data hash',
-				},
+				'transactionCount',
+				'blobCount',
+				'namespaceCount',
+			],
+			[
+				'appHash',
+				'dataHash',
 			],
 		],
 	},
@@ -97,6 +83,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'blobs',
+			label: 'blobs',
+			field: '$$blobs',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

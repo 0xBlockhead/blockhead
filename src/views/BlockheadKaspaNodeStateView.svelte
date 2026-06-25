@@ -10,32 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'connection id',
-		},
-		{
-			label: 'network',
-		},
-		{
-			label: 'RPC URL',
-		},
+		'connectionId',
+		'$network',
+		'rpcUrl',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'connection id',
-				},
-				{
-					label: 'network',
-				},
-				{
-					label: 'RPC URL',
-				},
+				'connectionId',
+				'$network',
+				'rpcUrl',
 				'encoding',
-				{
-					label: 'network id',
-				},
+				'networkId',
 				{
 					label: 'latest server version/sync/head state',
 				},
@@ -94,6 +80,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

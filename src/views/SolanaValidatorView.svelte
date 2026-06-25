@@ -10,28 +10,16 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'vote pubkey',
-		},
-		{
-			label: 'node pubkey',
-		},
+		'$network',
+		'votePubkey',
+		'nodePubkey',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'vote pubkey',
-				},
-				{
-					label: 'node pubkey',
-				},
+				'$network',
+				'votePubkey',
+				'nodePubkey',
 			],
 			[
 				{
@@ -90,6 +78,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

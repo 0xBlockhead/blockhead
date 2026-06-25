@@ -10,24 +10,16 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'DID',
-		},
+		'did',
 		'handle',
-		{
-			label: 'display name',
-		},
+		'displayName',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'DID',
-				},
+				'did',
 				'handle',
-				{
-					label: 'display name',
-				},
+				'displayName',
 				'description',
 				{
 					label: 'indexed time',
@@ -40,9 +32,7 @@
 				{
 					label: 'latest follower/follow/post snapshot',
 				},
-				{
-					label: 'post count',
-				},
+				'$$posts',
 			],
 		],
 	},
@@ -51,16 +41,10 @@
 			{
 				label: 'Profile',
 				items: [
-					{
-						label: 'display name',
-					},
+					'displayName',
 					'description',
-					{
-						label: 'icon',
-					},
-					{
-						label: 'banner',
-					},
+					'$icon',
+					'$banner',
 					{
 						label: 'indexed time',
 					},
@@ -95,6 +79,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'posts',
+			label: 'posts',
+			field: '$$posts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

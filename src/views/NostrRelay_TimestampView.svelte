@@ -10,43 +10,33 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'relay',
-		},
-		{
-			label: 'observation time',
-		},
+		'$relay',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'relay',
-				},
-				{
-					label: 'observation time',
-				},
+				'$relay',
+				'timestampMs',
 				'source',
 				{
 					label: 'software/version',
 				},
-				{
-					label: 'supported NIP count',
-				},
+				'supportedNips',
+			],
+			[
 				{
 					label: 'paid/restricted flags',
 				},
-				{
-					label: 'active users',
-				},
-				{
-					label: 'events per day',
-				},
+				'activeUsers',
+				'eventsPerDay',
 				'rank',
 				{
 					label: 'reachability',
 				},
+			],
+			[
 				'error',
 			],
 		],

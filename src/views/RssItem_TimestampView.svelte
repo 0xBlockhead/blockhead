@@ -10,23 +10,15 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'item',
-		},
-		{
-			label: 'observation time',
-		},
+		'$item',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'item',
-				},
-				{
-					label: 'observation time',
-				},
+				'$item',
+				'timestampMs',
 				'source',
 				'title',
 				'author',
@@ -37,12 +29,8 @@
 			[
 				'link',
 				'categories',
-				{
-					label: 'enclosure URL',
-				},
-				{
-					label: 'comments URL',
-				},
+				'enclosureUrl',
+				'commentsUrl',
 				{
 					label: 'content/description presence',
 				},

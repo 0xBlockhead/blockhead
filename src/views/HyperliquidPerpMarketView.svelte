@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
+		'$network',
 		'coin',
 		{
 			label: 'latest max leverage',
@@ -21,9 +19,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
+				'$network',
 				'coin',
 				{
 					label: 'latest max leverage',
@@ -31,9 +27,7 @@
 				{
 					label: 'latest isolated-only flag',
 				},
-				{
-					label: 'timestamp count',
-				},
+				'$$timestamps',
 			],
 		],
 	},
@@ -73,6 +67,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'kind',
-		},
+		'marketKind',
 		{
 			label: 'venue',
 		},
@@ -23,9 +21,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'kind',
-				},
+				'marketKind',
 				{
 					label: 'venue id/label',
 				},
@@ -52,9 +48,7 @@
 				{
 					label: 'derivative observation count',
 				},
-				{
-					label: 'oracle feed count',
-				},
+				'$$oracleFeeds',
 			],
 		],
 	},
@@ -95,9 +89,7 @@
 			{
 				label: 'Source mappings',
 				items: [
-					{
-						label: 'provider exchange ids',
-					},
+					'providerExchangeIds',
 					{
 						label: 'provider pair/feed ids stay on timestamp rows',
 					},
@@ -105,6 +97,44 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'market-prices',
+			label: 'market prices',
+			field: '$$marketPrices',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'market-time-interval-timestamps',
+			label: 'market time interval timestamps',
+			field: '$$marketTimeIntervalTimestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'derivative-timestamps',
+			label: 'derivative timestamps',
+			field: '$$derivativeTimestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'oracle-feeds',
+			label: 'oracle feeds',
+			field: '$$oracleFeeds',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

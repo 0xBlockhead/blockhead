@@ -10,34 +10,24 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'parent operation',
-		},
-		{
-			label: 'internal index',
-		},
-		{
-			label: 'kind',
-		},
+		'$parentOperation',
+		'internalIndex',
+		'operationKind',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'parent operation',
-				},
-				{
-					label: 'internal index',
-				},
-				{
-					label: 'kind',
-				},
+				'$parentOperation',
+				'internalIndex',
+				'operationKind',
 				{
 					label: 'source',
 				},
 				{
 					label: 'destination',
 				},
+			],
+			[
 				{
 					label: 'amount',
 				},
@@ -45,9 +35,7 @@
 				{
 					label: 'status',
 				},
-				{
-					label: 'consumed gas',
-				},
+				'consumedGas',
 			],
 		],
 	},

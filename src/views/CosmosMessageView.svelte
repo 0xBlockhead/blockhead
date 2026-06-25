@@ -10,46 +10,26 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'transaction',
-		},
-		{
-			label: 'message index',
-		},
-		{
-			label: 'type URL',
-		},
+		'$transaction',
+		'messageIndex',
+		'typeUrl',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'transaction',
-				},
-				{
-					label: 'message index',
-				},
-				{
-					label: 'type URL',
-				},
-				{
-					label: 'module name',
-				},
-				{
-					label: 'message name',
-				},
+				'$transaction',
+				'messageIndex',
+				'typeUrl',
+				'moduleName',
+				'messageName',
+			],
+			[
 				{
 					label: 'signer/sender',
 				},
-				{
-					label: 'contract',
-				},
-				{
-					label: 'funds count',
-				},
-				{
-					label: 'event type count',
-				},
+				'$contract',
+				'funds',
+				'eventTypes',
 			],
 		],
 	},
@@ -66,9 +46,7 @@
 			{
 				label: 'Accounts',
 				items: [
-					{
-						label: 'signer',
-					},
+					'$signer',
 					{
 						label: 'sender',
 					},

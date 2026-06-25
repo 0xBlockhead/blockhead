@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
+		'$network',
 		{
 			label: 'block number/hash',
 		},
@@ -20,28 +18,16 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'block number',
-				},
+				'$network',
+				'blockNumber',
 				'hash',
-				{
-					label: 'parent',
-				},
-				{
-					label: 'state root',
-				},
-				{
-					label: 'extrinsics root',
-				},
-				{
-					label: 'extrinsic count',
-				},
-				{
-					label: 'event count',
-				},
+				'$parent',
+				'stateRoot',
+			],
+			[
+				'extrinsicsRoot',
+				'$$extrinsics',
+				'$$events',
 			],
 		],
 	},
@@ -87,6 +73,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'extrinsics',
+			label: 'extrinsics',
+			field: '$$extrinsics',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'events',
+			label: 'events',
+			field: '$$events',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

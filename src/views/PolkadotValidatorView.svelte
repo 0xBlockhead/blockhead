@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'stash account id',
-		},
+		'$network',
+		'stashAccountId',
 		{
 			label: 'latest era controller/commission/stake summary',
 		},
@@ -23,18 +19,12 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'stash account id',
-				},
+				'$network',
+				'stashAccountId',
 				{
 					label: 'latest era controller/commission/stake summary',
 				},
-				{
-					label: 'era count',
-				},
+				'$$eras',
 			],
 		],
 	},
@@ -74,6 +64,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'eras',
+			label: 'eras',
+			field: '$$eras',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

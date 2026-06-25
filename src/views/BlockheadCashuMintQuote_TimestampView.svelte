@@ -10,31 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'mint quote',
-		},
-		{
-			label: 'observation time',
-		},
+		'$mintQuote',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'mint quote',
-				},
-				{
-					label: 'observation time',
-				},
+				'$mintQuote',
+				'timestampMs',
 				'source',
 				'state',
-				{
-					label: 'expiry',
-				},
-				{
-					label: 'subscription id',
-				},
+				'expiryMs',
+				'subscriptionId',
 			],
 		],
 	},

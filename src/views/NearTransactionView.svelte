@@ -14,9 +14,7 @@
 			label: 'transaction key',
 		},
 		'hash',
-		{
-			label: 'signer',
-		},
+		'$signer',
 	],
 	content: {
 		dl: [
@@ -25,18 +23,12 @@
 					label: 'transaction key',
 				},
 				'hash',
-				{
-					label: 'signer',
-				},
-				{
-					label: 'receiver',
-				},
+				'$signer',
+				'$receiver',
 				'nonce',
 			],
 			[
-				{
-					label: 'action count',
-				},
+				'$$actions',
 				{
 					label: 'outcome count',
 				},
@@ -113,6 +105,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'actions',
+			label: 'actions',
+			field: '$$actions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'execution-outcomes',
+			label: 'execution outcomes',
+			field: '$$executionOutcomes',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

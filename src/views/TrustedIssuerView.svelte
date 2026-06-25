@@ -13,12 +13,8 @@
 		{
 			label: 'regulated asset profile',
 		},
-		{
-			label: 'issuer key',
-		},
-		{
-			label: 'issuer selector',
-		},
+		'issuerKey',
+		'issuerSelector',
 	],
 	content: {
 		dl: [
@@ -26,12 +22,8 @@
 				{
 					label: 'regulated asset profile',
 				},
-				{
-					label: 'issuer key',
-				},
-				{
-					label: 'issuer selector',
-				},
+				'issuerKey',
+				'issuerSelector',
 				{
 					label: 'accepted claim topics',
 				},

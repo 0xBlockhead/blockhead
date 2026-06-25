@@ -13,32 +13,20 @@
 		{
 			label: 'icon/header image',
 		},
-		{
-			label: 'display name',
-		},
+		'displayName',
 		'acct',
 	],
 	content: {
 		dl: [
 			[
 				'acct',
-				{
-					label: 'ActivityStreams URI',
-				},
-				{
-					label: 'instance origin',
-				},
-				{
-					label: 'local account id',
-				},
-				{
-					label: 'created date',
-				},
+				'activityStreamsUri',
+				'instanceOrigin',
+				'localAccountId',
+				'createdAt',
 			],
 			[
-				{
-					label: 'profile URL',
-				},
+				'profileUrl',
 				{
 					label: 'bot/locked flags',
 				},
@@ -53,20 +41,12 @@
 			{
 				label: 'Profile',
 				items: [
-					{
-						label: 'display name',
-					},
+					'displayName',
 					'note',
-					{
-						label: 'icon',
-					},
-					{
-						label: 'header image',
-					},
+					'$icon',
+					'$headerImage',
 					'website',
-					{
-						label: 'profile URL',
-					},
+					'profileUrl',
 				],
 			},
 			{
@@ -88,15 +68,9 @@
 			{
 				label: 'Federation identity',
 				items: [
-					{
-						label: 'ActivityStreams URI',
-					},
-					{
-						label: 'instance origin',
-					},
-					{
-						label: 'local account id',
-					},
+					'activityStreamsUri',
+					'instanceOrigin',
+					'localAccountId',
 					{
 						label: 'acct selector',
 					},
@@ -121,6 +95,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'notes',
+			label: 'notes',
+			field: '$$notes',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

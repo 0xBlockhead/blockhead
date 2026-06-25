@@ -10,37 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'node id',
-		},
-		{
-			label: 'participation id',
-		},
-		{
-			label: 'account',
-		},
+		'nodeId',
+		'participationId',
+		'$account',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'node id',
-				},
-				{
-					label: 'participation id',
-				},
-				{
-					label: 'account',
-				},
-				{
-					label: 'network',
-				},
+				'nodeId',
+				'participationId',
+				'$account',
+				'$network',
 				{
 					label: 'validity round range',
 				},
-				{
-					label: 'key dilution',
-				},
+			],
+			[
+				'keyDilution',
 				{
 					label: 'effective round range',
 				},

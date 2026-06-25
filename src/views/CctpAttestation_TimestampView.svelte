@@ -10,40 +10,28 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'message',
-		},
-		{
-			label: 'observation time',
-		},
+		'$message',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'message',
-				},
-				{
-					label: 'observation time',
-				},
+				'$message',
+				'timestampMs',
 				'source',
 				'status',
-				{
-					label: 'delay reason',
-				},
-				{
-					label: 'forward state',
-				},
+				'delayReason',
+			],
+			[
+				'forwardState',
 				{
 					label: 'forward transaction hash',
 				},
 				{
 					label: 'attestation availability',
 				},
-				{
-					label: 'request id',
-				},
+				'requestId',
 			],
 		],
 	},
@@ -79,9 +67,7 @@
 					{
 						label: 'Iris API response',
 					},
-					{
-						label: 'request id',
-					},
+					'requestId',
 				],
 			},
 		],

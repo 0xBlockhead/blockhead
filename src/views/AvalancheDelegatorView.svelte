@@ -10,37 +10,27 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'validator',
-		},
+		'$validator',
 		{
 			label: 'delegation transaction id',
 		},
-		{
-			label: 'delegator address',
-		},
+		'delegatorAddress',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'validator',
-				},
+				'$validator',
 				{
 					label: 'delegation transaction id',
 				},
-				{
-					label: 'delegator address',
-				},
+				'delegatorAddress',
 				{
 					label: 'stake',
 				},
 				{
 					label: 'start/end time',
 				},
-				{
-					label: 'potential reward',
-				},
+				'potentialRewardNavax',
 				{
 					label: 'reward-owner count',
 				},

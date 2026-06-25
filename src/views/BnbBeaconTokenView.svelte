@@ -11,9 +11,7 @@
 	const view = {
 	closed: [
 		'symbol',
-		{
-			label: 'original symbol',
-		},
+		'originalSymbol',
 		{
 			label: 'name',
 		},
@@ -22,18 +20,14 @@
 		dl: [
 			[
 				'symbol',
-				{
-					label: 'original symbol',
-				},
+				'originalSymbol',
 				{
 					label: 'name',
 				},
 				{
 					label: 'owner',
 				},
-				{
-					label: 'token type',
-				},
+				'tokenType',
 				{
 					label: 'latest supply/mintability',
 				},
@@ -90,6 +84,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'transfers',
+			label: 'transfers',
+			field: '$$transfers',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'migrations',
+			label: 'migrations',
+			field: '$$migrations',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

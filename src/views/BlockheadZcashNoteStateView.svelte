@@ -10,43 +10,33 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'wallet id',
-		},
+		'walletId',
 		'pool',
-		{
-			label: 'note commitment',
-		},
+		'noteCommitment',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'wallet id',
-				},
+				'walletId',
 				'pool',
-				{
-					label: 'note commitment',
-				},
-				{
-					label: 'value',
-				},
+				'noteCommitment',
+				'valueZatoshis',
 				'nullifier',
-				{
-					label: 'received transaction id',
-				},
+			],
+			[
+				'receivedTransactionId',
 				{
 					label: 'received height',
 				},
-				{
-					label: 'recipient address',
-				},
+				'recipientAddress',
 				{
 					label: 'latest spent state',
 				},
 				{
 					label: 'latest spent transaction id',
 				},
+			],
+			[
 				{
 					label: 'latest spent height',
 				},
@@ -92,9 +82,7 @@
 						label: 'redacted memo',
 					},
 					'diversifier',
-					{
-						label: 'recipient address',
-					},
+					'recipientAddress',
 				],
 			},
 			{
@@ -107,6 +95,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

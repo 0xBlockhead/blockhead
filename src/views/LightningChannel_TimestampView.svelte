@@ -10,43 +10,31 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'channel',
-		},
-		{
-			label: 'observation time',
-		},
+		'$channel',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'channel',
-				},
-				{
-					label: 'observation time',
-				},
+				'$channel',
+				'timestampMs',
 				'source',
 				'status',
-				{
-					label: 'capacity',
-				},
+				'capacitySats',
+			],
+			[
 				{
 					label: 'fee rate',
 				},
-				{
-					label: 'updated time',
-				},
+				'updatedAtMs',
 				{
 					label: 'closing transaction',
 				},
-				{
-					label: 'closing fee',
-				},
-				{
-					label: 'closing reason',
-				},
+				'closingFeeSats',
+				'closingReason',
+			],
+			[
 				{
 					label: 'closed time',
 				},

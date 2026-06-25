@@ -35,37 +35,21 @@
 		},
 	],
 	closed: [
-		{
-			label: 'blob index',
-		},
-		{
-			label: 'versioned hash',
-		},
-		{
-			label: 'KZG commitment',
-		},
+		'blobIndex',
+		'versionedHash',
+		'kzgCommitment',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'blob index',
-				},
-				{
-					label: 'versioned hash',
-				},
-				{
-					label: 'KZG commitment',
-				},
+				'blobIndex',
+				'versionedHash',
+				'kzgCommitment',
 				{
 					label: 'Blobscan storage references',
 				},
-				{
-					label: 'transaction',
-				},
-				{
-					label: 'block',
-				},
+				'$transaction',
+				'$block',
 			],
 		],
 	},
@@ -90,12 +74,8 @@
 			{
 				label: 'Data availability',
 				items: [
-					{
-						label: 'versioned hash',
-					},
-					{
-						label: 'KZG commitment',
-					},
+					'versionedHash',
+					'kzgCommitment',
 					{
 						label: 'storage references',
 					},
@@ -112,6 +92,14 @@
 					},
 				],
 			},
+		],
+	},
+	summary: {
+		value: 'blobIndex',
+		title: 'blobIndex',
+		after: [
+			'versionedHash',
+			'kzgCommitment',
 		],
 	},
 } satisfies ComponentProps<typeof EntityView2>['view']

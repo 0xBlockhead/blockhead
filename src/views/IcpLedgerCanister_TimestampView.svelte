@@ -10,37 +10,27 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'ledger',
-		},
-		{
-			label: 'observation time',
-		},
+		'$ledger',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'ledger',
-				},
-				{
-					label: 'observation time',
-				},
+				'$ledger',
+				'timestampMs',
 				'source',
 				'symbol',
 				'name',
+			],
+			[
 				'decimals',
 				'fee',
 				{
 					label: 'archive count',
 				},
-				{
-					label: 'supported standards',
-				},
-				{
-					label: 'latest block index',
-				},
+				'supportedStandards',
+				'latestBlockIndex',
 			],
 		],
 	},

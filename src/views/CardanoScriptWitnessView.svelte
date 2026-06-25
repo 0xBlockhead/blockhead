@@ -10,34 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'witness index',
-		},
+		'witnessIndex',
 		{
 			label: 'script kind/language',
 		},
-		{
-			label: 'script hash',
-		},
+		'scriptHash',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'witness index',
-				},
+				'witnessIndex',
 				{
 					label: 'script kind/language',
 				},
-				{
-					label: 'script hash',
-				},
-				{
-					label: 'execution units',
-				},
-				{
-					label: 'parent transaction',
-				},
+				'scriptHash',
+				'executionUnits',
+				'$transaction',
 			],
 		],
 	},

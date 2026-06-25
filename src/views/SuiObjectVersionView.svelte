@@ -10,32 +10,24 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'object id',
-		},
+		'objectId',
 		'version',
 		'digest',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'object id',
-				},
+				'objectId',
 				'version',
 				'digest',
 				{
 					label: 'owner',
 				},
-				{
-					label: 'type',
-				},
-				{
-					label: 'previous transaction',
-				},
-				{
-					label: 'storage rebate',
-				},
+				'objectType',
+			],
+			[
+				'previousTransaction',
+				'storageRebate',
 				'contents',
 			],
 		],

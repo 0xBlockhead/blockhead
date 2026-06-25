@@ -20,17 +20,13 @@
 				'fullname',
 				'title',
 				'selftext',
-				{
-					label: 'URL',
-				},
+				'url',
 				'permalink',
+			],
+			[
 				'author',
-				{
-					label: 'created time',
-				},
-				{
-					label: 'subreddit',
-				},
+				'createdAt',
+				'$subreddit',
 				{
 					label: 'latest score/comment-count snapshot',
 				},
@@ -50,9 +46,7 @@
 			{
 				label: 'Subreddit',
 				items: [
-					{
-						label: 'parent subreddit',
-					},
+					'$subreddit',
 				],
 			},
 			{
@@ -65,6 +59,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'comments',
+			label: 'comments',
+			field: '$$comments',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

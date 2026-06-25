@@ -10,27 +10,17 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'prover peer id',
-		},
+		'proverPeerId',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'prover peer id',
-				},
+				'proverPeerId',
 			],
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'prover peer id',
-				},
-				{
-					label: 'public key',
-				},
+				'$network',
+				'proverPeerId',
+				'publicKey',
 				'version',
 				{
 					label: 'last seen time',
@@ -69,6 +59,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'frames',
+			label: 'frames',
+			field: '$$frames',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

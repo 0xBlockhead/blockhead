@@ -10,28 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'feed',
-		},
-		{
-			label: 'observation time',
-		},
+		'$feed',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'feed',
-				},
-				{
-					label: 'observation time',
-				},
+				'$feed',
+				'timestampMs',
 				'source',
 				'reachable',
-				{
-					label: 'fetch window kind',
-				},
+				'fetchWindowKind',
 			],
 			[
 				'title',
@@ -40,15 +30,9 @@
 					label: 'link/site URL',
 				},
 				'language',
-				{
-					label: 'last build date',
-				},
-				{
-					label: 'image URL',
-				},
-				{
-					label: 'source-window item count',
-				},
+				'lastBuildDate',
+				'imageUrl',
+				'sourceWindowItemCount',
 			],
 		],
 	},

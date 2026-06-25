@@ -10,28 +10,16 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'category id',
-		},
-		{
-			label: 'registry URL',
-		},
+		'$network',
+		'categoryId',
+		'registryUrl',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'category id',
-				},
-				{
-					label: 'registry URL',
-				},
+				'$network',
+				'categoryId',
+				'registryUrl',
 				{
 					label: 'token name',
 				},

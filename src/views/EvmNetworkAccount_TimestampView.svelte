@@ -10,30 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account',
-		},
-		{
-			label: 'observation time',
-		},
+		'$account',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'account',
-				},
-				{
-					label: 'observation time',
-				},
+				'$account',
+				'timestampMs',
 				'source',
-				{
-					label: 'block number',
-				},
+				'blockNumber',
 				{
 					label: 'transaction/token/internal/NFT counts',
 				},
+			],
+			[
 				{
 					label: 'first/last activity',
 				},

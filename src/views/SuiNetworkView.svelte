@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'linked Network',
-		},
+		'$network',
 		{
 			label: 'latest checkpoint/epoch/protocol version snapshot',
 		},
@@ -23,30 +21,20 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'linked Network',
-				},
+				'$network',
 				{
 					label: 'latest checkpoint/epoch/protocol version snapshot',
 				},
 				{
 					label: 'execution environment',
 				},
-				{
-					label: 'account count',
-				},
-				{
-					label: 'object count',
-				},
-				{
-					label: 'package count',
-				},
-				{
-					label: 'coin type count',
-				},
-				{
-					label: 'transaction count',
-				},
+				'$$accounts',
+				'$$objects',
+			],
+			[
+				'$$packages',
+				'$$coinTypes',
+				'$$transactions',
 			],
 		],
 	},
@@ -118,6 +106,80 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'checkpoints',
+			label: 'checkpoints',
+			field: '$$checkpoints',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'transactions',
+			label: 'transactions',
+			field: '$$transactions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'accounts',
+			label: 'accounts',
+			field: '$$accounts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'objects',
+			label: 'objects',
+			field: '$$objects',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'packages',
+			label: 'packages',
+			field: '$$packages',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'coin-types',
+			label: 'coin types',
+			field: '$$coinTypes',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'coin-balance-timestamps',
+			label: 'coin balance timestamps',
+			field: '$$coinBalanceTimestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

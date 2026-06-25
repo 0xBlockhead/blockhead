@@ -13,9 +13,7 @@
 		{
 			label: 'error selector',
 		},
-		{
-			label: 'observation time',
-		},
+		'timestampMs',
 		'source',
 	],
 	content: {
@@ -24,9 +22,7 @@
 				{
 					label: 'error selector',
 				},
-				{
-					label: 'observation time',
-				},
+				'timestampMs',
 				'source',
 				'reachable',
 			],
@@ -34,12 +30,8 @@
 				{
 					label: 'candidate signatures',
 				},
-				{
-					label: 'filtered signature count',
-				},
-				{
-					label: 'verified candidate count',
-				},
+				'filteredSignatureCount',
+				'verifiedCandidateCount',
 			],
 		],
 	},

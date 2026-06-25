@@ -34,7 +34,7 @@ export const entitySelectorRouteLeaves = [
 				name: "scope",
 			},
 		],
-		path: "(social)/(activitypub)/activitypub/global-activity-pub-network/[scope]",
+		path: "(social)/activitypub/activity/pub/[scope]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -68,7 +68,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(social)/(activitypub)/activitypub/global-activity-pub-network/[scope]/global-activity-pub-network-timestamp/[timestampMs]/[source]",
+		path: "(social)/activitypub/activity/pub/[scope]/global-activity-pub-network-timestamp/[timestampMs]/[source]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -90,7 +90,7 @@ export const entitySelectorRouteLeaves = [
 				name: "scope",
 			},
 		],
-		path: "(explore)/(data)/data/global-arweave-network/[scope]",
+		path: "(explore)/(data)/arweave/[scope]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -124,7 +124,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(data)/data/global-arweave-network/[scope]/global-arweave-network-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(data)/arweave/[scope]/global-arweave-network-timestamp/[timestampMs]/[source]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -146,7 +146,7 @@ export const entitySelectorRouteLeaves = [
 				name: "scope",
 			},
 		],
-		path: "(social)/(atproto)/atproto/global-atproto-network/[scope]",
+		path: "(social)/atproto/[scope]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -180,7 +180,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(social)/(atproto)/atproto/global-atproto-network/[scope]/global-atproto-network-timestamp/[timestampMs]/[source]",
+		path: "(social)/atproto/[scope]/global-atproto-network-timestamp/[timestampMs]/[source]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -202,7 +202,7 @@ export const entitySelectorRouteLeaves = [
 				name: "scope",
 			},
 		],
-		path: "(explore)/(evm)/evm/global-ens-network/[scope]",
+		path: "(explore)/evm/ens/[scope]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -236,7 +236,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(evm)/evm/global-ens-network/[scope]/global-ens-network-timestamp/[timestampMs]/[source]",
+		path: "(explore)/evm/ens/[scope]/global-ens-network-timestamp/[timestampMs]/[source]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -258,7 +258,7 @@ export const entitySelectorRouteLeaves = [
 				name: "scope",
 			},
 		],
-		path: "(explore)/(evm)/evm/global-evm-abi-catalog/[scope]",
+		path: "(explore)/evm/abi/[scope]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -292,7 +292,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(evm)/evm/global-evm-abi-catalog/[scope]/global-evm-abi-catalog-timestamp/[timestampMs]/[source]",
+		path: "(explore)/evm/abi/[scope]/global-evm-abi-catalog-timestamp/[timestampMs]/[source]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -314,7 +314,7 @@ export const entitySelectorRouteLeaves = [
 				name: "scope",
 			},
 		],
-		path: "(social)/(farcaster)/farcaster/global-farcaster-network/[scope]",
+		path: "(social)/farcaster/[scope]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -348,7 +348,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(social)/(farcaster)/farcaster/global-farcaster-network/[scope]/global-farcaster-network-timestamp/[timestampMs]/[source]",
+		path: "(social)/farcaster/[scope]/global-farcaster-network-timestamp/[timestampMs]/[source]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -370,7 +370,7 @@ export const entitySelectorRouteLeaves = [
 				name: "scope",
 			},
 		],
-		path: "(explore)/(data)/data/global-ipfs-access/[scope]",
+		path: "(explore)/(data)/global-ipfs-access/[scope]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -404,7 +404,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(data)/data/global-ipfs-access/[scope]/global-ipfs-access-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(data)/global-ipfs-access/[scope]/global-ipfs-access-timestamp/[timestampMs]/[source]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -426,7 +426,7 @@ export const entitySelectorRouteLeaves = [
 				name: "scope",
 			},
 		],
-		path: "(social)/(lens)/lens/global-lens-network/[scope]",
+		path: "(social)/lens/[scope]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -460,7 +460,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(social)/(lens)/lens/global-lens-network/[scope]/global-lens-network-timestamp/[timestampMs]/[source]",
+		path: "(social)/lens/[scope]/global-lens-network-timestamp/[timestampMs]/[source]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -482,7 +482,7 @@ export const entitySelectorRouteLeaves = [
 				name: "scope",
 			},
 		],
-		path: "(social)/(nostr)/nostr/global-nostr-network/[scope]",
+		path: "(social)/nostr/[scope]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -516,7 +516,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(social)/(nostr)/nostr/global-nostr-network/[scope]/global-nostr-network-timestamp/[timestampMs]/[source]",
+		path: "(social)/nostr/[scope]/global-nostr-network-timestamp/[timestampMs]/[source]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -538,7 +538,7 @@ export const entitySelectorRouteLeaves = [
 				name: "scope",
 			},
 		],
-		path: "(social)/(reddit)/reddit/global-reddit-network/[scope]",
+		path: "(social)/reddit/[scope]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -572,7 +572,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(social)/(reddit)/reddit/global-reddit-network/[scope]/global-reddit-network-timestamp/[timestampMs]/[source]",
+		path: "(social)/reddit/[scope]/global-reddit-network-timestamp/[timestampMs]/[source]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -594,7 +594,7 @@ export const entitySelectorRouteLeaves = [
 				name: "scope",
 			},
 		],
-		path: "(social)/(rss)/rss/global-rss-network/[scope]",
+		path: "(social)/rss/[scope]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -628,7 +628,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(social)/(rss)/rss/global-rss-network/[scope]/global-rss-network-timestamp/[timestampMs]/[source]",
+		path: "(social)/rss/[scope]/global-rss-network-timestamp/[timestampMs]/[source]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -650,7 +650,7 @@ export const entitySelectorRouteLeaves = [
 				name: "scope",
 			},
 		],
-		path: "(explore)/(data)/data/global-swarm-access/[scope]",
+		path: "(explore)/(data)/global-swarm-access/[scope]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -684,7 +684,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(data)/data/global-swarm-access/[scope]/global-swarm-access-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(data)/global-swarm-access/[scope]/global-swarm-access-timestamp/[timestampMs]/[source]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -706,7 +706,7 @@ export const entitySelectorRouteLeaves = [
 				name: "scope",
 			},
 		],
-		path: "(social)/(x)/x/global-xnetwork/[scope]",
+		path: "(social)/x/global-xnetwork/[scope]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -740,7 +740,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(social)/(x)/x/global-xnetwork/[scope]/global-xnetwork-timestamp/[timestampMs]/[source]",
+		path: "(social)/x/global-xnetwork/[scope]/global-xnetwork-timestamp/[timestampMs]/[source]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -762,7 +762,7 @@ export const entitySelectorRouteLeaves = [
 				name: "scope",
 			},
 		],
-		path: "(social)/(youtube)/youtube/global-you-tube-network/[scope]",
+		path: "(social)/youtube/you/tube/[scope]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -796,7 +796,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(social)/(youtube)/youtube/global-you-tube-network/[scope]/global-you-tube-network-timestamp/[timestampMs]/[source]",
+		path: "(social)/youtube/you/tube/[scope]/global-you-tube-network-timestamp/[timestampMs]/[source]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -818,7 +818,7 @@ export const entitySelectorRouteLeaves = [
 				name: "caip10",
 			},
 		],
-		path: "(explore)/(services)/services/account/[caip10]",
+		path: "(explore)/(services)/account/[caip10]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -840,8 +840,8 @@ export const entitySelectorRouteLeaves = [
 				name: "activityStreamsUri",
 			},
 		],
-		path: "(social)/(activitypub)/activitypub/activity-pub-actor/[activityStreamsUri]",
-		emitPage: true,
+		path: "(social)/activitypub/activity-pub-actor/[activityStreamsUri]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -868,8 +868,8 @@ export const entitySelectorRouteLeaves = [
 				name: "localAccountId",
 			},
 		],
-		path: "(social)/(activitypub)/activitypub/activity-pub-actor/by/local-account-id/[instanceOrigin]/[localAccountId]",
-		emitPage: true,
+		path: "(social)/activitypub/activity-pub-actor/local-account-id/[instanceOrigin]/[localAccountId]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -896,8 +896,8 @@ export const entitySelectorRouteLeaves = [
 				name: "acct",
 			},
 		],
-		path: "(social)/(activitypub)/activitypub/activity-pub-actor/by/acct/[instanceOrigin]/[acct]",
-		emitPage: true,
+		path: "(social)/activitypub/activity-pub-actor/acct/[instanceOrigin]/[acct]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -924,8 +924,8 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(social)/(activitypub)/activitypub/activity-pub-actor/[activityStreamsUri]/activity-pub-actor-timestamp/[timestampMs]",
-		emitPage: true,
+		path: "(social)/activitypub/activity-pub-actor/[activityStreamsUri]/activity-pub-actor-timestamp/[timestampMs]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -956,8 +956,8 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(social)/(activitypub)/activitypub/activity-pub-actor/by/local-account-id/[instanceOrigin]/[localAccountId]/activity-pub-actor-timestamp/[timestampMs]",
-		emitPage: true,
+		path: "(social)/activitypub/activity-pub-actor/local-account-id/[instanceOrigin]/[localAccountId]/activity-pub-actor-timestamp/[timestampMs]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -988,8 +988,8 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(social)/(activitypub)/activitypub/activity-pub-actor/by/acct/[instanceOrigin]/[acct]/activity-pub-actor-timestamp/[timestampMs]",
-		emitPage: true,
+		path: "(social)/activitypub/activity-pub-actor/acct/[instanceOrigin]/[acct]/activity-pub-actor-timestamp/[timestampMs]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -1010,8 +1010,8 @@ export const entitySelectorRouteLeaves = [
 				name: "scope",
 			},
 		],
-		path: "(social)/(activitypub)/activitypub/activity-pub-network/[scope]",
-		emitPage: true,
+		path: "(social)/activitypub/activity-pub-network/[scope]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -1032,8 +1032,8 @@ export const entitySelectorRouteLeaves = [
 				name: "activityStreamsUri",
 			},
 		],
-		path: "(social)/(activitypub)/activitypub/activity-pub-note/[activityStreamsUri]",
-		emitPage: true,
+		path: "(social)/activitypub/activity-pub-note/[activityStreamsUri]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -1060,8 +1060,8 @@ export const entitySelectorRouteLeaves = [
 				name: "localStatusId",
 			},
 		],
-		path: "(social)/(activitypub)/activitypub/activity-pub-note/[instanceOrigin]/[localStatusId]",
-		emitPage: true,
+		path: "(social)/activitypub/activity-pub-note/[instanceOrigin]/[localStatusId]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -1088,8 +1088,8 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(social)/(activitypub)/activitypub/activity-pub-note/[activityStreamsUri]/activity-pub-note-timestamp/[timestampMs]",
-		emitPage: true,
+		path: "(social)/activitypub/activity-pub-note/[activityStreamsUri]/activity-pub-note-timestamp/[timestampMs]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -1120,8 +1120,8 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(social)/(activitypub)/activitypub/activity-pub-note/[instanceOrigin]/[localStatusId]/activity-pub-note-timestamp/[timestampMs]",
-		emitPage: true,
+		path: "(social)/activitypub/activity-pub-note/[instanceOrigin]/[localStatusId]/activity-pub-note-timestamp/[timestampMs]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -1939,7 +1939,7 @@ export const entitySelectorRouteLeaves = [
 				name: "height",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/aptos-network/aptos-block/by/network-height/[height]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/aptos-network/aptos-block/network-height/[height]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -1968,7 +1968,7 @@ export const entitySelectorRouteLeaves = [
 				name: "containsVersion",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/aptos-network/aptos-block/by/network-contains-version/[containsVersion]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/aptos-network/aptos-block/network-contains-version/[containsVersion]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -2418,8 +2418,8 @@ export const entitySelectorRouteLeaves = [
 				name: "height",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/arweave-network/arweave-block/by/network-height/[height]",
-		emitPage: true,
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/arweave-network/arweave-block/network-height/[height]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -2447,8 +2447,8 @@ export const entitySelectorRouteLeaves = [
 				name: "indepHash",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/arweave-network/arweave-block/by/network-indep-hash/[indepHash]",
-		emitPage: true,
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/arweave-network/arweave-block/network-indep-hash/[indepHash]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -2471,7 +2471,7 @@ export const entitySelectorRouteLeaves = [
 			},
 		],
 		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/arweave-network",
-		emitPage: true,
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -2506,7 +2506,7 @@ export const entitySelectorRouteLeaves = [
 			},
 		],
 		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/arweave-network/arweave-network-timestamp/[timestampMs]/[source]",
-		emitPage: true,
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -2533,8 +2533,8 @@ export const entitySelectorRouteLeaves = [
 				name: "contentPath",
 			},
 		],
-		path: "(explore)/(data)/data/arweave-resource/[transactionId]/[contentPath]",
-		emitPage: true,
+		path: "(explore)/(data)/arweave-resource/[transactionId]/[contentPath]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -2571,8 +2571,8 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(data)/data/arweave-resource/[transactionId]/[contentPath]/arweave-resource-timestamp/[timestampMs]/[source]",
-		emitPage: true,
+		path: "(explore)/(data)/arweave-resource/[transactionId]/[contentPath]/arweave-resource-timestamp/[timestampMs]/[source]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -2601,7 +2601,7 @@ export const entitySelectorRouteLeaves = [
 			},
 		],
 		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/arweave-network/arweave-transaction/[transactionId]",
-		emitPage: true,
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -2939,8 +2939,8 @@ export const entitySelectorRouteLeaves = [
 				name: "did",
 			},
 		],
-		path: "(social)/(atproto)/atproto/atproto-actor/by/did/[did]",
-		emitPage: true,
+		path: "(social)/atproto/atproto-actor/did/[did]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -2961,8 +2961,8 @@ export const entitySelectorRouteLeaves = [
 				name: "handle",
 			},
 		],
-		path: "(social)/(atproto)/atproto/atproto-actor/by/handle/[handle]",
-		emitPage: true,
+		path: "(social)/atproto/atproto-actor/handle/[handle]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -2989,8 +2989,8 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(social)/(atproto)/atproto/atproto-actor/by/did/[did]/atproto-actor-timestamp/[timestampMs]",
-		emitPage: true,
+		path: "(social)/atproto/atproto-actor/did/[did]/atproto-actor-timestamp/[timestampMs]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -3017,8 +3017,8 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(social)/(atproto)/atproto/atproto-actor/by/handle/[handle]/atproto-actor-timestamp/[timestampMs]",
-		emitPage: true,
+		path: "(social)/atproto/atproto-actor/handle/[handle]/atproto-actor-timestamp/[timestampMs]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -3039,8 +3039,8 @@ export const entitySelectorRouteLeaves = [
 				name: "scope",
 			},
 		],
-		path: "(social)/(atproto)/atproto/atproto-network/[scope]",
-		emitPage: true,
+		path: "(social)/atproto/atproto-network/[scope]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -3061,8 +3061,8 @@ export const entitySelectorRouteLeaves = [
 				name: "uri",
 			},
 		],
-		path: "(social)/(atproto)/atproto/atproto-post/[uri]",
-		emitPage: true,
+		path: "(social)/atproto/atproto-post/[uri]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -3089,8 +3089,8 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(social)/(atproto)/atproto/atproto-post/[uri]/atproto-post-timestamp/[timestampMs]",
-		emitPage: true,
+		path: "(social)/atproto/atproto-post/[uri]/atproto-post-timestamp/[timestampMs]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -3123,8 +3123,8 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(social)/(atproto)/atproto/atproto-repo-commit/by/repo-did-rev-source/[repoDid]/[rev]/[source]",
-		emitPage: true,
+		path: "(social)/atproto/atproto-repo-commit/repo-did-rev-source/[repoDid]/[rev]/[source]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -3157,8 +3157,8 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(social)/(atproto)/atproto/atproto-repo-commit/by/repo-did-commit-cid-source/[repoDid]/[commitCid]/[source]",
-		emitPage: true,
+		path: "(social)/atproto/atproto-repo-commit/repo-did-commit-cid-source/[repoDid]/[commitCid]/[source]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -3254,7 +3254,7 @@ export const entitySelectorRouteLeaves = [
 				name: "blockNumber",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/avail-network/avail-block/by/network-block-number/[blockNumber]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/avail-network/avail-block/network-block-number/[blockNumber]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -3283,7 +3283,7 @@ export const entitySelectorRouteLeaves = [
 				name: "blockHash",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/avail-network/avail-block/by/network-block-hash/[blockHash]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/avail-network/avail-block/network-block-hash/[blockHash]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -3398,7 +3398,7 @@ export const entitySelectorRouteLeaves = [
 				name: "blockchainId",
 			},
 		],
-		path: "(explore)/(networks)/networks/avalanche-blockchain/[blockchainId]",
+		path: "(explore)/(networks)/avalanche-blockchain/[blockchainId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -3434,7 +3434,7 @@ export const entitySelectorRouteLeaves = [
 				name: "txId",
 			},
 		],
-		path: "(explore)/(networks)/networks/avalanche-validator/[nodeId]/[subnetId]/[startTimeMs]/avalanche-delegator/[txId]",
+		path: "(explore)/(networks)/avalanche-validator/[nodeId]/[subnetId]/[startTimeMs]/avalanche-delegator/[txId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -3463,7 +3463,7 @@ export const entitySelectorRouteLeaves = [
 				name: "height",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/avalanche-pchain-block/by/network-height/[height]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/avalanche-pchain-block/network-height/[height]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -3492,7 +3492,7 @@ export const entitySelectorRouteLeaves = [
 				name: "blockId",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/avalanche-pchain-block/by/network-block-id/[blockId]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/avalanche-pchain-block/network-block-id/[blockId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -3582,7 +3582,7 @@ export const entitySelectorRouteLeaves = [
 				name: "subnetId",
 			},
 		],
-		path: "(explore)/(networks)/networks/avalanche-subnet/[subnetId]",
+		path: "(explore)/(networks)/avalanche-subnet/[subnetId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -3616,7 +3616,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(networks)/networks/avalanche-subnet/[subnetId]/avalanche-subnet-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(networks)/avalanche-subnet/[subnetId]/avalanche-subnet-timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -3650,7 +3650,7 @@ export const entitySelectorRouteLeaves = [
 				name: "startTimeMs",
 			},
 		],
-		path: "(explore)/(networks)/networks/avalanche-validator/[nodeId]/[subnetId]/[startTimeMs]",
+		path: "(explore)/(networks)/avalanche-validator/[nodeId]/[subnetId]/[startTimeMs]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -3692,7 +3692,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(networks)/networks/avalanche-validator/[nodeId]/[subnetId]/[startTimeMs]/avalanche-validator-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(networks)/avalanche-validator/[nodeId]/[subnetId]/[startTimeMs]/avalanche-validator-timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -3924,8 +3924,8 @@ export const entitySelectorRouteLeaves = [
 				name: "validatorIndex",
 			},
 		],
-		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/beacon-validator/by/evm-network-validator-index/[validatorIndex]",
-		emitPage: true,
+		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/beacon-validator/evm-network-validator-index/[validatorIndex]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -3953,7 +3953,7 @@ export const entitySelectorRouteLeaves = [
 				name: "pubkey",
 			},
 		],
-		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/beacon-validator/by/network-pubkey/[pubkey]",
+		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/beacon-validator/network-pubkey/[pubkey]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -3993,8 +3993,8 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/beacon-validator/by/evm-network-validator-index/[validatorIndex]/beacon-validator-timestamp/[slot=nonNegativeInteger]/[source]",
-		emitPage: true,
+		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/beacon-validator/evm-network-validator-index/[validatorIndex]/beacon-validator-timestamp/[slot=nonNegativeInteger]/[source]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -4033,7 +4033,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/beacon-validator/by/network-pubkey/[pubkey]/beacon-validator-timestamp/[slot=nonNegativeInteger]/[source]",
+		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/beacon-validator/network-pubkey/[pubkey]/beacon-validator-timestamp/[slot=nonNegativeInteger]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -4464,7 +4464,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(data)/data/bit-torrent-metainfo/[infoHash]/[hashVersion]/bit-torrent-tracker/[trackerUrl]/bit-torrent-announce-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(data)/torrent/[infoHash]/[hashVersion]/tracker/[trackerUrl]/announce/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -4498,7 +4498,7 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(explore)/(data)/data/bit-torrent-dht-lookup-timestamp/[infoHash]/[observerKey]/[timestampMs]",
+		path: "(explore)/(data)/torrent/dht/lookup/[infoHash]/[observerKey]/[timestampMs]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -4532,7 +4532,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(data)/data/bit-torrent-dht-node-timestamp/[nodeId]/[timestampMs]/[source]",
+		path: "(explore)/(data)/torrent/dht/node/[nodeId]/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -4564,7 +4564,7 @@ export const entitySelectorRouteLeaves = [
 				name: "fileIndex",
 			},
 		],
-		path: "(explore)/(data)/data/bit-torrent-metainfo/[infoHash]/[hashVersion]/bit-torrent-file/[fileIndex]",
+		path: "(explore)/(data)/torrent/[infoHash]/[hashVersion]/file/[fileIndex]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -4596,7 +4596,7 @@ export const entitySelectorRouteLeaves = [
 				name: "path",
 			},
 		],
-		path: "(explore)/(data)/data/bit-torrent-metainfo/[infoHash]/[hashVersion]/bit-torrent-file-tree-entry/[path]",
+		path: "(explore)/(data)/torrent/[infoHash]/[hashVersion]/tree-entry/[path]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -4624,7 +4624,7 @@ export const entitySelectorRouteLeaves = [
 				name: "hashVersion",
 			},
 		],
-		path: "(explore)/(data)/data/bit-torrent-metainfo/[infoHash]/[hashVersion]",
+		path: "(explore)/(data)/torrent/[infoHash]/[hashVersion]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -4668,7 +4668,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(data)/data/bit-torrent-metainfo/[infoHash]/[hashVersion]/bit-torrent-peer-timestamp/[peerId]/[timestampMs]/[source]",
+		path: "(explore)/(data)/torrent/[infoHash]/[hashVersion]/peer/[peerId]/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -4700,7 +4700,7 @@ export const entitySelectorRouteLeaves = [
 				name: "pieceIndex",
 			},
 		],
-		path: "(explore)/(data)/data/bit-torrent-metainfo/[infoHash]/[hashVersion]/bit-torrent-piece/[pieceIndex]",
+		path: "(explore)/(data)/torrent/[infoHash]/[hashVersion]/piece/[pieceIndex]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -4738,7 +4738,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(data)/data/bit-torrent-metainfo/[infoHash]/[hashVersion]/bit-torrent-swarm-observation-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(data)/torrent/[infoHash]/[hashVersion]/swarm/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -4760,7 +4760,7 @@ export const entitySelectorRouteLeaves = [
 				name: "trackerUrl",
 			},
 		],
-		path: "(explore)/(data)/data/bit-torrent-tracker/[trackerUrl]",
+		path: "(explore)/(data)/tracker/[trackerUrl]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -4800,7 +4800,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(data)/data/bit-torrent-tracker/[trackerUrl]/bit-torrent-tracker-scrape-timestamp/[infoHash]/[timestampMs]/[source]",
+		path: "(explore)/(data)/tracker/[trackerUrl]/scrape/[infoHash]/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -4822,7 +4822,7 @@ export const entitySelectorRouteLeaves = [
 				name: "id",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-agent-conversation/[id]",
+		path: "(explore)/(services)/agent/conversation/[id]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -4844,7 +4844,7 @@ export const entitySelectorRouteLeaves = [
 				name: "id",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-agent-conversation-turn/[id]",
+		path: "(explore)/(services)/agent/conversation/turn/[id]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -4872,7 +4872,7 @@ export const entitySelectorRouteLeaves = [
 				name: "participationId",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-algorand-participation-key/[nodeId]/[participationId]",
+		path: "(explore)/(services)/algorand/participation/key/[nodeId]/[participationId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -4906,7 +4906,7 @@ export const entitySelectorRouteLeaves = [
 				name: "observedAtMs",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-algorand-pending-transaction/[nodeId]/[txId]/[observedAtMs]",
+		path: "(explore)/(services)/algorand/pending/transaction/[nodeId]/[txId]/[observedAtMs]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -4934,7 +4934,7 @@ export const entitySelectorRouteLeaves = [
 				name: "network",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-avalanche-node-state/[nodeId]/[network]",
+		path: "(explore)/(services)/avalanche/node/state/[nodeId]/[network]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -4972,7 +4972,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-avalanche-node-state/[nodeId]/[network]/blockhead-avalanche-node-state-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/avalanche/node/state/[nodeId]/[network]/avalanche/node/state/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -4994,7 +4994,7 @@ export const entitySelectorRouteLeaves = [
 				name: "clientId",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-bit-torrent-client-state/[clientId]",
+		path: "(explore)/(services)/bit/torrent/client/state/[clientId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -5028,7 +5028,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-bit-torrent-client-state/[clientId]/blockhead-bit-torrent-client-state-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/bit/torrent/client/state/[clientId]/bit/torrent/client/state/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -5066,7 +5066,7 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-bit-torrent-client-state/[clientId]/bit-torrent-metainfo/[infoHash]/[hashVersion]/blockhead-bit-torrent-transfer-timestamp/[timestampMs]",
+		path: "(explore)/(services)/bit/torrent/client/state/[clientId]/torrent/[infoHash]/[hashVersion]/bit/torrent/transfer/timestamp/[timestampMs]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -5094,7 +5094,7 @@ export const entitySelectorRouteLeaves = [
 				name: "actionId",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-bridge-intent/[sessionId]/[actionId]",
+		path: "(explore)/(services)/bridge/intent/[sessionId]/[actionId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -5128,7 +5128,7 @@ export const entitySelectorRouteLeaves = [
 				name: "quoteId",
 			},
 		],
-		path: "(assets)/assets/cashu-mint/[mintUrl]/blockhead-cashu-melt-quote/[method]/[quoteId]",
+		path: "(assets)/cashu/mint/[mintUrl]/melt/quote/[method]/[quoteId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -5170,7 +5170,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(assets)/assets/cashu-mint/[mintUrl]/blockhead-cashu-melt-quote/[method]/[quoteId]/blockhead-cashu-melt-quote-timestamp/[timestampMs]/[source]",
+		path: "(assets)/cashu/mint/[mintUrl]/melt/quote/[method]/[quoteId]/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -5204,7 +5204,7 @@ export const entitySelectorRouteLeaves = [
 				name: "quoteId",
 			},
 		],
-		path: "(assets)/assets/cashu-mint/[mintUrl]/blockhead-cashu-mint-quote/[method]/[quoteId]",
+		path: "(assets)/cashu/mint/[mintUrl]/mint/quote/[method]/[quoteId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -5246,7 +5246,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(assets)/assets/cashu-mint/[mintUrl]/blockhead-cashu-mint-quote/[method]/[quoteId]/blockhead-cashu-mint-quote-timestamp/[timestampMs]/[source]",
+		path: "(assets)/cashu/mint/[mintUrl]/mint/quote/[method]/[quoteId]/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -5286,7 +5286,7 @@ export const entitySelectorRouteLeaves = [
 				name: "secretHash",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-cashu-proof/[walletId]/[mintUrl]/[keysetId]/[secretHash]",
+		path: "(explore)/(services)/cashu/proof/[walletId]/[mintUrl]/[keysetId]/[secretHash]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -5332,7 +5332,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-cashu-proof/[walletId]/[mintUrl]/[keysetId]/[secretHash]/blockhead-cashu-proof-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/cashu/proof/[walletId]/[mintUrl]/[keysetId]/[secretHash]/cashu/proof/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -5354,7 +5354,7 @@ export const entitySelectorRouteLeaves = [
 				name: "id",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-cashu-token/[id]",
+		path: "(explore)/(services)/cashu/token/[id]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -5388,7 +5388,7 @@ export const entitySelectorRouteLeaves = [
 				name: "unit",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-cashu-wallet-state/[walletId]/[mintUrl]/[unit]",
+		path: "(explore)/(services)/cashu/wallet/state/[walletId]/[mintUrl]/[unit]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -5430,7 +5430,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-cashu-wallet-state/[walletId]/[mintUrl]/[unit]/blockhead-cashu-wallet-state-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/cashu/wallet/state/[walletId]/[mintUrl]/[unit]/cashu/wallet/state/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -5458,7 +5458,7 @@ export const entitySelectorRouteLeaves = [
 				name: "peerId",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-codex-storage-node-state/[connectionId]/[peerId]",
+		path: "(explore)/(services)/codex/storage/node/state/[connectionId]/[peerId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -5496,7 +5496,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-codex-storage-node-state/[connectionId]/[peerId]/blockhead-codex-storage-node-state-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/codex/storage/node/state/[connectionId]/[peerId]/codex/storage/node/state/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -5528,7 +5528,7 @@ export const entitySelectorRouteLeaves = [
 				name: "cid",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-codex-storage-node-state/[connectionId]/[peerId]/blockhead-codex-stored-data/[cid]",
+		path: "(explore)/(services)/codex/storage/node/state/[connectionId]/[peerId]/codex/stored/data/[cid]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -5570,7 +5570,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-codex-storage-node-state/[connectionId]/[peerId]/blockhead-codex-stored-data/[cid]/blockhead-codex-stored-data-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/codex/storage/node/state/[connectionId]/[peerId]/codex/stored/data/[cid]/codex/stored/data/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -5592,7 +5592,7 @@ export const entitySelectorRouteLeaves = [
 				name: "query",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-ens-name-search/[query]",
+		path: "(explore)/(services)/ens/name/search/[query]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -5614,7 +5614,7 @@ export const entitySelectorRouteLeaves = [
 				name: "fid",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-farcaster-account-connection/[fid]",
+		path: "(explore)/(services)/farcaster/account/connection/[fid]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -5642,7 +5642,7 @@ export const entitySelectorRouteLeaves = [
 				name: "federationId",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-fedimint-client-state/[clientId]/[federationId]",
+		path: "(explore)/(services)/fedimint/client/state/[clientId]/[federationId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -5680,7 +5680,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-fedimint-client-state/[clientId]/[federationId]/blockhead-fedimint-client-state-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/fedimint/client/state/[clientId]/[federationId]/fedimint/client/state/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -5714,7 +5714,7 @@ export const entitySelectorRouteLeaves = [
 				name: "observedAtMs",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-filecoin-pending-message/[nodeId]/[messageCid]/[observedAtMs]",
+		path: "(explore)/(services)/filecoin/pending/message/[nodeId]/[messageCid]/[observedAtMs]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -5742,7 +5742,7 @@ export const entitySelectorRouteLeaves = [
 				name: "network",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-kaspa-node-state/[connectionId]/[network]",
+		path: "(explore)/(services)/kaspa/node/state/[connectionId]/[network]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -5780,7 +5780,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-kaspa-node-state/[connectionId]/[network]/blockhead-kaspa-node-state-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/kaspa/node/state/[connectionId]/[network]/kaspa/node/state/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -5809,7 +5809,7 @@ export const entitySelectorRouteLeaves = [
 				name: "paymentHash",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/blockhead-lightning-invoice/[paymentHash]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/lightning/invoice/[paymentHash]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -5848,7 +5848,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/blockhead-lightning-invoice/[paymentHash]/blockhead-lightning-invoice-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/lightning/invoice/[paymentHash]/lightning/invoice/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -5876,7 +5876,7 @@ export const entitySelectorRouteLeaves = [
 				name: "network",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-lightning-node-state/[connectionId]/[network]",
+		path: "(explore)/(services)/lightning/node/state/[connectionId]/[network]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -5914,7 +5914,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-lightning-node-state/[connectionId]/[network]/blockhead-lightning-node-state-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/lightning/node/state/[connectionId]/[network]/lightning/node/state/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -5943,7 +5943,7 @@ export const entitySelectorRouteLeaves = [
 				name: "paymentHash",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/blockhead-lightning-payment/[paymentHash]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/lightning/payment/[paymentHash]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -5982,7 +5982,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/blockhead-lightning-payment/[paymentHash]/blockhead-lightning-payment-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/lightning/payment/[paymentHash]/lightning/payment/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -6010,7 +6010,7 @@ export const entitySelectorRouteLeaves = [
 				name: "commitment",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-litecoin-mweb-output-state/[walletId]/[commitment]",
+		path: "(explore)/(services)/litecoin/mweb/output/state/[walletId]/[commitment]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -6048,7 +6048,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-litecoin-mweb-output-state/[walletId]/[commitment]/blockhead-litecoin-mweb-output-state-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/litecoin/mweb/output/state/[walletId]/[commitment]/litecoin/mweb/output/state/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -6076,7 +6076,7 @@ export const entitySelectorRouteLeaves = [
 				name: "network",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-litecoin-mweb-wallet-state/[walletId]/[network]",
+		path: "(explore)/(services)/litecoin/mweb/wallet/state/[walletId]/[network]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -6114,7 +6114,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-litecoin-mweb-wallet-state/[walletId]/[network]/blockhead-litecoin-mweb-wallet-state-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/litecoin/mweb/wallet/state/[walletId]/[network]/litecoin/mweb/wallet/state/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -6142,7 +6142,7 @@ export const entitySelectorRouteLeaves = [
 				name: "peerId",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-logos-blockchain-node-state/[connectionId]/[peerId]",
+		path: "(explore)/(services)/logos/blockchain/node/state/[connectionId]/[peerId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -6180,7 +6180,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-logos-blockchain-node-state/[connectionId]/[peerId]/blockhead-logos-blockchain-node-state-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/logos/blockchain/node/state/[connectionId]/[peerId]/logos/blockchain/node/state/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -6212,7 +6212,7 @@ export const entitySelectorRouteLeaves = [
 				name: "publicKey",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-logos-blockchain-node-state/[connectionId]/[peerId]/blockhead-logos-blockchain-wallet-key-state/[publicKey]",
+		path: "(explore)/(services)/logos/blockchain/node/state/[connectionId]/[peerId]/logos/blockchain/wallet/key/state/[publicKey]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -6254,7 +6254,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-logos-blockchain-node-state/[connectionId]/[peerId]/blockhead-logos-blockchain-wallet-key-state/[publicKey]/blockhead-logos-blockchain-wallet-key-state-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/logos/blockchain/node/state/[connectionId]/[peerId]/logos/blockchain/wallet/key/state/[publicKey]/logos/blockchain/wallet/key/state/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -6288,7 +6288,7 @@ export const entitySelectorRouteLeaves = [
 				name: "outputIndex",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-monero-output-state/[walletId]/[txHash]/[outputIndex]",
+		path: "(explore)/(services)/monero/output/state/[walletId]/[txHash]/[outputIndex]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -6330,7 +6330,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-monero-output-state/[walletId]/[txHash]/[outputIndex]/blockhead-monero-output-state-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/monero/output/state/[walletId]/[txHash]/[outputIndex]/monero/output/state/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -6364,7 +6364,7 @@ export const entitySelectorRouteLeaves = [
 				name: "addressIndex",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-monero-subaddress-state/[walletId]/[accountIndex]/[addressIndex]",
+		path: "(explore)/(services)/monero/subaddress/state/[walletId]/[accountIndex]/[addressIndex]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -6406,7 +6406,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-monero-subaddress-state/[walletId]/[accountIndex]/[addressIndex]/blockhead-monero-subaddress-state-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/monero/subaddress/state/[walletId]/[accountIndex]/[addressIndex]/monero/subaddress/state/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -6440,7 +6440,7 @@ export const entitySelectorRouteLeaves = [
 				name: "transferIndex",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-monero-transfer-state/[walletId]/[txHash]/[transferIndex]",
+		path: "(explore)/(services)/monero/transfer/state/[walletId]/[txHash]/[transferIndex]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -6482,7 +6482,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-monero-transfer-state/[walletId]/[txHash]/[transferIndex]/blockhead-monero-transfer-state-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/monero/transfer/state/[walletId]/[txHash]/[transferIndex]/monero/transfer/state/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -6504,7 +6504,7 @@ export const entitySelectorRouteLeaves = [
 				name: "walletId",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-monero-wallet-state/[walletId]",
+		path: "(explore)/(services)/monero/wallet/state/[walletId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -6538,7 +6538,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-monero-wallet-state/[walletId]/blockhead-monero-wallet-state-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/monero/wallet/state/[walletId]/monero/wallet/state/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -6560,7 +6560,7 @@ export const entitySelectorRouteLeaves = [
 				name: "id",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-panel-tree/[id]",
+		path: "(explore)/(services)/panel/tree/[id]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -6582,7 +6582,7 @@ export const entitySelectorRouteLeaves = [
 				name: "sessionId",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-payjoin-session/[sessionId]",
+		path: "(explore)/(services)/payjoin/session/[sessionId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -6616,7 +6616,7 @@ export const entitySelectorRouteLeaves = [
 				name: "accountAddress",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-quilibrium-account-state/[connectionId]/[network]/[accountAddress]",
+		path: "(explore)/(services)/quilibrium/account/state/[connectionId]/[network]/[accountAddress]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -6658,7 +6658,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-quilibrium-account-state/[connectionId]/[network]/[accountAddress]/blockhead-quilibrium-account-state-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/quilibrium/account/state/[connectionId]/[network]/[accountAddress]/quilibrium/account/state/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -6686,7 +6686,7 @@ export const entitySelectorRouteLeaves = [
 				name: "network",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-quilibrium-node-state/[connectionId]/[network]",
+		path: "(explore)/(services)/quilibrium/node/state/[connectionId]/[network]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -6724,7 +6724,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-quilibrium-node-state/[connectionId]/[network]/blockhead-quilibrium-node-state-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/quilibrium/node/state/[connectionId]/[network]/quilibrium/node/state/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -6760,7 +6760,7 @@ export const entitySelectorRouteLeaves = [
 				name: "transactionAddress",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-quilibrium-account-state/[connectionId]/[network]/[accountAddress]/blockhead-quilibrium-pending-transaction/[transactionAddress]",
+		path: "(explore)/(services)/quilibrium/account/state/[connectionId]/[network]/[accountAddress]/quilibrium/pending/transaction/[transactionAddress]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -6798,7 +6798,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-radicle-node-state/[connectionId]/[nodeId]/blockhead-radicle-node-inventory-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/radicle/node/state/[connectionId]/[nodeId]/radicle/node/inventory/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -6826,7 +6826,7 @@ export const entitySelectorRouteLeaves = [
 				name: "nodeId",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-radicle-node-state/[connectionId]/[nodeId]",
+		path: "(explore)/(services)/radicle/node/state/[connectionId]/[nodeId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -6864,7 +6864,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-radicle-node-state/[connectionId]/[nodeId]/blockhead-radicle-node-state-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/radicle/node/state/[connectionId]/[nodeId]/radicle/node/state/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -6896,7 +6896,7 @@ export const entitySelectorRouteLeaves = [
 				name: "peerNodeId",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-radicle-node-state/[connectionId]/[nodeId]/blockhead-radicle-peer/[peerNodeId]",
+		path: "(explore)/(services)/radicle/node/state/[connectionId]/[nodeId]/radicle/peer/[peerNodeId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -6936,7 +6936,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(data)/data/radicle-repository/[rid]/blockhead-radicle-seed-observation-timestamp/[nodeId]/[timestampMs]/[source]",
+		path: "(explore)/(data)/radicle/repository/[rid]/seed/observation/[nodeId]/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -6958,7 +6958,7 @@ export const entitySelectorRouteLeaves = [
 				name: "sessionId",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-radicle-sync-session/[sessionId]",
+		path: "(explore)/(services)/radicle/sync/session/[sessionId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -6980,7 +6980,7 @@ export const entitySelectorRouteLeaves = [
 				name: "id",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-room/[id]",
+		path: "(explore)/(services)/room/[id]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -7002,7 +7002,7 @@ export const entitySelectorRouteLeaves = [
 				name: "id",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-room-peer/[id]",
+		path: "(explore)/(services)/room/peer/[id]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -7024,7 +7024,7 @@ export const entitySelectorRouteLeaves = [
 				name: "id",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-session/[id]",
+		path: "(explore)/(services)/session/[id]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -7052,7 +7052,7 @@ export const entitySelectorRouteLeaves = [
 				name: "actionId",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-session-action/[sessionId]/[actionId]",
+		path: "(explore)/(services)/session/action/[sessionId]/[actionId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -7080,7 +7080,7 @@ export const entitySelectorRouteLeaves = [
 				name: "invocationId",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-intent-invocation/[sessionId]/[invocationId]",
+		path: "(explore)/(services)/intent/invocation/[sessionId]/[invocationId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -7114,7 +7114,7 @@ export const entitySelectorRouteLeaves = [
 				name: "checkId",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-action-readiness-check/[sessionId]/[actionId]/[checkId]",
+		path: "(explore)/(services)/action/readiness/check/[sessionId]/[actionId]/[checkId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -7156,7 +7156,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-action-readiness-check/[sessionId]/[actionId]/[checkId]/blockhead-action-readiness-check-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/action/readiness/check/[sessionId]/[actionId]/[checkId]/action/readiness/check/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -7190,7 +7190,7 @@ export const entitySelectorRouteLeaves = [
 				name: "outcomeId",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-action-outcome/[sessionId]/[actionId]/[outcomeId]",
+		path: "(explore)/(services)/action/outcome/[sessionId]/[actionId]/[outcomeId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -7232,7 +7232,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-action-outcome/[sessionId]/[actionId]/[outcomeId]/blockhead-action-outcome-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/action/outcome/[sessionId]/[actionId]/[outcomeId]/action/outcome/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -7254,7 +7254,7 @@ export const entitySelectorRouteLeaves = [
 				name: "id",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-session-simulation/[id]",
+		path: "(explore)/(services)/session/simulation/[id]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -7282,7 +7282,7 @@ export const entitySelectorRouteLeaves = [
 				name: "callPath",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-session-simulation-call/[simulationId]/[callPath]",
+		path: "(explore)/(services)/session/simulation/call/[simulationId]/[callPath]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -7310,7 +7310,7 @@ export const entitySelectorRouteLeaves = [
 				name: "logIndex",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-session-simulation-log/[simulationId]/[logIndex]",
+		path: "(explore)/(services)/session/simulation/log/[simulationId]/[logIndex]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -7332,7 +7332,7 @@ export const entitySelectorRouteLeaves = [
 				name: "id",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-shared-address/[id]",
+		path: "(explore)/(services)/shared/address/[id]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -7354,7 +7354,7 @@ export const entitySelectorRouteLeaves = [
 				name: "id",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-siwe-challenge/[id]",
+		path: "(explore)/(services)/siwe/challenge/[id]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -7376,7 +7376,7 @@ export const entitySelectorRouteLeaves = [
 				name: "id",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-social-post-session/[id]",
+		path: "(explore)/(services)/social/post/session/[id]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -7398,7 +7398,7 @@ export const entitySelectorRouteLeaves = [
 				name: "id",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-source/[id]",
+		path: "(explore)/(services)/source/[id]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -7426,7 +7426,7 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-source/[id]/blockhead-source-timestamp/[timestampMs]",
+		path: "(explore)/(services)/source/[id]/source/timestamp/[timestampMs]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -7448,7 +7448,7 @@ export const entitySelectorRouteLeaves = [
 				name: "id",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-state-channel/[id]",
+		path: "(explore)/(services)/state/channel/[id]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -7482,7 +7482,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-state-channel/[id]/blockhead-state-channel-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/state/channel/[id]/state/channel/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -7511,7 +7511,7 @@ export const entitySelectorRouteLeaves = [
 				matcher: "evmAddress",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-state-channel/[id]/account/[address=evmAddress]/blockhead-state-channel-deposit",
+		path: "(explore)/(services)/state/channel/[id]/account/[address=evmAddress]/state/channel/deposit",
 		emitPage: true,
 		unresolved: [
 		],
@@ -7544,7 +7544,7 @@ export const entitySelectorRouteLeaves = [
 				name: "interopAddress",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-state-channel/[id]/account/[address=evmAddress]/[interopAddress]/blockhead-state-channel-deposit",
+		path: "(explore)/(services)/state/channel/[id]/account/[address=evmAddress]/[interopAddress]/state/channel/deposit",
 		emitPage: true,
 		unresolved: [
 		],
@@ -7583,7 +7583,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-state-channel/[id]/account/[address=evmAddress]/blockhead-state-channel-deposit/blockhead-state-channel-deposit-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/state/channel/[id]/account/[address=evmAddress]/state/channel/deposit/state/channel/deposit/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -7626,7 +7626,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-state-channel/[id]/account/[address=evmAddress]/[interopAddress]/blockhead-state-channel-deposit/blockhead-state-channel-deposit-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/state/channel/[id]/account/[address=evmAddress]/[interopAddress]/state/channel/deposit/state/channel/deposit/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -7661,7 +7661,7 @@ export const entitySelectorRouteLeaves = [
 				name: "stateData",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-state-channel/[id]/blockhead-state-channel-state/[version=nonNegativeInteger]/[stateData]",
+		path: "(explore)/(services)/state/channel/[id]/state/channel/state/[version=nonNegativeInteger]/[stateData]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -7709,7 +7709,7 @@ export const entitySelectorRouteLeaves = [
 				name: "amount",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-state-channel/[id]/account/[address=evmAddress]/account/[address=evmAddress]/blockhead-state-channel-transfer/[turnNum]/[amount]",
+		path: "(explore)/(services)/state/channel/[id]/account/[address=evmAddress]/state/channel/transfer/[turnNum]/[amount]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -7761,7 +7761,7 @@ export const entitySelectorRouteLeaves = [
 				name: "amount",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-state-channel/[id]/account/[address=evmAddress]/account/[address=evmAddress]/[interopAddress]/blockhead-state-channel-transfer/[turnNum]/[amount]",
+		path: "(explore)/(services)/state/channel/[id]/account/[address=evmAddress]/[interopAddress]/state/channel/transfer/[turnNum]/[amount]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -7813,7 +7813,7 @@ export const entitySelectorRouteLeaves = [
 				name: "amount",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-state-channel/[id]/account/[address=evmAddress]/[interopAddress]/account/[address=evmAddress]/blockhead-state-channel-transfer/[turnNum]/[amount]",
+		path: "(explore)/(services)/state/channel/[id]/account/[address=evmAddress]/[interopAddress]/account/[address=evmAddress]/state/channel/transfer/[turnNum]/[amount]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -7869,7 +7869,7 @@ export const entitySelectorRouteLeaves = [
 				name: "amount",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-state-channel/[id]/account/[address=evmAddress]/[interopAddress]/account/[address=evmAddress]/[interopAddress]/blockhead-state-channel-transfer/[turnNum]/[amount]",
+		path: "(explore)/(services)/state/channel/[id]/account/[address=evmAddress]/[interopAddress]/account/[address=evmAddress]/[interopAddress]/state/channel/transfer/[turnNum]/[amount]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -7897,7 +7897,7 @@ export const entitySelectorRouteLeaves = [
 				name: "actionId",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-swap-intent/[sessionId]/[actionId]",
+		path: "(explore)/(services)/swap/intent/[sessionId]/[actionId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -7925,7 +7925,7 @@ export const entitySelectorRouteLeaves = [
 				name: "actionId",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-transfer-intent/[sessionId]/[actionId]",
+		path: "(explore)/(services)/transfer/intent/[sessionId]/[actionId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -7954,7 +7954,7 @@ export const entitySelectorRouteLeaves = [
 				name: "id",
 			},
 		],
-		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/blockhead-transfer-request/[id]",
+		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/transfer/request/[id]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -7998,7 +7998,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-waku-node-state/[connectionId]/[nodeId]/blockhead-waku-message-observation-timestamp/[messageHash]/[timestampMs]/[source]",
+		path: "(explore)/(services)/waku/node/state/[connectionId]/[nodeId]/waku/message/observation/timestamp/[messageHash]/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -8026,7 +8026,7 @@ export const entitySelectorRouteLeaves = [
 				name: "nodeId",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-waku-node-state/[connectionId]/[nodeId]",
+		path: "(explore)/(services)/waku/node/state/[connectionId]/[nodeId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -8064,7 +8064,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-waku-node-state/[connectionId]/[nodeId]/blockhead-waku-node-state-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/waku/node/state/[connectionId]/[nodeId]/waku/node/state/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -8086,7 +8086,7 @@ export const entitySelectorRouteLeaves = [
 				name: "id",
 			},
 		],
-		path: "(explore)/(services)/services/wallet-connection-method/[id]",
+		path: "(explore)/(services)/wallet-connection-method/[id]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -8108,7 +8108,7 @@ export const entitySelectorRouteLeaves = [
 				name: "id",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-wallet/[id]",
+		path: "(explore)/(services)/wallet/[id]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -8130,7 +8130,7 @@ export const entitySelectorRouteLeaves = [
 				name: "caip10",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-wallet-account/[caip10]",
+		path: "(explore)/(services)/wallet/account/[caip10]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -8152,7 +8152,7 @@ export const entitySelectorRouteLeaves = [
 				name: "id",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-wallet/[id]/blockhead-wallet-connection",
+		path: "(explore)/(services)/wallet/[id]/wallet/connection",
 		emitPage: true,
 		unresolved: [
 		],
@@ -8174,7 +8174,7 @@ export const entitySelectorRouteLeaves = [
 				name: "id",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-intent-quote/[id]",
+		path: "(explore)/(services)/intent/quote/[id]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -8208,7 +8208,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-intent-quote/[id]/blockhead-intent-quote-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/intent/quote/[id]/intent/quote/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -8230,7 +8230,7 @@ export const entitySelectorRouteLeaves = [
 				name: "id",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-intent-order/[id]",
+		path: "(explore)/(services)/intent/order/[id]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -8264,7 +8264,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-intent-order/[id]/blockhead-intent-order-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/intent/order/[id]/intent/order/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -8292,7 +8292,7 @@ export const entitySelectorRouteLeaves = [
 				name: "transportSessionId",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-wallet-transport-session/[connectionKey]/[transportSessionId]",
+		path: "(explore)/(services)/wallet/transport/session/[connectionKey]/[transportSessionId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -8314,7 +8314,7 @@ export const entitySelectorRouteLeaves = [
 				name: "id",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-wallet-request/[id]",
+		path: "(explore)/(services)/wallet/request/[id]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -8348,7 +8348,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-wallet-request/[id]/blockhead-wallet-request-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/wallet/request/[id]/wallet/request/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -8370,7 +8370,7 @@ export const entitySelectorRouteLeaves = [
 				name: "grantId",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-wallet-capability-grant/[grantId]",
+		path: "(explore)/(services)/wallet/capability/grant/[grantId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -8392,7 +8392,7 @@ export const entitySelectorRouteLeaves = [
 				name: "authenticationId",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-wallet-authentication/[authenticationId]",
+		path: "(explore)/(services)/wallet/authentication/[authenticationId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -8414,8 +8414,8 @@ export const entitySelectorRouteLeaves = [
 				name: "id",
 			},
 		],
-		path: "(social)/(xmtp)/xmtp/xmtp-conversation/[id]",
-		emitPage: true,
+		path: "(social)/xmtp/xmtp-conversation/[id]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -8436,8 +8436,8 @@ export const entitySelectorRouteLeaves = [
 				name: "scope",
 			},
 		],
-		path: "(social)/(xmtp)/xmtp/xmtp-network/[scope]",
-		emitPage: true,
+		path: "(social)/xmtp/xmtp-network/[scope]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -8470,7 +8470,7 @@ export const entitySelectorRouteLeaves = [
 				name: "noteCommitment",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-zcash-note-state/[walletId]/[pool]/[noteCommitment]",
+		path: "(explore)/(services)/zcash/note/state/[walletId]/[pool]/[noteCommitment]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -8512,7 +8512,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-zcash-note-state/[walletId]/[pool]/[noteCommitment]/blockhead-zcash-note-state-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/zcash/note/state/[walletId]/[pool]/[noteCommitment]/zcash/note/state/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -8540,7 +8540,7 @@ export const entitySelectorRouteLeaves = [
 				name: "keyFingerprint",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-zcash-viewing-key/[walletId]/[keyFingerprint]",
+		path: "(explore)/(services)/zcash/viewing/key/[walletId]/[keyFingerprint]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -8578,7 +8578,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-zcash-viewing-key/[walletId]/[keyFingerprint]/blockhead-zcash-viewing-key-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/zcash/viewing/key/[walletId]/[keyFingerprint]/zcash/viewing/key/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -8600,7 +8600,7 @@ export const entitySelectorRouteLeaves = [
 				name: "walletId",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-zcash-wallet-state/[walletId]",
+		path: "(explore)/(services)/zcash/wallet/state/[walletId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -8634,7 +8634,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-zcash-wallet-state/[walletId]/blockhead-zcash-wallet-state-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/zcash/wallet/state/[walletId]/zcash/wallet/state/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -8668,7 +8668,7 @@ export const entitySelectorRouteLeaves = [
 				name: "nodeId",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-zero-gstorage-node-state/[connectionId]/[network]/[nodeId]",
+		path: "(explore)/(services)/zero/gstorage/node/state/[connectionId]/[network]/[nodeId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -8710,7 +8710,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-zero-gstorage-node-state/[connectionId]/[network]/[nodeId]/blockhead-zero-gstorage-node-state-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/zero/gstorage/node/state/[connectionId]/[network]/[nodeId]/zero/gstorage/node/state/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -8746,7 +8746,7 @@ export const entitySelectorRouteLeaves = [
 				name: "proofId",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-zero-gstorage-node-state/[connectionId]/[network]/[nodeId]/blockhead-zero-gstorage-proof/[proofId]",
+		path: "(explore)/(services)/zero/gstorage/node/state/[connectionId]/[network]/[nodeId]/zero/gstorage/proof/[proofId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -8788,7 +8788,7 @@ export const entitySelectorRouteLeaves = [
 				name: "chunkIndex",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-zero-gstorage-node-state/[connectionId]/[network]/[nodeId]/blockhead-zero-gstored-chunk/[dataRoot]/[chunkIndex]",
+		path: "(explore)/(services)/zero/gstorage/node/state/[connectionId]/[network]/[nodeId]/zero/gstored/chunk/[dataRoot]/[chunkIndex]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -8817,7 +8817,7 @@ export const entitySelectorRouteLeaves = [
 				name: "height",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/bnb-beacon-network/bnb-beacon-block/by/network-height/[height]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/bnb-beacon-network/bnb-beacon-block/network-height/[height]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -8846,7 +8846,7 @@ export const entitySelectorRouteLeaves = [
 				name: "hash",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/bnb-beacon-network/bnb-beacon-block/by/network-hash/[hash]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/bnb-beacon-network/bnb-beacon-block/network-hash/[hash]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -9252,7 +9252,7 @@ export const entitySelectorRouteLeaves = [
 				name: "toAddress",
 			},
 		],
-		path: "(assets)/assets/bridge-route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]",
+		path: "(assets)/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -9308,7 +9308,7 @@ export const entitySelectorRouteLeaves = [
 				name: "index",
 			},
 		],
-		path: "(assets)/assets/bridge-route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]/bridge-route-step/[index]",
+		path: "(assets)/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]/step/[index]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -9342,7 +9342,7 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(assets)/assets/bridge-route-quote-timestamp/[source]/[quoteRequestHash]/[timestampMs]",
+		path: "(assets)/bridge/quote/[source]/[quoteRequestHash]/[timestampMs]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -9378,8 +9378,8 @@ export const entitySelectorRouteLeaves = [
 				name: "index",
 			},
 		],
-		path: "(assets)/assets/bridge-route-quote-timestamp/[source]/[quoteRequestHash]/[timestampMs]/bridge-route-quote-step/[index]",
-		emitPage: true,
+		path: "(assets)/bridge/quote/[source]/[quoteRequestHash]/[timestampMs]/bridge-route-quote-step/[index]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -9406,7 +9406,7 @@ export const entitySelectorRouteLeaves = [
 				name: "transferId",
 			},
 		],
-		path: "(assets)/assets/bridge-transfer/[source]/[transferId]",
+		path: "(assets)/bridge/transfer/[source]/[transferId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -9446,7 +9446,7 @@ export const entitySelectorRouteLeaves = [
 				name: "logIndex",
 			},
 		],
-		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/tx/[txHash=evmTxHash]/bridge-transfer/[source]/[logIndex]",
+		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/tx/[txHash=evmTxHash]/bridge/transfer/[source]/[logIndex]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -9484,7 +9484,7 @@ export const entitySelectorRouteLeaves = [
 				name: "bridgeTransferTimestampSource",
 			},
 		],
-		path: "(assets)/assets/bridge-transfer/[source]/[transferId]/bridge-transfer-timestamp/[timestampMs]/[bridgeTransferTimestampSource]",
+		path: "(assets)/bridge/transfer/[source]/[transferId]/timestamp/[timestampMs]/[bridgeTransferTimestampSource]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -9532,7 +9532,7 @@ export const entitySelectorRouteLeaves = [
 				name: "bridgeTransferTimestampSource",
 			},
 		],
-		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/tx/[txHash=evmTxHash]/bridge-transfer/[source]/[logIndex]/bridge-transfer-timestamp/[timestampMs]/[bridgeTransferTimestampSource]",
+		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/tx/[txHash=evmTxHash]/bridge/transfer/[source]/[logIndex]/timestamp/[timestampMs]/[bridgeTransferTimestampSource]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -9629,7 +9629,7 @@ export const entitySelectorRouteLeaves = [
 				name: "hash",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/cardano-network/cardano-block/by/network-hash/[hash]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/cardano-network/cardano-block/network-hash/[hash]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -9688,7 +9688,7 @@ export const entitySelectorRouteLeaves = [
 				name: "blockNo",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/cardano-network/cardano-block/by/network-block-no/[blockNo]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/cardano-network/cardano-block/network-block-no/[blockNo]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -10503,7 +10503,7 @@ export const entitySelectorRouteLeaves = [
 				name: "keysetId",
 			},
 		],
-		path: "(assets)/assets/cashu-mint/[mintUrl]/cashu-keyset/[keysetId]",
+		path: "(assets)/cashu/mint/[mintUrl]/keyset/[keysetId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -10541,8 +10541,8 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(assets)/assets/cashu-mint/[mintUrl]/cashu-keyset/[keysetId]/cashu-keyset-timestamp/[timestampMs]/[source]",
-		emitPage: true,
+		path: "(assets)/cashu/mint/[mintUrl]/keyset/[keysetId]/cashu-keyset-timestamp/[timestampMs]/[source]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -10563,7 +10563,7 @@ export const entitySelectorRouteLeaves = [
 				name: "mintUrl",
 			},
 		],
-		path: "(assets)/assets/cashu-mint/[mintUrl]",
+		path: "(assets)/cashu/mint/[mintUrl]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -10597,7 +10597,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(assets)/assets/cashu-mint/[mintUrl]/cashu-mint-timestamp/[timestampMs]/[source]",
+		path: "(assets)/cashu/mint/[mintUrl]/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -10619,8 +10619,8 @@ export const entitySelectorRouteLeaves = [
 				name: "apiHost",
 			},
 		],
-		path: "(assets)/assets/cctp-allowance/[apiHost]",
-		emitPage: true,
+		path: "(assets)/cctp-allowance/[apiHost]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -10657,8 +10657,8 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(assets)/assets/cctp-message/[sourceDomain]/[nonce]/cctp-attestation-timestamp/[timestampMs]/[source]",
-		emitPage: true,
+		path: "(assets)/cctp-message/[sourceDomain]/[nonce]/cctp-attestation-timestamp/[timestampMs]/[source]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -10705,8 +10705,8 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(assets)/assets/cctp-domain-support/[cctpVersion]/[domainId]/cctp-domain-support/[cctpVersion]/[domainId]/cctp-burn-fee-timestamp/[timestampMs]/[source]",
-		emitPage: true,
+		path: "(assets)/cctp-domain-support/[cctpVersion]/[domainId]/cctp-domain-support/[cctpVersion]/[domainId]/cctp-burn-fee-timestamp/[timestampMs]/[source]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -10733,8 +10733,8 @@ export const entitySelectorRouteLeaves = [
 				name: "domainId",
 			},
 		],
-		path: "(assets)/assets/cctp-domain-support/[cctpVersion]/[domainId]",
-		emitPage: true,
+		path: "(assets)/cctp-domain-support/[cctpVersion]/[domainId]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -10761,8 +10761,8 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(assets)/assets/cctp-fast-burn-allowance-timestamp/[timestampMs]/[source]",
-		emitPage: true,
+		path: "(assets)/cctp-fast-burn-allowance-timestamp/[timestampMs]/[source]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -10795,8 +10795,8 @@ export const entitySelectorRouteLeaves = [
 				name: "toDomain",
 			},
 		],
-		path: "(assets)/assets/cctp-fee/[apiHost]/[fromDomain]/[toDomain]",
-		emitPage: true,
+		path: "(assets)/cctp-fee/[apiHost]/[fromDomain]/[toDomain]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -10823,8 +10823,8 @@ export const entitySelectorRouteLeaves = [
 				name: "nonce",
 			},
 		],
-		path: "(assets)/assets/cctp-message/[sourceDomain]/[nonce]",
-		emitPage: true,
+		path: "(assets)/cctp-message/[sourceDomain]/[nonce]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -10891,7 +10891,7 @@ export const entitySelectorRouteLeaves = [
 				name: "height",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/celestia-network/celestia-block/by/network-height/[height]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/celestia-network/celestia-block/network-height/[height]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -10920,7 +10920,7 @@ export const entitySelectorRouteLeaves = [
 				name: "hash",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/celestia-network/celestia-block/by/network-hash/[hash]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/celestia-network/celestia-block/network-hash/[hash]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -11105,7 +11105,7 @@ export const entitySelectorRouteLeaves = [
 				name: "cid",
 			},
 		],
-		path: "(explore)/(data)/data/codex-dataset/[cid]",
+		path: "(explore)/(data)/codex-dataset/[cid]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -11127,8 +11127,8 @@ export const entitySelectorRouteLeaves = [
 				name: "coinId",
 			},
 		],
-		path: "(assets)/assets/coin/[coinId]",
-		emitPage: true,
+		path: "(assets)/(coins)/coin/[coinId]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -11161,7 +11161,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(assets)/assets/coin/[coinId]/coin-timestamp/[timestampMs]/[source]",
+		path: "(assets)/(coins)/coin/[coinId]/coin-timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -11205,62 +11205,8 @@ export const entitySelectorRouteLeaves = [
 				name: "toolKey",
 			},
 		],
-		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/evm-coin-instance/[type]/evm-coin-instance/[type]/coin-bridge-capability/[toolKey]",
-		emitPage: true,
-		unresolved: [
-		],
-	},
-	{
-		entity: "CoinBridgeCapability",
-		selector: "evmCoinInstanceEvmCoinInstanceToolKey",
-		fields: [
-			"$fromInstance",
-			"$toInstance",
-			"toolKey",
-		],
-		parentFields: [
-			"$fromInstance",
-			"$toInstance",
-		],
-		localFields: [
-			"toolKey",
-		],
-		params: [
-			{
-				field: "caip2",
-				name: "caip2",
-				matcher: "eip155NetworkCaip2",
-			},
-			{
-				field: "caip2",
-				name: "caip2",
-				matcher: "eip155NetworkCaip2",
-			},
-			{
-				field: "address",
-				name: "address",
-				matcher: "evmAddress",
-			},
-			{
-				field: "type",
-				name: "type",
-			},
-			{
-				field: "caip2",
-				name: "caip2",
-				matcher: "eip155NetworkCaip2",
-			},
-			{
-				field: "type",
-				name: "type",
-			},
-			{
-				field: "toolKey",
-				name: "toolKey",
-			},
-		],
-		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/contract/[address=evmAddress]/evm-coin-instance/[type]/evm-coin-instance/[type]/coin-bridge-capability/[toolKey]",
-		emitPage: true,
+		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/evm-coin-instance/[type]/coin-bridge-capability/[toolKey]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -11305,6 +11251,60 @@ export const entitySelectorRouteLeaves = [
 				matcher: "eip155NetworkCaip2",
 			},
 			{
+				field: "type",
+				name: "type",
+			},
+			{
+				field: "toolKey",
+				name: "toolKey",
+			},
+		],
+		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/contract/[address=evmAddress]/evm-coin-instance/[type]/coin-bridge-capability/[toolKey]",
+		emitPage: false,
+		unresolved: [
+		],
+	},
+	{
+		entity: "CoinBridgeCapability",
+		selector: "evmCoinInstanceEvmCoinInstanceToolKey",
+		fields: [
+			"$fromInstance",
+			"$toInstance",
+			"toolKey",
+		],
+		parentFields: [
+			"$fromInstance",
+			"$toInstance",
+		],
+		localFields: [
+			"toolKey",
+		],
+		params: [
+			{
+				field: "caip2",
+				name: "caip2",
+				matcher: "eip155NetworkCaip2",
+			},
+			{
+				field: "caip2",
+				name: "caip2",
+				matcher: "eip155NetworkCaip2",
+			},
+			{
+				field: "address",
+				name: "address",
+				matcher: "evmAddress",
+			},
+			{
+				field: "type",
+				name: "type",
+			},
+			{
+				field: "caip2",
+				name: "caip2",
+				matcher: "eip155NetworkCaip2",
+			},
+			{
 				field: "caip2",
 				name: "caip2",
 				matcher: "eip155NetworkCaip2",
@@ -11323,7 +11323,7 @@ export const entitySelectorRouteLeaves = [
 				name: "toolKey",
 			},
 		],
-		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/contract/[address=evmAddress]/evm-coin-instance/[type]/evm-coin-instance/[type]/coin-bridge-capability/[toolKey]",
+		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/contract/[address=evmAddress]/evm-coin-instance/[type]/coin-bridge-capability/[toolKey]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -11530,7 +11530,7 @@ export const entitySelectorRouteLeaves = [
 				name: "height",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/cosmos-block/by/height/[height]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/cosmos-block/height/[height]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -11559,7 +11559,7 @@ export const entitySelectorRouteLeaves = [
 				name: "hash",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/cosmos-block/by/hash/[hash]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/cosmos-block/hash/[hash]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -12254,7 +12254,7 @@ export const entitySelectorRouteLeaves = [
 				name: "iso4217",
 			},
 		],
-		path: "(assets)/assets/currency/[iso4217]",
+		path: "(assets)/currency/[iso4217]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -12282,7 +12282,7 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(assets)/assets/currency/[iso4217]/currency-timestamp/[timestampMs]",
+		path: "(assets)/currency/[iso4217]/currency-timestamp/[timestampMs]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -13124,7 +13124,7 @@ export const entitySelectorRouteLeaves = [
 			},
 		],
 		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/account/[address=evmAddress]/evm-network-account/eigen-layer-operator/[operatorAddress]/eigen-layer-strategy/[strategyAddress]/eigen-layer-delegation-timestamp/[timestampMs]/[source]",
-		emitPage: true,
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -13190,7 +13190,7 @@ export const entitySelectorRouteLeaves = [
 			},
 		],
 		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/account/[address=evmAddress]/[interopAddress]/evm-network-account/eigen-layer-operator/[operatorAddress]/eigen-layer-strategy/[strategyAddress]/eigen-layer-delegation-timestamp/[timestampMs]/[source]",
-		emitPage: true,
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -13288,7 +13288,7 @@ export const entitySelectorRouteLeaves = [
 			},
 		],
 		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/account/[address=evmAddress]/evm-network-account/eigen-layer-reward-timestamp/[rewardContextKey]/[timestampMs]/[source]",
-		emitPage: true,
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -13338,7 +13338,7 @@ export const entitySelectorRouteLeaves = [
 			},
 		],
 		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/account/[address=evmAddress]/[interopAddress]/evm-network-account/eigen-layer-reward-timestamp/[rewardContextKey]/[timestampMs]/[source]",
-		emitPage: true,
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -13748,7 +13748,7 @@ export const entitySelectorRouteLeaves = [
 				name: "name",
 			},
 		],
-		path: "(explore)/(evm)/evm/ens-name/[name]",
+		path: "(explore)/evm/ens-name/[name]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -13782,7 +13782,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(evm)/evm/ens-name/[name]/ens-name-timestamp/[timestampMs]/[source]",
+		path: "(explore)/evm/ens-name/[name]/ens-name-timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -13810,7 +13810,7 @@ export const entitySelectorRouteLeaves = [
 				name: "recordKey",
 			},
 		],
-		path: "(explore)/(evm)/evm/ens-name/[name]/ens-record/[recordKey]",
+		path: "(explore)/evm/ens-name/[name]/ens-record/[recordKey]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -13848,7 +13848,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(evm)/evm/ens-name/[name]/ens-record/[recordKey]/ens-record-timestamp/[timestampMs]/[source]",
+		path: "(explore)/evm/ens-name/[name]/ens-record/[recordKey]/ens-record-timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -13876,7 +13876,7 @@ export const entitySelectorRouteLeaves = [
 				name: "name",
 			},
 		],
-		path: "(explore)/(services)/services/account/[caip10]/ens-name/[name]/ens-reverse-record",
+		path: "(explore)/(services)/account/[caip10]/ens-name/[name]/ens-reverse-record",
 		emitPage: true,
 		unresolved: [
 		],
@@ -13914,7 +13914,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/account/[caip10]/ens-name/[name]/ens-reverse-record/ens-reverse-record-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/account/[caip10]/ens-name/[name]/ens-reverse-record/ens-reverse-record-timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -14433,7 +14433,7 @@ export const entitySelectorRouteLeaves = [
 				matcher: "evmAddress",
 			},
 		],
-		path: "(explore)/(evm)/evm/account/[address=evmAddress]",
+		path: "(explore)/evm/account/[address=evmAddress]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -14462,7 +14462,7 @@ export const entitySelectorRouteLeaves = [
 				name: "interopAddress",
 			},
 		],
-		path: "(explore)/(evm)/evm/account/[address=evmAddress]/[interopAddress]",
+		path: "(explore)/evm/account/[address=evmAddress]/[interopAddress]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -14579,8 +14579,8 @@ export const entitySelectorRouteLeaves = [
 				name: "hex",
 			},
 		],
-		path: "(explore)/(evm)/evm/evm-calldata/[hex]",
-		emitPage: true,
+		path: "(explore)/(evm)/(calldata)/calldata/[hex]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -14609,7 +14609,7 @@ export const entitySelectorRouteLeaves = [
 			},
 		],
 		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/evm-coin-instance/[type]",
-		emitPage: true,
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -14650,7 +14650,7 @@ export const entitySelectorRouteLeaves = [
 			},
 		],
 		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/contract/[address=evmAddress]/evm-coin-instance/[type]",
-		emitPage: true,
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -14708,7 +14708,7 @@ export const entitySelectorRouteLeaves = [
 			},
 		],
 		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/contract/[address=evmAddress]/evm-contract-compilation",
-		emitPage: true,
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -14736,7 +14736,7 @@ export const entitySelectorRouteLeaves = [
 			},
 		],
 		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/contract/[address=evmAddress]/evm-contract-source-bundle",
-		emitPage: true,
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -14764,7 +14764,7 @@ export const entitySelectorRouteLeaves = [
 			},
 		],
 		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/contract/[address=evmAddress]/evm-contract-verification",
-		emitPage: true,
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -14785,8 +14785,8 @@ export const entitySelectorRouteLeaves = [
 				name: "hex",
 			},
 		],
-		path: "(explore)/(evm)/evm/evm-error/[hex]",
-		emitPage: true,
+		path: "(explore)/(evm)/(errors)/error/[hex]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -14819,7 +14819,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(evm)/evm/evm-error/[hex]/evm-error-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(evm)/(errors)/error/[hex]/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -14856,7 +14856,7 @@ export const entitySelectorRouteLeaves = [
 			},
 		],
 		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/evm-internal-transfer/[txHash=evmTxHash]/[internalIndex]",
-		emitPage: true,
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -14950,7 +14950,7 @@ export const entitySelectorRouteLeaves = [
 			},
 		],
 		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/evm-network-gas-estimate-timestamp/[timestampMs]/[source]",
-		emitPage: true,
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -14980,7 +14980,7 @@ export const entitySelectorRouteLeaves = [
 			},
 		],
 		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/evm-network-gas-fee-block/[blockNumber=evmBlockNumber]",
-		emitPage: true,
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -15015,7 +15015,7 @@ export const entitySelectorRouteLeaves = [
 			},
 		],
 		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/evm-network-timestamp/[timestampMs]/[source]",
-		emitPage: true,
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -15050,7 +15050,7 @@ export const entitySelectorRouteLeaves = [
 			},
 		],
 		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/evm-network-txpool-timestamp/[timestampMs]/[source]",
-		emitPage: true,
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -15080,7 +15080,7 @@ export const entitySelectorRouteLeaves = [
 			},
 		],
 		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/account/[address=evmAddress]/evm-network-account",
-		emitPage: true,
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -15114,7 +15114,7 @@ export const entitySelectorRouteLeaves = [
 			},
 		],
 		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/account/[address=evmAddress]/[interopAddress]/evm-network-account",
-		emitPage: true,
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -15154,7 +15154,7 @@ export const entitySelectorRouteLeaves = [
 			},
 		],
 		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/account/[address=evmAddress]/evm-network-account/evm-network-account-timestamp/[timestampMs]/[source]",
-		emitPage: true,
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -15198,7 +15198,7 @@ export const entitySelectorRouteLeaves = [
 			},
 		],
 		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/account/[address=evmAddress]/[interopAddress]/evm-network-account/evm-network-account-timestamp/[timestampMs]/[source]",
-		emitPage: true,
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -15227,8 +15227,8 @@ export const entitySelectorRouteLeaves = [
 				matcher: "eip155NetworkCaip2",
 			},
 		],
-		path: "(explore)/(evm)/evm/account/[address=evmAddress]/network/[caip2=eip155NetworkCaip2]/evm-network-actor-coin-balance",
-		emitPage: true,
+		path: "(explore)/evm/account/[address=evmAddress]/network/[caip2=eip155NetworkCaip2]/evm-network-actor-coin-balance",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -15261,8 +15261,8 @@ export const entitySelectorRouteLeaves = [
 				matcher: "eip155NetworkCaip2",
 			},
 		],
-		path: "(explore)/(evm)/evm/account/[address=evmAddress]/[interopAddress]/network/[caip2=eip155NetworkCaip2]/evm-network-actor-coin-balance",
-		emitPage: true,
+		path: "(explore)/evm/account/[address=evmAddress]/[interopAddress]/network/[caip2=eip155NetworkCaip2]/evm-network-actor-coin-balance",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -15301,8 +15301,8 @@ export const entitySelectorRouteLeaves = [
 				matcher: "evmBlockNumber",
 			},
 		],
-		path: "(explore)/(evm)/evm/account/[address=evmAddress]/network/[caip2=eip155NetworkCaip2]/evm-network-actor-coin-balance/block/[blockNumber=evmBlockNumber]/evm-network-actor-coin-balance-evm-block",
-		emitPage: true,
+		path: "(explore)/evm/account/[address=evmAddress]/network/[caip2=eip155NetworkCaip2]/evm-network-actor-coin-balance/block/[blockNumber=evmBlockNumber]/evm-network-actor-coin-balance-evm-block",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -15340,8 +15340,8 @@ export const entitySelectorRouteLeaves = [
 				name: "hash",
 			},
 		],
-		path: "(explore)/(evm)/evm/account/[address=evmAddress]/network/[caip2=eip155NetworkCaip2]/evm-network-actor-coin-balance/block/[hash]/evm-network-actor-coin-balance-evm-block",
-		emitPage: true,
+		path: "(explore)/evm/account/[address=evmAddress]/network/[caip2=eip155NetworkCaip2]/evm-network-actor-coin-balance/block/[hash]/evm-network-actor-coin-balance-evm-block",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -15384,8 +15384,8 @@ export const entitySelectorRouteLeaves = [
 				matcher: "evmBlockNumber",
 			},
 		],
-		path: "(explore)/(evm)/evm/account/[address=evmAddress]/[interopAddress]/network/[caip2=eip155NetworkCaip2]/evm-network-actor-coin-balance/block/[blockNumber=evmBlockNumber]/evm-network-actor-coin-balance-evm-block",
-		emitPage: true,
+		path: "(explore)/evm/account/[address=evmAddress]/[interopAddress]/network/[caip2=eip155NetworkCaip2]/evm-network-actor-coin-balance/block/[blockNumber=evmBlockNumber]/evm-network-actor-coin-balance-evm-block",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -15427,8 +15427,8 @@ export const entitySelectorRouteLeaves = [
 				name: "hash",
 			},
 		],
-		path: "(explore)/(evm)/evm/account/[address=evmAddress]/[interopAddress]/network/[caip2=eip155NetworkCaip2]/evm-network-actor-coin-balance/block/[hash]/evm-network-actor-coin-balance-evm-block",
-		emitPage: true,
+		path: "(explore)/evm/account/[address=evmAddress]/[interopAddress]/network/[caip2=eip155NetworkCaip2]/evm-network-actor-coin-balance/block/[hash]/evm-network-actor-coin-balance-evm-block",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -15467,8 +15467,8 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(evm)/evm/account/[address=evmAddress]/network/[caip2=eip155NetworkCaip2]/evm-network-actor-coin-balance/evm-network-actor-coin-balance-timestamp/[timestampMs]/[source]",
-		emitPage: true,
+		path: "(explore)/evm/account/[address=evmAddress]/network/[caip2=eip155NetworkCaip2]/evm-network-actor-coin-balance/evm-network-actor-coin-balance-timestamp/[timestampMs]/[source]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -15511,8 +15511,8 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(evm)/evm/account/[address=evmAddress]/[interopAddress]/network/[caip2=eip155NetworkCaip2]/evm-network-actor-coin-balance/evm-network-actor-coin-balance-timestamp/[timestampMs]/[source]",
-		emitPage: true,
+		path: "(explore)/evm/account/[address=evmAddress]/[interopAddress]/network/[caip2=eip155NetworkCaip2]/evm-network-actor-coin-balance/evm-network-actor-coin-balance-timestamp/[timestampMs]/[source]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -15547,8 +15547,8 @@ export const entitySelectorRouteLeaves = [
 				name: "url",
 			},
 		],
-		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/network/[caip2=eip155NetworkCaip2]/evm-network-bridge/[url]",
-		emitPage: true,
+		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/evm-network-bridge/[url]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -15582,7 +15582,7 @@ export const entitySelectorRouteLeaves = [
 			},
 		],
 		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/contract/[address=evmAddress]/evm-nft/[tokenId]",
-		emitPage: true,
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -15603,7 +15603,7 @@ export const entitySelectorRouteLeaves = [
 				name: "scope",
 			},
 		],
-		path: "(explore)/(evm)/evm/evm-protocol/[scope]",
+		path: "(explore)/evm/protocol/[scope]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -15633,7 +15633,7 @@ export const entitySelectorRouteLeaves = [
 			},
 		],
 		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/evm-rollup/[projectId]",
-		emitPage: true,
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -15672,7 +15672,7 @@ export const entitySelectorRouteLeaves = [
 			},
 		],
 		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/evm-rollup/[projectId]/evm-rollup-timestamp/[timestampMs]/[source]",
-		emitPage: true,
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -15693,8 +15693,8 @@ export const entitySelectorRouteLeaves = [
 				name: "hex",
 			},
 		],
-		path: "(explore)/(evm)/evm/evm-selector/[hex]",
-		emitPage: true,
+		path: "(explore)/(evm)/(selectors)/selector/[hex]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -15727,7 +15727,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(evm)/evm/evm-selector/[hex]/evm-selector-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(evm)/(selectors)/selector/[hex]/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -15775,7 +15775,7 @@ export const entitySelectorRouteLeaves = [
 			},
 		],
 		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/contract/[address=evmAddress]/evm-storage-read-timestamp/[slot=nonNegativeInteger]/[timestampMs]/[source]",
-		emitPage: true,
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -15817,7 +15817,7 @@ export const entitySelectorRouteLeaves = [
 			},
 		],
 		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/evm-token-transfer/[txHash=evmTxHash]/[logIndex]/[transferIndex]",
-		emitPage: true,
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -15838,8 +15838,8 @@ export const entitySelectorRouteLeaves = [
 				name: "hex",
 			},
 		],
-		path: "(explore)/(evm)/evm/evm-topic/[hex]",
-		emitPage: true,
+		path: "(explore)/(evm)/(topics)/topic/[hex]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -15872,7 +15872,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(evm)/evm/evm-topic/[hex]/evm-topic-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(evm)/(topics)/topic/[hex]/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -15907,7 +15907,7 @@ export const entitySelectorRouteLeaves = [
 			},
 		],
 		path: "(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/tx/[txHash=evmTxHash]/evm-trace/[traceAddress]",
-		emitPage: true,
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -15987,8 +15987,8 @@ export const entitySelectorRouteLeaves = [
 				name: "hash",
 			},
 		],
-		path: "(social)/(farcaster)/farcaster/farcaster-cast/by/hash/[hash]",
-		emitPage: true,
+		path: "(social)/farcaster/farcaster-cast/hash/[hash]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -16015,8 +16015,8 @@ export const entitySelectorRouteLeaves = [
 				name: "hash",
 			},
 		],
-		path: "(social)/(farcaster)/farcaster/farcaster-cast/by/fid-hash/[fid]/[hash]",
-		emitPage: true,
+		path: "(social)/farcaster/farcaster-cast/fid-hash/[fid]/[hash]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -16043,8 +16043,8 @@ export const entitySelectorRouteLeaves = [
 				name: "hashPrefix",
 			},
 		],
-		path: "(social)/(farcaster)/farcaster/farcaster-cast/by/username-hash-prefix/[username]/[hashPrefix]",
-		emitPage: true,
+		path: "(social)/farcaster/farcaster-cast/username-hash-prefix/[username]/[hashPrefix]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -16065,8 +16065,8 @@ export const entitySelectorRouteLeaves = [
 				name: "clientUrl",
 			},
 		],
-		path: "(social)/(farcaster)/farcaster/farcaster-cast/by/client-url/[clientUrl]",
-		emitPage: true,
+		path: "(social)/farcaster/farcaster-cast/client-url/[clientUrl]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -16093,8 +16093,8 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(social)/(farcaster)/farcaster/farcaster-cast/by/hash/[hash]/farcaster-cast-timestamp/[timestampMs]",
-		emitPage: true,
+		path: "(social)/farcaster/farcaster-cast/hash/[hash]/farcaster-cast-timestamp/[timestampMs]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -16125,8 +16125,8 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(social)/(farcaster)/farcaster/farcaster-cast/by/fid-hash/[fid]/[hash]/farcaster-cast-timestamp/[timestampMs]",
-		emitPage: true,
+		path: "(social)/farcaster/farcaster-cast/fid-hash/[fid]/[hash]/farcaster-cast-timestamp/[timestampMs]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -16157,8 +16157,8 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(social)/(farcaster)/farcaster/farcaster-cast/by/username-hash-prefix/[username]/[hashPrefix]/farcaster-cast-timestamp/[timestampMs]",
-		emitPage: true,
+		path: "(social)/farcaster/farcaster-cast/username-hash-prefix/[username]/[hashPrefix]/farcaster-cast-timestamp/[timestampMs]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -16185,8 +16185,8 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(social)/(farcaster)/farcaster/farcaster-cast/by/client-url/[clientUrl]/farcaster-cast-timestamp/[timestampMs]",
-		emitPage: true,
+		path: "(social)/farcaster/farcaster-cast/client-url/[clientUrl]/farcaster-cast-timestamp/[timestampMs]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -16213,8 +16213,8 @@ export const entitySelectorRouteLeaves = [
 				name: "index",
 			},
 		],
-		path: "(social)/(farcaster)/farcaster/farcaster-cast/by/hash/[hash]/farcaster-cast-embed/[index]",
-		emitPage: true,
+		path: "(social)/farcaster/farcaster-cast/hash/[hash]/farcaster-cast-embed/[index]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -16245,8 +16245,8 @@ export const entitySelectorRouteLeaves = [
 				name: "index",
 			},
 		],
-		path: "(social)/(farcaster)/farcaster/farcaster-cast/by/fid-hash/[fid]/[hash]/farcaster-cast-embed/[index]",
-		emitPage: true,
+		path: "(social)/farcaster/farcaster-cast/fid-hash/[fid]/[hash]/farcaster-cast-embed/[index]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -16277,8 +16277,8 @@ export const entitySelectorRouteLeaves = [
 				name: "index",
 			},
 		],
-		path: "(social)/(farcaster)/farcaster/farcaster-cast/by/username-hash-prefix/[username]/[hashPrefix]/farcaster-cast-embed/[index]",
-		emitPage: true,
+		path: "(social)/farcaster/farcaster-cast/username-hash-prefix/[username]/[hashPrefix]/farcaster-cast-embed/[index]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -16305,8 +16305,8 @@ export const entitySelectorRouteLeaves = [
 				name: "index",
 			},
 		],
-		path: "(social)/(farcaster)/farcaster/farcaster-cast/by/client-url/[clientUrl]/farcaster-cast-embed/[index]",
-		emitPage: true,
+		path: "(social)/farcaster/farcaster-cast/client-url/[clientUrl]/farcaster-cast-embed/[index]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -16327,8 +16327,8 @@ export const entitySelectorRouteLeaves = [
 				name: "id",
 			},
 		],
-		path: "(social)/(farcaster)/farcaster/farcaster-channel/[id]",
-		emitPage: true,
+		path: "(social)/farcaster/farcaster-channel/[id]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -16355,8 +16355,8 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(social)/(farcaster)/farcaster/farcaster-channel/[id]/farcaster-channel-timestamp/[timestampMs]",
-		emitPage: true,
+		path: "(social)/farcaster/farcaster-channel/[id]/farcaster-channel-timestamp/[timestampMs]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -16377,8 +16377,8 @@ export const entitySelectorRouteLeaves = [
 				name: "variant",
 			},
 		],
-		path: "(social)/(farcaster)/farcaster/farcaster-feed/[variant]",
-		emitPage: true,
+		path: "(social)/farcaster/farcaster-feed/[variant]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -16405,8 +16405,8 @@ export const entitySelectorRouteLeaves = [
 				name: "fid",
 			},
 		],
-		path: "(social)/(farcaster)/farcaster/farcaster-feed/by/user/[variant]/[fid]",
-		emitPage: true,
+		path: "(social)/farcaster/farcaster-feed/user/[variant]/[fid]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -16433,8 +16433,8 @@ export const entitySelectorRouteLeaves = [
 				name: "channelId",
 			},
 		],
-		path: "(social)/(farcaster)/farcaster/farcaster-feed/by/channel/[variant]/[channelId]",
-		emitPage: true,
+		path: "(social)/farcaster/farcaster-feed/channel/[variant]/[channelId]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -16461,8 +16461,8 @@ export const entitySelectorRouteLeaves = [
 				name: "viewerFid",
 			},
 		],
-		path: "(social)/(farcaster)/farcaster/farcaster-feed/by/following/[variant]/[viewerFid]",
-		emitPage: true,
+		path: "(social)/farcaster/farcaster-feed/following/[variant]/[viewerFid]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -16483,8 +16483,8 @@ export const entitySelectorRouteLeaves = [
 				name: "scope",
 			},
 		],
-		path: "(social)/(farcaster)/farcaster/farcaster-network/[scope]",
-		emitPage: true,
+		path: "(social)/farcaster/farcaster-network/[scope]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -16505,8 +16505,8 @@ export const entitySelectorRouteLeaves = [
 				name: "fid",
 			},
 		],
-		path: "(social)/(farcaster)/farcaster/farcaster-user/[fid]",
-		emitPage: true,
+		path: "(social)/farcaster/farcaster-user/[fid]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -16533,8 +16533,8 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(social)/(farcaster)/farcaster/farcaster-user/[fid]/farcaster-user-timestamp/[timestampMs]",
-		emitPage: true,
+		path: "(social)/farcaster/farcaster-user/[fid]/farcaster-user-timestamp/[timestampMs]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -16567,8 +16567,8 @@ export const entitySelectorRouteLeaves = [
 				name: "address",
 			},
 		],
-		path: "(social)/(farcaster)/farcaster/farcaster-verified-address/[fid]/[protocol]/[address]",
-		emitPage: true,
+		path: "(social)/farcaster/farcaster-verified-address/[fid]/[protocol]/[address]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -16589,7 +16589,7 @@ export const entitySelectorRouteLeaves = [
 				name: "federationId",
 			},
 		],
-		path: "(explore)/(networks)/networks/fedimint-federation/[federationId]",
+		path: "(explore)/(networks)/fedimint-federation/[federationId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -16623,7 +16623,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(networks)/networks/fedimint-federation/[federationId]/fedimint-federation-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(networks)/fedimint-federation/[federationId]/fedimint-federation-timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -16645,7 +16645,7 @@ export const entitySelectorRouteLeaves = [
 				name: "gatewayId",
 			},
 		],
-		path: "(explore)/(networks)/networks/fedimint-gateway/[gatewayId]",
+		path: "(explore)/(networks)/fedimint-gateway/[gatewayId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -16679,7 +16679,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(networks)/networks/fedimint-gateway/[gatewayId]/fedimint-gateway-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(networks)/fedimint-gateway/[gatewayId]/fedimint-gateway-timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -17177,7 +17177,7 @@ export const entitySelectorRouteLeaves = [
 				name: "objectFormat",
 			},
 		],
-		path: "(explore)/(data)/data/git-blob/[objectId]/[objectFormat]",
+		path: "(explore)/(data)/git/blob/[objectId]/[objectFormat]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -17205,7 +17205,7 @@ export const entitySelectorRouteLeaves = [
 				name: "objectFormat",
 			},
 		],
-		path: "(explore)/(data)/data/git-commit/[objectId]/[objectFormat]",
+		path: "(explore)/(data)/git/commit/[objectId]/[objectFormat]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -17245,7 +17245,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(data)/data/git-repository/by/repository-id/[repositoryId]/git-fetch-observation/[remoteName]/[timestampMs]/[source]",
+		path: "(explore)/(data)/git/repository/repository-id/[repositoryId]/fetch/[remoteName]/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -17285,7 +17285,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(data)/data/git-repository/by/canonical-remote-url/[canonicalRemoteUrl]/git-fetch-observation/[remoteName]/[timestampMs]/[source]",
+		path: "(explore)/(data)/git/repository/canonical-remote-url/[canonicalRemoteUrl]/fetch/[remoteName]/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -17321,7 +17321,7 @@ export const entitySelectorRouteLeaves = [
 				name: "issueNumber",
 			},
 		],
-		path: "(explore)/(data)/data/git-forge-mirror/[forgeHost]/[owner]/[repositoryName]/git-forge-issue/[issueNumber]",
+		path: "(explore)/(data)/git/forge/[forgeHost]/[owner]/[repositoryName]/issue/[issueNumber]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -17355,7 +17355,7 @@ export const entitySelectorRouteLeaves = [
 				name: "repositoryName",
 			},
 		],
-		path: "(explore)/(data)/data/git-forge-mirror/[forgeHost]/[owner]/[repositoryName]",
+		path: "(explore)/(data)/git/forge/[forgeHost]/[owner]/[repositoryName]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -17391,7 +17391,7 @@ export const entitySelectorRouteLeaves = [
 				name: "pullRequestNumber",
 			},
 		],
-		path: "(explore)/(data)/data/git-forge-mirror/[forgeHost]/[owner]/[repositoryName]/git-forge-pull-request/[pullRequestNumber]",
+		path: "(explore)/(data)/git/forge/[forgeHost]/[owner]/[repositoryName]/pull-request/[pullRequestNumber]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -17427,7 +17427,7 @@ export const entitySelectorRouteLeaves = [
 				name: "releaseTagName",
 			},
 		],
-		path: "(explore)/(data)/data/git-forge-mirror/[forgeHost]/[owner]/[repositoryName]/git-forge-release/[releaseTagName]",
+		path: "(explore)/(data)/git/forge/[forgeHost]/[owner]/[repositoryName]/release/[releaseTagName]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -17461,7 +17461,7 @@ export const entitySelectorRouteLeaves = [
 				name: "byteSource",
 			},
 		],
-		path: "(explore)/(data)/data/git-loose-object/[objectId]/[objectFormat]/[byteSource]",
+		path: "(explore)/(data)/git/loose-object/[objectId]/[objectFormat]/[byteSource]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -17489,7 +17489,7 @@ export const entitySelectorRouteLeaves = [
 				name: "objectFormat",
 			},
 		],
-		path: "(explore)/(data)/data/git-object/[objectId]/[objectFormat]",
+		path: "(explore)/(data)/git/object/[objectId]/[objectFormat]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -17535,7 +17535,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(data)/data/git-object-verification-timestamp/[objectId]/[objectFormat]/[byteSource]/[timestampMs]/[source]",
+		path: "(explore)/(data)/git/object/verification/[objectId]/[objectFormat]/[byteSource]/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -17569,7 +17569,7 @@ export const entitySelectorRouteLeaves = [
 				name: "objectFormat",
 			},
 		],
-		path: "(explore)/(data)/data/git-packed-object/[packHash]/[objectId]/[objectFormat]",
+		path: "(explore)/(data)/git/packed-object/[packHash]/[objectId]/[objectFormat]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -17591,7 +17591,7 @@ export const entitySelectorRouteLeaves = [
 				name: "packHash",
 			},
 		],
-		path: "(explore)/(data)/data/git-packfile/[packHash]",
+		path: "(explore)/(data)/git/packfile/[packHash]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -17619,7 +17619,7 @@ export const entitySelectorRouteLeaves = [
 				name: "refName",
 			},
 		],
-		path: "(explore)/(data)/data/git-repository/by/repository-id/[repositoryId]/git-ref/[refName]",
+		path: "(explore)/(data)/git/repository/repository-id/[repositoryId]/ref/[refName]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -17647,7 +17647,7 @@ export const entitySelectorRouteLeaves = [
 				name: "refName",
 			},
 		],
-		path: "(explore)/(data)/data/git-repository/by/canonical-remote-url/[canonicalRemoteUrl]/git-ref/[refName]",
+		path: "(explore)/(data)/git/repository/canonical-remote-url/[canonicalRemoteUrl]/ref/[refName]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -17685,7 +17685,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(data)/data/git-repository/by/repository-id/[repositoryId]/git-ref/[refName]/git-ref-observation-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(data)/git/repository/repository-id/[repositoryId]/ref/[refName]/observation/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -17723,7 +17723,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(data)/data/git-repository/by/canonical-remote-url/[canonicalRemoteUrl]/git-ref/[refName]/git-ref-observation-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(data)/git/repository/canonical-remote-url/[canonicalRemoteUrl]/ref/[refName]/observation/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -17763,7 +17763,7 @@ export const entitySelectorRouteLeaves = [
 				name: "newObjectId",
 			},
 		],
-		path: "(explore)/(data)/data/git-repository/by/repository-id/[repositoryId]/git-ref-update/[refName]/[oldObjectId]/[newObjectId]",
+		path: "(explore)/(data)/git/repository/repository-id/[repositoryId]/ref/update/[refName]/[oldObjectId]/[newObjectId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -17803,7 +17803,7 @@ export const entitySelectorRouteLeaves = [
 				name: "newObjectId",
 			},
 		],
-		path: "(explore)/(data)/data/git-repository/by/canonical-remote-url/[canonicalRemoteUrl]/git-ref-update/[refName]/[oldObjectId]/[newObjectId]",
+		path: "(explore)/(data)/git/repository/canonical-remote-url/[canonicalRemoteUrl]/ref/update/[refName]/[oldObjectId]/[newObjectId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -17831,7 +17831,7 @@ export const entitySelectorRouteLeaves = [
 				name: "remoteName",
 			},
 		],
-		path: "(explore)/(data)/data/git-repository/by/repository-id/[repositoryId]/git-remote/[remoteName]",
+		path: "(explore)/(data)/git/repository/repository-id/[repositoryId]/remote/[remoteName]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -17859,7 +17859,7 @@ export const entitySelectorRouteLeaves = [
 				name: "remoteName",
 			},
 		],
-		path: "(explore)/(data)/data/git-repository/by/canonical-remote-url/[canonicalRemoteUrl]/git-remote/[remoteName]",
+		path: "(explore)/(data)/git/repository/canonical-remote-url/[canonicalRemoteUrl]/remote/[remoteName]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -17881,7 +17881,7 @@ export const entitySelectorRouteLeaves = [
 				name: "repositoryId",
 			},
 		],
-		path: "(explore)/(data)/data/git-repository/by/repository-id/[repositoryId]",
+		path: "(explore)/(data)/git/repository/repository-id/[repositoryId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -17903,7 +17903,7 @@ export const entitySelectorRouteLeaves = [
 				name: "canonicalRemoteUrl",
 			},
 		],
-		path: "(explore)/(data)/data/git-repository/by/canonical-remote-url/[canonicalRemoteUrl]",
+		path: "(explore)/(data)/git/repository/canonical-remote-url/[canonicalRemoteUrl]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -17925,7 +17925,7 @@ export const entitySelectorRouteLeaves = [
 				name: "signatureId",
 			},
 		],
-		path: "(explore)/(data)/data/git-signature/[signatureId]",
+		path: "(explore)/(data)/git/signature/[signatureId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -17953,7 +17953,7 @@ export const entitySelectorRouteLeaves = [
 				name: "objectFormat",
 			},
 		],
-		path: "(explore)/(data)/data/git-tag/[objectId]/[objectFormat]",
+		path: "(explore)/(data)/git/tag/[objectId]/[objectFormat]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -17981,7 +17981,7 @@ export const entitySelectorRouteLeaves = [
 				name: "objectFormat",
 			},
 		],
-		path: "(explore)/(data)/data/git-tree/[objectId]/[objectFormat]",
+		path: "(explore)/(data)/git/tree/[objectId]/[objectFormat]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -18013,7 +18013,7 @@ export const entitySelectorRouteLeaves = [
 				name: "path",
 			},
 		],
-		path: "(explore)/(data)/data/git-tree/[objectId]/[objectFormat]/git-tree-entry/[path]",
+		path: "(explore)/(data)/git/tree/[objectId]/[objectFormat]/entry/[path]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -18047,7 +18047,7 @@ export const entitySelectorRouteLeaves = [
 				name: "path",
 			},
 		],
-		path: "(explore)/(data)/data/git-repository/by/repository-id/[repositoryId]/git-tree-path-resolution/[commitObjectId]/[path]",
+		path: "(explore)/(data)/git/repository/repository-id/[repositoryId]/tree/path/[commitObjectId]/[path]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -18081,7 +18081,7 @@ export const entitySelectorRouteLeaves = [
 				name: "path",
 			},
 		],
-		path: "(explore)/(data)/data/git-repository/by/canonical-remote-url/[canonicalRemoteUrl]/git-tree-path-resolution/[commitObjectId]/[path]",
+		path: "(explore)/(data)/git/repository/canonical-remote-url/[canonicalRemoteUrl]/tree/path/[commitObjectId]/[path]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -18205,7 +18205,7 @@ export const entitySelectorRouteLeaves = [
 				name: "serialNumber",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/hedera-network/hedera-account/[accountId]/hedera-account/[accountId]/hedera-allowance/[allowanceKind]/[tokenId]/[serialNumber]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/hedera-network/hedera-account/[accountId]/hedera-allowance/[allowanceKind]/[tokenId]/[serialNumber]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -18265,7 +18265,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/hedera-network/hedera-account/[accountId]/hedera-account/[accountId]/hedera-allowance/[allowanceKind]/[tokenId]/[serialNumber]/hedera-allowance-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/hedera-network/hedera-account/[accountId]/hedera-allowance/[allowanceKind]/[tokenId]/[serialNumber]/hedera-allowance-timestamp/[timestampMs]/[source]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -18294,7 +18294,7 @@ export const entitySelectorRouteLeaves = [
 				name: "blockNumber",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/hedera-network/hedera-block/by/network-block-number/[blockNumber]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/hedera-network/hedera-block/network-block-number/[blockNumber]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -18323,7 +18323,7 @@ export const entitySelectorRouteLeaves = [
 				name: "blockHash",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/hedera-network/hedera-block/by/network-block-hash/[blockHash]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/hedera-network/hedera-block/network-block-hash/[blockHash]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -19933,7 +19933,7 @@ export const entitySelectorRouteLeaves = [
 				name: "oid",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/hyperliquid-account/[address]/hyperliquid-order/by/account-oid/[oid]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/hyperliquid-account/[address]/hyperliquid-order/account-oid/[oid]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -19966,7 +19966,7 @@ export const entitySelectorRouteLeaves = [
 				name: "cloid",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/hyperliquid-account/[address]/hyperliquid-order/by/account-cloid/[cloid]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/hyperliquid-account/[address]/hyperliquid-order/account-cloid/[cloid]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -20009,7 +20009,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/hyperliquid-account/[address]/hyperliquid-order/by/account-oid/[oid]/hyperliquid-order-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/hyperliquid-account/[address]/hyperliquid-order/account-oid/[oid]/hyperliquid-order-timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -20052,7 +20052,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/hyperliquid-account/[address]/hyperliquid-order/by/account-cloid/[cloid]/hyperliquid-order-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/hyperliquid-account/[address]/hyperliquid-order/account-cloid/[cloid]/hyperliquid-order-timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -21478,8 +21478,8 @@ export const entitySelectorRouteLeaves = [
 				name: "scope",
 			},
 		],
-		path: "(explore)/(data)/data/ipfs-protocol/[scope]",
-		emitPage: true,
+		path: "(explore)/(data)/ipfs-protocol/[scope]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -21512,8 +21512,8 @@ export const entitySelectorRouteLeaves = [
 				name: "contentPath",
 			},
 		],
-		path: "(explore)/(data)/data/ipfs-resource/[namespace]/[target]/[contentPath]",
-		emitPage: true,
+		path: "(explore)/(data)/ipfs-resource/[namespace]/[target]/[contentPath]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -21919,8 +21919,8 @@ export const entitySelectorRouteLeaves = [
 				name: "address",
 			},
 		],
-		path: "(social)/(lens)/lens/lens-account/by/address/[address]",
-		emitPage: true,
+		path: "(social)/lens/lens-account/address/[address]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -21941,8 +21941,8 @@ export const entitySelectorRouteLeaves = [
 				name: "localName",
 			},
 		],
-		path: "(social)/(lens)/lens/lens-account/by/local-name/[localName]",
-		emitPage: true,
+		path: "(social)/lens/lens-account/local-name/[localName]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -21963,8 +21963,8 @@ export const entitySelectorRouteLeaves = [
 				name: "legacyProfileId",
 			},
 		],
-		path: "(social)/(lens)/lens/lens-account/by/legacy-profile-id/[legacyProfileId]",
-		emitPage: true,
+		path: "(social)/lens/lens-account/legacy-profile-id/[legacyProfileId]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -21991,8 +21991,8 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(social)/(lens)/lens/lens-account/by/address/[address]/lens-account-timestamp/[timestampMs]",
-		emitPage: true,
+		path: "(social)/lens/lens-account/address/[address]/lens-account-timestamp/[timestampMs]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -22019,8 +22019,8 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(social)/(lens)/lens/lens-account/by/local-name/[localName]/lens-account-timestamp/[timestampMs]",
-		emitPage: true,
+		path: "(social)/lens/lens-account/local-name/[localName]/lens-account-timestamp/[timestampMs]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -22047,8 +22047,8 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(social)/(lens)/lens/lens-account/by/legacy-profile-id/[legacyProfileId]/lens-account-timestamp/[timestampMs]",
-		emitPage: true,
+		path: "(social)/lens/lens-account/legacy-profile-id/[legacyProfileId]/lens-account-timestamp/[timestampMs]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -22075,8 +22075,8 @@ export const entitySelectorRouteLeaves = [
 				name: "manager",
 			},
 		],
-		path: "(social)/(lens)/lens/lens-account/by/address/[address]/lens-account-manager/[manager]",
-		emitPage: true,
+		path: "(social)/lens/lens-account/address/[address]/lens-account-manager/[manager]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -22103,8 +22103,8 @@ export const entitySelectorRouteLeaves = [
 				name: "manager",
 			},
 		],
-		path: "(social)/(lens)/lens/lens-account/by/local-name/[localName]/lens-account-manager/[manager]",
-		emitPage: true,
+		path: "(social)/lens/lens-account/local-name/[localName]/lens-account-manager/[manager]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -22131,8 +22131,8 @@ export const entitySelectorRouteLeaves = [
 				name: "manager",
 			},
 		],
-		path: "(social)/(lens)/lens/lens-account/by/legacy-profile-id/[legacyProfileId]/lens-account-manager/[manager]",
-		emitPage: true,
+		path: "(social)/lens/lens-account/legacy-profile-id/[legacyProfileId]/lens-account-manager/[manager]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -22153,8 +22153,8 @@ export const entitySelectorRouteLeaves = [
 				name: "address",
 			},
 		],
-		path: "(social)/(lens)/lens/lens-feed/[address]",
-		emitPage: true,
+		path: "(social)/lens/lens-feed/[address]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -22175,8 +22175,8 @@ export const entitySelectorRouteLeaves = [
 				name: "scope",
 			},
 		],
-		path: "(social)/(lens)/lens/lens-network/[scope]",
-		emitPage: true,
+		path: "(social)/lens/lens-network/[scope]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -22197,8 +22197,8 @@ export const entitySelectorRouteLeaves = [
 				name: "id",
 			},
 		],
-		path: "(social)/(lens)/lens/lens-post/[id]",
-		emitPage: true,
+		path: "(social)/lens/lens-post/[id]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -22225,8 +22225,8 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(social)/(lens)/lens/lens-post/[id]/lens-post-timestamp/[timestampMs]",
-		emitPage: true,
+		path: "(social)/lens/lens-post/[id]/lens-post-timestamp/[timestampMs]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -22253,8 +22253,8 @@ export const entitySelectorRouteLeaves = [
 				name: "localName",
 			},
 		],
-		path: "(social)/(lens)/lens/lens-username/[namespace]/[localName]",
-		emitPage: true,
+		path: "(social)/lens/lens-username/[namespace]/[localName]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -22275,8 +22275,8 @@ export const entitySelectorRouteLeaves = [
 				name: "id",
 			},
 		],
-		path: "(social)/(lens)/lens/lens-username/[id]",
-		emitPage: true,
+		path: "(social)/lens/lens-username/[id]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -22297,8 +22297,8 @@ export const entitySelectorRouteLeaves = [
 				name: "address",
 			},
 		],
-		path: "(social)/(lens)/lens/lens-username-namespace/[address]",
-		emitPage: true,
+		path: "(social)/lens/lens-username-namespace/[address]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -23131,7 +23131,7 @@ export const entitySelectorRouteLeaves = [
 				name: "magnetUri",
 			},
 		],
-		path: "(explore)/(data)/data/magnet-link/[magnetUri]",
+		path: "(explore)/(data)/magnet-link/[magnetUri]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -23165,7 +23165,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(data)/data/magnet-resolution-timestamp/[magnetUri]/[timestampMs]/[source]",
+		path: "(explore)/(data)/magnet-resolution-timestamp/[magnetUri]/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -23205,7 +23205,7 @@ export const entitySelectorRouteLeaves = [
 				name: "marketKind",
 			},
 		],
-		path: "(assets)/assets/market/[base]/[quote]/[marketVenue]/[marketKind]",
+		path: "(assets)/market/[base]/[quote]/[marketVenue]/[marketKind]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -23227,7 +23227,7 @@ export const entitySelectorRouteLeaves = [
 				name: "marketVenueId",
 			},
 		],
-		path: "(assets)/assets/market-venue/[marketVenueId]",
+		path: "(assets)/market/venue/[marketVenueId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -23273,8 +23273,8 @@ export const entitySelectorRouteLeaves = [
 				name: "feedKey",
 			},
 		],
-		path: "(assets)/assets/market/[base]/[quote]/[marketVenue]/[marketKind]/market-derivative-timestamp/[timestampMs]/[feedKey]",
-		emitPage: true,
+		path: "(assets)/market/[base]/[quote]/[marketVenue]/[marketKind]/market-derivative-timestamp/[timestampMs]/[feedKey]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -23319,8 +23319,8 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(assets)/assets/market/[base]/[quote]/[marketVenue]/[marketKind]/market-time-interval-timestamp/[timeInterval]/[timestampMs]",
-		emitPage: true,
+		path: "(assets)/market/[base]/[quote]/[marketVenue]/[marketKind]/market-time-interval-timestamp/[timeInterval]/[timestampMs]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -23365,8 +23365,8 @@ export const entitySelectorRouteLeaves = [
 				name: "feedKey",
 			},
 		],
-		path: "(assets)/assets/market/[base]/[quote]/[marketVenue]/[marketKind]/market-timestamp/[timestampMs]/[feedKey]",
-		emitPage: true,
+		path: "(assets)/market/[base]/[quote]/[marketVenue]/[marketKind]/market-timestamp/[timestampMs]/[feedKey]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -23399,8 +23399,8 @@ export const entitySelectorRouteLeaves = [
 				name: "marketKind",
 			},
 		],
-		path: "(assets)/assets/market/[base]/[quote]/[marketVenue]/[marketKind]/market-price",
-		emitPage: true,
+		path: "(assets)/market/[base]/[quote]/[marketVenue]/[marketKind]/market-price",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -23421,7 +23421,7 @@ export const entitySelectorRouteLeaves = [
 				name: "url",
 			},
 		],
-		path: "(explore)/(data)/data/media/[url]",
+		path: "(explore)/(data)/media/[url]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -23443,8 +23443,8 @@ export const entitySelectorRouteLeaves = [
 				name: "url",
 			},
 		],
-		path: "(explore)/(data)/data/media-object/[url]",
-		emitPage: true,
+		path: "(explore)/(data)/media-object/[url]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -24584,7 +24584,7 @@ export const entitySelectorRouteLeaves = [
 				name: "slug",
 			},
 		],
-		path: "(explore)/(networks)/networks/near-network/[slug]",
+		path: "(explore)/(networks)/near-network/[slug]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -24618,7 +24618,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(networks)/networks/near-network/[slug]/near-network-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(networks)/near-network/[slug]/near-network-timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -24802,7 +24802,7 @@ export const entitySelectorRouteLeaves = [
 				matcher: "networkCaip2",
 			},
 		],
-		path: "(explore)/(networks)/network/[caip2=networkCaip2]",
+		path: "(explore)/(networks)/network/[caip2=solanaNetworkCaip2]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -24847,7 +24847,7 @@ export const entitySelectorRouteLeaves = [
 				name: "networkStackId",
 			},
 		],
-		path: "(explore)/(networks)/networks/network-stack/[networkStackId]",
+		path: "(explore)/(networks)/network-stack/[networkStackId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -25099,8 +25099,8 @@ export const entitySelectorRouteLeaves = [
 				name: "identifier",
 			},
 		],
-		path: "(social)/(nostr)/nostr/nostr-article/[kind]/[pubkey]/[identifier]",
-		emitPage: true,
+		path: "(social)/nostr/nostr-article/[kind]/[pubkey]/[identifier]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -25121,8 +25121,8 @@ export const entitySelectorRouteLeaves = [
 				name: "eventId",
 			},
 		],
-		path: "(social)/(nostr)/nostr/nostr-note/[eventId]",
-		emitPage: true,
+		path: "(social)/nostr/nostr-note/[eventId]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -25143,8 +25143,8 @@ export const entitySelectorRouteLeaves = [
 				name: "scope",
 			},
 		],
-		path: "(social)/(nostr)/nostr/nostr-network/[scope]",
-		emitPage: true,
+		path: "(social)/nostr/nostr-network/[scope]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -25165,8 +25165,8 @@ export const entitySelectorRouteLeaves = [
 				name: "pubkey",
 			},
 		],
-		path: "(social)/(nostr)/nostr/nostr-profile/[pubkey]",
-		emitPage: true,
+		path: "(social)/nostr/nostr-profile/[pubkey]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -25187,8 +25187,8 @@ export const entitySelectorRouteLeaves = [
 				name: "eventId",
 			},
 		],
-		path: "(social)/(nostr)/nostr/nostr-reaction/[eventId]",
-		emitPage: true,
+		path: "(social)/nostr/nostr-reaction/[eventId]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -25209,8 +25209,8 @@ export const entitySelectorRouteLeaves = [
 				name: "relayUrl",
 			},
 		],
-		path: "(social)/(nostr)/nostr/nostr-relay/[relayUrl]",
-		emitPage: true,
+		path: "(social)/nostr/nostr-relay/[relayUrl]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -25243,8 +25243,8 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(social)/(nostr)/nostr/nostr-relay/[relayUrl]/nostr-relay-timestamp/[timestampMs]/[source]",
-		emitPage: true,
+		path: "(social)/nostr/nostr-relay/[relayUrl]/nostr-relay-timestamp/[timestampMs]/[source]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -25265,8 +25265,8 @@ export const entitySelectorRouteLeaves = [
 				name: "eventId",
 			},
 		],
-		path: "(social)/(nostr)/nostr/nostr-repost/[eventId]",
-		emitPage: true,
+		path: "(social)/nostr/nostr-repost/[eventId]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -25388,7 +25388,7 @@ export const entitySelectorRouteLeaves = [
 				name: "directoryUrl",
 			},
 		],
-		path: "(explore)/(services)/services/payjoin-directory/[directoryUrl]",
+		path: "(explore)/(services)/payjoin-directory/[directoryUrl]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -25410,7 +25410,7 @@ export const entitySelectorRouteLeaves = [
 				name: "endpointUrl",
 			},
 		],
-		path: "(explore)/(services)/services/payjoin-endpoint/[endpointUrl]",
+		path: "(explore)/(services)/payjoin-endpoint/[endpointUrl]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -25444,7 +25444,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/payjoin-endpoint/[endpointUrl]/payjoin-endpoint-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/payjoin-endpoint/[endpointUrl]/payjoin-endpoint-timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -25472,7 +25472,7 @@ export const entitySelectorRouteLeaves = [
 				name: "payoutId",
 			},
 		],
-		path: "(assets)/assets/payout/[source]/[payoutId]",
+		path: "(assets)/payout/[source]/[payoutId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -25516,7 +25516,7 @@ export const entitySelectorRouteLeaves = [
 				name: "payoutClaimTimestampSource",
 			},
 		],
-		path: "(assets)/assets/payout/[source]/[payoutId]/account/[caip10]/payout-claim-timestamp/[timestampMs]/[payoutClaimTimestampSource]",
+		path: "(assets)/payout/[source]/[payoutId]/account/[caip10]/payout-claim-timestamp/[timestampMs]/[payoutClaimTimestampSource]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -26171,7 +26171,7 @@ export const entitySelectorRouteLeaves = [
 				name: "channel",
 			},
 		],
-		path: "(explore)/(networks)/networks/pyth-price-feed/[priceFeedId]/[channel]",
+		path: "(explore)/(networks)/pyth-price-feed/[priceFeedId]/[channel]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -26209,7 +26209,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(networks)/networks/pyth-price-feed/[priceFeedId]/[channel]/pyth-price-feed-timestamp/[publishTimeMs]/[source]",
+		path: "(explore)/(networks)/pyth-price-feed/[priceFeedId]/[channel]/pyth-price-feed-timestamp/[publishTimeMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -26359,7 +26359,7 @@ export const entitySelectorRouteLeaves = [
 				name: "eventId",
 			},
 		],
-		path: "(explore)/(data)/data/radicle-repository/[rid]/radicle-collaboration-event/[eventId]",
+		path: "(explore)/(data)/radicle/repository/[rid]/collaboration/event/[eventId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -26387,7 +26387,7 @@ export const entitySelectorRouteLeaves = [
 				name: "did",
 			},
 		],
-		path: "(explore)/(data)/data/radicle-repository/[rid]/radicle-delegate/[did]",
+		path: "(explore)/(data)/radicle/repository/[rid]/delegate/[did]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -26415,7 +26415,7 @@ export const entitySelectorRouteLeaves = [
 				name: "commentId",
 			},
 		],
-		path: "(explore)/(data)/data/radicle-discussion-comment/[discussionSelector]/[commentId]",
+		path: "(explore)/(data)/discussion/comment/[discussionSelector]/[commentId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -26443,7 +26443,7 @@ export const entitySelectorRouteLeaves = [
 				name: "revision",
 			},
 		],
-		path: "(explore)/(data)/data/radicle-identity-document/[rid]/[revision]",
+		path: "(explore)/(data)/identity/document/[rid]/[revision]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -26471,7 +26471,7 @@ export const entitySelectorRouteLeaves = [
 				name: "revision",
 			},
 		],
-		path: "(explore)/(data)/data/radicle-identity-revision/[rid]/[revision]",
+		path: "(explore)/(data)/identity/revision/[rid]/[revision]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -26499,7 +26499,7 @@ export const entitySelectorRouteLeaves = [
 				name: "issueId",
 			},
 		],
-		path: "(explore)/(data)/data/radicle-repository/[rid]/radicle-issue/[issueId]",
+		path: "(explore)/(data)/radicle/repository/[rid]/issue/[issueId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -26527,7 +26527,7 @@ export const entitySelectorRouteLeaves = [
 				name: "patchId",
 			},
 		],
-		path: "(explore)/(data)/data/radicle-repository/[rid]/radicle-patch/[patchId]",
+		path: "(explore)/(data)/radicle/repository/[rid]/patch/[patchId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -26549,7 +26549,7 @@ export const entitySelectorRouteLeaves = [
 				name: "rid",
 			},
 		],
-		path: "(explore)/(data)/data/radicle-repository/[rid]",
+		path: "(explore)/(data)/radicle/repository/[rid]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -26583,7 +26583,7 @@ export const entitySelectorRouteLeaves = [
 				name: "refName",
 			},
 		],
-		path: "(explore)/(data)/data/radicle-repository/[rid]/radicle-signed-ref/[nodeId]/[refName]",
+		path: "(explore)/(data)/radicle/repository/[rid]/signed-ref/[nodeId]/[refName]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -26625,7 +26625,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(data)/data/radicle-repository/[rid]/radicle-signed-ref/[nodeId]/[refName]/radicle-signed-ref-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(data)/radicle/repository/[rid]/signed-ref/[nodeId]/[refName]/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -26647,8 +26647,8 @@ export const entitySelectorRouteLeaves = [
 				name: "fullname",
 			},
 		],
-		path: "(social)/(reddit)/reddit/reddit-comment/[fullname]",
-		emitPage: true,
+		path: "(social)/reddit/reddit-comment/[fullname]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -26681,8 +26681,8 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(social)/(reddit)/reddit/reddit-comment/[fullname]/reddit-comment-timestamp/[timestampMs]/[source]",
-		emitPage: true,
+		path: "(social)/reddit/reddit-comment/[fullname]/reddit-comment-timestamp/[timestampMs]/[source]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -26703,8 +26703,8 @@ export const entitySelectorRouteLeaves = [
 				name: "fullname",
 			},
 		],
-		path: "(social)/(reddit)/reddit/reddit-link/[fullname]",
-		emitPage: true,
+		path: "(social)/reddit/reddit-link/[fullname]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -26737,8 +26737,8 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(social)/(reddit)/reddit/reddit-link/[fullname]/reddit-link-timestamp/[timestampMs]/[source]",
-		emitPage: true,
+		path: "(social)/reddit/reddit-link/[fullname]/reddit-link-timestamp/[timestampMs]/[source]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -26759,8 +26759,8 @@ export const entitySelectorRouteLeaves = [
 				name: "scope",
 			},
 		],
-		path: "(social)/(reddit)/reddit/reddit-network/[scope]",
-		emitPage: true,
+		path: "(social)/reddit/reddit-network/[scope]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -26781,8 +26781,8 @@ export const entitySelectorRouteLeaves = [
 				name: "name",
 			},
 		],
-		path: "(social)/(reddit)/reddit/reddit-subreddit/[name]",
-		emitPage: true,
+		path: "(social)/reddit/reddit-subreddit/[name]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -26815,8 +26815,8 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(social)/(reddit)/reddit/reddit-subreddit/[name]/reddit-subreddit-timestamp/[timestampMs]/[source]",
-		emitPage: true,
+		path: "(social)/reddit/reddit-subreddit/[name]/reddit-subreddit-timestamp/[timestampMs]/[source]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -26929,7 +26929,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(assets)/assets/royalty-right-timestamp/[targetKey]/[rightKey]/[timestampMs]/[source]",
+		path: "(assets)/royalty-right-timestamp/[targetKey]/[rightKey]/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -26951,8 +26951,8 @@ export const entitySelectorRouteLeaves = [
 				name: "feedUrl",
 			},
 		],
-		path: "(social)/(rss)/rss/rss-feed/[feedUrl]",
-		emitPage: true,
+		path: "(social)/rss/rss-feed/[feedUrl]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -26985,8 +26985,8 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(social)/(rss)/rss/rss-feed/[feedUrl]/rss-feed-timestamp/[timestampMs]/[source]",
-		emitPage: true,
+		path: "(social)/rss/rss-feed/[feedUrl]/rss-feed-timestamp/[timestampMs]/[source]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -27013,8 +27013,8 @@ export const entitySelectorRouteLeaves = [
 				name: "guid",
 			},
 		],
-		path: "(social)/(rss)/rss/rss-item/[feedUrl]/[guid]",
-		emitPage: true,
+		path: "(social)/rss/rss-item/[feedUrl]/[guid]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -27051,8 +27051,8 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(social)/(rss)/rss/rss-item/[feedUrl]/[guid]/rss-item-timestamp/[timestampMs]/[source]",
-		emitPage: true,
+		path: "(social)/rss/rss-item/[feedUrl]/[guid]/rss-item-timestamp/[timestampMs]/[source]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -27073,8 +27073,8 @@ export const entitySelectorRouteLeaves = [
 				name: "scope",
 			},
 		],
-		path: "(social)/(rss)/rss/rss-network/[scope]",
-		emitPage: true,
+		path: "(social)/rss/rss-network/[scope]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -27357,7 +27357,7 @@ export const entitySelectorRouteLeaves = [
 				matcher: "solanaNetworkCaip2",
 			},
 		],
-		path: "(explore)/(networks)/networks/solana-network/[caip2=solanaNetworkCaip2]",
+		path: "(explore)/(networks)/solana-network/[caip2=solanaNetworkCaip2]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -27392,7 +27392,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(networks)/networks/solana-network/[caip2=solanaNetworkCaip2]/solana-network-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(networks)/solana-network/[caip2=solanaNetworkCaip2]/solana-network-timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -28061,7 +28061,7 @@ export const entitySelectorRouteLeaves = [
 				name: "blockNumber",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/starknet-network/starknet-block/by/network-block-number/[blockNumber]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/starknet-network/starknet-block/network-block-number/[blockNumber]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -28090,7 +28090,7 @@ export const entitySelectorRouteLeaves = [
 				name: "blockHash",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/starknet-network/starknet-block/by/network-block-hash/[blockHash]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/starknet-network/starknet-block/network-block-hash/[blockHash]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -29170,7 +29170,7 @@ export const entitySelectorRouteLeaves = [
 				name: "sequence",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/sui-network/sui-checkpoint/by/network-sequence/[sequence]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/sui-network/sui-checkpoint/network-sequence/[sequence]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -29199,7 +29199,7 @@ export const entitySelectorRouteLeaves = [
 				name: "digest",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/sui-network/sui-checkpoint/by/network-digest/[digest]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/sui-network/sui-checkpoint/network-digest/[digest]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -29822,7 +29822,7 @@ export const entitySelectorRouteLeaves = [
 				name: "id",
 			},
 		],
-		path: "(assets)/assets/swap-quote/[id]",
+		path: "(assets)/swap/quote/[id]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -29856,7 +29856,7 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(assets)/assets/swap-quote-timestamp/[source]/[quoteRequestHash]/[timestampMs]",
+		path: "(assets)/swap/quote/[source]/[quoteRequestHash]/[timestampMs]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -29892,7 +29892,7 @@ export const entitySelectorRouteLeaves = [
 				name: "index",
 			},
 		],
-		path: "(assets)/assets/swap-quote-timestamp/[source]/[quoteRequestHash]/[timestampMs]/swap-quote-step/[index]",
+		path: "(assets)/swap/quote/[source]/[quoteRequestHash]/[timestampMs]/step/[index]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -29914,8 +29914,8 @@ export const entitySelectorRouteLeaves = [
 				name: "scope",
 			},
 		],
-		path: "(explore)/(data)/data/swarm-protocol/[scope]",
-		emitPage: true,
+		path: "(explore)/(data)/swarm-protocol/[scope]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -29942,8 +29942,8 @@ export const entitySelectorRouteLeaves = [
 				name: "contentPath",
 			},
 		],
-		path: "(explore)/(data)/data/swarm-resource/[reference]/[contentPath]",
-		emitPage: true,
+		path: "(explore)/(data)/swarm-resource/[reference]/[contentPath]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -30457,7 +30457,7 @@ export const entitySelectorRouteLeaves = [
 				name: "level",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/tezos-network/tezos-block/by/network-level/[level]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/tezos-network/tezos-block/network-level/[level]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -30486,7 +30486,7 @@ export const entitySelectorRouteLeaves = [
 				name: "hash",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/tezos-network/tezos-block/by/network-hash/[hash]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/tezos-network/tezos-block/network-hash/[hash]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -31009,7 +31009,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(assets)/assets/token-metadata-document/[metadataSubjectKey]/[metadataKey]/[timestampMs]/[source]",
+		path: "(assets)/token-metadata-document/[metadataSubjectKey]/[metadataKey]/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -33179,7 +33179,7 @@ export const entitySelectorRouteLeaves = [
 				name: "url",
 			},
 		],
-		path: "(explore)/(data)/data/url/[url]",
+		path: "(explore)/(data)/url/[url]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -33213,7 +33213,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(data)/data/url/[url]/url-preview-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(data)/url/[url]/url-preview-timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -33253,7 +33253,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(assets)/assets/usage-right-timestamp/[subjectKey]/[rightKey]/[timestampMs]/[source]",
+		path: "(assets)/usage-right-timestamp/[subjectKey]/[rightKey]/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -33560,8 +33560,8 @@ export const entitySelectorRouteLeaves = [
 				name: "scope",
 			},
 		],
-		path: "(social)/(x)/x/xnetwork/[scope]",
-		emitPage: true,
+		path: "(social)/x/xnetwork/[scope]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -33582,8 +33582,8 @@ export const entitySelectorRouteLeaves = [
 				name: "id",
 			},
 		],
-		path: "(social)/(x)/x/xpost/[id]",
-		emitPage: true,
+		path: "(social)/x/xpost/[id]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -33610,8 +33610,8 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(social)/(x)/x/xpost/[id]/xpost-timestamp/[timestampMs]",
-		emitPage: true,
+		path: "(social)/x/xpost/[id]/xpost-timestamp/[timestampMs]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -33843,7 +33843,7 @@ export const entitySelectorRouteLeaves = [
 				name: "ledgerIndex",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/xrpl-network/xrpl-ledger/by/network-ledger-index/[ledgerIndex]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/xrpl-network/xrpl-ledger/network-ledger-index/[ledgerIndex]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -33872,7 +33872,7 @@ export const entitySelectorRouteLeaves = [
 				name: "ledgerHash",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/xrpl-network/xrpl-ledger/by/network-ledger-hash/[ledgerHash]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/xrpl-network/xrpl-ledger/network-ledger-hash/[ledgerHash]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -33905,7 +33905,7 @@ export const entitySelectorRouteLeaves = [
 				name: "entryHash",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/xrpl-network/xrpl-ledger/by/network-ledger-index/[ledgerIndex]/xrpl-ledger-entry/[entryHash]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/xrpl-network/xrpl-ledger/network-ledger-index/[ledgerIndex]/xrpl-ledger-entry/[entryHash]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -33938,7 +33938,7 @@ export const entitySelectorRouteLeaves = [
 				name: "entryHash",
 			},
 		],
-		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/xrpl-network/xrpl-ledger/by/network-ledger-hash/[ledgerHash]/xrpl-ledger-entry/[entryHash]",
+		path: "(explore)/(networks)/network/[networkSlug=networkSlug]/xrpl-network/xrpl-ledger/network-ledger-hash/[ledgerHash]/xrpl-ledger-entry/[entryHash]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -34174,8 +34174,8 @@ export const entitySelectorRouteLeaves = [
 				name: "id",
 			},
 		],
-		path: "(social)/(x)/x/xuser/by/id/[id]",
-		emitPage: true,
+		path: "(social)/x/xuser/id/[id]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -34196,8 +34196,8 @@ export const entitySelectorRouteLeaves = [
 				name: "username",
 			},
 		],
-		path: "(social)/(x)/x/xuser/by/username/[username]",
-		emitPage: true,
+		path: "(social)/x/xuser/username/[username]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -34224,8 +34224,8 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(social)/(x)/x/xuser/by/id/[id]/xuser-timestamp/[timestampMs]",
-		emitPage: true,
+		path: "(social)/x/xuser/id/[id]/xuser-timestamp/[timestampMs]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -34252,8 +34252,8 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(social)/(x)/x/xuser/by/username/[username]/xuser-timestamp/[timestampMs]",
-		emitPage: true,
+		path: "(social)/x/xuser/username/[username]/xuser-timestamp/[timestampMs]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -34274,7 +34274,7 @@ export const entitySelectorRouteLeaves = [
 				name: "channelId",
 			},
 		],
-		path: "(social)/(youtube)/youtube/channel/[channelId]",
+		path: "(social)/youtube/channel/[channelId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -34302,8 +34302,8 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(social)/(youtube)/youtube/channel/[channelId]/you-tube-channel-timestamp/[timestampMs]",
-		emitPage: true,
+		path: "(social)/youtube/channel/[channelId]/you-tube-channel-timestamp/[timestampMs]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -34330,7 +34330,7 @@ export const entitySelectorRouteLeaves = [
 				name: "commentId",
 			},
 		],
-		path: "(social)/(youtube)/youtube/comment/[videoId]/[commentId]",
+		path: "(social)/youtube/comment/[videoId]/[commentId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -34362,8 +34362,8 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(social)/(youtube)/youtube/comment/[videoId]/[commentId]/you-tube-comment-timestamp/[timestampMs]",
-		emitPage: true,
+		path: "(social)/youtube/comment/[videoId]/[commentId]/you-tube-comment-timestamp/[timestampMs]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -34384,7 +34384,7 @@ export const entitySelectorRouteLeaves = [
 				name: "playlistId",
 			},
 		],
-		path: "(social)/(youtube)/youtube/playlist/[playlistId]",
+		path: "(social)/youtube/playlist/[playlistId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -34412,8 +34412,8 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(social)/(youtube)/youtube/playlist/[playlistId]/you-tube-playlist-timestamp/[timestampMs]",
-		emitPage: true,
+		path: "(social)/youtube/playlist/[playlistId]/you-tube-playlist-timestamp/[timestampMs]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -34434,8 +34434,8 @@ export const entitySelectorRouteLeaves = [
 				name: "scope",
 			},
 		],
-		path: "(social)/(youtube)/youtube/you-tube-network/[scope]",
-		emitPage: true,
+		path: "(social)/youtube/you-tube-network/[scope]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -34456,7 +34456,7 @@ export const entitySelectorRouteLeaves = [
 				name: "videoId",
 			},
 		],
-		path: "(social)/(youtube)/youtube/video/[videoId]",
+		path: "(social)/youtube/video/[videoId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -34484,8 +34484,8 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(social)/(youtube)/youtube/video/[videoId]/you-tube-video-timestamp/[timestampMs]",
-		emitPage: true,
+		path: "(social)/youtube/video/[videoId]/you-tube-video-timestamp/[timestampMs]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -34873,7 +34873,7 @@ export const entitySelectorRouteLeaves = [
 				name: "slug",
 			},
 		],
-		path: "(explore)/(networks)/networks/zero-gnetwork/[slug]",
+		path: "(explore)/(networks)/zero-gnetwork/[slug]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -34907,7 +34907,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(networks)/networks/zero-gnetwork/[slug]/zero-gnetwork-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(networks)/zero-gnetwork/[slug]/zero-gnetwork-timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -35158,7 +35158,7 @@ export const entitySelectorRouteLeaves = [
 				name: "catalogId",
 			},
 		],
-		path: "(explore)/(services)/services/global-ai-artifact-catalog/[catalogId]",
+		path: "(explore)/(services)/ai/artifact/[catalogId]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -35192,7 +35192,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/global-ai-artifact-catalog/[catalogId]/global-ai-artifact-catalog-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/ai/artifact/[catalogId]/global-ai-artifact-catalog-timestamp/[timestampMs]/[source]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -35214,7 +35214,7 @@ export const entitySelectorRouteLeaves = [
 				name: "catalogId",
 			},
 		],
-		path: "(explore)/(services)/services/global-ai-model-catalog/[catalogId]",
+		path: "(explore)/(services)/ai/model/[catalogId]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -35248,7 +35248,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/global-ai-model-catalog/[catalogId]/global-ai-model-catalog-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/ai/model/[catalogId]/global-ai-model-catalog-timestamp/[timestampMs]/[source]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -35270,7 +35270,7 @@ export const entitySelectorRouteLeaves = [
 				name: "networkId",
 			},
 		],
-		path: "(explore)/(services)/services/global-agent-network/[networkId]",
+		path: "(explore)/(services)/agent/[networkId]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -35304,7 +35304,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/global-agent-network/[networkId]/global-agent-network-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/agent/[networkId]/global-agent-network-timestamp/[timestampMs]/[source]",
 		emitPage: false,
 		unresolved: [
 		],
@@ -35326,7 +35326,7 @@ export const entitySelectorRouteLeaves = [
 				name: "registryAgentId",
 			},
 		],
-		path: "(explore)/(services)/services/acp-agent-program/by/registry-agent-id/[registryAgentId]",
+		path: "(explore)/(services)/acp-agent-program/registry-agent-id/[registryAgentId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -35348,7 +35348,7 @@ export const entitySelectorRouteLeaves = [
 				name: "packageName",
 			},
 		],
-		path: "(explore)/(services)/services/acp-agent-program/by/package-name/[packageName]",
+		path: "(explore)/(services)/acp-agent-program/package-name/[packageName]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -35370,7 +35370,7 @@ export const entitySelectorRouteLeaves = [
 				name: "repositoryUrl",
 			},
 		],
-		path: "(explore)/(services)/services/acp-agent-program/by/repository-url/[repositoryUrl]",
+		path: "(explore)/(services)/acp-agent-program/repository-url/[repositoryUrl]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -35399,7 +35399,7 @@ export const entitySelectorRouteLeaves = [
 				matcher: "nonNegativeInteger",
 			},
 		],
-		path: "(explore)/(services)/services/acp-agent-program/by/registry-agent-id/[registryAgentId]/acp-agent-program-version/[version=nonNegativeInteger]",
+		path: "(explore)/(services)/acp-agent-program/registry-agent-id/[registryAgentId]/acp-agent-program-version/[version=nonNegativeInteger]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -35428,7 +35428,7 @@ export const entitySelectorRouteLeaves = [
 				matcher: "nonNegativeInteger",
 			},
 		],
-		path: "(explore)/(services)/services/acp-agent-program/by/package-name/[packageName]/acp-agent-program-version/[version=nonNegativeInteger]",
+		path: "(explore)/(services)/acp-agent-program/package-name/[packageName]/acp-agent-program-version/[version=nonNegativeInteger]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -35457,7 +35457,7 @@ export const entitySelectorRouteLeaves = [
 				matcher: "nonNegativeInteger",
 			},
 		],
-		path: "(explore)/(services)/services/acp-agent-program/by/repository-url/[repositoryUrl]/acp-agent-program-version/[version=nonNegativeInteger]",
+		path: "(explore)/(services)/acp-agent-program/repository-url/[repositoryUrl]/acp-agent-program-version/[version=nonNegativeInteger]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -35483,7 +35483,7 @@ export const entitySelectorRouteLeaves = [
 				name: "digest",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/[digestAlgorithm]/[digest]/acp-agent-program-version",
+		path: "(explore)/(services)/ai-artifact/[digestAlgorithm]/[digest]/acp-agent-program-version",
 		emitPage: true,
 		unresolved: [
 		],
@@ -35505,7 +35505,7 @@ export const entitySelectorRouteLeaves = [
 				name: "ociDigest",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/oci-digest/[ociDigest]/acp-agent-program-version",
+		path: "(explore)/(services)/ai-artifact/oci-digest/[ociDigest]/acp-agent-program-version",
 		emitPage: true,
 		unresolved: [
 		],
@@ -35527,8 +35527,8 @@ export const entitySelectorRouteLeaves = [
 				name: "ipfsCid",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/ipfs-cid/[ipfsCid]/acp-agent-program-version",
-		emitPage: true,
+		path: "(explore)/(services)/ai-artifact/ipfs-cid/[ipfsCid]/acp-agent-program-version",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -35549,8 +35549,8 @@ export const entitySelectorRouteLeaves = [
 				name: "arweaveId",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/arweave-id/[arweaveId]/acp-agent-program-version",
-		emitPage: true,
+		path: "(explore)/(services)/ai-artifact/arweave-id/[arweaveId]/acp-agent-program-version",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -35571,7 +35571,7 @@ export const entitySelectorRouteLeaves = [
 				name: "gitObject",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/git-object/[gitObject]/acp-agent-program-version",
+		path: "(explore)/(services)/ai-artifact/git/object/[gitObject]/acp-agent-program-version",
 		emitPage: true,
 		unresolved: [
 		],
@@ -35593,7 +35593,7 @@ export const entitySelectorRouteLeaves = [
 				name: "runtimeId",
 			},
 		],
-		path: "(explore)/(services)/services/acp-agent-runtime/[runtimeId]",
+		path: "(explore)/(services)/acp-agent-runtime/[runtimeId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -35627,7 +35627,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/acp-agent-runtime/[runtimeId]/acp-agent-runtime-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/acp-agent-runtime/[runtimeId]/acp-agent-runtime-timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -35655,7 +35655,7 @@ export const entitySelectorRouteLeaves = [
 				name: "operationId",
 			},
 		],
-		path: "(explore)/(services)/services/acp-session/[sessionId]/acp-file-operation/[operationId]",
+		path: "(explore)/(services)/acp-session/[sessionId]/acp-file-operation/[operationId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -35683,7 +35683,7 @@ export const entitySelectorRouteLeaves = [
 				name: "messageId",
 			},
 		],
-		path: "(explore)/(services)/services/acp-session/[sessionId]/acp-message/[messageId]",
+		path: "(explore)/(services)/acp-session/[sessionId]/acp-message/[messageId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -35715,7 +35715,7 @@ export const entitySelectorRouteLeaves = [
 				name: "partIndex",
 			},
 		],
-		path: "(explore)/(services)/services/acp-session/[sessionId]/acp-message/[messageId]/acp-message-part/[partIndex]",
+		path: "(explore)/(services)/acp-session/[sessionId]/acp-message/[messageId]/acp-message-part/[partIndex]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -35743,7 +35743,7 @@ export const entitySelectorRouteLeaves = [
 				name: "requestId",
 			},
 		],
-		path: "(explore)/(services)/services/acp-session/[sessionId]/acp-permission-request/[requestId]",
+		path: "(explore)/(services)/acp-session/[sessionId]/acp-permission-request/[requestId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -35771,7 +35771,7 @@ export const entitySelectorRouteLeaves = [
 				name: "turnId",
 			},
 		],
-		path: "(explore)/(services)/services/acp-session/[sessionId]/acp-prompt-turn/[turnId]",
+		path: "(explore)/(services)/acp-session/[sessionId]/acp-prompt-turn/[turnId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -35793,7 +35793,7 @@ export const entitySelectorRouteLeaves = [
 				name: "sessionId",
 			},
 		],
-		path: "(explore)/(services)/services/acp-session/[sessionId]",
+		path: "(explore)/(services)/acp-session/[sessionId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -35821,7 +35821,7 @@ export const entitySelectorRouteLeaves = [
 				name: "sequence",
 			},
 		],
-		path: "(explore)/(services)/services/acp-session/[sessionId]/acp-session-update/[sequence]",
+		path: "(explore)/(services)/acp-session/[sessionId]/acp-session-update/[sequence]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -35849,7 +35849,7 @@ export const entitySelectorRouteLeaves = [
 				name: "terminalId",
 			},
 		],
-		path: "(explore)/(services)/services/acp-session/[sessionId]/acp-terminal/[terminalId]",
+		path: "(explore)/(services)/acp-session/[sessionId]/acp-terminal/[terminalId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -35887,7 +35887,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/acp-session/[sessionId]/acp-terminal/[terminalId]/acp-terminal-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/acp-session/[sessionId]/acp-terminal/[terminalId]/acp-terminal-timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -35919,7 +35919,7 @@ export const entitySelectorRouteLeaves = [
 				name: "toolCallId",
 			},
 		],
-		path: "(explore)/(services)/services/acp-session/[sessionId]/acp-prompt-turn/[turnId]/acp-tool-call/[toolCallId]",
+		path: "(explore)/(services)/acp-session/[sessionId]/acp-prompt-turn/[turnId]/acp-tool-call/[toolCallId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -35961,7 +35961,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/acp-session/[sessionId]/acp-prompt-turn/[turnId]/acp-tool-call/[toolCallId]/acp-tool-call-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/acp-session/[sessionId]/acp-prompt-turn/[turnId]/acp-tool-call/[toolCallId]/acp-tool-call-timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -35983,7 +35983,7 @@ export const entitySelectorRouteLeaves = [
 				name: "agentCardUrl",
 			},
 		],
-		path: "(explore)/(services)/services/a2a-agent-card/[agentCardUrl]",
+		path: "(explore)/(services)/a2a-agent-card/[agentCardUrl]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -36017,7 +36017,7 @@ export const entitySelectorRouteLeaves = [
 				name: "contentHash",
 			},
 		],
-		path: "(explore)/(services)/services/a2a-agent-card/[agentCardUrl]/a2a-agent-card-snapshot/[contentHashAlgorithm]/[contentHash]",
+		path: "(explore)/(services)/a2a-agent-card/[agentCardUrl]/a2a-agent-card-snapshot/[contentHashAlgorithm]/[contentHash]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -36059,7 +36059,7 @@ export const entitySelectorRouteLeaves = [
 				name: "url",
 			},
 		],
-		path: "(explore)/(services)/services/a2a-agent-card/[agentCardUrl]/a2a-agent-card-snapshot/[contentHashAlgorithm]/[contentHash]/a2a-agent-interface/[protocolBinding]/[url]",
+		path: "(explore)/(services)/a2a-agent-card/[agentCardUrl]/a2a-agent-card-snapshot/[contentHashAlgorithm]/[contentHash]/a2a-agent-interface/[protocolBinding]/[url]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -36093,7 +36093,7 @@ export const entitySelectorRouteLeaves = [
 				name: "endpointUrl",
 			},
 		],
-		path: "(explore)/(services)/services/a2a-agent-card/[agentCardUrl]/a2a-agent-service/[protocolBinding]/[endpointUrl]",
+		path: "(explore)/(services)/a2a-agent-card/[agentCardUrl]/a2a-agent-service/[protocolBinding]/[endpointUrl]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -36135,7 +36135,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/a2a-agent-card/[agentCardUrl]/a2a-agent-service/[protocolBinding]/[endpointUrl]/a2a-agent-service-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/a2a-agent-card/[agentCardUrl]/a2a-agent-service/[protocolBinding]/[endpointUrl]/a2a-agent-service-timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -36171,7 +36171,7 @@ export const entitySelectorRouteLeaves = [
 				name: "skillId",
 			},
 		],
-		path: "(explore)/(services)/services/a2a-agent-card/[agentCardUrl]/a2a-agent-card-snapshot/[contentHashAlgorithm]/[contentHash]/a2a-agent-skill/[skillId]",
+		path: "(explore)/(services)/a2a-agent-card/[agentCardUrl]/a2a-agent-card-snapshot/[contentHashAlgorithm]/[contentHash]/a2a-agent-skill/[skillId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -36199,7 +36199,7 @@ export const entitySelectorRouteLeaves = [
 				name: "artifactId",
 			},
 		],
-		path: "(explore)/(services)/services/a2a-task/[taskId]/a2a-artifact/[artifactId]",
+		path: "(explore)/(services)/a2a-task/[taskId]/a2a-artifact/[artifactId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -36239,7 +36239,7 @@ export const entitySelectorRouteLeaves = [
 				name: "artifactId",
 			},
 		],
-		path: "(explore)/(services)/services/a2a-agent-card/[agentCardUrl]/a2a-agent-service/[protocolBinding]/[endpointUrl]/a2a-task/[providerTaskId]/a2a-artifact/[artifactId]",
+		path: "(explore)/(services)/a2a-agent-card/[agentCardUrl]/a2a-agent-service/[protocolBinding]/[endpointUrl]/a2a-task/[providerTaskId]/a2a-artifact/[artifactId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -36267,7 +36267,7 @@ export const entitySelectorRouteLeaves = [
 				name: "messageId",
 			},
 		],
-		path: "(explore)/(services)/services/a2a-task/[taskId]/a2a-message/[messageId]",
+		path: "(explore)/(services)/a2a-task/[taskId]/a2a-message/[messageId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -36307,7 +36307,7 @@ export const entitySelectorRouteLeaves = [
 				name: "messageId",
 			},
 		],
-		path: "(explore)/(services)/services/a2a-agent-card/[agentCardUrl]/a2a-agent-service/[protocolBinding]/[endpointUrl]/a2a-task/[providerTaskId]/a2a-message/[messageId]",
+		path: "(explore)/(services)/a2a-agent-card/[agentCardUrl]/a2a-agent-service/[protocolBinding]/[endpointUrl]/a2a-task/[providerTaskId]/a2a-message/[messageId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -36339,7 +36339,7 @@ export const entitySelectorRouteLeaves = [
 				name: "partIndex",
 			},
 		],
-		path: "(explore)/(services)/services/a2a-task/[taskId]/a2a-message/[messageId]/a2a-message-part/[partIndex]",
+		path: "(explore)/(services)/a2a-task/[taskId]/a2a-message/[messageId]/a2a-message-part/[partIndex]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -36383,7 +36383,7 @@ export const entitySelectorRouteLeaves = [
 				name: "partIndex",
 			},
 		],
-		path: "(explore)/(services)/services/a2a-agent-card/[agentCardUrl]/a2a-agent-service/[protocolBinding]/[endpointUrl]/a2a-task/[providerTaskId]/a2a-message/[messageId]/a2a-message-part/[partIndex]",
+		path: "(explore)/(services)/a2a-agent-card/[agentCardUrl]/a2a-agent-service/[protocolBinding]/[endpointUrl]/a2a-task/[providerTaskId]/a2a-message/[messageId]/a2a-message-part/[partIndex]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -36415,7 +36415,7 @@ export const entitySelectorRouteLeaves = [
 				name: "partIndex",
 			},
 		],
-		path: "(explore)/(services)/services/a2a-task/[taskId]/a2a-artifact/[artifactId]/a2a-message-part/[partIndex]",
+		path: "(explore)/(services)/a2a-task/[taskId]/a2a-artifact/[artifactId]/a2a-message-part/[partIndex]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -36459,7 +36459,7 @@ export const entitySelectorRouteLeaves = [
 				name: "partIndex",
 			},
 		],
-		path: "(explore)/(services)/services/a2a-agent-card/[agentCardUrl]/a2a-agent-service/[protocolBinding]/[endpointUrl]/a2a-task/[providerTaskId]/a2a-artifact/[artifactId]/a2a-message-part/[partIndex]",
+		path: "(explore)/(services)/a2a-agent-card/[agentCardUrl]/a2a-agent-service/[protocolBinding]/[endpointUrl]/a2a-task/[providerTaskId]/a2a-artifact/[artifactId]/a2a-message-part/[partIndex]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -36487,7 +36487,7 @@ export const entitySelectorRouteLeaves = [
 				name: "configId",
 			},
 		],
-		path: "(explore)/(services)/services/a2a-task/[taskId]/a2a-push-notification-config/[configId]",
+		path: "(explore)/(services)/a2a-task/[taskId]/a2a-push-notification-config/[configId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -36527,7 +36527,7 @@ export const entitySelectorRouteLeaves = [
 				name: "configId",
 			},
 		],
-		path: "(explore)/(services)/services/a2a-agent-card/[agentCardUrl]/a2a-agent-service/[protocolBinding]/[endpointUrl]/a2a-task/[providerTaskId]/a2a-push-notification-config/[configId]",
+		path: "(explore)/(services)/a2a-agent-card/[agentCardUrl]/a2a-agent-service/[protocolBinding]/[endpointUrl]/a2a-task/[providerTaskId]/a2a-push-notification-config/[configId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -36549,7 +36549,7 @@ export const entitySelectorRouteLeaves = [
 				name: "taskId",
 			},
 		],
-		path: "(explore)/(services)/services/a2a-task/[taskId]",
+		path: "(explore)/(services)/a2a-task/[taskId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -36585,7 +36585,7 @@ export const entitySelectorRouteLeaves = [
 				name: "providerTaskId",
 			},
 		],
-		path: "(explore)/(services)/services/a2a-agent-card/[agentCardUrl]/a2a-agent-service/[protocolBinding]/[endpointUrl]/a2a-task/[providerTaskId]",
+		path: "(explore)/(services)/a2a-agent-card/[agentCardUrl]/a2a-agent-service/[protocolBinding]/[endpointUrl]/a2a-task/[providerTaskId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -36619,7 +36619,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/a2a-task/[taskId]/a2a-task-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/a2a-task/[taskId]/a2a-task-timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -36665,7 +36665,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/a2a-agent-card/[agentCardUrl]/a2a-agent-service/[protocolBinding]/[endpointUrl]/a2a-task/[providerTaskId]/a2a-task-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/a2a-agent-card/[agentCardUrl]/a2a-agent-service/[protocolBinding]/[endpointUrl]/a2a-task/[providerTaskId]/a2a-task-timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -36693,7 +36693,7 @@ export const entitySelectorRouteLeaves = [
 				name: "sequence",
 			},
 		],
-		path: "(explore)/(services)/services/a2a-task/[taskId]/a2a-task-event/[sequence]",
+		path: "(explore)/(services)/a2a-task/[taskId]/a2a-task-event/[sequence]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -36733,7 +36733,7 @@ export const entitySelectorRouteLeaves = [
 				name: "sequence",
 			},
 		],
-		path: "(explore)/(services)/services/a2a-agent-card/[agentCardUrl]/a2a-agent-service/[protocolBinding]/[endpointUrl]/a2a-task/[providerTaskId]/a2a-task-event/[sequence]",
+		path: "(explore)/(services)/a2a-agent-card/[agentCardUrl]/a2a-agent-service/[protocolBinding]/[endpointUrl]/a2a-task/[providerTaskId]/a2a-task-event/[sequence]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -36791,7 +36791,7 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(explore)/(services)/services/agent-identity-claim/[subjectKind]/[subjectSelector]/[identityKind]/[objectKind]/[objectSelector]/[source]/[timestampMs]",
+		path: "(explore)/(services)/agent-identity-claim/[subjectKind]/[subjectSelector]/[identityKind]/[objectKind]/[objectSelector]/[source]/[timestampMs]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -36837,7 +36837,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/agent-payment-requirement-timestamp/[subjectKind]/[subjectSelector]/[paymentProtocol]/[timestampMs]/[source]",
+		path: "(explore)/(services)/agent-payment-requirement-timestamp/[subjectKind]/[subjectSelector]/[paymentProtocol]/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -36865,7 +36865,7 @@ export const entitySelectorRouteLeaves = [
 				name: "digest",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/[digestAlgorithm]/[digest]",
+		path: "(explore)/(services)/ai-artifact/[digestAlgorithm]/[digest]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -36887,7 +36887,7 @@ export const entitySelectorRouteLeaves = [
 				name: "ociDigest",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/oci-digest/[ociDigest]",
+		path: "(explore)/(services)/ai-artifact/oci-digest/[ociDigest]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -36909,8 +36909,8 @@ export const entitySelectorRouteLeaves = [
 				name: "ipfsCid",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/ipfs-cid/[ipfsCid]",
-		emitPage: true,
+		path: "(explore)/(services)/ai-artifact/ipfs-cid/[ipfsCid]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -36931,8 +36931,8 @@ export const entitySelectorRouteLeaves = [
 				name: "arweaveId",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/arweave-id/[arweaveId]",
-		emitPage: true,
+		path: "(explore)/(services)/ai-artifact/arweave-id/[arweaveId]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -36953,7 +36953,7 @@ export const entitySelectorRouteLeaves = [
 				name: "gitObject",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/git-object/[gitObject]",
+		path: "(explore)/(services)/ai-artifact/git/object/[gitObject]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -36991,7 +36991,7 @@ export const entitySelectorRouteLeaves = [
 				name: "logEntryId",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/[digestAlgorithm]/[digest]/ai-artifact-attestation/[attestationKind]/[logEntryId]",
+		path: "(explore)/(services)/ai-artifact/[digestAlgorithm]/[digest]/ai-artifact-attestation/[attestationKind]/[logEntryId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -37025,7 +37025,7 @@ export const entitySelectorRouteLeaves = [
 				name: "logEntryId",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/oci-digest/[ociDigest]/ai-artifact-attestation/[attestationKind]/[logEntryId]",
+		path: "(explore)/(services)/ai-artifact/oci-digest/[ociDigest]/ai-artifact-attestation/[attestationKind]/[logEntryId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -37059,8 +37059,8 @@ export const entitySelectorRouteLeaves = [
 				name: "logEntryId",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/ipfs-cid/[ipfsCid]/ai-artifact-attestation/[attestationKind]/[logEntryId]",
-		emitPage: true,
+		path: "(explore)/(services)/ai-artifact/ipfs-cid/[ipfsCid]/ai-artifact-attestation/[attestationKind]/[logEntryId]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -37093,8 +37093,8 @@ export const entitySelectorRouteLeaves = [
 				name: "logEntryId",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/arweave-id/[arweaveId]/ai-artifact-attestation/[attestationKind]/[logEntryId]",
-		emitPage: true,
+		path: "(explore)/(services)/ai-artifact/arweave-id/[arweaveId]/ai-artifact-attestation/[attestationKind]/[logEntryId]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -37127,7 +37127,7 @@ export const entitySelectorRouteLeaves = [
 				name: "logEntryId",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/git-object/[gitObject]/ai-artifact-attestation/[attestationKind]/[logEntryId]",
+		path: "(explore)/(services)/ai-artifact/git/object/[gitObject]/ai-artifact-attestation/[attestationKind]/[logEntryId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -37171,7 +37171,7 @@ export const entitySelectorRouteLeaves = [
 				name: "signatureHash",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/[digestAlgorithm]/[digest]/ai-artifact-attestation/[attestationKind]/[signatureHashAlgorithm]/[signatureHash]",
+		path: "(explore)/(services)/ai-artifact/[digestAlgorithm]/[digest]/ai-artifact-attestation/[attestationKind]/[signatureHashAlgorithm]/[signatureHash]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -37211,7 +37211,7 @@ export const entitySelectorRouteLeaves = [
 				name: "signatureHash",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/oci-digest/[ociDigest]/ai-artifact-attestation/[attestationKind]/[signatureHashAlgorithm]/[signatureHash]",
+		path: "(explore)/(services)/ai-artifact/oci-digest/[ociDigest]/ai-artifact-attestation/[attestationKind]/[signatureHashAlgorithm]/[signatureHash]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -37251,8 +37251,8 @@ export const entitySelectorRouteLeaves = [
 				name: "signatureHash",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/ipfs-cid/[ipfsCid]/ai-artifact-attestation/[attestationKind]/[signatureHashAlgorithm]/[signatureHash]",
-		emitPage: true,
+		path: "(explore)/(services)/ai-artifact/ipfs-cid/[ipfsCid]/ai-artifact-attestation/[attestationKind]/[signatureHashAlgorithm]/[signatureHash]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -37291,8 +37291,8 @@ export const entitySelectorRouteLeaves = [
 				name: "signatureHash",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/arweave-id/[arweaveId]/ai-artifact-attestation/[attestationKind]/[signatureHashAlgorithm]/[signatureHash]",
-		emitPage: true,
+		path: "(explore)/(services)/ai-artifact/arweave-id/[arweaveId]/ai-artifact-attestation/[attestationKind]/[signatureHashAlgorithm]/[signatureHash]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -37331,7 +37331,7 @@ export const entitySelectorRouteLeaves = [
 				name: "signatureHash",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/git-object/[gitObject]/ai-artifact-attestation/[attestationKind]/[signatureHashAlgorithm]/[signatureHash]",
+		path: "(explore)/(services)/ai-artifact/git/object/[gitObject]/ai-artifact-attestation/[attestationKind]/[signatureHashAlgorithm]/[signatureHash]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -37353,7 +37353,7 @@ export const entitySelectorRouteLeaves = [
 				name: "benchmarkId",
 			},
 		],
-		path: "(explore)/(services)/services/ai-benchmark/by/benchmark-id/[benchmarkId]",
+		path: "(explore)/(services)/ai-benchmark/benchmark-id/[benchmarkId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -37375,7 +37375,7 @@ export const entitySelectorRouteLeaves = [
 				name: "benchmarkUri",
 			},
 		],
-		path: "(explore)/(services)/services/ai-benchmark/by/benchmark-uri/[benchmarkUri]",
+		path: "(explore)/(services)/ai-benchmark/benchmark-uri/[benchmarkUri]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -37403,7 +37403,7 @@ export const entitySelectorRouteLeaves = [
 				name: "sourceBenchmarkId",
 			},
 		],
-		path: "(explore)/(services)/services/ai-benchmark/[source]/[sourceBenchmarkId]",
+		path: "(explore)/(services)/ai-benchmark/[source]/[sourceBenchmarkId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -37425,7 +37425,7 @@ export const entitySelectorRouteLeaves = [
 				name: "datasetUri",
 			},
 		],
-		path: "(explore)/(services)/services/ai-dataset/[datasetUri]",
+		path: "(explore)/(services)/ai-dataset/[datasetUri]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -37453,7 +37453,7 @@ export const entitySelectorRouteLeaves = [
 				name: "revision",
 			},
 		],
-		path: "(explore)/(services)/services/ai-dataset/[huggingFaceDatasetId]/[revision]",
+		path: "(explore)/(services)/ai-dataset/[huggingFaceDatasetId]/[revision]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -37487,7 +37487,7 @@ export const entitySelectorRouteLeaves = [
 				name: "datasetDigest",
 			},
 		],
-		path: "(explore)/(services)/services/ai-dataset/[source]/[datasetName]/[datasetDigest]",
+		path: "(explore)/(services)/ai-dataset/[source]/[datasetName]/[datasetDigest]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -37513,7 +37513,7 @@ export const entitySelectorRouteLeaves = [
 				name: "digest",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/[digestAlgorithm]/[digest]/ai-dataset",
+		path: "(explore)/(services)/ai-artifact/[digestAlgorithm]/[digest]/ai-dataset",
 		emitPage: true,
 		unresolved: [
 		],
@@ -37535,7 +37535,7 @@ export const entitySelectorRouteLeaves = [
 				name: "ociDigest",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/oci-digest/[ociDigest]/ai-dataset",
+		path: "(explore)/(services)/ai-artifact/oci-digest/[ociDigest]/ai-dataset",
 		emitPage: true,
 		unresolved: [
 		],
@@ -37557,8 +37557,8 @@ export const entitySelectorRouteLeaves = [
 				name: "ipfsCid",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/ipfs-cid/[ipfsCid]/ai-dataset",
-		emitPage: true,
+		path: "(explore)/(services)/ai-artifact/ipfs-cid/[ipfsCid]/ai-dataset",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -37579,8 +37579,8 @@ export const entitySelectorRouteLeaves = [
 				name: "arweaveId",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/arweave-id/[arweaveId]/ai-dataset",
-		emitPage: true,
+		path: "(explore)/(services)/ai-artifact/arweave-id/[arweaveId]/ai-dataset",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -37601,7 +37601,7 @@ export const entitySelectorRouteLeaves = [
 				name: "gitObject",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/git-object/[gitObject]/ai-dataset",
+		path: "(explore)/(services)/ai-artifact/git/object/[gitObject]/ai-dataset",
 		emitPage: true,
 		unresolved: [
 		],
@@ -37635,7 +37635,7 @@ export const entitySelectorRouteLeaves = [
 				name: "contentHash",
 			},
 		],
-		path: "(explore)/(services)/services/ai-document/[documentKind]/[contentHashAlgorithm]/[contentHash]",
+		path: "(explore)/(services)/ai-document/[documentKind]/[contentHashAlgorithm]/[contentHash]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -37667,7 +37667,7 @@ export const entitySelectorRouteLeaves = [
 				name: "documentKind",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/[digestAlgorithm]/[digest]/ai-document/[documentKind]",
+		path: "(explore)/(services)/ai-artifact/[digestAlgorithm]/[digest]/ai-document/[documentKind]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -37695,7 +37695,7 @@ export const entitySelectorRouteLeaves = [
 				name: "documentKind",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/oci-digest/[ociDigest]/ai-document/[documentKind]",
+		path: "(explore)/(services)/ai-artifact/oci-digest/[ociDigest]/ai-document/[documentKind]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -37723,8 +37723,8 @@ export const entitySelectorRouteLeaves = [
 				name: "documentKind",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/ipfs-cid/[ipfsCid]/ai-document/[documentKind]",
-		emitPage: true,
+		path: "(explore)/(services)/ai-artifact/ipfs-cid/[ipfsCid]/ai-document/[documentKind]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -37751,8 +37751,8 @@ export const entitySelectorRouteLeaves = [
 				name: "documentKind",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/arweave-id/[arweaveId]/ai-document/[documentKind]",
-		emitPage: true,
+		path: "(explore)/(services)/ai-artifact/arweave-id/[arweaveId]/ai-document/[documentKind]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -37779,7 +37779,7 @@ export const entitySelectorRouteLeaves = [
 				name: "documentKind",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/git-object/[gitObject]/ai-document/[documentKind]",
+		path: "(explore)/(services)/ai-artifact/git/object/[gitObject]/ai-document/[documentKind]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -37801,7 +37801,7 @@ export const entitySelectorRouteLeaves = [
 				name: "documentUrl",
 			},
 		],
-		path: "(explore)/(services)/services/ai-document/[documentUrl]",
+		path: "(explore)/(services)/ai-document/[documentUrl]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -37843,7 +37843,7 @@ export const entitySelectorRouteLeaves = [
 				name: "claimPath",
 			},
 		],
-		path: "(explore)/(services)/services/ai-document/[documentKind]/[contentHashAlgorithm]/[contentHash]/ai-document-claim/[extractorId]/[claimPath]",
+		path: "(explore)/(services)/ai-document/[documentKind]/[contentHashAlgorithm]/[contentHash]/ai-document-claim/[extractorId]/[claimPath]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -37885,7 +37885,7 @@ export const entitySelectorRouteLeaves = [
 				name: "claimPath",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/[digestAlgorithm]/[digest]/ai-document/[documentKind]/ai-document-claim/[extractorId]/[claimPath]",
+		path: "(explore)/(services)/ai-artifact/[digestAlgorithm]/[digest]/ai-document/[documentKind]/ai-document-claim/[extractorId]/[claimPath]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -37923,7 +37923,7 @@ export const entitySelectorRouteLeaves = [
 				name: "claimPath",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/oci-digest/[ociDigest]/ai-document/[documentKind]/ai-document-claim/[extractorId]/[claimPath]",
+		path: "(explore)/(services)/ai-artifact/oci-digest/[ociDigest]/ai-document/[documentKind]/ai-document-claim/[extractorId]/[claimPath]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -37961,8 +37961,8 @@ export const entitySelectorRouteLeaves = [
 				name: "claimPath",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/ipfs-cid/[ipfsCid]/ai-document/[documentKind]/ai-document-claim/[extractorId]/[claimPath]",
-		emitPage: true,
+		path: "(explore)/(services)/ai-artifact/ipfs-cid/[ipfsCid]/ai-document/[documentKind]/ai-document-claim/[extractorId]/[claimPath]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -37999,8 +37999,8 @@ export const entitySelectorRouteLeaves = [
 				name: "claimPath",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/arweave-id/[arweaveId]/ai-document/[documentKind]/ai-document-claim/[extractorId]/[claimPath]",
-		emitPage: true,
+		path: "(explore)/(services)/ai-artifact/arweave-id/[arweaveId]/ai-document/[documentKind]/ai-document-claim/[extractorId]/[claimPath]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -38037,7 +38037,7 @@ export const entitySelectorRouteLeaves = [
 				name: "claimPath",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/git-object/[gitObject]/ai-document/[documentKind]/ai-document-claim/[extractorId]/[claimPath]",
+		path: "(explore)/(services)/ai-artifact/git/object/[gitObject]/ai-document/[documentKind]/ai-document-claim/[extractorId]/[claimPath]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -38071,7 +38071,7 @@ export const entitySelectorRouteLeaves = [
 				name: "claimPath",
 			},
 		],
-		path: "(explore)/(services)/services/ai-document/[documentUrl]/ai-document-claim/[extractorId]/[claimPath]",
+		path: "(explore)/(services)/ai-document/[documentUrl]/ai-document-claim/[extractorId]/[claimPath]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -38123,7 +38123,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/ai-benchmark/by/benchmark-id/[benchmarkId]/ai-evaluation-timestamp/[subjectKind]/[subjectSelector]/[metricName]/[timestampMs]/[source]",
+		path: "(explore)/(services)/ai-benchmark/benchmark-id/[benchmarkId]/ai-evaluation-timestamp/[subjectKind]/[subjectSelector]/[metricName]/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -38175,7 +38175,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/ai-benchmark/by/benchmark-uri/[benchmarkUri]/ai-evaluation-timestamp/[subjectKind]/[subjectSelector]/[metricName]/[timestampMs]/[source]",
+		path: "(explore)/(services)/ai-benchmark/benchmark-uri/[benchmarkUri]/ai-evaluation-timestamp/[subjectKind]/[subjectSelector]/[metricName]/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -38231,7 +38231,7 @@ export const entitySelectorRouteLeaves = [
 				name: "aiEvaluationTimestampSource",
 			},
 		],
-		path: "(explore)/(services)/services/ai-benchmark/[source]/[sourceBenchmarkId]/ai-evaluation-timestamp/[subjectKind]/[subjectSelector]/[metricName]/[timestampMs]/[aiEvaluationTimestampSource]",
+		path: "(explore)/(services)/ai-benchmark/[source]/[sourceBenchmarkId]/ai-evaluation-timestamp/[subjectKind]/[subjectSelector]/[metricName]/[timestampMs]/[aiEvaluationTimestampSource]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -38259,7 +38259,7 @@ export const entitySelectorRouteLeaves = [
 				name: "providerModelId",
 			},
 		],
-		path: "(explore)/(services)/services/ai-model-provider/by/domain/[domain]/ai-model/[providerModelId]",
+		path: "(explore)/(services)/ai-model-provider/domain/[domain]/ai-model/[providerModelId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -38287,7 +38287,7 @@ export const entitySelectorRouteLeaves = [
 				name: "providerModelId",
 			},
 		],
-		path: "(explore)/(services)/services/ai-model-provider/by/provider-id/[providerId]/ai-model/[providerModelId]",
+		path: "(explore)/(services)/ai-model-provider/provider-id/[providerId]/ai-model/[providerModelId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -38309,7 +38309,7 @@ export const entitySelectorRouteLeaves = [
 				name: "domain",
 			},
 		],
-		path: "(explore)/(services)/services/ai-model-provider/by/domain/[domain]",
+		path: "(explore)/(services)/ai-model-provider/domain/[domain]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -38331,7 +38331,7 @@ export const entitySelectorRouteLeaves = [
 				name: "providerId",
 			},
 		],
-		path: "(explore)/(services)/services/ai-model-provider/by/provider-id/[providerId]",
+		path: "(explore)/(services)/ai-model-provider/provider-id/[providerId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -38363,7 +38363,7 @@ export const entitySelectorRouteLeaves = [
 				name: "versionId",
 			},
 		],
-		path: "(explore)/(services)/services/ai-model-provider/by/domain/[domain]/ai-model/[providerModelId]/ai-model-version/[versionId]",
+		path: "(explore)/(services)/ai-model-provider/domain/[domain]/ai-model/[providerModelId]/ai-model-version/[versionId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -38395,7 +38395,7 @@ export const entitySelectorRouteLeaves = [
 				name: "versionId",
 			},
 		],
-		path: "(explore)/(services)/services/ai-model-provider/by/provider-id/[providerId]/ai-model/[providerModelId]/ai-model-version/[versionId]",
+		path: "(explore)/(services)/ai-model-provider/provider-id/[providerId]/ai-model/[providerModelId]/ai-model-version/[versionId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -38421,7 +38421,7 @@ export const entitySelectorRouteLeaves = [
 				name: "digest",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/[digestAlgorithm]/[digest]/ai-model-version",
+		path: "(explore)/(services)/ai-artifact/[digestAlgorithm]/[digest]/ai-model-version",
 		emitPage: true,
 		unresolved: [
 		],
@@ -38443,7 +38443,7 @@ export const entitySelectorRouteLeaves = [
 				name: "ociDigest",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/oci-digest/[ociDigest]/ai-model-version",
+		path: "(explore)/(services)/ai-artifact/oci-digest/[ociDigest]/ai-model-version",
 		emitPage: true,
 		unresolved: [
 		],
@@ -38465,8 +38465,8 @@ export const entitySelectorRouteLeaves = [
 				name: "ipfsCid",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/ipfs-cid/[ipfsCid]/ai-model-version",
-		emitPage: true,
+		path: "(explore)/(services)/ai-artifact/ipfs-cid/[ipfsCid]/ai-model-version",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -38487,8 +38487,8 @@ export const entitySelectorRouteLeaves = [
 				name: "arweaveId",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/arweave-id/[arweaveId]/ai-model-version",
-		emitPage: true,
+		path: "(explore)/(services)/ai-artifact/arweave-id/[arweaveId]/ai-model-version",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -38509,7 +38509,7 @@ export const entitySelectorRouteLeaves = [
 				name: "gitObject",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/git-object/[gitObject]/ai-model-version",
+		path: "(explore)/(services)/ai-artifact/git/object/[gitObject]/ai-model-version",
 		emitPage: true,
 		unresolved: [
 		],
@@ -38537,7 +38537,7 @@ export const entitySelectorRouteLeaves = [
 				name: "revision",
 			},
 		],
-		path: "(explore)/(services)/services/ai-model-version/[huggingFaceRepo]/[revision]",
+		path: "(explore)/(services)/ai-model-version/[huggingFaceRepo]/[revision]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -38575,7 +38575,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/ai-model-provider/by/domain/[domain]/ai-model/[providerModelId]/ai-model-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/ai-model-provider/domain/[domain]/ai-model/[providerModelId]/ai-model-timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -38613,7 +38613,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/ai-model-provider/by/provider-id/[providerId]/ai-model/[providerModelId]/ai-model-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/ai-model-provider/provider-id/[providerId]/ai-model/[providerModelId]/ai-model-timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -38641,7 +38641,7 @@ export const entitySelectorRouteLeaves = [
 				name: "operationId",
 			},
 		],
-		path: "(explore)/(services)/services/ai-model-provider/by/domain/[domain]/ai-provider-api-operation/[operationId]",
+		path: "(explore)/(services)/ai-model-provider/domain/[domain]/ai-provider-api-operation/[operationId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -38669,7 +38669,7 @@ export const entitySelectorRouteLeaves = [
 				name: "operationId",
 			},
 		],
-		path: "(explore)/(services)/services/ai-model-provider/by/provider-id/[providerId]/ai-provider-api-operation/[operationId]",
+		path: "(explore)/(services)/ai-model-provider/provider-id/[providerId]/ai-provider-api-operation/[operationId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -38707,7 +38707,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/ai-model-provider/by/domain/[domain]/ai-provider-api-operation/[operationId]/ai-provider-api-operation-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/ai-model-provider/domain/[domain]/ai-provider-api-operation/[operationId]/ai-provider-api-operation-timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -38745,7 +38745,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/ai-model-provider/by/provider-id/[providerId]/ai-provider-api-operation/[operationId]/ai-provider-api-operation-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/ai-model-provider/provider-id/[providerId]/ai-provider-api-operation/[operationId]/ai-provider-api-operation-timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -38779,7 +38779,7 @@ export const entitySelectorRouteLeaves = [
 				name: "providerEntryId",
 			},
 		],
-		path: "(explore)/(services)/services/ai-model-provider/by/domain/[domain]/ai-provider-catalog-entry/[catalogKind]/[providerEntryId]",
+		path: "(explore)/(services)/ai-model-provider/domain/[domain]/ai-provider-catalog-entry/[catalogKind]/[providerEntryId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -38813,7 +38813,7 @@ export const entitySelectorRouteLeaves = [
 				name: "providerEntryId",
 			},
 		],
-		path: "(explore)/(services)/services/ai-model-provider/by/provider-id/[providerId]/ai-provider-catalog-entry/[catalogKind]/[providerEntryId]",
+		path: "(explore)/(services)/ai-model-provider/provider-id/[providerId]/ai-provider-catalog-entry/[catalogKind]/[providerEntryId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -38855,7 +38855,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/ai-model-provider/by/domain/[domain]/ai-provider-catalog-entry/[catalogKind]/[providerEntryId]/ai-provider-catalog-entry-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/ai-model-provider/domain/[domain]/ai-provider-catalog-entry/[catalogKind]/[providerEntryId]/ai-provider-catalog-entry-timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -38897,7 +38897,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/ai-model-provider/by/provider-id/[providerId]/ai-provider-catalog-entry/[catalogKind]/[providerEntryId]/ai-provider-catalog-entry-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/ai-model-provider/provider-id/[providerId]/ai-provider-catalog-entry/[catalogKind]/[providerEntryId]/ai-provider-catalog-entry-timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -38955,7 +38955,7 @@ export const entitySelectorRouteLeaves = [
 				name: "timestampMs",
 			},
 		],
-		path: "(explore)/(services)/services/ai-relationship-claim/[subjectKind]/[subjectSelector]/[relationshipKind]/[objectKind]/[objectSelector]/[source]/[timestampMs]",
+		path: "(explore)/(services)/ai-relationship-claim/[subjectKind]/[subjectSelector]/[relationshipKind]/[objectKind]/[objectSelector]/[source]/[timestampMs]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -38977,7 +38977,7 @@ export const entitySelectorRouteLeaves = [
 				name: "connectionId",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-agent-connection/[connectionId]",
+		path: "(explore)/(services)/agent/connection/[connectionId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -39011,7 +39011,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-agent-connection/[connectionId]/blockhead-agent-connection-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/agent/connection/[connectionId]/agent/connection/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -39033,7 +39033,7 @@ export const entitySelectorRouteLeaves = [
 				name: "credentialId",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-agent-credential-state/[credentialId]",
+		path: "(explore)/(services)/agent/credential/state/[credentialId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -39067,7 +39067,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-agent-credential-state/[credentialId]/blockhead-agent-credential-state-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/agent/credential/state/[credentialId]/agent/credential/state/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -39089,7 +39089,7 @@ export const entitySelectorRouteLeaves = [
 				name: "installId",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-agent-program-install/[installId]",
+		path: "(explore)/(services)/agent/program/install/[installId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -39123,7 +39123,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-agent-program-install/[installId]/blockhead-agent-program-install-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/agent/program/install/[installId]/agent/program/install/timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -39151,7 +39151,7 @@ export const entitySelectorRouteLeaves = [
 				name: "callIndex",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-agent-conversation-turn/[id]/blockhead-agent-provider-call/[callIndex]",
+		path: "(explore)/(services)/agent/conversation/turn/[id]/agent/provider/call/[callIndex]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -39173,7 +39173,7 @@ export const entitySelectorRouteLeaves = [
 				name: "profileId",
 			},
 		],
-		path: "(explore)/(services)/services/blockhead-agent-profile/[profileId]",
+		path: "(explore)/(services)/agent/profile/[profileId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -39214,7 +39214,7 @@ export const entitySelectorRouteLeaves = [
 				name: "agentId",
 			},
 		],
-		path: "(explore)/(services)/services/eip8004-agent-registration/[namespace]/[chainId=eip155ChainId]/[identityRegistry]/[agentId]",
+		path: "(explore)/(services)/eip8004-agent-registration/[namespace]/[chainId=eip155ChainId]/[identityRegistry]/[agentId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -39261,7 +39261,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/eip8004-agent-registration/[namespace]/[chainId=eip155ChainId]/[identityRegistry]/[agentId]/eip8004-agent-registration-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/eip8004-agent-registration/[namespace]/[chainId=eip155ChainId]/[identityRegistry]/[agentId]/eip8004-agent-registration-timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -39308,7 +39308,7 @@ export const entitySelectorRouteLeaves = [
 				name: "contentHash",
 			},
 		],
-		path: "(explore)/(services)/services/eip8004-agent-registration/[namespace]/[chainId=eip155ChainId]/[identityRegistry]/[agentId]/eip8004-agent-registration-file/[contentHashAlgorithm]/[contentHash]",
+		path: "(explore)/(services)/eip8004-agent-registration/[namespace]/[chainId=eip155ChainId]/[identityRegistry]/[agentId]/eip8004-agent-registration-file/[contentHashAlgorithm]/[contentHash]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -39334,7 +39334,7 @@ export const entitySelectorRouteLeaves = [
 				name: "digest",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/[digestAlgorithm]/[digest]/eip8004-agent-registration-file",
+		path: "(explore)/(services)/ai-artifact/[digestAlgorithm]/[digest]/eip8004-agent-registration-file",
 		emitPage: true,
 		unresolved: [
 		],
@@ -39356,7 +39356,7 @@ export const entitySelectorRouteLeaves = [
 				name: "ociDigest",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/oci-digest/[ociDigest]/eip8004-agent-registration-file",
+		path: "(explore)/(services)/ai-artifact/oci-digest/[ociDigest]/eip8004-agent-registration-file",
 		emitPage: true,
 		unresolved: [
 		],
@@ -39378,8 +39378,8 @@ export const entitySelectorRouteLeaves = [
 				name: "ipfsCid",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/ipfs-cid/[ipfsCid]/eip8004-agent-registration-file",
-		emitPage: true,
+		path: "(explore)/(services)/ai-artifact/ipfs-cid/[ipfsCid]/eip8004-agent-registration-file",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -39400,8 +39400,8 @@ export const entitySelectorRouteLeaves = [
 				name: "arweaveId",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/arweave-id/[arweaveId]/eip8004-agent-registration-file",
-		emitPage: true,
+		path: "(explore)/(services)/ai-artifact/arweave-id/[arweaveId]/eip8004-agent-registration-file",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -39422,7 +39422,7 @@ export const entitySelectorRouteLeaves = [
 				name: "gitObject",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/git-object/[gitObject]/eip8004-agent-registration-file",
+		path: "(explore)/(services)/ai-artifact/git/object/[gitObject]/eip8004-agent-registration-file",
 		emitPage: true,
 		unresolved: [
 		],
@@ -39477,7 +39477,7 @@ export const entitySelectorRouteLeaves = [
 				name: "endpointUrl",
 			},
 		],
-		path: "(explore)/(services)/services/eip8004-agent-registration/[namespace]/[chainId=eip155ChainId]/[identityRegistry]/[agentId]/eip8004-agent-registration-file/[contentHashAlgorithm]/[contentHash]/eip8004-agent-service-endpoint/[endpointKind]/[endpointUrl]",
+		path: "(explore)/(services)/eip8004-agent-registration/[namespace]/[chainId=eip155ChainId]/[identityRegistry]/[agentId]/eip8004-agent-registration-file/[contentHashAlgorithm]/[contentHash]/eip8004-agent-service-endpoint/[endpointKind]/[endpointUrl]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -39515,7 +39515,7 @@ export const entitySelectorRouteLeaves = [
 				name: "endpointUrl",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/[digestAlgorithm]/[digest]/eip8004-agent-registration-file/eip8004-agent-service-endpoint/[endpointKind]/[endpointUrl]",
+		path: "(explore)/(services)/ai-artifact/[digestAlgorithm]/[digest]/eip8004-agent-registration-file/eip8004-agent-service-endpoint/[endpointKind]/[endpointUrl]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -39549,7 +39549,7 @@ export const entitySelectorRouteLeaves = [
 				name: "endpointUrl",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/oci-digest/[ociDigest]/eip8004-agent-registration-file/eip8004-agent-service-endpoint/[endpointKind]/[endpointUrl]",
+		path: "(explore)/(services)/ai-artifact/oci-digest/[ociDigest]/eip8004-agent-registration-file/eip8004-agent-service-endpoint/[endpointKind]/[endpointUrl]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -39583,8 +39583,8 @@ export const entitySelectorRouteLeaves = [
 				name: "endpointUrl",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/ipfs-cid/[ipfsCid]/eip8004-agent-registration-file/eip8004-agent-service-endpoint/[endpointKind]/[endpointUrl]",
-		emitPage: true,
+		path: "(explore)/(services)/ai-artifact/ipfs-cid/[ipfsCid]/eip8004-agent-registration-file/eip8004-agent-service-endpoint/[endpointKind]/[endpointUrl]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -39617,8 +39617,8 @@ export const entitySelectorRouteLeaves = [
 				name: "endpointUrl",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/arweave-id/[arweaveId]/eip8004-agent-registration-file/eip8004-agent-service-endpoint/[endpointKind]/[endpointUrl]",
-		emitPage: true,
+		path: "(explore)/(services)/ai-artifact/arweave-id/[arweaveId]/eip8004-agent-registration-file/eip8004-agent-service-endpoint/[endpointKind]/[endpointUrl]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -39651,7 +39651,7 @@ export const entitySelectorRouteLeaves = [
 				name: "endpointUrl",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/git-object/[gitObject]/eip8004-agent-registration-file/eip8004-agent-service-endpoint/[endpointKind]/[endpointUrl]",
+		path: "(explore)/(services)/ai-artifact/git/object/[gitObject]/eip8004-agent-registration-file/eip8004-agent-service-endpoint/[endpointKind]/[endpointUrl]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -39712,7 +39712,7 @@ export const entitySelectorRouteLeaves = [
 				name: "targetSelectorHash",
 			},
 		],
-		path: "(explore)/(services)/services/eip8004-agent-registration/[namespace]/[chainId=eip155ChainId]/[identityRegistry]/[agentId]/eip8004-agent-registration-file/[contentHashAlgorithm]/[contentHash]/eip8004-cross-registration/[targetKind]/[targetSelectorHashAlgorithm]/[targetSelectorHash]",
+		path: "(explore)/(services)/eip8004-agent-registration/[namespace]/[chainId=eip155ChainId]/[identityRegistry]/[agentId]/eip8004-agent-registration-file/[contentHashAlgorithm]/[contentHash]/eip8004-cross-registration/[targetKind]/[targetSelectorHashAlgorithm]/[targetSelectorHash]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -39756,7 +39756,7 @@ export const entitySelectorRouteLeaves = [
 				name: "targetSelectorHash",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/[digestAlgorithm]/[digest]/eip8004-agent-registration-file/eip8004-cross-registration/[targetKind]/[targetSelectorHashAlgorithm]/[targetSelectorHash]",
+		path: "(explore)/(services)/ai-artifact/[digestAlgorithm]/[digest]/eip8004-agent-registration-file/eip8004-cross-registration/[targetKind]/[targetSelectorHashAlgorithm]/[targetSelectorHash]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -39796,7 +39796,7 @@ export const entitySelectorRouteLeaves = [
 				name: "targetSelectorHash",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/oci-digest/[ociDigest]/eip8004-agent-registration-file/eip8004-cross-registration/[targetKind]/[targetSelectorHashAlgorithm]/[targetSelectorHash]",
+		path: "(explore)/(services)/ai-artifact/oci-digest/[ociDigest]/eip8004-agent-registration-file/eip8004-cross-registration/[targetKind]/[targetSelectorHashAlgorithm]/[targetSelectorHash]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -39836,8 +39836,8 @@ export const entitySelectorRouteLeaves = [
 				name: "targetSelectorHash",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/ipfs-cid/[ipfsCid]/eip8004-agent-registration-file/eip8004-cross-registration/[targetKind]/[targetSelectorHashAlgorithm]/[targetSelectorHash]",
-		emitPage: true,
+		path: "(explore)/(services)/ai-artifact/ipfs-cid/[ipfsCid]/eip8004-agent-registration-file/eip8004-cross-registration/[targetKind]/[targetSelectorHashAlgorithm]/[targetSelectorHash]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -39876,8 +39876,8 @@ export const entitySelectorRouteLeaves = [
 				name: "targetSelectorHash",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/arweave-id/[arweaveId]/eip8004-agent-registration-file/eip8004-cross-registration/[targetKind]/[targetSelectorHashAlgorithm]/[targetSelectorHash]",
-		emitPage: true,
+		path: "(explore)/(services)/ai-artifact/arweave-id/[arweaveId]/eip8004-agent-registration-file/eip8004-cross-registration/[targetKind]/[targetSelectorHashAlgorithm]/[targetSelectorHash]",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -39916,7 +39916,7 @@ export const entitySelectorRouteLeaves = [
 				name: "targetSelectorHash",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/git-object/[gitObject]/eip8004-agent-registration-file/eip8004-cross-registration/[targetKind]/[targetSelectorHashAlgorithm]/[targetSelectorHash]",
+		path: "(explore)/(services)/ai-artifact/git/object/[gitObject]/eip8004-agent-registration-file/eip8004-cross-registration/[targetKind]/[targetSelectorHashAlgorithm]/[targetSelectorHash]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -39950,7 +39950,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/eip8004-endpoint-domain-verification-timestamp/[endpointUrl]/[timestampMs]/[source]",
+		path: "(explore)/(services)/eip8004-endpoint-domain-verification-timestamp/[endpointUrl]/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -40009,7 +40009,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/eip8004-agent-registration/[namespace]/[chainId=eip155ChainId]/[identityRegistry]/[agentId]/eip8004-reputation-feedback-timestamp/[clientAddress]/[feedbackIndex]/[timestampMs]/[source]",
+		path: "(explore)/(services)/eip8004-agent-registration/[namespace]/[chainId=eip155ChainId]/[identityRegistry]/[agentId]/eip8004-reputation-feedback-timestamp/[clientAddress]/[feedbackIndex]/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -40049,7 +40049,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/eip8004-validation-timestamp/[requestHashAlgorithm]/[requestHash]/[timestampMs]/[source]",
+		path: "(explore)/(services)/eip8004-validation-timestamp/[requestHashAlgorithm]/[requestHash]/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -40077,7 +40077,7 @@ export const entitySelectorRouteLeaves = [
 				name: "name",
 			},
 		],
-		path: "(explore)/(services)/services/mcp-server/[serverKey]/mcp-prompt/[name]",
+		path: "(explore)/(services)/mcp-server/[serverKey]/mcp-prompt/[name]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -40127,7 +40127,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/mcp-server/[serverKey]/mcp-prompt/[name]/mcp-prompt-result/[argumentsHashAlgorithm]/[argumentsHash]/[timestampMs]/[source]",
+		path: "(explore)/(services)/mcp-server/[serverKey]/mcp-prompt/[name]/mcp-prompt-result/[argumentsHashAlgorithm]/[argumentsHash]/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -40155,7 +40155,7 @@ export const entitySelectorRouteLeaves = [
 				name: "uri",
 			},
 		],
-		path: "(explore)/(services)/services/mcp-server/[serverKey]/mcp-resource/[uri]",
+		path: "(explore)/(services)/mcp-server/[serverKey]/mcp-resource/[uri]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -40193,7 +40193,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/mcp-server/[serverKey]/mcp-resource/[uri]/mcp-resource-content-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/mcp-server/[serverKey]/mcp-resource/[uri]/mcp-resource-content-timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -40221,7 +40221,7 @@ export const entitySelectorRouteLeaves = [
 				name: "uriTemplate",
 			},
 		],
-		path: "(explore)/(services)/services/mcp-server/[serverKey]/mcp-resource-template/[uriTemplate]",
+		path: "(explore)/(services)/mcp-server/[serverKey]/mcp-resource-template/[uriTemplate]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -40243,7 +40243,7 @@ export const entitySelectorRouteLeaves = [
 				name: "serverKey",
 			},
 		],
-		path: "(explore)/(services)/services/mcp-server/[serverKey]",
+		path: "(explore)/(services)/mcp-server/[serverKey]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -40277,7 +40277,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/mcp-server/[serverKey]/mcp-server-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/mcp-server/[serverKey]/mcp-server-timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -40299,7 +40299,7 @@ export const entitySelectorRouteLeaves = [
 				name: "registryServerName",
 			},
 		],
-		path: "(explore)/(services)/services/mcp-server-package/by/registry-server-name/[registryServerName]",
+		path: "(explore)/(services)/mcp-server-package/registry-server-name/[registryServerName]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -40321,7 +40321,7 @@ export const entitySelectorRouteLeaves = [
 				name: "repositoryUrl",
 			},
 		],
-		path: "(explore)/(services)/services/mcp-server-package/by/repository-url/[repositoryUrl]",
+		path: "(explore)/(services)/mcp-server-package/repository-url/[repositoryUrl]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -40350,7 +40350,7 @@ export const entitySelectorRouteLeaves = [
 				matcher: "nonNegativeInteger",
 			},
 		],
-		path: "(explore)/(services)/services/mcp-server-package/by/registry-server-name/[registryServerName]/mcp-server-package-version/[version=nonNegativeInteger]",
+		path: "(explore)/(services)/mcp-server-package/registry-server-name/[registryServerName]/mcp-server-package-version/[version=nonNegativeInteger]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -40379,7 +40379,7 @@ export const entitySelectorRouteLeaves = [
 				matcher: "nonNegativeInteger",
 			},
 		],
-		path: "(explore)/(services)/services/mcp-server-package/by/repository-url/[repositoryUrl]/mcp-server-package-version/[version=nonNegativeInteger]",
+		path: "(explore)/(services)/mcp-server-package/repository-url/[repositoryUrl]/mcp-server-package-version/[version=nonNegativeInteger]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -40405,7 +40405,7 @@ export const entitySelectorRouteLeaves = [
 				name: "digest",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/[digestAlgorithm]/[digest]/mcp-server-package-version",
+		path: "(explore)/(services)/ai-artifact/[digestAlgorithm]/[digest]/mcp-server-package-version",
 		emitPage: true,
 		unresolved: [
 		],
@@ -40427,7 +40427,7 @@ export const entitySelectorRouteLeaves = [
 				name: "ociDigest",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/oci-digest/[ociDigest]/mcp-server-package-version",
+		path: "(explore)/(services)/ai-artifact/oci-digest/[ociDigest]/mcp-server-package-version",
 		emitPage: true,
 		unresolved: [
 		],
@@ -40449,8 +40449,8 @@ export const entitySelectorRouteLeaves = [
 				name: "ipfsCid",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/ipfs-cid/[ipfsCid]/mcp-server-package-version",
-		emitPage: true,
+		path: "(explore)/(services)/ai-artifact/ipfs-cid/[ipfsCid]/mcp-server-package-version",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -40471,8 +40471,8 @@ export const entitySelectorRouteLeaves = [
 				name: "arweaveId",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/arweave-id/[arweaveId]/mcp-server-package-version",
-		emitPage: true,
+		path: "(explore)/(services)/ai-artifact/arweave-id/[arweaveId]/mcp-server-package-version",
+		emitPage: false,
 		unresolved: [
 		],
 	},
@@ -40493,7 +40493,7 @@ export const entitySelectorRouteLeaves = [
 				name: "gitObject",
 			},
 		],
-		path: "(explore)/(services)/services/ai-artifact/by/git-object/[gitObject]/mcp-server-package-version",
+		path: "(explore)/(services)/ai-artifact/git/object/[gitObject]/mcp-server-package-version",
 		emitPage: true,
 		unresolved: [
 		],
@@ -40521,7 +40521,7 @@ export const entitySelectorRouteLeaves = [
 				name: "name",
 			},
 		],
-		path: "(explore)/(services)/services/mcp-server/[serverKey]/mcp-tool/[name]",
+		path: "(explore)/(services)/mcp-server/[serverKey]/mcp-tool/[name]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -40549,7 +40549,7 @@ export const entitySelectorRouteLeaves = [
 				name: "callId",
 			},
 		],
-		path: "(explore)/(services)/services/mcp-server/[serverKey]/mcp-tool-call/[callId]",
+		path: "(explore)/(services)/mcp-server/[serverKey]/mcp-tool-call/[callId]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -40587,7 +40587,7 @@ export const entitySelectorRouteLeaves = [
 				name: "source",
 			},
 		],
-		path: "(explore)/(services)/services/mcp-server/[serverKey]/mcp-tool-call/[callId]/mcp-tool-call-timestamp/[timestampMs]/[source]",
+		path: "(explore)/(services)/mcp-server/[serverKey]/mcp-tool-call/[callId]/mcp-tool-call-timestamp/[timestampMs]/[source]",
 		emitPage: true,
 		unresolved: [
 		],
@@ -40673,7 +40673,7 @@ export const entitySelectorRouteLeaves = [
 		],
 		params: [
 		],
-		path: "(explore)/(services)/services/blockhead-lightning-channel-states",
+		path: "(explore)/(services)/lightning/channel/states",
 		emitPage: false,
 		unresolved: [
 		],
@@ -40695,7 +40695,7 @@ export const entitySelectorRouteLeaves = [
 		],
 		params: [
 		],
-		path: "(explore)/(services)/services/blockhead-lightning-channel-state-timestamps",
+		path: "(explore)/(services)/lightning/channel/state/timestamps",
 		emitPage: false,
 		unresolved: [
 		],
@@ -40715,7 +40715,7 @@ export const entitySelectorRouteLeaves = [
 		],
 		params: [
 		],
-		path: "(explore)/(services)/services/blockhead-lightning-htlcs",
+		path: "(explore)/(services)/lightning/htlcs",
 		emitPage: false,
 		unresolved: [
 		],
@@ -40737,7 +40737,7 @@ export const entitySelectorRouteLeaves = [
 		],
 		params: [
 		],
-		path: "(explore)/(evm)/evm/evm-actor-coin-allowance-blocks",
+		path: "(explore)/evm/evm-actor-coin-allowance-blocks",
 		emitPage: false,
 		unresolved: [
 		],

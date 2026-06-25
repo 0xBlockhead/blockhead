@@ -10,34 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account state',
-		},
-		{
-			label: 'transaction address',
-		},
-		{
-			label: 'account',
-		},
+		'$accountState',
+		'transactionAddress',
+		'$account',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'account state',
-				},
-				{
-					label: 'transaction address',
-				},
-				{
-					label: 'account',
-				},
-				{
-					label: 'refund account',
-				},
-				{
-					label: 'coin address',
-				},
+				'$accountState',
+				'transactionAddress',
+				'$account',
+				'$refundAccount',
+				'coinAddress',
+			],
+			[
 				'amount',
 				{
 					label: 'delivery type/address',

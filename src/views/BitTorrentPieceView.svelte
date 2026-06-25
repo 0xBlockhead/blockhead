@@ -10,23 +10,15 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'torrent',
-		},
-		{
-			label: 'piece index',
-		},
+		'$torrent',
+		'pieceIndex',
 		'offset',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'torrent',
-				},
-				{
-					label: 'piece index',
-				},
+				'$torrent',
+				'pieceIndex',
 				'offset',
 				'length',
 				{
@@ -35,9 +27,7 @@
 				{
 					label: 'v2 piece root',
 				},
-				{
-					label: 'piece-layer hash',
-				},
+				'pieceLayerHash',
 			],
 		],
 	},

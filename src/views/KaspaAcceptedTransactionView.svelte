@@ -10,34 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'accepting block',
-		},
-		{
-			label: 'transaction',
-		},
-		{
-			label: 'accepted index',
-		},
+		'$acceptingBlock',
+		'$transaction',
+		'acceptedIndex',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'accepting block',
-				},
-				{
-					label: 'transaction',
-				},
-				{
-					label: 'accepted index',
-				},
-				{
-					label: 'accepting block hash',
-				},
-				{
-					label: 'transaction id',
-				},
+				'$acceptingBlock',
+				'$transaction',
+				'acceptedIndex',
+				'acceptingBlockHash',
+				'transactionId',
 			],
 		],
 	},

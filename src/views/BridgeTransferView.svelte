@@ -35,12 +35,10 @@
 				{
 					label: 'settlement/verification/asset outcome',
 				},
-				{
-					label: 'sender',
-				},
-				{
-					label: 'recipient',
-				},
+				'$sender',
+				'$recipient',
+			],
+			[
 				{
 					label: 'from/to networks',
 				},
@@ -56,6 +54,8 @@
 				{
 					label: 'amount in/out',
 				},
+			],
+			[
 				{
 					label: 'latest status',
 				},
@@ -106,6 +106,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

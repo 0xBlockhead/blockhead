@@ -10,23 +10,15 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'proposal',
-		},
-		{
-			label: 'depositor',
-		},
+		'$proposal',
+		'$depositor',
 		'denom',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'proposal',
-				},
-				{
-					label: 'depositor',
-				},
+				'$proposal',
+				'$depositor',
 				'denom',
 				{
 					label: 'latest amount/deposit time',
@@ -78,6 +70,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

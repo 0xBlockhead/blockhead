@@ -10,33 +10,21 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'connection',
-		},
-		{
-			label: 'observation time',
-		},
+		'$connection',
+		'timestampMs',
 		'health',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'connection',
-				},
-				{
-					label: 'timestamp',
-				},
+				'$connection',
+				'timestampMs',
 				'source',
 				'health',
 			],
 			[
-				{
-					label: 'latency',
-				},
-				{
-					label: 'status code',
-				},
+				'latencyMs',
+				'statusCode',
 				'error',
 			],
 		],

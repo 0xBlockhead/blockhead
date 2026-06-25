@@ -10,32 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'wallet id',
-		},
-		{
-			label: 'mint',
-		},
-		{
-			label: 'keyset id',
-		},
+		'walletId',
+		'$mint',
+		'keysetId',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'wallet id',
-				},
-				{
-					label: 'mint',
-				},
-				{
-					label: 'keyset id',
-				},
-				{
-					label: 'secret hash',
-				},
+				'walletId',
+				'$mint',
+				'keysetId',
+				'secretHash',
 				'amount',
+			],
+			[
 				'unit',
 				{
 					label: 'latest observed proof state',
@@ -43,12 +31,8 @@
 				{
 					label: 'received time',
 				},
-				{
-					label: 'source token id',
-				},
-				{
-					label: 'timestamp count',
-				},
+				'sourceTokenId',
+				'$$timestamps',
 			],
 		],
 	},
@@ -99,6 +83,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

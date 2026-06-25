@@ -10,37 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'transaction',
-		},
+		'$transaction',
 		'pool',
-		{
-			label: 'action kind',
-		},
+		'actionKind',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'transaction',
-				},
+				'$transaction',
 				'pool',
-				{
-					label: 'action kind',
-				},
-				{
-					label: 'action index',
-				},
-				{
-					label: 'pool ref',
-				},
+				'actionKind',
+				'actionIndex',
+				'$pool',
+			],
+			[
 				'nullifier',
-				{
-					label: 'note commitment',
-				},
-				{
-					label: 'value commitment',
-				},
+				'noteCommitment',
+				'valueCommitment',
 			],
 		],
 	},

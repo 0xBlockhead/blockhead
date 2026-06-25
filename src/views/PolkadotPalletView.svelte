@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'pallet name',
-		},
+		'$network',
+		'palletName',
 		{
 			label: 'pallet index',
 		},
@@ -23,12 +19,8 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'pallet name',
-				},
+				'$network',
+				'palletName',
 				{
 					label: 'pallet index',
 				},

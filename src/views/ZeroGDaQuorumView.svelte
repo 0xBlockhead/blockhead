@@ -10,31 +10,17 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'quorum id',
-		},
-		{
-			label: 'consensus network',
-		},
+		'$network',
+		'quorumId',
+		'$consensusNetwork',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'quorum id',
-				},
-				{
-					label: 'consensus network',
-				},
-				{
-					label: 'selection method',
-				},
+				'$network',
+				'quorumId',
+				'$consensusNetwork',
+				'selectionMethod',
 			],
 		],
 	},
@@ -74,6 +60,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'da-nodes',
+			label: 'da nodes',
+			field: '$$daNodes',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

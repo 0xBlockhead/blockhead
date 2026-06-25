@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'log index',
-		},
-		{
-			label: 'transfer index',
-		},
+		'logIndex',
+		'transferIndex',
 		{
 			label: 'parent transaction link from selector txHash',
 		},
@@ -23,12 +19,8 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'log index',
-				},
-				{
-					label: 'transfer index',
-				},
+				'logIndex',
+				'transferIndex',
 				{
 					label: 'parent transaction link from selector txHash',
 				},
@@ -36,18 +28,16 @@
 					label: 'standard label',
 				},
 				'amount',
+			],
+			[
 				{
 					label: 'token id for ERC-721/ERC-1155',
 				},
 				{
 					label: 'from/to EVM network accounts',
 				},
-				{
-					label: 'token contract',
-				},
-				{
-					label: 'coin instance',
-				},
+				'$tokenContract',
+				'$coinInstance',
 				{
 					label: 'token metadata',
 				},
@@ -75,9 +65,7 @@
 			{
 				label: 'Token',
 				items: [
-					{
-						label: 'token contract',
-					},
+					'$tokenContract',
 					{
 						label: 'EVM coin instance',
 					},

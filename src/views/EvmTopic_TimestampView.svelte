@@ -10,23 +10,15 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'topic',
-		},
-		{
-			label: 'observation time',
-		},
+		'$topic',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'topic',
-				},
-				{
-					label: 'observation time',
-				},
+				'$topic',
+				'timestampMs',
 				'source',
 				'reachable',
 			],
@@ -34,12 +26,8 @@
 				{
 					label: 'candidate signatures',
 				},
-				{
-					label: 'filtered signature count',
-				},
-				{
-					label: 'verified candidate count',
-				},
+				'filteredSignatureCount',
+				'verifiedCandidateCount',
 			],
 		],
 	},

@@ -10,31 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'record',
-		},
-		{
-			label: 'observation time',
-		},
+		'$record',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'record',
-				},
-				{
-					label: 'observation time',
-				},
+				'$record',
+				'timestampMs',
 				'source',
 				'value',
-				{
-					label: 'resolver selector',
-				},
-				{
-					label: 'block number',
-				},
+				'resolverSelector',
+				'blockNumber',
 				{
 					label: 'decoded display value',
 				},

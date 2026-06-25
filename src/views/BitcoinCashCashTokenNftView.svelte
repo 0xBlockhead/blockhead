@@ -10,23 +10,15 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'output',
-		},
-		{
-			label: 'category',
-		},
+		'$output',
+		'$category',
 		'capability',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'output',
-				},
-				{
-					label: 'category',
-				},
+				'$output',
+				'$category',
 				'capability',
 				{
 					label: 'commitment status',

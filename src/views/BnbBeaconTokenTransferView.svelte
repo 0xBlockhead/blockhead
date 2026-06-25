@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'transaction',
-		},
-		{
-			label: 'transfer index',
-		},
+		'$transaction',
+		'transferIndex',
 		{
 			label: 'token symbol',
 		},
@@ -23,12 +19,8 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'transaction',
-				},
-				{
-					label: 'transfer index',
-				},
+				'$transaction',
+				'transferIndex',
 				{
 					label: 'token symbol',
 				},

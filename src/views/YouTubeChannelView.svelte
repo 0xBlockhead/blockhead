@@ -10,34 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'channel id',
-		},
-		{
-			label: 'latest title',
-		},
-		{
-			label: 'latest description',
-		},
+		'channelId',
+		'title',
+		'description',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'channel id',
-				},
+				'channelId',
 				{
 					label: 'published date',
 				},
-				{
-					label: 'latest title',
-				},
-				{
-					label: 'latest description',
-				},
-				{
-					label: 'latest custom URL',
-				},
+				'title',
+				'description',
+				'customUrl',
 				{
 					label: 'latest icon media',
 				},
@@ -83,6 +69,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'videos',
+			label: 'videos',
+			field: '$$videos',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'playlists',
+			label: 'playlists',
+			field: '$$playlists',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

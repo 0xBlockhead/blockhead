@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'session action',
-		},
-		{
-			label: 'network',
-		},
+		'$sessionAction',
+		'$network',
 		{
 			label: 'asset in/out',
 		},
@@ -23,21 +19,19 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'session action',
-				},
+				'$sessionAction',
 				{
 					label: 'action selected protocol',
 				},
-				{
-					label: 'network CAIP-2',
-				},
+				'networkCaip2',
 				{
 					label: 'asset CAIP-19 in/out',
 				},
 				{
 					label: 'EVM chain id/raw token addresses',
 				},
+			],
+			[
 				{
 					label: 'resolved network/token refs',
 				},
@@ -104,6 +98,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'quotes',
+			label: 'quotes',
+			field: '$$quotes',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

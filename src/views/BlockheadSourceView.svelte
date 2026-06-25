@@ -27,21 +27,15 @@
 				{
 					label: 'source enum',
 				},
-				{
-					label: 'endpoint URL',
-				},
-				{
-					label: 'transport kind',
-				},
-				{
-					label: 'auth kind',
-				},
+				'endpointUrl',
+			],
+			[
+				'transportKind',
+				'authKind',
 				{
 					label: 'CORS/proxy mode',
 				},
-				{
-					label: 'environment scope',
-				},
+				'environmentScope',
 			],
 		],
 	},
@@ -58,12 +52,8 @@
 			{
 				label: 'Transport',
 				items: [
-					{
-						label: 'endpoint URL',
-					},
-					{
-						label: 'auth kind',
-					},
+					'endpointUrl',
+					'authKind',
 					{
 						label: 'CORS/proxy policy',
 					},
@@ -93,6 +83,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

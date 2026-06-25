@@ -11,40 +11,26 @@
 	const view = {
 	closed: [
 		'pubkey',
-		{
-			label: 'display name',
-		},
-		{
-			label: 'NIP-05',
-		},
+		'displayName',
+		'nip05',
 	],
 	content: {
 		dl: [
 			[
 				'pubkey',
-				{
-					label: 'display name',
-				},
-				{
-					label: 'NIP-05',
-				},
-				{
-					label: 'banner',
-				},
+				'displayName',
+				'nip05',
+				'$banner',
 				'website',
+			],
+			[
 				{
 					label: 'lightning address/URI',
 				},
 				'metadataUpdatedAt',
-				{
-					label: 'note count',
-				},
-				{
-					label: 'article count',
-				},
-				{
-					label: 'repost count',
-				},
+				'$$notes',
+				'$$articles',
+				'$$reposts',
 			],
 		],
 		blocks: [
@@ -66,9 +52,7 @@
 					{
 						label: 'media refs',
 					},
-					{
-						label: 'NIP-05',
-					},
+					'nip05',
 					{
 						label: 'lightning fields',
 					},
@@ -108,6 +92,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'notes',
+			label: 'notes',
+			field: '$$notes',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'articles',
+			label: 'articles',
+			field: '$$articles',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'reposts',
+			label: 'reposts',
+			field: '$$reposts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

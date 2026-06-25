@@ -10,33 +10,21 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'session',
-		},
-		{
-			label: 'turn id',
-		},
-		{
-			label: 'stop reason',
-		},
+		'$session',
+		'turnId',
+		'stopReason',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'session',
-				},
-				{
-					label: 'turn id',
-				},
+				'$session',
+				'turnId',
 				{
 					label: 'started/completed/cancelled at',
 				},
 			],
 			[
-				{
-					label: 'stop reason',
-				},
+				'stopReason',
 				{
 					label: 'message/tool/file/permission refs',
 				},
@@ -87,6 +75,44 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'messages',
+			label: 'messages',
+			field: '$$messages',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'tool-calls',
+			label: 'tool calls',
+			field: '$$toolCalls',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'file-operations',
+			label: 'file operations',
+			field: '$$fileOperations',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'permission-requests',
+			label: 'permission requests',
+			field: '$$permissionRequests',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

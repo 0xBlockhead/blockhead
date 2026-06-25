@@ -16,9 +16,7 @@
 		{
 			label: 'latest archived height/time',
 		},
-		{
-			label: 'validator count',
-		},
+		'validatorCount',
 	],
 	content: {
 		dl: [
@@ -29,18 +27,10 @@
 				{
 					label: 'latest archived height/time',
 				},
-				{
-					label: 'validator count',
-				},
-				{
-					label: 'token count',
-				},
-				{
-					label: 'migration record count',
-				},
-				{
-					label: 'archive coverage status',
-				},
+				'validatorCount',
+				'tokenCount',
+				'migrationRecordCount',
+				'archiveCoverageStatus',
 			],
 		],
 	},
@@ -60,23 +50,15 @@
 					{
 						label: 'latest archived height/time',
 					},
-					{
-						label: 'archive coverage status',
-					},
+					'archiveCoverageStatus',
 				],
 			},
 			{
 				label: 'Catalog counts',
 				items: [
-					{
-						label: 'validator count',
-					},
-					{
-						label: 'token count',
-					},
-					{
-						label: 'migration record count',
-					},
+					'validatorCount',
+					'tokenCount',
+					'migrationRecordCount',
 				],
 			},
 			{

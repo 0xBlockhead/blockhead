@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'source domain',
-		},
+		'$sourceDomain',
 		'nonce',
 		{
 			label: 'version',
@@ -21,31 +19,25 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'source domain',
-				},
+				'$sourceDomain',
 				'nonce',
 				{
 					label: 'version',
 				},
-				{
-					label: 'message hash',
-				},
+				'messageHash',
 				{
 					label: 'source transaction hash/log index',
 				},
-				{
-					label: 'destination domain',
-				},
+			],
+			[
+				'destinationDomain',
 				'sender',
 				'recipient',
 				'amount',
-				{
-					label: 'burn token',
-				},
-				{
-					label: 'mint recipient',
-				},
+				'burnToken',
+			],
+			[
+				'mintRecipient',
 				{
 					label: 'finality thresholds',
 				},
@@ -90,9 +82,7 @@
 					{
 						label: 'decoded body',
 					},
-					{
-						label: 'hook data',
-					},
+					'hookData',
 					{
 						label: 'fee fields',
 					},
@@ -108,6 +98,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'attestation-timestamps',
+			label: 'attestation timestamps',
+			field: '$$attestationTimestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

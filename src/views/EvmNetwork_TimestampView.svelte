@@ -13,9 +13,7 @@
 		{
 			label: 'chain/head height',
 		},
-		{
-			label: 'observation time',
-		},
+		'timestampMs',
 		'source',
 	],
 	content: {
@@ -24,9 +22,7 @@
 				{
 					label: 'chain/head height',
 				},
-				{
-					label: 'observation time',
-				},
+				'timestampMs',
 				'source',
 				{
 					label: 'endpoint freshness',

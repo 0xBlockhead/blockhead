@@ -38,6 +38,8 @@
 				{
 					label: 'latest perp market count',
 				},
+			],
+			[
 				{
 					label: 'latest spot asset count',
 				},
@@ -58,18 +60,12 @@
 			{
 				label: 'Execution',
 				items: [
-					{
-						label: 'blocks',
-					},
-					{
-						label: 'transactions',
-					},
+					'$$blocks',
+					'$$transactions',
 					{
 						label: 'network snapshots',
 					},
-					{
-						label: 'validators',
-					},
+					'$$validators',
 					{
 						label: 'endpoints',
 					},
@@ -81,15 +77,9 @@
 					{
 						label: 'native coin',
 					},
-					{
-						label: 'perp markets',
-					},
-					{
-						label: 'spot assets',
-					},
-					{
-						label: 'spot pairs',
-					},
+					'$$perpMarkets',
+					'$$spotAssets',
+					'$$spotPairs',
 				],
 			},
 			{
@@ -113,6 +103,80 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'blocks',
+			label: 'blocks',
+			field: '$$blocks',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'transactions',
+			label: 'transactions',
+			field: '$$transactions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'validators',
+			label: 'validators',
+			field: '$$validators',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'spot-assets',
+			label: 'spot assets',
+			field: '$$spotAssets',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'spot-pairs',
+			label: 'spot pairs',
+			field: '$$spotPairs',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'perp-markets',
+			label: 'perp markets',
+			field: '$$perpMarkets',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'vaults',
+			label: 'vaults',
+			field: '$$vaults',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

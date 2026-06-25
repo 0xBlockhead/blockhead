@@ -10,31 +10,21 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'server',
-		},
-		{
-			label: 'URI',
-		},
+		'$server',
+		'uri',
 		'name',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'server',
-				},
-				{
-					label: 'URI',
-				},
+				'$server',
+				'uri',
 				'name',
 				'title',
 			],
 			[
 				'description',
-				{
-					label: 'mime type',
-				},
+				'mimeType',
 				'subscribed',
 				'annotations',
 				{
@@ -71,6 +61,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'content-timestamps',
+			label: 'content timestamps',
+			field: '$$contentTimestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

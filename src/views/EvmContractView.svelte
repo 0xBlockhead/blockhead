@@ -46,9 +46,7 @@
 		{
 			label: 'precompile address when applicable',
 		},
-		{
-			label: 'deployer',
-		},
+		'$deployer',
 	],
 	content: {
 		dl: [
@@ -59,30 +57,18 @@
 				{
 					label: 'precompile address when applicable',
 				},
-				{
-					label: 'deployer',
-				},
-				{
-					label: 'creation transaction',
-				},
-				{
-					label: 'implementation contract',
-				},
-				{
-					label: 'inline ABI',
-				},
-				{
-					label: 'bytecode hash',
-				},
-				{
-					label: 'truncated runtime bytecode',
-				},
+				'$deployer',
+				'$creationTransaction',
+				'$implementation',
+			],
+			[
+				'abi',
+				'codeHash',
+				'code',
 				{
 					label: 'verification summary',
 				},
-				{
-					label: 'account address',
-				},
+				'address',
 			],
 		],
 	},
@@ -99,23 +85,15 @@
 			{
 				label: 'Creation',
 				items: [
-					{
-						label: 'deployer',
-					},
-					{
-						label: 'creation transaction',
-					},
+					'$deployer',
+					'$creationTransaction',
 				],
 			},
 			{
 				label: 'Code',
 				items: [
-					{
-						label: 'runtime bytecode',
-					},
-					{
-						label: 'code hash',
-					},
+					'code',
+					'codeHash',
 					{
 						label: 'precompile catalog name',
 					},
@@ -138,14 +116,18 @@
 			{
 				label: 'Proxy/storage',
 				items: [
-					{
-						label: 'implementation contract',
-					},
-					{
-						label: 'storage slot reads',
-					},
+					'$implementation',
+					'storageSlotReads',
 				],
 			},
+		],
+	},
+	summary: {
+		value: '$deployer',
+		title: '$deployer',
+		after: [
+			'$deployer',
+			'$creationTransaction',
 		],
 	},
 } satisfies ComponentProps<typeof EntityView2>['view']

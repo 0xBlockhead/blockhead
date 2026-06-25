@@ -10,53 +10,29 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'observation time',
-		},
+		'$network',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'observation time',
-				},
+				'$network',
+				'timestampMs',
 				'source',
-				{
-					label: 'head height',
-				},
-				{
-					label: 'head tipset key',
-				},
-				{
-					label: 'head block count',
-				},
-				{
-					label: 'head timestamp',
-				},
+				'headHeight',
+				'headTipsetKey',
+				'headBlockCount',
+				'headTimestampMs',
 			],
 			[
-				{
-					label: 'head tipset',
-				},
-				{
-					label: 'head miners',
-				},
-				{
-					label: 'network version',
-				},
+				'$headTipset',
+				'$$headMiners',
+				'networkVersion',
 				{
 					label: 'Lotus version/agent',
 				},
-				{
-					label: 'block delay',
-				},
+				'blockDelaySeconds',
 				{
 					label: 'total power',
 				},
@@ -76,21 +52,15 @@
 			{
 				label: 'Head',
 				items: [
-					{
-						label: 'head height',
-					},
+					'headHeight',
 					{
 						label: 'tipset key',
 					},
 					{
 						label: 'block count',
 					},
-					{
-						label: 'head timestamp',
-					},
-					{
-						label: 'head tipset',
-					},
+					'headTimestampMs',
+					'$headTipset',
 				],
 			},
 			{
@@ -110,15 +80,11 @@
 			{
 				label: 'Node',
 				items: [
-					{
-						label: 'network version',
-					},
+					'networkVersion',
 					{
 						label: 'Lotus version/agent',
 					},
-					{
-						label: 'block delay',
-					},
+					'blockDelaySeconds',
 				],
 			},
 			{
@@ -140,6 +106,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'head-miners',
+			label: 'head miners',
+			field: '$$headMiners',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

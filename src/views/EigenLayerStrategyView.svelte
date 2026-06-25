@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'strategy address',
-		},
-		{
-			label: 'underlying token',
-		},
+		'strategyAddress',
+		'underlyingToken',
 		{
 			label: 'latest total shares',
 		},
@@ -23,35 +19,19 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'strategy address',
-				},
-				{
-					label: 'underlying token',
-				},
-				{
-					label: 'underlying coin',
-				},
-				{
-					label: 'strategy kind',
-				},
+				'strategyAddress',
+				'underlyingToken',
+				'$underlyingCoin',
+				'strategyKind',
 				{
 					label: 'latest total shares/underlying',
 				},
 			],
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'strategy contract',
-				},
-				{
-					label: 'delegation count',
-				},
-				{
-					label: 'allocation count',
-				},
+				'$network',
+				'$strategyContract',
+				'$$delegations',
+				'$$allocations',
 			],
 		],
 	},
@@ -113,6 +93,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'delegations',
+			label: 'delegations',
+			field: '$$delegations',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'allocations',
+			label: 'allocations',
+			field: '$$allocations',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

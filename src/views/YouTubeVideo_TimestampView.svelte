@@ -82,6 +82,14 @@
 			},
 		],
 	},
+	summary: {
+		value: '$video',
+		title: '$video',
+		after: [
+			'timestampMs',
+			'viewCount',
+		],
+	},
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

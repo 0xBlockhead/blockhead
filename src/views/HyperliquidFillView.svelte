@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account',
-		},
+		'$account',
 		{
 			label: 'trade id',
 		},
@@ -23,9 +21,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'account',
-				},
+				'$account',
 				{
 					label: 'trade id',
 				},
@@ -34,23 +30,19 @@
 				},
 				'coin',
 				'side',
+			],
+			[
 				'direction',
 				'price',
 				'size',
 				'fee',
-				{
-					label: 'fee token',
-				},
-				{
-					label: 'closed PnL',
-				},
-				{
-					label: 'time',
-				},
+				'feeToken',
+			],
+			[
+				'closedPnl',
+				'timeMs',
 				'hash',
-				{
-					label: 'crossed flag',
-				},
+				'crossed',
 			],
 		],
 	},
@@ -86,9 +78,7 @@
 					'price',
 					'size',
 					'fee',
-					{
-						label: 'start position',
-					},
+					'startPosition',
 					{
 						label: 'PnL fields',
 					},

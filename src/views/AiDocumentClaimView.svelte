@@ -10,51 +10,29 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'document',
-		},
-		{
-			label: 'claim path',
-		},
-		{
-			label: 'claim kind',
-		},
+		'$document',
+		'claimPath',
+		'claimKind',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'document',
-				},
-				{
-					label: 'extractor id',
-				},
-				{
-					label: 'claim path',
-				},
-				{
-					label: 'claim kind',
-				},
-				{
-					label: 'metadata key',
-				},
+				'$document',
+				'extractorId',
+				'claimPath',
+				'claimKind',
+				'metadataKey',
 			],
 			[
-				{
-					label: 'format object',
-				},
+				'formatObjectKind',
 				{
 					label: 'checksum',
 				},
 				{
 					label: 'subject kind/selector',
 				},
-				{
-					label: 'relationship kind',
-				},
-				{
-					label: 'normalized selector',
-				},
+				'relationshipKind',
+				'normalizedSelector',
 				'confidence',
 				'value',
 			],
@@ -81,26 +59,18 @@
 			{
 				label: 'Subject',
 				items: [
-					{
-						label: 'subject selector',
-					},
+					'subjectSelector',
 				],
 			},
 			{
 				label: 'Normalized',
 				items: [
-					{
-						label: 'metadata key',
-					},
+					'metadataKey',
 					{
 						label: 'format object id/kind',
 					},
-					{
-						label: 'relationship kind',
-					},
-					{
-						label: 'normalized selector',
-					},
+					'relationshipKind',
+					'normalizedSelector',
 				],
 			},
 		],

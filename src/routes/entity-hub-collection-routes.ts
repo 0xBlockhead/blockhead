@@ -2,7 +2,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "_GlobalActivityPubNetwork_Timestamp",
 		hub: "social-activitypub",
-		path: "(social)/(activitypub)/activitypub/global-activity-pub-network-timestamps",
+		path: "(social)/activitypub/global-activity-pub-network-timestamps",
 		view: "$/views/_GlobalActivityPubNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -10,7 +10,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "_GlobalArweaveNetwork_Timestamp",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/global-arweave-network-timestamps",
+		path: "(explore)/(data)/global-arweave-network-timestamps",
 		view: "$/views/_GlobalArweaveNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -18,7 +18,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "_GlobalAtprotoNetwork_Timestamp",
 		hub: "social-atproto",
-		path: "(social)/(atproto)/atproto/global-atproto-network-timestamps",
+		path: "(social)/atproto/global-atproto-network-timestamps",
 		view: "$/views/_GlobalAtprotoNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -26,7 +26,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "_GlobalEnsNetwork_Timestamp",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/global-ens-network-timestamps",
+		path: "(explore)/evm/global-ens-network-timestamps",
 		view: "$/views/_GlobalEnsNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -34,7 +34,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "_GlobalEvmAbiCatalog_Timestamp",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/global-evm-abi-catalog-timestamps",
+		path: "(explore)/evm/global-evm-abi-catalog-timestamps",
 		view: "$/views/_GlobalEvmAbiCatalog_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -42,7 +42,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "_GlobalFarcasterNetwork_Timestamp",
 		hub: "social-farcaster",
-		path: "(social)/(farcaster)/farcaster/global-farcaster-network-timestamps",
+		path: "(social)/farcaster/global-farcaster-network-timestamps",
 		view: "$/views/_GlobalFarcasterNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -50,7 +50,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "_GlobalIpfsAccess_Timestamp",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/global-ipfs-access-timestamps",
+		path: "(explore)/(data)/global-ipfs-access-timestamps",
 		view: "$/views/_GlobalIpfsAccess_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -58,7 +58,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "_GlobalLensNetwork_Timestamp",
 		hub: "social-lens",
-		path: "(social)/(lens)/lens/global-lens-network-timestamps",
+		path: "(social)/lens/global-lens-network-timestamps",
 		view: "$/views/_GlobalLensNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -66,7 +66,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "_GlobalNostrNetwork_Timestamp",
 		hub: "social-nostr",
-		path: "(social)/(nostr)/nostr/global-nostr-network-timestamps",
+		path: "(social)/nostr/global-nostr-network-timestamps",
 		view: "$/views/_GlobalNostrNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -74,7 +74,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "_GlobalRedditNetwork_Timestamp",
 		hub: "social-reddit",
-		path: "(social)/(reddit)/reddit/global-reddit-network-timestamps",
+		path: "(social)/reddit/global-reddit-network-timestamps",
 		view: "$/views/_GlobalRedditNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -82,7 +82,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "_GlobalRssNetwork_Timestamp",
 		hub: "social-rss",
-		path: "(social)/(rss)/rss/global-rss-network-timestamps",
+		path: "(social)/rss/global-rss-network-timestamps",
 		view: "$/views/_GlobalRssNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -90,7 +90,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "_GlobalSwarmAccess_Timestamp",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/global-swarm-access-timestamps",
+		path: "(explore)/(data)/global-swarm-access-timestamps",
 		view: "$/views/_GlobalSwarmAccess_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -98,7 +98,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "_GlobalXNetwork_Timestamp",
 		hub: "social-x",
-		path: "(social)/(x)/x/global-xnetwork-timestamps",
+		path: "(social)/x/global-xnetwork-timestamps",
 		view: "$/views/_GlobalXNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -106,7 +106,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "_GlobalYouTubeNetwork_Timestamp",
 		hub: "social-youtube",
-		path: "(social)/(youtube)/youtube/global-you-tube-network-timestamps",
+		path: "(social)/youtube/global-you-tube-network-timestamps",
 		view: "$/views/_GlobalYouTubeNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -114,7 +114,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "ActivityPubActor",
 		hub: "social-activitypub",
-		path: "(social)/(activitypub)/activitypub/activity-pub-actors",
+		path: "(social)/activitypub/activity-pub-actors",
 		view: "$/views/ActivityPubActorsView.svelte",
 		unresolved: [
 		],
@@ -122,7 +122,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "ActivityPubActor_Timestamp",
 		hub: "social-activitypub",
-		path: "(social)/(activitypub)/activitypub/activity-pub-actor-timestamps",
+		path: "(social)/activitypub/activity-pub-actor-timestamps",
 		view: "$/views/ActivityPubActor_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -130,7 +130,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "ActivityPubNote",
 		hub: "social-activitypub",
-		path: "(social)/(activitypub)/activitypub/activity-pub-notes",
+		path: "(social)/activitypub/activity-pub-notes",
 		view: "$/views/ActivityPubNotesView.svelte",
 		unresolved: [
 		],
@@ -138,7 +138,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "ActivityPubNote_Timestamp",
 		hub: "social-activitypub",
-		path: "(social)/(activitypub)/activitypub/activity-pub-note-timestamps",
+		path: "(social)/activitypub/activity-pub-note-timestamps",
 		view: "$/views/ActivityPubNote_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -146,7 +146,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AlgorandAccount",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/algorand-accounts",
+		path: "(explore)/(networks)/algorand-accounts",
 		view: "$/views/AlgorandAccountsView.svelte",
 		unresolved: [
 		],
@@ -154,7 +154,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AlgorandAccount_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/algorand-account-timestamps",
+		path: "(explore)/(networks)/algorand-account-timestamps",
 		view: "$/views/AlgorandAccount_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -162,7 +162,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AlgorandApplication",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/algorand-applications",
+		path: "(explore)/(networks)/algorand-applications",
 		view: "$/views/AlgorandApplicationsView.svelte",
 		unresolved: [
 		],
@@ -170,7 +170,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AlgorandApplication_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/algorand-application-timestamps",
+		path: "(explore)/(networks)/algorand-application-timestamps",
 		view: "$/views/AlgorandApplication_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -178,7 +178,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AlgorandApplicationLocalState_Round",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/algorand-application-local-state-rounds",
+		path: "(explore)/(networks)/algorand-application-local-state-rounds",
 		view: "$/views/AlgorandApplicationLocalState_RoundsView.svelte",
 		unresolved: [
 		],
@@ -186,7 +186,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AlgorandAsset",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/algorand-assets",
+		path: "(explore)/(networks)/algorand-assets",
 		view: "$/views/AlgorandAssetsView.svelte",
 		unresolved: [
 		],
@@ -194,7 +194,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AlgorandAsset_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/algorand-asset-timestamps",
+		path: "(explore)/(networks)/algorand-asset-timestamps",
 		view: "$/views/AlgorandAsset_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -202,7 +202,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AlgorandAssetHolding_Round",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/algorand-asset-holding-rounds",
+		path: "(explore)/(networks)/algorand-asset-holding-rounds",
 		view: "$/views/AlgorandAssetHolding_RoundsView.svelte",
 		unresolved: [
 		],
@@ -210,7 +210,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AlgorandBox",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/algorand-boxes",
+		path: "(explore)/(networks)/algorand-boxes",
 		view: "$/views/AlgorandBoxesView.svelte",
 		unresolved: [
 		],
@@ -218,7 +218,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AlgorandBox_Round",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/algorand-box-rounds",
+		path: "(explore)/(networks)/algorand-box-rounds",
 		view: "$/views/AlgorandBox_RoundsView.svelte",
 		unresolved: [
 		],
@@ -226,7 +226,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AlgorandNetwork_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/algorand-network-timestamps",
+		path: "(explore)/(networks)/algorand-network-timestamps",
 		view: "$/views/AlgorandNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -234,7 +234,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AlgorandRound",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/algorand-rounds",
+		path: "(explore)/(networks)/algorand-rounds",
 		view: "$/views/AlgorandRoundsView.svelte",
 		unresolved: [
 		],
@@ -242,7 +242,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AlgorandTealProgram_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/algorand-teal-program-timestamps",
+		path: "(explore)/(networks)/algorand-teal-program-timestamps",
 		view: "$/views/AlgorandTealProgram_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -250,7 +250,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AlgorandTransaction",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/algorand-transactions",
+		path: "(explore)/(networks)/algorand-transactions",
 		view: "$/views/AlgorandTransactionsView.svelte",
 		unresolved: [
 		],
@@ -258,7 +258,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AlgorandTransactionProof",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/algorand-transaction-proofs",
+		path: "(explore)/(networks)/algorand-transaction-proofs",
 		view: "$/views/AlgorandTransactionProofsView.svelte",
 		unresolved: [
 		],
@@ -266,7 +266,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AptosAccount",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/aptos-accounts",
+		path: "(explore)/(networks)/aptos-accounts",
 		view: "$/views/AptosAccountsView.svelte",
 		unresolved: [
 		],
@@ -274,7 +274,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AptosAccount_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/aptos-account-timestamps",
+		path: "(explore)/(networks)/aptos-account-timestamps",
 		view: "$/views/AptosAccount_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -282,7 +282,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AptosAccountResource",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/aptos-account-resources",
+		path: "(explore)/(networks)/aptos-account-resources",
 		view: "$/views/AptosAccountResourcesView.svelte",
 		unresolved: [
 		],
@@ -290,7 +290,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AptosAccountResource_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/aptos-account-resource-timestamps",
+		path: "(explore)/(networks)/aptos-account-resource-timestamps",
 		view: "$/views/AptosAccountResource_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -298,7 +298,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AptosBlock",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/aptos-blocks",
+		path: "(explore)/(networks)/aptos-blocks",
 		view: "$/views/AptosBlocksView.svelte",
 		unresolved: [
 		],
@@ -306,7 +306,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AptosCoinBalance_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/aptos-coin-balance-timestamps",
+		path: "(explore)/(networks)/aptos-coin-balance-timestamps",
 		view: "$/views/AptosCoinBalance_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -314,7 +314,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AptosEvent",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/aptos-events",
+		path: "(explore)/(networks)/aptos-events",
 		view: "$/views/AptosEventsView.svelte",
 		unresolved: [
 		],
@@ -322,7 +322,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AptosNetwork_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/aptos-network-timestamps",
+		path: "(explore)/(networks)/aptos-network-timestamps",
 		view: "$/views/AptosNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -330,7 +330,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AptosStateChange",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/aptos-state-changes",
+		path: "(explore)/(networks)/aptos-state-changes",
 		view: "$/views/AptosStateChangesView.svelte",
 		unresolved: [
 		],
@@ -338,7 +338,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AptosTableItem_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/aptos-table-item-timestamps",
+		path: "(explore)/(networks)/aptos-table-item-timestamps",
 		view: "$/views/AptosTableItem_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -346,7 +346,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AptosTransaction",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/aptos-transactions",
+		path: "(explore)/(networks)/aptos-transactions",
 		view: "$/views/AptosTransactionsView.svelte",
 		unresolved: [
 		],
@@ -354,7 +354,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AptosTransaction_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/aptos-transaction-timestamps",
+		path: "(explore)/(networks)/aptos-transaction-timestamps",
 		view: "$/views/AptosTransaction_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -362,7 +362,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "ArweaveBlock",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/arweave-blocks",
+		path: "(explore)/(data)/arweave-blocks",
 		view: "$/views/ArweaveBlocksView.svelte",
 		unresolved: [
 		],
@@ -370,7 +370,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "ArweaveNetwork",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/arweave-networks",
+		path: "(explore)/(data)/arweave-networks",
 		view: "$/views/ArweaveNetworksView.svelte",
 		unresolved: [
 		],
@@ -378,7 +378,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "ArweaveNetwork_Timestamp",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/arweave-network-timestamps",
+		path: "(explore)/(data)/arweave-network-timestamps",
 		view: "$/views/ArweaveNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -386,7 +386,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "ArweaveResource",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/arweave-resources",
+		path: "(explore)/(data)/arweave-resources",
 		view: "$/views/ArweaveResourcesView.svelte",
 		unresolved: [
 		],
@@ -394,7 +394,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "ArweaveResource_Timestamp",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/arweave-resource-timestamps",
+		path: "(explore)/(data)/arweave-resource-timestamps",
 		view: "$/views/ArweaveResource_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -402,7 +402,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "ArweaveTransaction",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/arweave-transactions",
+		path: "(explore)/(data)/arweave-transactions",
 		view: "$/views/ArweaveTransactionsView.svelte",
 		unresolved: [
 		],
@@ -410,7 +410,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AssetFormatSupport_Timestamp",
 		hub: "assets",
-		path: "(assets)/assets/asset-format-support-timestamps",
+		path: "(assets)/asset-format-support-timestamps",
 		view: "$/views/AssetFormatSupport_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -418,7 +418,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AssetInstance",
 		hub: "assets",
-		path: "(assets)/assets/asset-instances",
+		path: "(assets)/asset-instances",
 		view: "$/views/AssetInstancesView.svelte",
 		unresolved: [
 		],
@@ -426,7 +426,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AssetObject",
 		hub: "assets",
-		path: "(assets)/assets/asset-objects",
+		path: "(assets)/asset-objects",
 		view: "$/views/AssetObjectsView.svelte",
 		unresolved: [
 		],
@@ -434,7 +434,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AssetSupply_LedgerCoordinate",
 		hub: "assets",
-		path: "(assets)/assets/asset-supply-ledger-coordinates",
+		path: "(assets)/asset-supply-ledger-coordinates",
 		view: "$/views/AssetSupply_LedgerCoordinatesView.svelte",
 		unresolved: [
 		],
@@ -442,7 +442,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AssetSupply_Timestamp",
 		hub: "assets",
-		path: "(assets)/assets/asset-supply-timestamps",
+		path: "(assets)/asset-supply-timestamps",
 		view: "$/views/AssetSupply_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -450,7 +450,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AtprotoActor",
 		hub: "social-atproto",
-		path: "(social)/(atproto)/atproto/atproto-actors",
+		path: "(social)/atproto/atproto-actors",
 		view: "$/views/AtprotoActorsView.svelte",
 		unresolved: [
 		],
@@ -458,7 +458,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AtprotoActor_Timestamp",
 		hub: "social-atproto",
-		path: "(social)/(atproto)/atproto/atproto-actor-timestamps",
+		path: "(social)/atproto/atproto-actor-timestamps",
 		view: "$/views/AtprotoActor_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -466,7 +466,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AtprotoPost",
 		hub: "social-atproto",
-		path: "(social)/(atproto)/atproto/atproto-posts",
+		path: "(social)/atproto/atproto-posts",
 		view: "$/views/AtprotoPostsView.svelte",
 		unresolved: [
 		],
@@ -474,7 +474,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AtprotoPost_Timestamp",
 		hub: "social-atproto",
-		path: "(social)/(atproto)/atproto/atproto-post-timestamps",
+		path: "(social)/atproto/atproto-post-timestamps",
 		view: "$/views/AtprotoPost_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -482,7 +482,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AtprotoRepoCommit",
 		hub: "social-atproto",
-		path: "(social)/(atproto)/atproto/atproto-repo-commits",
+		path: "(social)/atproto/atproto-repo-commits",
 		view: "$/views/AtprotoRepoCommitsView.svelte",
 		unresolved: [
 		],
@@ -490,7 +490,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AvailAppId",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/avail-app-ids",
+		path: "(explore)/(networks)/avail-app-ids",
 		view: "$/views/AvailAppIdsView.svelte",
 		unresolved: [
 		],
@@ -498,7 +498,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AvailAppId_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/avail-app-id-timestamps",
+		path: "(explore)/(networks)/avail-app-id-timestamps",
 		view: "$/views/AvailAppId_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -506,7 +506,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AvailBlock",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/avail-blocks",
+		path: "(explore)/(networks)/avail-blocks",
 		view: "$/views/AvailBlocksView.svelte",
 		unresolved: [
 		],
@@ -514,7 +514,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AvailDataSubmission",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/avail-data-submissions",
+		path: "(explore)/(networks)/avail-data-submissions",
 		view: "$/views/AvailDataSubmissionsView.svelte",
 		unresolved: [
 		],
@@ -522,7 +522,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AvailNetwork_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/avail-network-timestamps",
+		path: "(explore)/(networks)/avail-network-timestamps",
 		view: "$/views/AvailNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -530,7 +530,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AvalancheBlockchain",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/avalanche-blockchains",
+		path: "(explore)/(networks)/avalanche-blockchains",
 		view: "$/views/AvalancheBlockchainsView.svelte",
 		unresolved: [
 		],
@@ -538,7 +538,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AvalancheDelegator",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/avalanche-delegators",
+		path: "(explore)/(networks)/avalanche-delegators",
 		view: "$/views/AvalancheDelegatorsView.svelte",
 		unresolved: [
 		],
@@ -546,7 +546,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AvalanchePChainTransaction",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/avalanche-pchain-transactions",
+		path: "(explore)/(networks)/avalanche-pchain-transactions",
 		view: "$/views/AvalanchePChainTransactionsView.svelte",
 		unresolved: [
 		],
@@ -554,7 +554,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AvalanchePChainTransaction_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/avalanche-pchain-transaction-timestamps",
+		path: "(explore)/(networks)/avalanche-pchain-transaction-timestamps",
 		view: "$/views/AvalanchePChainTransaction_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -562,7 +562,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AvalancheSubnet_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/avalanche-subnet-timestamps",
+		path: "(explore)/(networks)/avalanche-subnet-timestamps",
 		view: "$/views/AvalancheSubnet_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -570,7 +570,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AvalancheValidator",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/avalanche-validators",
+		path: "(explore)/(networks)/avalanche-validators",
 		view: "$/views/AvalancheValidatorsView.svelte",
 		unresolved: [
 		],
@@ -578,7 +578,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AvalancheValidator_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/avalanche-validator-timestamps",
+		path: "(explore)/(networks)/avalanche-validator-timestamps",
 		view: "$/views/AvalancheValidator_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -586,7 +586,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BeaconAttestation",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/beacon-attestations",
+		path: "(explore)/(networks)/beacon-attestations",
 		view: "$/views/BeaconAttestationsView.svelte",
 		unresolved: [
 		],
@@ -594,7 +594,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BeaconCommittee",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/beacon-committees",
+		path: "(explore)/(networks)/beacon-committees",
 		view: "$/views/BeaconCommitteesView.svelte",
 		unresolved: [
 		],
@@ -602,7 +602,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BeaconEpoch",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/beacon-epochs",
+		path: "(explore)/(networks)/beacon-epochs",
 		view: "$/views/BeaconEpochsView.svelte",
 		unresolved: [
 		],
@@ -610,7 +610,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BeaconSlashing",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/beacon-slashings",
+		path: "(explore)/(networks)/beacon-slashings",
 		view: "$/views/BeaconSlashingsView.svelte",
 		unresolved: [
 		],
@@ -618,7 +618,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BeaconSlot",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/beacon-slots",
+		path: "(explore)/(networks)/beacon-slots",
 		view: "$/views/BeaconSlotsView.svelte",
 		unresolved: [
 		],
@@ -626,7 +626,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BeaconSyncCommittee",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/beacon-sync-committees",
+		path: "(explore)/(networks)/beacon-sync-committees",
 		view: "$/views/BeaconSyncCommitteesView.svelte",
 		unresolved: [
 		],
@@ -634,7 +634,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BeaconValidator",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/beacon-validators",
+		path: "(explore)/(networks)/beacon-validators",
 		view: "$/views/BeaconValidatorsView.svelte",
 		unresolved: [
 		],
@@ -642,7 +642,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BeaconValidator_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/beacon-validator-timestamps",
+		path: "(explore)/(networks)/beacon-validator-timestamps",
 		view: "$/views/BeaconValidator_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -650,7 +650,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BeaconWithdrawal",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/beacon-withdrawals",
+		path: "(explore)/(networks)/beacon-withdrawals",
 		view: "$/views/BeaconWithdrawalsView.svelte",
 		unresolved: [
 		],
@@ -658,7 +658,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BittensorBlock",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/bittensor-blocks",
+		path: "(explore)/(networks)/bittensor-blocks",
 		view: "$/views/BittensorBlocksView.svelte",
 		unresolved: [
 		],
@@ -666,7 +666,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BittensorMetagraph_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/bittensor-metagraph-timestamps",
+		path: "(explore)/(networks)/bittensor-metagraph-timestamps",
 		view: "$/views/BittensorMetagraph_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -674,7 +674,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BittensorNetwork_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/bittensor-network-timestamps",
+		path: "(explore)/(networks)/bittensor-network-timestamps",
 		view: "$/views/BittensorNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -682,7 +682,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BittensorNeuron",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/bittensor-neurons",
+		path: "(explore)/(networks)/bittensor-neurons",
 		view: "$/views/BittensorNeuronsView.svelte",
 		unresolved: [
 		],
@@ -690,7 +690,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BittensorSubnet",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/bittensor-subnets",
+		path: "(explore)/(networks)/bittensor-subnets",
 		view: "$/views/BittensorSubnetsView.svelte",
 		unresolved: [
 		],
@@ -698,7 +698,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BitTorrentAnnounce_Timestamp",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/bit-torrent-announce-timestamps",
+		path: "(explore)/(data)/bit-torrent-announce-timestamps",
 		view: "$/views/BitTorrentAnnounce_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -706,7 +706,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BitTorrentFile",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/bit-torrent-files",
+		path: "(explore)/(data)/bit-torrent-files",
 		view: "$/views/BitTorrentFilesView.svelte",
 		unresolved: [
 		],
@@ -714,7 +714,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BitTorrentFileTreeEntry",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/bit-torrent-file-tree-entries",
+		path: "(explore)/(data)/bit-torrent-file-tree-entries",
 		view: "$/views/BitTorrentFileTreeEntriesView.svelte",
 		unresolved: [
 		],
@@ -722,7 +722,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BitTorrentPiece",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/bit-torrent-pieces",
+		path: "(explore)/(data)/bit-torrent-pieces",
 		view: "$/views/BitTorrentPiecesView.svelte",
 		unresolved: [
 		],
@@ -730,7 +730,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BitTorrentSwarmObservation_Timestamp",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/bit-torrent-swarm-observation-timestamps",
+		path: "(explore)/(data)/bit-torrent-swarm-observation-timestamps",
 		view: "$/views/BitTorrentSwarmObservation_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -738,7 +738,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BitTorrentTracker",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/bit-torrent-trackers",
+		path: "(explore)/(data)/bit-torrent-trackers",
 		view: "$/views/BitTorrentTrackersView.svelte",
 		unresolved: [
 		],
@@ -746,7 +746,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BitTorrentTrackerScrape_Timestamp",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/bit-torrent-tracker-scrape-timestamps",
+		path: "(explore)/(data)/bit-torrent-tracker-scrape-timestamps",
 		view: "$/views/BitTorrentTrackerScrape_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -754,7 +754,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadAgentConversation",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-agent-conversations",
+		path: "(explore)/(services)/agent/conversations",
 		view: "$/views/BlockheadAgentConversationsView.svelte",
 		unresolved: [
 		],
@@ -762,7 +762,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadAgentConversationTurn",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-agent-conversation-turns",
+		path: "(explore)/(services)/agent/conversation/turns",
 		view: "$/views/BlockheadAgentConversationTurnsView.svelte",
 		unresolved: [
 		],
@@ -770,7 +770,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadAlgorandParticipationKey",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-algorand-participation-keys",
+		path: "(explore)/(services)/algorand/participation/keys",
 		view: "$/views/BlockheadAlgorandParticipationKeysView.svelte",
 		unresolved: [
 		],
@@ -778,7 +778,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadAvalancheNodeState_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-avalanche-node-state-timestamps",
+		path: "(explore)/(services)/avalanche/node/state/timestamps",
 		view: "$/views/BlockheadAvalancheNodeState_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -786,7 +786,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadBitTorrentClientState_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-bit-torrent-client-state-timestamps",
+		path: "(explore)/(services)/bit/torrent/client/state/timestamps",
 		view: "$/views/BlockheadBitTorrentClientState_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -794,7 +794,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadBitTorrentTransfer_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-bit-torrent-transfer-timestamps",
+		path: "(explore)/(services)/bit/torrent/transfer/timestamps",
 		view: "$/views/BlockheadBitTorrentTransfer_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -802,7 +802,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadBridgeTransaction",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-bridge-transactions",
+		path: "(explore)/(services)/bridge/transactions",
 		view: "$/views/BlockheadBridgeTransactionsView.svelte",
 		unresolved: [
 		],
@@ -810,7 +810,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadCashuMeltQuote",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-cashu-melt-quotes",
+		path: "(explore)/(services)/cashu/melt/quotes",
 		view: "$/views/BlockheadCashuMeltQuotesView.svelte",
 		unresolved: [
 		],
@@ -818,7 +818,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadCashuMeltQuote_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-cashu-melt-quote-timestamps",
+		path: "(explore)/(services)/cashu/melt/quote/timestamps",
 		view: "$/views/BlockheadCashuMeltQuote_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -826,7 +826,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadCashuMintQuote",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-cashu-mint-quotes",
+		path: "(explore)/(services)/cashu/mint/quotes",
 		view: "$/views/BlockheadCashuMintQuotesView.svelte",
 		unresolved: [
 		],
@@ -834,7 +834,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadCashuMintQuote_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-cashu-mint-quote-timestamps",
+		path: "(explore)/(services)/cashu/mint/quote/timestamps",
 		view: "$/views/BlockheadCashuMintQuote_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -842,7 +842,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadCashuProof",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-cashu-proofs",
+		path: "(explore)/(services)/cashu/proofs",
 		view: "$/views/BlockheadCashuProofsView.svelte",
 		unresolved: [
 		],
@@ -850,7 +850,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadCashuProof_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-cashu-proof-timestamps",
+		path: "(explore)/(services)/cashu/proof/timestamps",
 		view: "$/views/BlockheadCashuProof_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -858,7 +858,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadCashuToken",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-cashu-tokens",
+		path: "(explore)/(services)/cashu/tokens",
 		view: "$/views/BlockheadCashuTokensView.svelte",
 		unresolved: [
 		],
@@ -866,7 +866,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadCashuWalletState_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-cashu-wallet-state-timestamps",
+		path: "(explore)/(services)/cashu/wallet/state/timestamps",
 		view: "$/views/BlockheadCashuWalletState_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -874,7 +874,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadCodexStorageNodeState_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-codex-storage-node-state-timestamps",
+		path: "(explore)/(services)/codex/storage/node/state/timestamps",
 		view: "$/views/BlockheadCodexStorageNodeState_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -882,7 +882,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadCodexStoredData",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-codex-stored-data",
+		path: "(explore)/(services)/codex/stored/data",
 		view: "$/views/BlockheadCodexStoredDataView.svelte",
 		unresolved: [
 		],
@@ -890,7 +890,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadCodexStoredData_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-codex-stored-data-timestamps",
+		path: "(explore)/(services)/codex/stored/data/timestamps",
 		view: "$/views/BlockheadCodexStoredData_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -898,7 +898,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadFarcasterAccountConnection",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-farcaster-account-connections",
+		path: "(explore)/(services)/farcaster/account/connections",
 		view: "$/views/BlockheadFarcasterAccountConnectionsView.svelte",
 		unresolved: [
 		],
@@ -906,7 +906,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadFedimintClientState_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-fedimint-client-state-timestamps",
+		path: "(explore)/(services)/fedimint/client/state/timestamps",
 		view: "$/views/BlockheadFedimintClientState_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -914,7 +914,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadKaspaNodeState_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-kaspa-node-state-timestamps",
+		path: "(explore)/(services)/kaspa/node/state/timestamps",
 		view: "$/views/BlockheadKaspaNodeState_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -922,7 +922,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadLightningChannelState",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-lightning-channel-states",
+		path: "(explore)/(services)/lightning/channel/states",
 		view: "$/views/BlockheadLightningChannelStatesView.svelte",
 		unresolved: [
 		],
@@ -930,7 +930,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadLightningChannelState_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-lightning-channel-state-timestamps",
+		path: "(explore)/(services)/lightning/channel/state/timestamps",
 		view: "$/views/BlockheadLightningChannelState_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -938,7 +938,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadLightningHtlc",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-lightning-htlcs",
+		path: "(explore)/(services)/lightning/htlcs",
 		view: "$/views/BlockheadLightningHtlcsView.svelte",
 		unresolved: [
 		],
@@ -946,7 +946,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadLightningInvoice",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-lightning-invoices",
+		path: "(explore)/(services)/lightning/invoices",
 		view: "$/views/BlockheadLightningInvoicesView.svelte",
 		unresolved: [
 		],
@@ -954,7 +954,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadLightningInvoice_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-lightning-invoice-timestamps",
+		path: "(explore)/(services)/lightning/invoice/timestamps",
 		view: "$/views/BlockheadLightningInvoice_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -962,7 +962,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadLightningNodeState",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-lightning-node-states",
+		path: "(explore)/(services)/lightning/node/states",
 		view: "$/views/BlockheadLightningNodeStatesView.svelte",
 		unresolved: [
 		],
@@ -970,7 +970,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadLightningNodeState_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-lightning-node-state-timestamps",
+		path: "(explore)/(services)/lightning/node/state/timestamps",
 		view: "$/views/BlockheadLightningNodeState_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -978,7 +978,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadLightningPayment",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-lightning-payments",
+		path: "(explore)/(services)/lightning/payments",
 		view: "$/views/BlockheadLightningPaymentsView.svelte",
 		unresolved: [
 		],
@@ -986,7 +986,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadLightningPayment_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-lightning-payment-timestamps",
+		path: "(explore)/(services)/lightning/payment/timestamps",
 		view: "$/views/BlockheadLightningPayment_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -994,7 +994,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadLitecoinMwebOutputState",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-litecoin-mweb-output-states",
+		path: "(explore)/(services)/litecoin/mweb/output/states",
 		view: "$/views/BlockheadLitecoinMwebOutputStatesView.svelte",
 		unresolved: [
 		],
@@ -1002,7 +1002,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadLitecoinMwebOutputState_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-litecoin-mweb-output-state-timestamps",
+		path: "(explore)/(services)/litecoin/mweb/output/state/timestamps",
 		view: "$/views/BlockheadLitecoinMwebOutputState_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1010,7 +1010,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadLitecoinMwebWalletState_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-litecoin-mweb-wallet-state-timestamps",
+		path: "(explore)/(services)/litecoin/mweb/wallet/state/timestamps",
 		view: "$/views/BlockheadLitecoinMwebWalletState_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1018,7 +1018,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadLogosBlockchainNodeState_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-logos-blockchain-node-state-timestamps",
+		path: "(explore)/(services)/logos/blockchain/node/state/timestamps",
 		view: "$/views/BlockheadLogosBlockchainNodeState_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1026,7 +1026,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadLogosBlockchainWalletKeyState_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-logos-blockchain-wallet-key-state-timestamps",
+		path: "(explore)/(services)/logos/blockchain/wallet/key/state/timestamps",
 		view: "$/views/BlockheadLogosBlockchainWalletKeyState_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1034,7 +1034,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadMoneroOutputState",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-monero-output-states",
+		path: "(explore)/(services)/monero/output/states",
 		view: "$/views/BlockheadMoneroOutputStatesView.svelte",
 		unresolved: [
 		],
@@ -1042,7 +1042,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadMoneroOutputState_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-monero-output-state-timestamps",
+		path: "(explore)/(services)/monero/output/state/timestamps",
 		view: "$/views/BlockheadMoneroOutputState_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1050,7 +1050,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadMoneroSubaddressState",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-monero-subaddress-states",
+		path: "(explore)/(services)/monero/subaddress/states",
 		view: "$/views/BlockheadMoneroSubaddressStatesView.svelte",
 		unresolved: [
 		],
@@ -1058,7 +1058,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadMoneroSubaddressState_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-monero-subaddress-state-timestamps",
+		path: "(explore)/(services)/monero/subaddress/state/timestamps",
 		view: "$/views/BlockheadMoneroSubaddressState_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1066,7 +1066,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadMoneroTransferState",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-monero-transfer-states",
+		path: "(explore)/(services)/monero/transfer/states",
 		view: "$/views/BlockheadMoneroTransferStatesView.svelte",
 		unresolved: [
 		],
@@ -1074,7 +1074,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadMoneroTransferState_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-monero-transfer-state-timestamps",
+		path: "(explore)/(services)/monero/transfer/state/timestamps",
 		view: "$/views/BlockheadMoneroTransferState_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1082,7 +1082,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadMoneroWalletState_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-monero-wallet-state-timestamps",
+		path: "(explore)/(services)/monero/wallet/state/timestamps",
 		view: "$/views/BlockheadMoneroWalletState_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1090,7 +1090,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadPanelTree",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-panel-trees",
+		path: "(explore)/(services)/panel/trees",
 		view: "$/views/BlockheadPanelTreesView.svelte",
 		unresolved: [
 		],
@@ -1098,7 +1098,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadPayjoinSession",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-payjoin-sessions",
+		path: "(explore)/(services)/payjoin/sessions",
 		view: "$/views/BlockheadPayjoinSessionsView.svelte",
 		unresolved: [
 		],
@@ -1106,7 +1106,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadQuilibriumAccountState",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-quilibrium-account-states",
+		path: "(explore)/(services)/quilibrium/account/states",
 		view: "$/views/BlockheadQuilibriumAccountStatesView.svelte",
 		unresolved: [
 		],
@@ -1114,7 +1114,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadQuilibriumAccountState_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-quilibrium-account-state-timestamps",
+		path: "(explore)/(services)/quilibrium/account/state/timestamps",
 		view: "$/views/BlockheadQuilibriumAccountState_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1122,7 +1122,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadQuilibriumNodeState_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-quilibrium-node-state-timestamps",
+		path: "(explore)/(services)/quilibrium/node/state/timestamps",
 		view: "$/views/BlockheadQuilibriumNodeState_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1130,7 +1130,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadQuilibriumPendingTransaction",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-quilibrium-pending-transactions",
+		path: "(explore)/(services)/quilibrium/pending/transactions",
 		view: "$/views/BlockheadQuilibriumPendingTransactionsView.svelte",
 		unresolved: [
 		],
@@ -1138,7 +1138,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadRadicleNodeInventory_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-radicle-node-inventory-timestamps",
+		path: "(explore)/(services)/radicle/node/inventory/timestamps",
 		view: "$/views/BlockheadRadicleNodeInventory_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1146,7 +1146,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadRadicleNodeState_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-radicle-node-state-timestamps",
+		path: "(explore)/(services)/radicle/node/state/timestamps",
 		view: "$/views/BlockheadRadicleNodeState_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1154,7 +1154,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadRadiclePeer",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-radicle-peers",
+		path: "(explore)/(services)/radicle/peers",
 		view: "$/views/BlockheadRadiclePeersView.svelte",
 		unresolved: [
 		],
@@ -1162,7 +1162,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadRadicleSeedObservation_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-radicle-seed-observation-timestamps",
+		path: "(explore)/(services)/radicle/seed/observation/timestamps",
 		view: "$/views/BlockheadRadicleSeedObservation_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1170,7 +1170,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadRadicleSyncSession",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-radicle-sync-sessions",
+		path: "(explore)/(services)/radicle/sync/sessions",
 		view: "$/views/BlockheadRadicleSyncSessionsView.svelte",
 		unresolved: [
 		],
@@ -1178,7 +1178,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadRoom",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-rooms",
+		path: "(explore)/(services)/rooms",
 		view: "$/views/BlockheadRoomsView.svelte",
 		unresolved: [
 		],
@@ -1186,7 +1186,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadRoomPeer",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-room-peers",
+		path: "(explore)/(services)/room/peers",
 		view: "$/views/BlockheadRoomPeersView.svelte",
 		unresolved: [
 		],
@@ -1194,7 +1194,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadSession",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-sessions",
+		path: "(explore)/(services)/sessions",
 		view: "$/views/BlockheadSessionsView.svelte",
 		unresolved: [
 		],
@@ -1202,7 +1202,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadSessionAction",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-session-actions",
+		path: "(explore)/(services)/session/actions",
 		view: "$/views/BlockheadSessionActionsView.svelte",
 		unresolved: [
 		],
@@ -1210,7 +1210,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadIntentInvocation",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-intent-invocations",
+		path: "(explore)/(services)/intent/invocations",
 		view: "$/views/BlockheadIntentInvocationsView.svelte",
 		unresolved: [
 		],
@@ -1218,7 +1218,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadActionReadinessCheck",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-action-readiness-checks",
+		path: "(explore)/(services)/action/readiness/checks",
 		view: "$/views/BlockheadActionReadinessChecksView.svelte",
 		unresolved: [
 		],
@@ -1226,7 +1226,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadActionReadinessCheck_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-action-readiness-check-timestamps",
+		path: "(explore)/(services)/action/readiness/check/timestamps",
 		view: "$/views/BlockheadActionReadinessCheck_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1234,7 +1234,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadActionOutcome",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-action-outcomes",
+		path: "(explore)/(services)/action/outcomes",
 		view: "$/views/BlockheadActionOutcomesView.svelte",
 		unresolved: [
 		],
@@ -1242,7 +1242,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadActionOutcome_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-action-outcome-timestamps",
+		path: "(explore)/(services)/action/outcome/timestamps",
 		view: "$/views/BlockheadActionOutcome_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1250,7 +1250,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadSessionSimulation",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-session-simulations",
+		path: "(explore)/(services)/session/simulations",
 		view: "$/views/BlockheadSessionSimulationsView.svelte",
 		unresolved: [
 		],
@@ -1258,7 +1258,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadSessionSimulationCall",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-session-simulation-calls",
+		path: "(explore)/(services)/session/simulation/calls",
 		view: "$/views/BlockheadSessionSimulationCallsView.svelte",
 		unresolved: [
 		],
@@ -1266,7 +1266,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadSessionSimulationLog",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-session-simulation-logs",
+		path: "(explore)/(services)/session/simulation/logs",
 		view: "$/views/BlockheadSessionSimulationLogsView.svelte",
 		unresolved: [
 		],
@@ -1274,7 +1274,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadSharedAddress",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-shared-addresss",
+		path: "(explore)/(services)/shared/addresss",
 		view: "$/views/BlockheadSharedAddresssView.svelte",
 		unresolved: [
 		],
@@ -1282,7 +1282,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadSource",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-sources",
+		path: "(explore)/(services)/sources",
 		view: "$/views/BlockheadSourcesView.svelte",
 		unresolved: [
 		],
@@ -1290,7 +1290,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadSource_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-source-timestamps",
+		path: "(explore)/(services)/source/timestamps",
 		view: "$/views/BlockheadSource_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1298,7 +1298,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadStateChannel",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-state-channels",
+		path: "(explore)/(services)/state/channels",
 		view: "$/views/BlockheadStateChannelsView.svelte",
 		unresolved: [
 		],
@@ -1306,7 +1306,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadStateChannel_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-state-channel-timestamps",
+		path: "(explore)/(services)/state/channel/timestamps",
 		view: "$/views/BlockheadStateChannel_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1314,7 +1314,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadStateChannelDeposit",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-state-channel-deposits",
+		path: "(explore)/(services)/state/channel/deposits",
 		view: "$/views/BlockheadStateChannelDepositsView.svelte",
 		unresolved: [
 		],
@@ -1322,7 +1322,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadStateChannelDeposit_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-state-channel-deposit-timestamps",
+		path: "(explore)/(services)/state/channel/deposit/timestamps",
 		view: "$/views/BlockheadStateChannelDeposit_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1330,7 +1330,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadStateChannelState",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-state-channel-states",
+		path: "(explore)/(services)/state/channel/states",
 		view: "$/views/BlockheadStateChannelStatesView.svelte",
 		unresolved: [
 		],
@@ -1338,7 +1338,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadStateChannelTransfer",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-state-channel-transfers",
+		path: "(explore)/(services)/state/channel/transfers",
 		view: "$/views/BlockheadStateChannelTransfersView.svelte",
 		unresolved: [
 		],
@@ -1346,7 +1346,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadWakuMessageObservation_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-waku-message-observation-timestamps",
+		path: "(explore)/(services)/waku/message/observation/timestamps",
 		view: "$/views/BlockheadWakuMessageObservation_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1354,7 +1354,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadWakuNodeState_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-waku-node-state-timestamps",
+		path: "(explore)/(services)/waku/node/state/timestamps",
 		view: "$/views/BlockheadWakuNodeState_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1362,7 +1362,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadWallet",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-wallets",
+		path: "(explore)/(services)/wallets",
 		view: "$/views/BlockheadWalletsView.svelte",
 		unresolved: [
 		],
@@ -1370,7 +1370,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadWalletAccount",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-wallet-accounts",
+		path: "(explore)/(services)/wallet/accounts",
 		view: "$/views/BlockheadWalletAccountsView.svelte",
 		unresolved: [
 		],
@@ -1378,7 +1378,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadWalletConnection",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-wallet-connections",
+		path: "(explore)/(services)/wallet/connections",
 		view: "$/views/BlockheadWalletConnectionsView.svelte",
 		unresolved: [
 		],
@@ -1386,7 +1386,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadIntentQuote",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-intent-quotes",
+		path: "(explore)/(services)/intent/quotes",
 		view: "$/views/BlockheadIntentQuotesView.svelte",
 		unresolved: [
 		],
@@ -1394,7 +1394,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadIntentQuote_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-intent-quote-timestamps",
+		path: "(explore)/(services)/intent/quote/timestamps",
 		view: "$/views/BlockheadIntentQuote_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1402,7 +1402,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadIntentOrder",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-intent-orders",
+		path: "(explore)/(services)/intent/orders",
 		view: "$/views/BlockheadIntentOrdersView.svelte",
 		unresolved: [
 		],
@@ -1410,7 +1410,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadIntentOrder_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-intent-order-timestamps",
+		path: "(explore)/(services)/intent/order/timestamps",
 		view: "$/views/BlockheadIntentOrder_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1418,7 +1418,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadWalletTransportSession",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-wallet-transport-sessions",
+		path: "(explore)/(services)/wallet/transport/sessions",
 		view: "$/views/BlockheadWalletTransportSessionsView.svelte",
 		unresolved: [
 		],
@@ -1426,7 +1426,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadWalletRequest",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-wallet-requests",
+		path: "(explore)/(services)/wallet/requests",
 		view: "$/views/BlockheadWalletRequestsView.svelte",
 		unresolved: [
 		],
@@ -1434,7 +1434,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadWalletRequest_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-wallet-request-timestamps",
+		path: "(explore)/(services)/wallet/request/timestamps",
 		view: "$/views/BlockheadWalletRequest_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1442,7 +1442,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadWalletCapabilityGrant",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-wallet-capability-grants",
+		path: "(explore)/(services)/wallet/capability/grants",
 		view: "$/views/BlockheadWalletCapabilityGrantsView.svelte",
 		unresolved: [
 		],
@@ -1450,7 +1450,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadWalletAuthentication",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-wallet-authentications",
+		path: "(explore)/(services)/wallet/authentications",
 		view: "$/views/BlockheadWalletAuthenticationsView.svelte",
 		unresolved: [
 		],
@@ -1458,7 +1458,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "XmtpConversation",
 		hub: "social-xmtp",
-		path: "(social)/(xmtp)/xmtp/xmtp-conversations",
+		path: "(social)/xmtp/xmtp-conversations",
 		view: "$/views/XmtpConversationsView.svelte",
 		unresolved: [
 		],
@@ -1466,7 +1466,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadZcashNoteState",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-zcash-note-states",
+		path: "(explore)/(services)/zcash/note/states",
 		view: "$/views/BlockheadZcashNoteStatesView.svelte",
 		unresolved: [
 		],
@@ -1474,7 +1474,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadZcashNoteState_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-zcash-note-state-timestamps",
+		path: "(explore)/(services)/zcash/note/state/timestamps",
 		view: "$/views/BlockheadZcashNoteState_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1482,7 +1482,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadZcashViewingKey",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-zcash-viewing-keys",
+		path: "(explore)/(services)/zcash/viewing/keys",
 		view: "$/views/BlockheadZcashViewingKeysView.svelte",
 		unresolved: [
 		],
@@ -1490,7 +1490,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadZcashViewingKey_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-zcash-viewing-key-timestamps",
+		path: "(explore)/(services)/zcash/viewing/key/timestamps",
 		view: "$/views/BlockheadZcashViewingKey_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1498,7 +1498,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadZcashWalletState_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-zcash-wallet-state-timestamps",
+		path: "(explore)/(services)/zcash/wallet/state/timestamps",
 		view: "$/views/BlockheadZcashWalletState_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1506,7 +1506,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadZeroGStorageNodeState",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-zero-gstorage-node-states",
+		path: "(explore)/(services)/zero/gstorage/node/states",
 		view: "$/views/BlockheadZeroGStorageNodeStatesView.svelte",
 		unresolved: [
 		],
@@ -1514,7 +1514,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadZeroGStorageNodeState_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-zero-gstorage-node-state-timestamps",
+		path: "(explore)/(services)/zero/gstorage/node/state/timestamps",
 		view: "$/views/BlockheadZeroGStorageNodeState_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1522,7 +1522,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadZeroGStorageProof",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-zero-gstorage-proofs",
+		path: "(explore)/(services)/zero/gstorage/proofs",
 		view: "$/views/BlockheadZeroGStorageProofsView.svelte",
 		unresolved: [
 		],
@@ -1530,7 +1530,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadZeroGStoredChunk",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-zero-gstored-chunks",
+		path: "(explore)/(services)/zero/gstored/chunks",
 		view: "$/views/BlockheadZeroGStoredChunksView.svelte",
 		unresolved: [
 		],
@@ -1538,7 +1538,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BnbBeaconBlock",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/bnb-beacon-blocks",
+		path: "(explore)/(networks)/bnb-beacon-blocks",
 		view: "$/views/BnbBeaconBlocksView.svelte",
 		unresolved: [
 		],
@@ -1546,7 +1546,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BnbBeaconNetwork_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/bnb-beacon-network-timestamps",
+		path: "(explore)/(networks)/bnb-beacon-network-timestamps",
 		view: "$/views/BnbBeaconNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1554,7 +1554,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BnbBeaconToken",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/bnb-beacon-tokens",
+		path: "(explore)/(networks)/bnb-beacon-tokens",
 		view: "$/views/BnbBeaconTokensView.svelte",
 		unresolved: [
 		],
@@ -1562,7 +1562,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BnbBeaconToken_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/bnb-beacon-token-timestamps",
+		path: "(explore)/(networks)/bnb-beacon-token-timestamps",
 		view: "$/views/BnbBeaconToken_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1570,7 +1570,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BnbBeaconTokenMigration",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/bnb-beacon-token-migrations",
+		path: "(explore)/(networks)/bnb-beacon-token-migrations",
 		view: "$/views/BnbBeaconTokenMigrationsView.svelte",
 		unresolved: [
 		],
@@ -1578,7 +1578,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BnbBeaconTokenMigration_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/bnb-beacon-token-migration-timestamps",
+		path: "(explore)/(networks)/bnb-beacon-token-migration-timestamps",
 		view: "$/views/BnbBeaconTokenMigration_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1586,7 +1586,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BnbBeaconTokenTransfer",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/bnb-beacon-token-transfers",
+		path: "(explore)/(networks)/bnb-beacon-token-transfers",
 		view: "$/views/BnbBeaconTokenTransfersView.svelte",
 		unresolved: [
 		],
@@ -1594,7 +1594,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BnbBeaconTransaction",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/bnb-beacon-transactions",
+		path: "(explore)/(networks)/bnb-beacon-transactions",
 		view: "$/views/BnbBeaconTransactionsView.svelte",
 		unresolved: [
 		],
@@ -1602,7 +1602,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BnbValidator",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/bnb-validators",
+		path: "(explore)/(networks)/bnb-validators",
 		view: "$/views/BnbValidatorsView.svelte",
 		unresolved: [
 		],
@@ -1610,7 +1610,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BnbValidator_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/bnb-validator-timestamps",
+		path: "(explore)/(networks)/bnb-validator-timestamps",
 		view: "$/views/BnbValidator_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1618,7 +1618,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BridgeRouteStep",
 		hub: "assets",
-		path: "(assets)/assets/bridge-route-steps",
+		path: "(assets)/bridge-route-steps",
 		view: "$/views/BridgeRouteStepsView.svelte",
 		unresolved: [
 		],
@@ -1626,7 +1626,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BridgeRouteQuoteStep",
 		hub: "assets",
-		path: "(assets)/assets/bridge-route-quote-steps",
+		path: "(assets)/bridge-route-quote-steps",
 		view: "$/views/BridgeRouteQuoteStepsView.svelte",
 		unresolved: [
 		],
@@ -1634,7 +1634,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BridgeTransfer",
 		hub: "assets",
-		path: "(assets)/assets/bridge-transfers",
+		path: "(assets)/bridge-transfers",
 		view: "$/views/BridgeTransfersView.svelte",
 		unresolved: [
 		],
@@ -1642,7 +1642,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BridgeTransfer_Timestamp",
 		hub: "assets",
-		path: "(assets)/assets/bridge-transfer-timestamps",
+		path: "(assets)/bridge-transfer-timestamps",
 		view: "$/views/BridgeTransfer_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1650,7 +1650,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CardanoAddress",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cardano-addresss",
+		path: "(explore)/(networks)/cardano-addresss",
 		view: "$/views/CardanoAddresssView.svelte",
 		unresolved: [
 		],
@@ -1658,7 +1658,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CardanoAddress_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cardano-address-timestamps",
+		path: "(explore)/(networks)/cardano-address-timestamps",
 		view: "$/views/CardanoAddress_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1666,7 +1666,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CardanoBlock",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cardano-blocks",
+		path: "(explore)/(networks)/cardano-blocks",
 		view: "$/views/CardanoBlocksView.svelte",
 		unresolved: [
 		],
@@ -1674,7 +1674,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CardanoCertificate",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cardano-certificates",
+		path: "(explore)/(networks)/cardano-certificates",
 		view: "$/views/CardanoCertificatesView.svelte",
 		unresolved: [
 		],
@@ -1682,7 +1682,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CardanoCommittee_Epoch",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cardano-committee-epochs",
+		path: "(explore)/(networks)/cardano-committee-epochs",
 		view: "$/views/CardanoCommittee_EpochsView.svelte",
 		unresolved: [
 		],
@@ -1690,7 +1690,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CardanoConstitution_Epoch",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cardano-constitution-epochs",
+		path: "(explore)/(networks)/cardano-constitution-epochs",
 		view: "$/views/CardanoConstitution_EpochsView.svelte",
 		unresolved: [
 		],
@@ -1698,7 +1698,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CardanoDRep",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cardano-dreps",
+		path: "(explore)/(networks)/cardano-dreps",
 		view: "$/views/CardanoDRepsView.svelte",
 		unresolved: [
 		],
@@ -1706,7 +1706,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CardanoDRep_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cardano-drep-timestamps",
+		path: "(explore)/(networks)/cardano-drep-timestamps",
 		view: "$/views/CardanoDRep_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1714,7 +1714,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CardanoGovernanceProposal",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cardano-governance-proposals",
+		path: "(explore)/(networks)/cardano-governance-proposals",
 		view: "$/views/CardanoGovernanceProposalsView.svelte",
 		unresolved: [
 		],
@@ -1722,7 +1722,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CardanoGovernanceProposal_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cardano-governance-proposal-timestamps",
+		path: "(explore)/(networks)/cardano-governance-proposal-timestamps",
 		view: "$/views/CardanoGovernanceProposal_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1730,7 +1730,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CardanoGovernanceVote",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cardano-governance-votes",
+		path: "(explore)/(networks)/cardano-governance-votes",
 		view: "$/views/CardanoGovernanceVotesView.svelte",
 		unresolved: [
 		],
@@ -1738,7 +1738,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CardanoNativeAsset",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cardano-native-assets",
+		path: "(explore)/(networks)/cardano-native-assets",
 		view: "$/views/CardanoNativeAssetsView.svelte",
 		unresolved: [
 		],
@@ -1746,7 +1746,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CardanoNativeAsset_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cardano-native-asset-timestamps",
+		path: "(explore)/(networks)/cardano-native-asset-timestamps",
 		view: "$/views/CardanoNativeAsset_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1754,7 +1754,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CardanoNetwork_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cardano-network-timestamps",
+		path: "(explore)/(networks)/cardano-network-timestamps",
 		view: "$/views/CardanoNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1762,7 +1762,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CardanoProtocolParameters_Epoch",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cardano-protocol-parameters-epochs",
+		path: "(explore)/(networks)/cardano-protocol-parameters-epochs",
 		view: "$/views/CardanoProtocolParameters_EpochsView.svelte",
 		unresolved: [
 		],
@@ -1770,7 +1770,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CardanoScriptWitness",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cardano-script-witnesses",
+		path: "(explore)/(networks)/cardano-script-witnesses",
 		view: "$/views/CardanoScriptWitnessesView.svelte",
 		unresolved: [
 		],
@@ -1778,7 +1778,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CardanoStakeCredential",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cardano-stake-credentials",
+		path: "(explore)/(networks)/cardano-stake-credentials",
 		view: "$/views/CardanoStakeCredentialsView.svelte",
 		unresolved: [
 		],
@@ -1786,7 +1786,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CardanoStakeDelegation_Epoch",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cardano-stake-delegation-epochs",
+		path: "(explore)/(networks)/cardano-stake-delegation-epochs",
 		view: "$/views/CardanoStakeDelegation_EpochsView.svelte",
 		unresolved: [
 		],
@@ -1794,7 +1794,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CardanoStakePool",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cardano-stake-pools",
+		path: "(explore)/(networks)/cardano-stake-pools",
 		view: "$/views/CardanoStakePoolsView.svelte",
 		unresolved: [
 		],
@@ -1802,7 +1802,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CardanoStakePool_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cardano-stake-pool-timestamps",
+		path: "(explore)/(networks)/cardano-stake-pool-timestamps",
 		view: "$/views/CardanoStakePool_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1810,7 +1810,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CardanoTransaction",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cardano-transactions",
+		path: "(explore)/(networks)/cardano-transactions",
 		view: "$/views/CardanoTransactionsView.svelte",
 		unresolved: [
 		],
@@ -1818,7 +1818,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CardanoTxInput",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cardano-tx-inputs",
+		path: "(explore)/(networks)/cardano-tx-inputs",
 		view: "$/views/CardanoTxInputsView.svelte",
 		unresolved: [
 		],
@@ -1826,7 +1826,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CardanoTxOutput",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cardano-tx-outputs",
+		path: "(explore)/(networks)/cardano-tx-outputs",
 		view: "$/views/CardanoTxOutputsView.svelte",
 		unresolved: [
 		],
@@ -1834,7 +1834,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CardanoTxOutputAsset",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cardano-tx-output-assets",
+		path: "(explore)/(networks)/cardano-tx-output-assets",
 		view: "$/views/CardanoTxOutputAssetsView.svelte",
 		unresolved: [
 		],
@@ -1842,7 +1842,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CashuKeyset",
 		hub: "assets",
-		path: "(assets)/assets/cashu-keysets",
+		path: "(assets)/cashu-keysets",
 		view: "$/views/CashuKeysetsView.svelte",
 		unresolved: [
 		],
@@ -1850,7 +1850,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CctpAttestation_Timestamp",
 		hub: "assets",
-		path: "(assets)/assets/cctp-attestation-timestamps",
+		path: "(assets)/cctp-attestation-timestamps",
 		view: "$/views/CctpAttestation_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1858,7 +1858,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CctpBurnFee_Timestamp",
 		hub: "assets",
-		path: "(assets)/assets/cctp-burn-fee-timestamps",
+		path: "(assets)/cctp-burn-fee-timestamps",
 		view: "$/views/CctpBurnFee_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1866,7 +1866,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CctpMessage",
 		hub: "assets",
-		path: "(assets)/assets/cctp-messages",
+		path: "(assets)/cctp-messages",
 		view: "$/views/CctpMessagesView.svelte",
 		unresolved: [
 		],
@@ -1874,7 +1874,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CelestiaBlob",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/celestia-blobs",
+		path: "(explore)/(networks)/celestia-blobs",
 		view: "$/views/CelestiaBlobsView.svelte",
 		unresolved: [
 		],
@@ -1882,7 +1882,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CelestiaBlock",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/celestia-blocks",
+		path: "(explore)/(networks)/celestia-blocks",
 		view: "$/views/CelestiaBlocksView.svelte",
 		unresolved: [
 		],
@@ -1890,7 +1890,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CelestiaNamespace",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/celestia-namespaces",
+		path: "(explore)/(networks)/celestia-namespaces",
 		view: "$/views/CelestiaNamespacesView.svelte",
 		unresolved: [
 		],
@@ -1898,7 +1898,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CelestiaNamespace_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/celestia-namespace-timestamps",
+		path: "(explore)/(networks)/celestia-namespace-timestamps",
 		view: "$/views/CelestiaNamespace_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1906,7 +1906,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CelestiaNetwork_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/celestia-network-timestamps",
+		path: "(explore)/(networks)/celestia-network-timestamps",
 		view: "$/views/CelestiaNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1914,7 +1914,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "ClaimTopicRequirement",
 		hub: "assets",
-		path: "(assets)/assets/claim-topic-requirements",
+		path: "(assets)/claim-topic-requirements",
 		view: "$/views/ClaimTopicRequirementsView.svelte",
 		unresolved: [
 		],
@@ -1922,7 +1922,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "Coin",
 		hub: "assets",
-		path: "(assets)/assets/coins",
+		path: "(assets)/coins",
 		view: "$/views/CoinsView.svelte",
 		unresolved: [
 		],
@@ -1930,7 +1930,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "Coin_Timestamp",
 		hub: "assets",
-		path: "(assets)/assets/coin-timestamps",
+		path: "(assets)/coin-timestamps",
 		view: "$/views/Coin_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1938,7 +1938,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CoinBridgeCapability",
 		hub: "assets",
-		path: "(assets)/assets/coin-bridge-capabilitys",
+		path: "(assets)/coin-bridge-capabilitys",
 		view: "$/views/CoinBridgeCapabilitysView.svelte",
 		unresolved: [
 		],
@@ -1954,7 +1954,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CosmosAccount",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cosmos-accounts",
+		path: "(explore)/(networks)/cosmos-accounts",
 		view: "$/views/CosmosAccountsView.svelte",
 		unresolved: [
 		],
@@ -1962,7 +1962,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CosmosAccount_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cosmos-account-timestamps",
+		path: "(explore)/(networks)/cosmos-account-timestamps",
 		view: "$/views/CosmosAccount_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1970,7 +1970,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CosmosAccountBalance_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cosmos-account-balance-timestamps",
+		path: "(explore)/(networks)/cosmos-account-balance-timestamps",
 		view: "$/views/CosmosAccountBalance_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -1978,7 +1978,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CosmosBlock",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cosmos-blocks",
+		path: "(explore)/(networks)/cosmos-blocks",
 		view: "$/views/CosmosBlocksView.svelte",
 		unresolved: [
 		],
@@ -1986,7 +1986,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CosmosContract",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cosmos-contracts",
+		path: "(explore)/(networks)/cosmos-contracts",
 		view: "$/views/CosmosContractsView.svelte",
 		unresolved: [
 		],
@@ -1994,7 +1994,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CosmosDelegation",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cosmos-delegations",
+		path: "(explore)/(networks)/cosmos-delegations",
 		view: "$/views/CosmosDelegationsView.svelte",
 		unresolved: [
 		],
@@ -2002,7 +2002,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CosmosDelegation_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cosmos-delegation-timestamps",
+		path: "(explore)/(networks)/cosmos-delegation-timestamps",
 		view: "$/views/CosmosDelegation_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2010,7 +2010,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CosmosDenom",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cosmos-denoms",
+		path: "(explore)/(networks)/cosmos-denoms",
 		view: "$/views/CosmosDenomsView.svelte",
 		unresolved: [
 		],
@@ -2018,7 +2018,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CosmosGovernanceProposal",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cosmos-governance-proposals",
+		path: "(explore)/(networks)/cosmos-governance-proposals",
 		view: "$/views/CosmosGovernanceProposalsView.svelte",
 		unresolved: [
 		],
@@ -2026,7 +2026,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CosmosGovernanceProposal_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cosmos-governance-proposal-timestamps",
+		path: "(explore)/(networks)/cosmos-governance-proposal-timestamps",
 		view: "$/views/CosmosGovernanceProposal_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2034,7 +2034,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CosmosGovernanceProposalDeposit",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cosmos-governance-proposal-deposits",
+		path: "(explore)/(networks)/cosmos-governance-proposal-deposits",
 		view: "$/views/CosmosGovernanceProposalDepositsView.svelte",
 		unresolved: [
 		],
@@ -2042,7 +2042,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CosmosGovernanceProposalDeposit_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cosmos-governance-proposal-deposit-timestamps",
+		path: "(explore)/(networks)/cosmos-governance-proposal-deposit-timestamps",
 		view: "$/views/CosmosGovernanceProposalDeposit_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2050,7 +2050,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CosmosGovernanceProposalTally_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cosmos-governance-proposal-tally-timestamps",
+		path: "(explore)/(networks)/cosmos-governance-proposal-tally-timestamps",
 		view: "$/views/CosmosGovernanceProposalTally_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2058,7 +2058,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CosmosGovernanceProposalVote",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cosmos-governance-proposal-votes",
+		path: "(explore)/(networks)/cosmos-governance-proposal-votes",
 		view: "$/views/CosmosGovernanceProposalVotesView.svelte",
 		unresolved: [
 		],
@@ -2066,7 +2066,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CosmosGovernanceProposalVote_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cosmos-governance-proposal-vote-timestamps",
+		path: "(explore)/(networks)/cosmos-governance-proposal-vote-timestamps",
 		view: "$/views/CosmosGovernanceProposalVote_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2074,7 +2074,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CosmosMessage",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cosmos-messages",
+		path: "(explore)/(networks)/cosmos-messages",
 		view: "$/views/CosmosMessagesView.svelte",
 		unresolved: [
 		],
@@ -2082,7 +2082,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CosmosModule",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cosmos-modules",
+		path: "(explore)/(networks)/cosmos-modules",
 		view: "$/views/CosmosModulesView.svelte",
 		unresolved: [
 		],
@@ -2090,7 +2090,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CosmosNetwork_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cosmos-network-timestamps",
+		path: "(explore)/(networks)/cosmos-network-timestamps",
 		view: "$/views/CosmosNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2098,7 +2098,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CosmosTransaction",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cosmos-transactions",
+		path: "(explore)/(networks)/cosmos-transactions",
 		view: "$/views/CosmosTransactionsView.svelte",
 		unresolved: [
 		],
@@ -2106,7 +2106,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CosmosValidator",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cosmos-validators",
+		path: "(explore)/(networks)/cosmos-validators",
 		view: "$/views/CosmosValidatorsView.svelte",
 		unresolved: [
 		],
@@ -2114,7 +2114,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "CosmosValidator_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/cosmos-validator-timestamps",
+		path: "(explore)/(networks)/cosmos-validator-timestamps",
 		view: "$/views/CosmosValidator_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2122,7 +2122,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "Currency",
 		hub: "assets",
-		path: "(assets)/assets/currencys",
+		path: "(assets)/currencys",
 		view: "$/views/CurrencysView.svelte",
 		unresolved: [
 		],
@@ -2130,7 +2130,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "Currency_Timestamp",
 		hub: "assets",
-		path: "(assets)/assets/currency-timestamps",
+		path: "(assets)/currency-timestamps",
 		view: "$/views/Currency_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2138,7 +2138,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "DydxChainMarket",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/dydx-chain-markets",
+		path: "(explore)/(networks)/dydx-chain-markets",
 		view: "$/views/DydxChainMarketsView.svelte",
 		unresolved: [
 		],
@@ -2146,7 +2146,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "DydxChainMarket_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/dydx-chain-market-timestamps",
+		path: "(explore)/(networks)/dydx-chain-market-timestamps",
 		view: "$/views/DydxChainMarket_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2154,7 +2154,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "DydxChainNetwork_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/dydx-chain-network-timestamps",
+		path: "(explore)/(networks)/dydx-chain-network-timestamps",
 		view: "$/views/DydxChainNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2162,7 +2162,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "DydxChainOrder",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/dydx-chain-orders",
+		path: "(explore)/(networks)/dydx-chain-orders",
 		view: "$/views/DydxChainOrdersView.svelte",
 		unresolved: [
 		],
@@ -2170,7 +2170,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "DydxChainOrder_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/dydx-chain-order-timestamps",
+		path: "(explore)/(networks)/dydx-chain-order-timestamps",
 		view: "$/views/DydxChainOrder_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2178,7 +2178,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "DydxChainPerpetualPosition_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/dydx-chain-perpetual-position-timestamps",
+		path: "(explore)/(networks)/dydx-chain-perpetual-position-timestamps",
 		view: "$/views/DydxChainPerpetualPosition_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2186,7 +2186,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "DydxChainSubaccount",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/dydx-chain-subaccounts",
+		path: "(explore)/(networks)/dydx-chain-subaccounts",
 		view: "$/views/DydxChainSubaccountsView.svelte",
 		unresolved: [
 		],
@@ -2194,7 +2194,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "DydxChainSubaccount_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/dydx-chain-subaccount-timestamps",
+		path: "(explore)/(networks)/dydx-chain-subaccount-timestamps",
 		view: "$/views/DydxChainSubaccount_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2202,7 +2202,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EasAttestation",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/eas-attestations",
+		path: "(explore)/evm/eas-attestations",
 		view: "$/views/EasAttestationsView.svelte",
 		unresolved: [
 		],
@@ -2210,7 +2210,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EasAttestation_Timestamp",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/eas-attestation-timestamps",
+		path: "(explore)/evm/eas-attestation-timestamps",
 		view: "$/views/EasAttestation_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2218,7 +2218,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EigenLayerAllocation_Timestamp",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/eigen-layer-allocation-timestamps",
+		path: "(explore)/evm/eigen-layer-allocation-timestamps",
 		view: "$/views/EigenLayerAllocation_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2226,7 +2226,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EigenLayerAvs",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/eigen-layer-avss",
+		path: "(explore)/evm/eigen-layer-avss",
 		view: "$/views/EigenLayerAvssView.svelte",
 		unresolved: [
 		],
@@ -2234,7 +2234,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EigenLayerAvs_Timestamp",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/eigen-layer-avs-timestamps",
+		path: "(explore)/evm/eigen-layer-avs-timestamps",
 		view: "$/views/EigenLayerAvs_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2242,7 +2242,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EigenLayerDelegation_Timestamp",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/eigen-layer-delegation-timestamps",
+		path: "(explore)/evm/eigen-layer-delegation-timestamps",
 		view: "$/views/EigenLayerDelegation_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2250,7 +2250,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EigenLayerOperator",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/eigen-layer-operators",
+		path: "(explore)/evm/eigen-layer-operators",
 		view: "$/views/EigenLayerOperatorsView.svelte",
 		unresolved: [
 		],
@@ -2258,7 +2258,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EigenLayerReward_Timestamp",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/eigen-layer-reward-timestamps",
+		path: "(explore)/evm/eigen-layer-reward-timestamps",
 		view: "$/views/EigenLayerReward_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2266,7 +2266,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EigenLayerSlashingEvent",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/eigen-layer-slashing-events",
+		path: "(explore)/evm/eigen-layer-slashing-events",
 		view: "$/views/EigenLayerSlashingEventsView.svelte",
 		unresolved: [
 		],
@@ -2274,7 +2274,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EigenLayerStrategy",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/eigen-layer-strategys",
+		path: "(explore)/evm/eigen-layer-strategys",
 		view: "$/views/EigenLayerStrategysView.svelte",
 		unresolved: [
 		],
@@ -2282,7 +2282,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EigenLayerStrategy_Timestamp",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/eigen-layer-strategy-timestamps",
+		path: "(explore)/evm/eigen-layer-strategy-timestamps",
 		view: "$/views/EigenLayerStrategy_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2290,7 +2290,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "ElementsAsset",
 		hub: "assets",
-		path: "(assets)/assets/elements-assets",
+		path: "(assets)/elements-assets",
 		view: "$/views/ElementsAssetsView.svelte",
 		unresolved: [
 		],
@@ -2298,7 +2298,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "ElementsAsset_Timestamp",
 		hub: "assets",
-		path: "(assets)/assets/elements-asset-timestamps",
+		path: "(assets)/elements-asset-timestamps",
 		view: "$/views/ElementsAsset_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2306,7 +2306,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "ElementsIssuance",
 		hub: "assets",
-		path: "(assets)/assets/elements-issuances",
+		path: "(assets)/elements-issuances",
 		view: "$/views/ElementsIssuancesView.svelte",
 		unresolved: [
 		],
@@ -2314,7 +2314,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "ElementsPeg_Timestamp",
 		hub: "assets",
-		path: "(assets)/assets/elements-peg-timestamps",
+		path: "(assets)/elements-peg-timestamps",
 		view: "$/views/ElementsPeg_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2322,7 +2322,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EnsName",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/ens-names",
+		path: "(explore)/evm/ens-names",
 		view: "$/views/EnsNamesView.svelte",
 		unresolved: [
 		],
@@ -2330,7 +2330,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EnsName_Timestamp",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/ens-name-timestamps",
+		path: "(explore)/evm/ens-name-timestamps",
 		view: "$/views/EnsName_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2338,7 +2338,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EnsRecord",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/ens-records",
+		path: "(explore)/evm/ens-records",
 		view: "$/views/EnsRecordsView.svelte",
 		unresolved: [
 		],
@@ -2346,7 +2346,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EnsRecord_Timestamp",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/ens-record-timestamps",
+		path: "(explore)/evm/ens-record-timestamps",
 		view: "$/views/EnsRecord_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2354,7 +2354,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EnsReverseRecord",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/ens-reverse-records",
+		path: "(explore)/evm/ens-reverse-records",
 		view: "$/views/EnsReverseRecordsView.svelte",
 		unresolved: [
 		],
@@ -2362,7 +2362,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EnsReverseRecord_Timestamp",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/ens-reverse-record-timestamps",
+		path: "(explore)/evm/ens-reverse-record-timestamps",
 		view: "$/views/EnsReverseRecord_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2370,7 +2370,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "Erc4337AccountFactory",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/erc4337-account-factorys",
+		path: "(explore)/evm/erc4337-account-factorys",
 		view: "$/views/Erc4337AccountFactorysView.svelte",
 		unresolved: [
 		],
@@ -2378,7 +2378,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "Erc4337AccountFactory_Timestamp",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/erc4337-account-factory-timestamps",
+		path: "(explore)/evm/erc4337-account-factory-timestamps",
 		view: "$/views/Erc4337AccountFactory_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2386,7 +2386,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "Erc4337Bundler",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/erc4337-bundlers",
+		path: "(explore)/evm/erc4337-bundlers",
 		view: "$/views/Erc4337BundlersView.svelte",
 		unresolved: [
 		],
@@ -2394,7 +2394,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "Erc4337Bundler_Timestamp",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/erc4337-bundler-timestamps",
+		path: "(explore)/evm/erc4337-bundler-timestamps",
 		view: "$/views/Erc4337Bundler_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2402,7 +2402,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "Erc4337Paymaster",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/erc4337-paymasters",
+		path: "(explore)/evm/erc4337-paymasters",
 		view: "$/views/Erc4337PaymastersView.svelte",
 		unresolved: [
 		],
@@ -2410,7 +2410,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "Erc4337Paymaster_Timestamp",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/erc4337-paymaster-timestamps",
+		path: "(explore)/evm/erc4337-paymaster-timestamps",
 		view: "$/views/Erc4337Paymaster_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2418,7 +2418,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "Erc4337SmartAccount",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/erc4337-smart-accounts",
+		path: "(explore)/evm/erc4337-smart-accounts",
 		view: "$/views/Erc4337SmartAccountsView.svelte",
 		unresolved: [
 		],
@@ -2426,7 +2426,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "Erc4337SmartAccount_Timestamp",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/erc4337-smart-account-timestamps",
+		path: "(explore)/evm/erc4337-smart-account-timestamps",
 		view: "$/views/Erc4337SmartAccount_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2434,7 +2434,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "Erc4626Vault_Block",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/erc4626-vault-blocks",
+		path: "(explore)/evm/erc4626-vault-blocks",
 		view: "$/views/Erc4626Vault_BlocksView.svelte",
 		unresolved: [
 		],
@@ -2442,7 +2442,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "Erc4626Vault_Timestamp",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/erc4626-vault-timestamps",
+		path: "(explore)/evm/erc4626-vault-timestamps",
 		view: "$/views/Erc4626Vault_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2450,7 +2450,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EthereumBeaconFinality_Timestamp",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/ethereum-beacon-finality-timestamps",
+		path: "(explore)/evm/ethereum-beacon-finality-timestamps",
 		view: "$/views/EthereumBeaconFinality_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2458,7 +2458,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EthereumConsensusUpgrade",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/ethereum-consensus-upgrades",
+		path: "(explore)/evm/ethereum-consensus-upgrades",
 		view: "$/views/EthereumConsensusUpgradesView.svelte",
 		unresolved: [
 		],
@@ -2466,7 +2466,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EthereumExecutionUpgrade",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/ethereum-execution-upgrades",
+		path: "(explore)/evm/ethereum-execution-upgrades",
 		view: "$/views/EthereumExecutionUpgradesView.svelte",
 		unresolved: [
 		],
@@ -2474,7 +2474,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EthereumNetworkUpgrade",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/ethereum-network-upgrades",
+		path: "(explore)/evm/ethereum-network-upgrades",
 		view: "$/views/EthereumNetworkUpgradesView.svelte",
 		unresolved: [
 		],
@@ -2482,7 +2482,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EvmAccount",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/evm-accounts",
+		path: "(explore)/evm/evm-accounts",
 		view: "$/views/EvmAccountsView.svelte",
 		unresolved: [
 		],
@@ -2490,7 +2490,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EvmActorCoinAllowance",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/evm-actor-coin-allowances",
+		path: "(explore)/evm/evm-actor-coin-allowances",
 		view: "$/views/EvmActorCoinAllowancesView.svelte",
 		unresolved: [
 		],
@@ -2498,7 +2498,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EvmActorCoinAllowance_Block",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/evm-actor-coin-allowance-blocks",
+		path: "(explore)/evm/evm-actor-coin-allowance-blocks",
 		view: "$/views/EvmActorCoinAllowance_BlocksView.svelte",
 		unresolved: [
 		],
@@ -2506,7 +2506,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EvmBlob",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/evm-blobs",
+		path: "(explore)/evm/evm-blobs",
 		view: "$/views/EvmBlobsView.svelte",
 		unresolved: [
 		],
@@ -2514,7 +2514,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EvmBlock",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/evm-blocks",
+		path: "(explore)/evm/evm-blocks",
 		view: "$/views/EvmBlocksView.svelte",
 		unresolved: [
 		],
@@ -2522,7 +2522,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EvmCoinInstance",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/evm-coin-instances",
+		path: "(explore)/evm/evm-coin-instances",
 		view: "$/views/EvmCoinInstancesView.svelte",
 		unresolved: [
 		],
@@ -2530,7 +2530,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EvmContract",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/evm-contracts",
+		path: "(explore)/evm/evm-contracts",
 		view: "$/views/EvmContractsView.svelte",
 		unresolved: [
 		],
@@ -2538,7 +2538,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EvmError",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/evm-errors",
+		path: "(explore)/evm/evm-errors",
 		view: "$/views/EvmErrorsView.svelte",
 		unresolved: [
 		],
@@ -2546,7 +2546,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EvmError_Timestamp",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/evm-error-timestamps",
+		path: "(explore)/evm/evm-error-timestamps",
 		view: "$/views/EvmError_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2554,7 +2554,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EvmInternalTransfer",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/evm-internal-transfers",
+		path: "(explore)/evm/evm-internal-transfers",
 		view: "$/views/EvmInternalTransfersView.svelte",
 		unresolved: [
 		],
@@ -2562,7 +2562,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EvmLog",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/evm-logs",
+		path: "(explore)/evm/evm-logs",
 		view: "$/views/EvmLogsView.svelte",
 		unresolved: [
 		],
@@ -2570,7 +2570,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EvmNetwork",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/evm-networks",
+		path: "(explore)/evm/evm-networks",
 		view: "$/views/EvmNetworksView.svelte",
 		unresolved: [
 		],
@@ -2578,7 +2578,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EvmNetwork_GasEstimate_Timestamp",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/evm-network-gas-estimate-timestamps",
+		path: "(explore)/evm/evm-network-gas-estimate-timestamps",
 		view: "$/views/EvmNetwork_GasEstimate_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2586,7 +2586,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EvmNetwork_GasFee_Block",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/evm-network-gas-fee-blocks",
+		path: "(explore)/evm/evm-network-gas-fee-blocks",
 		view: "$/views/EvmNetwork_GasFee_BlocksView.svelte",
 		unresolved: [
 		],
@@ -2594,7 +2594,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EvmNetwork_Timestamp",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/evm-network-timestamps",
+		path: "(explore)/evm/evm-network-timestamps",
 		view: "$/views/EvmNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2602,7 +2602,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EvmNetwork_Txpool_Timestamp",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/evm-network-txpool-timestamps",
+		path: "(explore)/evm/evm-network-txpool-timestamps",
 		view: "$/views/EvmNetwork_Txpool_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2610,7 +2610,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EvmNetworkAccount_Timestamp",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/evm-network-account-timestamps",
+		path: "(explore)/evm/evm-network-account-timestamps",
 		view: "$/views/EvmNetworkAccount_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2618,7 +2618,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EvmNetworkActorCoinBalance",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/evm-network-actor-coin-balances",
+		path: "(explore)/evm/evm-network-actor-coin-balances",
 		view: "$/views/EvmNetworkActorCoinBalancesView.svelte",
 		unresolved: [
 		],
@@ -2626,7 +2626,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EvmNetworkActorCoinBalance_EvmBlock",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/evm-network-actor-coin-balance-evm-blocks",
+		path: "(explore)/evm/evm-network-actor-coin-balance-evm-blocks",
 		view: "$/views/EvmNetworkActorCoinBalance_EvmBlocksView.svelte",
 		unresolved: [
 		],
@@ -2634,7 +2634,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EvmNetworkActorCoinBalance_Timestamp",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/evm-network-actor-coin-balance-timestamps",
+		path: "(explore)/evm/evm-network-actor-coin-balance-timestamps",
 		view: "$/views/EvmNetworkActorCoinBalance_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2642,7 +2642,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EvmNetworkBridge",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/evm-network-bridges",
+		path: "(explore)/evm/evm-network-bridges",
 		view: "$/views/EvmNetworkBridgesView.svelte",
 		unresolved: [
 		],
@@ -2650,7 +2650,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EvmNft",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/evm-nfts",
+		path: "(explore)/evm/evm-nfts",
 		view: "$/views/EvmNftsView.svelte",
 		unresolved: [
 		],
@@ -2658,7 +2658,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EvmRollup",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/evm-rollups",
+		path: "(explore)/evm/evm-rollups",
 		view: "$/views/EvmRollupsView.svelte",
 		unresolved: [
 		],
@@ -2666,7 +2666,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EvmRollup_Timestamp",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/evm-rollup-timestamps",
+		path: "(explore)/evm/evm-rollup-timestamps",
 		view: "$/views/EvmRollup_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2674,7 +2674,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EvmSelector",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/evm-selectors",
+		path: "(explore)/evm/evm-selectors",
 		view: "$/views/EvmSelectorsView.svelte",
 		unresolved: [
 		],
@@ -2682,7 +2682,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EvmSelector_Timestamp",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/evm-selector-timestamps",
+		path: "(explore)/evm/evm-selector-timestamps",
 		view: "$/views/EvmSelector_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2690,7 +2690,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EvmTokenTransfer",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/evm-token-transfers",
+		path: "(explore)/evm/evm-token-transfers",
 		view: "$/views/EvmTokenTransfersView.svelte",
 		unresolved: [
 		],
@@ -2698,7 +2698,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EvmTopic",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/evm-topics",
+		path: "(explore)/evm/evm-topics",
 		view: "$/views/EvmTopicsView.svelte",
 		unresolved: [
 		],
@@ -2706,7 +2706,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EvmTopic_Timestamp",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/evm-topic-timestamps",
+		path: "(explore)/evm/evm-topic-timestamps",
 		view: "$/views/EvmTopic_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2714,7 +2714,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EvmTrace",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/evm-traces",
+		path: "(explore)/evm/evm-traces",
 		view: "$/views/EvmTracesView.svelte",
 		unresolved: [
 		],
@@ -2722,7 +2722,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EvmTransaction",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/evm-transactions",
+		path: "(explore)/evm/evm-transactions",
 		view: "$/views/EvmTransactionsView.svelte",
 		unresolved: [
 		],
@@ -2730,7 +2730,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "EvmUserOperation",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/evm-user-operations",
+		path: "(explore)/evm/evm-user-operations",
 		view: "$/views/EvmUserOperationsView.svelte",
 		unresolved: [
 		],
@@ -2738,7 +2738,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "FarcasterCast",
 		hub: "social-farcaster",
-		path: "(social)/(farcaster)/farcaster/farcaster-casts",
+		path: "(social)/farcaster/farcaster-casts",
 		view: "$/views/FarcasterCastsView.svelte",
 		unresolved: [
 		],
@@ -2746,7 +2746,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "FarcasterCast_Timestamp",
 		hub: "social-farcaster",
-		path: "(social)/(farcaster)/farcaster/farcaster-cast-timestamps",
+		path: "(social)/farcaster/farcaster-cast-timestamps",
 		view: "$/views/FarcasterCast_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2754,7 +2754,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "FarcasterCastEmbed",
 		hub: "social-farcaster",
-		path: "(social)/(farcaster)/farcaster/farcaster-cast-embeds",
+		path: "(social)/farcaster/farcaster-cast-embeds",
 		view: "$/views/FarcasterCastEmbedsView.svelte",
 		unresolved: [
 		],
@@ -2762,7 +2762,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "FarcasterChannel",
 		hub: "social-farcaster",
-		path: "(social)/(farcaster)/farcaster/farcaster-channels",
+		path: "(social)/farcaster/farcaster-channels",
 		view: "$/views/FarcasterChannelsView.svelte",
 		unresolved: [
 		],
@@ -2770,7 +2770,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "FarcasterChannel_Timestamp",
 		hub: "social-farcaster",
-		path: "(social)/(farcaster)/farcaster/farcaster-channel-timestamps",
+		path: "(social)/farcaster/farcaster-channel-timestamps",
 		view: "$/views/FarcasterChannel_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2778,7 +2778,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "FarcasterFeed",
 		hub: "social-farcaster",
-		path: "(social)/(farcaster)/farcaster/farcaster-feeds",
+		path: "(social)/farcaster/farcaster-feeds",
 		view: "$/views/FarcasterFeedsView.svelte",
 		unresolved: [
 		],
@@ -2786,7 +2786,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "FarcasterUser",
 		hub: "social-farcaster",
-		path: "(social)/(farcaster)/farcaster/farcaster-users",
+		path: "(social)/farcaster/farcaster-users",
 		view: "$/views/FarcasterUsersView.svelte",
 		unresolved: [
 		],
@@ -2794,7 +2794,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "FarcasterUser_Timestamp",
 		hub: "social-farcaster",
-		path: "(social)/(farcaster)/farcaster/farcaster-user-timestamps",
+		path: "(social)/farcaster/farcaster-user-timestamps",
 		view: "$/views/FarcasterUser_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2802,7 +2802,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "FarcasterVerifiedAddress",
 		hub: "social-farcaster",
-		path: "(social)/(farcaster)/farcaster/farcaster-verified-addresss",
+		path: "(social)/farcaster/farcaster-verified-addresss",
 		view: "$/views/FarcasterVerifiedAddresssView.svelte",
 		unresolved: [
 		],
@@ -2810,7 +2810,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "FedimintFederation",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/fedimint-federations",
+		path: "(explore)/(networks)/fedimint-federations",
 		view: "$/views/FedimintFederationsView.svelte",
 		unresolved: [
 		],
@@ -2818,7 +2818,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "FedimintFederation_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/fedimint-federation-timestamps",
+		path: "(explore)/(networks)/fedimint-federation-timestamps",
 		view: "$/views/FedimintFederation_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2826,7 +2826,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "FedimintGateway",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/fedimint-gateways",
+		path: "(explore)/(networks)/fedimint-gateways",
 		view: "$/views/FedimintGatewaysView.svelte",
 		unresolved: [
 		],
@@ -2834,7 +2834,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "FedimintGateway_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/fedimint-gateway-timestamps",
+		path: "(explore)/(networks)/fedimint-gateway-timestamps",
 		view: "$/views/FedimintGateway_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2842,7 +2842,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "FilecoinBlock",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/filecoin-blocks",
+		path: "(explore)/(networks)/filecoin-blocks",
 		view: "$/views/FilecoinBlocksView.svelte",
 		unresolved: [
 		],
@@ -2850,7 +2850,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "FilecoinDeal_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/filecoin-deal-timestamps",
+		path: "(explore)/(networks)/filecoin-deal-timestamps",
 		view: "$/views/FilecoinDeal_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2858,7 +2858,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "FilecoinMessage",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/filecoin-messages",
+		path: "(explore)/(networks)/filecoin-messages",
 		view: "$/views/FilecoinMessagesView.svelte",
 		unresolved: [
 		],
@@ -2866,7 +2866,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "FilecoinMiner",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/filecoin-miners",
+		path: "(explore)/(networks)/filecoin-miners",
 		view: "$/views/FilecoinMinersView.svelte",
 		unresolved: [
 		],
@@ -2874,7 +2874,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "FilecoinNetwork_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/filecoin-network-timestamps",
+		path: "(explore)/(networks)/filecoin-network-timestamps",
 		view: "$/views/FilecoinNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2882,7 +2882,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "FilecoinSector",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/filecoin-sectors",
+		path: "(explore)/(networks)/filecoin-sectors",
 		view: "$/views/FilecoinSectorsView.svelte",
 		unresolved: [
 		],
@@ -2890,7 +2890,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "FilecoinTipset",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/filecoin-tipsets",
+		path: "(explore)/(networks)/filecoin-tipsets",
 		view: "$/views/FilecoinTipsetsView.svelte",
 		unresolved: [
 		],
@@ -2898,7 +2898,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "GitFetchObservation",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/git-fetch-observations",
+		path: "(explore)/(data)/git-fetch-observations",
 		view: "$/views/GitFetchObservationsView.svelte",
 		unresolved: [
 		],
@@ -2906,7 +2906,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "GitObject",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/git-objects",
+		path: "(explore)/(data)/git-objects",
 		view: "$/views/GitObjectsView.svelte",
 		unresolved: [
 		],
@@ -2914,7 +2914,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "GitRef",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/git-refs",
+		path: "(explore)/(data)/git-refs",
 		view: "$/views/GitRefsView.svelte",
 		unresolved: [
 		],
@@ -2922,7 +2922,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "GitRefObservation_Timestamp",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/git-ref-observation-timestamps",
+		path: "(explore)/(data)/git-ref-observation-timestamps",
 		view: "$/views/GitRefObservation_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2930,7 +2930,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "GitRemote",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/git-remotes",
+		path: "(explore)/(data)/git-remotes",
 		view: "$/views/GitRemotesView.svelte",
 		unresolved: [
 		],
@@ -2938,7 +2938,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "GitSignature",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/git-signatures",
+		path: "(explore)/(data)/git-signatures",
 		view: "$/views/GitSignaturesView.svelte",
 		unresolved: [
 		],
@@ -2946,7 +2946,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "GitTreeEntry",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/git-tree-entries",
+		path: "(explore)/(data)/git-tree-entries",
 		view: "$/views/GitTreeEntriesView.svelte",
 		unresolved: [
 		],
@@ -2954,7 +2954,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaAccount",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-accounts",
+		path: "(explore)/(networks)/hedera-accounts",
 		view: "$/views/HederaAccountsView.svelte",
 		unresolved: [
 		],
@@ -2962,7 +2962,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaAccount_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-account-timestamps",
+		path: "(explore)/(networks)/hedera-account-timestamps",
 		view: "$/views/HederaAccount_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2970,7 +2970,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaAllowance",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-allowances",
+		path: "(explore)/(networks)/hedera-allowances",
 		view: "$/views/HederaAllowancesView.svelte",
 		unresolved: [
 		],
@@ -2978,7 +2978,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaAllowance_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-allowance-timestamps",
+		path: "(explore)/(networks)/hedera-allowance-timestamps",
 		view: "$/views/HederaAllowance_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -2986,7 +2986,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaBlock",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-blocks",
+		path: "(explore)/(networks)/hedera-blocks",
 		view: "$/views/HederaBlocksView.svelte",
 		unresolved: [
 		],
@@ -2994,7 +2994,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaContract",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-contracts",
+		path: "(explore)/(networks)/hedera-contracts",
 		view: "$/views/HederaContractsView.svelte",
 		unresolved: [
 		],
@@ -3002,7 +3002,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaContract_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-contract-timestamps",
+		path: "(explore)/(networks)/hedera-contract-timestamps",
 		view: "$/views/HederaContract_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3010,7 +3010,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaContractAction",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-contract-actions",
+		path: "(explore)/(networks)/hedera-contract-actions",
 		view: "$/views/HederaContractActionsView.svelte",
 		unresolved: [
 		],
@@ -3018,7 +3018,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaContractLog",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-contract-logs",
+		path: "(explore)/(networks)/hedera-contract-logs",
 		view: "$/views/HederaContractLogsView.svelte",
 		unresolved: [
 		],
@@ -3026,7 +3026,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaContractResult",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-contract-results",
+		path: "(explore)/(networks)/hedera-contract-results",
 		view: "$/views/HederaContractResultsView.svelte",
 		unresolved: [
 		],
@@ -3034,7 +3034,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaContractState_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-contract-state-timestamps",
+		path: "(explore)/(networks)/hedera-contract-state-timestamps",
 		view: "$/views/HederaContractState_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3042,7 +3042,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaHbarTransfer",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-hbar-transfers",
+		path: "(explore)/(networks)/hedera-hbar-transfers",
 		view: "$/views/HederaHbarTransfersView.svelte",
 		unresolved: [
 		],
@@ -3050,7 +3050,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaNetwork_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-network-timestamps",
+		path: "(explore)/(networks)/hedera-network-timestamps",
 		view: "$/views/HederaNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3058,7 +3058,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaNetworkExchangeRate_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-network-exchange-rate-timestamps",
+		path: "(explore)/(networks)/hedera-network-exchange-rate-timestamps",
 		view: "$/views/HederaNetworkExchangeRate_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3066,7 +3066,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaNetworkFee_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-network-fee-timestamps",
+		path: "(explore)/(networks)/hedera-network-fee-timestamps",
 		view: "$/views/HederaNetworkFee_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3074,7 +3074,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaNetworkStake_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-network-stake-timestamps",
+		path: "(explore)/(networks)/hedera-network-stake-timestamps",
 		view: "$/views/HederaNetworkStake_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3082,7 +3082,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaNetworkSupply_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-network-supply-timestamps",
+		path: "(explore)/(networks)/hedera-network-supply-timestamps",
 		view: "$/views/HederaNetworkSupply_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3090,7 +3090,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaNft",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-nfts",
+		path: "(explore)/(networks)/hedera-nfts",
 		view: "$/views/HederaNftsView.svelte",
 		unresolved: [
 		],
@@ -3098,7 +3098,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaNft_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-nft-timestamps",
+		path: "(explore)/(networks)/hedera-nft-timestamps",
 		view: "$/views/HederaNft_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3106,7 +3106,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaNode",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-nodes",
+		path: "(explore)/(networks)/hedera-nodes",
 		view: "$/views/HederaNodesView.svelte",
 		unresolved: [
 		],
@@ -3114,7 +3114,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaNode_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-node-timestamps",
+		path: "(explore)/(networks)/hedera-node-timestamps",
 		view: "$/views/HederaNode_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3122,7 +3122,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaSchedule",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-schedules",
+		path: "(explore)/(networks)/hedera-schedules",
 		view: "$/views/HederaSchedulesView.svelte",
 		unresolved: [
 		],
@@ -3130,7 +3130,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaSchedule_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-schedule-timestamps",
+		path: "(explore)/(networks)/hedera-schedule-timestamps",
 		view: "$/views/HederaSchedule_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3138,7 +3138,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaScheduleSignature",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-schedule-signatures",
+		path: "(explore)/(networks)/hedera-schedule-signatures",
 		view: "$/views/HederaScheduleSignaturesView.svelte",
 		unresolved: [
 		],
@@ -3146,7 +3146,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaToken",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-tokens",
+		path: "(explore)/(networks)/hedera-tokens",
 		view: "$/views/HederaTokensView.svelte",
 		unresolved: [
 		],
@@ -3154,7 +3154,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaToken_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-token-timestamps",
+		path: "(explore)/(networks)/hedera-token-timestamps",
 		view: "$/views/HederaToken_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3162,7 +3162,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaTokenAssociation",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-token-associations",
+		path: "(explore)/(networks)/hedera-token-associations",
 		view: "$/views/HederaTokenAssociationsView.svelte",
 		unresolved: [
 		],
@@ -3170,7 +3170,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaTokenAssociation_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-token-association-timestamps",
+		path: "(explore)/(networks)/hedera-token-association-timestamps",
 		view: "$/views/HederaTokenAssociation_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3178,7 +3178,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaTokenCustomFee",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-token-custom-fees",
+		path: "(explore)/(networks)/hedera-token-custom-fees",
 		view: "$/views/HederaTokenCustomFeesView.svelte",
 		unresolved: [
 		],
@@ -3186,7 +3186,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaTokenTransfer",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-token-transfers",
+		path: "(explore)/(networks)/hedera-token-transfers",
 		view: "$/views/HederaTokenTransfersView.svelte",
 		unresolved: [
 		],
@@ -3194,7 +3194,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaTopic",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-topics",
+		path: "(explore)/(networks)/hedera-topics",
 		view: "$/views/HederaTopicsView.svelte",
 		unresolved: [
 		],
@@ -3202,7 +3202,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaTopic_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-topic-timestamps",
+		path: "(explore)/(networks)/hedera-topic-timestamps",
 		view: "$/views/HederaTopic_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3210,7 +3210,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaTopicMessage",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-topic-messages",
+		path: "(explore)/(networks)/hedera-topic-messages",
 		view: "$/views/HederaTopicMessagesView.svelte",
 		unresolved: [
 		],
@@ -3218,7 +3218,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HederaTransaction",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hedera-transactions",
+		path: "(explore)/(networks)/hedera-transactions",
 		view: "$/views/HederaTransactionsView.svelte",
 		unresolved: [
 		],
@@ -3226,7 +3226,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HyperliquidAccount_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hyperliquid-account-timestamps",
+		path: "(explore)/(networks)/hyperliquid-account-timestamps",
 		view: "$/views/HyperliquidAccount_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3234,7 +3234,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HyperliquidBlock",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hyperliquid-blocks",
+		path: "(explore)/(networks)/hyperliquid-blocks",
 		view: "$/views/HyperliquidBlocksView.svelte",
 		unresolved: [
 		],
@@ -3242,7 +3242,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HyperliquidFill",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hyperliquid-fills",
+		path: "(explore)/(networks)/hyperliquid-fills",
 		view: "$/views/HyperliquidFillsView.svelte",
 		unresolved: [
 		],
@@ -3250,7 +3250,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HyperliquidNetwork_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hyperliquid-network-timestamps",
+		path: "(explore)/(networks)/hyperliquid-network-timestamps",
 		view: "$/views/HyperliquidNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3258,7 +3258,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HyperliquidOrder",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hyperliquid-orders",
+		path: "(explore)/(networks)/hyperliquid-orders",
 		view: "$/views/HyperliquidOrdersView.svelte",
 		unresolved: [
 		],
@@ -3266,7 +3266,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HyperliquidOrder_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hyperliquid-order-timestamps",
+		path: "(explore)/(networks)/hyperliquid-order-timestamps",
 		view: "$/views/HyperliquidOrder_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3274,7 +3274,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HyperliquidPerpMarket",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hyperliquid-perp-markets",
+		path: "(explore)/(networks)/hyperliquid-perp-markets",
 		view: "$/views/HyperliquidPerpMarketsView.svelte",
 		unresolved: [
 		],
@@ -3282,7 +3282,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HyperliquidPerpMarket_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hyperliquid-perp-market-timestamps",
+		path: "(explore)/(networks)/hyperliquid-perp-market-timestamps",
 		view: "$/views/HyperliquidPerpMarket_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3290,7 +3290,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HyperliquidSpotAsset",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hyperliquid-spot-assets",
+		path: "(explore)/(networks)/hyperliquid-spot-assets",
 		view: "$/views/HyperliquidSpotAssetsView.svelte",
 		unresolved: [
 		],
@@ -3298,7 +3298,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HyperliquidSpotAsset_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hyperliquid-spot-asset-timestamps",
+		path: "(explore)/(networks)/hyperliquid-spot-asset-timestamps",
 		view: "$/views/HyperliquidSpotAsset_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3306,7 +3306,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HyperliquidSpotPair",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hyperliquid-spot-pairs",
+		path: "(explore)/(networks)/hyperliquid-spot-pairs",
 		view: "$/views/HyperliquidSpotPairsView.svelte",
 		unresolved: [
 		],
@@ -3314,7 +3314,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HyperliquidSpotPair_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hyperliquid-spot-pair-timestamps",
+		path: "(explore)/(networks)/hyperliquid-spot-pair-timestamps",
 		view: "$/views/HyperliquidSpotPair_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3322,7 +3322,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HyperliquidTransaction",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hyperliquid-transactions",
+		path: "(explore)/(networks)/hyperliquid-transactions",
 		view: "$/views/HyperliquidTransactionsView.svelte",
 		unresolved: [
 		],
@@ -3330,7 +3330,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HyperliquidTransaction_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hyperliquid-transaction-timestamps",
+		path: "(explore)/(networks)/hyperliquid-transaction-timestamps",
 		view: "$/views/HyperliquidTransaction_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3338,7 +3338,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HyperliquidValidator",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hyperliquid-validators",
+		path: "(explore)/(networks)/hyperliquid-validators",
 		view: "$/views/HyperliquidValidatorsView.svelte",
 		unresolved: [
 		],
@@ -3346,7 +3346,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HyperliquidValidator_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hyperliquid-validator-timestamps",
+		path: "(explore)/(networks)/hyperliquid-validator-timestamps",
 		view: "$/views/HyperliquidValidator_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3354,7 +3354,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HyperliquidVault",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hyperliquid-vaults",
+		path: "(explore)/(networks)/hyperliquid-vaults",
 		view: "$/views/HyperliquidVaultsView.svelte",
 		unresolved: [
 		],
@@ -3362,7 +3362,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HyperliquidVault_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hyperliquid-vault-timestamps",
+		path: "(explore)/(networks)/hyperliquid-vault-timestamps",
 		view: "$/views/HyperliquidVault_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3370,7 +3370,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "HyperliquidVaultEquity_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/hyperliquid-vault-equity-timestamps",
+		path: "(explore)/(networks)/hyperliquid-vault-equity-timestamps",
 		view: "$/views/HyperliquidVaultEquity_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3378,7 +3378,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "IbcChannel",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/ibc-channels",
+		path: "(explore)/(networks)/ibc-channels",
 		view: "$/views/IbcChannelsView.svelte",
 		unresolved: [
 		],
@@ -3386,7 +3386,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "IbcConnection",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/ibc-connections",
+		path: "(explore)/(networks)/ibc-connections",
 		view: "$/views/IbcConnectionsView.svelte",
 		unresolved: [
 		],
@@ -3394,7 +3394,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "IbcPacket",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/ibc-packets",
+		path: "(explore)/(networks)/ibc-packets",
 		view: "$/views/IbcPacketsView.svelte",
 		unresolved: [
 		],
@@ -3402,7 +3402,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "IcpCanister",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/icp-canisters",
+		path: "(explore)/(networks)/icp-canisters",
 		view: "$/views/IcpCanistersView.svelte",
 		unresolved: [
 		],
@@ -3410,7 +3410,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "IcpCanister_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/icp-canister-timestamps",
+		path: "(explore)/(networks)/icp-canister-timestamps",
 		view: "$/views/IcpCanister_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3418,7 +3418,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "IcpCanisterLog_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/icp-canister-log-timestamps",
+		path: "(explore)/(networks)/icp-canister-log-timestamps",
 		view: "$/views/IcpCanisterLog_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3426,7 +3426,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "IcpCanisterMetadata",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/icp-canister-metadatas",
+		path: "(explore)/(networks)/icp-canister-metadatas",
 		view: "$/views/IcpCanisterMetadatasView.svelte",
 		unresolved: [
 		],
@@ -3434,7 +3434,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "IcpCanisterMetadata_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/icp-canister-metadata-timestamps",
+		path: "(explore)/(networks)/icp-canister-metadata-timestamps",
 		view: "$/views/IcpCanisterMetadata_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3442,7 +3442,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "IcpCanisterMethod",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/icp-canister-methods",
+		path: "(explore)/(networks)/icp-canister-methods",
 		view: "$/views/IcpCanisterMethodsView.svelte",
 		unresolved: [
 		],
@@ -3450,7 +3450,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "IcpCanisterMethod_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/icp-canister-method-timestamps",
+		path: "(explore)/(networks)/icp-canister-method-timestamps",
 		view: "$/views/IcpCanisterMethod_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3458,7 +3458,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "IcpCertifiedState",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/icp-certified-states",
+		path: "(explore)/(networks)/icp-certified-states",
 		view: "$/views/IcpCertifiedStatesView.svelte",
 		unresolved: [
 		],
@@ -3466,7 +3466,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "IcpLedgerAccount_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/icp-ledger-account-timestamps",
+		path: "(explore)/(networks)/icp-ledger-account-timestamps",
 		view: "$/views/IcpLedgerAccount_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3474,7 +3474,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "IcpLedgerBlock",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/icp-ledger-blocks",
+		path: "(explore)/(networks)/icp-ledger-blocks",
 		view: "$/views/IcpLedgerBlocksView.svelte",
 		unresolved: [
 		],
@@ -3482,7 +3482,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "IcpLedgerCanister",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/icp-ledger-canisters",
+		path: "(explore)/(networks)/icp-ledger-canisters",
 		view: "$/views/IcpLedgerCanistersView.svelte",
 		unresolved: [
 		],
@@ -3490,7 +3490,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "IcpLedgerCanister_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/icp-ledger-canister-timestamps",
+		path: "(explore)/(networks)/icp-ledger-canister-timestamps",
 		view: "$/views/IcpLedgerCanister_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3498,7 +3498,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "IcpLedgerTransaction",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/icp-ledger-transactions",
+		path: "(explore)/(networks)/icp-ledger-transactions",
 		view: "$/views/IcpLedgerTransactionsView.svelte",
 		unresolved: [
 		],
@@ -3506,7 +3506,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "IcpNetwork_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/icp-network-timestamps",
+		path: "(explore)/(networks)/icp-network-timestamps",
 		view: "$/views/IcpNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3514,7 +3514,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "IcpRequestStatus",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/icp-request-statuss",
+		path: "(explore)/(networks)/icp-request-statuss",
 		view: "$/views/IcpRequestStatussView.svelte",
 		unresolved: [
 		],
@@ -3522,7 +3522,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "IcpRequestStatus_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/icp-request-status-timestamps",
+		path: "(explore)/(networks)/icp-request-status-timestamps",
 		view: "$/views/IcpRequestStatus_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3530,7 +3530,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "IcpSubnet",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/icp-subnets",
+		path: "(explore)/(networks)/icp-subnets",
 		view: "$/views/IcpSubnetsView.svelte",
 		unresolved: [
 		],
@@ -3538,7 +3538,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "IcpSubnet_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/icp-subnet-timestamps",
+		path: "(explore)/(networks)/icp-subnet-timestamps",
 		view: "$/views/IcpSubnet_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3546,7 +3546,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "IcpSubnetCanisterRange_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/icp-subnet-canister-range-timestamps",
+		path: "(explore)/(networks)/icp-subnet-canister-range-timestamps",
 		view: "$/views/IcpSubnetCanisterRange_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3554,7 +3554,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "IpfsResource",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/ipfs-resources",
+		path: "(explore)/(data)/ipfs-resources",
 		view: "$/views/IpfsResourcesView.svelte",
 		unresolved: [
 		],
@@ -3570,7 +3570,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "KaspaAcceptedTransaction",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/kaspa-accepted-transactions",
+		path: "(explore)/(networks)/kaspa-accepted-transactions",
 		view: "$/views/KaspaAcceptedTransactionsView.svelte",
 		unresolved: [
 		],
@@ -3578,7 +3578,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "KaspaAddress",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/kaspa-addresss",
+		path: "(explore)/(networks)/kaspa-addresss",
 		view: "$/views/KaspaAddresssView.svelte",
 		unresolved: [
 		],
@@ -3586,7 +3586,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "KaspaAddress_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/kaspa-address-timestamps",
+		path: "(explore)/(networks)/kaspa-address-timestamps",
 		view: "$/views/KaspaAddress_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3594,7 +3594,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "KaspaAddressUtxo_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/kaspa-address-utxo-timestamps",
+		path: "(explore)/(networks)/kaspa-address-utxo-timestamps",
 		view: "$/views/KaspaAddressUtxo_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3602,7 +3602,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "KaspaBlock",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/kaspa-blocks",
+		path: "(explore)/(networks)/kaspa-blocks",
 		view: "$/views/KaspaBlocksView.svelte",
 		unresolved: [
 		],
@@ -3610,7 +3610,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "KaspaNetwork_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/kaspa-network-timestamps",
+		path: "(explore)/(networks)/kaspa-network-timestamps",
 		view: "$/views/KaspaNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3618,7 +3618,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "KaspaTransaction",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/kaspa-transactions",
+		path: "(explore)/(networks)/kaspa-transactions",
 		view: "$/views/KaspaTransactionsView.svelte",
 		unresolved: [
 		],
@@ -3626,7 +3626,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "KaspaVirtualChain_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/kaspa-virtual-chain-timestamps",
+		path: "(explore)/(networks)/kaspa-virtual-chain-timestamps",
 		view: "$/views/KaspaVirtualChain_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3634,7 +3634,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "LensAccount",
 		hub: "social-lens",
-		path: "(social)/(lens)/lens/lens-accounts",
+		path: "(social)/lens/lens-accounts",
 		view: "$/views/LensAccountsView.svelte",
 		unresolved: [
 		],
@@ -3642,7 +3642,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "LensAccount_Timestamp",
 		hub: "social-lens",
-		path: "(social)/(lens)/lens/lens-account-timestamps",
+		path: "(social)/lens/lens-account-timestamps",
 		view: "$/views/LensAccount_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3650,7 +3650,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "LensAccountManager",
 		hub: "social-lens",
-		path: "(social)/(lens)/lens/lens-account-managers",
+		path: "(social)/lens/lens-account-managers",
 		view: "$/views/LensAccountManagersView.svelte",
 		unresolved: [
 		],
@@ -3658,7 +3658,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "LensFeed",
 		hub: "social-lens",
-		path: "(social)/(lens)/lens/lens-feeds",
+		path: "(social)/lens/lens-feeds",
 		view: "$/views/LensFeedsView.svelte",
 		unresolved: [
 		],
@@ -3666,7 +3666,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "LensPost",
 		hub: "social-lens",
-		path: "(social)/(lens)/lens/lens-posts",
+		path: "(social)/lens/lens-posts",
 		view: "$/views/LensPostsView.svelte",
 		unresolved: [
 		],
@@ -3674,7 +3674,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "LensPost_Timestamp",
 		hub: "social-lens",
-		path: "(social)/(lens)/lens/lens-post-timestamps",
+		path: "(social)/lens/lens-post-timestamps",
 		view: "$/views/LensPost_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3682,7 +3682,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "LensUsername",
 		hub: "social-lens",
-		path: "(social)/(lens)/lens/lens-usernames",
+		path: "(social)/lens/lens-usernames",
 		view: "$/views/LensUsernamesView.svelte",
 		unresolved: [
 		],
@@ -3690,7 +3690,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "LensUsernameNamespace",
 		hub: "social-lens",
-		path: "(social)/(lens)/lens/lens-username-namespaces",
+		path: "(social)/lens/lens-username-namespaces",
 		view: "$/views/LensUsernameNamespacesView.svelte",
 		unresolved: [
 		],
@@ -3698,7 +3698,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "LightningChannel",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/lightning-channels",
+		path: "(explore)/(networks)/lightning-channels",
 		view: "$/views/LightningChannelsView.svelte",
 		unresolved: [
 		],
@@ -3706,7 +3706,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "LightningChannel_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/lightning-channel-timestamps",
+		path: "(explore)/(networks)/lightning-channel-timestamps",
 		view: "$/views/LightningChannel_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3714,7 +3714,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "LightningNetwork_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/lightning-network-timestamps",
+		path: "(explore)/(networks)/lightning-network-timestamps",
 		view: "$/views/LightningNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3722,7 +3722,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "LightningNode",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/lightning-nodes",
+		path: "(explore)/(networks)/lightning-nodes",
 		view: "$/views/LightningNodesView.svelte",
 		unresolved: [
 		],
@@ -3730,7 +3730,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "LightningNode_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/lightning-node-timestamps",
+		path: "(explore)/(networks)/lightning-node-timestamps",
 		view: "$/views/LightningNode_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3738,7 +3738,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "LiquidityPool",
 		hub: "assets",
-		path: "(assets)/assets/liquidity-pools",
+		path: "(assets)/liquidity-pools",
 		view: "$/views/LiquidityPoolsView.svelte",
 		unresolved: [
 		],
@@ -3746,7 +3746,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "LiquidityPool_Block",
 		hub: "assets",
-		path: "(assets)/assets/liquidity-pool-blocks",
+		path: "(assets)/liquidity-pool-blocks",
 		view: "$/views/LiquidityPool_BlocksView.svelte",
 		unresolved: [
 		],
@@ -3754,7 +3754,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "LiquidityPool_Timestamp",
 		hub: "assets",
-		path: "(assets)/assets/liquidity-pool-timestamps",
+		path: "(assets)/liquidity-pool-timestamps",
 		view: "$/views/LiquidityPool_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3762,7 +3762,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "LiquidityPosition",
 		hub: "assets",
-		path: "(assets)/assets/liquidity-positions",
+		path: "(assets)/liquidity-positions",
 		view: "$/views/LiquidityPositionsView.svelte",
 		unresolved: [
 		],
@@ -3770,7 +3770,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "LiquidityPosition_Block",
 		hub: "assets",
-		path: "(assets)/assets/liquidity-position-blocks",
+		path: "(assets)/liquidity-position-blocks",
 		view: "$/views/LiquidityPosition_BlocksView.svelte",
 		unresolved: [
 		],
@@ -3778,7 +3778,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "LitecoinMwebOutput",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/litecoin-mweb-outputs",
+		path: "(explore)/(networks)/litecoin-mweb-outputs",
 		view: "$/views/LitecoinMwebOutputsView.svelte",
 		unresolved: [
 		],
@@ -3786,7 +3786,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "LitecoinMwebPegIn",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/litecoin-mweb-peg-ins",
+		path: "(explore)/(networks)/litecoin-mweb-peg-ins",
 		view: "$/views/LitecoinMwebPegInsView.svelte",
 		unresolved: [
 		],
@@ -3794,7 +3794,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "LitecoinMwebPegOut",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/litecoin-mweb-peg-outs",
+		path: "(explore)/(networks)/litecoin-mweb-peg-outs",
 		view: "$/views/LitecoinMwebPegOutsView.svelte",
 		unresolved: [
 		],
@@ -3802,7 +3802,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "LitecoinMwebTransaction",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/litecoin-mweb-transactions",
+		path: "(explore)/(networks)/litecoin-mweb-transactions",
 		view: "$/views/LitecoinMwebTransactionsView.svelte",
 		unresolved: [
 		],
@@ -3810,7 +3810,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "LogosBlockchainNetwork_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/logos-blockchain-network-timestamps",
+		path: "(explore)/(networks)/logos-blockchain-network-timestamps",
 		view: "$/views/LogosBlockchainNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3818,7 +3818,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "MagnetLink",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/magnet-links",
+		path: "(explore)/(data)/magnet-links",
 		view: "$/views/MagnetLinksView.svelte",
 		unresolved: [
 		],
@@ -3826,7 +3826,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "MagnetResolution_Timestamp",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/magnet-resolution-timestamps",
+		path: "(explore)/(data)/magnet-resolution-timestamps",
 		view: "$/views/MagnetResolution_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3834,7 +3834,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "Market",
 		hub: "assets",
-		path: "(assets)/assets/markets",
+		path: "(assets)/markets",
 		view: "$/views/MarketsView.svelte",
 		unresolved: [
 		],
@@ -3842,7 +3842,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "MarketVenue",
 		hub: "assets",
-		path: "(assets)/assets/market-venues",
+		path: "(assets)/market/venues",
 		view: "$/views/MarketVenuesView.svelte",
 		unresolved: [
 		],
@@ -3850,7 +3850,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "Market_Derivative_Timestamp",
 		hub: "assets",
-		path: "(assets)/assets/market-derivative-timestamps",
+		path: "(assets)/market-derivative-timestamps",
 		view: "$/views/Market_Derivative_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3858,7 +3858,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "Market_TimeInterval_Timestamp",
 		hub: "assets",
-		path: "(assets)/assets/market-time-interval-timestamps",
+		path: "(assets)/market-time-interval-timestamps",
 		view: "$/views/Market_TimeInterval_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3866,7 +3866,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "Market_Timestamp",
 		hub: "assets",
-		path: "(assets)/assets/market-timestamps",
+		path: "(assets)/market-timestamps",
 		view: "$/views/Market_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3874,7 +3874,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "MarketPrice",
 		hub: "assets",
-		path: "(assets)/assets/market-prices",
+		path: "(assets)/market-prices",
 		view: "$/views/MarketPricesView.svelte",
 		unresolved: [
 		],
@@ -3882,7 +3882,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "Media",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/medias",
+		path: "(explore)/(data)/medias",
 		view: "$/views/MediasView.svelte",
 		unresolved: [
 		],
@@ -3890,7 +3890,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "MevBuilder",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/mev-builders",
+		path: "(explore)/evm/mev-builders",
 		view: "$/views/MevBuildersView.svelte",
 		unresolved: [
 		],
@@ -3898,7 +3898,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "MevBuilder_Timestamp",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/mev-builder-timestamps",
+		path: "(explore)/evm/mev-builder-timestamps",
 		view: "$/views/MevBuilder_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3906,7 +3906,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "MevRelay",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/mev-relays",
+		path: "(explore)/evm/mev-relays",
 		view: "$/views/MevRelaysView.svelte",
 		unresolved: [
 		],
@@ -3914,7 +3914,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "MevRelay_ProposerPayloadDelivered",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/mev-relay-proposer-payload-delivereds",
+		path: "(explore)/evm/mev-relay-proposer-payload-delivereds",
 		view: "$/views/MevRelay_ProposerPayloadDeliveredsView.svelte",
 		unresolved: [
 		],
@@ -3922,7 +3922,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "MevRelay_Timestamp",
 		hub: "evm",
-		path: "(explore)/(evm)/evm/mev-relay-timestamps",
+		path: "(explore)/evm/mev-relay-timestamps",
 		view: "$/views/MevRelay_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3930,7 +3930,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "MoneroBlock",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/monero-blocks",
+		path: "(explore)/(networks)/monero-blocks",
 		view: "$/views/MoneroBlocksView.svelte",
 		unresolved: [
 		],
@@ -3938,7 +3938,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "MoneroKeyImage",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/monero-key-images",
+		path: "(explore)/(networks)/monero-key-images",
 		view: "$/views/MoneroKeyImagesView.svelte",
 		unresolved: [
 		],
@@ -3946,7 +3946,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "MoneroNetwork_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/monero-network-timestamps",
+		path: "(explore)/(networks)/monero-network-timestamps",
 		view: "$/views/MoneroNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -3954,7 +3954,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "MoneroRingMember",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/monero-ring-members",
+		path: "(explore)/(networks)/monero-ring-members",
 		view: "$/views/MoneroRingMembersView.svelte",
 		unresolved: [
 		],
@@ -3962,7 +3962,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "MoneroStealthOutput",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/monero-stealth-outputs",
+		path: "(explore)/(networks)/monero-stealth-outputs",
 		view: "$/views/MoneroStealthOutputsView.svelte",
 		unresolved: [
 		],
@@ -3970,7 +3970,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "MoneroTransaction",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/monero-transactions",
+		path: "(explore)/(networks)/monero-transactions",
 		view: "$/views/MoneroTransactionsView.svelte",
 		unresolved: [
 		],
@@ -3978,7 +3978,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "MoveFunction",
 		hub: "services",
-		path: "(explore)/(services)/services/move-functions",
+		path: "(explore)/(services)/move-functions",
 		view: "$/views/MoveFunctionsView.svelte",
 		unresolved: [
 		],
@@ -3986,7 +3986,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "MoveModule",
 		hub: "services",
-		path: "(explore)/(services)/services/move-modules",
+		path: "(explore)/(services)/move-modules",
 		view: "$/views/MoveModulesView.svelte",
 		unresolved: [
 		],
@@ -3994,7 +3994,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "MoveModule_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/move-module-timestamps",
+		path: "(explore)/(services)/move-module-timestamps",
 		view: "$/views/MoveModule_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4002,7 +4002,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "MoveStruct",
 		hub: "services",
-		path: "(explore)/(services)/services/move-structs",
+		path: "(explore)/(services)/move-structs",
 		view: "$/views/MoveStructsView.svelte",
 		unresolved: [
 		],
@@ -4010,7 +4010,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "NearAccessKey",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/near-access-keys",
+		path: "(explore)/(networks)/near-access-keys",
 		view: "$/views/NearAccessKeysView.svelte",
 		unresolved: [
 		],
@@ -4018,7 +4018,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "NearAction",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/near-actions",
+		path: "(explore)/(networks)/near-actions",
 		view: "$/views/NearActionsView.svelte",
 		unresolved: [
 		],
@@ -4026,7 +4026,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "NearBlock",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/near-blocks",
+		path: "(explore)/(networks)/near-blocks",
 		view: "$/views/NearBlocksView.svelte",
 		unresolved: [
 		],
@@ -4034,7 +4034,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "NearChunk",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/near-chunks",
+		path: "(explore)/(networks)/near-chunks",
 		view: "$/views/NearChunksView.svelte",
 		unresolved: [
 		],
@@ -4042,7 +4042,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "NearExecutionOutcome",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/near-execution-outcomes",
+		path: "(explore)/(networks)/near-execution-outcomes",
 		view: "$/views/NearExecutionOutcomesView.svelte",
 		unresolved: [
 		],
@@ -4050,7 +4050,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "NearNetwork_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/near-network-timestamps",
+		path: "(explore)/(networks)/near-network-timestamps",
 		view: "$/views/NearNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4058,7 +4058,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "NearReceipt",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/near-receipts",
+		path: "(explore)/(networks)/near-receipts",
 		view: "$/views/NearReceiptsView.svelte",
 		unresolved: [
 		],
@@ -4066,7 +4066,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "NearTransaction",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/near-transactions",
+		path: "(explore)/(networks)/near-transactions",
 		view: "$/views/NearTransactionsView.svelte",
 		unresolved: [
 		],
@@ -4074,7 +4074,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "NearValidator",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/near-validators",
+		path: "(explore)/(networks)/near-validators",
 		view: "$/views/NearValidatorsView.svelte",
 		unresolved: [
 		],
@@ -4082,7 +4082,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "Network",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/networks",
+		path: "(explore)/(networks)/networks",
 		view: "$/views/NetworksView.svelte",
 		unresolved: [
 		],
@@ -4090,7 +4090,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "Network_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/network-timestamps",
+		path: "(explore)/(networks)/network-timestamps",
 		view: "$/views/Network_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4098,7 +4098,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "NetworkUpgrade_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/network-upgrade-timestamps",
+		path: "(explore)/(networks)/network-upgrade-timestamps",
 		view: "$/views/NetworkUpgrade_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4106,7 +4106,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "NftToken",
 		hub: "assets",
-		path: "(assets)/assets/nft-tokens",
+		path: "(assets)/nft-tokens",
 		view: "$/views/NftTokensView.svelte",
 		unresolved: [
 		],
@@ -4114,7 +4114,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "NostrArticle",
 		hub: "social-nostr",
-		path: "(social)/(nostr)/nostr/nostr-articles",
+		path: "(social)/nostr/nostr-articles",
 		view: "$/views/NostrArticlesView.svelte",
 		unresolved: [
 		],
@@ -4122,7 +4122,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "NostrNote",
 		hub: "social-nostr",
-		path: "(social)/(nostr)/nostr/nostr-notes",
+		path: "(social)/nostr/nostr-notes",
 		view: "$/views/NostrNotesView.svelte",
 		unresolved: [
 		],
@@ -4130,7 +4130,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "NostrProfile",
 		hub: "social-nostr",
-		path: "(social)/(nostr)/nostr/nostr-profiles",
+		path: "(social)/nostr/nostr-profiles",
 		view: "$/views/NostrProfilesView.svelte",
 		unresolved: [
 		],
@@ -4138,7 +4138,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "NostrReaction",
 		hub: "social-nostr",
-		path: "(social)/(nostr)/nostr/nostr-reactions",
+		path: "(social)/nostr/nostr-reactions",
 		view: "$/views/NostrReactionsView.svelte",
 		unresolved: [
 		],
@@ -4146,7 +4146,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "NostrRelay",
 		hub: "social-nostr",
-		path: "(social)/(nostr)/nostr/nostr-relays",
+		path: "(social)/nostr/nostr-relays",
 		view: "$/views/NostrRelaysView.svelte",
 		unresolved: [
 		],
@@ -4154,7 +4154,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "NostrRelay_Timestamp",
 		hub: "social-nostr",
-		path: "(social)/(nostr)/nostr/nostr-relay-timestamps",
+		path: "(social)/nostr/nostr-relay-timestamps",
 		view: "$/views/NostrRelay_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4162,7 +4162,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "NostrRepost",
 		hub: "social-nostr",
-		path: "(social)/(nostr)/nostr/nostr-reposts",
+		path: "(social)/nostr/nostr-reposts",
 		view: "$/views/NostrRepostsView.svelte",
 		unresolved: [
 		],
@@ -4170,7 +4170,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "OracleFeed",
 		hub: "assets",
-		path: "(assets)/assets/oracle-feeds",
+		path: "(assets)/oracle-feeds",
 		view: "$/views/OracleFeedsView.svelte",
 		unresolved: [
 		],
@@ -4178,7 +4178,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "OracleFeed_Round",
 		hub: "assets",
-		path: "(assets)/assets/oracle-feed-rounds",
+		path: "(assets)/oracle-feed-rounds",
 		view: "$/views/OracleFeed_RoundsView.svelte",
 		unresolved: [
 		],
@@ -4186,7 +4186,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "OracleFeed_Timestamp",
 		hub: "assets",
-		path: "(assets)/assets/oracle-feed-timestamps",
+		path: "(assets)/oracle-feed-timestamps",
 		view: "$/views/OracleFeed_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4194,7 +4194,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "PayjoinEndpoint_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/payjoin-endpoint-timestamps",
+		path: "(explore)/(services)/payjoin-endpoint-timestamps",
 		view: "$/views/PayjoinEndpoint_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4202,7 +4202,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "PayoutClaim_Timestamp",
 		hub: "assets",
-		path: "(assets)/assets/payout-claim-timestamps",
+		path: "(assets)/payout-claim-timestamps",
 		view: "$/views/PayoutClaim_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4210,7 +4210,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "PolkadotAccount_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/polkadot-account-timestamps",
+		path: "(explore)/(networks)/polkadot-account-timestamps",
 		view: "$/views/PolkadotAccount_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4218,7 +4218,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "PolkadotAsset",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/polkadot-assets",
+		path: "(explore)/(networks)/polkadot-assets",
 		view: "$/views/PolkadotAssetsView.svelte",
 		unresolved: [
 		],
@@ -4226,7 +4226,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "PolkadotAsset_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/polkadot-asset-timestamps",
+		path: "(explore)/(networks)/polkadot-asset-timestamps",
 		view: "$/views/PolkadotAsset_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4234,7 +4234,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "PolkadotAssetBalance_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/polkadot-asset-balance-timestamps",
+		path: "(explore)/(networks)/polkadot-asset-balance-timestamps",
 		view: "$/views/PolkadotAssetBalance_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4242,7 +4242,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "PolkadotBlock",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/polkadot-blocks",
+		path: "(explore)/(networks)/polkadot-blocks",
 		view: "$/views/PolkadotBlocksView.svelte",
 		unresolved: [
 		],
@@ -4250,7 +4250,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "PolkadotEvent",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/polkadot-events",
+		path: "(explore)/(networks)/polkadot-events",
 		view: "$/views/PolkadotEventsView.svelte",
 		unresolved: [
 		],
@@ -4258,7 +4258,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "PolkadotExtrinsic",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/polkadot-extrinsics",
+		path: "(explore)/(networks)/polkadot-extrinsics",
 		view: "$/views/PolkadotExtrinsicsView.svelte",
 		unresolved: [
 		],
@@ -4266,7 +4266,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "PolkadotNetwork_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/polkadot-network-timestamps",
+		path: "(explore)/(networks)/polkadot-network-timestamps",
 		view: "$/views/PolkadotNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4274,7 +4274,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "PolkadotReferendum_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/polkadot-referendum-timestamps",
+		path: "(explore)/(networks)/polkadot-referendum-timestamps",
 		view: "$/views/PolkadotReferendum_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4282,7 +4282,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "PolkadotValidator",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/polkadot-validators",
+		path: "(explore)/(networks)/polkadot-validators",
 		view: "$/views/PolkadotValidatorsView.svelte",
 		unresolved: [
 		],
@@ -4290,7 +4290,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "PolkadotValidator_Era",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/polkadot-validator-eras",
+		path: "(explore)/(networks)/polkadot-validator-eras",
 		view: "$/views/PolkadotValidator_ErasView.svelte",
 		unresolved: [
 		],
@@ -4298,7 +4298,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "PythPriceFeed_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/pyth-price-feed-timestamps",
+		path: "(explore)/(networks)/pyth-price-feed-timestamps",
 		view: "$/views/PythPriceFeed_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4306,7 +4306,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "QuilibriumFrame",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/quilibrium-frames",
+		path: "(explore)/(networks)/quilibrium-frames",
 		view: "$/views/QuilibriumFramesView.svelte",
 		unresolved: [
 		],
@@ -4314,7 +4314,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "QuilibriumProver",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/quilibrium-provers",
+		path: "(explore)/(networks)/quilibrium-provers",
 		view: "$/views/QuilibriumProversView.svelte",
 		unresolved: [
 		],
@@ -4322,7 +4322,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "RadicleDelegate",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/radicle-delegates",
+		path: "(explore)/(data)/radicle-delegates",
 		view: "$/views/RadicleDelegatesView.svelte",
 		unresolved: [
 		],
@@ -4330,7 +4330,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "RadicleDiscussionComment",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/radicle-discussion-comments",
+		path: "(explore)/(data)/radicle-discussion-comments",
 		view: "$/views/RadicleDiscussionCommentsView.svelte",
 		unresolved: [
 		],
@@ -4338,7 +4338,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "RadicleIssue",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/radicle-issues",
+		path: "(explore)/(data)/radicle-issues",
 		view: "$/views/RadicleIssuesView.svelte",
 		unresolved: [
 		],
@@ -4346,7 +4346,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "RadiclePatch",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/radicle-patchs",
+		path: "(explore)/(data)/radicle-patchs",
 		view: "$/views/RadiclePatchsView.svelte",
 		unresolved: [
 		],
@@ -4354,7 +4354,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "RadicleSignedRef",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/radicle-signed-refs",
+		path: "(explore)/(data)/radicle-signed-refs",
 		view: "$/views/RadicleSignedRefsView.svelte",
 		unresolved: [
 		],
@@ -4362,7 +4362,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "RadicleSignedRef_Timestamp",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/radicle-signed-ref-timestamps",
+		path: "(explore)/(data)/radicle-signed-ref-timestamps",
 		view: "$/views/RadicleSignedRef_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4370,7 +4370,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "RedditComment",
 		hub: "social-reddit",
-		path: "(social)/(reddit)/reddit/reddit-comments",
+		path: "(social)/reddit/reddit-comments",
 		view: "$/views/RedditCommentsView.svelte",
 		unresolved: [
 		],
@@ -4378,7 +4378,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "RedditComment_Timestamp",
 		hub: "social-reddit",
-		path: "(social)/(reddit)/reddit/reddit-comment-timestamps",
+		path: "(social)/reddit/reddit-comment-timestamps",
 		view: "$/views/RedditComment_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4386,7 +4386,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "RedditLink",
 		hub: "social-reddit",
-		path: "(social)/(reddit)/reddit/reddit-links",
+		path: "(social)/reddit/reddit-links",
 		view: "$/views/RedditLinksView.svelte",
 		unresolved: [
 		],
@@ -4394,7 +4394,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "RedditLink_Timestamp",
 		hub: "social-reddit",
-		path: "(social)/(reddit)/reddit/reddit-link-timestamps",
+		path: "(social)/reddit/reddit-link-timestamps",
 		view: "$/views/RedditLink_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4402,7 +4402,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "RedditSubreddit",
 		hub: "social-reddit",
-		path: "(social)/(reddit)/reddit/reddit-subreddits",
+		path: "(social)/reddit/reddit-subreddits",
 		view: "$/views/RedditSubredditsView.svelte",
 		unresolved: [
 		],
@@ -4410,7 +4410,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "RedditSubreddit_Timestamp",
 		hub: "social-reddit",
-		path: "(social)/(reddit)/reddit/reddit-subreddit-timestamps",
+		path: "(social)/reddit/reddit-subreddit-timestamps",
 		view: "$/views/RedditSubreddit_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4418,7 +4418,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "RegulatedAssetProfile_Timestamp",
 		hub: "assets",
-		path: "(assets)/assets/regulated-asset-profile-timestamps",
+		path: "(assets)/regulated-asset-profile-timestamps",
 		view: "$/views/RegulatedAssetProfile_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4426,7 +4426,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "RoyaltyRight_Timestamp",
 		hub: "assets",
-		path: "(assets)/assets/royalty-right-timestamps",
+		path: "(assets)/royalty-right-timestamps",
 		view: "$/views/RoyaltyRight_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4434,7 +4434,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "RssFeed",
 		hub: "social-rss",
-		path: "(social)/(rss)/rss/rss-feeds",
+		path: "(social)/rss/rss-feeds",
 		view: "$/views/RssFeedsView.svelte",
 		unresolved: [
 		],
@@ -4442,7 +4442,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "RssItem",
 		hub: "social-rss",
-		path: "(social)/(rss)/rss/rss-items",
+		path: "(social)/rss/rss-items",
 		view: "$/views/RssItemsView.svelte",
 		unresolved: [
 		],
@@ -4450,7 +4450,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "ScalingDeploymentClaim_Timestamp",
 		hub: "assets",
-		path: "(assets)/assets/scaling-deployment-claim-timestamps",
+		path: "(assets)/scaling-deployment-claim-timestamps",
 		view: "$/views/ScalingDeploymentClaim_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4458,7 +4458,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SolanaAccount",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/solana-accounts",
+		path: "(explore)/(networks)/solana-accounts",
 		view: "$/views/SolanaAccountsView.svelte",
 		unresolved: [
 		],
@@ -4466,7 +4466,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SolanaAccount_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/solana-account-timestamps",
+		path: "(explore)/(networks)/solana-account-timestamps",
 		view: "$/views/SolanaAccount_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4474,7 +4474,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SolanaBlock",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/solana-blocks",
+		path: "(explore)/(networks)/solana-blocks",
 		view: "$/views/SolanaBlocksView.svelte",
 		unresolved: [
 		],
@@ -4482,7 +4482,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SolanaInstruction",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/solana-instructions",
+		path: "(explore)/(networks)/solana-instructions",
 		view: "$/views/SolanaInstructionsView.svelte",
 		unresolved: [
 		],
@@ -4490,7 +4490,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SolanaNetwork_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/solana-network-timestamps",
+		path: "(explore)/(networks)/solana-network-timestamps",
 		view: "$/views/SolanaNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4498,7 +4498,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SolanaTokenAccount",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/solana-token-accounts",
+		path: "(explore)/(networks)/solana-token-accounts",
 		view: "$/views/SolanaTokenAccountsView.svelte",
 		unresolved: [
 		],
@@ -4506,7 +4506,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SolanaTokenAccount_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/solana-token-account-timestamps",
+		path: "(explore)/(networks)/solana-token-account-timestamps",
 		view: "$/views/SolanaTokenAccount_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4514,7 +4514,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SolanaTokenMint",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/solana-token-mints",
+		path: "(explore)/(networks)/solana-token-mints",
 		view: "$/views/SolanaTokenMintsView.svelte",
 		unresolved: [
 		],
@@ -4522,7 +4522,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SolanaTokenMint_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/solana-token-mint-timestamps",
+		path: "(explore)/(networks)/solana-token-mint-timestamps",
 		view: "$/views/SolanaTokenMint_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4530,7 +4530,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SolanaTransaction",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/solana-transactions",
+		path: "(explore)/(networks)/solana-transactions",
 		view: "$/views/SolanaTransactionsView.svelte",
 		unresolved: [
 		],
@@ -4538,7 +4538,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SolanaTransaction_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/solana-transaction-timestamps",
+		path: "(explore)/(networks)/solana-transaction-timestamps",
 		view: "$/views/SolanaTransaction_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4546,7 +4546,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SolanaValidator",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/solana-validators",
+		path: "(explore)/(networks)/solana-validators",
 		view: "$/views/SolanaValidatorsView.svelte",
 		unresolved: [
 		],
@@ -4554,7 +4554,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SolanaValidator_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/solana-validator-timestamps",
+		path: "(explore)/(networks)/solana-validator-timestamps",
 		view: "$/views/SolanaValidator_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4562,7 +4562,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SorobanContract",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/soroban-contracts",
+		path: "(explore)/(networks)/soroban-contracts",
 		view: "$/views/SorobanContractsView.svelte",
 		unresolved: [
 		],
@@ -4570,7 +4570,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SorobanContract_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/soroban-contract-timestamps",
+		path: "(explore)/(networks)/soroban-contract-timestamps",
 		view: "$/views/SorobanContract_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4578,7 +4578,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SorobanContractStorageEntry",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/soroban-contract-storage-entries",
+		path: "(explore)/(networks)/soroban-contract-storage-entries",
 		view: "$/views/SorobanContractStorageEntriesView.svelte",
 		unresolved: [
 		],
@@ -4586,7 +4586,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SorobanContractStorageEntry_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/soroban-contract-storage-entry-timestamps",
+		path: "(explore)/(networks)/soroban-contract-storage-entry-timestamps",
 		view: "$/views/SorobanContractStorageEntry_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4594,7 +4594,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SorobanWasm_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/soroban-wasm-timestamps",
+		path: "(explore)/(networks)/soroban-wasm-timestamps",
 		view: "$/views/SorobanWasm_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4626,7 +4626,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "StarknetAccount_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/starknet-account-timestamps",
+		path: "(explore)/(networks)/starknet-account-timestamps",
 		view: "$/views/StarknetAccount_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4634,7 +4634,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "StarknetBlock",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/starknet-blocks",
+		path: "(explore)/(networks)/starknet-blocks",
 		view: "$/views/StarknetBlocksView.svelte",
 		unresolved: [
 		],
@@ -4642,7 +4642,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "StarknetClass",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/starknet-classes",
+		path: "(explore)/(networks)/starknet-classes",
 		view: "$/views/StarknetClassesView.svelte",
 		unresolved: [
 		],
@@ -4650,7 +4650,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "StarknetContract",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/starknet-contracts",
+		path: "(explore)/(networks)/starknet-contracts",
 		view: "$/views/StarknetContractsView.svelte",
 		unresolved: [
 		],
@@ -4658,7 +4658,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "StarknetEvent",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/starknet-events",
+		path: "(explore)/(networks)/starknet-events",
 		view: "$/views/StarknetEventsView.svelte",
 		unresolved: [
 		],
@@ -4666,7 +4666,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "StarknetNetwork_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/starknet-network-timestamps",
+		path: "(explore)/(networks)/starknet-network-timestamps",
 		view: "$/views/StarknetNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4674,7 +4674,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "StarknetStorageEntry",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/starknet-storage-entries",
+		path: "(explore)/(networks)/starknet-storage-entries",
 		view: "$/views/StarknetStorageEntriesView.svelte",
 		unresolved: [
 		],
@@ -4682,7 +4682,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "StarknetStorageEntry_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/starknet-storage-entry-timestamps",
+		path: "(explore)/(networks)/starknet-storage-entry-timestamps",
 		view: "$/views/StarknetStorageEntry_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4690,7 +4690,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "StarknetTransaction",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/starknet-transactions",
+		path: "(explore)/(networks)/starknet-transactions",
 		view: "$/views/StarknetTransactionsView.svelte",
 		unresolved: [
 		],
@@ -4698,7 +4698,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "StarknetTransaction_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/starknet-transaction-timestamps",
+		path: "(explore)/(networks)/starknet-transaction-timestamps",
 		view: "$/views/StarknetTransaction_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4706,7 +4706,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "StellarAccount",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/stellar-accounts",
+		path: "(explore)/(networks)/stellar-accounts",
 		view: "$/views/StellarAccountsView.svelte",
 		unresolved: [
 		],
@@ -4714,7 +4714,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "StellarAccount_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/stellar-account-timestamps",
+		path: "(explore)/(networks)/stellar-account-timestamps",
 		view: "$/views/StellarAccount_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4722,7 +4722,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "StellarAccountSigner",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/stellar-account-signers",
+		path: "(explore)/(networks)/stellar-account-signers",
 		view: "$/views/StellarAccountSignersView.svelte",
 		unresolved: [
 		],
@@ -4730,7 +4730,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "StellarAccountSigner_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/stellar-account-signer-timestamps",
+		path: "(explore)/(networks)/stellar-account-signer-timestamps",
 		view: "$/views/StellarAccountSigner_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4738,7 +4738,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "StellarAsset",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/stellar-assets",
+		path: "(explore)/(networks)/stellar-assets",
 		view: "$/views/StellarAssetsView.svelte",
 		unresolved: [
 		],
@@ -4746,7 +4746,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "StellarClaimableBalance",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/stellar-claimable-balances",
+		path: "(explore)/(networks)/stellar-claimable-balances",
 		view: "$/views/StellarClaimableBalancesView.svelte",
 		unresolved: [
 		],
@@ -4754,7 +4754,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "StellarClaimableBalance_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/stellar-claimable-balance-timestamps",
+		path: "(explore)/(networks)/stellar-claimable-balance-timestamps",
 		view: "$/views/StellarClaimableBalance_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4762,7 +4762,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "StellarLedger",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/stellar-ledgers",
+		path: "(explore)/(networks)/stellar-ledgers",
 		view: "$/views/StellarLedgersView.svelte",
 		unresolved: [
 		],
@@ -4770,7 +4770,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "StellarLiquidityPool",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/stellar-liquidity-pools",
+		path: "(explore)/(networks)/stellar-liquidity-pools",
 		view: "$/views/StellarLiquidityPoolsView.svelte",
 		unresolved: [
 		],
@@ -4778,7 +4778,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "StellarLiquidityPool_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/stellar-liquidity-pool-timestamps",
+		path: "(explore)/(networks)/stellar-liquidity-pool-timestamps",
 		view: "$/views/StellarLiquidityPool_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4786,7 +4786,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "StellarNetwork_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/stellar-network-timestamps",
+		path: "(explore)/(networks)/stellar-network-timestamps",
 		view: "$/views/StellarNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4794,7 +4794,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "StellarOffer",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/stellar-offers",
+		path: "(explore)/(networks)/stellar-offers",
 		view: "$/views/StellarOffersView.svelte",
 		unresolved: [
 		],
@@ -4802,7 +4802,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "StellarOffer_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/stellar-offer-timestamps",
+		path: "(explore)/(networks)/stellar-offer-timestamps",
 		view: "$/views/StellarOffer_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4810,7 +4810,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "StellarOperation",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/stellar-operations",
+		path: "(explore)/(networks)/stellar-operations",
 		view: "$/views/StellarOperationsView.svelte",
 		unresolved: [
 		],
@@ -4818,7 +4818,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "StellarTrade",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/stellar-trades",
+		path: "(explore)/(networks)/stellar-trades",
 		view: "$/views/StellarTradesView.svelte",
 		unresolved: [
 		],
@@ -4826,7 +4826,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "StellarTransaction",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/stellar-transactions",
+		path: "(explore)/(networks)/stellar-transactions",
 		view: "$/views/StellarTransactionsView.svelte",
 		unresolved: [
 		],
@@ -4834,7 +4834,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "StellarTransaction_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/stellar-transaction-timestamps",
+		path: "(explore)/(networks)/stellar-transaction-timestamps",
 		view: "$/views/StellarTransaction_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4842,7 +4842,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "StellarTrustline",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/stellar-trustlines",
+		path: "(explore)/(networks)/stellar-trustlines",
 		view: "$/views/StellarTrustlinesView.svelte",
 		unresolved: [
 		],
@@ -4850,7 +4850,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "StellarTrustline_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/stellar-trustline-timestamps",
+		path: "(explore)/(networks)/stellar-trustline-timestamps",
 		view: "$/views/StellarTrustline_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4858,7 +4858,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SuiAccount",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/sui-accounts",
+		path: "(explore)/(networks)/sui-accounts",
 		view: "$/views/SuiAccountsView.svelte",
 		unresolved: [
 		],
@@ -4866,7 +4866,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SuiBalanceChange",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/sui-balance-changes",
+		path: "(explore)/(networks)/sui-balance-changes",
 		view: "$/views/SuiBalanceChangesView.svelte",
 		unresolved: [
 		],
@@ -4874,7 +4874,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SuiCheckpoint",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/sui-checkpoints",
+		path: "(explore)/(networks)/sui-checkpoints",
 		view: "$/views/SuiCheckpointsView.svelte",
 		unresolved: [
 		],
@@ -4882,7 +4882,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SuiCoinBalance_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/sui-coin-balance-timestamps",
+		path: "(explore)/(networks)/sui-coin-balance-timestamps",
 		view: "$/views/SuiCoinBalance_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4890,7 +4890,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SuiCoinType",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/sui-coin-types",
+		path: "(explore)/(networks)/sui-coin-types",
 		view: "$/views/SuiCoinTypesView.svelte",
 		unresolved: [
 		],
@@ -4898,7 +4898,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SuiDynamicFieldEdge",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/sui-dynamic-field-edges",
+		path: "(explore)/(networks)/sui-dynamic-field-edges",
 		view: "$/views/SuiDynamicFieldEdgesView.svelte",
 		unresolved: [
 		],
@@ -4906,7 +4906,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SuiDynamicFieldEdge_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/sui-dynamic-field-edge-timestamps",
+		path: "(explore)/(networks)/sui-dynamic-field-edge-timestamps",
 		view: "$/views/SuiDynamicFieldEdge_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4914,7 +4914,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SuiEvent",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/sui-events",
+		path: "(explore)/(networks)/sui-events",
 		view: "$/views/SuiEventsView.svelte",
 		unresolved: [
 		],
@@ -4922,7 +4922,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SuiNetwork_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/sui-network-timestamps",
+		path: "(explore)/(networks)/sui-network-timestamps",
 		view: "$/views/SuiNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4930,7 +4930,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SuiObject",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/sui-objects",
+		path: "(explore)/(networks)/sui-objects",
 		view: "$/views/SuiObjectsView.svelte",
 		unresolved: [
 		],
@@ -4938,7 +4938,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SuiObjectChange",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/sui-object-changes",
+		path: "(explore)/(networks)/sui-object-changes",
 		view: "$/views/SuiObjectChangesView.svelte",
 		unresolved: [
 		],
@@ -4946,7 +4946,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SuiObjectVersion",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/sui-object-versions",
+		path: "(explore)/(networks)/sui-object-versions",
 		view: "$/views/SuiObjectVersionsView.svelte",
 		unresolved: [
 		],
@@ -4954,7 +4954,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SuiPackage",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/sui-packages",
+		path: "(explore)/(networks)/sui-packages",
 		view: "$/views/SuiPackagesView.svelte",
 		unresolved: [
 		],
@@ -4962,7 +4962,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SuiPackageUpgrade",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/sui-package-upgrades",
+		path: "(explore)/(networks)/sui-package-upgrades",
 		view: "$/views/SuiPackageUpgradesView.svelte",
 		unresolved: [
 		],
@@ -4970,7 +4970,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SuiPackageVersion",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/sui-package-versions",
+		path: "(explore)/(networks)/sui-package-versions",
 		view: "$/views/SuiPackageVersionsView.svelte",
 		unresolved: [
 		],
@@ -4978,7 +4978,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SuiProgrammableTransactionCommand",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/sui-programmable-transaction-commands",
+		path: "(explore)/(networks)/sui-programmable-transaction-commands",
 		view: "$/views/SuiProgrammableTransactionCommandsView.svelte",
 		unresolved: [
 		],
@@ -4986,7 +4986,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SuiRegulatedCoinState_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/sui-regulated-coin-state-timestamps",
+		path: "(explore)/(networks)/sui-regulated-coin-state-timestamps",
 		view: "$/views/SuiRegulatedCoinState_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -4994,7 +4994,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SuiTransaction",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/sui-transactions",
+		path: "(explore)/(networks)/sui-transactions",
 		view: "$/views/SuiTransactionsView.svelte",
 		unresolved: [
 		],
@@ -5002,7 +5002,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SuiTransaction_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/sui-transaction-timestamps",
+		path: "(explore)/(networks)/sui-transaction-timestamps",
 		view: "$/views/SuiTransaction_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5010,7 +5010,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SwapQuoteStep",
 		hub: "assets",
-		path: "(assets)/assets/swap-quote-steps",
+		path: "(assets)/swap-quote-steps",
 		view: "$/views/SwapQuoteStepsView.svelte",
 		unresolved: [
 		],
@@ -5018,7 +5018,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "SwarmResource",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/swarm-resources",
+		path: "(explore)/(data)/swarm-resources",
 		view: "$/views/SwarmResourcesView.svelte",
 		unresolved: [
 		],
@@ -5026,7 +5026,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TezosAccount",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tezos-accounts",
+		path: "(explore)/(networks)/tezos-accounts",
 		view: "$/views/TezosAccountsView.svelte",
 		unresolved: [
 		],
@@ -5034,7 +5034,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TezosAccount_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tezos-account-timestamps",
+		path: "(explore)/(networks)/tezos-account-timestamps",
 		view: "$/views/TezosAccount_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5042,7 +5042,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TezosBaker",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tezos-bakers",
+		path: "(explore)/(networks)/tezos-bakers",
 		view: "$/views/TezosBakersView.svelte",
 		unresolved: [
 		],
@@ -5050,7 +5050,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TezosBaker_Cycle_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tezos-baker-cycle-timestamps",
+		path: "(explore)/(networks)/tezos-baker-cycle-timestamps",
 		view: "$/views/TezosBaker_Cycle_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5058,7 +5058,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TezosBaker_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tezos-baker-timestamps",
+		path: "(explore)/(networks)/tezos-baker-timestamps",
 		view: "$/views/TezosBaker_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5066,7 +5066,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TezosBakingRight",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tezos-baking-rights",
+		path: "(explore)/(networks)/tezos-baking-rights",
 		view: "$/views/TezosBakingRightsView.svelte",
 		unresolved: [
 		],
@@ -5074,7 +5074,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TezosBakingRight_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tezos-baking-right-timestamps",
+		path: "(explore)/(networks)/tezos-baking-right-timestamps",
 		view: "$/views/TezosBakingRight_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5082,7 +5082,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TezosBigMap",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tezos-big-maps",
+		path: "(explore)/(networks)/tezos-big-maps",
 		view: "$/views/TezosBigMapsView.svelte",
 		unresolved: [
 		],
@@ -5090,7 +5090,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TezosBigMap_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tezos-big-map-timestamps",
+		path: "(explore)/(networks)/tezos-big-map-timestamps",
 		view: "$/views/TezosBigMap_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5098,7 +5098,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TezosBigMapDiff",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tezos-big-map-diffs",
+		path: "(explore)/(networks)/tezos-big-map-diffs",
 		view: "$/views/TezosBigMapDiffsView.svelte",
 		unresolved: [
 		],
@@ -5106,7 +5106,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TezosBigMapKey",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tezos-big-map-keys",
+		path: "(explore)/(networks)/tezos-big-map-keys",
 		view: "$/views/TezosBigMapKeysView.svelte",
 		unresolved: [
 		],
@@ -5114,7 +5114,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TezosBigMapKey_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tezos-big-map-key-timestamps",
+		path: "(explore)/(networks)/tezos-big-map-key-timestamps",
 		view: "$/views/TezosBigMapKey_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5122,7 +5122,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TezosBlock",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tezos-blocks",
+		path: "(explore)/(networks)/tezos-blocks",
 		view: "$/views/TezosBlocksView.svelte",
 		unresolved: [
 		],
@@ -5130,7 +5130,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TezosContract",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tezos-contracts",
+		path: "(explore)/(networks)/tezos-contracts",
 		view: "$/views/TezosContractsView.svelte",
 		unresolved: [
 		],
@@ -5138,7 +5138,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TezosContract_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tezos-contract-timestamps",
+		path: "(explore)/(networks)/tezos-contract-timestamps",
 		view: "$/views/TezosContract_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5146,7 +5146,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TezosCycle",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tezos-cycles",
+		path: "(explore)/(networks)/tezos-cycles",
 		view: "$/views/TezosCyclesView.svelte",
 		unresolved: [
 		],
@@ -5154,7 +5154,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TezosEntrypoint",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tezos-entrypoints",
+		path: "(explore)/(networks)/tezos-entrypoints",
 		view: "$/views/TezosEntrypointsView.svelte",
 		unresolved: [
 		],
@@ -5162,7 +5162,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TezosInternalOperation",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tezos-internal-operations",
+		path: "(explore)/(networks)/tezos-internal-operations",
 		view: "$/views/TezosInternalOperationsView.svelte",
 		unresolved: [
 		],
@@ -5170,7 +5170,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TezosNetwork_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tezos-network-timestamps",
+		path: "(explore)/(networks)/tezos-network-timestamps",
 		view: "$/views/TezosNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5178,7 +5178,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TezosOperation",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tezos-operations",
+		path: "(explore)/(networks)/tezos-operations",
 		view: "$/views/TezosOperationsView.svelte",
 		unresolved: [
 		],
@@ -5186,7 +5186,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TezosOperationGroup",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tezos-operation-groups",
+		path: "(explore)/(networks)/tezos-operation-groups",
 		view: "$/views/TezosOperationGroupsView.svelte",
 		unresolved: [
 		],
@@ -5194,7 +5194,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TezosToken",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tezos-tokens",
+		path: "(explore)/(networks)/tezos-tokens",
 		view: "$/views/TezosTokensView.svelte",
 		unresolved: [
 		],
@@ -5202,7 +5202,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TezosToken_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tezos-token-timestamps",
+		path: "(explore)/(networks)/tezos-token-timestamps",
 		view: "$/views/TezosToken_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5210,7 +5210,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TezosTokenBalance_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tezos-token-balance-timestamps",
+		path: "(explore)/(networks)/tezos-token-balance-timestamps",
 		view: "$/views/TezosTokenBalance_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5218,7 +5218,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TezosTokenTransfer",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tezos-token-transfers",
+		path: "(explore)/(networks)/tezos-token-transfers",
 		view: "$/views/TezosTokenTransfersView.svelte",
 		unresolved: [
 		],
@@ -5226,7 +5226,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TokenMetadataDocument",
 		hub: "assets",
-		path: "(assets)/assets/token-metadata-documents",
+		path: "(assets)/token-metadata-documents",
 		view: "$/views/TokenMetadataDocumentsView.svelte",
 		unresolved: [
 		],
@@ -5234,7 +5234,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TonAccount",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/ton-accounts",
+		path: "(explore)/(networks)/ton-accounts",
 		view: "$/views/TonAccountsView.svelte",
 		unresolved: [
 		],
@@ -5242,7 +5242,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TonAccount_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/ton-account-timestamps",
+		path: "(explore)/(networks)/ton-account-timestamps",
 		view: "$/views/TonAccount_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5250,7 +5250,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TonBlock",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/ton-blocks",
+		path: "(explore)/(networks)/ton-blocks",
 		view: "$/views/TonBlocksView.svelte",
 		unresolved: [
 		],
@@ -5258,7 +5258,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TonContract",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/ton-contracts",
+		path: "(explore)/(networks)/ton-contracts",
 		view: "$/views/TonContractsView.svelte",
 		unresolved: [
 		],
@@ -5266,7 +5266,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TonContract_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/ton-contract-timestamps",
+		path: "(explore)/(networks)/ton-contract-timestamps",
 		view: "$/views/TonContract_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5274,7 +5274,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TonContractGetMethod",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/ton-contract-get-methods",
+		path: "(explore)/(networks)/ton-contract-get-methods",
 		view: "$/views/TonContractGetMethodsView.svelte",
 		unresolved: [
 		],
@@ -5282,7 +5282,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TonContractGetMethod_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/ton-contract-get-method-timestamps",
+		path: "(explore)/(networks)/ton-contract-get-method-timestamps",
 		view: "$/views/TonContractGetMethod_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5290,7 +5290,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TonJetton",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/ton-jettons",
+		path: "(explore)/(networks)/ton-jettons",
 		view: "$/views/TonJettonsView.svelte",
 		unresolved: [
 		],
@@ -5298,7 +5298,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TonJetton_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/ton-jetton-timestamps",
+		path: "(explore)/(networks)/ton-jetton-timestamps",
 		view: "$/views/TonJetton_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5306,7 +5306,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TonJettonBalance_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/ton-jetton-balance-timestamps",
+		path: "(explore)/(networks)/ton-jetton-balance-timestamps",
 		view: "$/views/TonJettonBalance_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5314,7 +5314,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TonJettonTransfer",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/ton-jetton-transfers",
+		path: "(explore)/(networks)/ton-jetton-transfers",
 		view: "$/views/TonJettonTransfersView.svelte",
 		unresolved: [
 		],
@@ -5322,7 +5322,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TonMessage",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/ton-messages",
+		path: "(explore)/(networks)/ton-messages",
 		view: "$/views/TonMessagesView.svelte",
 		unresolved: [
 		],
@@ -5330,7 +5330,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TonNetwork_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/ton-network-timestamps",
+		path: "(explore)/(networks)/ton-network-timestamps",
 		view: "$/views/TonNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5338,7 +5338,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TonNftCollection",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/ton-nft-collections",
+		path: "(explore)/(networks)/ton-nft-collections",
 		view: "$/views/TonNftCollectionsView.svelte",
 		unresolved: [
 		],
@@ -5346,7 +5346,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TonNftCollection_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/ton-nft-collection-timestamps",
+		path: "(explore)/(networks)/ton-nft-collection-timestamps",
 		view: "$/views/TonNftCollection_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5354,7 +5354,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TonNftItem",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/ton-nft-items",
+		path: "(explore)/(networks)/ton-nft-items",
 		view: "$/views/TonNftItemsView.svelte",
 		unresolved: [
 		],
@@ -5362,7 +5362,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TonNftItem_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/ton-nft-item-timestamps",
+		path: "(explore)/(networks)/ton-nft-item-timestamps",
 		view: "$/views/TonNftItem_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5370,7 +5370,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TonNftTransfer",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/ton-nft-transfers",
+		path: "(explore)/(networks)/ton-nft-transfers",
 		view: "$/views/TonNftTransfersView.svelte",
 		unresolved: [
 		],
@@ -5378,7 +5378,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TonShard_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/ton-shard-timestamps",
+		path: "(explore)/(networks)/ton-shard-timestamps",
 		view: "$/views/TonShard_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5386,7 +5386,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TonTrace",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/ton-traces",
+		path: "(explore)/(networks)/ton-traces",
 		view: "$/views/TonTracesView.svelte",
 		unresolved: [
 		],
@@ -5394,7 +5394,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TonTrace_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/ton-trace-timestamps",
+		path: "(explore)/(networks)/ton-trace-timestamps",
 		view: "$/views/TonTrace_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5402,7 +5402,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TonTransaction",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/ton-transactions",
+		path: "(explore)/(networks)/ton-transactions",
 		view: "$/views/TonTransactionsView.svelte",
 		unresolved: [
 		],
@@ -5410,7 +5410,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TonTransactionPhase",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/ton-transaction-phases",
+		path: "(explore)/(networks)/ton-transaction-phases",
 		view: "$/views/TonTransactionPhasesView.svelte",
 		unresolved: [
 		],
@@ -5418,7 +5418,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TonWorkchain",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/ton-workchains",
+		path: "(explore)/(networks)/ton-workchains",
 		view: "$/views/TonWorkchainsView.svelte",
 		unresolved: [
 		],
@@ -5426,7 +5426,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TransferRestriction",
 		hub: "assets",
-		path: "(assets)/assets/transfer-restrictions",
+		path: "(assets)/transfer-restrictions",
 		view: "$/views/TransferRestrictionsView.svelte",
 		unresolved: [
 		],
@@ -5434,7 +5434,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TransferRestrictionCheck_Timestamp",
 		hub: "assets",
-		path: "(assets)/assets/transfer-restriction-check-timestamps",
+		path: "(assets)/transfer-restriction-check-timestamps",
 		view: "$/views/TransferRestrictionCheck_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5442,7 +5442,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TronAccount_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tron-account-timestamps",
+		path: "(explore)/(networks)/tron-account-timestamps",
 		view: "$/views/TronAccount_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5450,7 +5450,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TronAccountTokenBalance_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tron-account-token-balance-timestamps",
+		path: "(explore)/(networks)/tron-account-token-balance-timestamps",
 		view: "$/views/TronAccountTokenBalance_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5458,7 +5458,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TronBlock",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tron-blocks",
+		path: "(explore)/(networks)/tron-blocks",
 		view: "$/views/TronBlocksView.svelte",
 		unresolved: [
 		],
@@ -5466,7 +5466,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TronContract_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tron-contract-timestamps",
+		path: "(explore)/(networks)/tron-contract-timestamps",
 		view: "$/views/TronContract_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5474,7 +5474,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TronNetwork_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tron-network-timestamps",
+		path: "(explore)/(networks)/tron-network-timestamps",
 		view: "$/views/TronNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5482,7 +5482,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TronToken",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tron-tokens",
+		path: "(explore)/(networks)/tron-tokens",
 		view: "$/views/TronTokensView.svelte",
 		unresolved: [
 		],
@@ -5490,7 +5490,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TronToken_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tron-token-timestamps",
+		path: "(explore)/(networks)/tron-token-timestamps",
 		view: "$/views/TronToken_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5498,7 +5498,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TronTokenTransfer",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tron-token-transfers",
+		path: "(explore)/(networks)/tron-token-transfers",
 		view: "$/views/TronTokenTransfersView.svelte",
 		unresolved: [
 		],
@@ -5506,7 +5506,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TronTransaction",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tron-transactions",
+		path: "(explore)/(networks)/tron-transactions",
 		view: "$/views/TronTransactionsView.svelte",
 		unresolved: [
 		],
@@ -5514,7 +5514,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TronWitness",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tron-witnesses",
+		path: "(explore)/(networks)/tron-witnesses",
 		view: "$/views/TronWitnessesView.svelte",
 		unresolved: [
 		],
@@ -5522,7 +5522,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "TronWitness_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/tron-witness-timestamps",
+		path: "(explore)/(networks)/tron-witness-timestamps",
 		view: "$/views/TronWitness_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5538,7 +5538,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "Url",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/urls",
+		path: "(explore)/(data)/urls",
 		view: "$/views/UrlsView.svelte",
 		unresolved: [
 		],
@@ -5546,7 +5546,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "UrlPreview_Timestamp",
 		hub: "data-protocols",
-		path: "(explore)/(data)/data/url-preview-timestamps",
+		path: "(explore)/(data)/url-preview-timestamps",
 		view: "$/views/UrlPreview_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5554,7 +5554,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "UsageRight_Timestamp",
 		hub: "assets",
-		path: "(assets)/assets/usage-right-timestamps",
+		path: "(assets)/usage-right-timestamps",
 		view: "$/views/UsageRight_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5562,7 +5562,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "UtxoAddress_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/utxo-address-timestamps",
+		path: "(explore)/(networks)/utxo-address-timestamps",
 		view: "$/views/UtxoAddress_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5570,7 +5570,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "UtxoBlock",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/utxo-blocks",
+		path: "(explore)/(networks)/utxo-blocks",
 		view: "$/views/UtxoBlocksView.svelte",
 		unresolved: [
 		],
@@ -5578,7 +5578,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "UtxoInput",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/utxo-inputs",
+		path: "(explore)/(networks)/utxo-inputs",
 		view: "$/views/UtxoInputsView.svelte",
 		unresolved: [
 		],
@@ -5586,7 +5586,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "UtxoNetwork_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/utxo-network-timestamps",
+		path: "(explore)/(networks)/utxo-network-timestamps",
 		view: "$/views/UtxoNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5594,7 +5594,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "UtxoOutput",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/utxo-outputs",
+		path: "(explore)/(networks)/utxo-outputs",
 		view: "$/views/UtxoOutputsView.svelte",
 		unresolved: [
 		],
@@ -5602,7 +5602,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "UtxoTransaction",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/utxo-transactions",
+		path: "(explore)/(networks)/utxo-transactions",
 		view: "$/views/UtxoTransactionsView.svelte",
 		unresolved: [
 		],
@@ -5610,7 +5610,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "XPost",
 		hub: "social-x",
-		path: "(social)/(x)/x/xposts",
+		path: "(social)/x/xposts",
 		view: "$/views/XPostsView.svelte",
 		unresolved: [
 		],
@@ -5618,7 +5618,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "XPost_Timestamp",
 		hub: "social-x",
-		path: "(social)/(x)/x/xpost-timestamps",
+		path: "(social)/x/xpost-timestamps",
 		view: "$/views/XPost_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5626,7 +5626,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "XrplAccount",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/xrpl-accounts",
+		path: "(explore)/(networks)/xrpl-accounts",
 		view: "$/views/XrplAccountsView.svelte",
 		unresolved: [
 		],
@@ -5634,7 +5634,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "XrplAccount_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/xrpl-account-timestamps",
+		path: "(explore)/(networks)/xrpl-account-timestamps",
 		view: "$/views/XrplAccount_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5642,7 +5642,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "XrplAmendment",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/xrpl-amendments",
+		path: "(explore)/(networks)/xrpl-amendments",
 		view: "$/views/XrplAmendmentsView.svelte",
 		unresolved: [
 		],
@@ -5650,7 +5650,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "XrplAmendment_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/xrpl-amendment-timestamps",
+		path: "(explore)/(networks)/xrpl-amendment-timestamps",
 		view: "$/views/XrplAmendment_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5658,7 +5658,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "XrplAmm",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/xrpl-amms",
+		path: "(explore)/(networks)/xrpl-amms",
 		view: "$/views/XrplAmmsView.svelte",
 		unresolved: [
 		],
@@ -5666,7 +5666,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "XrplAmm_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/xrpl-amm-timestamps",
+		path: "(explore)/(networks)/xrpl-amm-timestamps",
 		view: "$/views/XrplAmm_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5674,7 +5674,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "XrplLedger",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/xrpl-ledgers",
+		path: "(explore)/(networks)/xrpl-ledgers",
 		view: "$/views/XrplLedgersView.svelte",
 		unresolved: [
 		],
@@ -5682,7 +5682,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "XrplLedgerEntry",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/xrpl-ledger-entries",
+		path: "(explore)/(networks)/xrpl-ledger-entries",
 		view: "$/views/XrplLedgerEntriesView.svelte",
 		unresolved: [
 		],
@@ -5690,7 +5690,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "XrplNetwork_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/xrpl-network-timestamps",
+		path: "(explore)/(networks)/xrpl-network-timestamps",
 		view: "$/views/XrplNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5698,7 +5698,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "XrplTransaction",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/xrpl-transactions",
+		path: "(explore)/(networks)/xrpl-transactions",
 		view: "$/views/XrplTransactionsView.svelte",
 		unresolved: [
 		],
@@ -5706,7 +5706,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "XrplTransaction_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/xrpl-transaction-timestamps",
+		path: "(explore)/(networks)/xrpl-transaction-timestamps",
 		view: "$/views/XrplTransaction_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5714,7 +5714,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "XrplTrustline",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/xrpl-trustlines",
+		path: "(explore)/(networks)/xrpl-trustlines",
 		view: "$/views/XrplTrustlinesView.svelte",
 		unresolved: [
 		],
@@ -5722,7 +5722,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "XrplTrustline_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/xrpl-trustline-timestamps",
+		path: "(explore)/(networks)/xrpl-trustline-timestamps",
 		view: "$/views/XrplTrustline_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5730,7 +5730,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "XUser",
 		hub: "social-x",
-		path: "(social)/(x)/x/xusers",
+		path: "(social)/x/xusers",
 		view: "$/views/XUsersView.svelte",
 		unresolved: [
 		],
@@ -5738,7 +5738,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "XUser_Timestamp",
 		hub: "social-x",
-		path: "(social)/(x)/x/xuser-timestamps",
+		path: "(social)/x/xuser-timestamps",
 		view: "$/views/XUser_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5746,7 +5746,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "YouTubeChannel",
 		hub: "social-youtube",
-		path: "(social)/(youtube)/youtube/you-tube-channels",
+		path: "(social)/youtube/you-tube-channels",
 		view: "$/views/YouTubeChannelsView.svelte",
 		unresolved: [
 		],
@@ -5754,7 +5754,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "YouTubeChannel_Timestamp",
 		hub: "social-youtube",
-		path: "(social)/(youtube)/youtube/you-tube-channel-timestamps",
+		path: "(social)/youtube/you-tube-channel-timestamps",
 		view: "$/views/YouTubeChannel_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5762,7 +5762,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "YouTubeComment",
 		hub: "social-youtube",
-		path: "(social)/(youtube)/youtube/you-tube-comments",
+		path: "(social)/youtube/you-tube-comments",
 		view: "$/views/YouTubeCommentsView.svelte",
 		unresolved: [
 		],
@@ -5770,7 +5770,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "YouTubeComment_Timestamp",
 		hub: "social-youtube",
-		path: "(social)/(youtube)/youtube/you-tube-comment-timestamps",
+		path: "(social)/youtube/you-tube-comment-timestamps",
 		view: "$/views/YouTubeComment_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5778,7 +5778,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "YouTubePlaylist",
 		hub: "social-youtube",
-		path: "(social)/(youtube)/youtube/you-tube-playlists",
+		path: "(social)/youtube/you-tube-playlists",
 		view: "$/views/YouTubePlaylistsView.svelte",
 		unresolved: [
 		],
@@ -5786,7 +5786,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "YouTubePlaylist_Timestamp",
 		hub: "social-youtube",
-		path: "(social)/(youtube)/youtube/you-tube-playlist-timestamps",
+		path: "(social)/youtube/you-tube-playlist-timestamps",
 		view: "$/views/YouTubePlaylist_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5794,7 +5794,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "YouTubeVideo",
 		hub: "social-youtube",
-		path: "(social)/(youtube)/youtube/you-tube-videos",
+		path: "(social)/youtube/you-tube-videos",
 		view: "$/views/YouTubeVideosView.svelte",
 		unresolved: [
 		],
@@ -5802,7 +5802,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "YouTubeVideo_Timestamp",
 		hub: "social-youtube",
-		path: "(social)/(youtube)/youtube/you-tube-video-timestamps",
+		path: "(social)/youtube/you-tube-video-timestamps",
 		view: "$/views/YouTubeVideo_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5810,7 +5810,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "ZcashShieldedAction",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/zcash-shielded-actions",
+		path: "(explore)/(networks)/zcash-shielded-actions",
 		view: "$/views/ZcashShieldedActionsView.svelte",
 		unresolved: [
 		],
@@ -5818,7 +5818,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "ZeroGConsensusNetwork_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/zero-gconsensus-network-timestamps",
+		path: "(explore)/(networks)/zero-gconsensus-network-timestamps",
 		view: "$/views/ZeroGConsensusNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5826,7 +5826,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "ZeroGDaNode",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/zero-gda-nodes",
+		path: "(explore)/(networks)/zero-gda-nodes",
 		view: "$/views/ZeroGDaNodesView.svelte",
 		unresolved: [
 		],
@@ -5834,7 +5834,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "ZeroGDaQuorum",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/zero-gda-quorums",
+		path: "(explore)/(networks)/zero-gda-quorums",
 		view: "$/views/ZeroGDaQuorumsView.svelte",
 		unresolved: [
 		],
@@ -5842,7 +5842,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "ZeroGDataBlob",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/zero-gdata-blobs",
+		path: "(explore)/(networks)/zero-gdata-blobs",
 		view: "$/views/ZeroGDataBlobsView.svelte",
 		unresolved: [
 		],
@@ -5850,7 +5850,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "ZeroGDataChunk",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/zero-gdata-chunks",
+		path: "(explore)/(networks)/zero-gdata-chunks",
 		view: "$/views/ZeroGDataChunksView.svelte",
 		unresolved: [
 		],
@@ -5858,7 +5858,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "ZeroGNetwork_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/zero-gnetwork-timestamps",
+		path: "(explore)/(networks)/zero-gnetwork-timestamps",
 		view: "$/views/ZeroGNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5866,7 +5866,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "ZeroGServiceRequest",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/zero-gservice-requests",
+		path: "(explore)/(networks)/zero-gservice-requests",
 		view: "$/views/ZeroGServiceRequestsView.svelte",
 		unresolved: [
 		],
@@ -5874,7 +5874,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "ZeroGStorageNode",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/zero-gstorage-nodes",
+		path: "(explore)/(networks)/zero-gstorage-nodes",
 		view: "$/views/ZeroGStorageNodesView.svelte",
 		unresolved: [
 		],
@@ -5882,7 +5882,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "ZeroGStorageNode_Timestamp",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/zero-gstorage-node-timestamps",
+		path: "(explore)/(networks)/zero-gstorage-node-timestamps",
 		view: "$/views/ZeroGStorageNode_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5890,7 +5890,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "ZeroGStorageProof",
 		hub: "networks",
-		path: "(explore)/(networks)/networks/zero-gstorage-proofs",
+		path: "(explore)/(networks)/zero-gstorage-proofs",
 		view: "$/views/ZeroGStorageProofsView.svelte",
 		unresolved: [
 		],
@@ -5898,7 +5898,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "_GlobalAiArtifactCatalog",
 		hub: "services",
-		path: "(explore)/(services)/services/global-ai-artifact-catalogs",
+		path: "(explore)/(services)/global-ai-artifact-catalogs",
 		view: "$/views/_GlobalAiArtifactCatalogsView.svelte",
 		unresolved: [
 		],
@@ -5906,7 +5906,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "_GlobalAiArtifactCatalog_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/global-ai-artifact-catalog-timestamps",
+		path: "(explore)/(services)/global-ai-artifact-catalog-timestamps",
 		view: "$/views/_GlobalAiArtifactCatalog_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5914,7 +5914,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "_GlobalAiModelCatalog",
 		hub: "services",
-		path: "(explore)/(services)/services/global-ai-model-catalogs",
+		path: "(explore)/(services)/global-ai-model-catalogs",
 		view: "$/views/_GlobalAiModelCatalogsView.svelte",
 		unresolved: [
 		],
@@ -5922,7 +5922,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "_GlobalAiModelCatalog_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/global-ai-model-catalog-timestamps",
+		path: "(explore)/(services)/global-ai-model-catalog-timestamps",
 		view: "$/views/_GlobalAiModelCatalog_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5930,7 +5930,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "_GlobalAgentNetwork",
 		hub: "services",
-		path: "(explore)/(services)/services/global-agent-networks",
+		path: "(explore)/(services)/global-agent-networks",
 		view: "$/views/_GlobalAgentNetworksView.svelte",
 		unresolved: [
 		],
@@ -5938,7 +5938,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "_GlobalAgentNetwork_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/global-agent-network-timestamps",
+		path: "(explore)/(services)/global-agent-network-timestamps",
 		view: "$/views/_GlobalAgentNetwork_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5946,7 +5946,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AcpAgentProgram",
 		hub: "services",
-		path: "(explore)/(services)/services/acp-agent-programs",
+		path: "(explore)/(services)/acp-agent-programs",
 		view: "$/views/AcpAgentProgramsView.svelte",
 		unresolved: [
 		],
@@ -5954,7 +5954,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AcpAgentProgramVersion",
 		hub: "services",
-		path: "(explore)/(services)/services/acp-agent-program-versions",
+		path: "(explore)/(services)/acp-agent-program-versions",
 		view: "$/views/AcpAgentProgramVersionsView.svelte",
 		unresolved: [
 		],
@@ -5962,7 +5962,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AcpAgentRuntime_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/acp-agent-runtime-timestamps",
+		path: "(explore)/(services)/acp-agent-runtime-timestamps",
 		view: "$/views/AcpAgentRuntime_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -5970,7 +5970,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AcpFileOperation",
 		hub: "services",
-		path: "(explore)/(services)/services/acp-file-operations",
+		path: "(explore)/(services)/acp-file-operations",
 		view: "$/views/AcpFileOperationsView.svelte",
 		unresolved: [
 		],
@@ -5978,7 +5978,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AcpMessage",
 		hub: "services",
-		path: "(explore)/(services)/services/acp-messages",
+		path: "(explore)/(services)/acp-messages",
 		view: "$/views/AcpMessagesView.svelte",
 		unresolved: [
 		],
@@ -5986,7 +5986,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AcpMessagePart",
 		hub: "services",
-		path: "(explore)/(services)/services/acp-message-parts",
+		path: "(explore)/(services)/acp-message-parts",
 		view: "$/views/AcpMessagePartsView.svelte",
 		unresolved: [
 		],
@@ -5994,7 +5994,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AcpPermissionRequest",
 		hub: "services",
-		path: "(explore)/(services)/services/acp-permission-requests",
+		path: "(explore)/(services)/acp-permission-requests",
 		view: "$/views/AcpPermissionRequestsView.svelte",
 		unresolved: [
 		],
@@ -6002,7 +6002,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AcpPromptTurn",
 		hub: "services",
-		path: "(explore)/(services)/services/acp-prompt-turns",
+		path: "(explore)/(services)/acp-prompt-turns",
 		view: "$/views/AcpPromptTurnsView.svelte",
 		unresolved: [
 		],
@@ -6010,7 +6010,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AcpSession",
 		hub: "services",
-		path: "(explore)/(services)/services/acp-sessions",
+		path: "(explore)/(services)/acp-sessions",
 		view: "$/views/AcpSessionsView.svelte",
 		unresolved: [
 		],
@@ -6018,7 +6018,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AcpSessionUpdate",
 		hub: "services",
-		path: "(explore)/(services)/services/acp-session-updates",
+		path: "(explore)/(services)/acp-session-updates",
 		view: "$/views/AcpSessionUpdatesView.svelte",
 		unresolved: [
 		],
@@ -6026,7 +6026,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AcpTerminal",
 		hub: "services",
-		path: "(explore)/(services)/services/acp-terminals",
+		path: "(explore)/(services)/acp-terminals",
 		view: "$/views/AcpTerminalsView.svelte",
 		unresolved: [
 		],
@@ -6034,7 +6034,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AcpTerminal_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/acp-terminal-timestamps",
+		path: "(explore)/(services)/acp-terminal-timestamps",
 		view: "$/views/AcpTerminal_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -6042,7 +6042,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AcpToolCall",
 		hub: "services",
-		path: "(explore)/(services)/services/acp-tool-calls",
+		path: "(explore)/(services)/acp-tool-calls",
 		view: "$/views/AcpToolCallsView.svelte",
 		unresolved: [
 		],
@@ -6050,7 +6050,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AcpToolCall_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/acp-tool-call-timestamps",
+		path: "(explore)/(services)/acp-tool-call-timestamps",
 		view: "$/views/AcpToolCall_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -6058,7 +6058,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "A2aAgentCard",
 		hub: "services",
-		path: "(explore)/(services)/services/a2a-agent-cards",
+		path: "(explore)/(services)/a2a-agent-cards",
 		view: "$/views/A2aAgentCardsView.svelte",
 		unresolved: [
 		],
@@ -6066,7 +6066,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "A2aAgentCard_Snapshot",
 		hub: "services",
-		path: "(explore)/(services)/services/a2a-agent-card-snapshots",
+		path: "(explore)/(services)/a2a-agent-card-snapshots",
 		view: "$/views/A2aAgentCard_SnapshotsView.svelte",
 		unresolved: [
 		],
@@ -6074,7 +6074,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "A2aAgentInterface",
 		hub: "services",
-		path: "(explore)/(services)/services/a2a-agent-interfaces",
+		path: "(explore)/(services)/a2a-agent-interfaces",
 		view: "$/views/A2aAgentInterfacesView.svelte",
 		unresolved: [
 		],
@@ -6082,7 +6082,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "A2aAgentService",
 		hub: "services",
-		path: "(explore)/(services)/services/a2a-agent-services",
+		path: "(explore)/(services)/a2a-agent-services",
 		view: "$/views/A2aAgentServicesView.svelte",
 		unresolved: [
 		],
@@ -6090,7 +6090,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "A2aAgentService_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/a2a-agent-service-timestamps",
+		path: "(explore)/(services)/a2a-agent-service-timestamps",
 		view: "$/views/A2aAgentService_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -6098,7 +6098,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "A2aAgentSkill",
 		hub: "services",
-		path: "(explore)/(services)/services/a2a-agent-skills",
+		path: "(explore)/(services)/a2a-agent-skills",
 		view: "$/views/A2aAgentSkillsView.svelte",
 		unresolved: [
 		],
@@ -6106,7 +6106,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "A2aArtifact",
 		hub: "services",
-		path: "(explore)/(services)/services/a2a-artifacts",
+		path: "(explore)/(services)/a2a-artifacts",
 		view: "$/views/A2aArtifactsView.svelte",
 		unresolved: [
 		],
@@ -6114,7 +6114,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "A2aMessage",
 		hub: "services",
-		path: "(explore)/(services)/services/a2a-messages",
+		path: "(explore)/(services)/a2a-messages",
 		view: "$/views/A2aMessagesView.svelte",
 		unresolved: [
 		],
@@ -6122,7 +6122,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "A2aMessagePart",
 		hub: "services",
-		path: "(explore)/(services)/services/a2a-message-parts",
+		path: "(explore)/(services)/a2a-message-parts",
 		view: "$/views/A2aMessagePartsView.svelte",
 		unresolved: [
 		],
@@ -6130,7 +6130,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "A2aPushNotificationConfig",
 		hub: "services",
-		path: "(explore)/(services)/services/a2a-push-notification-configs",
+		path: "(explore)/(services)/a2a-push-notification-configs",
 		view: "$/views/A2aPushNotificationConfigsView.svelte",
 		unresolved: [
 		],
@@ -6138,7 +6138,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "A2aTask",
 		hub: "services",
-		path: "(explore)/(services)/services/a2a-tasks",
+		path: "(explore)/(services)/a2a-tasks",
 		view: "$/views/A2aTasksView.svelte",
 		unresolved: [
 		],
@@ -6146,7 +6146,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "A2aTask_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/a2a-task-timestamps",
+		path: "(explore)/(services)/a2a-task-timestamps",
 		view: "$/views/A2aTask_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -6154,7 +6154,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "A2aTaskEvent",
 		hub: "services",
-		path: "(explore)/(services)/services/a2a-task-events",
+		path: "(explore)/(services)/a2a-task-events",
 		view: "$/views/A2aTaskEventsView.svelte",
 		unresolved: [
 		],
@@ -6162,7 +6162,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AgentPaymentRequirement_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/agent-payment-requirement-timestamps",
+		path: "(explore)/(services)/agent-payment-requirement-timestamps",
 		view: "$/views/AgentPaymentRequirement_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -6170,7 +6170,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AiArtifact",
 		hub: "services",
-		path: "(explore)/(services)/services/ai-artifacts",
+		path: "(explore)/(services)/ai-artifacts",
 		view: "$/views/AiArtifactsView.svelte",
 		unresolved: [
 		],
@@ -6178,7 +6178,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AiArtifactAttestation",
 		hub: "services",
-		path: "(explore)/(services)/services/ai-artifact-attestations",
+		path: "(explore)/(services)/ai-artifact-attestations",
 		view: "$/views/AiArtifactAttestationsView.svelte",
 		unresolved: [
 		],
@@ -6186,7 +6186,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AiBenchmark",
 		hub: "services",
-		path: "(explore)/(services)/services/ai-benchmarks",
+		path: "(explore)/(services)/ai-benchmarks",
 		view: "$/views/AiBenchmarksView.svelte",
 		unresolved: [
 		],
@@ -6194,7 +6194,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AiDataset",
 		hub: "services",
-		path: "(explore)/(services)/services/ai-datasets",
+		path: "(explore)/(services)/ai-datasets",
 		view: "$/views/AiDatasetsView.svelte",
 		unresolved: [
 		],
@@ -6202,7 +6202,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AiDocument",
 		hub: "services",
-		path: "(explore)/(services)/services/ai-documents",
+		path: "(explore)/(services)/ai-documents",
 		view: "$/views/AiDocumentsView.svelte",
 		unresolved: [
 		],
@@ -6210,7 +6210,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AiDocumentClaim",
 		hub: "services",
-		path: "(explore)/(services)/services/ai-document-claims",
+		path: "(explore)/(services)/ai-document-claims",
 		view: "$/views/AiDocumentClaimsView.svelte",
 		unresolved: [
 		],
@@ -6218,7 +6218,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AiEvaluation_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/ai-evaluation-timestamps",
+		path: "(explore)/(services)/ai-evaluation-timestamps",
 		view: "$/views/AiEvaluation_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -6226,7 +6226,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AiModel",
 		hub: "services",
-		path: "(explore)/(services)/services/ai-models",
+		path: "(explore)/(services)/ai-models",
 		view: "$/views/AiModelsView.svelte",
 		unresolved: [
 		],
@@ -6234,7 +6234,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AiModelProvider",
 		hub: "services",
-		path: "(explore)/(services)/services/ai-model-providers",
+		path: "(explore)/(services)/ai-model-providers",
 		view: "$/views/AiModelProvidersView.svelte",
 		unresolved: [
 		],
@@ -6242,7 +6242,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AiModelVersion",
 		hub: "services",
-		path: "(explore)/(services)/services/ai-model-versions",
+		path: "(explore)/(services)/ai-model-versions",
 		view: "$/views/AiModelVersionsView.svelte",
 		unresolved: [
 		],
@@ -6250,7 +6250,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AiModel_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/ai-model-timestamps",
+		path: "(explore)/(services)/ai-model-timestamps",
 		view: "$/views/AiModel_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -6258,7 +6258,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AiProviderApiOperation",
 		hub: "services",
-		path: "(explore)/(services)/services/ai-provider-api-operations",
+		path: "(explore)/(services)/ai-provider-api-operations",
 		view: "$/views/AiProviderApiOperationsView.svelte",
 		unresolved: [
 		],
@@ -6266,7 +6266,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AiProviderApiOperation_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/ai-provider-api-operation-timestamps",
+		path: "(explore)/(services)/ai-provider-api-operation-timestamps",
 		view: "$/views/AiProviderApiOperation_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -6274,7 +6274,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AiProviderCatalogEntry",
 		hub: "services",
-		path: "(explore)/(services)/services/ai-provider-catalog-entries",
+		path: "(explore)/(services)/ai-provider-catalog-entries",
 		view: "$/views/AiProviderCatalogEntriesView.svelte",
 		unresolved: [
 		],
@@ -6282,7 +6282,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "AiProviderCatalogEntry_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/ai-provider-catalog-entry-timestamps",
+		path: "(explore)/(services)/ai-provider-catalog-entry-timestamps",
 		view: "$/views/AiProviderCatalogEntry_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -6290,7 +6290,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadAgentConnection_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-agent-connection-timestamps",
+		path: "(explore)/(services)/agent/connection/timestamps",
 		view: "$/views/BlockheadAgentConnection_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -6298,7 +6298,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadAgentCredentialState_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-agent-credential-state-timestamps",
+		path: "(explore)/(services)/agent/credential/state/timestamps",
 		view: "$/views/BlockheadAgentCredentialState_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -6306,7 +6306,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadAgentProgramInstall_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-agent-program-install-timestamps",
+		path: "(explore)/(services)/agent/program/install/timestamps",
 		view: "$/views/BlockheadAgentProgramInstall_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -6314,7 +6314,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadAgentProviderCall",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-agent-provider-calls",
+		path: "(explore)/(services)/agent/provider/calls",
 		view: "$/views/BlockheadAgentProviderCallsView.svelte",
 		unresolved: [
 		],
@@ -6322,7 +6322,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "BlockheadAgentProfile",
 		hub: "services",
-		path: "(explore)/(services)/services/blockhead-agent-profiles",
+		path: "(explore)/(services)/agent/profiles",
 		view: "$/views/BlockheadAgentProfilesView.svelte",
 		unresolved: [
 		],
@@ -6330,7 +6330,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "Eip8004AgentRegistration",
 		hub: "services",
-		path: "(explore)/(services)/services/eip8004-agent-registrations",
+		path: "(explore)/(services)/eip8004-agent-registrations",
 		view: "$/views/Eip8004AgentRegistrationsView.svelte",
 		unresolved: [
 		],
@@ -6338,7 +6338,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "Eip8004AgentRegistration_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/eip8004-agent-registration-timestamps",
+		path: "(explore)/(services)/eip8004-agent-registration-timestamps",
 		view: "$/views/Eip8004AgentRegistration_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -6346,7 +6346,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "Eip8004AgentRegistrationFile",
 		hub: "services",
-		path: "(explore)/(services)/services/eip8004-agent-registration-files",
+		path: "(explore)/(services)/eip8004-agent-registration-files",
 		view: "$/views/Eip8004AgentRegistrationFilesView.svelte",
 		unresolved: [
 		],
@@ -6354,7 +6354,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "Eip8004AgentServiceEndpoint",
 		hub: "services",
-		path: "(explore)/(services)/services/eip8004-agent-service-endpoints",
+		path: "(explore)/(services)/eip8004-agent-service-endpoints",
 		view: "$/views/Eip8004AgentServiceEndpointsView.svelte",
 		unresolved: [
 		],
@@ -6362,7 +6362,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "Eip8004CrossRegistration",
 		hub: "services",
-		path: "(explore)/(services)/services/eip8004-cross-registrations",
+		path: "(explore)/(services)/eip8004-cross-registrations",
 		view: "$/views/Eip8004CrossRegistrationsView.svelte",
 		unresolved: [
 		],
@@ -6370,7 +6370,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "McpPrompt",
 		hub: "services",
-		path: "(explore)/(services)/services/mcp-prompts",
+		path: "(explore)/(services)/mcp-prompts",
 		view: "$/views/McpPromptsView.svelte",
 		unresolved: [
 		],
@@ -6378,7 +6378,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "McpPromptResult",
 		hub: "services",
-		path: "(explore)/(services)/services/mcp-prompt-results",
+		path: "(explore)/(services)/mcp-prompt-results",
 		view: "$/views/McpPromptResultsView.svelte",
 		unresolved: [
 		],
@@ -6386,7 +6386,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "McpResource",
 		hub: "services",
-		path: "(explore)/(services)/services/mcp-resources",
+		path: "(explore)/(services)/mcp-resources",
 		view: "$/views/McpResourcesView.svelte",
 		unresolved: [
 		],
@@ -6394,7 +6394,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "McpResourceContent_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/mcp-resource-content-timestamps",
+		path: "(explore)/(services)/mcp-resource-content-timestamps",
 		view: "$/views/McpResourceContent_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -6402,7 +6402,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "McpResourceTemplate",
 		hub: "services",
-		path: "(explore)/(services)/services/mcp-resource-templates",
+		path: "(explore)/(services)/mcp-resource-templates",
 		view: "$/views/McpResourceTemplatesView.svelte",
 		unresolved: [
 		],
@@ -6410,7 +6410,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "McpServer",
 		hub: "services",
-		path: "(explore)/(services)/services/mcp-servers",
+		path: "(explore)/(services)/mcp-servers",
 		view: "$/views/McpServersView.svelte",
 		unresolved: [
 		],
@@ -6418,7 +6418,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "McpServer_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/mcp-server-timestamps",
+		path: "(explore)/(services)/mcp-server-timestamps",
 		view: "$/views/McpServer_TimestampsView.svelte",
 		unresolved: [
 		],
@@ -6426,7 +6426,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "McpServerPackageVersion",
 		hub: "services",
-		path: "(explore)/(services)/services/mcp-server-package-versions",
+		path: "(explore)/(services)/mcp-server-package-versions",
 		view: "$/views/McpServerPackageVersionsView.svelte",
 		unresolved: [
 		],
@@ -6434,7 +6434,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "McpTool",
 		hub: "services",
-		path: "(explore)/(services)/services/mcp-tools",
+		path: "(explore)/(services)/mcp-tools",
 		view: "$/views/McpToolsView.svelte",
 		unresolved: [
 		],
@@ -6442,7 +6442,7 @@ export const entityHubCollectionRoutes = [
 	{
 		entity: "McpToolCall_Timestamp",
 		hub: "services",
-		path: "(explore)/(services)/services/mcp-tool-call-timestamps",
+		path: "(explore)/(services)/mcp-tool-call-timestamps",
 		view: "$/views/McpToolCall_TimestampsView.svelte",
 		unresolved: [
 		],

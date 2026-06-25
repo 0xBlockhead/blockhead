@@ -10,35 +10,25 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account',
-		},
-		{
-			label: 'asset',
-		},
+		'$account',
+		'$asset',
 		'round',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'account',
-				},
-				{
-					label: 'asset',
-				},
+				'$account',
+				'$asset',
 				'round',
 				'source',
 				'amount',
-				{
-					label: 'frozen state',
-				},
+			],
+			[
+				'frozen',
 				{
 					label: 'opt-in round',
 				},
-				{
-					label: 'deleted state',
-				},
+				'deleted',
 			],
 		],
 	},

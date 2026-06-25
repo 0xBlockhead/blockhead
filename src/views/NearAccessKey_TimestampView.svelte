@@ -10,35 +10,27 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'access key',
-		},
-		{
-			label: 'observation time',
-		},
+		'$accessKey',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'access key',
-				},
-				{
-					label: 'observation time',
-				},
+				'$accessKey',
+				'timestampMs',
 				'source',
 				{
 					label: 'block height/hash',
 				},
 				'nonce',
+			],
+			[
 				'permission',
 				{
 					label: 'allowance',
 				},
-				{
-					label: 'receiver id',
-				},
+				'receiverId',
 				{
 					label: 'method count',
 				},
@@ -58,12 +50,8 @@
 			{
 				label: 'Function-call scope',
 				items: [
-					{
-						label: 'receiver id',
-					},
-					{
-						label: 'method names',
-					},
+					'receiverId',
+					'methodNames',
 					{
 						label: 'allowance',
 					},

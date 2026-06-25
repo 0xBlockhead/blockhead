@@ -69,13 +69,6 @@ export default {
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'stack',
-			label: 'stack',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
 			name: '$networkStack',
 			label: 'network stack',
 			type: EntityFieldType.EntityReference,

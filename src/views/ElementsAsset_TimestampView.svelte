@@ -10,35 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'asset',
-		},
-		{
-			label: 'observation time',
-		},
-		{
-			label: 'issued amount',
-		},
+		'$asset',
+		'timestampMs',
+		'issuedAmount',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'asset',
-				},
-				{
-					label: 'observation time',
-				},
+				'$asset',
+				'timestampMs',
 				'source',
-				{
-					label: 'issued amount',
-				},
-				{
-					label: 'burned amount',
-				},
-				{
-					label: 'reissuance token count',
-				},
+				'issuedAmount',
+				'burnedAmount',
+				'reissuanceTokenCount',
 			],
 		],
 	},

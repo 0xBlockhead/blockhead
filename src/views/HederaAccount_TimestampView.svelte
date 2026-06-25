@@ -10,28 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account',
-		},
-		{
-			label: 'observed time',
-		},
+		'$account',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'account',
-				},
-				{
-					label: 'observed time',
-				},
+				'$account',
+				'timestampMs',
 				'source',
 				'alias',
-				{
-					label: 'EVM address',
-				},
+				'evmAddress',
+			],
+			[
 				{
 					label: 'key presence',
 				},
@@ -39,21 +31,15 @@
 					label: 'receiver signature requirement',
 				},
 				'memo',
-				{
-					label: 'balance',
-				},
-				{
-					label: 'deleted flag',
-				},
+				'balanceTinybar',
+				'deleted',
+			],
+			[
 				{
 					label: 'staking target',
 				},
-				{
-					label: 'pending reward',
-				},
-				{
-					label: 'auto-renew period',
-				},
+				'pendingRewardTinybar',
+				'autoRenewPeriodSeconds',
 				{
 					label: 'expiry',
 				},
@@ -76,12 +62,8 @@
 					{
 						label: 'staked node/account',
 					},
-					{
-						label: 'decline reward',
-					},
-					{
-						label: 'pending reward',
-					},
+					'declineReward',
+					'pendingRewardTinybar',
 				],
 			},
 			{
@@ -89,9 +71,7 @@
 				items: [
 					'key',
 					'alias',
-					{
-						label: 'EVM address',
-					},
+					'evmAddress',
 					'memo',
 					{
 						label: 'receiver signature setting',

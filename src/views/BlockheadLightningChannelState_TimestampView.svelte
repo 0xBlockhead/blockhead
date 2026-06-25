@@ -10,45 +10,27 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'channel state',
-		},
-		{
-			label: 'observation time',
-		},
+		'$channelState',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'channel state',
-				},
-				{
-					label: 'observation time',
-				},
+				'$channelState',
+				'timestampMs',
 				'source',
-				{
-					label: 'active state',
-				},
-				{
-					label: 'local balance',
-				},
-				{
-					label: 'remote balance',
-				},
-				{
-					label: 'unsettled balance',
-				},
-				{
-					label: 'commit fee',
-				},
-				{
-					label: 'commit weight',
-				},
-				{
-					label: 'fee per kw',
-				},
+				'active',
+				'localBalanceSats',
+			],
+			[
+				'remoteBalanceSats',
+				'unsettledBalanceSats',
+				'commitFeeSats',
+				'commitWeight',
+				'feePerKw',
+			],
+			[
 				{
 					label: 'update count',
 				},

@@ -10,28 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'amendment',
-		},
-		{
-			label: 'ledger index',
-		},
+		'$amendment',
+		'ledgerIndex',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'amendment',
-				},
-				{
-					label: 'ledger index',
-				},
+				'$amendment',
+				'ledgerIndex',
 				'source',
-				{
-					label: 'observation time',
-				},
+				'timestampMs',
 				'enabled',
+			],
+			[
 				'supported',
 				'status',
 				{

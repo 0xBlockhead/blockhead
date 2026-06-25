@@ -10,24 +10,16 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'contract',
-		},
+		'$contract',
 		'slot',
-		{
-			label: 'observed time',
-		},
+		'timestampMs',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'contract',
-				},
+				'$contract',
 				'slot',
-				{
-					label: 'observed time',
-				},
+				'timestampMs',
 				'source',
 				'value',
 			],

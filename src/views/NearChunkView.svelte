@@ -10,34 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'chunk hash',
-		},
-		{
-			label: 'block',
-		},
-		{
-			label: 'shard id',
-		},
+		'chunkHash',
+		'$block',
+		'shardId',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'chunk hash',
-				},
-				{
-					label: 'block',
-				},
-				{
-					label: 'shard id',
-				},
-				{
-					label: 'gas used',
-				},
-				{
-					label: 'transaction count',
-				},
+				'chunkHash',
+				'$block',
+				'shardId',
+				'gasUsed',
+				'$$transactions',
 				{
 					label: 'shard/block context',
 				},
@@ -60,12 +44,8 @@
 			{
 				label: 'Shard execution',
 				items: [
-					{
-						label: 'shard id',
-					},
-					{
-						label: 'gas used',
-					},
+					'shardId',
+					'gasUsed',
 				],
 			},
 			{
@@ -86,6 +66,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'transactions',
+			label: 'transactions',
+			field: '$$transactions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -13,12 +13,8 @@
 		{
 			label: 'source/request hash',
 		},
-		{
-			label: 'observation time',
-		},
-		{
-			label: 'network',
-		},
+		'timestampMs',
+		'$network',
 	],
 	content: {
 		dl: [
@@ -27,48 +23,36 @@
 				{
 					label: 'request hash',
 				},
-				{
-					label: 'observation time',
-				},
-				{
-					label: 'network',
-				},
+				'timestampMs',
+				'$network',
 				{
 					label: 'token in/out',
 				},
-				{
-					label: 'amount in',
-				},
+			],
+			[
+				'amountIn',
 				'slippage',
 				{
 					label: 'from/to addresses',
 				},
+				'$intent',
+			],
+			[
+				'providerQuoteId',
+				'amountOut',
 				{
-					label: 'intent',
+					label: 'minimum amount out',
+				},
+				'priceImpact',
+				{
+					label: 'gas estimate',
 				},
 			],
 			[
 				{
-					label: 'provider quote id',
-				},
-				{
-					label: 'amount out',
-				},
-				{
-					label: 'minimum amount out',
-				},
-				{
-					label: 'price impact',
-				},
-				{
-					label: 'gas estimate',
-				},
-				{
 					label: 'gas USD',
 				},
-				{
-					label: 'allowance target',
-				},
+				'allowanceTarget',
 				{
 					label: 'transaction target',
 				},
@@ -76,12 +60,12 @@
 					label: 'calldata hash',
 				},
 				'value',
+			],
+			[
 				{
 					label: 'valid-until time',
 				},
-				{
-					label: 'block number',
-				},
+				'blockNumber',
 				'status',
 				'error',
 			],
@@ -130,9 +114,7 @@
 					{
 						label: 'request parameters',
 					},
-					{
-						label: 'block number',
-					},
+					'blockNumber',
 					{
 						label: 'error payload',
 					},
@@ -140,6 +122,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'steps',
+			label: 'steps',
+			field: '$$steps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

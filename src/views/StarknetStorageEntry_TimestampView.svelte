@@ -13,9 +13,7 @@
 		{
 			label: 'storage entry',
 		},
-		{
-			label: 'block number',
-		},
+		'blockNumber',
 		'source',
 	],
 	content: {
@@ -24,14 +22,10 @@
 				{
 					label: 'storage entry',
 				},
-				{
-					label: 'block number',
-				},
+				'blockNumber',
 				'source',
 				'value',
-				{
-					label: 'block hash',
-				},
+				'blockHash',
 			],
 		],
 	},

@@ -10,49 +10,27 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'repository',
-		},
-		{
-			label: 'event id',
-		},
-		{
-			label: 'event kind',
-		},
+		'$repository',
+		'eventId',
+		'eventKind',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'repository',
-				},
-				{
-					label: 'event id',
-				},
-				{
-					label: 'event kind',
-				},
-				{
-					label: 'author DID',
-				},
-				{
-					label: 'subject selector',
-				},
-				{
-					label: 'timestamp',
-				},
-				{
-					label: 'verification status',
-				},
+				'$repository',
+				'eventId',
+				'eventKind',
+				'authorDid',
+				'subjectSelector',
+			],
+			[
+				'timestampMs',
+				'verificationStatus',
 				{
 					label: 'payload hash/object id',
 				},
-				{
-					label: 'linked Git commit',
-				},
-				{
-					label: 'payload object',
-				},
+				'$gitCommit',
+				'$payloadObject',
 			],
 		],
 	},

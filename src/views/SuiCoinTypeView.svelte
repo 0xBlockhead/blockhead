@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'coin type',
-		},
+		'coinType',
 		{
 			label: 'symbol/name',
 		},
@@ -21,39 +19,23 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'coin type',
-				},
+				'$network',
+				'coinType',
 				'symbol',
 				'name',
 				'decimals',
 				'description',
-				{
-					label: 'icon URL',
-				},
+				'iconUrl',
 			],
 			[
 				{
 					label: 'defining Move struct',
 				},
-				{
-					label: 'treasury cap',
-				},
-				{
-					label: 'asset instance',
-				},
-				{
-					label: 'balance count',
-				},
-				{
-					label: 'object count',
-				},
-				{
-					label: 'regulated-state count',
-				},
+				'$treasuryCap',
+				'$assetInstance',
+				'$$balances',
+				'$$objects',
+				'$$regulatedStates',
 			],
 		],
 	},
@@ -115,6 +97,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'balances',
+			label: 'balances',
+			field: '$$balances',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'objects',
+			label: 'objects',
+			field: '$$objects',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'regulated-states',
+			label: 'regulated states',
+			field: '$$regulatedStates',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

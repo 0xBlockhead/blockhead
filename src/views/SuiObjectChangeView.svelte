@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'change kind',
-		},
+		'changeKind',
 		{
 			label: 'object id/type',
 		},
@@ -23,9 +21,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'change kind',
-				},
+				'changeKind',
 				{
 					label: 'object id/type',
 				},
@@ -34,9 +30,7 @@
 				},
 				'version',
 				'digest',
-				{
-					label: 'parent transaction',
-				},
+				'$transaction',
 			],
 		],
 	},
@@ -53,15 +47,9 @@
 			{
 				label: 'Object',
 				items: [
-					{
-						label: 'object id',
-					},
-					{
-						label: 'object type',
-					},
-					{
-						label: 'owner selector',
-					},
+					'objectId',
+					'objectType',
+					'ownerSelector',
 				],
 			},
 			{

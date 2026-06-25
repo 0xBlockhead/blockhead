@@ -10,34 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'block hash',
-		},
-		{
-			label: 'timestamp',
-		},
+		'$network',
+		'blockHash',
+		'timestampMs',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'block hash',
-				},
-				{
-					label: 'timestamp',
-				},
-				{
-					label: 'blue score',
-				},
-				{
-					label: 'DAA score',
-				},
+				'$network',
+				'blockHash',
+				'timestampMs',
+				'blueScore',
+				'daaScore',
+			],
+			[
 				{
 					label: 'selected parent',
 				},
@@ -47,12 +33,8 @@
 				{
 					label: 'merge-set blue/red counts',
 				},
-				{
-					label: 'accepted transaction count',
-				},
-				{
-					label: 'UTXO commitment',
-				},
+				'$$acceptedTransactions',
+				'utxoCommitment',
 			],
 		],
 	},
@@ -93,15 +75,9 @@
 			{
 				label: 'Header roots',
 				items: [
-					{
-						label: 'hash merkle root',
-					},
-					{
-						label: 'accepted-id merkle root',
-					},
-					{
-						label: 'UTXO commitment',
-					},
+					'hashMerkleRoot',
+					'acceptedIdMerkleRoot',
+					'utxoCommitment',
 				],
 			},
 			{
@@ -114,6 +90,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'accepted-transactions',
+			label: 'accepted transactions',
+			field: '$$acceptedTransactions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

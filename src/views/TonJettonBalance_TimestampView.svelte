@@ -10,47 +10,27 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account',
-		},
-		{
-			label: 'jetton',
-		},
-		{
-			label: 'observation time',
-		},
+		'$account',
+		'$jetton',
+		'timestampMs',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'account',
-				},
-				{
-					label: 'jetton',
-				},
-				{
-					label: 'observation time',
-				},
+				'$account',
+				'$jetton',
+				'timestampMs',
 				'source',
-				{
-					label: 'jetton wallet address',
-				},
+				'jettonWalletAddress',
+			],
+			[
 				{
 					label: 'balance',
 				},
-				{
-					label: 'owner address',
-				},
-				{
-					label: 'master address',
-				},
-				{
-					label: 'last transaction lt',
-				},
-				{
-					label: 'locked flag',
-				},
+				'ownerAddress',
+				'masterAddress',
+				'lastTransactionLt',
+				'locked',
 			],
 		],
 	},

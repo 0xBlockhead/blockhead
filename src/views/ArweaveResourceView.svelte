@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'canonical URI',
-		},
+		'canonicalUri',
 		{
 			label: 'latest gateway origin',
 		},
@@ -23,18 +21,10 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'canonical URI',
-				},
-				{
-					label: 'transaction id',
-				},
-				{
-					label: 'content path',
-				},
-				{
-					label: 'linked transaction',
-				},
+				'canonicalUri',
+				'transactionId',
+				'contentPath',
+				'$transaction',
 				{
 					label: 'latest gateway/source',
 				},
@@ -60,12 +50,8 @@
 			{
 				label: 'Address',
 				items: [
-					{
-						label: 'transaction id',
-					},
-					{
-						label: 'content path',
-					},
+					'transactionId',
+					'contentPath',
 					{
 						label: 'linked Arweave transaction when resolved',
 					},
@@ -103,6 +89,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,34 +10,24 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'actor coin',
-		},
-		{
-			label: 'observation time',
-		},
+		'$actorCoin',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'actor coin',
-				},
-				{
-					label: 'observation time',
-				},
+				'$actorCoin',
+				'timestampMs',
 				'source',
 				{
 					label: 'block number when known',
 				},
 				'balance',
-				{
-					label: 'USD value',
-				},
-				{
-					label: 'price',
-				},
+			],
+			[
+				'usdValue',
+				'priceUsd',
 				{
 					label: 'token metadata summary',
 				},

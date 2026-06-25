@@ -10,31 +10,17 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'comment',
-		},
-		{
-			label: 'observation time',
-		},
-		{
-			label: 'like count',
-		},
+		'$comment',
+		'timestampMs',
+		'likeCount',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'comment',
-				},
-				{
-					label: 'observation time',
-				},
-				{
-					label: 'like count',
-				},
-				{
-					label: 'reply count',
-				},
+				'$comment',
+				'timestampMs',
+				'likeCount',
+				'replyCount',
 			],
 		],
 	},

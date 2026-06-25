@@ -11,18 +11,14 @@
 	const view = {
 	closed: [
 		'digest',
-		{
-			label: 'kind',
-		},
+		'transactionKind',
 		'sender',
 	],
 	content: {
 		dl: [
 			[
 				'digest',
-				{
-					label: 'kind',
-				},
+				'transactionKind',
 				'sender',
 				{
 					label: 'latest status',
@@ -30,9 +26,7 @@
 				{
 					label: 'latest checkpoint',
 				},
-				{
-					label: 'latest timestamp',
-				},
+				'$$timestamps',
 				{
 					label: 'latest gas budget/price',
 				},
@@ -91,6 +85,53 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'commands',
+			label: 'commands',
+			field: '$$commands',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'object-changes',
+			label: 'object changes',
+			field: '$$objectChanges',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'balance-changes',
+			label: 'balance changes',
+			field: '$$balanceChanges',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'events',
+			label: 'events',
+			field: '$$events',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

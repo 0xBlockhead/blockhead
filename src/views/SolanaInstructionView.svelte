@@ -25,43 +25,23 @@
 		},
 	],
 	closed: [
-		{
-			label: 'transaction',
-		},
-		{
-			label: 'instruction kind',
-		},
-		{
-			label: 'instruction index',
-		},
+		'$transaction',
+		'instructionKind',
+		'instructionIndex',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'transaction',
-				},
-				{
-					label: 'instruction kind',
-				},
-				{
-					label: 'instruction index',
-				},
-				{
-					label: 'inner instruction index',
-				},
-				{
-					label: 'program',
-				},
-				{
-					label: 'parsed type',
-				},
-				{
-					label: 'stack height',
-				},
-				{
-					label: 'account count',
-				},
+				'$transaction',
+				'instructionKind',
+				'instructionIndex',
+				'innerInstructionIndex',
+				'$program',
+			],
+			[
+				'parsedType',
+				'stackHeight',
+				'$$accounts',
 			],
 		],
 	},
@@ -101,6 +81,25 @@
 			},
 		],
 	},
+	summary: {
+		value: '$transaction',
+		title: '$transaction',
+		after: [
+			'instructionKind',
+			'instructionIndex',
+		],
+	},
+	lists: [
+		{
+			id: 'accounts',
+			label: 'accounts',
+			field: '$$accounts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

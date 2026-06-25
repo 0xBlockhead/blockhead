@@ -10,23 +10,15 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'CAIP-2',
-		},
-		{
-			label: 'parent network',
-		},
+		'caip2',
+		'$network',
 		'environment',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'CAIP-2',
-				},
-				{
-					label: 'parent network',
-				},
+				'caip2',
+				'$network',
 				'environment',
 				{
 					label: 'latest head snapshot',
@@ -42,9 +34,7 @@
 				{
 					label: 'bounded transaction count',
 				},
-				{
-					label: 'validator count',
-				},
+				'$$validators',
 				{
 					label: 'token mint entry points',
 				},
@@ -56,15 +46,9 @@
 			{
 				label: 'Execution',
 				items: [
-					{
-						label: 'Blocks',
-					},
-					{
-						label: 'Transactions',
-					},
-					{
-						label: 'Accounts',
-					},
+					'$$blocks',
+					'$$transactions',
+					'$$accounts',
 					{
 						label: 'Network snapshots',
 					},
@@ -76,9 +60,7 @@
 			{
 				label: 'Consensus & Block Production',
 				items: [
-					{
-						label: 'Validators',
-					},
+					'$$validators',
 				],
 			},
 			{
@@ -108,6 +90,71 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'blocks',
+			label: 'blocks',
+			field: '$$blocks',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'transactions',
+			label: 'transactions',
+			field: '$$transactions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'accounts',
+			label: 'accounts',
+			field: '$$accounts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'token-accounts',
+			label: 'token accounts',
+			field: '$$tokenAccounts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'token-mints',
+			label: 'token mints',
+			field: '$$tokenMints',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'validators',
+			label: 'validators',
+			field: '$$validators',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

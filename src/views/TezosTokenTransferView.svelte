@@ -10,43 +10,27 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'transfer id',
-		},
+		'transferId',
 		'source',
-		{
-			label: 'token',
-		},
+		'$token',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'transfer id',
-				},
+				'transferId',
 				'source',
-				{
-					label: 'token',
-				},
-				{
-					label: 'from account',
-				},
-				{
-					label: 'to account',
-				},
-				{
-					label: 'operation',
-				},
+				'$token',
+				'$from',
+				'$to',
+			],
+			[
+				'$operation',
 				'level',
-				{
-					label: 'timestamp',
-				},
-				{
-					label: 'contract address',
-				},
-				{
-					label: 'token id',
-				},
+				'timestampMs',
+				'contractAddress',
+				'tokenId',
+			],
+			[
 				'amount',
 				'standard',
 			],

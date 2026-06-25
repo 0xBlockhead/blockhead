@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'change kind',
-		},
+		'changeKind',
 		{
 			label: 'address/state key',
 		},
@@ -23,9 +21,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'change kind',
-				},
+				'changeKind',
 				{
 					label: 'address/state key',
 				},
@@ -38,9 +34,7 @@
 				{
 					label: 'value summary',
 				},
-				{
-					label: 'parent transaction',
-				},
+				'$transaction',
 			],
 		],
 	},
@@ -49,9 +43,7 @@
 			{
 				label: 'Transaction',
 				items: [
-					{
-						label: 'parent transaction',
-					},
+					'$transaction',
 				],
 			},
 			{

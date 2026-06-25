@@ -13,9 +13,7 @@
 		{
 			label: 'feed',
 		},
-		{
-			label: 'observation time',
-		},
+		'timestampMs',
 		'source',
 	],
 	content: {
@@ -24,35 +22,27 @@
 				{
 					label: 'feed',
 				},
-				{
-					label: 'observation time',
-				},
+				'timestampMs',
 				'source',
 				'decimals',
 				'description',
+			],
+			[
 				{
 					label: 'proxy version',
 				},
-				{
-					label: 'aggregator address',
-				},
+				'aggregatorAddress',
 				{
 					label: 'aggregator type/version',
 				},
 			],
 			[
-				{
-					label: 'latest round id',
-				},
+				'latestRoundId',
 				{
 					label: 'latest updated time',
 				},
-				{
-					label: 'config digest',
-				},
-				{
-					label: 'config block number',
-				},
+				'configDigest',
+				'configBlockNumber',
 			],
 		],
 	},
@@ -61,9 +51,7 @@
 			{
 				label: 'Feed',
 				items: [
-					{
-						label: 'parent oracle feed',
-					},
+					'$oracleFeed',
 				],
 			},
 			{

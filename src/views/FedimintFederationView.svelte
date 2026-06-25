@@ -10,30 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'federation id',
-		},
+		'federationId',
 		'name',
-		{
-			label: 'guardian count',
-		},
+		'guardianCount',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'federation id',
-				},
+				'federationId',
 				'name',
-				{
-					label: 'guardian count',
-				},
-				{
-					label: 'guardian threshold',
-				},
-				{
-					label: 'consensus version',
-				},
+				'guardianCount',
+				'guardianThreshold',
+				'consensusVersion',
+			],
+			[
 				{
 					label: 'module count',
 				},
@@ -43,9 +33,7 @@
 				{
 					label: 'latest meta summary',
 				},
-				{
-					label: 'gateway count',
-				},
+				'$$gateways',
 			],
 		],
 	},
@@ -95,6 +83,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'gateways',
+			label: 'gateways',
+			field: '$$gateways',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

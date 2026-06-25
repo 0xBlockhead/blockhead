@@ -10,34 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'transaction',
-		},
-		{
-			label: 'event index',
-		},
-		{
-			label: 'from contract',
-		},
+		'$transaction',
+		'eventIndex',
+		'$fromContract',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'transaction',
-				},
-				{
-					label: 'event index',
-				},
-				{
-					label: 'from contract',
-				},
-				{
-					label: 'key count',
-				},
-				{
-					label: 'data count',
-				},
+				'$transaction',
+				'eventIndex',
+				'$fromContract',
+				'keys',
+				'data',
 			],
 		],
 	},

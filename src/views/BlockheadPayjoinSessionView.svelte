@@ -10,50 +10,36 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'session id',
-		},
+		'sessionId',
 		'role',
 		'status',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'session id',
-				},
+				'sessionId',
 				'role',
 				'status',
-				{
-					label: 'network',
-				},
-				{
-					label: 'endpoint',
-				},
-				{
-					label: 'directory',
-				},
-				{
-					label: 'receiver address',
-				},
-				{
-					label: 'amount',
-				},
+				'$network',
+				'$endpoint',
+			],
+			[
+				'$directory',
+				'receiverAddress',
+				'amountSats',
 				{
 					label: 'output-substitution flag',
 				},
 				{
 					label: 'fee constraints',
 				},
+			],
+			[
 				{
 					label: 'PSBT hash availability',
 				},
-				{
-					label: 'final transaction id',
-				},
-				{
-					label: 'error code',
-				},
+				'finalTransactionId',
+				'errorCode',
 				{
 					label: 'created/updated/completed times',
 				},
@@ -68,12 +54,8 @@
 			{
 				label: 'Request',
 				items: [
-					{
-						label: 'BIP21 URI',
-					},
-					{
-						label: 'endpoint URL',
-					},
+					'bip21Uri',
+					'endpointUrl',
 					{
 						label: 'version/fee/output-substitution parameters',
 					},

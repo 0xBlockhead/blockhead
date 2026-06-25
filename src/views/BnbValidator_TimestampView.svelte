@@ -10,35 +10,25 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'validator',
-		},
+		'$validator',
 		{
 			label: 'observed time/source',
 		},
-		{
-			label: 'voting power',
-		},
+		'votingPower',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'validator',
-				},
+				'$validator',
 				{
 					label: 'observed time/source',
 				},
-				{
-					label: 'voting power',
-				},
+				'votingPower',
 				{
 					label: 'stake',
 				},
 				'status',
-				{
-					label: 'jailed flag',
-				},
+				'jailed',
 			],
 		],
 	},
@@ -55,16 +45,12 @@
 			{
 				label: 'Power/status',
 				items: [
-					{
-						label: 'voting power',
-					},
+					'votingPower',
 					{
 						label: 'stake',
 					},
 					'status',
-					{
-						label: 'jailed flag',
-					},
+					'jailed',
 				],
 			},
 			{

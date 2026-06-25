@@ -10,46 +10,28 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'deal',
-		},
-		{
-			label: 'observation time',
-		},
+		'$deal',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'deal',
-				},
-				{
-					label: 'observation time',
-				},
+				'$deal',
+				'timestampMs',
 				'source',
 				'height',
-				{
-					label: 'tipset key',
-				},
-				{
-					label: 'sector start epoch',
-				},
-				{
-					label: 'last updated epoch',
-				},
-				{
-					label: 'slash epoch',
-				},
-				{
-					label: 'verified-deal flag',
-				},
-				{
-					label: 'provider collateral',
-				},
-				{
-					label: 'client collateral',
-				},
+				'tipsetKey',
+			],
+			[
+				'sectorStartEpoch',
+				'lastUpdatedEpoch',
+				'slashEpoch',
+				'verifiedDeal',
+				'providerCollateralAttoFil',
+			],
+			[
+				'clientCollateralAttoFil',
 			],
 		],
 	},

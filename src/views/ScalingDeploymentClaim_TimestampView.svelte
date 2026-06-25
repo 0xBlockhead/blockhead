@@ -10,42 +10,28 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'claim',
-		},
-		{
-			label: 'observation time',
-		},
-		{
-			label: 'architecture kind',
-		},
+		'$claim',
+		'timestampMs',
+		'architectureKind',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'claim',
-				},
-				{
-					label: 'observation time',
-				},
+				'$claim',
+				'timestampMs',
 				'source',
 				{
 					label: 'source updated time',
 				},
-				{
-					label: 'architecture kind',
-				},
+				'architectureKind',
+			],
+			[
 				'stack',
 				{
 					label: 'protocol id/label/kind',
 				},
-				{
-					label: 'proof system kind',
-				},
-				{
-					label: 'settlement network',
-				},
+				'proofSystemKind',
+				'$settlementNetwork',
 			],
 			[
 				{
@@ -80,9 +66,7 @@
 						label: 'protocol id/label/kind',
 					},
 					'stack',
-					{
-						label: 'proof system kind',
-					},
+					'proofSystemKind',
 					{
 						label: 'source-backed classification',
 					},
@@ -91,9 +75,7 @@
 			{
 				label: 'Settlement',
 				items: [
-					{
-						label: 'settlement network',
-					},
+					'$settlementNetwork',
 					{
 						label: 'batch inbox',
 					},

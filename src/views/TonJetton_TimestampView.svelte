@@ -10,49 +10,35 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'jetton',
-		},
-		{
-			label: 'observation time',
-		},
+		'$jetton',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'jetton',
-				},
-				{
-					label: 'observation time',
-				},
+				'$jetton',
+				'timestampMs',
 				'source',
-				{
-					label: 'admin address',
-				},
+				'adminAddress',
 				{
 					label: 'code/data hashes',
 				},
-				{
-					label: 'wallet code hash',
-				},
+			],
+			[
+				'walletCodeHash',
 				'name',
 				'symbol',
 				'decimals',
 				{
 					label: 'total supply',
 				},
-				{
-					label: 'mintable flag',
-				},
-				{
-					label: 'holder count',
-				},
+			],
+			[
+				'mintable',
+				'holderCount',
 				'verification',
-				{
-					label: 'last transaction lt',
-				},
+				'lastTransactionLt',
 			],
 		],
 	},
@@ -89,9 +75,7 @@
 					{
 						label: 'admin',
 					},
-					{
-						label: 'holder count',
-					},
+					'holderCount',
 				],
 			},
 			{

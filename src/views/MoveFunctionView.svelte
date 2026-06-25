@@ -10,23 +10,15 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'module',
-		},
-		{
-			label: 'function name',
-		},
+		'$module',
+		'functionName',
 		'visibility',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'module',
-				},
-				{
-					label: 'function name',
-				},
+				'$module',
+				'functionName',
 				'visibility',
 				{
 					label: 'entry flag',
@@ -34,9 +26,9 @@
 				{
 					label: 'view flag',
 				},
-				{
-					label: 'type parameters',
-				},
+			],
+			[
+				'typeParameters',
 				'parameters',
 				{
 					label: 'returns',

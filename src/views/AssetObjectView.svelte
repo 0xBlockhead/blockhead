@@ -10,38 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'asset instance',
-		},
-		{
-			label: 'object key',
-		},
-		{
-			label: 'object kind',
-		},
+		'$assetInstance',
+		'objectKey',
+		'objectKind',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'asset instance',
-				},
-				{
-					label: 'object key',
-				},
-				{
-					label: 'object kind',
-				},
-				{
-					label: 'class',
-				},
-				{
-					label: 'token id',
-				},
+				'$assetInstance',
+				'objectKey',
+				'objectKind',
+				'$class',
+				'tokenId',
 				'slot',
-				{
-					label: 'metadata URI',
-				},
+				'metadataUri',
 			],
 		],
 	},
@@ -73,6 +55,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'metadata',
+			label: 'metadatases',
+			field: '$$metadata',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,40 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'asset key',
-		},
-		{
-			label: 'asset kind',
-		},
-		{
-			label: 'issuer account',
-		},
+		'assetKey',
+		'assetKind',
+		'$issuerAccount',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'asset key',
-				},
-				{
-					label: 'asset kind',
-				},
-				{
-					label: 'asset code',
-				},
-				{
-					label: 'issuer account',
-				},
-				{
-					label: 'trustline count',
-				},
-				{
-					label: 'claimable balance count',
-				},
-				{
-					label: 'liquidity pool count',
-				},
+				'assetKey',
+				'assetKind',
+				'assetCode',
+				'$issuerAccount',
+				'$$trustlines',
+			],
+			[
+				'$$claimableBalances',
+				'$$liquidityPools',
 				{
 					label: 'asset metadata',
 				},
@@ -102,6 +84,53 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'claimable-balances',
+			label: 'claimable balances',
+			field: '$$claimableBalances',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'liquidity-pools',
+			label: 'liquidity pools',
+			field: '$$liquidityPools',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'trustlines',
+			label: 'trustlines',
+			field: '$$trustlines',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'offers',
+			label: 'offers',
+			field: '$$offers',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'trades',
+			label: 'trades',
+			field: '$$trades',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'asset instance',
-		},
+		'$assetInstance',
 		'standard',
 		{
 			label: 'latest profile state',
@@ -21,9 +19,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'asset instance',
-				},
+				'$assetInstance',
 				'standard',
 				{
 					label: 'latest RegulatedAssetProfile_Timestamp registry/control state',
@@ -83,6 +79,62 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'issuer-powers',
+			label: 'issuer powers',
+			field: '$$issuerPowers',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'claim-requirements',
+			label: 'claim requirements',
+			field: '$$claimRequirements',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'trusted-issuers',
+			label: 'trusted issuers',
+			field: '$$trustedIssuers',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'compliance-modules',
+			label: 'compliance modules',
+			field: '$$complianceModules',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'restrictions',
+			label: 'restrictions',
+			field: '$$restrictions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

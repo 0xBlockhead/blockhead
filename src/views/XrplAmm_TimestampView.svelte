@@ -10,39 +10,25 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'AMM',
-		},
-		{
-			label: 'ledger index',
-		},
+		'$amm',
+		'ledgerIndex',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'AMM',
-				},
-				{
-					label: 'ledger index',
-				},
+				'$amm',
+				'ledgerIndex',
 				'source',
-				{
-					label: 'observation time',
-				},
+				'timestampMs',
 				{
 					label: 'asset reserves',
 				},
-				{
-					label: 'LP token balance',
-				},
-				{
-					label: 'trading fee',
-				},
-				{
-					label: 'auction slot',
-				},
+			],
+			[
+				'lpTokenBalance',
+				'tradingFee',
+				'auctionSlot',
 				{
 					label: 'vote slot summary',
 				},

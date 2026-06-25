@@ -39,9 +39,7 @@
 		{
 			label: 'topic0 when topics[0] exists',
 		},
-		{
-			label: 'transaction link',
-		},
+		'$transaction',
 	],
 	content: {
 		dl: [
@@ -52,12 +50,8 @@
 				{
 					label: 'topic0 when topics[0] exists',
 				},
-				{
-					label: 'transaction link',
-				},
-				{
-					label: 'emitter contract',
-				},
+				'$transaction',
+				'$emitter',
 				{
 					label: 'topics list with topic links',
 				},
@@ -78,9 +72,7 @@
 			{
 				label: 'Emitter',
 				items: [
-					{
-						label: 'emitter contract',
-					},
+					'$emitter',
 				],
 			},
 			{
@@ -115,6 +107,24 @@
 			},
 		],
 	},
+	summary: {
+		value: '$emitter',
+		title: '$emitter',
+		after: [
+			'data',
+		],
+	},
+	lists: [
+		{
+			id: 'token-transfers',
+			label: 'token transfers',
+			field: '$$tokenTransfers',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

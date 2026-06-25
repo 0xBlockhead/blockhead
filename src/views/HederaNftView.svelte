@@ -10,40 +10,24 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'token',
-		},
-		{
-			label: 'serial number',
-		},
-		{
-			label: 'created timestamp',
-		},
+		'$token',
+		'serialNumber',
+		'createdTimestamp',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'token',
-				},
-				{
-					label: 'serial number',
-				},
-				{
-					label: 'created timestamp',
-				},
+				'$token',
+				'serialNumber',
+				'createdTimestamp',
 				{
 					label: 'metadata summary',
 				},
 				{
 					label: 'latest owner/deleted/spender state',
 				},
-				{
-					label: 'transfer count',
-				},
-				{
-					label: 'timestamp count',
-				},
+				'$$transfers',
+				'$$timestamps',
 			],
 		],
 	},
@@ -99,6 +83,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'transfers',
+			label: 'transfers',
+			field: '$$transfers',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

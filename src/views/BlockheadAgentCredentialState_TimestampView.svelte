@@ -10,30 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'credential',
-		},
-		{
-			label: 'observation time',
-		},
+		'$credential',
+		'timestampMs',
 		'status',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'credential',
-				},
-				{
-					label: 'timestamp',
-				},
+				'$credential',
+				'timestampMs',
 				'source',
 				'status',
 			],
 			[
-				{
-					label: 'expires at',
-				},
+				'expiresAt',
 				'error',
 			],
 		],

@@ -10,34 +10,26 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'node state',
-		},
-		{
-			label: 'observation time',
-		},
+		'$nodeState',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'node state',
-				},
-				{
-					label: 'observation time',
-				},
+				'$nodeState',
+				'timestampMs',
 				'source',
 				'alias',
 				{
 					label: 'listen address count',
 				},
+			],
+			[
 				{
 					label: 'external address count',
 				},
-				{
-					label: 'node version',
-				},
+				'nodeVersion',
 				'policy',
 				{
 					label: 'last sync time',

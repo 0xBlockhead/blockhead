@@ -10,23 +10,15 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'bundler',
-		},
-		{
-			label: 'observation time',
-		},
+		'$bundler',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'bundler',
-				},
-				{
-					label: 'observation time',
-				},
+				'$bundler',
+				'timestampMs',
 				'source',
 				{
 					label: 'indexed user-operation count',

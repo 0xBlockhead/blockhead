@@ -10,37 +10,25 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'feed URL',
-		},
+		'feedUrl',
 		'title',
-		{
-			label: 'item count',
-		},
+		'$$items',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'feed URL',
-				},
+				'feedUrl',
 				'title',
 				'description',
 				{
 					label: 'site/link URL',
 				},
 				'language',
-				{
-					label: 'last build date',
-				},
-				{
-					label: 'image URL',
-				},
+				'lastBuildDate',
+				'imageUrl',
 			],
 			[
-				{
-					label: 'item count',
-				},
+				'$$items',
 				{
 					label: 'target latest metadata observation when timestamp rows exist',
 				},
@@ -89,6 +77,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'items',
+			label: 'items',
+			field: '$$items',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

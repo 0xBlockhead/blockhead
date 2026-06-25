@@ -10,37 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'repository',
-		},
-		{
-			label: 'ref name',
-		},
-		{
-			label: 'ref kind',
-		},
+		'$repository',
+		'refName',
+		'refKind',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'repository',
-				},
-				{
-					label: 'ref name',
-				},
-				{
-					label: 'ref kind',
-				},
-				{
-					label: 'latest target object id',
-				},
-				{
-					label: 'symbolic target',
-				},
-				{
-					label: 'latest observation time',
-				},
+				'$repository',
+				'refName',
+				'refKind',
+				'targetObjectId',
+				'symbolicTarget',
+				'$$observations',
 			],
 		],
 	},
@@ -72,6 +54,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'observations',
+			label: 'observations',
+			field: '$$observations',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

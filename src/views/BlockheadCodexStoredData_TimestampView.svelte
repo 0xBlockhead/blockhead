@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'stored data',
-		},
-		{
-			label: 'observation time',
-		},
+		'$storedData',
+		'timestampMs',
 		{
 			label: 'local availability',
 		},
@@ -23,22 +19,12 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'stored data',
-				},
-				{
-					label: 'observation time',
-				},
+				'$storedData',
+				'timestampMs',
 				'source',
-				{
-					label: 'has local block',
-				},
-				{
-					label: 'available locally',
-				},
-				{
-					label: 'download status',
-				},
+				'hasLocalBlock',
+				'availableLocally',
+				'downloadStatus',
 				'error',
 			],
 		],

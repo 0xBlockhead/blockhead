@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'observation time',
-		},
+		'$network',
+		'timestampMs',
 		{
 			label: 'height/slot',
 		},
@@ -23,22 +19,16 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'observation time',
-				},
+				'$network',
+				'timestampMs',
 				'source',
 				'height',
 				'slot',
+			],
+			[
 				'tip',
-				{
-					label: 'LIB',
-				},
-				{
-					label: 'LIB slot',
-				},
+				'lib',
+				'libSlot',
 				'mode',
 			],
 		],

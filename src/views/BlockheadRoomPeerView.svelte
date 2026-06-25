@@ -10,28 +10,16 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'display name',
-		},
-		{
-			label: 'peer id',
-		},
-		{
-			label: 'room',
-		},
+		'displayName',
+		'peerId',
+		'$room',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'display name',
-				},
-				{
-					label: 'peer id',
-				},
-				{
-					label: 'room',
-				},
+				'displayName',
+				'peerId',
+				'$room',
 				{
 					label: 'connected flag',
 				},

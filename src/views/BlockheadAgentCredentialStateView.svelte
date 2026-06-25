@@ -10,26 +10,16 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'credential id',
-		},
-		{
-			label: 'kind',
-		},
+		'credentialId',
+		'credentialKind',
 		'label',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'credential id',
-				},
-				{
-					label: 'connection',
-				},
-				{
-					label: 'kind',
-				},
+				'credentialId',
+				'$connection',
+				'credentialKind',
 				'label',
 			],
 			[
@@ -62,6 +52,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

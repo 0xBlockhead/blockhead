@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'class hash',
-		},
+		'classHash',
 		{
 			label: 'class version',
 		},
@@ -23,33 +21,23 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'class hash',
-				},
+				'$network',
+				'classHash',
 				{
 					label: 'class version',
 				},
-				{
-					label: 'Sierra program hash',
-				},
-				{
-					label: 'CASM class hash',
-				},
-				{
-					label: 'ABI hash',
-				},
+				'sierraProgramHash',
+				'casmClassHash',
+			],
+			[
+				'abiHash',
 				{
 					label: 'declared block',
 				},
 				{
 					label: 'declared transaction',
 				},
-				{
-					label: 'contract count',
-				},
+				'$$contracts',
 			],
 		],
 	},
@@ -101,6 +89,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'contracts',
+			label: 'contracts',
+			field: '$$contracts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

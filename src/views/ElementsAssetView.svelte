@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'asset id',
-		},
+		'assetId',
 		{
 			label: 'ticker/name',
 		},
@@ -21,16 +19,12 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'asset id',
-				},
+				'assetId',
 				{
 					label: 'ticker/name',
 				},
 				'precision',
-				{
-					label: 'entity domain',
-				},
+				'entityDomain',
 				{
 					label: 'blinded issuance flag',
 				},
@@ -76,6 +70,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'issuances',
+			label: 'issuances',
+			field: '$$issuances',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,38 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'source domain',
-		},
-		{
-			label: 'destination domain',
-		},
-		{
-			label: 'observation time',
-		},
+		'$sourceDomain',
+		'$destinationDomain',
+		'timestampMs',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'source domain',
-				},
-				{
-					label: 'destination domain',
-				},
-				{
-					label: 'observation time',
-				},
+				'$sourceDomain',
+				'$destinationDomain',
+				'timestampMs',
 				'source',
-				{
-					label: 'forward flag',
-				},
-				{
-					label: 'HyperCore deposit flag',
-				},
-				{
-					label: 'fee-row count',
-				},
+				'forward',
+				'hyperCoreDeposit',
+				'feeRows',
 			],
 		],
 	},

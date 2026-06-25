@@ -10,27 +10,17 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'trustline',
-		},
-		{
-			label: 'ledger index',
-		},
+		'$trustline',
+		'ledgerIndex',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'trustline',
-				},
-				{
-					label: 'ledger index',
-				},
+				'$trustline',
+				'ledgerIndex',
 				'source',
-				{
-					label: 'observation time',
-				},
+				'timestampMs',
 				'balance',
 				{
 					label: 'limits',
@@ -64,27 +54,19 @@
 			{
 				label: 'Flags',
 				items: [
-					{
-						label: 'no-ripple',
-					},
+					'noRipple',
 					{
 						label: 'peer no-ripple',
 					},
 					'authorized',
-					{
-						label: 'peer authorized',
-					},
+					'peerAuthorized',
 				],
 			},
 			{
 				label: 'Ledger context',
 				items: [
-					{
-						label: 'ledger index',
-					},
-					{
-						label: 'observation time',
-					},
+					'ledgerIndex',
+					'timestampMs',
 					'source',
 				],
 			},

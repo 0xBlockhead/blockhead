@@ -11,53 +11,31 @@
 	const view = {
 	closed: [
 		'source',
-		{
-			label: 'submission key',
-		},
-		{
-			label: 'app id',
-		},
+		'submissionKey',
+		'appId',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
+				'$network',
 				'source',
-				{
-					label: 'submission key',
-				},
-				{
-					label: 'app id',
-				},
-				{
-					label: 'block number',
-				},
-				{
-					label: 'extrinsic index',
-				},
-				{
-					label: 'transaction hash',
-				},
-				{
-					label: 'sender selector',
-				},
+				'submissionKey',
+				'appId',
+				'blockNumber',
 			],
 			[
-				{
-					label: 'data hash',
-				},
+				'extrinsicIndex',
+				'transactionHash',
+				'senderSelector',
+			],
+			[
+				'dataHash',
 				'commitment',
-				{
-					label: 'size bytes',
-				},
+				'sizeBytes',
 				{
 					label: 'proof availability',
 				},
-				{
-					label: 'payload requested',
-				},
+				'payloadRequested',
 			],
 		],
 	},

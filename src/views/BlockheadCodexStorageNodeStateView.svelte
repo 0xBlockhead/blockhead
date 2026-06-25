@@ -10,33 +10,21 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'connection id',
-		},
-		{
-			label: 'peer id',
-		},
+		'connectionId',
+		'peerId',
 		'endpoint',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'connection id',
-				},
-				{
-					label: 'peer id',
-				},
+				'connectionId',
+				'peerId',
 				'endpoint',
-				{
-					label: 'signed peer record',
-				},
+				'signedPeerRecord',
 				{
 					label: 'latest space/peer observation',
 				},
-				{
-					label: 'stored data count',
-				},
+				'$$storedData',
 			],
 		],
 	},
@@ -77,9 +65,7 @@
 			{
 				label: 'Source evidence',
 				items: [
-					{
-						label: '/peerid',
-					},
+					'peerId',
 					{
 						label: '/spr',
 					},
@@ -93,6 +79,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'stored-data',
+			label: 'stored datases',
+			field: '$$storedData',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

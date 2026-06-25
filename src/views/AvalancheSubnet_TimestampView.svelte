@@ -10,39 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'subnet',
-		},
-		{
-			label: 'observed time',
-		},
+		'$subnet',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'subnet',
-				},
-				{
-					label: 'observed time',
-				},
+				'$subnet',
+				'timestampMs',
 				'source',
-				{
-					label: 'validator count',
-				},
-				{
-					label: 'delegator count',
-				},
-				{
-					label: 'total stake',
-				},
-				{
-					label: 'chain count',
-				},
-				{
-					label: 'pending validator count',
-				},
+				'validatorCount',
+				'delegatorCount',
+			],
+			[
+				'totalStakeNavax',
+				'chainCount',
+				'pendingValidatorCount',
 			],
 		],
 	},
@@ -51,9 +35,7 @@
 			{
 				label: 'Subnet',
 				items: [
-					{
-						label: 'parent subnet',
-					},
+					'$subnet',
 				],
 			},
 			{

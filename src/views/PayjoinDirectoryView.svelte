@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'directory URL',
-		},
-		{
-			label: 'OHTTP gateway URL',
-		},
+		'directoryUrl',
+		'ohttpGatewayUrl',
 		{
 			label: 'OHTTP key config presence/length',
 		},
@@ -23,18 +19,12 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'directory URL',
-				},
-				{
-					label: 'OHTTP gateway URL',
-				},
+				'directoryUrl',
+				'ohttpGatewayUrl',
 				{
 					label: 'OHTTP key config presence/length',
 				},
-				{
-					label: 'max payload bytes',
-				},
+				'maxPayloadBytes',
 			],
 		],
 	},
@@ -75,6 +65,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'blockhead-sessions',
+			label: 'blockhead sessions',
+			field: '$$blockheadSessions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

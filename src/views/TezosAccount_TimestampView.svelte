@@ -10,34 +10,28 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account',
-		},
+		'$account',
 		'level',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'account',
-				},
+				'$account',
 				'level',
 				'source',
 				{
 					label: 'balance',
 				},
 				'counter',
+			],
+			[
 				'delegate',
 				{
 					label: 'revealed status',
 				},
-				{
-					label: 'public key',
-				},
-				{
-					label: 'timestamp',
-				},
+				'publicKey',
+				'timestampMs',
 			],
 		],
 	},

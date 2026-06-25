@@ -10,49 +10,35 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'gateway',
-		},
-		{
-			label: 'observation time',
-		},
+		'$gateway',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'gateway',
-				},
-				{
-					label: 'observation time',
-				},
+				'$gateway',
+				'timestampMs',
 				'source',
 				{
 					label: 'reachability',
 				},
-				{
-					label: 'online state',
-				},
+				'online',
+			],
+			[
 				'version',
-				{
-					label: 'Lightning alias',
-				},
+				'lightningAlias',
 				{
 					label: 'routing-fee summary',
 				},
 				{
 					label: 'federation count',
 				},
-				{
-					label: 'Lightning balance',
-				},
-				{
-					label: 'ecash balance',
-				},
-				{
-					label: 'on-chain balance',
-				},
+				'lightningBalanceMsat',
+			],
+			[
+				'ecashBalanceMsat',
+				'onchainBalanceSats',
 			],
 		],
 	},

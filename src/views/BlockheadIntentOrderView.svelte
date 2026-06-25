@@ -14,9 +14,7 @@
 			label: 'order record id',
 		},
 		'source',
-		{
-			label: 'order id',
-		},
+		'orderId',
 		{
 			label: 'latest status',
 		},
@@ -28,21 +26,15 @@
 					label: 'order record id',
 				},
 				'source',
-				{
-					label: 'order id',
-				},
-				{
-					label: 'provider protocol',
-				},
+				'orderId',
+				'providerProtocol',
 				{
 					label: 'submitted time',
 				},
-				{
-					label: 'signature hash',
-				},
-				{
-					label: 'order payload hash',
-				},
+			],
+			[
+				'signatureHash',
+				'orderPayloadHash',
 				{
 					label: 'latest status',
 				},
@@ -94,6 +86,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

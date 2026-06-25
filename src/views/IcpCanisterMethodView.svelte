@@ -10,28 +10,16 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'canister',
-		},
-		{
-			label: 'method name',
-		},
-		{
-			label: 'method kind',
-		},
+		'$canister',
+		'methodName',
+		'methodKind',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'canister',
-				},
-				{
-					label: 'method name',
-				},
-				{
-					label: 'method kind',
-				},
+				'$canister',
+				'methodName',
+				'methodKind',
 				{
 					label: 'latest Candid signature',
 				},
@@ -80,6 +68,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

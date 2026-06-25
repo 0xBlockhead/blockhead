@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'schedule id',
-		},
+		'scheduleId',
 		{
 			label: 'creator',
 		},
@@ -23,9 +21,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'schedule id',
-				},
+				'scheduleId',
 				{
 					label: 'creator',
 				},
@@ -38,18 +34,16 @@
 				{
 					label: 'deleted flag',
 				},
+			],
+			[
 				{
 					label: 'expiration',
 				},
 				{
 					label: 'wait-for-expiry',
 				},
-				{
-					label: 'signature count',
-				},
-				{
-					label: 'timestamp count',
-				},
+				'$$signatures',
+				'$$timestamps',
 			],
 		],
 	},
@@ -97,6 +91,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'signatures',
+			label: 'signatures',
+			field: '$$signatures',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

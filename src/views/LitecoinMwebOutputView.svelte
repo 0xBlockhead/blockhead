@@ -10,27 +10,17 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'transaction',
-		},
-		{
-			label: 'output index',
-		},
+		'$transaction',
+		'outputIndex',
 		'commitment',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'transaction',
-				},
-				{
-					label: 'output index',
-				},
+				'$transaction',
+				'outputIndex',
 				'commitment',
-				{
-					label: 'sender pubkey',
-				},
+				'senderPubkey',
 				{
 					label: 'local wallet match when available',
 				},

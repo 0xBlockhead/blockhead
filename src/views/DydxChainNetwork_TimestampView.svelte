@@ -10,42 +10,24 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'observation time',
-		},
+		'$network',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'observation time',
-				},
+				'$network',
+				'timestampMs',
 				'source',
-				{
-					label: 'block height',
-				},
-				{
-					label: 'indexer height',
-				},
-				{
-					label: 'market count',
-				},
-				{
-					label: 'subaccount count',
-				},
-				{
-					label: 'open order count',
-				},
-				{
-					label: 'open position count',
-				},
+				'blockHeight',
+				'indexerHeight',
+			],
+			[
+				'marketCount',
+				'subaccountCount',
+				'openOrderCount',
+				'openPositionCount',
 				'health',
 			],
 		],

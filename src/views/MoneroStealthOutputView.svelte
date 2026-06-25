@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'transaction',
-		},
-		{
-			label: 'output index',
-		},
+		'$transaction',
+		'outputIndex',
 		{
 			label: 'one-time public key',
 		},
@@ -23,12 +19,8 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'transaction',
-				},
-				{
-					label: 'output index',
-				},
+				'$transaction',
+				'outputIndex',
 				{
 					label: 'one-time public key',
 				},
@@ -49,9 +41,7 @@
 			{
 				label: 'Output data',
 				items: [
-					{
-						label: 'public key',
-					},
+					'publicKey',
 					{
 						label: 'RingCT commitment',
 					},

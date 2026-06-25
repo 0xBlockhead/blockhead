@@ -10,42 +10,24 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'address',
-		},
-		{
-			label: 'block slot',
-		},
+		'$address',
+		'blockSlot',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'address',
-				},
-				{
-					label: 'block slot',
-				},
+				'$address',
+				'blockSlot',
 				'source',
-				{
-					label: 'observation time',
-				},
-				{
-					label: 'block hash',
-				},
-				{
-					label: 'lovelace balance',
-				},
-				{
-					label: 'native asset count',
-				},
-				{
-					label: 'UTXO count',
-				},
-				{
-					label: 'transaction count',
-				},
+				'timestampMs',
+				'blockHash',
+			],
+			[
+				'lovelaceBalance',
+				'nativeAssetCount',
+				'utxoCount',
+				'transactionCount',
 			],
 		],
 	},

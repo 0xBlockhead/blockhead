@@ -10,39 +10,27 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'builder',
-		},
-		{
-			label: 'observation time',
-		},
+		'$builder',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'builder',
-				},
-				{
-					label: 'observation time',
-				},
+				'$builder',
+				'timestampMs',
 				'source',
-				{
-					label: 'delivered-payload count',
-				},
+				'deliveredPayloadCount',
 				{
 					label: 'delivered value',
 				},
-				{
-					label: 'relay count',
-				},
+			],
+			[
+				'relayCount',
 				{
 					label: 'slot window',
 				},
-				{
-					label: 'sample limit',
-				},
+				'sampleLimit',
 			],
 		],
 	},

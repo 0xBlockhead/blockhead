@@ -10,50 +10,26 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'observation time',
-		},
-		{
-			label: 'latest height',
-		},
+		'$network',
+		'timestampMs',
+		'latestHeight',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'observation time',
-				},
+				'$network',
+				'timestampMs',
 				'source',
 				'reachable',
-				{
-					label: 'gateway origin',
-				},
-				{
-					label: 'latest height',
-				},
-				{
-					label: 'latest/current block hash',
-				},
+				'gatewayOrigin',
+				'latestHeight',
+				'currentBlockHash',
 			],
 			[
-				{
-					label: 'network id',
-				},
-				{
-					label: 'peer count',
-				},
-				{
-					label: 'queued transaction count',
-				},
-				{
-					label: 'GraphQL cursor',
-				},
+				'networkId',
+				'peerCount',
+				'queuedTransactionCount',
+				'graphqlCursor',
 			],
 		],
 	},

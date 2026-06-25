@@ -12,24 +12,16 @@
 	closed: [
 		'name',
 		'title',
-		{
-			label: 'public description',
-		},
+		'publicDescription',
 	],
 	content: {
 		dl: [
 			[
 				'name',
 				'title',
-				{
-					label: 'public description',
-				},
-				{
-					label: 'created time',
-				},
-				{
-					label: 'over-18 flag',
-				},
+				'publicDescription',
+				'createdAt',
+				'over18',
 				{
 					label: 'icon media',
 				},
@@ -59,6 +51,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'links',
+			label: 'links',
+			field: '$$links',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

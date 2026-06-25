@@ -10,35 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'latest ledger',
-		},
-		{
-			label: 'protocol version',
-		},
-		{
-			label: 'base fee',
-		},
+		'latestLedger',
+		'protocolVersion',
+		'baseFee',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'latest ledger',
-				},
-				{
-					label: 'protocol version',
-				},
-				{
-					label: 'base fee',
-				},
-				{
-					label: 'base reserve',
-				},
+				'latestLedger',
+				'protocolVersion',
+				'baseFee',
+				'baseReserve',
 				'source',
-				{
-					label: 'observation time',
-				},
+				'timestampMs',
 			],
 		],
 	},
@@ -55,23 +39,15 @@
 			{
 				label: 'Ledger head',
 				items: [
-					{
-						label: 'latest ledger',
-					},
-					{
-						label: 'protocol version',
-					},
+					'latestLedger',
+					'protocolVersion',
 				],
 			},
 			{
 				label: 'Fees/reserve',
 				items: [
-					{
-						label: 'base fee',
-					},
-					{
-						label: 'base reserve',
-					},
+					'baseFee',
+					'baseReserve',
 				],
 			},
 			{

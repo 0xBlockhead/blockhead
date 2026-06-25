@@ -10,49 +10,31 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'tx id',
-		},
-		{
-			label: 'type',
-		},
+		'$network',
+		'txId',
+		'txType',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'tx id',
-				},
-				{
-					label: 'type',
-				},
-				{
-					label: 'block',
-				},
-				{
-					label: 'subnet id',
-				},
-				{
-					label: 'blockchain id',
-				},
-				{
-					label: 'node id',
-				},
+				'$network',
+				'txId',
+				'txType',
+				'$block',
+				'subnetId',
+			],
+			[
+				'blockchainId',
+				'nodeId',
 				{
 					label: 'start/end time',
 				},
 				{
 					label: 'stake',
 				},
-				{
-					label: 'fee',
-				},
+				'feeNavax',
+			],
+			[
 				{
 					label: 'latest status',
 				},
@@ -122,6 +104,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

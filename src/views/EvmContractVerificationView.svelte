@@ -11,32 +11,20 @@
 	const view = {
 	closed: [
 		'match',
-		{
-			label: 'creation match',
-		},
-		{
-			label: 'runtime match',
-		},
+		'creationMatch',
+		'runtimeMatch',
 	],
 	content: {
 		dl: [
 			[
 				'match',
-				{
-					label: 'creation match',
-				},
-				{
-					label: 'runtime match',
-				},
+				'creationMatch',
+				'runtimeMatch',
 				{
 					label: 'verified timestamp',
 				},
-				{
-					label: 'match id',
-				},
-				{
-					label: 'source bundle',
-				},
+				'matchId',
+				'$sourceBundle',
 			],
 		],
 	},

@@ -10,36 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'miner',
-		},
-		{
-			label: 'sector number',
-		},
-		{
-			label: 'sealed CID',
-		},
+		'$miner',
+		'sectorNumber',
+		'sealedCid',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'miner',
-				},
-				{
-					label: 'sector number',
-				},
-				{
-					label: 'sealed CID',
-				},
-				{
-					label: 'activation epoch',
-				},
+				'$miner',
+				'sectorNumber',
+				'sealedCid',
+				'activationEpoch',
 			],
 			[
-				{
-					label: 'expiration epoch',
-				},
+				'expirationEpoch',
 				{
 					label: 'deal count',
 				},

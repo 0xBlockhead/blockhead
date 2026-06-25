@@ -10,39 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'asset instance',
-		},
-		{
-			label: 'format id',
-		},
+		'$assetInstance',
+		'formatId',
 		'confidence',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'asset instance',
-				},
-				{
-					label: 'format id',
-				},
-				{
-					label: 'observation time',
-				},
+				'$assetInstance',
+				'formatId',
+				'timestampMs',
 				'source',
 				'confidence',
-				{
-					label: 'evidence kind',
-				},
-				{
-					label: 'ledger coordinate',
-				},
+				'evidenceKind',
+				'ledgerCoordinateKind',
 			],
 			[
-				{
-					label: 'interface id',
-				},
+				'interfaceId',
 				{
 					label: 'program/module/contract/token program',
 				},
@@ -55,9 +39,7 @@
 			{
 				label: 'Asset',
 				items: [
-					{
-						label: 'parent asset instance',
-					},
+					'$assetInstance',
 				],
 			},
 			{

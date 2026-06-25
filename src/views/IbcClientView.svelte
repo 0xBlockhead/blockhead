@@ -10,40 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'client id',
-		},
-		{
-			label: 'client type',
-		},
+		'$network',
+		'clientId',
+		'clientType',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'client id',
-				},
-				{
-					label: 'client type',
-				},
-				{
-					label: 'latest height',
-				},
-				{
-					label: 'frozen height',
-				},
-				{
-					label: 'counterparty chain id',
-				},
-				{
-					label: 'trust level',
-				},
+				'$network',
+				'clientId',
+				'clientType',
+				'latestHeight',
+				'frozenHeight',
+			],
+			[
+				'counterpartyChainId',
+				'trustLevel',
 				{
 					label: 'trusting period',
 				},
@@ -53,12 +35,10 @@
 				{
 					label: 'max clock drift',
 				},
-				{
-					label: 'connection count',
-				},
-				{
-					label: 'channel count',
-				},
+			],
+			[
+				'$$connections',
+				'$$channels',
 			],
 		],
 	},
@@ -109,6 +89,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'connections',
+			label: 'connections',
+			field: '$$connections',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'channels',
+			label: 'channels',
+			field: '$$channels',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

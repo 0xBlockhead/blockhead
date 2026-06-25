@@ -10,40 +10,24 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'name',
-		},
-		{
-			label: 'record key',
-		},
-		{
-			label: 'record kind',
-		},
+		'$name',
+		'recordKey',
+		'recordKind',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'name',
-				},
-				{
-					label: 'record key',
-				},
-				{
-					label: 'record kind',
-				},
-				{
-					label: 'coin type',
-				},
+				'$name',
+				'recordKey',
+				'recordKind',
+				'coinType',
 				{
 					label: 'latest value',
 				},
 				{
 					label: 'latest block/source',
 				},
-				{
-					label: 'timestamp count',
-				},
+				'$$timestamps',
 			],
 		],
 	},
@@ -83,6 +67,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

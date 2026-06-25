@@ -20,15 +20,9 @@
 				'fid',
 				'protocol',
 				'address',
-				{
-					label: 'user',
-				},
-				{
-					label: 'EVM account',
-				},
-				{
-					label: 'Solana account',
-				},
+				'$user',
+				'$evmAccount',
+				'$solanaAccount',
 			],
 		],
 	},

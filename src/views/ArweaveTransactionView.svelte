@@ -10,28 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'transaction id',
-		},
+		'transactionId',
 		{
 			label: 'owner',
 		},
-		{
-			label: 'data size',
-		},
+		'dataSizeBytes',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'transaction id',
-				},
-				{
-					label: 'owner address',
-				},
-				{
-					label: 'target address',
-				},
+				'transactionId',
+				'ownerAddress',
+				'targetAddress',
 				{
 					label: 'quantity',
 				},
@@ -42,21 +32,11 @@
 				'denomination',
 			],
 			[
-				{
-					label: 'block',
-				},
-				{
-					label: 'data size',
-				},
-				{
-					label: 'data root',
-				},
-				{
-					label: 'last tx',
-				},
-				{
-					label: 'tag count',
-				},
+				'$block',
+				'dataSizeBytes',
+				'dataRoot',
+				'lastTx',
+				'tags',
 			],
 		],
 	},

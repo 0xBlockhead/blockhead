@@ -28,18 +28,10 @@
 				{
 					label: 'latest native coin balance',
 				},
-				{
-					label: 'resource count',
-				},
-				{
-					label: 'module count',
-				},
-				{
-					label: 'transaction count',
-				},
-				{
-					label: 'network',
-				},
+				'$$resources',
+				'$$modules',
+				'$$transactions',
+				'$network',
 			],
 		],
 	},
@@ -87,6 +79,53 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'balances',
+			label: 'balances',
+			field: '$$balances',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'resources',
+			label: 'resources',
+			field: '$$resources',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'modules',
+			label: 'modules',
+			field: '$$modules',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'transactions',
+			label: 'transactions',
+			field: '$$transactions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

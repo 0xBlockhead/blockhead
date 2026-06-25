@@ -10,44 +10,32 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'collection',
-		},
-		{
-			label: 'observation time',
-		},
+		'$collection',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'collection',
-				},
-				{
-					label: 'observation time',
-				},
+				'$collection',
+				'timestampMs',
 				'source',
-				{
-					label: 'owner address',
-				},
-				{
-					label: 'next item index',
-				},
+				'ownerAddress',
+				'nextItemIndex',
+			],
+			[
 				'name',
 				{
 					label: 'image/metadata URI',
 				},
-				{
-					label: 'item count',
-				},
+				'itemCount',
 				{
 					label: 'code/data hashes',
 				},
 				'verification',
-				{
-					label: 'last transaction lt',
-				},
+			],
+			[
+				'lastTransactionLt',
 			],
 		],
 	},

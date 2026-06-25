@@ -10,41 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'transaction hash',
-		},
-		{
-			label: 'block',
-		},
+		'$network',
+		'txHash',
+		'$block',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'transaction hash',
-				},
-				{
-					label: 'block',
-				},
+				'$network',
+				'txHash',
+				'$block',
 				'version',
-				{
-					label: 'unlock time',
-				},
-				{
-					label: 'fee',
-				},
-				{
-					label: 'key-image count',
-				},
-				{
-					label: 'stealth-output count',
-				},
+				'unlockTime',
+			],
+			[
+				'feeAtomicUnits',
+				'$$keyImages',
+				'$$stealthOutputs',
 			],
 		],
 	},
@@ -84,6 +66,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'key-images',
+			label: 'key images',
+			field: '$$keyImages',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'stealth-outputs',
+			label: 'stealth outputs',
+			field: '$$stealthOutputs',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

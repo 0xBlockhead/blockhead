@@ -10,30 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'program id',
-		},
+		'$network',
+		'programId',
 		'name',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'program id',
-				},
+				'$network',
+				'programId',
 				'name',
-				{
-					label: 'program account',
-				},
-				{
-					label: 'upgrade authority',
-				},
+				'$programAccount',
+				'$upgradeAuthority',
 			],
 		],
 	},
@@ -50,9 +38,7 @@
 			{
 				label: 'Upgrade authority',
 				items: [
-					{
-						label: 'upgrade authority account',
-					},
+					'$upgradeAuthority',
 				],
 			},
 			{

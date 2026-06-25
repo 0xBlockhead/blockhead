@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'topic id',
-		},
+		'topicId',
 		{
 			label: 'latest memo',
 		},
@@ -23,9 +21,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'topic id',
-				},
+				'topicId',
 				{
 					label: 'latest memo',
 				},
@@ -38,12 +34,8 @@
 				{
 					label: 'latest fee configuration summary',
 				},
-				{
-					label: 'message count',
-				},
-				{
-					label: 'timestamp count',
-				},
+				'$$messages',
+				'$$timestamps',
 			],
 		],
 	},
@@ -94,6 +86,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'messages',
+			label: 'messages',
+			field: '$$messages',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

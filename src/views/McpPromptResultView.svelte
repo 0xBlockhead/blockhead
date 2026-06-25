@@ -10,28 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'prompt',
-		},
-		{
-			label: 'arguments hash',
-		},
-		{
-			label: 'observation time',
-		},
+		'$prompt',
+		'argumentsHash',
+		'timestampMs',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'prompt',
-				},
+				'$prompt',
 				{
 					label: 'arguments hash algorithm/hash',
 				},
-				{
-					label: 'timestamp',
-				},
+				'timestampMs',
 				'source',
 			],
 			[

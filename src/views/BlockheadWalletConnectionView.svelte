@@ -13,9 +13,7 @@
 		{
 			label: 'wallet id',
 		},
-		{
-			label: 'connection key',
-		},
+		'connectionKey',
 		'status',
 		'protocol',
 	],
@@ -25,28 +23,16 @@
 				{
 					label: 'wallet id',
 				},
-				{
-					label: 'connection key',
-				},
+				'connectionKey',
 				'status',
 				'protocol',
-				{
-					label: 'transport',
-				},
-				{
-					label: 'API surface',
-				},
-				{
-					label: 'session kind',
-				},
+				'transportKind',
+				'apiSurfaceKind',
+				'sessionKind',
 			],
 			[
-				{
-					label: 'active account',
-				},
-				{
-					label: 'selected flag',
-				},
+				'$activeAccount',
+				'selected',
 				{
 					label: 'connected/updated/disconnected/expires timestamps',
 				},
@@ -101,6 +87,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'connected-accounts',
+			label: 'connected accounts',
+			field: '$$connectedAccounts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

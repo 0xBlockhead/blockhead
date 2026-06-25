@@ -10,34 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'local node state',
-		},
-		{
-			label: 'channel',
-		},
-		{
-			label: 'private flag',
-		},
+		'$localNodeState',
+		'$channel',
+		'private',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'local node state',
-				},
-				{
-					label: 'channel',
-				},
-				{
-					label: 'private flag',
-				},
-				{
-					label: 'initiator flag',
-				},
+				'$localNodeState',
+				'$channel',
+				'private',
+				'initiator',
 				{
 					label: 'latest active state',
 				},
+			],
+			[
 				{
 					label: 'latest local/remote/unsettled balances',
 				},
@@ -53,9 +41,9 @@
 				{
 					label: 'latest sync time',
 				},
-				{
-					label: 'HTLC count',
-				},
+			],
+			[
+				'$$htlcs',
 			],
 		],
 	},
@@ -114,6 +102,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'htlcs',
+			label: 'htlcs',
+			field: '$$htlcs',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

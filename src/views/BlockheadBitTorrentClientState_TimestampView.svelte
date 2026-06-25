@@ -10,30 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'client state',
-		},
-		{
-			label: 'observation time',
-		},
+		'$clientState',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'client state',
-				},
-				{
-					label: 'observation time',
-				},
+				'$clientState',
+				'timestampMs',
 				'source',
-				{
-					label: 'client version',
-				},
+				'clientVersion',
 				{
 					label: 'listen address count',
 				},
+			],
+			[
 				'port',
 				{
 					label: 'download/upload rates',
@@ -41,9 +33,7 @@
 				{
 					label: 'downloaded/uploaded bytes',
 				},
-				{
-					label: 'active torrent count',
-				},
+				'activeTorrentCount',
 				{
 					label: 'last sync time',
 				},
@@ -71,9 +61,7 @@
 			{
 				label: 'Network endpoints',
 				items: [
-					{
-						label: 'listen addresses',
-					},
+					'listenAddresses',
 					'port',
 				],
 			},

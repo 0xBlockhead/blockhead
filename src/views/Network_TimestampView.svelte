@@ -10,27 +10,17 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'timestamp',
-		},
+		'$network',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'timestamp',
-				},
+				'$network',
+				'timestampMs',
 				'source',
-				{
-					label: 'latest height',
-				},
+				'latestHeight',
 				{
 					label: 'transaction count',
 				},
@@ -43,17 +33,13 @@
 			{
 				label: 'Network',
 				items: [
-					{
-						label: 'Network',
-					},
+					'$network',
 				],
 			},
 			{
 				label: 'Head/health',
 				items: [
-					{
-						label: 'latest height',
-					},
+					'latestHeight',
 					{
 						label: 'transaction count',
 					},

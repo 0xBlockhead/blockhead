@@ -10,34 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'repository',
-		},
-		{
-			label: 'node id',
-		},
-		{
-			label: 'ref name',
-		},
+		'$repository',
+		'nodeId',
+		'refName',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'repository',
-				},
-				{
-					label: 'node id',
-				},
-				{
-					label: 'ref name',
-				},
-				{
-					label: 'target object id',
-				},
-				{
-					label: 'Git ref',
-				},
+				'$repository',
+				'nodeId',
+				'refName',
+				'targetObjectId',
+				'$gitRef',
 				{
 					label: 'Git ref observation',
 				},
@@ -84,6 +68,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

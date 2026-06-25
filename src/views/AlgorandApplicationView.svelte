@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'application id',
-		},
+		'applicationId',
 		'creator',
 		{
 			label: 'latest program hashes',
@@ -21,13 +19,9 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'application id',
-				},
+				'applicationId',
 				'creator',
-				{
-					label: 'network',
-				},
+				'$network',
 			],
 			[
 				{
@@ -94,6 +88,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'boxes',
+			label: 'boxes',
+			field: '$$boxes',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'local-state-rounds',
+			label: 'local state rounds',
+			field: '$$localStateRounds',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

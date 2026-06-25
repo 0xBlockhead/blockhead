@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'task id',
-		},
-		{
-			label: 'service',
-		},
+		'taskId',
+		'$service',
 		{
 			label: 'context',
 		},
@@ -23,18 +19,10 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'task id',
-				},
-				{
-					label: 'service',
-				},
-				{
-					label: 'provider task id',
-				},
-				{
-					label: 'context id',
-				},
+				'taskId',
+				'$service',
+				'providerTaskId',
+				'contextId',
 			],
 			[
 				{
@@ -94,6 +82,53 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'events',
+			label: 'events',
+			field: '$$events',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'messages',
+			label: 'messages',
+			field: '$$messages',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'artifacts',
+			label: 'artifacts',
+			field: '$$artifacts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'push-notification-configs',
+			label: 'push notification configs',
+			field: '$$pushNotificationConfigs',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

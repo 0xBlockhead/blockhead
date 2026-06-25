@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'asset instance',
-		},
+		'$assetInstance',
 		{
 			label: 'supply scope',
 		},
@@ -23,12 +21,8 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'asset instance',
-				},
-				{
-					label: 'supply scope key',
-				},
+				'$assetInstance',
+				'supplyScopeKey',
 				{
 					label: 'optional class',
 				},
@@ -36,18 +30,12 @@
 					label: 'coordinate kind/value',
 				},
 				'source',
-				{
-					label: 'total supply',
-				},
-				{
-					label: 'max supply',
-				},
-				{
-					label: 'minted supply',
-				},
-				{
-					label: 'burned supply',
-				},
+			],
+			[
+				'totalSupply',
+				'maxSupply',
+				'mintedSupply',
+				'burnedSupply',
 			],
 		],
 	},
@@ -56,9 +44,7 @@
 			{
 				label: 'Asset',
 				items: [
-					{
-						label: 'parent asset instance',
-					},
+					'$assetInstance',
 				],
 			},
 			{

@@ -13,9 +13,7 @@
 		{
 			label: 'name or id',
 		},
-		{
-			label: 'created time',
-		},
+		'createdAt',
 		{
 			label: 'creator',
 		},
@@ -26,15 +24,11 @@
 				{
 					label: 'name or id',
 				},
-				{
-					label: 'created time',
-				},
+				'createdAt',
 				{
 					label: 'creator',
 				},
-				{
-					label: 'peer count',
-				},
+				'$$peers',
 			],
 		],
 	},
@@ -66,6 +60,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'peers',
+			label: 'peers',
+			field: '$$peers',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

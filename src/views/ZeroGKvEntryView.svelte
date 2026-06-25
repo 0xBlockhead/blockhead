@@ -10,26 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
+		'$network',
 		'namespace',
 		'key',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
+				'$network',
 				'namespace',
 				'key',
-				{
-					label: 'value hash',
-				},
-				{
-					label: 'owner',
-				},
+				'valueHash',
+				'$owner',
 				{
 					label: 'storage log entry',
 				},

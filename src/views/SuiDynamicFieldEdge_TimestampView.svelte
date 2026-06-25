@@ -10,36 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'edge',
-		},
-		{
-			label: 'checkpoint sequence',
-		},
+		'$edge',
+		'checkpointSequence',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'edge',
-				},
-				{
-					label: 'checkpoint sequence',
-				},
+				'$edge',
+				'checkpointSequence',
 				'source',
-				{
-					label: 'observation time',
-				},
-				{
-					label: 'field type',
-				},
-				{
-					label: 'child object type',
-				},
-				{
-					label: 'deleted state',
-				},
+				'timestampMs',
+				'fieldType',
+				'childObjectType',
+				'deleted',
 			],
 		],
 	},

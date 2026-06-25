@@ -10,25 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'server',
-		},
+		'$server',
 		'name',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'server',
-				},
+				'$server',
 				'name',
 				'title',
 				'description',
 			],
 			[
-				{
-					label: 'arguments schema',
-				},
+				'argumentsSchema',
 				{
 					label: 'result refs',
 				},
@@ -48,9 +42,7 @@
 			{
 				label: 'Schema',
 				items: [
-					{
-						label: 'arguments schema',
-					},
+					'argumentsSchema',
 				],
 			},
 			{
@@ -63,6 +55,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'results',
+			label: 'results',
+			field: '$$results',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

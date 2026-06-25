@@ -10,27 +10,17 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'block',
-		},
+		'$block',
 		'pool',
-		{
-			label: 'final root',
-		},
+		'finalRoot',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'block',
-				},
+				'$block',
 				'pool',
-				{
-					label: 'final root',
-				},
-				{
-					label: 'block commitments',
-				},
+				'finalRoot',
+				'blockCommitments',
 			],
 		],
 	},

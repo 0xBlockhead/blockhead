@@ -10,32 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'asset instance',
-		},
-		{
-			label: 'account',
-		},
-		{
-			label: 'observed time',
-		},
+		'$assetInstance',
+		'$account',
+		'timestampMs',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'asset instance',
-				},
-				{
-					label: 'account',
-				},
-				{
-					label: 'observed time',
-				},
+				'$assetInstance',
+				'$account',
+				'timestampMs',
 				'source',
-				{
-					label: 'ledger coordinate',
-				},
+				'ledgerCoordinateKind',
 				{
 					label: 'can-hold/can-send/can-receive flags',
 				},
@@ -48,9 +34,7 @@
 			{
 				label: 'Asset',
 				items: [
-					{
-						label: 'parent asset instance',
-					},
+					'$assetInstance',
 				],
 			},
 			{

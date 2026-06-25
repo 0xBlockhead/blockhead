@@ -10,41 +10,27 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'info hash',
-		},
+		'infoHash',
 		{
 			label: 'observer',
 		},
-		{
-			label: 'timestamp',
-		},
+		'timestampMs',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'info hash',
-				},
+				'infoHash',
 				{
 					label: 'observer',
 				},
-				{
-					label: 'timestamp',
-				},
+				'timestampMs',
 				'status',
-				{
-					label: 'queried node count',
-				},
-				{
-					label: 'responsive node count',
-				},
-				{
-					label: 'peer count',
-				},
-				{
-					label: 'closest node ids',
-				},
+				'queriedNodeCount',
+			],
+			[
+				'responsiveNodeCount',
+				'peerCount',
+				'closestNodeIds',
 			],
 		],
 	},

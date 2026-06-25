@@ -27,11 +27,15 @@
 				'channelId',
 				'viewerFid',
 				'sourceWindowCastCount',
+			],
+			[
 				'sourceWindowUserCount',
 				'sourceWindowChannelCount',
 				'localCatalogFeedVariantCount',
 				'localCatalogChannelCount',
 				'hubHost',
+			],
+			[
 				'snapchainHost',
 				'reachable',
 				'cursor',

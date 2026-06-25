@@ -30,29 +30,17 @@
 		},
 	],
 	closed: [
-		{
-			label: 'protocol name',
-		},
-		{
-			label: 'registry label',
-		},
+		'protocolName',
+		'registryLabel',
 		'topology',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'protocol name',
-				},
-				{
-					label: 'home URL',
-				},
-				{
-					label: 'docs URL',
-				},
-				{
-					label: 'registry label',
-				},
+				'protocolName',
+				'homeUrl',
+				'docsUrl',
+				'registryLabel',
 				'topology',
 			],
 		],
@@ -86,6 +74,14 @@
 					},
 				],
 			},
+		],
+	},
+	summary: {
+		value: 'protocolName',
+		title: 'protocolName',
+		after: [
+			'registryLabel',
+			'topology',
 		],
 	},
 } satisfies ComponentProps<typeof EntityView2>['view']

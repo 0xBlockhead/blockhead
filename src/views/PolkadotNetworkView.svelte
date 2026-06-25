@@ -35,9 +35,7 @@
 				{
 					label: 'runtime asset count',
 				},
-				{
-					label: 'validator count',
-				},
+				'$$validators',
 			],
 		],
 	},
@@ -101,6 +99,53 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'blocks',
+			label: 'blocks',
+			field: '$$blocks',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'assets',
+			label: 'assets',
+			field: '$$assets',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'asset-balance-timestamps',
+			label: 'asset balance timestamps',
+			field: '$$assetBalanceTimestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'validators',
+			label: 'validators',
+			field: '$$validators',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

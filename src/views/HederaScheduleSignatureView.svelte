@@ -10,31 +10,17 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'schedule',
-		},
-		{
-			label: 'public-key prefix',
-		},
-		{
-			label: 'consensus timestamp',
-		},
+		'$schedule',
+		'publicKeyPrefix',
+		'consensusTimestamp',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'schedule',
-				},
-				{
-					label: 'public-key prefix',
-				},
-				{
-					label: 'consensus timestamp',
-				},
-				{
-					label: 'account',
-				},
+				'$schedule',
+				'publicKeyPrefix',
+				'consensusTimestamp',
+				'$account',
 				{
 					label: 'signature presence',
 				},

@@ -10,23 +10,15 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'wallet id',
-		},
-		{
-			label: 'mint',
-		},
+		'walletId',
+		'$mint',
 		'unit',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'wallet id',
-				},
-				{
-					label: 'mint',
-				},
+				'walletId',
+				'$mint',
 				'unit',
 				{
 					label: 'latest balance',
@@ -34,6 +26,8 @@
 				{
 					label: 'latest proof count',
 				},
+			],
+			[
 				{
 					label: 'latest active keyset count',
 				},
@@ -98,6 +92,53 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'proofs',
+			label: 'proofs',
+			field: '$$proofs',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'tokens',
+			label: 'tokens',
+			field: '$$tokens',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'mint-quotes',
+			label: 'mint quotes',
+			field: '$$mintQuotes',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'melt-quotes',
+			label: 'melt quotes',
+			field: '$$meltQuotes',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

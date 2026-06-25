@@ -10,33 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account',
-		},
-		{
-			label: 'ledger index',
-		},
+		'$account',
+		'ledgerIndex',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'account',
-				},
-				{
-					label: 'ledger index',
-				},
+				'$account',
+				'ledgerIndex',
 				'source',
-				{
-					label: 'observation time',
-				},
+				'timestampMs',
 				{
 					label: 'account balance',
 				},
-				{
-					label: 'owner count',
-				},
+			],
+			[
+				'ownerCount',
 				'sequence',
 				'flags',
 			],
@@ -55,12 +45,8 @@
 			{
 				label: 'Ledger state',
 				items: [
-					{
-						label: 'balance drops',
-					},
-					{
-						label: 'owner count',
-					},
+					'balanceDrops',
+					'ownerCount',
 					'sequence',
 					'flags',
 				],
@@ -68,12 +54,8 @@
 			{
 				label: 'Ledger context',
 				items: [
-					{
-						label: 'ledger index',
-					},
-					{
-						label: 'observation time',
-					},
+					'ledgerIndex',
+					'timestampMs',
 					'source',
 				],
 			},

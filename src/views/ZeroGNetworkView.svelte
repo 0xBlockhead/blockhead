@@ -24,12 +24,8 @@
 				{
 					label: 'native assets',
 				},
-				{
-					label: 'execution network',
-				},
-				{
-					label: 'consensus network',
-				},
+				'$executionNetwork',
+				'$consensusNetwork',
 				{
 					label: 'latest execution/storage snapshot',
 				},
@@ -41,9 +37,7 @@
 			{
 				label: 'Execution',
 				items: [
-					{
-						label: 'Blocks',
-					},
+					'$$blocks',
 					{
 						label: 'Network snapshots',
 					},
@@ -58,16 +52,50 @@
 			{
 				label: 'Data & Storage',
 				items: [
-					{
-						label: 'Data blobs',
-					},
-					{
-						label: 'Storage nodes',
-					},
+					'$$dataBlobs',
+					'$$storageNodes',
 				],
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'blocks',
+			label: 'blocks',
+			field: '$$blocks',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'storage-nodes',
+			label: 'storage nodes',
+			field: '$$storageNodes',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'data-blobs',
+			label: 'data blobs',
+			field: '$$dataBlobs',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

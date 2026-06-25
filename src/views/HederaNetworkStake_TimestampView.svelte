@@ -10,39 +10,27 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'observation time',
-		},
+		'$network',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'observation time',
-				},
+				'$network',
+				'timestampMs',
 				'source',
-				{
-					label: 'stake total',
-				},
-				{
-					label: 'reward balance',
-				},
+				'stakeTotalTinybar',
+				'rewardBalanceTinybar',
+			],
+			[
 				{
 					label: 'max rewarded stake',
 				},
 				{
 					label: 'max reward rate',
 				},
-				{
-					label: 'staking period',
-				},
+				'stakingPeriod',
 				{
 					label: 'reward fee fractions',
 				},
@@ -62,9 +50,7 @@
 			{
 				label: 'Reward economics',
 				items: [
-					{
-						label: 'reward balance',
-					},
+					'rewardBalanceTinybar',
 					{
 						label: 'reserved/unreserved rewards',
 					},

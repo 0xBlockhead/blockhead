@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'cast',
-		},
-		{
-			label: 'observation time',
-		},
+		'$cast',
+		'timestampMs',
 		{
 			label: 'likes',
 		},
@@ -23,12 +19,8 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'cast',
-				},
-				{
-					label: 'observation time',
-				},
+				'$cast',
+				'timestampMs',
 				{
 					label: 'likes',
 				},
@@ -54,15 +46,9 @@
 			{
 				label: 'Engagement',
 				items: [
-					{
-						label: 'like count',
-					},
-					{
-						label: 'recast count',
-					},
-					{
-						label: 'reply count',
-					},
+					'likeCount',
+					'recastCount',
+					'replyCount',
 				],
 			},
 			{

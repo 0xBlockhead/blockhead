@@ -10,28 +10,16 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'endpoint URL',
-		},
-		{
-			label: 'protocol version',
-		},
-		{
-			label: 'directory',
-		},
+		'endpointUrl',
+		'protocolVersion',
+		'$directory',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'endpoint URL',
-				},
-				{
-					label: 'protocol version',
-				},
-				{
-					label: 'directory',
-				},
+				'endpointUrl',
+				'protocolVersion',
+				'$directory',
 				{
 					label: 'latest capability snapshot',
 				},
@@ -97,6 +85,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'blockhead-sessions',
+			label: 'blockhead sessions',
+			field: '$$blockheadSessions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

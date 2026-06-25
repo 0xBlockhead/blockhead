@@ -14,34 +14,22 @@
 			label: 'benchmark id/URI',
 		},
 		'label',
-		{
-			label: 'task type',
-		},
+		'taskType',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'benchmark id',
-				},
-				{
-					label: 'benchmark URI',
-				},
-				{
-					label: 'source benchmark id',
-				},
+				'benchmarkId',
+				'benchmarkUri',
+				'sourceBenchmarkId',
 				'label',
 			],
 			[
-				{
-					label: 'task type',
-				},
+				'taskType',
 				{
 					label: 'metric name/type',
 				},
-				{
-					label: 'dataset ref',
-				},
+				'$dataset',
 				'license',
 				{
 					label: 'document refs',
@@ -77,6 +65,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'documents',
+			label: 'documents',
+			field: '$$documents',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

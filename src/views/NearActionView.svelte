@@ -10,31 +10,17 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'transaction',
-		},
-		{
-			label: 'action index',
-		},
-		{
-			label: 'action kind',
-		},
+		'$transaction',
+		'actionIndex',
+		'actionKind',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'transaction',
-				},
-				{
-					label: 'action index',
-				},
-				{
-					label: 'action kind',
-				},
-				{
-					label: 'method name',
-				},
+				'$transaction',
+				'actionIndex',
+				'actionKind',
+				'methodName',
 				{
 					label: 'deposit',
 				},

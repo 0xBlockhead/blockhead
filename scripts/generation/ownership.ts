@@ -78,6 +78,65 @@ const hasRejectedRouteShape = (
 	|| path.includes('/global/global/')
 )
 
+const visibleRoutePath = (
+	path: string
+) => path
+	.replace(/^src\/routes\//, '')
+	.replace(/(?:^|\/)\+(page|layout)\.(svelte|ts)$/, '')
+	.split('/')
+	.filter((segment) => !(segment.startsWith('(') && segment.endsWith(')')))
+	.join('/')
+
+const hasProductRouteFormatIssue = (
+	path: string
+) => {
+	const visiblePath = visibleRoutePath(path)
+
+	return (
+		path.includes('src/routes/(assets)/coin/[coinId]')
+		|| path.startsWith('(assets)/coin/[coinId]')
+		|| path.includes('src/routes/url/[url]')
+		|| path === 'url/[url]'
+		|| path.includes('src/routes/(explore)/(evm)/calldata/[hex]')
+		|| path === '(explore)/(evm)/calldata/[hex]'
+		|| path.includes('src/routes/(explore)/(evm)/error/[hex]')
+		|| path.startsWith('(explore)/(evm)/error/[hex]')
+		|| path.includes('src/routes/(explore)/(evm)/selector/[hex]')
+		|| path.startsWith('(explore)/(evm)/selector/[hex]')
+		|| path.includes('src/routes/(explore)/(evm)/topic/[hex]')
+		|| path.startsWith('(explore)/(evm)/topic/[hex]')
+		|| path.includes('src/routes/(explore)/(ipfs)')
+		|| path.startsWith('(explore)/(ipfs)')
+		|| path.includes('src/routes/(explore)/(swarm)')
+		|| path.startsWith('(explore)/(swarm)')
+		|| path.includes('src/routes/(explore)/(evm)')
+		|| path.startsWith('(explore)/(evm)')
+		|| path.includes('src/routes/(social)/(activitypub)')
+		|| path.startsWith('(social)/(activitypub)')
+		|| path.includes('src/routes/(social)/(atproto)')
+		|| path.startsWith('(social)/(atproto)')
+		|| path.includes('src/routes/(social)/(farcaster)')
+		|| path.startsWith('(social)/(farcaster)')
+		|| path.includes('src/routes/(social)/(lens)')
+		|| path.startsWith('(social)/(lens)')
+		|| path.includes('src/routes/(social)/(nostr)')
+		|| path.startsWith('(social)/(nostr)')
+		|| path.includes('src/routes/(social)/(reddit)')
+		|| path.startsWith('(social)/(reddit)')
+		|| path.includes('src/routes/(social)/(rss)')
+		|| path.startsWith('(social)/(rss)')
+		|| path.includes('src/routes/(social)/(x)')
+		|| path.startsWith('(social)/(x)')
+		|| path.includes('src/routes/(social)/(xmtp)')
+		|| path.startsWith('(social)/(xmtp)')
+		|| path.includes('src/routes/(social)/(youtube)')
+		|| path.startsWith('(social)/(youtube)')
+		|| visiblePath.includes('/by/')
+		|| /(^|\/)(assets|data|services|governance|farcaster|activitypub|atproto|lens|nostr|reddit|rss|xmtp|youtube|evm|ens|swarm|ipfs|networks)\/\2(\/|$)/.test(visiblePath)
+		|| /(^|\/)(activity-pub-|atproto-|farcaster-|lens-|nostr-|reddit-|rss-|xmtp-|you-tube-|xnetwork|xpost|xuser|evm-|git-|bit-torrent-|radicle-|cashu-|cctp-|bridge-|swap-|market-|global-|blockhead-|ipfs-|swarm-|arweave-|media-object)[a-z0-9-]*/.test(visiblePath)
+	)
+}
+
 const routeParamNames = (
 	path: string
 ) => [
@@ -95,12 +154,12 @@ const emitsGeneratedRoutePage = (
 
 export const staleGeneratedFiles = (): StaleGeneratedFile[] => (
 	activeFiles('src/routes')
-		.filter((path) => path.endsWith('/+page.svelte') || path.endsWith('/+page.ts'))
-		.filter(hasRejectedRouteShape)
+		.filter((path) => path.endsWith('/+page.svelte') || path.endsWith('/+page.ts') || path.endsWith('/+layout.svelte'))
+		.filter((path) => hasRejectedRouteShape(path) || hasProductRouteFormatIssue(path))
 		.map((activePath) => ({
 			activePath,
-			kind: 'route',
-			reason: 'rejected generated route shape',
+			kind: activePath.endsWith('/+layout.svelte') ? 'route-section' : 'route',
+			reason: hasRejectedRouteShape(activePath) ? 'rejected generated route shape' : 'rejected product route shape',
 		}))
 )
 

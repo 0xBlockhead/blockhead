@@ -10,23 +10,15 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'program',
-		},
-		{
-			label: 'observation time',
-		},
+		'$program',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'program',
-				},
-				{
-					label: 'observation time',
-				},
+				'$program',
+				'timestampMs',
 				'source',
 				{
 					label: 'bytecode availability',
@@ -37,9 +29,7 @@
 				{
 					label: 'source map availability',
 				},
-				{
-					label: 'compile result hash',
-				},
+				'compileResultHash',
 			],
 		],
 	},
@@ -58,9 +48,7 @@
 				items: [
 					'bytecode',
 					'disassembly',
-					{
-						label: 'source map',
-					},
+					'sourceMap',
 				],
 			},
 			{

@@ -10,26 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account',
-		},
+		'$account',
 		'round',
 		'amount',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'account',
-				},
+				'$account',
 				'round',
 				'amount',
-				{
-					label: 'pending rewards',
-				},
-				{
-					label: 'rewards base',
-				},
+				'pendingRewards',
+				'rewardsBase',
 				'status',
 				'source',
 			],
@@ -49,12 +41,8 @@
 				label: 'Round state',
 				items: [
 					'amount',
-					{
-						label: 'pending rewards',
-					},
-					{
-						label: 'rewards base',
-					},
+					'pendingRewards',
+					'rewardsBase',
 					'status',
 				],
 			},

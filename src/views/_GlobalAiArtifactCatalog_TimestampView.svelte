@@ -10,24 +10,16 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'catalog',
-		},
-		{
-			label: 'observation time',
-		},
+		'$catalog',
+		'timestampMs',
 		'source',
 		'status',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'catalog',
-				},
-				{
-					label: 'timestamp',
-				},
+				'$catalog',
+				'timestampMs',
 				'source',
 				'status',
 				'error',

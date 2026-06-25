@@ -10,44 +10,30 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'token',
-		},
-		{
-			label: 'observation time',
-		},
+		'$token',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'token',
-				},
-				{
-					label: 'observation time',
-				},
+				'$token',
+				'timestampMs',
 				'source',
 				'name',
 				'symbol',
-				{
-					label: 'total supply',
-				},
-				{
-					label: 'max supply',
-				},
+			],
+			[
+				'totalSupply',
+				'maxSupply',
 				{
 					label: 'treasury',
 				},
-				{
-					label: 'deleted flag',
-				},
-				{
-					label: 'paused flag',
-				},
-				{
-					label: 'custom fee count',
-				},
+				'deleted',
+				'paused',
+			],
+			[
+				'$$customFees',
 				{
 					label: 'expiry',
 				},
@@ -107,6 +93,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'custom-fees',
+			label: 'custom fees',
+			field: '$$customFees',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

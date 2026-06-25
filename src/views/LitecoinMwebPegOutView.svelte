@@ -10,28 +10,16 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'transaction',
-		},
-		{
-			label: 'peg-out index',
-		},
-		{
-			label: 'transparent output',
-		},
+		'$transaction',
+		'pegOutIndex',
+		'$transparentOutput',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'transaction',
-				},
-				{
-					label: 'peg-out index',
-				},
-				{
-					label: 'transparent output',
-				},
+				'$transaction',
+				'pegOutIndex',
+				'$transparentOutput',
 				{
 					label: 'amount in litoshis',
 				},

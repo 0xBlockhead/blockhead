@@ -16,9 +16,7 @@
 		{
 			label: 'complete ledger range',
 		},
-		{
-			label: 'load factor',
-		},
+		'loadFactor',
 	],
 	content: {
 		dl: [
@@ -29,16 +27,10 @@
 				{
 					label: 'complete ledger range',
 				},
-				{
-					label: 'load factor',
-				},
-				{
-					label: 'peer count',
-				},
+				'loadFactor',
+				'peerCount',
 				'source',
-				{
-					label: 'observation time',
-				},
+				'timestampMs',
 			],
 		],
 	},
@@ -66,12 +58,8 @@
 			{
 				label: 'Node health',
 				items: [
-					{
-						label: 'load factor',
-					},
-					{
-						label: 'peer count',
-					},
+					'loadFactor',
+					'peerCount',
 				],
 			},
 			{

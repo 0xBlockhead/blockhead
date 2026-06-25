@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'node id',
-		},
-		{
-			label: 'tx id',
-		},
+		'nodeId',
+		'txId',
 		{
 			label: 'observed time',
 		},
@@ -23,22 +19,16 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'node id',
-				},
-				{
-					label: 'tx id',
-				},
+				'nodeId',
+				'txId',
 				{
 					label: 'observed time',
 				},
-				{
-					label: 'network',
-				},
+				'$network',
 				'sender',
-				{
-					label: 'transaction type',
-				},
+			],
+			[
+				'transactionType',
 				'fee',
 				{
 					label: 'validity round range',
@@ -46,9 +36,7 @@
 				{
 					label: 'group id',
 				},
-				{
-					label: 'pool priority',
-				},
+				'poolPriority',
 			],
 		],
 	},

@@ -10,37 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'port id',
-		},
-		{
-			label: 'channel id',
-		},
+		'$network',
+		'portId',
+		'channelId',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'port id',
-				},
-				{
-					label: 'channel id',
-				},
+				'$network',
+				'portId',
+				'channelId',
 				'state',
 				'ordering',
+			],
+			[
 				'version',
-				{
-					label: 'connection',
-				},
-				{
-					label: 'client',
-				},
+				'$connection',
+				'$client',
 				{
 					label: 'next send/receive sequence',
 				},
@@ -109,6 +95,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'packets',
+			label: 'packets',
+			field: '$$packets',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,33 +10,27 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'channel',
-		},
+		'$channel',
 		'sequence',
 		'direction',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'channel',
-				},
+				'$channel',
 				'sequence',
 				'direction',
 				'status',
 				{
 					label: 'source/destination port/channel',
 				},
+			],
+			[
 				{
 					label: 'timeout',
 				},
-				{
-					label: 'commitment hash',
-				},
-				{
-					label: 'acknowledgement hash',
-				},
+				'commitmentHash',
+				'acknowledgementHash',
 				{
 					label: 'receipt state',
 				},
@@ -88,12 +82,8 @@
 			{
 				label: 'Transfer payload',
 				items: [
-					{
-						label: 'data hash',
-					},
-					{
-						label: 'denom trace',
-					},
+					'dataHash',
+					'$denomTrace',
 					{
 						label: 'amount/receiver fields when decoded by source',
 					},

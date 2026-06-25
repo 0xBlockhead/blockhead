@@ -10,33 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'wallet state',
-		},
-		{
-			label: 'observation time',
-		},
+		'$walletState',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'wallet state',
-				},
-				{
-					label: 'observation time',
-				},
+				'$walletState',
+				'timestampMs',
 				'source',
 				{
 					label: 'total balance',
 				},
-				{
-					label: 'verified balance',
-				},
-				{
-					label: 'spendable balance',
-				},
+				'verifiedBalanceZatoshis',
+			],
+			[
+				'spendableBalanceZatoshis',
 				{
 					label: 'transparent/Sapling/Orchard balance breakdowns',
 				},
@@ -46,18 +36,14 @@
 				{
 					label: 'pending-spendability value',
 				},
-				{
-					label: 'uneconomic value',
-				},
+				'uneconomicValueZatoshis',
+			],
+			[
 				{
 					label: 'scan height',
 				},
-				{
-					label: 'chain tip height',
-				},
-				{
-					label: 'recovery state',
-				},
+				'chainTipHeight',
+				'recoveryState',
 				{
 					label: 'sync time',
 				},

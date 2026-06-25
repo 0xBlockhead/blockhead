@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'trade id',
-		},
+		'tradeId',
 		{
 			label: 'asset pair',
 		},
@@ -23,13 +21,9 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'trade id',
-				},
+				'tradeId',
 				'source',
-				{
-					label: 'ledger close time',
-				},
+				'ledgerCloseTimeMs',
 				{
 					label: 'asset pair',
 				},

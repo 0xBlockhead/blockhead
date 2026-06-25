@@ -27,6 +27,8 @@
 				'localCatalogUserCount',
 				'localCatalogPostCount',
 				'reachable',
+			],
+			[
 				'rateLimitRemaining',
 				'searchWindowStartMs',
 				'searchWindowEndMs',

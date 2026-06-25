@@ -10,28 +10,16 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'entry type',
-		},
-		{
-			label: 'entry hash',
-		},
-		{
-			label: 'ledger',
-		},
+		'entryType',
+		'entryHash',
+		'$ledger',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'entry type',
-				},
-				{
-					label: 'entry hash',
-				},
-				{
-					label: 'ledger',
-				},
+				'entryType',
+				'entryHash',
+				'$ledger',
 				'account',
 				{
 					label: 'previous transaction hash/index',
@@ -58,9 +46,7 @@
 					{
 						label: 'raw fields',
 					},
-					{
-						label: 'entry type',
-					},
+					'entryType',
 				],
 			},
 			{

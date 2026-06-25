@@ -25,6 +25,24 @@
 				label: '/farcaster/cast/[hash]',
 			},
 		},
+		{
+			id: 'embeds',
+			label: 'embeds',
+			field: '$$embeds',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
 	],
 	closed: [
 		'fid',
@@ -41,33 +59,23 @@
 				{
 					label: 'username/hash-prefix or client URL selector context',
 				},
-				{
-					label: 'author',
-				},
+				'$author',
 				'text',
+			],
+			[
 				'timestamp',
-				{
-					label: 'parent cast',
-				},
-				{
-					label: 'parent URL',
-				},
-				{
-					label: 'thread hash',
-				},
-				{
-					label: 'channel',
-				},
-				{
-					label: 'posted-via app',
-				},
+				'$parentCast',
+				'parentUrl',
+				'threadHash',
+				'$channel',
+			],
+			[
+				'$postedViaApp',
 				'mentions',
 				{
 					label: 'mentioned profiles/channels',
 				},
-				{
-					label: 'embeds',
-				},
+				'$$embeds',
 				{
 					label: 'latest like/recast/reply snapshot',
 				},

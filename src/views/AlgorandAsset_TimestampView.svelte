@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'unit/name',
-		},
+		'unitName',
 		{
 			label: 'total supply',
 		},
@@ -21,18 +19,14 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'asset',
-				},
+				'$asset',
 				'round',
 				'source',
 				{
 					label: 'total supply',
 				},
 				'decimals',
-				{
-					label: 'default frozen',
-				},
+				'defaultFrozen',
 			],
 			[
 				{
@@ -41,12 +35,8 @@
 				{
 					label: 'manager/reserve/freeze/clawback',
 				},
-				{
-					label: 'holder count',
-				},
-				{
-					label: 'deleted state',
-				},
+				'holderCount',
+				'deleted',
 			],
 		],
 	},

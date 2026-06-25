@@ -14,9 +14,7 @@
 			label: 'quote request id',
 		},
 		'source',
-		{
-			label: 'provider protocol',
-		},
+		'providerProtocol',
 	],
 	content: {
 		dl: [
@@ -28,24 +26,16 @@
 				{
 					label: 'request hash',
 				},
-				{
-					label: 'provider protocol',
-				},
-				{
-					label: 'intent type',
-				},
-				{
-					label: 'session action',
-				},
-				{
-					label: 'user interop address',
-				},
+				'providerProtocol',
+				'intentType',
+			],
+			[
+				'$sessionAction',
+				'userInteropAddress',
 				{
 					label: 'requested time',
 				},
-				{
-					label: 'request payload hash',
-				},
+				'requestPayloadHash',
 			],
 		],
 	},
@@ -88,6 +78,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

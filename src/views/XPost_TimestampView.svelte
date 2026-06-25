@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'post',
-		},
-		{
-			label: 'observation time',
-		},
+		'$post',
+		'timestampMs',
 		{
 			label: 'likes',
 		},
@@ -23,12 +19,8 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'post',
-				},
-				{
-					label: 'observation time',
-				},
+				'$post',
+				'timestampMs',
 				{
 					label: 'likes',
 				},

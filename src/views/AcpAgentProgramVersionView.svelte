@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'program',
-		},
+		'$program',
 		{
 			label: 'version/artifact',
 		},
@@ -20,28 +18,18 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'program',
-				},
+				'$program',
 				'version',
-				{
-					label: 'artifact',
-				},
+				'$artifact',
 			],
 			[
-				{
-					label: 'release date',
-				},
-				{
-					label: 'distribution kind',
-				},
+				'releaseDate',
+				'distributionKind',
 				'command',
 			],
 			[
 				'arguments',
-				{
-					label: 'environment keys',
-				},
+				'environmentKeys',
 				{
 					label: 'document refs',
 				},
@@ -84,6 +72,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'documents',
+			label: 'documents',
+			field: '$$documents',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

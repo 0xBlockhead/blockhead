@@ -10,52 +10,34 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'vault',
-		},
-		{
-			label: 'observation time',
-		},
+		'$vault',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'vault',
-				},
-				{
-					label: 'observation time',
-				},
+				'$vault',
+				'timestampMs',
 				'source',
 				'name',
-				{
-					label: 'APR',
-				},
-				{
-					label: 'leader fraction',
-				},
-				{
-					label: 'leader commission',
-				},
-				{
-					label: 'max distributable',
-				},
-				{
-					label: 'max withdrawable',
-				},
+				'apr',
+			],
+			[
+				'leaderFraction',
+				'leaderCommission',
+				'maxDistributable',
+				'maxWithdrawable',
 				{
 					label: 'closed flag',
 				},
+			],
+			[
 				{
 					label: 'deposit flag',
 				},
-				{
-					label: 'always-close-on-withdraw flag',
-				},
-				{
-					label: 'follower count',
-				},
+				'alwaysCloseOnWithdraw',
+				'followerCount',
 			],
 		],
 	},

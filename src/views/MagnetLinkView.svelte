@@ -10,43 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'magnet URI',
-		},
-		{
-			label: 'info hash',
-		},
-		{
-			label: 'display name',
-		},
+		'magnetUri',
+		'infoHash',
+		'displayName',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'magnet URI',
-				},
-				{
-					label: 'info hash',
-				},
-				{
-					label: 'display name',
-				},
-				{
-					label: 'exact length',
-				},
-				{
-					label: 'tracker count',
-				},
-				{
-					label: 'web seed count',
-				},
-				{
-					label: 'acceptable source count',
-				},
-				{
-					label: 'linked torrent',
-				},
+				'magnetUri',
+				'infoHash',
+				'displayName',
+				'exactLength',
+				'trackers',
+			],
+			[
+				'webSeeds',
+				'acceptableSources',
+				'$torrent',
 				{
 					label: 'resolution count',
 				},
@@ -89,6 +69,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'resolution-timestamps',
+			label: 'resolution timestamps',
+			field: '$$resolutionTimestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

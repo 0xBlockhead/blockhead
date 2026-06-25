@@ -16,37 +16,25 @@
 		{
 			label: 'validation state',
 		},
-		{
-			label: 'close time',
-		},
+		'closeTimeMs',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'ledger index',
-				},
-				{
-					label: 'ledger hash',
-				},
+				'ledgerIndex',
+				'ledgerHash',
 				{
 					label: 'validation state',
 				},
-				{
-					label: 'close time',
-				},
-				{
-					label: 'parent hash',
-				},
+				'closeTimeMs',
+				'parentHash',
+			],
+			[
 				{
 					label: 'total XRP drops',
 				},
-				{
-					label: 'account hash',
-				},
-				{
-					label: 'transaction hash',
-				},
+				'accountHash',
+				'transactionHash',
 			],
 		],
 	},
@@ -81,6 +69,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'transactions',
+			label: 'transactions',
+			field: '$$transactions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'ledger-entries',
+			label: 'ledger entries',
+			field: '$$ledgerEntries',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

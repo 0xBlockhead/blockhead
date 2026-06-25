@@ -10,38 +10,24 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'install id',
-		},
-		{
-			label: 'program version',
-		},
+		'installId',
+		'$programVersion',
 		'command',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'install id',
-				},
-				{
-					label: 'program version',
-				},
-				{
-					label: 'source',
-				},
+				'installId',
+				'$programVersion',
+				'$source',
 			],
 			[
-				{
-					label: 'install path',
-				},
+				'installPath',
 				'command',
 				{
 					label: 'args hash algorithm/hash',
 				},
-				{
-					label: 'environment scope',
-				},
+				'environmentScope',
 			],
 		],
 	},
@@ -73,6 +59,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

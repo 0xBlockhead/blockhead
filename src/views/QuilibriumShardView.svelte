@@ -10,33 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'shard key',
-		},
+		'shardKey',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'shard key',
-				},
+				'shardKey',
 			],
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'shard key',
-				},
-				{
-					label: 'shard kind',
-				},
-				{
-					label: 'application account',
-				},
-				{
-					label: 'frame count',
-				},
+				'$network',
+				'shardKey',
+				'shardKind',
+				'$applicationAccount',
+				'$$frames',
 			],
 		],
 	},
@@ -61,9 +47,7 @@
 			{
 				label: 'Network',
 				items: [
-					{
-						label: 'parent network',
-					},
+					'$network',
 				],
 			},
 			{
@@ -76,6 +60,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'frames',
+			label: 'frames',
+			field: '$$frames',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

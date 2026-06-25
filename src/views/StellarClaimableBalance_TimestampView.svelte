@@ -10,43 +10,27 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'claimable balance',
-		},
-		{
-			label: 'asset',
-		},
+		'$claimableBalance',
+		'$asset',
 		'amount',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'claimable balance',
-				},
-				{
-					label: 'observation time',
-				},
+				'$claimableBalance',
+				'timestampMs',
 				'source',
-				{
-					label: 'ledger sequence',
-				},
-				{
-					label: 'asset',
-				},
+				'ledgerSequence',
+				'$asset',
 				'amount',
 			],
 			[
 				'sponsor',
-				{
-					label: 'claimant count',
-				},
+				'claimants',
 				{
 					label: 'claimed transaction',
 				},
-				{
-					label: 'deleted state',
-				},
+				'deleted',
 			],
 		],
 	},

@@ -10,32 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'connection id',
-		},
-		{
-			label: 'network',
-		},
-		{
-			label: 'node id',
-		},
+		'connectionId',
+		'$network',
+		'nodeId',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'connection id',
-				},
-				{
-					label: 'network',
-				},
-				{
-					label: 'node id',
-				},
+				'connectionId',
+				'$network',
+				'nodeId',
 				'endpoint',
-				{
-					label: 'storage path',
-				},
+				'storagePath',
 				{
 					label: 'latest file/chunk/proof counts',
 				},
@@ -81,6 +67,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'local-chunks',
+			label: 'local chunks',
+			field: '$$localChunks',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'local-proofs',
+			label: 'local proofs',
+			field: '$$localProofs',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,27 +10,17 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'channel',
-		},
-		{
-			label: 'observation time',
-		},
+		'$channel',
+		'timestampMs',
 		'status',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'channel',
-				},
-				{
-					label: 'observation time',
-				},
+				'$channel',
+				'timestampMs',
 				'source',
-				{
-					label: 'total deposited',
-				},
+				'totalDeposited',
 				{
 					label: 'participant balances',
 				},

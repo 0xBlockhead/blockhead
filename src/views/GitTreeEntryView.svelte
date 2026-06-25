@@ -10,29 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'tree',
-		},
+		'$tree',
 		'path',
 		'mode',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'tree',
-				},
+				'$tree',
 				'path',
 				'mode',
-				{
-					label: 'object id',
-				},
-				{
-					label: 'object kind',
-				},
-				{
-					label: 'object link',
-				},
+				'objectId',
+				'objectKind',
+				'$object',
 			],
 		],
 	},

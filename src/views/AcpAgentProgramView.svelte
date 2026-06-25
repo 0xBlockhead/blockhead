@@ -21,29 +21,19 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'registry agent id',
-				},
-				{
-					label: 'package name',
-				},
+				'registryAgentId',
+				'packageName',
 				'label',
 				'description',
 			],
 			[
-				{
-					label: 'repository URL',
-				},
-				{
-					label: 'website URL',
-				},
+				'repositoryUrl',
+				'websiteUrl',
 				'authors',
 				'license',
 			],
 			[
-				{
-					label: 'supports authentication',
-				},
+				'supportsAuthentication',
 				{
 					label: 'version refs',
 				},
@@ -81,6 +71,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'versions',
+			label: 'versions',
+			field: '$$versions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'documents',
+			label: 'documents',
+			field: '$$documents',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

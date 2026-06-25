@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account',
-		},
+		'$account',
 		'denom',
 		{
 			label: 'observed amount',
@@ -21,9 +19,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'account',
-				},
+				'$account',
 				'denom',
 				{
 					label: 'observed amount',
@@ -32,9 +28,7 @@
 					label: 'spendable amount when sourced',
 				},
 				'source',
-				{
-					label: 'observation time',
-				},
+				'timestampMs',
 			],
 		],
 	},

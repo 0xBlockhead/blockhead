@@ -10,36 +10,24 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'wallet state',
-		},
-		{
-			label: 'observation time',
-		},
+		'$walletState',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'wallet state',
-				},
-				{
-					label: 'observation time',
-				},
+				'$walletState',
+				'timestampMs',
 				'source',
 				{
 					label: 'wallet height',
 				},
-				{
-					label: 'balance',
-				},
-				{
-					label: 'unlocked balance',
-				},
-				{
-					label: 'multisig import-needed flag',
-				},
+				'balanceAtomicUnits',
+			],
+			[
+				'unlockedBalanceAtomicUnits',
+				'multisigImportNeeded',
 				{
 					label: 'outputs exported time',
 				},

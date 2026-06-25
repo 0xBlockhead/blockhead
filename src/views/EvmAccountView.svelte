@@ -34,9 +34,7 @@
 			{
 				label: 'Identity',
 				items: [
-					{
-						label: 'ENS names owned',
-					},
+					'$$ensNamesOwned',
 					{
 						label: 'primary ENS name',
 					},
@@ -77,6 +75,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'ens-names-owned',
+			label: 'ENS names ownedses',
+			field: '$$ensNamesOwned',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,37 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'CID',
-		},
-		{
-			label: 'tipset',
-		},
+		'$network',
+		'cid',
+		'$tipset',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'CID',
-				},
-				{
-					label: 'tipset',
-				},
-				{
-					label: 'miner',
-				},
-				{
-					label: 'ticket VRF proof',
-				},
-				{
-					label: 'win count',
-				},
+				'$network',
+				'cid',
+				'$tipset',
+				'$miner',
+				'ticketVrFProof',
+				'winCount',
 			],
 		],
 	},
@@ -80,6 +62,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'messages',
+			label: 'messages',
+			field: '$$messages',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

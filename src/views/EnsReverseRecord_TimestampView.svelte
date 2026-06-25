@@ -10,27 +10,17 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'reverse record',
-		},
-		{
-			label: 'observation time',
-		},
+		'$reverseRecord',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'reverse record',
-				},
-				{
-					label: 'observation time',
-				},
+				'$reverseRecord',
+				'timestampMs',
 				'source',
-				{
-					label: 'verified flag',
-				},
+				'verified',
 				{
 					label: 'reverse resolver selector',
 				},

@@ -10,39 +10,25 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'client state',
-		},
-		{
-			label: 'observation time',
-		},
+		'$clientState',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'client state',
-				},
-				{
-					label: 'observation time',
-				},
+				'$clientState',
+				'timestampMs',
 				'source',
 				{
 					label: 'total balance',
 				},
-				{
-					label: 'ecash balance',
-				},
-				{
-					label: 'Lightning balance',
-				},
-				{
-					label: 'on-chain balance',
-				},
-				{
-					label: 'recovery state',
-				},
+				'ecashBalanceMsat',
+			],
+			[
+				'lightningBalanceMsat',
+				'onchainBalanceSats',
+				'recoveryState',
 				{
 					label: 'last synced time',
 				},

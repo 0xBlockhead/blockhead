@@ -27,6 +27,8 @@
 				'sourceReportedErrorCount',
 				'localCatalogSelectorCount',
 				'localCatalogTopicCount',
+			],
+			[
 				'localCatalogErrorCount',
 				'reachable',
 				'rateLimitRemaining',

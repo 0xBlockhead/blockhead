@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'message',
-		},
+		'$message',
 		{
 			label: 'execution tipset key',
 		},
@@ -21,29 +19,21 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'message',
-				},
+				'$message',
 				{
 					label: 'execution tipset key',
 				},
 				'source',
 				'height',
-				{
-					label: 'block CID',
-				},
-				{
-					label: 'exit code',
-				},
-				{
-					label: 'gas used',
-				},
+				'blockCid',
+			],
+			[
+				'exitCode',
+				'gasUsed',
 				{
 					label: 'return-data status',
 				},
-				{
-					label: 'replaced message CID',
-				},
+				'replacedMessageCid',
 			],
 		],
 	},
@@ -68,15 +58,9 @@
 			{
 				label: 'Execution',
 				items: [
-					{
-						label: 'exit code',
-					},
-					{
-						label: 'return data',
-					},
-					{
-						label: 'gas used',
-					},
+					'exitCode',
+					'returnData',
+					'gasUsed',
 					{
 						label: 'replacement note',
 					},

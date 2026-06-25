@@ -10,31 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'metadata',
-		},
-		{
-			label: 'observation time',
-		},
+		'$metadata',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'metadata',
-				},
-				{
-					label: 'observation time',
-				},
+				'$metadata',
+				'timestampMs',
 				'source',
 				'visibility',
-				{
-					label: 'content hash',
-				},
-				{
-					label: 'content type',
-				},
+				'contentHash',
+				'contentType',
 				{
 					label: 'value size',
 				},

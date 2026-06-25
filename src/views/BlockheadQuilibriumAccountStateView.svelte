@@ -10,46 +10,26 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'connection id',
-		},
-		{
-			label: 'network',
-		},
-		{
-			label: 'account',
-		},
+		'connectionId',
+		'$network',
+		'$account',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'connection id',
-				},
-				{
-					label: 'network',
-				},
-				{
-					label: 'account',
-				},
-				{
-					label: 'account kind',
-				},
+				'connectionId',
+				'$network',
+				'$account',
+				'accountKind',
 				{
 					label: 'latest balance',
 				},
-				{
-					label: 'allowance address',
-				},
-				{
-					label: 'signature key address',
-				},
-				{
-					label: 'key-ring ref count',
-				},
-				{
-					label: 'pending transaction count',
-				},
+			],
+			[
+				'allowanceAddress',
+				'signatureKeyAddress',
+				'keyRingRefCount',
+				'$$pendingTransactions',
 			],
 		],
 	},
@@ -97,6 +77,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'pending-transactions',
+			label: 'pending transactions',
+			field: '$$pendingTransactions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

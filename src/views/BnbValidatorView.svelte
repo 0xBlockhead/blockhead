@@ -10,23 +10,15 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'operator address',
-		},
-		{
-			label: 'consensus address',
-		},
+		'operatorAddress',
+		'consensusAddress',
 		'moniker',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'operator address',
-				},
-				{
-					label: 'consensus address',
-				},
+				'operatorAddress',
+				'consensusAddress',
 				'moniker',
 				{
 					label: 'latest voting power',
@@ -34,6 +26,8 @@
 				{
 					label: 'status',
 				},
+			],
+			[
 				{
 					label: 'jailed flag',
 				},
@@ -62,12 +56,8 @@
 			{
 				label: 'Identity',
 				items: [
-					{
-						label: 'operator address',
-					},
-					{
-						label: 'consensus address',
-					},
+					'operatorAddress',
+					'consensusAddress',
 					'moniker',
 				],
 			},
@@ -97,6 +87,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

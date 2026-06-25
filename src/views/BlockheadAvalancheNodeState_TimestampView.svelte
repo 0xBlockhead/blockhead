@@ -10,45 +10,29 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'node state',
-		},
-		{
-			label: 'observation time',
-		},
+		'$nodeState',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'node state',
-				},
-				{
-					label: 'observation time',
-				},
+				'$nodeState',
+				'timestampMs',
 				'source',
-				{
-					label: 'network name',
-				},
+				'networkName',
 				{
 					label: 'node/database versions',
 				},
-				{
-					label: 'git commit',
-				},
-				{
-					label: 'RPC protocol version',
-				},
-				{
-					label: 'connected peer count',
-				},
-				{
-					label: 'uptime',
-				},
-				{
-					label: 'VM version count',
-				},
+			],
+			[
+				'gitCommit',
+				'rpcProtocolVersion',
+				'connectedPeerCount',
+				'uptimePercent',
+				'vmVersions',
+			],
+			[
 				{
 					label: 'last synced time',
 				},

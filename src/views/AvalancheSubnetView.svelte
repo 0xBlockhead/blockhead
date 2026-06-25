@@ -10,35 +10,27 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'subnet id',
-		},
+		'subnetId',
 		'label',
 		'threshold',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'subnet id',
-				},
+				'subnetId',
 				'label',
 				'threshold',
 				{
 					label: 'owner address count',
 				},
-				{
-					label: 'control key count',
-				},
+				'controlKeys',
+			],
+			[
 				{
 					label: 'chain count',
 				},
-				{
-					label: 'validator count',
-				},
-				{
-					label: 'delegator count',
-				},
+				'$$validators',
+				'$$delegators',
 				{
 					label: 'latest total stake',
 				},
@@ -97,6 +89,44 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'blockchains',
+			label: 'blockchains',
+			field: '$$blockchains',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'validators',
+			label: 'validators',
+			field: '$$validators',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'delegators',
+			label: 'delegators',
+			field: '$$delegators',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,43 +10,29 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'node state',
-		},
-		{
-			label: 'observation time',
-		},
+		'$nodeState',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'node state',
-				},
-				{
-					label: 'observation time',
-				},
+				'$nodeState',
+				'timestampMs',
 				'source',
-				{
-					label: 'node version',
-				},
-				{
-					label: 'engine state',
-				},
+				'nodeVersion',
+				'engineState',
+			],
+			[
 				{
 					label: 'latest frame number/hash',
 				},
 				'difficulty',
-				{
-					label: 'peer count',
-				},
-				{
-					label: 'pending message count',
-				},
-				{
-					label: 'frame-store head',
-				},
+				'peerCount',
+				'pendingMessageCount',
+				'frameStoreHead',
+			],
+			[
 				{
 					label: 'last synced time',
 				},

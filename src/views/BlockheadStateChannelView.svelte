@@ -13,9 +13,7 @@
 		{
 			label: 'channel id or participant pair',
 		},
-		{
-			label: 'network',
-		},
+		'$network',
 		{
 			label: 'participant accounts',
 		},
@@ -26,21 +24,13 @@
 				{
 					label: 'channel id or participant pair',
 				},
-				{
-					label: 'network',
-				},
+				'$network',
 				{
 					label: 'participant accounts',
 				},
-				{
-					label: 'asset',
-				},
-				{
-					label: 'linked room',
-				},
-				{
-					label: 'created timestamp',
-				},
+				'$asset',
+				'$room',
+				'createdAt',
 				{
 					label: 'latest channel state',
 				},
@@ -99,6 +89,44 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'transfers',
+			label: 'transfers',
+			field: '$$transfers',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'states',
+			label: 'states',
+			field: '$$states',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'deposits',
+			label: 'deposits',
+			field: '$$deposits',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

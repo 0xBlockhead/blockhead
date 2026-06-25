@@ -10,36 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'RID',
-		},
+		'rid',
 		'revision',
-		{
-			label: 'document hash',
-		},
+		'documentHash',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'RID',
-				},
+				'rid',
 				'revision',
-				{
-					label: 'document hash',
-				},
-				{
-					label: 'repository',
-				},
-				{
-					label: 'signature threshold',
-				},
-				{
-					label: 'verified signature count',
-				},
-				{
-					label: 'verification status',
-				},
+				'documentHash',
+				'$repository',
+				'signatureThreshold',
+			],
+			[
+				'verifiedSignatureCount',
+				'verificationStatus',
 				{
 					label: 'payload summary',
 				},
@@ -74,6 +60,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'signatures',
+			label: 'signatures',
+			field: '$$signatures',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

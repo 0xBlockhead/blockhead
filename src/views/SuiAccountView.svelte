@@ -11,9 +11,7 @@
 	const view = {
 	closed: [
 		'address',
-		{
-			label: 'network',
-		},
+		'$network',
 		{
 			label: 'latest SUI balance',
 		},
@@ -22,18 +20,14 @@
 		dl: [
 			[
 				'address',
-				{
-					label: 'network',
-				},
+				'$network',
 				{
 					label: 'latest SUI balance',
 				},
 				{
 					label: 'owned object count',
 				},
-				{
-					label: 'transaction count',
-				},
+				'$$transactions',
 				{
 					label: 'balance snapshot count',
 				},
@@ -76,6 +70,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'balances',
+			label: 'balances',
+			field: '$$balances',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'objects',
+			label: 'objects',
+			field: '$$objects',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'transactions',
+			label: 'transactions',
+			field: '$$transactions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

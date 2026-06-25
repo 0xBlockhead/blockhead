@@ -24,12 +24,8 @@
 				},
 				'name',
 				'symbol',
-				{
-					label: 'minor unit exponent',
-				},
-				{
-					label: 'catalog sort weight',
-				},
+				'minorUnitExponent',
+				'catalogSortWeight',
 			],
 		],
 	},
@@ -53,6 +49,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'markets-with-currency-as-base',
+			label: 'markets with currency as base',
+			field: '$$marketsWithCurrencyAsBase',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'markets-with-currency-as-quote',
+			label: 'markets with currency as quote',
+			field: '$$marketsWithCurrencyAsQuote',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

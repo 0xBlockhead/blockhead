@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'contract',
-		},
-		{
-			label: 'observation time',
-		},
+		'$contract',
+		'timestampMs',
 		{
 			label: 'verification status',
 		},
@@ -23,12 +19,8 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'contract',
-				},
-				{
-					label: 'observation time',
-				},
+				'$contract',
+				'timestampMs',
 				'source',
 				'compiler',
 				{
@@ -37,9 +29,7 @@
 				{
 					label: 'proxy state',
 				},
-				{
-					label: 'implementation',
-				},
+				'$implementation',
 			],
 		],
 	},

@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'node id',
-		},
-		{
-			label: 'subnet',
-		},
+		'nodeId',
+		'$subnet',
 		{
 			label: 'start/end time',
 		},
@@ -23,21 +19,17 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'node id',
-				},
-				{
-					label: 'subnet',
-				},
+				'nodeId',
+				'$subnet',
 				{
 					label: 'start/end time',
 				},
 				{
 					label: 'stake',
 				},
-				{
-					label: 'delegation fee',
-				},
+				'delegationFeePercent',
+			],
+			[
 				{
 					label: 'reward owner count',
 				},
@@ -79,9 +71,7 @@
 			{
 				label: 'Subnet',
 				items: [
-					{
-						label: 'parent subnet',
-					},
+					'$subnet',
 				],
 			},
 			{
@@ -113,6 +103,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

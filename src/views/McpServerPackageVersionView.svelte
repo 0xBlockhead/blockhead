@@ -17,24 +17,14 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'package',
-				},
+				'$package',
 				'version',
-				{
-					label: 'artifact',
-				},
+				'$artifact',
 			],
 			[
-				{
-					label: 'release date',
-				},
-				{
-					label: 'registry status',
-				},
-				{
-					label: 'published at',
-				},
+				'releaseDate',
+				'registryStatus',
+				'publishedAt',
 				{
 					label: 'latest',
 				},
@@ -43,15 +33,9 @@
 				{
 					label: 'package registry type/base URL',
 				},
-				{
-					label: 'package identifier',
-				},
-				{
-					label: 'runtime hint',
-				},
-				{
-					label: 'transport kind',
-				},
+				'packageIdentifier',
+				'runtimeHint',
+				'transportKind',
 			],
 			[
 				{
@@ -87,9 +71,7 @@
 					{
 						label: 'package/runtime arguments',
 					},
-					{
-						label: 'environment variables',
-					},
+					'environmentVariables',
 				],
 			},
 			{
@@ -118,6 +100,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'documents',
+			label: 'documents',
+			field: '$$documents',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

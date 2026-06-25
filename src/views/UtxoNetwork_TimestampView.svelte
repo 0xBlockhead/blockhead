@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'timestamp',
-		},
+		'timestampMs',
 		'source',
 		{
 			label: 'best block height/hash',
@@ -21,19 +19,13 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'timestamp',
-				},
+				'timestampMs',
 				'source',
 				{
 					label: 'best block height/hash',
 				},
-				{
-					label: 'mempool transaction count',
-				},
-				{
-					label: 'mempool size',
-				},
+				'mempoolTransactionCount',
+				'mempoolSizeBytes',
 				{
 					label: 'suggested fee',
 				},
@@ -53,12 +45,8 @@
 			{
 				label: 'Chain totals',
 				items: [
-					{
-						label: 'block count',
-					},
-					{
-						label: 'transaction count',
-					},
+					'blockCount',
+					'transactionCount',
 					{
 						label: 'chain size',
 					},

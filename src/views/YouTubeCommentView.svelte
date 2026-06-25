@@ -10,40 +10,24 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'video id',
-		},
-		{
-			label: 'comment id',
-		},
-		{
-			label: 'latest text',
-		},
+		'videoId',
+		'commentId',
+		'text',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'video id',
-				},
-				{
-					label: 'comment id',
-				},
+				'videoId',
+				'commentId',
 				{
 					label: 'published date',
 				},
-				{
-					label: 'video ref',
-				},
-				{
-					label: 'parent comment ref',
-				},
-				{
-					label: 'latest text',
-				},
-				{
-					label: 'latest author',
-				},
+				'$video',
+				'$parentComment',
+			],
+			[
+				'text',
+				'$author',
 				{
 					label: 'latest like/reply snapshot',
 				},
@@ -71,9 +55,7 @@
 			{
 				label: 'Video',
 				items: [
-					{
-						label: 'parent video',
-					},
+					'$video',
 				],
 			},
 			{
@@ -94,6 +76,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'replies',
+			label: 'replies',
+			field: '$$replies',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

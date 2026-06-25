@@ -24,9 +24,7 @@
 				},
 				'value',
 				'gas',
-				{
-					label: 'gas used',
-				},
+				'gasUsed',
 				{
 					label: 'input selector candidates',
 				},
@@ -55,9 +53,7 @@
 					},
 					'value',
 					'gas',
-					{
-						label: 'gas used',
-					},
+					'gasUsed',
 				],
 			},
 			{
@@ -92,6 +88,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'children',
+			label: 'childrenses',
+			field: '$$children',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

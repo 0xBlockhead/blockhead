@@ -39,12 +39,8 @@
 		},
 	],
 	closed: [
-		{
-			label: 'session',
-		},
-		{
-			label: 'action id',
-		},
+		'$session',
+		'actionId',
 		{
 			label: 'sequence index',
 		},
@@ -52,21 +48,13 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'session',
-				},
-				{
-					label: 'action id',
-				},
+				'$session',
+				'actionId',
 				{
 					label: 'sequence index',
 				},
-				{
-					label: 'action type',
-				},
-				{
-					label: 'selected protocol',
-				},
+				'actionType',
+				'selectedProtocol',
 				{
 					label: 'created/updated timestamps',
 				},
@@ -150,6 +138,53 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'readiness-checks',
+			label: 'readiness checks',
+			field: '$$readinessChecks',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'quotes',
+			label: 'quotes',
+			field: '$$quotes',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'orders',
+			label: 'orders',
+			field: '$$orders',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'wallet-requests',
+			label: 'wallet requests',
+			field: '$$walletRequests',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'outcomes',
+			label: 'outcomes',
+			field: '$$outcomes',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

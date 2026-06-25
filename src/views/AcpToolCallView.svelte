@@ -10,25 +10,15 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'prompt turn',
-		},
-		{
-			label: 'tool call id',
-		},
-		{
-			label: 'tool name',
-		},
+		'$promptTurn',
+		'toolCallId',
+		'toolName',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'prompt turn',
-				},
-				{
-					label: 'tool call id',
-				},
+				'$promptTurn',
+				'toolCallId',
 				{
 					label: 'tool/server name',
 				},
@@ -66,6 +56,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,39 +10,25 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'vault',
-		},
-		{
-			label: 'observation time',
-		},
+		'$vault',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'vault',
-				},
-				{
-					label: 'observation time',
-				},
+				'$vault',
+				'timestampMs',
 				'source',
 				{
 					label: 'base/reward/total APY',
 				},
-				{
-					label: 'TVL USD',
-				},
-				{
-					label: 'project slug',
-				},
-				{
-					label: 'chain label',
-				},
-				{
-					label: 'pool id',
-				},
+				'tvlUsd',
+			],
+			[
+				'projectSlug',
+				'chainLabel',
+				'poolId',
 			],
 		],
 	},

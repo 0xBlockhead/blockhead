@@ -10,23 +10,15 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'local node state',
-		},
-		{
-			label: 'observation time',
-		},
+		'$localNodeState',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'local node state',
-				},
-				{
-					label: 'observation time',
-				},
+				'$localNodeState',
+				'timestampMs',
 				'source',
 				{
 					label: 'chain sync',
@@ -34,33 +26,21 @@
 				{
 					label: 'graph sync',
 				},
-				{
-					label: 'block height',
-				},
+			],
+			[
+				'blockHeight',
 				{
 					label: 'best header time',
 				},
-				{
-					label: 'wallet balance',
-				},
-				{
-					label: 'channel balance',
-				},
-				{
-					label: 'pending channel balance',
-				},
-				{
-					label: 'peer count',
-				},
-				{
-					label: 'active channel count',
-				},
-				{
-					label: 'inactive channel count',
-				},
-				{
-					label: 'pending channel count',
-				},
+				'walletBalanceSats',
+				'channelBalanceSats',
+				'pendingChannelBalanceSats',
+			],
+			[
+				'peerCount',
+				'activeChannelCount',
+				'inactiveChannelCount',
+				'pendingChannelCount',
 			],
 		],
 	},
@@ -107,12 +87,8 @@
 					{
 						label: 'LND getinfo',
 					},
-					{
-						label: 'wallet balance',
-					},
-					{
-						label: 'channel balance',
-					},
+					'walletBalanceSats',
+					'channelBalanceSats',
 					{
 						label: 'pending channels',
 					},

@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'event id',
-		},
+		'eventId',
 		'kind',
 		{
 			label: 'author pubkey/profile',
@@ -21,9 +19,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'event id',
-				},
+				'eventId',
 				'kind',
 				{
 					label: 'author pubkey/profile',
@@ -32,18 +28,14 @@
 				{
 					label: 'direct reply event id',
 				},
-				{
-					label: 'root event id',
-				},
-				{
-					label: 'reply-to note',
-				},
+			],
+			[
+				'rootEventId',
+				'$replyToNote',
 				{
 					label: 'reply count',
 				},
-				{
-					label: 'reaction count',
-				},
+				'$$reactions',
 			],
 		],
 	},
@@ -89,6 +81,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'replies',
+			label: 'replies',
+			field: '$$replies',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'reactions',
+			label: 'reactions',
+			field: '$$reactions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

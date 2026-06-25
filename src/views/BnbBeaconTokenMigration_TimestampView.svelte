@@ -10,23 +10,15 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'migration',
-		},
-		{
-			label: 'observation time',
-		},
+		'$migration',
+		'timestampMs',
 		'status',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'migration',
-				},
-				{
-					label: 'observation time',
-				},
+				'$migration',
+				'timestampMs',
 				'source',
 				'status',
 				{

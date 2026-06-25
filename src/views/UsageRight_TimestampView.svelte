@@ -10,35 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'subject key',
-		},
-		{
-			label: 'right key',
-		},
-		{
-			label: 'observation time',
-		},
+		'subjectKey',
+		'rightKey',
+		'timestampMs',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'subject key',
-				},
-				{
-					label: 'right key',
-				},
-				{
-					label: 'observation time',
-				},
+				'subjectKey',
+				'rightKey',
+				'timestampMs',
 				'source',
-				{
-					label: 'source kind',
-				},
-				{
-					label: 'right kind',
-				},
+				'sourceKind',
+				'rightKind',
 			],
 			[
 				{
@@ -50,12 +34,8 @@
 				{
 					label: 'expiry',
 				},
-				{
-					label: 'ledger coordinate',
-				},
-				{
-					label: 'contract address',
-				},
+				'ledgerCoordinateKind',
+				'contractAddress',
 			],
 		],
 	},

@@ -10,34 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'request id',
-		},
-		{
-			label: 'canister',
-		},
+		'$network',
+		'requestId',
+		'$canister',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'request id',
-				},
-				{
-					label: 'canister',
-				},
+				'$network',
+				'requestId',
+				'$canister',
 				{
 					label: 'method',
 				},
-				{
-					label: 'request kind',
-				},
+				'requestKind',
+			],
+			[
 				{
 					label: 'caller',
 				},
@@ -53,6 +41,8 @@
 				{
 					label: 'reply hash',
 				},
+			],
+			[
 				{
 					label: 'reject summary',
 				},
@@ -94,9 +84,7 @@
 					{
 						label: 'ingress expiry',
 					},
-					{
-						label: 'request kind',
-					},
+					'requestKind',
 				],
 			},
 			{
@@ -125,6 +113,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'operation',
-		},
-		{
-			label: 'observation time',
-		},
+		'$operation',
+		'timestampMs',
 		{
 			label: 'availability',
 		},
@@ -23,21 +19,15 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'operation',
-				},
-				{
-					label: 'timestamp',
-				},
+				'$operation',
+				'timestampMs',
 				'source',
 				{
 					label: 'availability',
 				},
 			],
 			[
-				{
-					label: 'supported model selectors',
-				},
+				'supportedModelSelectors',
 				{
 					label: 'modalities',
 				},
@@ -60,9 +50,7 @@
 			{
 				label: 'Model support',
 				items: [
-					{
-						label: 'supported model selectors',
-					},
+					'supportedModelSelectors',
 				],
 			},
 			{

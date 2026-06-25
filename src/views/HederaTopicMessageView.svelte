@@ -10,34 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'topic',
-		},
-		{
-			label: 'sequence number',
-		},
-		{
-			label: 'consensus timestamp',
-		},
+		'$topic',
+		'sequenceNumber',
+		'consensusTimestamp',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'topic',
-				},
-				{
-					label: 'sequence number',
-				},
-				{
-					label: 'consensus timestamp',
-				},
-				{
-					label: 'payer account',
-				},
-				{
-					label: 'running hash',
-				},
+				'$topic',
+				'sequenceNumber',
+				'consensusTimestamp',
+				'payerAccount',
+				'runningHash',
 				{
 					label: 'message size',
 				},

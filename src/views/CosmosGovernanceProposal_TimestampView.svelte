@@ -10,23 +10,15 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'proposal',
-		},
-		{
-			label: 'observation time',
-		},
+		'$proposal',
+		'timestampMs',
 		'status',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'proposal',
-				},
-				{
-					label: 'observation time',
-				},
+				'$proposal',
+				'timestampMs',
 				'source',
 				'status',
 				{

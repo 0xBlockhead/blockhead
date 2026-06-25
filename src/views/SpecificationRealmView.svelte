@@ -23,12 +23,8 @@
 					label: 'plural label',
 				},
 				'slug',
-				{
-					label: 'proposal kind count',
-				},
-				{
-					label: 'proposal count',
-				},
+				'$$proposalKinds',
+				'$$proposals',
 			],
 		],
 	},
@@ -63,6 +59,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'proposal-kinds',
+			label: 'proposal kinds',
+			field: '$$proposalKinds',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'proposals',
+			label: 'proposals',
+			field: '$$proposals',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

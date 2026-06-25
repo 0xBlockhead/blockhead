@@ -10,40 +10,24 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'ledger',
-		},
-		{
-			label: 'block index',
-		},
-		{
-			label: 'block hash',
-		},
+		'$ledger',
+		'blockIndex',
+		'blockHash',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'ledger',
-				},
-				{
-					label: 'block index',
-				},
-				{
-					label: 'block hash',
-				},
-				{
-					label: 'parent hash',
-				},
+				'$ledger',
+				'blockIndex',
+				'blockHash',
+				'parentHash',
 				{
 					label: 'timestamp',
 				},
 				{
 					label: 'archive canister',
 				},
-				{
-					label: 'transaction count',
-				},
+				'transactionCount',
 			],
 		],
 	},
@@ -91,6 +75,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'transactions',
+			label: 'transactions',
+			field: '$$transactions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

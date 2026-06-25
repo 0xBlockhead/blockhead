@@ -10,39 +10,25 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'validator',
-		},
-		{
-			label: 'observation time',
-		},
+		'$validator',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'validator',
-				},
-				{
-					label: 'observation time',
-				},
+				'$validator',
+				'timestampMs',
 				'source',
 				{
 					label: 'connected status',
 				},
-				{
-					label: 'uptime percent',
-				},
-				{
-					label: 'validator set kind',
-				},
-				{
-					label: 'observed stake',
-				},
-				{
-					label: 'observed delegator count',
-				},
+				'uptimePercent',
+			],
+			[
+				'validatorSetKind',
+				'observedStakeNavax',
+				'observedDelegatorCount',
 			],
 		],
 	},
@@ -62,9 +48,7 @@
 					{
 						label: 'connected status',
 					},
-					{
-						label: 'uptime percent',
-					},
+					'uptimePercent',
 				],
 			},
 			{

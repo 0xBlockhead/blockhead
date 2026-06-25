@@ -10,37 +10,27 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'federation',
-		},
-		{
-			label: 'observation time',
-		},
+		'$federation',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'federation',
-				},
-				{
-					label: 'observation time',
-				},
+				'$federation',
+				'timestampMs',
 				'source',
 				{
 					label: 'reachability',
 				},
 				'health',
-				{
-					label: 'gateway count',
-				},
+			],
+			[
+				'gatewayCount',
 				{
 					label: 'config hash',
 				},
-				{
-					label: 'module config hash',
-				},
+				'moduleConfigHash',
 				{
 					label: 'meta presence',
 				},
@@ -75,9 +65,7 @@
 			{
 				label: 'Gateways',
 				items: [
-					{
-						label: 'gateway count',
-					},
+					'gatewayCount',
 					{
 						label: 'discovered gateway refs',
 					},

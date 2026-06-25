@@ -10,28 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'server',
-		},
-		{
-			label: 'observation time',
-		},
+		'$server',
+		'timestampMs',
 		'health',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'server',
-				},
-				{
-					label: 'timestamp',
-				},
+				'$server',
+				'timestampMs',
 				'source',
 				'health',
-				{
-					label: 'protocol version',
-				},
+				'protocolVersion',
 			],
 			[
 				{

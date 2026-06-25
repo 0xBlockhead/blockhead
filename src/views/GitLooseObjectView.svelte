@@ -10,38 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'object id',
-		},
-		{
-			label: 'object format',
-		},
-		{
-			label: 'byte source',
-		},
+		'objectId',
+		'objectFormat',
+		'byteSource',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'object id',
-				},
-				{
-					label: 'object format',
-				},
-				{
-					label: 'byte source',
-				},
+				'objectId',
+				'objectFormat',
+				'byteSource',
 				'path',
-				{
-					label: 'compressed size',
-				},
+				'compressedSizeBytes',
 				{
 					label: 'observed timestamp',
 				},
-				{
-					label: 'object link',
-				},
+				'$object',
 			],
 		],
 	},

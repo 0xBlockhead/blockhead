@@ -13,9 +13,7 @@
 		{
 			label: 'pool',
 		},
-		{
-			label: 'block number',
-		},
+		'blockNumber',
 		{
 			label: 'parent pool',
 		},
@@ -26,9 +24,7 @@
 				{
 					label: 'pool',
 				},
-				{
-					label: 'block number',
-				},
+				'blockNumber',
 				{
 					label: 'parent pool',
 				},
@@ -38,16 +34,14 @@
 				{
 					label: 'in-range liquidity',
 				},
+			],
+			[
 				'tick',
 				{
 					label: 'observation index/cardinality/cardinality next',
 				},
-				{
-					label: 'fee protocol',
-				},
-				{
-					label: 'unlocked state',
-				},
+				'feeProtocol',
+				'unlocked',
 			],
 		],
 	},
@@ -56,9 +50,7 @@
 			{
 				label: 'Parent pool',
 				items: [
-					{
-						label: 'parent liquidity pool',
-					},
+					'$parentLiquidityPool',
 				],
 			},
 			{

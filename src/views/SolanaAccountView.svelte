@@ -10,32 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
+		'$network',
 		'pubkey',
-		{
-			label: 'owner program',
-		},
+		'$ownerProgram',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
+				'$network',
 				'pubkey',
-				{
-					label: 'owner program',
-				},
+				'$ownerProgram',
 			],
 			[
 				{
 					label: 'latest lamports/executable/rent/data snapshot',
 				},
-				{
-					label: 'token-account count',
-				},
+				'$$tokenAccounts',
 			],
 		],
 	},
@@ -97,6 +87,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'token-accounts',
+			label: 'token accounts',
+			field: '$$tokenAccounts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

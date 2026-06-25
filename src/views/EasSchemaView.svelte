@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'schema UID',
-		},
+		'schemaUid',
 		{
 			label: 'schema string',
 		},
@@ -21,19 +19,13 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'schema UID',
-				},
-				{
-					label: 'network',
-				},
+				'schemaUid',
+				'$network',
 				{
 					label: 'schema string',
 				},
 				'resolver',
-				{
-					label: 'revocable flag',
-				},
+				'revocable',
 				'registerer',
 				{
 					label: 'registered time',
@@ -46,12 +38,8 @@
 				{
 					label: 'attestation count when indexed',
 				},
-				{
-					label: 'resolver contract',
-				},
-				{
-					label: 'registerer account',
-				},
+				'$resolverContract',
+				'$registererAccount',
 			],
 		],
 	},
@@ -105,6 +93,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'attestations',
+			label: 'attestations',
+			field: '$$attestations',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

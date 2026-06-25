@@ -10,32 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'action kind',
-		},
-		{
-			label: 'asset instance',
-		},
-		{
-			label: 'target selector',
-		},
+		'actionKind',
+		'$assetInstance',
+		'targetSelector',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'action kind',
-				},
-				{
-					label: 'asset instance',
-				},
-				{
-					label: 'target selector',
-				},
+				'actionKind',
+				'$assetInstance',
+				'targetSelector',
 				'amount',
-				{
-					label: 'linked issuer power',
-				},
+				'$issuerPower',
 			],
 		],
 	},

@@ -16,9 +16,7 @@
 		{
 			label: 'decommissioned time',
 		},
-		{
-			label: 'fusion deadline',
-		},
+		'fusionDeadlineMs',
 	],
 	content: {
 		dl: [
@@ -29,30 +27,26 @@
 				{
 					label: 'decommissioned time',
 				},
-				{
-					label: 'fusion deadline',
-				},
+				'fusionDeadlineMs',
 				{
 					label: 'latest archived height',
 				},
 				{
 					label: 'archive coverage status',
 				},
-				{
-					label: 'validator count',
-				},
-				{
-					label: 'token count',
-				},
+			],
+			[
+				'$$validators',
+				'$$tokens',
 				{
 					label: 'archived transactions',
 				},
-				{
-					label: 'validators',
-				},
+				'$$validators',
 				{
 					label: 'BEP tokens',
 				},
+			],
+			[
 				{
 					label: 'token migrations',
 				},
@@ -109,6 +103,62 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'blocks',
+			label: 'blocks',
+			field: '$$blocks',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'transactions',
+			label: 'transactions',
+			field: '$$transactions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'validators',
+			label: 'validators',
+			field: '$$validators',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'tokens',
+			label: 'tokens',
+			field: '$$tokens',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'migration-records',
+			label: 'migration records',
+			field: '$$migrationRecords',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

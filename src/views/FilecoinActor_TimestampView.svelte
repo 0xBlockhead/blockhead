@@ -10,38 +10,24 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'actor',
-		},
-		{
-			label: 'observation time',
-		},
+		'$actor',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'actor',
-				},
-				{
-					label: 'observation time',
-				},
+				'$actor',
+				'timestampMs',
 				'source',
 				'height',
-				{
-					label: 'tipset key',
-				},
-				{
-					label: 'actor code CID',
-				},
+				'tipsetKey',
+			],
+			[
+				'actorCodeCid',
 				'nonce',
-				{
-					label: 'balance',
-				},
-				{
-					label: 'state root CID',
-				},
+				'balanceAttoFil',
+				'stateRootCid',
 			],
 		],
 	},

@@ -10,30 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'token id',
-		},
+		'$network',
+		'tokenId',
 		'standard',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'token id',
-				},
+				'$network',
+				'tokenId',
 				'standard',
-				{
-					label: 'owner',
-				},
-				{
-					label: 'contract',
-				},
+				'$owner',
+				'$contract',
+			],
+			[
 				{
 					label: 'creation timestamp',
 				},
@@ -90,6 +80,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'account-balance-timestamps',
+			label: 'account balance timestamps',
+			field: '$$accountBalanceTimestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

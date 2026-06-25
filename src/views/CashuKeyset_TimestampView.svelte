@@ -10,33 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'keyset',
-		},
-		{
-			label: 'observation time',
-		},
+		'$keyset',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'keyset',
-				},
-				{
-					label: 'observation time',
-				},
+				'$keyset',
+				'timestampMs',
 				'source',
-				{
-					label: 'active state',
-				},
-				{
-					label: 'input fee ppk',
-				},
-				{
-					label: 'final expiry',
-				},
+				'active',
+				'inputFeePpk',
+				'finalExpiryMs',
 			],
 			[
 				{

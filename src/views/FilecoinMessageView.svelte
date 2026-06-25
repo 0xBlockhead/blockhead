@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'CID',
-		},
+		'$network',
+		'cid',
 		{
 			label: 'from actor',
 		},
@@ -23,12 +19,8 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'CID',
-				},
+				'$network',
+				'cid',
 				{
 					label: 'from actor',
 				},
@@ -38,19 +30,21 @@
 				{
 					label: 'method number',
 				},
+			],
+			[
 				'nonce',
 				{
 					label: 'value in attoFIL',
 				},
-				{
-					label: 'gas limit',
-				},
+				'gasLimit',
 				{
 					label: 'fee cap',
 				},
 				{
 					label: 'premium',
 				},
+			],
+			[
 				{
 					label: 'receipt count',
 				},

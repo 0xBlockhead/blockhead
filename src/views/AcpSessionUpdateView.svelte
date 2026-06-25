@@ -10,27 +10,17 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'session',
-		},
+		'$session',
 		'sequence',
-		{
-			label: 'kind',
-		},
+		'updateKind',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'session',
-				},
+				'$session',
 				'sequence',
-				{
-					label: 'kind',
-				},
-				{
-					label: 'timestamp',
-				},
+				'updateKind',
+				'timestampMs',
 			],
 			[
 				'payload',

@@ -13,9 +13,7 @@
 		{
 			label: 'request',
 		},
-		{
-			label: 'observation time',
-		},
+		'timestampMs',
 		'status',
 	],
 	content: {
@@ -24,23 +22,19 @@
 				{
 					label: 'request',
 				},
-				{
-					label: 'observation time',
-				},
+				'timestampMs',
 				'source',
 				'status',
 				{
 					label: 'certified time',
 				},
-				{
-					label: 'reply hash',
-				},
+			],
+			[
+				'replyHash',
 				{
 					label: 'reject code/message',
 				},
-				{
-					label: 'certificate hash',
-				},
+				'certificateHash',
 				{
 					label: 'witness presence',
 				},
@@ -60,9 +54,7 @@
 			{
 				label: 'Certified proof',
 				items: [
-					{
-						label: 'certificate hash',
-					},
+					'certificateHash',
 					'witness',
 					{
 						label: 'verification context',

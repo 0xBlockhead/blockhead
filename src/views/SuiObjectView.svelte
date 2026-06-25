@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'object id',
-		},
+		'$network',
+		'objectId',
 		{
 			label: 'latest type/owner/version/digest summary',
 		},
@@ -23,21 +19,13 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'object id',
-				},
+				'$network',
+				'objectId',
 				{
 					label: 'latest type/owner/version/digest summary',
 				},
-				{
-					label: 'version count',
-				},
-				{
-					label: 'dynamic-field count',
-				},
+				'$$versions',
+				'$$dynamicFields',
 			],
 		],
 	},
@@ -91,6 +79,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'versions',
+			label: 'versions',
+			field: '$$versions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'dynamic-fields',
+			label: 'dynamic fields',
+			field: '$$dynamicFields',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

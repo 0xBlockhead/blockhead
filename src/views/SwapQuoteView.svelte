@@ -11,9 +11,7 @@
 	const view = {
 	closed: [
 		'id',
-		{
-			label: 'network',
-		},
+		'$network',
 		{
 			label: 'token pair',
 		},
@@ -22,9 +20,7 @@
 		dl: [
 			[
 				'id',
-				{
-					label: 'network',
-				},
+				'$network',
 				{
 					label: 'token in/out',
 				},
@@ -34,12 +30,8 @@
 				'timestamp',
 			],
 			[
-				{
-					label: 'price impact',
-				},
-				{
-					label: 'gas estimate',
-				},
+				'priceImpact',
+				'gasEstimate',
 				{
 					label: 'route hop count',
 				},

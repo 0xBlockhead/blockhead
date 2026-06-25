@@ -18,14 +18,10 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'provider id',
-				},
+				'providerId',
 				'domain',
 				'label',
-				{
-					label: 'organization kind',
-				},
+				'organizationKind',
 			],
 			[
 				{
@@ -68,6 +64,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'catalog-entries',
+			label: 'catalog entries',
+			field: '$$catalogEntries',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'api-operations',
+			label: 'api operations',
+			field: '$$apiOperations',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'models',
+			label: 'models',
+			field: '$$models',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

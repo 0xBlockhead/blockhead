@@ -10,31 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'contract',
-		},
-		{
-			label: 'block number',
-		},
+		'$contract',
+		'blockNumber',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'contract',
-				},
-				{
-					label: 'block number',
-				},
+				'$contract',
+				'blockNumber',
 				'source',
 				'nonce',
-				{
-					label: 'class hash',
-				},
-				{
-					label: 'found state',
-				},
+				'classHash',
+				'found',
 			],
 		],
 	},

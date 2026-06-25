@@ -10,17 +10,13 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'subnet',
-		},
+		'$subnet',
 		'uid',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'subnet',
-				},
+				'$subnet',
 				'uid',
 			],
 		],
@@ -30,9 +26,7 @@
 			{
 				label: 'Subnet',
 				items: [
-					{
-						label: 'parent subnet',
-					},
+					'$subnet',
 				],
 			},
 			{

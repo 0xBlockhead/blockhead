@@ -43,37 +43,25 @@
 		},
 	],
 	closed: [
-		{
-			label: 'video id',
-		},
-		{
-			label: 'latest title',
-		},
-		{
-			label: 'latest description',
-		},
+		'videoId',
+		'title',
+		'description',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'video id',
-				},
+				'videoId',
 				{
 					label: 'published date',
 				},
-				{
-					label: 'duration',
-				},
+				'durationSeconds',
 				{
 					label: 'author channel',
 				},
-				{
-					label: 'latest title',
-				},
-				{
-					label: 'latest description',
-				},
+				'title',
+			],
+			[
+				'description',
 				{
 					label: 'latest live state',
 				},
@@ -122,6 +110,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'comments',
+			label: 'comments',
+			field: '$$comments',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

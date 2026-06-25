@@ -10,39 +10,25 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
+		'$network',
 		'slot',
-		{
-			label: 'block height',
-		},
+		'blockHeight',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
+				'$network',
 				'slot',
-				{
-					label: 'block height',
-				},
-				{
-					label: 'block hash',
-				},
-				{
-					label: 'previous block hash',
-				},
+				'blockHeight',
+				'blockHash',
+				'previousBlockHash',
+			],
+			[
 				{
 					label: 'parent slot/block',
 				},
-				{
-					label: 'timestamp',
-				},
-				{
-					label: 'transaction count',
-				},
+				'timestampMs',
+				'transactionCount',
 			],
 		],
 	},
@@ -88,6 +74,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'transactions',
+			label: 'transactions',
+			field: '$$transactions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

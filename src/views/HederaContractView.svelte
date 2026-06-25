@@ -10,49 +10,33 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'contract id',
-		},
-		{
-			label: 'EVM address',
-		},
-		{
-			label: 'created timestamp',
-		},
+		'contractId',
+		'evmAddress',
+		'createdTimestamp',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'contract id',
-				},
-				{
-					label: 'EVM address',
-				},
-				{
-					label: 'created timestamp',
-				},
+				'contractId',
+				'evmAddress',
+				'createdTimestamp',
 				{
 					label: 'latest linked account id',
 				},
 				{
 					label: 'latest bytecode hash',
 				},
+			],
+			[
 				{
 					label: 'deleted flag',
 				},
-				{
-					label: 'result count',
-				},
-				{
-					label: 'log count',
-				},
+				'$$results',
+				'$$logs',
 				{
 					label: 'storage slot count',
 				},
-				{
-					label: 'timestamp count',
-				},
+				'$$timestamps',
 			],
 		],
 	},
@@ -124,6 +108,44 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'results',
+			label: 'results',
+			field: '$$results',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'logs',
+			label: 'logs',
+			field: '$$logs',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'state',
+			label: 'state',
+			field: '$$state',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

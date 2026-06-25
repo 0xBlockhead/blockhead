@@ -10,31 +10,21 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'channel',
-		},
+		'$channel',
 		{
 			label: 'turn number',
 		},
-		{
-			label: 'from account',
-		},
+		'$from',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'channel',
-				},
+				'$channel',
 				{
 					label: 'turn number',
 				},
-				{
-					label: 'from account',
-				},
-				{
-					label: 'to account',
-				},
+				'$from',
+				'$to',
 				'amount',
 				'timestamp',
 				'status',

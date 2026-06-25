@@ -10,35 +10,27 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'tx id',
-		},
-		{
-			label: 'type',
-		},
+		'txId',
+		'transactionType',
 		'sender',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'tx id',
-				},
-				{
-					label: 'type',
-				},
+				'txId',
+				'transactionType',
 				'sender',
 				'round',
 				'fee',
+			],
+			[
 				{
 					label: 'group id',
 				},
 				{
 					label: 'parent/inner index when present',
 				},
-				{
-					label: 'proof count',
-				},
+				'$$proofs',
 			],
 		],
 	},
@@ -86,6 +78,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'proofs',
+			label: 'proofs',
+			field: '$$proofs',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

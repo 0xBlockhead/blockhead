@@ -10,34 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'connection id',
-		},
-		{
-			label: 'node id',
-		},
-		{
-			label: 'DID',
-		},
+		'connectionId',
+		'nodeId',
+		'did',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'connection id',
-				},
-				{
-					label: 'node id',
-				},
-				{
-					label: 'DID',
-				},
-				{
-					label: 'public key',
-				},
-				{
-					label: 'home path',
-				},
+				'connectionId',
+				'nodeId',
+				'did',
+				'publicKey',
+				'homePath',
+			],
+			[
 				{
 					label: 'latest alias',
 				},
@@ -50,9 +36,7 @@
 				{
 					label: 'latest policy',
 				},
-				{
-					label: 'peer count',
-				},
+				'$$peers',
 			],
 		],
 	},
@@ -101,9 +85,7 @@
 			{
 				label: 'Local storage',
 				items: [
-					{
-						label: 'home path',
-					},
+					'homePath',
 					{
 						label: 'redacted local-node config',
 					},
@@ -111,6 +93,53 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'peers',
+			label: 'peers',
+			field: '$$peers',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'inventory-timestamps',
+			label: 'inventory timestamps',
+			field: '$$inventoryTimestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'seed-observations',
+			label: 'seed observations',
+			field: '$$seedObservations',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'sync-sessions',
+			label: 'sync sessions',
+			field: '$$syncSessions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

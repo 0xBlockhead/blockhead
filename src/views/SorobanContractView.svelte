@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'contract id',
-		},
+		'contractId',
 		{
 			label: 'latest executable observation',
 		},
@@ -23,9 +21,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'contract id',
-				},
+				'contractId',
 				{
 					label: 'latest wasm-hash/WASM observation',
 				},
@@ -35,9 +31,7 @@
 				{
 					label: 'transaction window count',
 				},
-				{
-					label: 'network',
-				},
+				'$network',
 			],
 		],
 	},
@@ -93,6 +87,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'storage-entries',
+			label: 'storage entries',
+			field: '$$storageEntries',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'transactions',
+			label: 'transactions',
+			field: '$$transactions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

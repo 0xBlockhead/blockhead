@@ -54,9 +54,7 @@
 			{
 				label: 'Execution',
 				items: [
-					{
-						label: 'tipsets',
-					},
+					'$$tipsets',
 					{
 						label: 'timestamped network/head observations',
 					},
@@ -102,6 +100,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'tipsets',
+			label: 'tipsets',
+			field: '$$tipsets',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

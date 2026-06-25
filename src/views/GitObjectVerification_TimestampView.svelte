@@ -10,49 +10,29 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'object id',
-		},
-		{
-			label: 'object format',
-		},
-		{
-			label: 'byte source',
-		},
+		'objectId',
+		'objectFormat',
+		'byteSource',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'object id',
-				},
-				{
-					label: 'object format',
-				},
-				{
-					label: 'byte source',
-				},
-				{
-					label: 'timestamp',
-				},
+				'objectId',
+				'objectFormat',
+				'byteSource',
+				'timestampMs',
 				'source',
+			],
+			[
 				'verifier',
 				'status',
-				{
-					label: 'object kind',
-				},
-				{
-					label: 'computed object id',
-				},
-				{
-					label: 'canonical encoding flag',
-				},
-				{
-					label: 'header bytes hash',
-				},
-				{
-					label: 'payload bytes hash',
-				},
+				'objectKind',
+				'computedObjectId',
+				'canonicalEncoding',
+			],
+			[
+				'headerBytesHash',
+				'payloadBytesHash',
 				'error',
 			],
 		],

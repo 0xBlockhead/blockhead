@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'consensus network',
-		},
-		{
-			label: 'observation time',
-		},
+		'$consensusNetwork',
+		'timestampMs',
 		{
 			label: 'staking status source',
 		},
@@ -23,16 +19,10 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'consensus network',
-				},
-				{
-					label: 'observation time',
-				},
+				'$consensusNetwork',
+				'timestampMs',
 				'source',
-				{
-					label: 'shared staking status source',
-				},
+				'sharedStakingStatusSource',
 			],
 		],
 	},

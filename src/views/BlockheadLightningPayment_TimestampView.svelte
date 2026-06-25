@@ -10,31 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'payment',
-		},
-		{
-			label: 'observation time',
-		},
+		'$payment',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'payment',
-				},
-				{
-					label: 'observation time',
-				},
+				'$payment',
+				'timestampMs',
 				'source',
 				'status',
-				{
-					label: 'fee msat',
-				},
-				{
-					label: 'failure reason',
-				},
+				'feeMsat',
+				'failureReason',
 				{
 					label: 'preimage status',
 				},
@@ -71,12 +59,8 @@
 				label: 'Result',
 				items: [
 					'status',
-					{
-						label: 'fee',
-					},
-					{
-						label: 'failure reason',
-					},
+					'feeMsat',
+					'failureReason',
 					'preimage',
 				],
 			},

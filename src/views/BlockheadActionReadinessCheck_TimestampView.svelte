@@ -10,40 +10,24 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'readiness check',
-		},
-		{
-			label: 'observation time',
-		},
+		'$readinessCheck',
+		'timestampMs',
 		'status',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'readiness check',
-				},
-				{
-					label: 'observation time',
-				},
+				'$readinessCheck',
+				'timestampMs',
 				'source',
 				'status',
-				{
-					label: 'observed amount',
-				},
-				{
-					label: 'required amount',
-				},
-				{
-					label: 'deficit amount',
-				},
-				{
-					label: 'observed capability status',
-				},
-				{
-					label: 'source payload hash',
-				},
+				'observedAmount',
+			],
+			[
+				'requiredAmount',
+				'deficitAmount',
+				'observedCapabilityStatus',
+				'sourcePayloadHash',
 				'error',
 			],
 		],

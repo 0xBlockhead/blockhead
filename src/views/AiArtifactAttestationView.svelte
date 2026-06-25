@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'artifact',
-		},
-		{
-			label: 'attestation kind',
-		},
+		'$artifact',
+		'attestationKind',
 		{
 			label: 'log/signature id',
 		},
@@ -23,29 +19,19 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'artifact',
-				},
-				{
-					label: 'attestation kind',
-				},
+				'$artifact',
+				'attestationKind',
 				{
 					label: 'log entry/signature',
 				},
 			],
 			[
-				{
-					label: 'certificate identity',
-				},
+				'certificateIdentity',
 				{
 					label: 'issuer',
 				},
-				{
-					label: 'log index',
-				},
-				{
-					label: 'integrated time',
-				},
+				'logIndex',
+				'integratedTime',
 			],
 		],
 	},

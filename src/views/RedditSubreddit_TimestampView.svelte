@@ -10,31 +10,21 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'subreddit',
-		},
+		'$subreddit',
 		{
 			label: 'observation time/source',
 		},
-		{
-			label: 'subscriber count',
-		},
+		'subscriberCount',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'subreddit',
-				},
+				'$subreddit',
 				{
 					label: 'observation time/source',
 				},
-				{
-					label: 'subscriber count',
-				},
-				{
-					label: 'active-user count',
-				},
+				'subscriberCount',
+				'activeUserCount',
 			],
 		],
 	},
@@ -51,12 +41,8 @@
 			{
 				label: 'Audience counters',
 				items: [
-					{
-						label: 'subscriber count',
-					},
-					{
-						label: 'active-user count',
-					},
+					'subscriberCount',
+					'activeUserCount',
 				],
 			},
 			{

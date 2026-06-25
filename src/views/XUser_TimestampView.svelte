@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'user',
-		},
-		{
-			label: 'observation time',
-		},
+		'$user',
+		'timestampMs',
 		{
 			label: 'followers',
 		},
@@ -23,12 +19,8 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'user',
-				},
-				{
-					label: 'observation time',
-				},
+				'$user',
+				'timestampMs',
 				{
 					label: 'followers',
 				},
@@ -38,9 +30,7 @@
 				{
 					label: 'posts',
 				},
-				{
-					label: 'listed count',
-				},
+				'listedCount',
 			],
 		],
 	},

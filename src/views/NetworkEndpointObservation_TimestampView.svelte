@@ -10,39 +10,25 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'endpoint URL',
-		},
-		{
-			label: 'endpoint kind',
-		},
+		'$network',
+		'endpointUrl',
+		'endpointKind',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'endpoint URL',
-				},
-				{
-					label: 'endpoint kind',
-				},
+				'$network',
+				'endpointUrl',
+				'endpointKind',
 				'source',
-				{
-					label: 'timestamp',
-				},
+				'timestampMs',
+			],
+			[
 				{
 					label: 'CORS/proxy policy',
 				},
 				'health',
-				{
-					label: 'latency',
-				},
+				'latencyMs',
 				'error',
 				{
 					label: 'source freshness',
@@ -55,9 +41,7 @@
 			{
 				label: 'Network',
 				items: [
-					{
-						label: 'Network',
-					},
+					'$network',
 				],
 			},
 			{
@@ -66,9 +50,7 @@
 					{
 						label: 'URL',
 					},
-					{
-						label: 'kind',
-					},
+					'endpointKind',
 					{
 						label: 'source definition or catalog origin',
 					},
@@ -77,21 +59,15 @@
 			{
 				label: 'Browser policy',
 				items: [
-					{
-						label: 'CORS enabled',
-					},
-					{
-						label: 'proxy allowed',
-					},
+					'corsEnabled',
+					'proxyAllowed',
 				],
 			},
 			{
 				label: 'Health check',
 				items: [
 					'health',
-					{
-						label: 'latency',
-					},
+					'latencyMs',
 					'error',
 				],
 			},

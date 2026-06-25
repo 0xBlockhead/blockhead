@@ -13,12 +13,8 @@
 		{
 			label: 'local node',
 		},
-		{
-			label: 'peer node id',
-		},
-		{
-			label: 'connection kind',
-		},
+		'peerNodeId',
+		'connectionKind',
 	],
 	content: {
 		dl: [
@@ -26,24 +22,16 @@
 				{
 					label: 'local node',
 				},
-				{
-					label: 'peer node id',
-				},
-				{
-					label: 'connection kind',
-				},
+				'peerNodeId',
+				'connectionKind',
 				{
 					label: 'address count',
 				},
 				{
 					label: 'last seen timestamp',
 				},
-				{
-					label: 'remote alias',
-				},
-				{
-					label: 'remote DID',
-				},
+				'remoteAlias',
+				'remoteDid',
 			],
 		],
 	},

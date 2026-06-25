@@ -13,12 +13,8 @@
 		{
 			label: 'message/artifact',
 		},
-		{
-			label: 'part index',
-		},
-		{
-			label: 'part kind',
-		},
+		'partIndex',
+		'partKind',
 	],
 	content: {
 		dl: [
@@ -26,23 +22,15 @@
 				{
 					label: 'message/artifact',
 				},
-				{
-					label: 'part index',
-				},
-				{
-					label: 'kind',
-				},
-				{
-					label: 'mime type',
-				},
+				'partIndex',
+				'partKind',
+				'mimeType',
 			],
 			[
 				{
 					label: 'text/uri/payload',
 				},
-				{
-					label: 'AI artifact ref',
-				},
+				'$aiArtifact',
 			],
 		],
 	},

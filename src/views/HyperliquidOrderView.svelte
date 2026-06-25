@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account',
-		},
+		'$account',
 		{
 			label: 'order id',
 		},
@@ -23,9 +21,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'account',
-				},
+				'$account',
 				{
 					label: 'order id',
 				},
@@ -34,36 +30,26 @@
 				},
 				'coin',
 				'side',
-				{
-					label: 'order type',
-				},
+			],
+			[
+				'orderType',
 				{
 					label: 'latest status',
 				},
 				{
 					label: 'latest status time',
 				},
-				{
-					label: 'limit price',
-				},
+				'limitPrice',
 				{
 					label: 'latest remaining size',
 				},
-				{
-					label: 'original size',
-				},
-				{
-					label: 'trigger condition',
-				},
-				{
-					label: 'reduce-only flag',
-				},
-				{
-					label: 'TIF',
-				},
-				{
-					label: 'timestamp count',
-				},
+			],
+			[
+				'originalSize',
+				'triggerCondition',
+				'reduceOnly',
+				'tif',
+				'$$timestamps',
 			],
 		],
 	},
@@ -122,6 +108,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

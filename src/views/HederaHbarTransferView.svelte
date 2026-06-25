@@ -10,31 +10,17 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'transaction',
-		},
-		{
-			label: 'account',
-		},
-		{
-			label: 'transfer index',
-		},
+		'$transaction',
+		'$account',
+		'transferIndex',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'transaction',
-				},
-				{
-					label: 'account',
-				},
-				{
-					label: 'transfer index',
-				},
-				{
-					label: 'amount',
-				},
+				'$transaction',
+				'$account',
+				'transferIndex',
+				'amountTinybar',
 				{
 					label: 'approval flag',
 				},

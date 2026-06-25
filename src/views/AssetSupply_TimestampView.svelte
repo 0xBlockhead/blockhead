@@ -10,41 +10,27 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'asset instance',
-		},
+		'$assetInstance',
 		{
 			label: 'supply scope',
 		},
-		{
-			label: 'observation time',
-		},
+		'timestampMs',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'asset instance',
-				},
-				{
-					label: 'supply scope key',
-				},
+				'$assetInstance',
+				'supplyScopeKey',
 				{
 					label: 'optional class key',
 				},
-				{
-					label: 'observation time',
-				},
+				'timestampMs',
 				'source',
-				{
-					label: 'total supply',
-				},
-				{
-					label: 'circulating supply',
-				},
-				{
-					label: 'burned supply',
-				},
+			],
+			[
+				'totalSupply',
+				'circulatingSupply',
+				'burnedSupply',
 				'methodology',
 			],
 		],
@@ -54,9 +40,7 @@
 			{
 				label: 'Asset',
 				items: [
-					{
-						label: 'parent asset instance',
-					},
+					'$assetInstance',
 				],
 			},
 			{
@@ -70,9 +54,7 @@
 			{
 				label: 'Methodology',
 				items: [
-					{
-						label: 'source clock',
-					},
+					'timestampMs',
 					{
 						label: 'query',
 					},

@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'profile id',
-		},
+		'profileId',
 		'label',
 		{
 			label: 'primary refs',
@@ -21,30 +19,18 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'profile id',
-				},
+				'profileId',
 				'label',
 				{
 					label: 'created/updated at',
 				},
 			],
 			[
-				{
-					label: 'ACP runtime',
-				},
-				{
-					label: 'A2A service',
-				},
-				{
-					label: 'MCP server',
-				},
-				{
-					label: 'EIP-8004 registration',
-				},
-				{
-					label: 'model',
-				},
+				'$acpRuntime',
+				'$a2aService',
+				'$mcpServer',
+				'$eip8004Registration',
+				'$model',
 			],
 		],
 	},

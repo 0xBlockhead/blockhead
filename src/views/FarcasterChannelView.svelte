@@ -12,37 +12,29 @@
 	closed: [
 		'id',
 		'name',
-		{
-			label: 'URL',
-		},
+		'url',
 	],
 	content: {
 		dl: [
 			[
 				'id',
 				'name',
-				{
-					label: 'URL',
-				},
+				'url',
 				'description',
 				{
 					label: 'icon URL/media',
 				},
+			],
+			[
 				{
 					label: 'header image URL/media',
 				},
-				{
-					label: 'lead',
-				},
-				{
-					label: 'moderator',
-				},
-				{
-					label: 'created time',
-				},
-				{
-					label: 'pinned cast hash',
-				},
+				'$lead',
+				'$moderator',
+				'createdAt',
+				'pinnedCastHash',
+			],
+			[
 				{
 					label: 'public-casting policy',
 				},
@@ -86,6 +78,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'moderators',
+			label: 'moderators',
+			field: '$$moderators',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'casts',
+			label: 'casts',
+			field: '$$casts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'contract',
-		},
+		'$contract',
 		{
 			label: 'derived primary file',
 		},
@@ -23,9 +21,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'contract',
-				},
+				'$contract',
 				{
 					label: 'derived primary file',
 				},

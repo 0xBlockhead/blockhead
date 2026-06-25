@@ -10,30 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'namespace',
-		},
-		{
-			label: 'observation time',
-		},
-		{
-			label: 'blob count',
-		},
+		'$namespace',
+		'timestampMs',
+		'blobCount',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'namespace',
-				},
-				{
-					label: 'observation time',
-				},
+				'$namespace',
+				'timestampMs',
 				'source',
 				'height',
-				{
-					label: 'blob count',
-				},
+				'blobCount',
 				{
 					label: 'source-window height range',
 				},

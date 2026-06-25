@@ -10,35 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'validator',
-		},
-		{
-			label: 'observation time',
-		},
+		'$validator',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'validator',
-				},
-				{
-					label: 'observation time',
-				},
+				'$validator',
+				'timestampMs',
 				'source',
-				{
-					label: 'jailed state',
-				},
+				'jailed',
 				'status',
+			],
+			[
 				'tokens',
-				{
-					label: 'delegator shares',
-				},
-				{
-					label: 'commission rate',
-				},
+				'delegatorShares',
+				'commissionRate',
 				{
 					label: 'minimum self-delegation',
 				},

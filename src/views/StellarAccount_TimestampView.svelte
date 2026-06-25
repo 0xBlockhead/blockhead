@@ -10,35 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'native balance',
-		},
+		'nativeBalance',
 		'sequence',
-		{
-			label: 'ledger sequence',
-		},
+		'ledgerSequence',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'native balance',
-				},
+				'nativeBalance',
 				'sequence',
-				{
-					label: 'ledger sequence',
-				},
-				{
-					label: 'subentry count',
-				},
-				{
-					label: 'signer count',
-				},
+				'ledgerSequence',
+				'subentryCount',
+				'signerCount',
+			],
+			[
 				'thresholds',
 				'source',
-				{
-					label: 'observation time',
-				},
+				'timestampMs',
 			],
 		],
 	},
@@ -55,24 +43,16 @@
 			{
 				label: 'Ledger state',
 				items: [
-					{
-						label: 'native balance',
-					},
+					'nativeBalance',
 					'sequence',
-					{
-						label: 'ledger sequence',
-					},
+					'ledgerSequence',
 				],
 			},
 			{
 				label: 'Account config',
 				items: [
-					{
-						label: 'subentry count',
-					},
-					{
-						label: 'signer count',
-					},
+					'subentryCount',
+					'signerCount',
 					'thresholds',
 				],
 			},

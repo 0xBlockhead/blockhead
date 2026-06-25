@@ -10,30 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'note state',
-		},
-		{
-			label: 'observation time',
-		},
+		'$noteState',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'note state',
-				},
-				{
-					label: 'observation time',
-				},
+				'$noteState',
+				'timestampMs',
 				'source',
-				{
-					label: 'spent state',
-				},
-				{
-					label: 'spend transaction id',
-				},
+				'spent',
+				'spendTransactionId',
+			],
+			[
 				{
 					label: 'spent height',
 				},
@@ -41,9 +31,7 @@
 				{
 					label: 'witness availability',
 				},
-				{
-					label: 'last scanned height',
-				},
+				'lastScannedHeight',
 				{
 					label: 'last scanned time',
 				},

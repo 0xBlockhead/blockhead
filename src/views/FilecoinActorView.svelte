@@ -10,24 +10,16 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
+		'$network',
 		'address',
-		{
-			label: 'actor code CID',
-		},
+		'actorCodeCid',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
+				'$network',
 				'address',
-				{
-					label: 'actor code CID',
-				},
+				'actorCodeCid',
 			],
 			[
 				'nonce',

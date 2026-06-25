@@ -29,34 +29,22 @@
 		},
 	],
 	closed: [
-		{
-			label: 'event id',
-		},
+		'eventId',
 		'kind',
-		{
-			label: 'author',
-		},
+		'$author',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'event id',
-				},
+				'eventId',
 				'kind',
-				{
-					label: 'author',
-				},
+				'$author',
 				'createdAt',
 				{
 					label: 'reaction content',
 				},
-				{
-					label: 'target note',
-				},
-				{
-					label: 'target article',
-				},
+				'$targetNote',
+				'$targetArticle',
 			],
 		],
 	},

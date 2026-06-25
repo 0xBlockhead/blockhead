@@ -10,47 +10,27 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'transaction',
-		},
-		{
-			label: 'certificate index',
-		},
-		{
-			label: 'kind',
-		},
+		'$transaction',
+		'certificateIndex',
+		'certificateKind',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'transaction',
-				},
-				{
-					label: 'certificate index',
-				},
-				{
-					label: 'kind',
-				},
-				{
-					label: 'stake credential',
-				},
-				{
-					label: 'stake pool',
-				},
-				{
-					label: 'DRep',
-				},
-				{
-					label: 'pool id',
-				},
-				{
-					label: 'reward address',
-				},
-				{
-					label: 'deposit',
-				},
+				'$transaction',
+				'certificateIndex',
+				'certificateKind',
+				'$stakeCredential',
+				'$stakePool',
+			],
+			[
+				'$drep',
+				'poolId',
+				'rewardAddress',
+				'depositLovelace',
 				'epoch',
+			],
+			[
 				{
 					label: 'metadata URL/hash',
 				},

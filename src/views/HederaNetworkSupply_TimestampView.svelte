@@ -10,30 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'observation time',
-		},
+		'$network',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'observation time',
-				},
+				'$network',
+				'timestampMs',
 				'source',
-				{
-					label: 'released supply',
-				},
-				{
-					label: 'total supply',
-				},
+				'releasedSupplyTinybar',
+				'totalSupplyTinybar',
 			],
 		],
 	},

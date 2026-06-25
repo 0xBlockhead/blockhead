@@ -10,27 +10,17 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account address',
-		},
+		'accountAddress',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'account address',
-				},
+				'accountAddress',
 			],
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'account address',
-				},
-				{
-					label: 'account kind',
-				},
+				'$network',
+				'accountAddress',
+				'accountKind',
 				{
 					label: 'connected account-state count',
 				},
@@ -53,9 +43,7 @@
 			{
 				label: 'Network',
 				items: [
-					{
-						label: 'parent network',
-					},
+					'$network',
 				],
 			},
 			{
@@ -71,6 +59,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'blockhead-account-states',
+			label: 'blockhead account states',
+			field: '$$blockheadAccountStates',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

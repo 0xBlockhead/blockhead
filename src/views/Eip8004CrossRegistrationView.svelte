@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'registration file',
-		},
-		{
-			label: 'target kind',
-		},
+		'$registrationFile',
+		'targetKind',
 		{
 			label: 'selector hash',
 		},
@@ -23,23 +19,15 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'registration file',
-				},
-				{
-					label: 'target kind',
-				},
+				'$registrationFile',
+				'targetKind',
 				{
 					label: 'target selector hash algorithm/hash',
 				},
 			],
 			[
-				{
-					label: 'target selector',
-				},
-				{
-					label: 'evidence URI',
-				},
+				'targetSelector',
+				'evidenceUri',
 				'signature',
 			],
 		],

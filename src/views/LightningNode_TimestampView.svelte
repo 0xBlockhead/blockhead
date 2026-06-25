@@ -10,41 +10,29 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'node',
-		},
-		{
-			label: 'observation time',
-		},
+		'$node',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'node',
-				},
-				{
-					label: 'observation time',
-				},
+				'$node',
+				'timestampMs',
 				'source',
 				'alias',
 				'color',
-				{
-					label: 'capacity',
-				},
-				{
-					label: 'channel count',
-				},
-				{
-					label: 'first seen',
-				},
-				{
-					label: 'updated time',
-				},
+			],
+			[
+				'capacitySats',
+				'channelCount',
+				'firstSeenMs',
+				'updatedAtMs',
 				{
 					label: 'country',
 				},
+			],
+			[
 				'city',
 				{
 					label: 'advertised address count',

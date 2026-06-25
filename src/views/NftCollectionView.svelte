@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'asset instance',
-		},
-		{
-			label: 'token count',
-		},
+		'$assetInstance',
+		'$$tokens',
 		{
 			label: 'royalty observation count',
 		},
@@ -23,12 +19,8 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'asset instance',
-				},
-				{
-					label: 'token count',
-				},
+				'$assetInstance',
+				'$$tokens',
 				{
 					label: 'royalty observation count',
 				},
@@ -48,9 +40,7 @@
 			{
 				label: 'Asset instance',
 				items: [
-					{
-						label: 'parent asset instance',
-					},
+					'$assetInstance',
 				],
 			},
 			{
@@ -71,6 +61,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'tokens',
+			label: 'tokens',
+			field: '$$tokens',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'royalty-timestamps',
+			label: 'royalty timestamps',
+			field: '$$royaltyTimestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,37 +10,21 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'provider',
-		},
-		{
-			label: 'operation id',
-		},
-		{
-			label: 'kind',
-		},
+		'$provider',
+		'operationId',
+		'operationKind',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'provider',
-				},
-				{
-					label: 'operation id',
-				},
+				'$provider',
+				'operationId',
 				'label',
-				{
-					label: 'kind',
-				},
+				'operationKind',
 			],
 			[
-				{
-					label: 'HTTP method',
-				},
-				{
-					label: 'path template',
-				},
+				'httpMethod',
+				'pathTemplate',
 				{
 					label: 'documentation URL',
 				},
@@ -78,6 +62,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

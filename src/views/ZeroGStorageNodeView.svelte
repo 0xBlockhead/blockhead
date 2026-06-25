@@ -10,28 +10,16 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'node id',
-		},
-		{
-			label: 'operator',
-		},
+		'$network',
+		'nodeId',
+		'$operator',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'node id',
-				},
-				{
-					label: 'operator',
-				},
+				'$network',
+				'nodeId',
+				'$operator',
 				'endpoint',
 				{
 					label: 'latest storage-node observation balance/reward/mining summary',
@@ -94,6 +82,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'stored-chunks',
+			label: 'stored chunks',
+			field: '$$storedChunks',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'proofs',
+			label: 'proofs',
+			field: '$$proofs',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

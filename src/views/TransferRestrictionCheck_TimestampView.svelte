@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'restriction',
-		},
-		{
-			label: 'observation time',
-		},
+		'$restriction',
+		'timestampMs',
 		{
 			label: 'subject',
 		},
@@ -23,29 +19,17 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'restriction',
-				},
-				{
-					label: 'observation time',
-				},
+				'$restriction',
+				'timestampMs',
 				'source',
-				{
-					label: 'subject key',
-				},
-				{
-					label: 'account',
-				},
+				'subjectKey',
+				'$account',
 				'amount',
 			],
 			[
-				{
-					label: 'can transfer',
-				},
+				'canTransfer',
 				'reason',
-				{
-					label: 'ledger coordinate',
-				},
+				'ledgerCoordinateKind',
 				{
 					label: 'validity window',
 				},

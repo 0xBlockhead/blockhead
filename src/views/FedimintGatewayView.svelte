@@ -10,34 +10,24 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'gateway id',
-		},
-		{
-			label: 'API URL',
-		},
-		{
-			label: 'node pubkey',
-		},
+		'gatewayId',
+		'apiUrl',
+		'nodePubkey',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'gateway id',
-				},
-				{
-					label: 'API URL',
-				},
-				{
-					label: 'node pubkey',
-				},
+				'gatewayId',
+				'apiUrl',
+				'nodePubkey',
 				{
 					label: 'latest Lightning alias',
 				},
 				{
 					label: 'latest version',
 				},
+			],
+			[
 				{
 					label: 'latest routing-fee summary',
 				},
@@ -79,9 +69,7 @@
 			{
 				label: 'Lightning',
 				items: [
-					{
-						label: 'node pubkey',
-					},
+					'nodePubkey',
 					{
 						label: 'alias',
 					},
@@ -103,6 +91,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'federations',
+			label: 'federations',
+			field: '$$federations',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

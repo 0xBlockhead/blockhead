@@ -10,45 +10,25 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'transaction id',
-		},
-		{
-			label: 'transfer index',
-		},
+		'$network',
+		'transactionId',
+		'transferIndex',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'transaction id',
-				},
-				{
-					label: 'transfer index',
-				},
-				{
-					label: 'token',
-				},
+				'$network',
+				'transactionId',
+				'transferIndex',
+				'$token',
 				'standard',
-				{
-					label: 'from account',
-				},
-				{
-					label: 'to account',
-				},
+			],
+			[
+				'$from',
+				'$to',
 				'amount',
-				{
-					label: 'timestamp',
-				},
-				{
-					label: 'transaction ref',
-				},
+				'timestampMs',
+				'$transaction',
 			],
 		],
 	},

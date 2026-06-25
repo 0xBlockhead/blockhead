@@ -16,9 +16,7 @@
 		{
 			label: 'latest block/indexer height',
 		},
-		{
-			label: 'market count',
-		},
+		'$$markets',
 	],
 	content: {
 		dl: [
@@ -32,12 +30,8 @@
 				{
 					label: 'latest indexer height',
 				},
-				{
-					label: 'market count',
-				},
-				{
-					label: 'subaccount count',
-				},
+				'$$markets',
+				'$$subaccounts',
 				{
 					label: 'open order count',
 				},
@@ -113,6 +107,53 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'markets',
+			label: 'markets',
+			field: '$$markets',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'subaccounts',
+			label: 'subaccounts',
+			field: '$$subaccounts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'orders',
+			label: 'orders',
+			field: '$$orders',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'positions',
+			label: 'positions',
+			field: '$$positions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,37 +10,21 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'storage node',
-		},
-		{
-			label: 'proof id',
-		},
-		{
-			label: 'proof kind',
-		},
+		'$storageNode',
+		'proofId',
+		'proofKind',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'storage node',
-				},
-				{
-					label: 'proof id',
-				},
-				{
-					label: 'proof kind',
-				},
+				'$storageNode',
+				'proofId',
+				'proofKind',
 				{
 					label: 'verified block',
 				},
-				{
-					label: 'data blob',
-				},
-				{
-					label: 'consensus network',
-				},
+				'$dataBlob',
+				'$consensusNetwork',
 			],
 		],
 	},

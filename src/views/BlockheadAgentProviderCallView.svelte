@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'turn',
-		},
-		{
-			label: 'call index',
-		},
+		'$turn',
+		'callIndex',
 		{
 			label: 'operation/status',
 		},
@@ -23,24 +19,12 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'turn',
-				},
-				{
-					label: 'call index',
-				},
-				{
-					label: 'connection',
-				},
-				{
-					label: 'provider',
-				},
-				{
-					label: 'model',
-				},
-				{
-					label: 'operation',
-				},
+				'$turn',
+				'callIndex',
+				'$connection',
+				'$provider',
+				'$model',
+				'$operation',
 			],
 			[
 				{
@@ -54,9 +38,7 @@
 					label: 'tokens',
 				},
 				'cost',
-				{
-					label: 'latency',
-				},
+				'latencyMs',
 				'error',
 			],
 		],

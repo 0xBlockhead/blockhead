@@ -13,12 +13,8 @@
 		{
 			label: 'linked base Network',
 		},
-		{
-			label: 'linked EVM network',
-		},
-		{
-			label: 'linked Cosmos network',
-		},
+		'$evmNetwork',
+		'$cosmosNetwork',
 	],
 	content: {
 		dl: [
@@ -26,33 +22,21 @@
 				{
 					label: 'linked base Network',
 				},
-				{
-					label: 'linked EVM network',
-				},
-				{
-					label: 'linked Cosmos network',
-				},
-				{
-					label: 'chain kind',
-				},
-				{
-					label: 'consensus kind',
-				},
-				{
-					label: 'EVM chain id',
-				},
-				{
-					label: 'Cosmos chain id',
-				},
-				{
-					label: 'bech32 prefix',
-				},
+				'$evmNetwork',
+				'$cosmosNetwork',
+				'chainKind',
+				'consensusKind',
+			],
+			[
+				'evmChainId',
+				'cosmosChainId',
+				'bech32Prefix',
 				{
 					label: 'Cosmos SDK head',
 				},
-				{
-					label: 'IBC channels',
-				},
+				'$$ibcChannels',
+			],
+			[
 				{
 					label: 'validators through Cosmos network',
 				},
@@ -81,15 +65,9 @@
 			{
 				label: 'Identifiers',
 				items: [
-					{
-						label: 'EVM chain id',
-					},
-					{
-						label: 'Cosmos chain id',
-					},
-					{
-						label: 'bech32 prefix',
-					},
+					'evmChainId',
+					'cosmosChainId',
+					'bech32Prefix',
 				],
 			},
 			{
@@ -124,6 +102,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'ibc-channels',
+			label: 'ibc channels',
+			field: '$$ibcChannels',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

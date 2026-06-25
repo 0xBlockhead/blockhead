@@ -20,12 +20,8 @@
 				'sequence',
 				'digest',
 				'epoch',
-				{
-					label: 'timestamp',
-				},
-				{
-					label: 'previous digest',
-				},
+				'timestampMs',
+				'previousDigest',
 			],
 		],
 	},
@@ -45,12 +41,8 @@
 					'sequence',
 					'digest',
 					'epoch',
-					{
-						label: 'timestamp',
-					},
-					{
-						label: 'previous digest',
-					},
+					'timestampMs',
+					'previousDigest',
 				],
 			},
 			{
@@ -71,6 +63,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'transactions',
+			label: 'transactions',
+			field: '$$transactions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,43 +10,29 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account',
-		},
-		{
-			label: 'token',
-		},
-		{
-			label: 'observation time',
-		},
+		'$account',
+		'$token',
+		'timestampMs',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'account',
-				},
-				{
-					label: 'token',
-				},
-				{
-					label: 'observation time',
-				},
+				'$account',
+				'$token',
+				'timestampMs',
 				'source',
-				{
-					label: 'block height',
-				},
+				'blockHeight',
+			],
+			[
 				'standard',
 				'balance',
 				{
 					label: 'owned serial count',
 				},
-				{
-					label: 'frozen balance',
-				},
-				{
-					label: 'delegated balance',
-				},
+				'frozenBalance',
+				'delegatedBalance',
+			],
+			[
 				{
 					label: 'token metadata snapshot',
 				},

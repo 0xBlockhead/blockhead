@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account',
-		},
-		{
-			label: 'coin type',
-		},
+		'$account',
+		'coinType',
 		{
 			label: 'observed total balance',
 		},
@@ -23,25 +19,17 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'account',
-				},
-				{
-					label: 'coin type',
-				},
+				'$account',
+				'coinType',
 				{
 					label: 'observed total balance',
 				},
-				{
-					label: 'coin object count',
-				},
+				'coinObjectCount',
 				{
 					label: 'locked balance summary',
 				},
 				'source',
-				{
-					label: 'observation time',
-				},
+				'timestampMs',
 			],
 		],
 	},

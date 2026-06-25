@@ -10,38 +10,30 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'token',
-		},
+		'$token',
 		'level',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'token',
-				},
+				'$token',
 				'level',
 				'source',
-				{
-					label: 'timestamp',
-				},
+				'timestampMs',
 				'name',
+			],
+			[
 				'symbol',
 				'decimals',
 				{
 					label: 'metadata/artifact/display/thumbnail URIs',
 				},
-				{
-					label: 'total supply',
-				},
-				{
-					label: 'holder count',
-				},
-				{
-					label: 'transfer count',
-				},
+				'totalSupply',
+				'holderCount',
+			],
+			[
+				'transferCount',
 			],
 		],
 	},
@@ -72,15 +64,9 @@
 			{
 				label: 'Supply/counts',
 				items: [
-					{
-						label: 'total supply',
-					},
-					{
-						label: 'holder count',
-					},
-					{
-						label: 'transfer count',
-					},
+					'totalSupply',
+					'holderCount',
+					'transferCount',
 				],
 			},
 			{

@@ -26,23 +26,15 @@
 				{
 					label: 'epoch number',
 				},
-				{
-					label: 'start slot',
-				},
-				{
-					label: 'end slot',
-				},
-				{
-					label: 'slot count',
-				},
+				'startSlot',
+				'endSlot',
+				'slotCount',
 				{
 					label: 'finalized status',
 				},
 			],
 			[
-				{
-					label: 'global participation rate',
-				},
+				'globalParticipationRate',
 				{
 					label: 'validator count',
 				},
@@ -100,6 +92,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'beacon-slots',
+			label: 'beacon slots',
+			field: '$$beaconSlots',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

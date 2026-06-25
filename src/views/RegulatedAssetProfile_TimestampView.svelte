@@ -13,9 +13,7 @@
 		{
 			label: 'regulated asset profile',
 		},
-		{
-			label: 'observation time',
-		},
+		'timestampMs',
 		'source',
 	],
 	content: {
@@ -24,33 +22,17 @@
 				{
 					label: 'regulated asset profile',
 				},
-				{
-					label: 'observation time',
-				},
+				'timestampMs',
 				'source',
-				{
-					label: 'ledger coordinate',
-				},
-				{
-					label: 'identity registry',
-				},
-				{
-					label: 'compliance contract',
-				},
+				'ledgerCoordinateKind',
+				'$identityRegistry',
+				'$compliance',
 			],
 			[
-				{
-					label: 'trusted issuers registry',
-				},
-				{
-					label: 'claim topics registry',
-				},
-				{
-					label: 'paused state',
-				},
-				{
-					label: 'registry version',
-				},
+				'$trustedIssuersRegistry',
+				'$claimTopicsRegistry',
+				'paused',
+				'registryVersion',
 			],
 		],
 	},

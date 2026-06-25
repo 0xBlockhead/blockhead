@@ -10,46 +10,28 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'subaccount',
-		},
-		{
-			label: 'market',
-		},
-		{
-			label: 'observation time',
-		},
+		'$subaccount',
+		'$market',
+		'timestampMs',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'subaccount',
-				},
-				{
-					label: 'market',
-				},
-				{
-					label: 'observation time',
-				},
+				'$subaccount',
+				'$market',
+				'timestampMs',
 				'source',
-				{
-					label: 'block height',
-				},
+				'blockHeight',
+			],
+			[
 				'side',
 				'size',
-				{
-					label: 'entry price',
-				},
-				{
-					label: 'unrealized PnL',
-				},
-				{
-					label: 'realized PnL',
-				},
-				{
-					label: 'funding index',
-				},
+				'entryPrice',
+				'unrealizedPnl',
+				'realizedPnl',
+			],
+			[
+				'fundingIndex',
 			],
 		],
 	},

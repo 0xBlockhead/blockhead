@@ -24,15 +24,9 @@
 				{
 					label: 'digest/CID/OCI/git selector',
 				},
-				{
-					label: 'URI',
-				},
-				{
-					label: 'media type',
-				},
-				{
-					label: 'artifact type',
-				},
+				'uri',
+				'mediaType',
+				'artifactType',
 				'size',
 			],
 			[
@@ -70,18 +64,10 @@
 				label: 'Content addressing',
 				items: [
 					'digest',
-					{
-						label: 'OCI digest',
-					},
-					{
-						label: 'IPFS CID',
-					},
-					{
-						label: 'Arweave ID',
-					},
-					{
-						label: 'git object',
-					},
+					'ociDigest',
+					'ipfsCid',
+					'arweaveId',
+					'gitObject',
 				],
 			},
 			{
@@ -103,6 +89,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'documents',
+			label: 'documents',
+			field: '$$documents',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'attestations',
+			label: 'attestations',
+			field: '$$attestations',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

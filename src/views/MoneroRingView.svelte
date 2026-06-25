@@ -10,22 +10,14 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'key image',
-		},
-		{
-			label: 'member count',
-		},
+		'$keyImage',
+		'$$members',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'key image',
-				},
-				{
-					label: 'member count',
-				},
+				'$keyImage',
+				'$$members',
 			],
 		],
 	},
@@ -34,9 +26,7 @@
 			{
 				label: 'Key image',
 				items: [
-					{
-						label: 'parent key image',
-					},
+					'$keyImage',
 				],
 			},
 			{
@@ -57,6 +47,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'members',
+			label: 'members',
+			field: '$$members',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -57,6 +57,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'source-window-users',
+			label: 'source window users',
+			field: '$$sourceWindowUsers',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'source-window-posts',
+			label: 'source window posts',
+			field: '$$sourceWindowPosts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

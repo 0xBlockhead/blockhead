@@ -10,40 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'node state',
-		},
-		{
-			label: 'data root',
-		},
-		{
-			label: 'chunk index',
-		},
+		'$nodeState',
+		'dataRoot',
+		'chunkIndex',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'node state',
-				},
-				{
-					label: 'data root',
-				},
-				{
-					label: 'chunk index',
-				},
-				{
-					label: 'chunk root',
-				},
-				{
-					label: 'size',
-				},
-				{
-					label: 'file path',
-				},
-				{
-					label: 'present flag',
-				},
+				'$nodeState',
+				'dataRoot',
+				'chunkIndex',
+				'chunkRoot',
+				'sizeBytes',
+			],
+			[
+				'filePath',
+				'present',
 				{
 					label: 'last checked time',
 				},

@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'forge mirror',
-		},
+		'$forgeMirror',
 		{
 			label: 'number',
 		},
@@ -21,26 +19,18 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'forge mirror',
-				},
+				'$forgeMirror',
 				{
 					label: 'number',
 				},
 				'title',
 				'state',
-				{
-					label: 'author selector',
-				},
-				{
-					label: 'base ref',
-				},
-				{
-					label: 'head ref',
-				},
-				{
-					label: 'head object id',
-				},
+				'authorSelector',
+			],
+			[
+				'baseRef',
+				'headRef',
+				'headObjectId',
 				{
 					label: 'created/updated/merged timestamps',
 				},
@@ -52,9 +42,7 @@
 			{
 				label: 'Forge mirror',
 				items: [
-					{
-						label: 'parent forge mirror',
-					},
+					'$forgeMirror',
 				],
 			},
 			{

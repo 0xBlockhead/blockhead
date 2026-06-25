@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'namespace id',
-		},
+		'namespaceId',
 		{
 			label: 'version',
 		},
@@ -23,15 +21,9 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'namespace id',
-				},
-				{
-					label: 'namespace version',
-				},
+				'$network',
+				'namespaceId',
+				'namespaceVersion',
 				'label',
 				{
 					label: 'latest blob count',
@@ -81,6 +73,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'blobs',
+			label: 'blobs',
+			field: '$$blobs',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,31 +10,21 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'session action',
-		},
+		'$sessionAction',
 		{
 			label: 'from/to accounts',
 		},
-		{
-			label: 'network',
-		},
+		'$network',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'session action',
-				},
+				'$sessionAction',
 				{
 					label: 'from/to CAIP-10',
 				},
-				{
-					label: 'network CAIP-2',
-				},
-				{
-					label: 'asset CAIP-19',
-				},
+				'networkCaip2',
+				'assetCaip19',
 				{
 					label: 'EVM from/to/token shortcuts',
 				},

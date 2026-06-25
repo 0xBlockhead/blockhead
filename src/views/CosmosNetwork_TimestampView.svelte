@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'timestamp',
-		},
+		'timestampMs',
 		'source',
 		{
 			label: 'latest block height/hash/time',
@@ -21,45 +19,29 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'timestamp',
-				},
+				'timestampMs',
 				'source',
-				{
-					label: 'latest block height',
-				},
-				{
-					label: 'latest block hash',
-				},
-				{
-					label: 'latest block time',
-				},
+				'latestBlockHeight',
+				'latestBlockHash',
+				'latestBlockTimeMs',
 				{
 					label: 'sync state',
 				},
 			],
 			[
-				{
-					label: 'latest block transaction count',
-				},
-				{
-					label: 'chain id',
-				},
+				'latestBlockTransactionCount',
+				'chainId',
 				{
 					label: 'app/version',
 				},
-				{
-					label: 'Cosmos SDK version',
-				},
+				'cosmosSdkVersion',
 				{
 					label: 'validator counts',
 				},
 				{
 					label: 'bonded/not-bonded tokens',
 				},
-				{
-					label: 'governance proposal count',
-				},
+				'governanceProposalCount',
 			],
 		],
 	},
@@ -76,12 +58,8 @@
 			{
 				label: 'App/node',
 				items: [
-					{
-						label: 'chain id',
-					},
-					{
-						label: 'node network',
-					},
+					'chainId',
+					'nodeNetwork',
 					{
 						label: 'app',
 					},

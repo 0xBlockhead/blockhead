@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'app id',
-		},
+		'appId',
 		'label',
 		{
 			label: 'latest submission count',
@@ -21,16 +19,10 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'app id',
-				},
+				'$network',
+				'appId',
 				'label',
-				{
-					label: 'owner selector',
-				},
+				'ownerSelector',
 				{
 					label: 'latest data submission count',
 				},
@@ -79,6 +71,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'data-submissions',
+			label: 'data submissions',
+			field: '$$dataSubmissions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'earner',
-		},
+		'$earner',
 		{
 			label: 'reward context',
 		},
@@ -23,39 +21,21 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'earner',
-				},
-				{
-					label: 'reward context key',
-				},
-				{
-					label: 'strategy',
-				},
-				{
-					label: 'operator',
-				},
-				{
-					label: 'AVS',
-				},
-				{
-					label: 'observation time',
-				},
-				'source',
-				{
-					label: 'reward token',
-				},
+				'$earner',
+				'rewardContextKey',
+				'$strategy',
+				'$operator',
+				'$avs',
 			],
 			[
-				{
-					label: 'reward amount',
-				},
-				{
-					label: 'cumulative claimed',
-				},
-				{
-					label: 'merkle root',
-				},
+				'timestampMs',
+				'source',
+				'rewardToken',
+			],
+			[
+				'rewardAmount',
+				'cumulativeClaimed',
+				'merkleRoot',
 				{
 					label: 'claim proof availability',
 				},

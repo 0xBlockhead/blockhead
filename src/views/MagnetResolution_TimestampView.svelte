@@ -10,37 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'magnet URI',
-		},
+		'magnetUri',
 		'source',
-		{
-			label: 'timestamp',
-		},
+		'timestampMs',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'magnet URI',
-				},
+				'magnetUri',
 				'source',
-				{
-					label: 'timestamp',
-				},
+				'timestampMs',
 				'status',
-				{
-					label: 'resolved info hash',
-				},
-				{
-					label: 'resolved metainfo hash',
-				},
-				{
-					label: 'tracker count',
-				},
-				{
-					label: 'web seed count',
-				},
+				'resolvedInfoHash',
+			],
+			[
+				'resolvedMetainfoHash',
+				'trackerCount',
+				'webSeedCount',
 				'error',
 			],
 		],

@@ -10,34 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'spot asset',
-		},
-		{
-			label: 'observation time',
-		},
+		'$spotAsset',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'spot asset',
-				},
-				{
-					label: 'observation time',
-				},
+				'$spotAsset',
+				'timestampMs',
 				'source',
 				'name',
 				{
 					label: 'size decimals',
 				},
-				{
-					label: 'wei decimals',
-				},
-				{
-					label: 'token id',
-				},
+				'weiDecimals',
+				'tokenId',
 			],
 		],
 	},
@@ -46,9 +34,7 @@
 			{
 				label: 'Spot asset',
 				items: [
-					{
-						label: 'parent spot asset',
-					},
+					'$spotAsset',
 				],
 			},
 			{

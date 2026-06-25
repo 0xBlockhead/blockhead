@@ -10,40 +10,24 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'repository id',
-		},
-		{
-			label: 'canonical remote URL',
-		},
-		{
-			label: 'object format',
-		},
+		'repositoryId',
+		'canonicalRemoteUrl',
+		'objectFormat',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'repository id',
-				},
-				{
-					label: 'canonical remote URL',
-				},
-				{
-					label: 'object format',
-				},
+				'repositoryId',
+				'canonicalRemoteUrl',
+				'objectFormat',
 				{
 					label: 'default ref',
 				},
-				{
-					label: 'remote count',
-				},
-				{
-					label: 'object count',
-				},
-				{
-					label: 'ref count',
-				},
+				'$$remotes',
+			],
+			[
+				'$$objects',
+				'$$refs',
 				{
 					label: 'latest fetch status',
 				},
@@ -94,6 +78,44 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'refs',
+			label: 'refs',
+			field: '$$refs',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'objects',
+			label: 'objects',
+			field: '$$objects',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'remotes',
+			label: 'remotes',
+			field: '$$remotes',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'fetches',
+			label: 'fetches',
+			field: '$$fetches',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'entry',
-		},
-		{
-			label: 'observation time',
-		},
+		'$entry',
+		'timestampMs',
 		{
 			label: 'availability',
 		},
@@ -23,12 +19,8 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'entry',
-				},
-				{
-					label: 'timestamp',
-				},
+				'$entry',
+				'timestampMs',
 				'source',
 				{
 					label: 'availability',

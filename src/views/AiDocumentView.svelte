@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'document kind',
-		},
+		'documentKind',
 		{
 			label: 'hash/artifact/url',
 		},
@@ -20,33 +18,19 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'document kind',
-				},
+				'documentKind',
 				{
 					label: 'content hash algorithm/hash',
 				},
-				{
-					label: 'artifact',
-				},
-				{
-					label: 'document URL',
-				},
+				'$artifact',
+				'documentUrl',
 			],
 			[
-				{
-					label: 'media type',
-				},
-				{
-					label: 'source format',
-				},
-				{
-					label: 'schema version',
-				},
+				'mediaType',
+				'sourceFormat',
+				'schemaVersion',
 				'conformsTo',
-				{
-					label: 'declared subject',
-				},
+				'declaredSubjectKind',
 				{
 					label: 'claim refs',
 				},
@@ -89,6 +73,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'claims',
+			label: 'claims',
+			field: '$$claims',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

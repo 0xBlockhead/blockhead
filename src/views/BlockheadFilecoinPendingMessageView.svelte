@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'node id',
-		},
-		{
-			label: 'message CID',
-		},
+		'nodeId',
+		'messageCid',
 		{
 			label: 'observation time',
 		},
@@ -23,44 +19,32 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'node id',
-				},
-				{
-					label: 'message CID',
-				},
+				'nodeId',
+				'messageCid',
 				{
 					label: 'observation time',
 				},
-				{
-					label: 'network',
-				},
+				'$network',
 				{
 					label: 'from actor',
 				},
+			],
+			[
 				{
 					label: 'to actor',
 				},
 				'nonce',
 				'method',
-				{
-					label: 'value',
-				},
-				{
-					label: 'gas limit',
-				},
+				'valueAttoFil',
+				'gasLimit',
+			],
+			[
 				{
 					label: 'fee cap',
 				},
-				{
-					label: 'gas premium',
-				},
-				{
-					label: 'signature type',
-				},
-				{
-					label: 'local flag',
-				},
+				'gasPremiumAttoFil',
+				'signatureType',
+				'local',
 			],
 		],
 	},

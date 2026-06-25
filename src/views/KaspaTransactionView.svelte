@@ -10,31 +10,21 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'transaction id',
-		},
+		'$network',
+		'transactionId',
 		'version',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'transaction id',
-				},
+				'$network',
+				'transactionId',
 				'version',
-				{
-					label: 'subnetwork id',
-				},
+				'subnetworkId',
 				'mass',
-				{
-					label: 'payload length',
-				},
+			],
+			[
+				'payloadLength',
 				{
 					label: 'block hash count',
 				},
@@ -84,9 +74,7 @@
 			{
 				label: 'Payload',
 				items: [
-					{
-						label: 'payload hash',
-					},
+					'payloadHash',
 					{
 						label: 'length',
 					},
@@ -105,6 +93,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'inputs',
+			label: 'inputs',
+			field: '$$inputs',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'outputs',
+			label: 'outputs',
+			field: '$$outputs',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'acceptances',
+			label: 'acceptances',
+			field: '$$acceptances',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

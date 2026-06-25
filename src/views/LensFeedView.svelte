@@ -25,15 +25,11 @@
 				'owner',
 				'name',
 				'description',
-				{
-					label: 'created time',
-				},
+				'createdAt',
 				{
 					label: 'rule summary',
 				},
-				{
-					label: 'post count',
-				},
+				'$$posts',
 			],
 		],
 	},
@@ -76,6 +72,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'posts',
+			label: 'posts',
+			field: '$$posts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

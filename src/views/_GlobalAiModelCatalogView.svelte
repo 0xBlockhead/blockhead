@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'catalog id',
-		},
-		{
-			label: 'catalog kind',
-		},
+		'catalogId',
+		'catalogKind',
 		{
 			label: 'latest model/provider coverage',
 		},
@@ -23,13 +19,9 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'catalog id',
-				},
+				'catalogId',
 				'label',
-				{
-					label: 'catalog kind',
-				},
+				'catalogKind',
 				{
 					label: 'latest observation',
 				},
@@ -93,6 +85,71 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'providers',
+			label: 'providers',
+			field: '$$providers',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'catalog-entries',
+			label: 'catalog entries',
+			field: '$$catalogEntries',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'models',
+			label: 'models',
+			field: '$$models',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'datasets',
+			label: 'datasets',
+			field: '$$datasets',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'benchmarks',
+			label: 'benchmarks',
+			field: '$$benchmarks',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'evaluations',
+			label: 'evaluations',
+			field: '$$evaluations',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

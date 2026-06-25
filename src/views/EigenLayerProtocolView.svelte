@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'protocol name',
-		},
+		'$network',
+		'protocolName',
 		{
 			label: 'operator/AVS counts',
 		},
@@ -23,38 +19,18 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'protocol name',
-				},
-				{
-					label: 'delegation manager',
-				},
-				{
-					label: 'strategy manager',
-				},
-				{
-					label: 'AVS directory',
-				},
+				'$network',
+				'protocolName',
+				'$delegationManager',
+				'$strategyManager',
+				'$avsDirectory',
 			],
 			[
-				{
-					label: 'allocation manager',
-				},
-				{
-					label: 'rewards coordinator',
-				},
-				{
-					label: 'slasher',
-				},
-				{
-					label: 'operator count',
-				},
-				{
-					label: 'AVS count',
-				},
+				'$allocationManager',
+				'$rewardsCoordinator',
+				'$slasher',
+				'$$operators',
+				'$$avss',
 				{
 					label: 'strategy count',
 				},
@@ -114,9 +90,7 @@
 			{
 				label: 'Slashing',
 				items: [
-					{
-						label: 'slashing events',
-					},
+					'$$slashingEvents',
 				],
 			},
 			{
@@ -129,6 +103,53 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'operators',
+			label: 'operators',
+			field: '$$operators',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'avss',
+			label: 'avss',
+			field: '$$avss',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'strategies',
+			label: 'strategies',
+			field: '$$strategies',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'rewards',
+			label: 'rewards',
+			field: '$$rewards',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'slashing-events',
+			label: 'slashing events',
+			field: '$$slashingEvents',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

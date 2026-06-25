@@ -25,26 +25,16 @@
 					label: 'slot number',
 				},
 				'epoch',
-				{
-					label: 'proposer index',
-				},
-				{
-					label: 'canonical flag',
-				},
+				'proposerIndex',
+				'canonical',
 			],
 			[
 				{
 					label: 'block root',
 				},
-				{
-					label: 'parent root',
-				},
-				{
-					label: 'state root',
-				},
-				{
-					label: 'body root',
-				},
+				'parentRoot',
+				'stateRoot',
+				'bodyRoot',
 				'signature',
 			],
 		],
@@ -104,6 +94,44 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'beacon-committees',
+			label: 'beacon committees',
+			field: '$$beaconCommittees',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'beacon-attestations',
+			label: 'beacon attestations',
+			field: '$$beaconAttestations',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'beacon-withdrawals',
+			label: 'beacon withdrawals',
+			field: '$$beaconWithdrawals',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'beacon-slashings',
+			label: 'beacon slashings',
+			field: '$$beaconSlashings',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

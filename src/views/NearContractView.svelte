@@ -10,28 +10,16 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account id',
-		},
-		{
-			label: 'latest code hash',
-		},
-		{
-			label: 'latest code size',
-		},
+		'accountId',
+		'codeHash',
+		'codeSizeBytes',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'account id',
-				},
-				{
-					label: 'latest code hash',
-				},
-				{
-					label: 'latest code size',
-				},
+				'accountId',
+				'codeHash',
+				'codeSizeBytes',
 			],
 			[
 				{

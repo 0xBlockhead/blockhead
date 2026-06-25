@@ -10,28 +10,16 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'node id',
-		},
-		{
-			label: 'network',
-		},
-		{
-			label: 'node IP',
-		},
+		'nodeId',
+		'$network',
+		'nodeIp',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'node id',
-				},
-				{
-					label: 'network',
-				},
-				{
-					label: 'node IP',
-				},
+				'nodeId',
+				'$network',
+				'nodeIp',
 				{
 					label: 'BLS public key/proof presence',
 				},
@@ -60,9 +48,7 @@
 			{
 				label: 'Node identity',
 				items: [
-					{
-						label: 'node id',
-					},
+					'nodeId',
 					{
 						label: 'POP public key/proof',
 					},
@@ -81,6 +67,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

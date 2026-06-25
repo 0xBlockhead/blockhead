@@ -10,50 +10,30 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'node state',
-		},
-		{
-			label: 'observation time',
-		},
+		'$nodeState',
+		'timestampMs',
 		'version',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'node state',
-				},
-				{
-					label: 'observation time',
-				},
+				'$nodeState',
+				'timestampMs',
 				'source',
 				{
 					label: 'version/revision',
 				},
-				{
-					label: 'repo path',
-				},
+				'repoPath',
 				{
 					label: 'listen/announce address counts',
 				},
-				{
-					label: 'peer count',
-				},
+				'peerCount',
 			],
 			[
-				{
-					label: 'total blocks',
-				},
-				{
-					label: 'quota max bytes',
-				},
-				{
-					label: 'quota used bytes',
-				},
-				{
-					label: 'quota reserved bytes',
-				},
+				'totalBlocks',
+				'quotaMaxBytes',
+				'quotaUsedBytes',
+				'quotaReservedBytes',
 			],
 		],
 	},

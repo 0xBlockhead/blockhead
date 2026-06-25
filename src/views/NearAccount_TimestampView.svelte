@@ -10,23 +10,15 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account',
-		},
-		{
-			label: 'observation time',
-		},
+		'$account',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'account',
-				},
-				{
-					label: 'observation time',
-				},
+				'$account',
+				'timestampMs',
 				'source',
 				{
 					label: 'block height/hash',
@@ -34,18 +26,14 @@
 				{
 					label: 'balance',
 				},
+			],
+			[
 				{
 					label: 'locked balance',
 				},
-				{
-					label: 'storage usage',
-				},
-				{
-					label: 'code hash',
-				},
-				{
-					label: 'deleted state',
-				},
+				'storageUsageBytes',
+				'codeHash',
+				'deleted',
 			],
 		],
 	},

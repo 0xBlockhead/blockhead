@@ -10,33 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'provider',
-		},
-		{
-			label: 'provider model id',
-		},
+		'$provider',
+		'providerModelId',
 		'label',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'provider',
-				},
-				{
-					label: 'provider model id',
-				},
-				{
-					label: 'provider resource name',
-				},
-				{
-					label: 'base model id',
-				},
+				'$provider',
+				'providerModelId',
+				'providerResourceName',
+				'baseModelId',
 				'label',
-				{
-					label: 'model family',
-				},
+				'modelFamily',
 			],
 			[
 				{
@@ -84,6 +70,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'versions',
+			label: 'versions',
+			field: '$$versions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'documents',
+			label: 'documents',
+			field: '$$documents',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

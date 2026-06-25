@@ -27,6 +27,8 @@
 				'instanceDescription',
 				'instanceVersion',
 				'activeUserCount',
+			],
+			[
 				'sourceWindowActorCount',
 				'sourceWindowNoteCount',
 				'localCatalogInstanceCount',

@@ -13,12 +13,8 @@
 		{
 			label: 'vault contract',
 		},
-		{
-			label: 'network',
-		},
-		{
-			label: 'asset',
-		},
+		'$network',
+		'$asset',
 	],
 	content: {
 		dl: [
@@ -26,16 +22,12 @@
 				{
 					label: 'vault contract',
 				},
-				{
-					label: 'network',
-				},
-				{
-					label: 'asset',
-				},
-				{
-					label: 'share token',
-				},
+				'$network',
+				'$asset',
+				'$shareToken',
 				'name',
+			],
+			[
 				'symbol',
 				'decimals',
 				{
@@ -102,6 +94,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'blocks',
+			label: 'blocks',
+			field: '$$blocks',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

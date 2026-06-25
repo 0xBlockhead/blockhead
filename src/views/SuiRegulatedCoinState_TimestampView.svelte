@@ -10,32 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'coin type',
-		},
-		{
-			label: 'observation time',
-		},
-		{
-			label: 'global pause',
-		},
+		'$coinType',
+		'timestampMs',
+		'globalPause',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'coin type',
-				},
-				{
-					label: 'observation time',
-				},
+				'$coinType',
+				'timestampMs',
 				'source',
-				{
-					label: 'global pause',
-				},
-				{
-					label: 'deny-list epoch',
-				},
+				'globalPause',
+				'denyListEpoch',
 			],
 			[
 				{
@@ -44,12 +30,8 @@
 				{
 					label: 'deny list object',
 				},
-				{
-					label: 'denied address count',
-				},
-				{
-					label: 'authority selector',
-				},
+				'deniedAddressCount',
+				'authoritySelector',
 			],
 		],
 	},

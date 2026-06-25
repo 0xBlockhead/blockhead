@@ -11,35 +11,25 @@
 	const view = {
 	closed: [
 		'namespace',
-		{
-			label: 'local name',
-		},
+		'localName',
 		'id',
 	],
 	content: {
 		dl: [
 			[
 				'namespace',
-				{
-					label: 'local name',
-				},
+				'localName',
 				'id',
 				'value',
-				{
-					label: 'owner',
-				},
-				{
-					label: 'linked account',
-				},
+				'$owner',
+			],
+			[
+				'$account',
 				{
 					label: 'minted timestamp',
 				},
-				{
-					label: 'namespace ref',
-				},
-				{
-					label: 'account ref',
-				},
+				'$namespace',
+				'$account',
 			],
 		],
 	},

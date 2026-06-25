@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account',
-		},
-		{
-			label: 'public key',
-		},
+		'$account',
+		'publicKey',
 		{
 			label: 'latest nonce/permission summary',
 		},
@@ -23,12 +19,8 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'account',
-				},
-				{
-					label: 'public key',
-				},
+				'$account',
+				'publicKey',
 				{
 					label: 'latest nonce/permission summary',
 				},

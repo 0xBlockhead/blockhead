@@ -10,39 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'message',
-		},
-		{
-			label: 'part index',
-		},
-		{
-			label: 'part kind',
-		},
+		'$message',
+		'partIndex',
+		'partKind',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'message',
-				},
-				{
-					label: 'part index',
-				},
-				{
-					label: 'kind',
-				},
-				{
-					label: 'mime type',
-				},
+				'$message',
+				'partIndex',
+				'partKind',
+				'mimeType',
 			],
 			[
 				{
 					label: 'text/uri/payload',
 				},
-				{
-					label: 'artifact ref',
-				},
+				'$artifact',
 			],
 		],
 	},

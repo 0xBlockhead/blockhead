@@ -10,31 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'operator address',
-		},
+		'operatorAddress',
 		'name',
-		{
-			label: 'delegation count',
-		},
+		'$$delegations',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'operator address',
-				},
+				'operatorAddress',
 				'name',
 				'website',
-				{
-					label: 'metadata URI',
-				},
-				{
-					label: 'earnings receiver',
-				},
-				{
-					label: 'delegation approver',
-				},
+				'metadataUri',
+				'earningsReceiver',
+				'delegationApprover',
 			],
 			[
 				{
@@ -46,9 +34,7 @@
 				{
 					label: 'AVS allocation count',
 				},
-				{
-					label: 'slashing event count',
-				},
+				'$$slashingEvents',
 			],
 		],
 	},
@@ -110,6 +96,44 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'delegations',
+			label: 'delegations',
+			field: '$$delegations',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'allocations',
+			label: 'allocations',
+			field: '$$allocations',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'rewards',
+			label: 'rewards',
+			field: '$$rewards',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'slashing-events',
+			label: 'slashing events',
+			field: '$$slashingEvents',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -13,12 +13,8 @@
 		{
 			label: 'observed time/source',
 		},
-		{
-			label: 'ledger version',
-		},
-		{
-			label: 'block height',
-		},
+		'ledgerVersion',
+		'blockHeight',
 	],
 	content: {
 		dl: [
@@ -26,22 +22,14 @@
 				{
 					label: 'observed time/source',
 				},
-				{
-					label: 'ledger version',
-				},
-				{
-					label: 'block height',
-				},
-				{
-					label: 'chain id',
-				},
+				'ledgerVersion',
+				'blockHeight',
+				'chainId',
 				'epoch',
 				{
 					label: 'oldest retained ledger/block versions',
 				},
-				{
-					label: 'node role',
-				},
+				'nodeRole',
 			],
 		],
 	},
@@ -58,12 +46,8 @@
 			{
 				label: 'Ledger head',
 				items: [
-					{
-						label: 'ledger version',
-					},
-					{
-						label: 'block height',
-					},
+					'ledgerVersion',
+					'blockHeight',
 					'epoch',
 				],
 			},
@@ -76,9 +60,7 @@
 					{
 						label: 'oldest retained block height',
 					},
-					{
-						label: 'node role',
-					},
+					'nodeRole',
 				],
 			},
 			{

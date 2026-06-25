@@ -13,12 +13,8 @@
 		{
 			label: 'regulated asset profile',
 		},
-		{
-			label: 'module key',
-		},
-		{
-			label: 'module selector',
-		},
+		'moduleKey',
+		'moduleSelector',
 	],
 	content: {
 		dl: [
@@ -26,15 +22,9 @@
 				{
 					label: 'regulated asset profile',
 				},
-				{
-					label: 'module key',
-				},
-				{
-					label: 'module selector',
-				},
-				{
-					label: 'rule kind',
-				},
+				'moduleKey',
+				'moduleSelector',
+				'ruleKind',
 				{
 					label: 'config summary',
 				},

@@ -10,34 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'service request',
-		},
-		{
-			label: 'trace id',
-		},
-		{
-			label: 'settlement transaction hash',
-		},
+		'$serviceRequest',
+		'traceId',
+		'settlementTransactionHash',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'service request',
-				},
-				{
-					label: 'trace id',
-				},
-				{
-					label: 'settlement transaction hash',
-				},
-				{
-					label: 'acknowledgement signature',
-				},
-				{
-					label: 'reward amount',
-				},
+				'$serviceRequest',
+				'traceId',
+				'settlementTransactionHash',
+				'acknowledgementSignature',
+				'rewardAmount',
 			],
 		],
 	},
@@ -46,9 +30,7 @@
 			{
 				label: 'Service request',
 				items: [
-					{
-						label: 'parent service request',
-					},
+					'$serviceRequest',
 				],
 			},
 			{

@@ -10,36 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'liquidity pool',
-		},
-		{
-			label: 'observation time',
-		},
+		'$liquidityPool',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'liquidity pool',
-				},
-				{
-					label: 'observation time',
-				},
+				'$liquidityPool',
+				'timestampMs',
 				'source',
-				{
-					label: 'ledger sequence',
-				},
+				'ledgerSequence',
 				{
 					label: 'reserves',
 				},
-				{
-					label: 'total shares',
-				},
-				{
-					label: 'account count',
-				},
+				'totalShares',
+				'accounts',
 			],
 		],
 	},

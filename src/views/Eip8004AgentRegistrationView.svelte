@@ -14,28 +14,18 @@
 		{
 			label: 'chain/registry',
 		},
-		{
-			label: 'agent id',
-		},
+		'agentId',
 	],
 	content: {
 		dl: [
 			[
 				'namespace',
-				{
-					label: 'chain id',
-				},
-				{
-					label: 'identity registry',
-				},
-				{
-					label: 'agent id',
-				},
+				'chainId',
+				'identityRegistry',
+				'agentId',
 			],
 			[
-				{
-					label: 'EVM NFT ref',
-				},
+				'$evmNft',
 				{
 					label: 'latest registry observation',
 				},
@@ -66,9 +56,7 @@
 			{
 				label: 'EVM NFT',
 				items: [
-					{
-						label: 'EvmNft',
-					},
+					'$evmNft',
 				],
 			},
 			{
@@ -81,6 +69,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'files',
+			label: 'files',
+			field: '$$files',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

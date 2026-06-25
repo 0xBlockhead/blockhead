@@ -10,37 +10,33 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'timestamp',
-		},
+		'timestampMs',
 		'source',
 		'height',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'timestamp',
-				},
+				'timestampMs',
 				'source',
 				'height',
-				{
-					label: 'target height',
-				},
+				'targetHeight',
 				{
 					label: 'block hash',
 				},
+			],
+			[
 				{
 					label: 'sync status',
 				},
-				{
-					label: 'txpool size',
-				},
+				'txPoolSize',
 				{
 					label: 'peer counts',
 				},
 				'difficulty',
 				'version',
+			],
+			[
 				'status',
 			],
 		],
@@ -84,12 +80,8 @@
 					{
 						label: 'connections',
 					},
-					{
-						label: 'txpool size',
-					},
-					{
-						label: 'tx count',
-					},
+					'txPoolSize',
+					'txCount',
 				],
 			},
 			{

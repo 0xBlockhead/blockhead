@@ -10,34 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'room',
-		},
-		{
-			label: 'peer id',
-		},
-		{
-			label: 'network',
-		},
+		'$room',
+		'peerId',
+		'$network',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'room',
-				},
-				{
-					label: 'peer id',
-				},
-				{
-					label: 'network',
-				},
-				{
-					label: 'account',
-				},
-				{
-					label: 'target peer ids',
-				},
+				'$room',
+				'peerId',
+				'$network',
+				'$account',
+				'targetPeerIds',
 				{
 					label: 'shared time',
 				},

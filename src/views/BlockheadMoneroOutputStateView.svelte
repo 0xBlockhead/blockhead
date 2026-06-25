@@ -10,40 +10,26 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'wallet id',
-		},
-		{
-			label: 'transaction hash',
-		},
-		{
-			label: 'output index',
-		},
+		'walletId',
+		'txHash',
+		'outputIndex',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'wallet id',
-				},
-				{
-					label: 'transaction hash',
-				},
-				{
-					label: 'output index',
-				},
+				'walletId',
+				'txHash',
+				'outputIndex',
 				{
 					label: 'account/subaddress indexes',
 				},
-				{
-					label: 'amount',
-				},
+				'amountAtomicUnits',
+			],
+			[
 				{
 					label: 'key-image presence',
 				},
-				{
-					label: 'global output index',
-				},
+				'globalOutputIndex',
 				{
 					label: 'latest spent/unlocked state',
 				},
@@ -53,6 +39,8 @@
 				{
 					label: 'latest export height',
 				},
+			],
+			[
 				{
 					label: 'latest checked time',
 				},
@@ -122,6 +110,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,20 +10,14 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'block number',
-		},
+		'blockNumber',
 		'hash',
-		{
-			label: 'transaction count',
-		},
+		'transactionCount',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'block number',
-				},
+				'blockNumber',
 				'hash',
 				'timestamp',
 				{
@@ -72,6 +66,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'transactions',
+			label: 'transactions',
+			field: '$$transactions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -11,9 +11,7 @@
 	const view = {
 	closed: [
 		'address',
-		{
-			label: 'account kind',
-		},
+		'accountKind',
 		{
 			label: 'public key/revealed state',
 		},
@@ -22,9 +20,7 @@
 		dl: [
 			[
 				'address',
-				{
-					label: 'account kind',
-				},
+				'accountKind',
 				{
 					label: 'public key/revealed state',
 				},
@@ -34,15 +30,15 @@
 				{
 					label: 'counter',
 				},
+			],
+			[
 				{
 					label: 'delegate',
 				},
 				{
 					label: 'token balance count',
 				},
-				{
-					label: 'token transfer count',
-				},
+				'$$tokenTransfers',
 			],
 		],
 	},
@@ -98,6 +94,44 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'operations',
+			label: 'operations',
+			field: '$$operations',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'token-balance-timestamps',
+			label: 'token balance timestamps',
+			field: '$$tokenBalanceTimestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'token-transfers',
+			label: 'token transfers',
+			field: '$$tokenTransfers',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

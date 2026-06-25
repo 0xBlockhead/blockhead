@@ -10,36 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'node state',
-		},
-		{
-			label: 'observation time',
-		},
+		'$nodeState',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'node state',
-				},
-				{
-					label: 'observation time',
-				},
+				'$nodeState',
+				'timestampMs',
 				'source',
 				{
 					label: 'synced time',
 				},
-				{
-					label: 'local file count',
-				},
-				{
-					label: 'local chunk count',
-				},
-				{
-					label: 'local proof count',
-				},
+				'localFileCount',
+				'localChunkCount',
+				'localProofCount',
 			],
 		],
 	},

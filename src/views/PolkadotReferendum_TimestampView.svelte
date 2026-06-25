@@ -10,23 +10,15 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'referendum',
-		},
-		{
-			label: 'observation time',
-		},
+		'$referendum',
+		'timestampMs',
 		'status',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'referendum',
-				},
-				{
-					label: 'observation time',
-				},
+				'$referendum',
+				'timestampMs',
 				'source',
 				{
 					label: 'block number/hash',

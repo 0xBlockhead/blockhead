@@ -10,34 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'data blob',
-		},
-		{
-			label: 'chunk index',
-		},
-		{
-			label: 'chunk root',
-		},
+		'$dataBlob',
+		'chunkIndex',
+		'chunkRoot',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'data blob',
-				},
-				{
-					label: 'chunk index',
-				},
-				{
-					label: 'chunk root',
-				},
-				{
-					label: 'size',
-				},
-				{
-					label: 'storage node',
-				},
+				'$dataBlob',
+				'chunkIndex',
+				'chunkRoot',
+				'sizeBytes',
+				'$storageNode',
 			],
 		],
 	},

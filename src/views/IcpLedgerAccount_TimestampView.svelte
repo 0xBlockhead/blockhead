@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'ledger',
-		},
+		'$ledger',
 		{
 			label: 'owner principal',
 		},
@@ -21,9 +19,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'ledger',
-				},
+				'$ledger',
 				{
 					label: 'owner principal',
 				},
@@ -32,9 +28,7 @@
 					label: 'observed time/source',
 				},
 				'balance',
-				{
-					label: 'allowance count',
-				},
+				'allowanceCount',
 			],
 		],
 	},

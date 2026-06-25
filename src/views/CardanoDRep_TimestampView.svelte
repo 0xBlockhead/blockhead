@@ -10,36 +10,24 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'DRep',
-		},
+		'$drep',
 		'epoch',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'DRep',
-				},
+				'$drep',
 				'epoch',
 				'source',
 				'slot',
-				{
-					label: 'voting power',
-				},
-				{
-					label: 'delegator count',
-				},
-				{
-					label: 'active flag',
-				},
-				{
-					label: 'registered flag',
-				},
-				{
-					label: 'deposit',
-				},
+				'votingPowerLovelace',
+			],
+			[
+				'delegatorCount',
+				'active',
+				'registered',
+				'depositLovelace',
 				{
 					label: 'anchor URL/hash',
 				},

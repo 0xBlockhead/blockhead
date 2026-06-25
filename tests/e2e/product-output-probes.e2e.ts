@@ -5,9 +5,9 @@
  * ./node_modules/.bin/playwright test tests/e2e/product-output-probes.e2e.ts
  * ```
  */
-import { readFileSync } from 'node:fs'
-
 import { expect, test } from '@playwright/test'
+
+import { APP } from '../../APP.ts'
 
 import {
 	assertMainSettled,
@@ -27,9 +27,7 @@ type ProbeManifest = {
 	}[]
 }
 
-const probeManifest: ProbeManifest = JSON.parse(
-	readFileSync('.generated/expected/tests/probes.json', 'utf8')
-)
+const probeManifest: ProbeManifest = APP.probes
 
 
 test.describe('APP product output probes', () => {

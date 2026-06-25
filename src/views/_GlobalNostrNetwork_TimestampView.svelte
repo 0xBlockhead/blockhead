@@ -27,6 +27,8 @@
 				'sourceWindowProfileCount',
 				'sourceWindowNoteCount',
 				'sourceWindowRelayCount',
+			],
+			[
 				'sourceWindowRepostCount',
 				'sourceWindowArticleCount',
 				'localCatalogRelayCount',

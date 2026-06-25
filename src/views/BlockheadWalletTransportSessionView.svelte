@@ -10,46 +10,26 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'transport session id',
-		},
-		{
-			label: 'transport kind',
-		},
+		'transportSessionId',
+		'transportKind',
 		'status',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'transport session id',
-				},
-				{
-					label: 'transport kind',
-				},
-				{
-					label: 'session kind',
-				},
+				'transportSessionId',
+				'transportKind',
+				'sessionKind',
 				'status',
 				'topic',
-				{
-					label: 'peer id',
-				},
+				'peerId',
 			],
 			[
-				{
-					label: 'relay protocol',
-				},
-				{
-					label: 'bridge URL',
-				},
-				{
-					label: 'manifest URL',
-				},
+				'relayProtocol',
+				'bridgeUrl',
+				'manifestUrl',
 				'origin',
-				{
-					label: 'device id',
-				},
+				'deviceId',
 				{
 					label: 'created/updated/expires timestamps',
 				},

@@ -10,32 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'operation',
-		},
-		{
-			label: 'big-map id',
-		},
-		{
-			label: 'key hash',
-		},
+		'$operation',
+		'bigMapId',
+		'keyHash',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'operation',
-				},
-				{
-					label: 'big-map id',
-				},
-				{
-					label: 'key hash',
-				},
+				'$operation',
+				'bigMapId',
+				'keyHash',
 				'action',
-				{
-					label: 'linked big map',
-				},
+				'$bigMap',
 			],
 		],
 	},

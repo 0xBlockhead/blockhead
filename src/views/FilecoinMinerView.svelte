@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'miner address',
-		},
+		'$network',
+		'minerAddress',
 		{
 			label: 'owner actor',
 		},
@@ -23,29 +19,19 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'miner address',
-				},
+				'$network',
+				'minerAddress',
 				{
 					label: 'owner actor',
 				},
 				{
 					label: 'worker actor',
 				},
-				{
-					label: 'peer id',
-				},
+				'peerId',
 			],
 			[
-				{
-					label: 'quality-adjusted power',
-				},
-				{
-					label: 'sector count',
-				},
+				'qualityAdjustedPower',
+				'$$sectors',
 				{
 					label: 'deal count',
 				},
@@ -107,6 +93,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'sectors',
+			label: 'sectors',
+			field: '$$sectors',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

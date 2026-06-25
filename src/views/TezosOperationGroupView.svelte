@@ -10,33 +10,21 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'operation hash',
-		},
-		{
-			label: 'block',
-		},
+		'operationHash',
+		'$block',
 		'branch',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'operation hash',
-				},
-				{
-					label: 'block',
-				},
+				'operationHash',
+				'$block',
 				'branch',
 				{
 					label: 'signature presence',
 				},
-				{
-					label: 'validation pass',
-				},
-				{
-					label: 'operation count',
-				},
+				'validationPass',
+				'operationCount',
 			],
 		],
 	},
@@ -76,6 +64,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'operations',
+			label: 'operations',
+			field: '$$operations',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

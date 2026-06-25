@@ -29,24 +29,18 @@
 				{
 					label: 'from/to token addresses',
 				},
-				{
-					label: 'from amount',
-				},
+				'fromAmount',
 				{
 					label: 'from/to addresses',
 				},
 				'slippage',
 			],
 			[
-				{
-					label: 'to amount',
-				},
+				'toAmount',
 				{
 					label: 'minimum received',
 				},
-				{
-					label: 'estimated cost',
-				},
+				'estimatedCostUsd',
 				{
 					label: 'ETA',
 				},
@@ -105,6 +99,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'steps',
+			label: 'steps',
+			field: '$$steps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

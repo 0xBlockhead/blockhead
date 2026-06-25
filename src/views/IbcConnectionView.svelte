@@ -10,41 +10,27 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'connection id',
-		},
-		{
-			label: 'client id',
-		},
+		'$network',
+		'connectionId',
+		'clientId',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'connection id',
-				},
-				{
-					label: 'client id',
-				},
-				{
-					label: 'client ref',
-				},
+				'$network',
+				'connectionId',
+				'clientId',
+				'$client',
 				{
 					label: 'counterparty client/connection',
 				},
+			],
+			[
 				'state',
 				{
 					label: 'delay period',
 				},
-				{
-					label: 'channel count',
-				},
+				'$$channels',
 			],
 		],
 	},
@@ -90,6 +76,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'channels',
+			label: 'channels',
+			field: '$$channels',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

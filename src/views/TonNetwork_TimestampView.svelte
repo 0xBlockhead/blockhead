@@ -10,36 +10,24 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'observed time',
-		},
+		'timestampMs',
 		'source',
-		{
-			label: 'masterchain seqno',
-		},
+		'masterchainSeqno',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'observed time',
-				},
+				'timestampMs',
 				'source',
-				{
-					label: 'masterchain seqno',
-				},
-				{
-					label: 'shard count',
-				},
-				{
-					label: 'validator count',
-				},
+				'masterchainSeqno',
+				'shardCount',
+				'validatorCount',
+			],
+			[
 				{
 					label: 'latest block time',
 				},
-				{
-					label: 'indexer lag',
-				},
+				'indexerLagMs',
 				'health',
 			],
 		],

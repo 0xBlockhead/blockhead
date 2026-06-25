@@ -10,30 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'contract',
-		},
-		{
-			label: 'big-map id',
-		},
+		'$contract',
+		'bigMapId',
 		'path',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'contract',
-				},
-				{
-					label: 'big-map id',
-				},
+				'$contract',
+				'bigMapId',
 				'path',
-				{
-					label: 'key type',
-				},
-				{
-					label: 'value type',
-				},
+				'keyType',
+				'valueType',
 				{
 					label: 'latest active/key/update counts',
 				},
@@ -84,6 +72,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'keys',
+			label: 'keys',
+			field: '$$keys',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'updates',
+			label: 'updates',
+			field: '$$updates',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -24,22 +24,14 @@
 		},
 	],
 	closed: [
-		{
-			label: 'URL',
-		},
-		{
-			label: 'latest preview timestamp',
-		},
+		'url',
+		'$$previewTimestamps',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'URL',
-				},
-				{
-					label: 'latest preview timestamp',
-				},
+				'url',
+				'$$previewTimestamps',
 			],
 		],
 	},
@@ -74,6 +66,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'preview-timestamps',
+			label: 'preview timestamps',
+			field: '$$previewTimestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'market key',
-		},
+		'$network',
+		'marketKey',
 		{
 			label: 'interval',
 		},
@@ -23,12 +19,8 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'market key',
-				},
+				'$network',
+				'marketKey',
 				{
 					label: 'interval',
 				},
@@ -38,14 +30,16 @@
 				{
 					label: 'perp market or spot pair ref',
 				},
+			],
+			[
 				'open',
 				'high',
 				'low',
 				'close',
 				'volume',
-				{
-					label: 'trade count',
-				},
+			],
+			[
+				'tradeCount',
 			],
 		],
 	},

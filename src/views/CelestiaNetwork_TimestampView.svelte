@@ -10,49 +10,29 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'observation time',
-		},
-		{
-			label: 'latest height',
-		},
+		'$network',
+		'timestampMs',
+		'latestHeight',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'observation time',
-				},
+				'$network',
+				'timestampMs',
 				'source',
 				{
 					label: 'latest height/hash',
 				},
-				{
-					label: 'latest block time',
-				},
+				'latestBlockTimeMs',
 				{
 					label: 'syncing/health',
 				},
 			],
 			[
-				{
-					label: 'blob count',
-				},
-				{
-					label: 'namespace count',
-				},
-				{
-					label: 'sampled header height',
-				},
-				{
-					label: 'node type',
-				},
+				'blobCount',
+				'namespaceCount',
+				'sampledHeaderHeight',
+				'nodeType',
 			],
 		],
 	},
@@ -77,9 +57,7 @@
 			{
 				label: 'DA sampling',
 				items: [
-					{
-						label: 'sampled header height',
-					},
+					'sampledHeaderHeight',
 					{
 						label: 'node type/source freshness',
 					},

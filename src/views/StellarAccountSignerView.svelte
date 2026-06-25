@@ -10,28 +10,16 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account',
-		},
-		{
-			label: 'signer key',
-		},
-		{
-			label: 'signer type',
-		},
+		'$account',
+		'signerKey',
+		'signerType',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'account',
-				},
-				{
-					label: 'signer key',
-				},
-				{
-					label: 'signer type',
-				},
+				'$account',
+				'signerKey',
+				'signerType',
 				{
 					label: 'latest weight/sponsor observation',
 				},
@@ -75,6 +63,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

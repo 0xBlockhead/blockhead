@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'canister id',
-		},
+		'canisterId',
 		{
 			label: 'latest subnet',
 		},
@@ -23,9 +21,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'canister id',
-				},
+				'canisterId',
 				{
 					label: 'latest subnet',
 				},
@@ -38,18 +34,16 @@
 				{
 					label: 'latest status',
 				},
+			],
+			[
 				{
 					label: 'cycles balance',
 				},
 				{
 					label: 'controller count',
 				},
-				{
-					label: 'method count',
-				},
-				{
-					label: 'certified-state count',
-				},
+				'$$methods',
+				'$$certifiedStates',
 			],
 		],
 	},
@@ -121,6 +115,62 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'methods',
+			label: 'methods',
+			field: '$$methods',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'metadata',
+			label: 'metadatases',
+			field: '$$metadata',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'logs',
+			label: 'logs',
+			field: '$$logs',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'certified-states',
+			label: 'certified states',
+			field: '$$certifiedStates',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'request-statuses',
+			label: 'request statuses',
+			field: '$$requestStatuses',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

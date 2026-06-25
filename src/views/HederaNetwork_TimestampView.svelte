@@ -10,39 +10,25 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'observed time',
-		},
+		'$network',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'observed time',
-				},
+				'$network',
+				'timestampMs',
 				'source',
-				{
-					label: 'latest consensus timestamp',
-				},
-				{
-					label: 'latest block number',
-				},
-				{
-					label: 'latest transaction count',
-				},
+				'latestConsensusTimestamp',
+				'latestBlockNumber',
+			],
+			[
+				'latestTransactionCount',
 				{
 					label: 'aggregate counts',
 				},
-				{
-					label: 'mirror-node lag',
-				},
+				'mirrorNodeLagMs',
 			],
 		],
 	},

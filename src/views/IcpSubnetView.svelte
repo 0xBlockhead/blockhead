@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'subnet id',
-		},
+		'$network',
+		'subnetId',
 		{
 			label: 'latest subnet kind',
 		},
@@ -23,12 +19,8 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'subnet id',
-				},
+				'$network',
+				'subnetId',
 				{
 					label: 'latest subnet kind',
 				},
@@ -38,6 +30,8 @@
 				{
 					label: 'latest replica version',
 				},
+			],
+			[
 				{
 					label: 'latest node count',
 				},
@@ -102,6 +96,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'canister-ranges',
+			label: 'canister ranges',
+			field: '$$canisterRanges',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'canisters',
+			label: 'canisters',
+			field: '$$canisters',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

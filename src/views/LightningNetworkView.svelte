@@ -11,9 +11,7 @@
 	const view = {
 	closed: [
 		'name',
-		{
-			label: 'settlement network',
-		},
+		'$settlementNetwork',
 		{
 			label: 'latest graph snapshot',
 		},
@@ -22,9 +20,7 @@
 		dl: [
 			[
 				'name',
-				{
-					label: 'settlement network',
-				},
+				'$settlementNetwork',
 				{
 					label: 'latest graph snapshot',
 				},
@@ -106,6 +102,62 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'nodes',
+			label: 'nodes',
+			field: '$$nodes',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'channels',
+			label: 'channels',
+			field: '$$channels',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'invoices',
+			label: 'invoices',
+			field: '$$invoices',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'payments',
+			label: 'payments',
+			field: '$$payments',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'local-node-states',
+			label: 'local node states',
+			field: '$$localNodeStates',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,28 +10,16 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'object id',
-		},
-		{
-			label: 'object format',
-		},
-		{
-			label: 'object link',
-		},
+		'objectId',
+		'objectFormat',
+		'$object',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'object id',
-				},
-				{
-					label: 'object format',
-				},
-				{
-					label: 'object link',
-				},
+				'objectId',
+				'objectFormat',
+				'$object',
 				{
 					label: 'entry count',
 				},
@@ -66,6 +54,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'entries',
+			label: 'entries',
+			field: '$$entries',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

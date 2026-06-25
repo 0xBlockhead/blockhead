@@ -10,28 +10,16 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'transaction',
-		},
-		{
-			label: 'input index',
-		},
-		{
-			label: 'key image',
-		},
+		'$transaction',
+		'inputIndex',
+		'keyImage',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'transaction',
-				},
-				{
-					label: 'input index',
-				},
-				{
-					label: 'key image',
-				},
+				'$transaction',
+				'inputIndex',
+				'keyImage',
 				{
 					label: 'ring status',
 				},

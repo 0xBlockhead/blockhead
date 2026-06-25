@@ -38,9 +38,7 @@
 				{
 					label: 'latest block-bounded allowance amount',
 				},
-				{
-					label: 'latest block',
-				},
+				'$$blocks',
 				{
 					label: 'latest source',
 				},
@@ -91,6 +89,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'blocks',
+			label: 'blocks',
+			field: '$$blocks',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

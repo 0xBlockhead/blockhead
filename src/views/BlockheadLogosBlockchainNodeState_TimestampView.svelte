@@ -10,38 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'node state',
-		},
-		{
-			label: 'observation time',
-		},
-		{
-			label: 'peer count',
-		},
+		'$nodeState',
+		'timestampMs',
+		'peerCount',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'node state',
-				},
-				{
-					label: 'observation time',
-				},
+				'$nodeState',
+				'timestampMs',
 				'source',
 				{
 					label: 'listen address count',
 				},
-				{
-					label: 'peer count',
-				},
-				{
-					label: 'connection count',
-				},
-				{
-					label: 'pending connection count',
-				},
+				'peerCount',
+				'connectionCount',
+				'pendingConnectionCount',
 			],
 		],
 	},
@@ -58,9 +42,7 @@
 			{
 				label: 'Connectivity',
 				items: [
-					{
-						label: 'listen addresses',
-					},
+					'listenAddresses',
 					{
 						label: 'peer/connection counters',
 					},

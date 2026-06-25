@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'proposal',
-		},
-		{
-			label: 'voter',
-		},
+		'$proposal',
+		'$voter',
 		{
 			label: 'latest option',
 		},
@@ -23,12 +19,8 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'proposal',
-				},
-				{
-					label: 'voter',
-				},
+				'$proposal',
+				'$voter',
 				{
 					label: 'latest option/weight',
 				},
@@ -85,6 +77,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

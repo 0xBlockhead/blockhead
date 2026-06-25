@@ -13,48 +13,24 @@
 		{
 			label: 'block number/hash',
 		},
-		{
-			label: 'data submission count',
-		},
-		{
-			label: 'timestamp',
-		},
+		'dataSubmissionCount',
+		'timestampMs',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'block number',
-				},
-				{
-					label: 'block hash',
-				},
-				{
-					label: 'parent hash',
-				},
-				{
-					label: 'timestamp',
-				},
-				{
-					label: 'extrinsic count',
-				},
+				'$network',
+				'blockNumber',
+				'blockHash',
+				'parentHash',
+				'timestampMs',
+				'extrinsicCount',
 			],
 			[
-				{
-					label: 'data submission count',
-				},
-				{
-					label: 'app id count',
-				},
-				{
-					label: 'state root',
-				},
-				{
-					label: 'extrinsics root',
-				},
+				'dataSubmissionCount',
+				'appIdCount',
+				'stateRoot',
+				'extrinsicsRoot',
 			],
 		],
 	},
@@ -100,6 +76,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'data-submissions',
+			label: 'data submissions',
+			field: '$$dataSubmissions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -13,9 +13,7 @@
 		{
 			label: 'namespace/reference/address',
 		},
-		{
-			label: 'address kind',
-		},
+		'addressKind',
 		{
 			label: 'optional label',
 		},
@@ -25,15 +23,9 @@
 			[
 				'namespace',
 				'reference',
-				{
-					label: 'account address',
-				},
-				{
-					label: 'address kind',
-				},
-				{
-					label: 'canonical address',
-				},
+				'accountAddress',
+				'addressKind',
+				'canonicalAddress',
 				{
 					label: 'network when resolved',
 				},

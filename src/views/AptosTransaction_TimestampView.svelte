@@ -10,44 +10,26 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'transaction',
-		},
-		{
-			label: 'ledger version',
-		},
+		'$transaction',
+		'ledgerVersion',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'transaction',
-				},
-				{
-					label: 'ledger version',
-				},
+				'$transaction',
+				'ledgerVersion',
 				'source',
-				{
-					label: 'observation time',
-				},
-				{
-					label: 'block height',
-				},
+				'timestampMs',
+				'blockHeight',
 				{
 					label: 'success/vm status',
 				},
 			],
 			[
-				{
-					label: 'gas unit price',
-				},
-				{
-					label: 'gas used',
-				},
-				{
-					label: 'accumulator root hash',
-				},
+				'gasUnitPrice',
+				'gasUsed',
+				'accumulatorRootHash',
 			],
 		],
 	},

@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'catalog id',
-		},
-		{
-			label: 'catalog kind',
-		},
+		'catalogId',
+		'catalogKind',
 		{
 			label: 'latest artifact/document coverage',
 		},
@@ -23,13 +19,9 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'catalog id',
-				},
+				'catalogId',
 				'label',
-				{
-					label: 'catalog kind',
-				},
+				'catalogKind',
 				{
 					label: 'latest observation',
 				},
@@ -80,6 +72,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'artifacts',
+			label: 'artifacts',
+			field: '$$artifacts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'documents',
+			label: 'documents',
+			field: '$$documents',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

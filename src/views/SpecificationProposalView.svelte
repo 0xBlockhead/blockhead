@@ -29,9 +29,7 @@
 				{
 					label: 'status',
 				},
-				{
-					label: 'document category',
-				},
+				'documentCategory',
 			],
 		],
 	},

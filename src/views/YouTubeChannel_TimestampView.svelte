@@ -10,34 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'channel',
-		},
-		{
-			label: 'observation time',
-		},
-		{
-			label: 'subscriber count',
-		},
+		'$channel',
+		'timestampMs',
+		'subscriberCount',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'channel',
-				},
-				{
-					label: 'observation time',
-				},
-				{
-					label: 'subscriber count',
-				},
-				{
-					label: 'video count',
-				},
-				{
-					label: 'view count',
-				},
+				'$channel',
+				'timestampMs',
+				'subscriberCount',
+				'videoCount',
+				'viewCount',
 			],
 		],
 	},

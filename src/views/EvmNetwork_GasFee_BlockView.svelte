@@ -13,12 +13,8 @@
 		{
 			label: 'base fee/gas price',
 		},
-		{
-			label: 'block number',
-		},
-		{
-			label: 'gas used ratio',
-		},
+		'blockNumber',
+		'gasUsedRatio',
 	],
 	content: {
 		dl: [
@@ -26,21 +22,15 @@
 				{
 					label: 'base fee/gas price',
 				},
-				{
-					label: 'block number',
-				},
-				{
-					label: 'gas used ratio',
-				},
+				'blockNumber',
+				'gasUsedRatio',
 				{
 					label: 'priority fee percentile',
 				},
 				{
 					label: 'blob base fee',
 				},
-				{
-					label: 'blob gas used ratio',
-				},
+				'blobGasUsedRatio',
 			],
 		],
 	},

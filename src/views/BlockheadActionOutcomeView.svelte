@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'outcome',
-		},
-		{
-			label: 'kind',
-		},
+		'outcomeKind',
+		'outcomeKind',
 		{
 			label: 'latest status',
 		},
@@ -23,36 +19,20 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'session action',
-				},
-				{
-					label: 'outcome id',
-				},
-				{
-					label: 'kind',
-				},
-				{
-					label: 'linked wallet request',
-				},
-				{
-					label: 'linked intent order',
-				},
-				{
-					label: 'linked simulation',
-				},
+				'$sessionAction',
+				'outcomeId',
+				'outcomeKind',
+				'$walletRequest',
+				'$intentOrder',
+			],
+			[
+				'$simulation',
 				{
 					label: 'transaction hash/id',
 				},
-				{
-					label: 'bridge transfer id',
-				},
-				{
-					label: 'created time',
-				},
-				{
-					label: 'outcome payload hash',
-				},
+				'bridgeTransferId',
+				'createdAt',
+				'outcomePayloadHash',
 			],
 		],
 	},
@@ -108,6 +88,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

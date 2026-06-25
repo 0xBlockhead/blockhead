@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'liquidity pool id',
-		},
-		{
-			label: 'pool type',
-		},
+		'liquidityPoolId',
+		'poolType',
 		{
 			label: 'asset pair',
 		},
@@ -23,18 +19,12 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'liquidity pool id',
-				},
-				{
-					label: 'pool type',
-				},
+				'liquidityPoolId',
+				'poolType',
 				{
 					label: 'asset pair',
 				},
-				{
-					label: 'fee bps',
-				},
+				'feeBps',
 				{
 					label: 'latest reserve/share observation',
 				},
@@ -91,6 +81,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

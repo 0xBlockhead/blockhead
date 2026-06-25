@@ -10,45 +10,25 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'witness',
-		},
-		{
-			label: 'observation time',
-		},
+		'$witness',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'witness',
-				},
-				{
-					label: 'observation time',
-				},
+				'$witness',
+				'timestampMs',
 				'source',
-				{
-					label: 'URL',
-				},
-				{
-					label: 'vote count',
-				},
-				{
-					label: 'total produced',
-				},
-				{
-					label: 'total missed',
-				},
-				{
-					label: 'latest block height',
-				},
-				{
-					label: 'latest slot number',
-				},
-				{
-					label: 'active state',
-				},
+				'url',
+				'voteCount',
+			],
+			[
+				'totalProduced',
+				'totalMissed',
+				'latestBlockHeight',
+				'latestSlotNumber',
+				'active',
 			],
 		],
 	},

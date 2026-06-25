@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'pool id',
-		},
-		{
-			label: 'VRF key hash',
-		},
+		'poolId',
+		'vrfKeyHash',
 		{
 			label: 'latest pledge',
 		},
@@ -23,12 +19,8 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'pool id',
-				},
-				{
-					label: 'VRF key hash',
-				},
+				'poolId',
+				'vrfKeyHash',
 				{
 					label: 'latest pledge',
 				},
@@ -69,6 +61,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

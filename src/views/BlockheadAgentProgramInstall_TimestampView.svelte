@@ -10,30 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'install',
-		},
-		{
-			label: 'observation time',
-		},
+		'$install',
+		'timestampMs',
 		'status',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'install',
-				},
-				{
-					label: 'timestamp',
-				},
+				'$install',
+				'timestampMs',
 				'source',
 				'status',
 			],
 			[
-				{
-					label: 'version probe',
-				},
+				'versionProbe',
 				{
 					label: 'executable hash algorithm/hash',
 				},

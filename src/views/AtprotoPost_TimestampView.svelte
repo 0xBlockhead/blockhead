@@ -109,6 +109,14 @@
 			},
 		],
 	},
+	summary: {
+		value: '$post',
+		title: '$post',
+		after: [
+			'timestampMs',
+			'likeCount',
+		],
+	},
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

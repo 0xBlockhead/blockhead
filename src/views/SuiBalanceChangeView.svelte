@@ -13,12 +13,8 @@
 		{
 			label: 'owner',
 		},
-		{
-			label: 'coin type',
-		},
-		{
-			label: 'amount delta',
-		},
+		'$coinType',
+		'amountDelta',
 	],
 	content: {
 		dl: [
@@ -26,18 +22,12 @@
 				{
 					label: 'owner',
 				},
-				{
-					label: 'coin type',
-				},
+				'$coinType',
 				{
 					label: 'resolved SuiCoinType',
 				},
-				{
-					label: 'amount delta',
-				},
-				{
-					label: 'parent transaction',
-				},
+				'amountDelta',
+				'$transaction',
 			],
 		],
 	},
@@ -54,12 +44,8 @@
 			{
 				label: 'Owner/coin',
 				items: [
-					{
-						label: 'owner selector',
-					},
-					{
-						label: 'coin type',
-					},
+					'ownerSelector',
+					'$coinType',
 					{
 						label: 'SuiCoinType',
 					},
@@ -68,9 +54,7 @@
 			{
 				label: 'Delta',
 				items: [
-					{
-						label: 'amount delta',
-					},
+					'amountDelta',
 				],
 			},
 			{

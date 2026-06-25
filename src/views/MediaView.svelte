@@ -23,18 +23,10 @@
 				'hash',
 			],
 			[
-				{
-					label: 'original',
-				},
-				{
-					label: 'thumbnail',
-				},
-				{
-					label: 'low',
-				},
-				{
-					label: 'medium',
-				},
+				'$original',
+				'$thumbnail',
+				'$low',
+				'$medium',
 				{
 					label: 'high rendition objects',
 				},

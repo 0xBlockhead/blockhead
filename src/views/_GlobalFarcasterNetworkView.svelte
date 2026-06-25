@@ -64,6 +64,53 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'source-window-users',
+			label: 'source window users',
+			field: '$$sourceWindowUsers',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'source-window-channels',
+			label: 'source window channels',
+			field: '$$sourceWindowChannels',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'source-window-casts',
+			label: 'source window casts',
+			field: '$$sourceWindowCasts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'source-window-feeds',
+			label: 'source window feeds',
+			field: '$$sourceWindowFeeds',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,23 +10,15 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'factory',
-		},
-		{
-			label: 'observation time',
-		},
+		'$factory',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'factory',
-				},
-				{
-					label: 'observation time',
-				},
+				'$factory',
+				'timestampMs',
 				'source',
 				{
 					label: 'indexed user-operation count',

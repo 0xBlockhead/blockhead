@@ -10,29 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'task',
-		},
-		{
-			label: 'config id',
-		},
+		'$task',
+		'configId',
 		'url',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'task',
-				},
-				{
-					label: 'config id',
-				},
+				'$task',
+				'configId',
 				'url',
 			],
 			[
-				{
-					label: 'auth kind',
-				},
+				'authKind',
 				{
 					label: 'created/deleted at',
 				},

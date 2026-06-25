@@ -13,9 +13,7 @@
 		{
 			label: 'request id',
 		},
-		{
-			label: 'request kind',
-		},
+		'requestKind',
 		{
 			label: 'latest status',
 		},
@@ -26,37 +24,29 @@
 				{
 					label: 'request id',
 				},
-				{
-					label: 'wallet protocol',
-				},
-				{
-					label: 'request kind',
-				},
+				'walletProtocol',
+				'requestKind',
 				{
 					label: 'method',
 				},
 				{
 					label: 'latest status',
 				},
-				{
-					label: 'wallet connection',
-				},
+			],
+			[
+				'$walletConnection',
 				{
 					label: 'account',
 				},
-				{
-					label: 'chain id',
-				},
+				'chainId',
 				{
 					label: 'from/to',
 				},
 				'value',
-				{
-					label: 'call count',
-				},
-				{
-					label: 'atomic required',
-				},
+			],
+			[
+				'callCount',
+				'atomicRequired',
 				{
 					label: 'requested time',
 				},
@@ -74,12 +64,8 @@
 				{
 					label: 'latest transaction id',
 				},
-				{
-					label: 'wallet call bundle id',
-				},
-				{
-					label: 'request payload hash',
-				},
+				'walletCallBundleId',
+				'requestPayloadHash',
 			],
 		],
 	},
@@ -135,6 +121,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

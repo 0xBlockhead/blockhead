@@ -10,24 +10,16 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'API host',
-		},
+		'apiHost',
 		'allowance',
-		{
-			label: 'fetched at',
-		},
+		'fetchedAt',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'API host',
-				},
+				'apiHost',
 				'allowance',
-				{
-					label: 'fetched at',
-				},
+				'fetchedAt',
 			],
 		],
 	},

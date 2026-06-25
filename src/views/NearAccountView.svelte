@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account id',
-		},
+		'accountId',
 		{
 			label: 'latest balance/storage/code summary',
 		},
@@ -23,18 +21,14 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'account id',
-				},
+				'accountId',
 				{
 					label: 'latest balance/storage/code summary',
 				},
 				{
 					label: 'contract link when latest code observation indicates deployed code',
 				},
-				{
-					label: 'access-key count',
-				},
+				'$$accessKeys',
 				{
 					label: 'latest observation time',
 				},
@@ -85,6 +79,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'access-keys',
+			label: 'access keys',
+			field: '$$accessKeys',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

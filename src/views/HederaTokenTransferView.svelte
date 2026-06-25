@@ -10,31 +10,17 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'transaction',
-		},
-		{
-			label: 'token',
-		},
-		{
-			label: 'account',
-		},
+		'$transaction',
+		'$token',
+		'$account',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'transaction',
-				},
-				{
-					label: 'token',
-				},
-				{
-					label: 'account',
-				},
-				{
-					label: 'transfer index',
-				},
+				'$transaction',
+				'$token',
+				'$account',
+				'transferIndex',
 				{
 					label: 'amount or NFT serial',
 				},

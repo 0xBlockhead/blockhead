@@ -10,23 +10,15 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'module',
-		},
-		{
-			label: 'struct name',
-		},
+		'$module',
+		'structName',
 		'abilities',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'module',
-				},
-				{
-					label: 'struct name',
-				},
+				'$module',
+				'structName',
 				{
 					label: 'native flag',
 				},
@@ -34,9 +26,7 @@
 					label: 'event flag',
 				},
 				'abilities',
-				{
-					label: 'type parameters',
-				},
+				'typeParameters',
 				'fields',
 			],
 		],

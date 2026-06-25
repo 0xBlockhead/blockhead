@@ -10,50 +10,32 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'wallet request',
-		},
-		{
-			label: 'observation time',
-		},
+		'$walletRequest',
+		'timestampMs',
 		'source',
 		'status',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'wallet request',
-				},
-				{
-					label: 'observation time',
-				},
+				'$walletRequest',
+				'timestampMs',
 				'source',
 				'status',
-				{
-					label: 'wallet status code',
-				},
-				{
-					label: 'wallet call bundle status',
-				},
+				'walletStatusCode',
+			],
+			[
+				'walletCallBundleStatus',
 				{
 					label: 'atomic execution',
 				},
-				{
-					label: 'receipt count',
-				},
-				{
-					label: 'transaction hash',
-				},
-				{
-					label: 'transaction id',
-				},
-				{
-					label: 'signature hash',
-				},
-				{
-					label: 'status payload hash',
-				},
+				'receiptCount',
+				'transactionHash',
+				'transactionId',
+			],
+			[
+				'signatureHash',
+				'statusPayloadHash',
 				'error',
 			],
 		],

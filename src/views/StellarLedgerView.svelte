@@ -12,21 +12,15 @@
 	closed: [
 		'sequence',
 		'hash',
-		{
-			label: 'close time',
-		},
+		'closeTimeMs',
 	],
 	content: {
 		dl: [
 			[
 				'sequence',
 				'hash',
-				{
-					label: 'close time',
-				},
-				{
-					label: 'protocol version',
-				},
+				'closeTimeMs',
+				'protocolVersion',
 				{
 					label: 'transaction/operation counts',
 				},
@@ -67,6 +61,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'transactions',
+			label: 'transactions',
+			field: '$$transactions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'operations',
+			label: 'operations',
+			field: '$$operations',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -13,12 +13,8 @@
 		{
 			label: 'operation index/type',
 		},
-		{
-			label: 'source account',
-		},
-		{
-			label: 'result code',
-		},
+		'sourceAccount',
+		'resultCode',
 	],
 	content: {
 		dl: [
@@ -26,15 +22,9 @@
 				{
 					label: 'operation index/type',
 				},
-				{
-					label: 'source account',
-				},
-				{
-					label: 'result code',
-				},
-				{
-					label: 'parent transaction',
-				},
+				'sourceAccount',
+				'resultCode',
+				'$transaction',
 			],
 		],
 	},
@@ -59,9 +49,7 @@
 			{
 				label: 'Result',
 				items: [
-					{
-						label: 'result code',
-					},
+					'resultCode',
 				],
 			},
 			{

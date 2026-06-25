@@ -30,9 +30,7 @@
 			label: 'coordinate kind/pubkey/identifier',
 		},
 		'title',
-		{
-			label: 'author',
-		},
+		'$author',
 	],
 	content: {
 		dl: [
@@ -41,16 +39,10 @@
 					label: 'coordinate kind/pubkey/identifier',
 				},
 				'title',
-				{
-					label: 'author',
-				},
+				'$author',
 				'publishedAt',
-				{
-					label: 'image URL',
-				},
-				{
-					label: 'tag count',
-				},
+				'imageUrl',
+				'tags',
 			],
 		],
 	},
@@ -88,6 +80,14 @@
 					},
 				],
 			},
+		],
+	},
+	summary: {
+		value: 'title',
+		title: 'title',
+		after: [
+			'$author',
+			'title',
 		],
 	},
 } satisfies ComponentProps<typeof EntityView2>['view']

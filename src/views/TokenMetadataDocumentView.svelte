@@ -13,47 +13,27 @@
 		{
 			label: 'metadata subject',
 		},
-		{
-			label: 'metadata key',
-		},
-		{
-			label: 'timestamp',
-		},
+		'metadataKey',
+		'timestampMs',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'metadata subject key',
-				},
-				{
-					label: 'asset instance',
-				},
-				{
-					label: 'object',
-				},
-				{
-					label: 'metadata key',
-				},
-				{
-					label: 'timestamp',
-				},
-				{
-					label: 'URI',
-				},
-				{
-					label: 'content hash',
-				},
-				{
-					label: 'metadata standard',
-				},
-				{
-					label: 'mutable flag',
-				},
+				'metadataSubjectKey',
+				'$assetInstance',
+				'$object',
+				'metadataKey',
+				'timestampMs',
+			],
+			[
+				'uri',
+				'contentHash',
+				'metadataStandard',
+				'mutable',
 				'source',
-				{
-					label: 'media URL',
-				},
+			],
+			[
+				'mediaUrl',
 			],
 		],
 	},

@@ -10,18 +10,14 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'mint URL',
-		},
+		'mintUrl',
 		'name',
 		'pubkey',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'mint URL',
-				},
+				'mintUrl',
 				'name',
 				'pubkey',
 				'version',
@@ -30,12 +26,8 @@
 				},
 			],
 			[
-				{
-					label: 'keyset count',
-				},
-				{
-					label: 'MOTD',
-				},
+				'$$keysets',
+				'motd',
 				{
 					label: 'icon/TOS availability',
 				},
@@ -57,9 +49,7 @@
 				items: [
 					'name',
 					'description',
-					{
-						label: 'MOTD',
-					},
+					'motd',
 					{
 						label: 'icon',
 					},
@@ -89,6 +79,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'keysets',
+			label: 'keysets',
+			field: '$$keysets',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

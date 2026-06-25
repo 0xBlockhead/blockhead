@@ -66,7 +66,6 @@ import {
 	proposalKindAllowedInRealmByKey,
 	proposalKinds,
 	SpecificationRealm,
-	specificationRealmById,
 	specificationRealms,
 } from '$/constants/SpecificationProposal.ts'
 import { activityPubNetworkSeedActors } from '$/constants/Social/ActivityPub.ts'
@@ -1045,7 +1044,6 @@ export default {
 							}),
 							namespace,
 							environment: network.environment,
-							stack: networkStackIdByNamespace[namespace],
 							$networkStack: {
 								[EntityMetaKey.Selector]: {
 									networkStackId: networkStackIdByNamespace[namespace],
@@ -1069,7 +1067,6 @@ export default {
 							}),
 							namespace,
 							environment: network.environment,
-							stack: networkStackIdByNamespace[namespace],
 							$networkStack: {
 								[EntityMetaKey.Selector]: {
 									networkStackId: networkStackIdByNamespace[namespace],
@@ -1087,10 +1084,9 @@ export default {
 					caip2: (network) => network.caip2,
 					namespace: (network) => network.namespace,
 					environment: (network) => network.environment,
-					stack: (network) => network.stack,
-					$networkStack: (network) => network.$networkStack,
-					executionEnvironments: (network) => network.executionEnvironments,
-					consensusMechanisms: (network) => network.consensusMechanisms,
+						$networkStack: (network) => network.$networkStack,
+						executionEnvironments: (network) => network.executionEnvironments,
+						consensusMechanisms: (network) => network.consensusMechanisms,
 				},
 			}),
 
@@ -1900,23 +1896,8 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType._Global,
-			resolve: {
-				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => ({
-					proposalRealms: Object.keys(specificationRealmById).map(String),
-					proposalCategories: Object.keys(proposalCategoryById).map(String),
-				})
-			},
-		})({
-			fields: {
-				proposalRealms: (entity) => entity.proposalRealms,
-				proposalCategories: (entity) => entity.proposalCategories,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType._Global,
+			defineResolver(Source.Constants_Internal, {
+				entityType: EntityType._Global,
 			resolve: {
 				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => (
 					specificationRealms.map((realm) => ({

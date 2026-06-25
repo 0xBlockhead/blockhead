@@ -10,54 +10,38 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'payment hash',
-		},
+		'$network',
+		'paymentHash',
 		'memo',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'payment hash',
-				},
+				'$network',
+				'paymentHash',
 				'memo',
 				{
 					label: 'latest state',
 				},
-				{
-					label: 'value msat',
-				},
+				'valueMsat',
+			],
+			[
 				{
 					label: 'latest amount paid',
 				},
-				{
-					label: 'created time',
-				},
+				'createdAtMs',
 				{
 					label: 'latest settled time',
 				},
-				{
-					label: 'expiry seconds',
-				},
-				{
-					label: 'private flag',
-				},
-				{
-					label: 'add index',
-				},
+				'expirySeconds',
+				'private',
+			],
+			[
+				'addIndex',
 				{
 					label: 'latest settle index',
 				},
-				{
-					label: 'payment request',
-				},
+				'paymentRequest',
 			],
 		],
 	},
@@ -130,6 +114,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

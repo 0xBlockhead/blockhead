@@ -10,41 +10,33 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'baker',
-		},
+		'$baker',
 		'level',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'baker',
-				},
+				'$baker',
 				'level',
 				'source',
-				{
-					label: 'consensus key',
-				},
+				'consensusKey',
 				{
 					label: 'staking balance',
 				},
+			],
+			[
 				{
 					label: 'delegated balance',
 				},
 				{
 					label: 'own delegated balance',
 				},
-				{
-					label: 'voting power',
-				},
+				'votingPower',
 				{
 					label: 'active status',
 				},
-				{
-					label: 'timestamp',
-				},
+				'timestampMs',
 			],
 		],
 	},

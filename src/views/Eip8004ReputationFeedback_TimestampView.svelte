@@ -10,31 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'registration',
-		},
+		'$registration',
 		{
 			label: 'client',
 		},
-		{
-			label: 'feedback index',
-		},
+		'feedbackIndex',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'registration',
-				},
-				{
-					label: 'client address',
-				},
-				{
-					label: 'feedback index',
-				},
-				{
-					label: 'value/decimals',
-				},
+				'$registration',
+				'clientAddress',
+				'feedbackIndex',
+				'valueDecimals',
 			],
 			[
 				{

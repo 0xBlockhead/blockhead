@@ -59,15 +59,9 @@
 			{
 				label: 'Activity',
 				items: [
-					{
-						label: 'transactions',
-					},
-					{
-						label: 'token transfers',
-					},
-					{
-						label: 'internal transfers',
-					},
+					'$$transactions',
+					'$$tokenTransfers',
+					'$$internalTransfers',
 				],
 			},
 			{
@@ -88,6 +82,62 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'transactions',
+			label: 'transactions',
+			field: '$$transactions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'token-transfers',
+			label: 'token transfers',
+			field: '$$tokenTransfers',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'internal-transfers',
+			label: 'internal transfers',
+			field: '$$internalTransfers',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'owned-coins',
+			label: 'owned coins',
+			field: '$$ownedCoins',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'erc20-token-allowances',
+			label: 'erc20 token allowances',
+			field: '$$erc20TokenAllowances',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

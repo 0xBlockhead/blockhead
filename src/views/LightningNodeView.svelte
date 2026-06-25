@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'public key',
-		},
+		'$network',
+		'publicKey',
 		{
 			label: 'latest observed alias/color/capacity/channel count',
 		},
@@ -23,21 +19,15 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'public key',
-				},
+				'$network',
+				'publicKey',
 				{
 					label: 'latest observed alias/color/capacity/channel count',
 				},
 				{
 					label: 'latest location/address summary',
 				},
-				{
-					label: 'channel count',
-				},
+				'$$channels',
 				{
 					label: 'local-node-state count when connected',
 				},
@@ -110,6 +100,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'channels',
+			label: 'channels',
+			field: '$$channels',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'local-node-states',
+			label: 'local node states',
+			field: '$$localNodeStates',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

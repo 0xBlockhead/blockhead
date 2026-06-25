@@ -10,28 +10,16 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'API host',
-		},
-		{
-			label: 'from domain',
-		},
-		{
-			label: 'to domain',
-		},
+		'apiHost',
+		'fromDomain',
+		'toDomain',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'API host',
-				},
-				{
-					label: 'from domain',
-				},
-				{
-					label: 'to domain',
-				},
+				'apiHost',
+				'fromDomain',
+				'toDomain',
 				{
 					label: 'fee-row count',
 				},

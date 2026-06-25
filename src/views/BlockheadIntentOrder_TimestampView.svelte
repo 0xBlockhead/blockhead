@@ -10,38 +10,28 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'order',
-		},
-		{
-			label: 'observation time',
-		},
+		'$order',
+		'timestampMs',
 		'source',
 		'status',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'order',
-				},
-				{
-					label: 'observation time',
-				},
+				'$order',
+				'timestampMs',
 				'source',
 				'status',
 				{
 					label: 'fill tx',
 				},
+			],
+			[
 				{
 					label: 'claim tx',
 				},
-				{
-					label: 'gas used',
-				},
-				{
-					label: 'status payload hash',
-				},
+				'gasUsed',
+				'statusPayloadHash',
 				'error',
 			],
 		],

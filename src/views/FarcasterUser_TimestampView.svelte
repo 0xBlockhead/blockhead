@@ -10,31 +10,17 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'user',
-		},
-		{
-			label: 'observation time',
-		},
-		{
-			label: 'follower count',
-		},
+		'$user',
+		'timestampMs',
+		'followerCount',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'user',
-				},
-				{
-					label: 'observation time',
-				},
-				{
-					label: 'follower count',
-				},
-				{
-					label: 'following count',
-				},
+				'$user',
+				'timestampMs',
+				'followerCount',
+				'followingCount',
 			],
 		],
 	},
@@ -51,12 +37,8 @@
 			{
 				label: 'Social graph counters',
 				items: [
-					{
-						label: 'follower count',
-					},
-					{
-						label: 'following count',
-					},
+					'followerCount',
+					'followingCount',
 				],
 			},
 			{

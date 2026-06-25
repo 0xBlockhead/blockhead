@@ -13,12 +13,8 @@
 		{
 			label: 'post id',
 		},
-		{
-			label: 'latest text',
-		},
-		{
-			label: 'created time',
-		},
+		'text',
+		'createdAt',
 	],
 	content: {
 		dl: [
@@ -26,21 +22,15 @@
 				{
 					label: 'post id',
 				},
-				{
-					label: 'created time',
-				},
-				{
-					label: 'author',
-				},
-				{
-					label: 'conversation id',
-				},
+				'createdAt',
+				'$author',
+				'conversationId',
 				{
 					label: 'reply/quote refs',
 				},
-				{
-					label: 'latest post URL',
-				},
+			],
+			[
+				'postUrl',
 				{
 					label: 'latest media attachments',
 				},
@@ -94,6 +84,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'media',
+			label: 'mediases',
+			field: '$$media',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

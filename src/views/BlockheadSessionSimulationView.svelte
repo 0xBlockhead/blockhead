@@ -10,42 +10,28 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'session',
-		},
+		'$session',
 		'status',
-		{
-			label: 'created time',
-		},
+		'createdAt',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'session',
-				},
+				'$session',
 				'status',
-				{
-					label: 'created time',
-				},
+				'createdAt',
 				{
 					label: 'completed time',
 				},
-				{
-					label: 'params hash',
-				},
+				'paramsHash',
+			],
+			[
 				{
 					label: 'fork block',
 				},
-				{
-					label: 'action count',
-				},
-				{
-					label: 'gas used',
-				},
-				{
-					label: 'result payload hash',
-				},
+				'actionCount',
+				'gasUsed',
+				'resultPayloadHash',
 				'error',
 			],
 		],
@@ -63,9 +49,7 @@
 			{
 				label: 'Inputs',
 				items: [
-					{
-						label: 'params hash',
-					},
+					'paramsHash',
 					{
 						label: 'source action context',
 					},
@@ -108,6 +92,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'calls',
+			label: 'calls',
+			field: '$$calls',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'logs',
+			label: 'logs',
+			field: '$$logs',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

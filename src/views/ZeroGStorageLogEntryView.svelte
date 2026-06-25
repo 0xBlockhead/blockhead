@@ -10,35 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'log entry id',
-		},
-		{
-			label: 'sequence number',
-		},
+		'$network',
+		'logEntryId',
+		'sequenceNumber',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'log entry id',
-				},
-				{
-					label: 'sequence number',
-				},
+				'$network',
+				'logEntryId',
+				'sequenceNumber',
 				'commitment',
-				{
-					label: 'data blob',
-				},
-				{
-					label: 'consensus network',
-				},
+				'$dataBlob',
+				'$consensusNetwork',
 			],
 		],
 	},

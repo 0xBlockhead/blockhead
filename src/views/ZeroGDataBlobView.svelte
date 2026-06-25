@@ -20,12 +20,8 @@
 				'sizeBytes',
 				'erasureCodingScheme',
 				'aggregatedSignature',
-				{
-					label: 'consensus network',
-				},
-				{
-					label: 'DA quorum',
-				},
+				'$consensusNetwork',
+				'$daQuorum',
 				{
 					label: 'storage log entry when present',
 				},
@@ -71,6 +67,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'chunks',
+			label: 'chunks',
+			field: '$$chunks',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

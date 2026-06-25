@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'quote',
-		},
-		{
-			label: 'observation time',
-		},
+		'$quote',
+		'timestampMs',
 		'source',
 		{
 			label: 'quote id/solver',
@@ -24,28 +20,16 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'quote',
-				},
-				{
-					label: 'observation time',
-				},
+				'$quote',
+				'timestampMs',
 				'source',
-				{
-					label: 'quote id',
-				},
-				{
-					label: 'solver id',
-				},
-				{
-					label: 'valid until',
-				},
-				{
-					label: 'estimated fill seconds',
-				},
-				{
-					label: 'quote payload hash',
-				},
+				'quoteId',
+				'solverId',
+			],
+			[
+				'validUntil',
+				'estimatedFillSeconds',
+				'quotePayloadHash',
 				'error',
 			],
 		],

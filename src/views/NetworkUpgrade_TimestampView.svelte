@@ -10,31 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'upgrade',
-		},
-		{
-			label: 'observation time',
-		},
+		'$upgrade',
+		'timestampMs',
 		'status',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'upgrade',
-				},
-				{
-					label: 'observation time',
-				},
+				'$upgrade',
+				'timestampMs',
 				'source',
 				'status',
-				{
-					label: 'activation height',
-				},
-				{
-					label: 'activation timestamp',
-				},
+				'activationHeight',
+				'activationTimestampMs',
 			],
 		],
 	},

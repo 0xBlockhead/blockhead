@@ -10,45 +10,27 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'repository',
-		},
-		{
-			label: 'patch id',
-		},
+		'$repository',
+		'patchId',
 		'state',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'repository',
-				},
-				{
-					label: 'patch id',
-				},
+				'$repository',
+				'patchId',
 				'state',
-				{
-					label: 'author DID',
-				},
-				{
-					label: 'target ref',
-				},
-				{
-					label: 'head object id',
-				},
-				{
-					label: 'base object id',
-				},
+				'authorDid',
+				'targetRef',
+			],
+			[
+				'headObjectId',
+				'baseObjectId',
 				{
 					label: 'created/updated timestamps',
 				},
-				{
-					label: 'head commit',
-				},
-				{
-					label: 'base commit',
-				},
+				'$headCommit',
+				'$baseCommit',
 			],
 		],
 	},
@@ -88,6 +70,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'comments',
+			label: 'comments',
+			field: '$$comments',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

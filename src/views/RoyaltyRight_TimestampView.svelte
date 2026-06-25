@@ -10,61 +10,29 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'target key',
-		},
-		{
-			label: 'right key',
-		},
-		{
-			label: 'observation time',
-		},
+		'targetKey',
+		'rightKey',
+		'timestampMs',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'target key',
-				},
-				{
-					label: 'right key',
-				},
-				{
-					label: 'observation time',
-				},
+				'targetKey',
+				'rightKey',
+				'timestampMs',
 				'source',
-				{
-					label: 'source kind',
-				},
-				{
-					label: 'collection',
-				},
-				{
-					label: 'token',
-				},
+				'sourceKind',
+				'$collection',
+				'$token',
 			],
 			[
-				{
-					label: 'receiver selector',
-				},
-				{
-					label: 'basis points',
-				},
-				{
-					label: 'calculation kind',
-				},
-				{
-					label: 'sale-price denomination policy',
-				},
-				{
-					label: 'enforcement kind',
-				},
-				{
-					label: 'ledger coordinate',
-				},
-				{
-					label: 'contract address',
-				},
+				'receiverSelector',
+				'basisPoints',
+				'calculationKind',
+				'salePriceDenominationPolicy',
+				'enforcementKind',
+				'ledgerCoordinateKind',
+				'contractAddress',
 			],
 		],
 	},

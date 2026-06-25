@@ -10,34 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'RID',
-		},
+		'rid',
 		'revision',
-		{
-			label: 'previous revision',
-		},
+		'previousRevision',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'RID',
-				},
+				'rid',
 				'revision',
-				{
-					label: 'previous revision',
-				},
-				{
-					label: 'document hash',
-				},
+				'previousRevision',
+				'documentHash',
 				'threshold',
-				{
-					label: 'verification status',
-				},
-				{
-					label: 'delegate DIDs',
-				},
+			],
+			[
+				'verificationStatus',
+				'delegateDids',
 				{
 					label: 'signer DIDs',
 				},

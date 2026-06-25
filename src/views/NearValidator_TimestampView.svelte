@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'validator',
-		},
+		'$validator',
 		{
 			label: 'epoch id/height',
 		},
@@ -21,9 +19,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'validator',
-				},
+				'$validator',
 				{
 					label: 'epoch id/height',
 				},
@@ -31,9 +27,9 @@
 				{
 					label: 'role',
 				},
-				{
-					label: 'public key',
-				},
+				'publicKey',
+			],
+			[
 				{
 					label: 'stake',
 				},
@@ -46,12 +42,10 @@
 				{
 					label: 'chunks',
 				},
-				{
-					label: 'shard count',
-				},
-				{
-					label: 'kickout reason',
-				},
+				'shards',
+			],
+			[
+				'kickoutReason',
 			],
 		],
 	},

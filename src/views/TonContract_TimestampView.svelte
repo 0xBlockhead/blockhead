@@ -10,37 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'contract',
-		},
-		{
-			label: 'observation time',
-		},
+		'$contract',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'contract',
-				},
-				{
-					label: 'observation time',
-				},
+				'$contract',
+				'timestampMs',
 				'source',
-				{
-					label: 'interface kind',
-				},
-				{
-					label: 'wallet version',
-				},
-				{
-					label: 'code hash',
-				},
+				'interfaceKind',
+				'walletVersion',
+			],
+			[
+				'codeHash',
 				'verification',
-				{
-					label: 'verified source URL',
-				},
+				'verifiedSourceUrl',
 				{
 					label: 'verified time',
 				},

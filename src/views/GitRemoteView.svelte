@@ -10,34 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'repository',
-		},
-		{
-			label: 'remote name',
-		},
-		{
-			label: 'URL',
-		},
+		'$repository',
+		'remoteName',
+		'url',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'repository',
-				},
-				{
-					label: 'remote name',
-				},
-				{
-					label: 'URL',
-				},
-				{
-					label: 'transport kind',
-				},
-				{
-					label: 'host kind',
-				},
+				'$repository',
+				'remoteName',
+				'url',
+				'transportKind',
+				'hostKind',
 				'source',
 			],
 		],

@@ -10,43 +10,25 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'shard key',
-		},
-		{
-			label: 'frame number',
-		},
+		'shardKey',
+		'frameNumber',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'shard key',
-				},
-				{
-					label: 'frame number',
-				},
+				'shardKey',
+				'frameNumber',
 			],
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'frame number',
-				},
-				{
-					label: 'shard key',
-				},
-				{
-					label: 'frame hash',
-				},
-				{
-					label: 'timestamp',
-				},
+				'$network',
+				'frameNumber',
+				'shardKey',
+				'frameHash',
+				'timestampMs',
+			],
+			[
 				'difficulty',
-				{
-					label: 'shard',
-				},
+				'$shard',
 				{
 					label: 'prover when sourced',
 				},

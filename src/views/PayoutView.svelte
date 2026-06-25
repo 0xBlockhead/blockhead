@@ -11,44 +11,28 @@
 	const view = {
 	closed: [
 		'source',
-		{
-			label: 'payout id',
-		},
-		{
-			label: 'network',
-		},
+		'payoutId',
+		'$network',
 	],
 	content: {
 		dl: [
 			[
 				'source',
-				{
-					label: 'payout id',
-				},
-				{
-					label: 'network',
-				},
+				'payoutId',
+				'$network',
 				{
 					label: 'asset instance/class',
 				},
-				{
-					label: 'distributor contract',
-				},
-				{
-					label: 'snapshot coordinate',
-				},
-				{
-					label: 'merkle root',
-				},
-				{
-					label: 'payment asset',
-				},
-				{
-					label: 'total amount',
-				},
-				{
-					label: 'recipient count',
-				},
+				'$distributorContract',
+			],
+			[
+				'snapshotCoordinate',
+				'merkleRoot',
+				'paymentAsset',
+				'totalAmount',
+				'recipientCount',
+			],
+			[
 				{
 					label: 'opened/closed times',
 				},
@@ -93,9 +77,7 @@
 					{
 						label: 'block/round/record coordinate',
 					},
-					{
-						label: 'merkle root',
-					},
+					'merkleRoot',
 				],
 			},
 			{
@@ -104,9 +86,7 @@
 					{
 						label: 'Lens tokenDistribution',
 					},
-					{
-						label: 'distributor contract',
-					},
+					'$distributorContract',
 					{
 						label: 'indexer',
 					},
@@ -117,6 +97,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'claims',
+			label: 'claims',
+			field: '$$claims',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -13,9 +13,7 @@
 		{
 			label: 'level/hash',
 		},
-		{
-			label: 'timestamp',
-		},
+		'timestampMs',
 		{
 			label: 'baker',
 		},
@@ -25,23 +23,21 @@
 			[
 				'level',
 				'hash',
-				{
-					label: 'timestamp',
-				},
+				'timestampMs',
 				{
 					label: 'protocol',
 				},
 				{
 					label: 'baker',
 				},
+			],
+			[
 				'round',
 				'cycle',
 				{
 					label: 'predecessor',
 				},
-				{
-					label: 'operation count',
-				},
+				'$$operations',
 			],
 		],
 	},
@@ -82,12 +78,8 @@
 			{
 				label: 'Header',
 				items: [
-					{
-						label: 'payload hash',
-					},
-					{
-						label: 'operations hash',
-					},
+					'payloadHash',
+					'operationsHash',
 					'fitness',
 					{
 						label: 'predecessor/successor context',
@@ -107,6 +99,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'operation-groups',
+			label: 'operation groups',
+			field: '$$operationGroups',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'operations',
+			label: 'operations',
+			field: '$$operations',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

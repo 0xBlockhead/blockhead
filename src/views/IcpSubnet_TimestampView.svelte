@@ -10,46 +10,28 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'subnet',
-		},
+		'$subnet',
 		{
 			label: 'observed time/source',
 		},
-		{
-			label: 'node count',
-		},
+		'nodeCount',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'subnet',
-				},
+				'$subnet',
 				{
 					label: 'observed time/source',
 				},
-				{
-					label: 'subnet kind',
-				},
-				{
-					label: 'public key',
-				},
-				{
-					label: 'node count',
-				},
-				{
-					label: 'canister count',
-				},
-				{
-					label: 'replica version',
-				},
-				{
-					label: 'certified height',
-				},
-				{
-					label: 'state root hash',
-				},
+				'subnetKind',
+				'publicKey',
+				'nodeCount',
+			],
+			[
+				'canisterCount',
+				'replicaVersion',
+				'certifiedHeight',
+				'stateRootHash',
 			],
 		],
 	},
@@ -66,26 +48,16 @@
 			{
 				label: 'Node/replica state',
 				items: [
-					{
-						label: 'node count',
-					},
-					{
-						label: 'replica version',
-					},
+					'nodeCount',
+					'replicaVersion',
 				],
 			},
 			{
 				label: 'Certification',
 				items: [
-					{
-						label: 'public key',
-					},
-					{
-						label: 'certified height',
-					},
-					{
-						label: 'state root hash',
-					},
+					'publicKey',
+					'certifiedHeight',
+					'stateRootHash',
 				],
 			},
 			{

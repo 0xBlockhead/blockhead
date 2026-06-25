@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'proposal id',
-		},
+		'proposalId',
 		'title',
 		{
 			label: 'latest lifecycle status',
@@ -21,9 +19,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'proposal id',
-				},
+				'proposalId',
 				'title',
 				'summary',
 				{
@@ -37,12 +33,8 @@
 				{
 					label: 'latest tally summary',
 				},
-				{
-					label: 'deposit count',
-				},
-				{
-					label: 'vote count',
-				},
+				'$$deposits',
+				'$$votes',
 			],
 		],
 	},
@@ -106,6 +98,53 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'messages',
+			label: 'messages',
+			field: '$$messages',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'deposits',
+			label: 'deposits',
+			field: '$$deposits',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'votes',
+			label: 'votes',
+			field: '$$votes',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'tallies',
+			label: 'tallies',
+			field: '$$tallies',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

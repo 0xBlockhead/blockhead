@@ -10,41 +10,27 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'result',
-		},
+		'$result',
 		{
 			label: 'call depth/index',
 		},
-		{
-			label: 'call type',
-		},
+		'callType',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'result',
-				},
+				'$result',
 				{
 					label: 'call depth/index',
 				},
-				{
-					label: 'call type',
-				},
-				{
-					label: 'from address',
-				},
-				{
-					label: 'to address',
-				},
+				'callType',
+				'fromAddress',
+				'toAddress',
+			],
+			[
 				'gas',
-				{
-					label: 'gas used',
-				},
-				{
-					label: 'value',
-				},
+				'gasUsed',
+				'valueTinybar',
 				'error',
 			],
 		],

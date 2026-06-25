@@ -13,9 +13,7 @@
 		{
 			label: 'smart account',
 		},
-		{
-			label: 'observation time',
-		},
+		'timestampMs',
 		'source',
 	],
 	content: {
@@ -24,9 +22,7 @@
 				{
 					label: 'smart account',
 				},
-				{
-					label: 'observation time',
-				},
+				'timestampMs',
 				'source',
 				{
 					label: 'indexed user-operation count',

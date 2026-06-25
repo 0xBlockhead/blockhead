@@ -10,44 +10,28 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account',
-		},
-		{
-			label: 'token',
-		},
+		'$account',
+		'$token',
 		'level',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'account',
-				},
-				{
-					label: 'token',
-				},
+				'$account',
+				'$token',
 				'level',
 				'source',
 				'balance',
-				{
-					label: 'contract address',
-				},
-				{
-					label: 'token id',
-				},
-				{
-					label: 'first level',
-				},
-				{
-					label: 'last level',
-				},
-				{
-					label: 'transfer count',
-				},
-				{
-					label: 'timestamp',
-				},
+			],
+			[
+				'contractAddress',
+				'tokenId',
+				'firstLevel',
+				'lastLevel',
+				'transferCount',
+			],
+			[
+				'timestampMs',
 			],
 		],
 	},

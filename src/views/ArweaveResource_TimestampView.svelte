@@ -10,48 +10,26 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'resource',
-		},
-		{
-			label: 'observation time',
-		},
-		{
-			label: 'gateway origin',
-		},
+		'$resource',
+		'timestampMs',
+		'gatewayOrigin',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'resource',
-				},
-				{
-					label: 'observation time',
-				},
+				'$resource',
+				'timestampMs',
 				'source',
-				{
-					label: 'gateway origin',
-				},
-				{
-					label: 'gateway URL',
-				},
+				'gatewayOrigin',
+				'gatewayUrl',
 				'reachable',
 			],
 			[
-				{
-					label: 'content type',
-				},
-				{
-					label: 'content length',
-				},
-				{
-					label: 'file name',
-				},
+				'contentType',
+				'contentLength',
+				'fileName',
 				'extension',
-				{
-					label: 'display type',
-				},
+				'displayType',
 				{
 					label: 'inferred-content-type status',
 				},

@@ -10,31 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'torrent',
-		},
-		{
-			label: 'file index',
-		},
+		'$torrent',
+		'fileIndex',
 		'path',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'torrent',
-				},
-				{
-					label: 'file index',
-				},
+				'$torrent',
+				'fileIndex',
 				'path',
 				'length',
-				{
-					label: 'pieces root',
-				},
-				{
-					label: 'file hash',
-				},
+				'piecesRoot',
+				'fileHash',
 			],
 		],
 	},

@@ -18,23 +18,15 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'registry server name',
-				},
-				{
-					label: 'repository URL',
-				},
+				'registryServerName',
+				'repositoryUrl',
 				{
 					label: 'repository source/id',
 				},
 			],
 			[
-				{
-					label: 'repository subfolder',
-				},
-				{
-					label: 'website URL',
-				},
+				'repositorySubfolder',
+				'websiteUrl',
 				'label',
 				'description',
 				'license',
@@ -77,6 +69,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'versions',
+			label: 'versions',
+			field: '$$versions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'documents',
+			label: 'documents',
+			field: '$$documents',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

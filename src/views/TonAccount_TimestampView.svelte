@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'observed time',
-		},
+		'timestampMs',
 		'source',
 		{
 			label: 'balance',
@@ -21,9 +19,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'observed time',
-				},
+				'timestampMs',
 				'source',
 				{
 					label: 'balance',
@@ -32,15 +28,11 @@
 				{
 					label: 'last transaction lt/hash',
 				},
-				{
-					label: 'code hash',
-				},
-				{
-					label: 'data hash',
-				},
-				{
-					label: 'state hash',
-				},
+			],
+			[
+				'codeHash',
+				'dataHash',
+				'stateHash',
 				{
 					label: 'frozen-state hash',
 				},

@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'wasm',
-		},
-		{
-			label: 'ledger sequence',
-		},
+		'$wasm',
+		'ledgerSequence',
 		{
 			label: 'bytecode availability',
 		},
@@ -23,27 +19,17 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'wasm',
-				},
-				{
-					label: 'ledger sequence',
-				},
+				'$wasm',
+				'ledgerSequence',
 				'source',
 				{
 					label: 'observed time',
 				},
-				{
-					label: 'found state',
-				},
+				'found',
 			],
 			[
-				{
-					label: 'byte length',
-				},
-				{
-					label: 'interface version',
-				},
+				'byteLength',
+				'interfaceVersion',
 				{
 					label: 'spec-entry count',
 				},

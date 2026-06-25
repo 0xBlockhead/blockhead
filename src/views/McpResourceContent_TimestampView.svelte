@@ -10,37 +10,21 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'resource',
-		},
-		{
-			label: 'observation time',
-		},
-		{
-			label: 'content kind',
-		},
+		'$resource',
+		'timestampMs',
+		'contentKind',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'resource',
-				},
-				{
-					label: 'timestamp',
-				},
+				'$resource',
+				'timestampMs',
 				'source',
-				{
-					label: 'kind',
-				},
+				'contentKind',
 			],
 			[
-				{
-					label: 'URI',
-				},
-				{
-					label: 'mime type',
-				},
+				'uri',
+				'mimeType',
 				'size',
 				{
 					label: 'blob hash algorithm/hash',

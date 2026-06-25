@@ -13,12 +13,8 @@
 		{
 			label: 'observed time/source',
 		},
-		{
-			label: 'latest level',
-		},
-		{
-			label: 'protocol hash',
-		},
+		'latestLevel',
+		'protocolHash',
 	],
 	content: {
 		dl: [
@@ -26,19 +22,13 @@
 				{
 					label: 'observed time/source',
 				},
-				{
-					label: 'latest level',
-				},
-				{
-					label: 'protocol hash',
-				},
+				'latestLevel',
+				'protocolHash',
 				'cycle',
 				{
 					label: 'total supply',
 				},
-				{
-					label: 'active baker count',
-				},
+				'activeBakerCount',
 				{
 					label: 'indexer lag',
 				},

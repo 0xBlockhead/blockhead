@@ -16,9 +16,7 @@
 		{
 			label: 'latest registry version',
 		},
-		{
-			label: 'subnet count',
-		},
+		'$$subnets',
 	],
 	content: {
 		dl: [
@@ -29,12 +27,8 @@
 				{
 					label: 'latest registry version',
 				},
-				{
-					label: 'subnet count',
-				},
-				{
-					label: 'canister count',
-				},
+				'$$subnets',
+				'$$canisters',
 				{
 					label: 'boundary node count',
 				},
@@ -113,6 +107,53 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'subnets',
+			label: 'subnets',
+			field: '$$subnets',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'canisters',
+			label: 'canisters',
+			field: '$$canisters',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'ledger-canisters',
+			label: 'ledger canisters',
+			field: '$$ledgerCanisters',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'request-statuses',
+			label: 'request statuses',
+			field: '$$requestStatuses',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

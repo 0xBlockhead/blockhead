@@ -10,39 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'timestamp',
-		},
+		'timestampMs',
 		'source',
-		{
-			label: 'absolute slot',
-		},
+		'absoluteSlot',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'timestamp',
-				},
+				'timestampMs',
 				'source',
-				{
-					label: 'absolute slot',
-				},
-				{
-					label: 'block height',
-				},
+				'absoluteSlot',
+				'blockHeight',
 				'epoch',
-				{
-					label: 'slot index',
-				},
-				{
-					label: 'slots in epoch',
-				},
+				'slotIndex',
+				'slotsInEpoch',
 			],
 			[
-				{
-					label: 'transaction count',
-				},
+				'transactionCount',
 				{
 					label: 'current/delinquent validator counts',
 				},
@@ -52,9 +36,7 @@
 				{
 					label: 'core version',
 				},
-				{
-					label: 'feature set',
-				},
+				'featureSet',
 				'health',
 			],
 		],
@@ -90,9 +72,7 @@
 					{
 						label: 'core version',
 					},
-					{
-						label: 'feature set',
-					},
+					'featureSet',
 				],
 			},
 			{

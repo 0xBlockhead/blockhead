@@ -10,33 +10,21 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'method',
-		},
-		{
-			label: 'observation time',
-		},
+		'$method',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'method',
-				},
-				{
-					label: 'observation time',
-				},
+				'$method',
+				'timestampMs',
 				'source',
-				{
-					label: 'Candid signature',
-				},
+				'candidSignature',
 				{
 					label: 'certification support',
 				},
-				{
-					label: 'request count',
-				},
+				'requestCount',
 			],
 		],
 	},
@@ -61,9 +49,7 @@
 			{
 				label: 'Interface',
 				items: [
-					{
-						label: 'Candid signature',
-					},
+					'candidSignature',
 					{
 						label: 'metadata source',
 					},

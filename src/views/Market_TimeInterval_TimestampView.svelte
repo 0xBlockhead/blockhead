@@ -43,12 +43,8 @@
 		},
 	],
 	closed: [
-		{
-			label: 'market',
-		},
-		{
-			label: 'parent market',
-		},
+		'$market',
+		'$parentMarket',
 		{
 			label: 'interval',
 		},
@@ -56,12 +52,8 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'market',
-				},
-				{
-					label: 'parent market',
-				},
+				'$market',
+				'$parentMarket',
 				{
 					label: 'interval',
 				},
@@ -69,19 +61,17 @@
 					label: 'interval start',
 				},
 				'open',
+			],
+			[
 				'high',
 				'low',
 				'close',
 				'volume',
-				{
-					label: 'quote volume',
-				},
-				{
-					label: 'trade count',
-				},
-				{
-					label: 'VWAP',
-				},
+				'quoteVolume',
+			],
+			[
+				'tradeCount',
+				'vwap',
 			],
 		],
 	},
@@ -90,9 +80,7 @@
 			{
 				label: 'Market',
 				items: [
-					{
-						label: 'Market',
-					},
+					'$market',
 				],
 			},
 			{
@@ -111,15 +99,9 @@
 				label: 'Volume',
 				items: [
 					'volume',
-					{
-						label: 'quote volume',
-					},
-					{
-						label: 'trade count',
-					},
-					{
-						label: 'VWAP',
-					},
+					'quoteVolume',
+					'tradeCount',
+					'vwap',
 				],
 			},
 			{
@@ -144,6 +126,14 @@
 					},
 				],
 			},
+		],
+	},
+	summary: {
+		value: '$market',
+		title: '$market',
+		after: [
+			'$parentMarket',
+			'$market',
 		],
 	},
 } satisfies ComponentProps<typeof EntityView2>['view']

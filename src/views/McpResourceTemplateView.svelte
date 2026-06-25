@@ -10,31 +10,21 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'server',
-		},
-		{
-			label: 'URI template',
-		},
+		'$server',
+		'uriTemplate',
 		'name',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'server',
-				},
-				{
-					label: 'URI template',
-				},
+				'$server',
+				'uriTemplate',
 				'name',
 				'title',
 			],
 			[
 				'description',
-				{
-					label: 'mime type',
-				},
+				'mimeType',
 				'annotations',
 			],
 		],

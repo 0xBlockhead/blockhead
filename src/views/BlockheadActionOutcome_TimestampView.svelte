@@ -10,35 +10,25 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'outcome',
-		},
-		{
-			label: 'observation time',
-		},
+		'$outcome',
+		'timestampMs',
 		'status',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'outcome',
-				},
-				{
-					label: 'observation time',
-				},
+				'$outcome',
+				'timestampMs',
 				'source',
 				'status',
 				'finality',
+			],
+			[
 				{
 					label: 'transaction hash/id',
 				},
-				{
-					label: 'bridge transfer id',
-				},
-				{
-					label: 'source payload hash',
-				},
+				'bridgeTransferId',
+				'sourcePayloadHash',
 				'error',
 			],
 		],

@@ -10,43 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'repository',
-		},
-		{
-			label: 'ref name',
-		},
-		{
-			label: 'old object id',
-		},
+		'$repository',
+		'refName',
+		'oldObjectId',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'repository',
-				},
-				{
-					label: 'ref name',
-				},
-				{
-					label: 'old object id',
-				},
-				{
-					label: 'new object id',
-				},
-				{
-					label: 'update kind',
-				},
-				{
-					label: 'actor selector',
-				},
-				{
-					label: 'timestamp',
-				},
-				{
-					label: 'signature',
-				},
+				'$repository',
+				'refName',
+				'oldObjectId',
+				'newObjectId',
+				'updateKind',
+			],
+			[
+				'actorSelector',
+				'timestampMs',
+				'$signature',
 				'source',
 			],
 		],

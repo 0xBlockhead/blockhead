@@ -10,38 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'AVS',
-		},
-		{
-			label: 'observation time',
-		},
-		{
-			label: 'operator count',
-		},
+		'$avs',
+		'timestampMs',
+		'operatorCount',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'AVS',
-				},
-				{
-					label: 'observation time',
-				},
+				'$avs',
+				'timestampMs',
 				'source',
-				{
-					label: 'block number',
-				},
-				{
-					label: 'operator count',
-				},
-				{
-					label: 'strategy count',
-				},
-				{
-					label: 'registration status',
-				},
+				'blockNumber',
+				'operatorCount',
+				'strategyCount',
+				'registrationStatus',
 			],
 		],
 	},

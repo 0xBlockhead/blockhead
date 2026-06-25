@@ -10,29 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account',
-		},
-		{
-			label: 'application',
-		},
+		'$account',
+		'$application',
 		'round',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'account',
-				},
-				{
-					label: 'application',
-				},
+				'$account',
+				'$application',
 				'round',
 				'source',
 				'schema',
-				{
-					label: 'deleted state',
-				},
+				'deleted',
 				{
 					label: 'key-value state summary',
 				},
@@ -52,9 +42,7 @@
 			{
 				label: 'Application',
 				items: [
-					{
-						label: 'parent application',
-					},
+					'$application',
 				],
 			},
 			{

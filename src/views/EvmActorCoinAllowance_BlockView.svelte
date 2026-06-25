@@ -13,12 +13,8 @@
 		{
 			label: 'allowance identity',
 		},
-		{
-			label: 'block number',
-		},
-		{
-			label: 'block tag',
-		},
+		'blockNumber',
+		'blockTag',
 	],
 	content: {
 		dl: [
@@ -26,16 +22,14 @@
 				{
 					label: 'allowance identity',
 				},
-				{
-					label: 'block number',
-				},
-				{
-					label: 'block tag',
-				},
+				'blockNumber',
+				'blockTag',
 				'source',
 				{
 					label: 'raw allowance amount',
 				},
+			],
+			[
 				{
 					label: 'checked timestamp',
 				},

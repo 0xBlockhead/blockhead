@@ -10,48 +10,30 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'wallet state',
-		},
-		{
-			label: 'observation time',
-		},
+		'$walletState',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'wallet state',
-				},
-				{
-					label: 'observation time',
-				},
+				'$walletState',
+				'timestampMs',
 				'source',
-				{
-					label: 'MWEB address',
-				},
-				{
-					label: 'transparent address',
-				},
+				'mwebAddress',
+				'transparentAddress',
+			],
+			[
 				{
 					label: 'total balance',
 				},
-				{
-					label: 'MWEB balance',
-				},
-				{
-					label: 'transparent balance',
-				},
-				{
-					label: 'unconfirmed balance',
-				},
-				{
-					label: 'immature balance',
-				},
-				{
-					label: 'last scanned height',
-				},
+				'mwebBalanceLitoshis',
+				'transparentBalanceLitoshis',
+				'unconfirmedBalanceLitoshis',
+				'immatureBalanceLitoshis',
+			],
+			[
+				'lastScannedHeight',
 				{
 					label: 'last synced time',
 				},

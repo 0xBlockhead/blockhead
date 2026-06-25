@@ -10,28 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'right',
-		},
-		{
-			label: 'observation time',
-		},
+		'$right',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'right',
-				},
-				{
-					label: 'observation time',
-				},
+				'$right',
+				'timestampMs',
 				'source',
 				'status',
-				{
-					label: 'estimated time',
-				},
+				'estimatedTimeMs',
 				{
 					label: 'realized block',
 				},

@@ -13,12 +13,8 @@
 		{
 			label: 'transaction input',
 		},
-		{
-			label: 'asset',
-		},
-		{
-			label: 'reissuance token asset',
-		},
+		'$asset',
+		'$reissuanceTokenAsset',
 	],
 	content: {
 		dl: [
@@ -26,18 +22,12 @@
 				{
 					label: 'transaction input',
 				},
-				{
-					label: 'asset',
-				},
-				{
-					label: 'reissuance token asset',
-				},
-				{
-					label: 'issued amount',
-				},
-				{
-					label: 'token amount',
-				},
+				'$asset',
+				'$reissuanceTokenAsset',
+				'issuedAmount',
+				'tokenAmount',
+			],
+			[
 				{
 					label: 'reissuance flag',
 				},

@@ -10,28 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'type',
-		},
+		'transactionType',
 		'result',
-		{
-			label: 'consensus timestamp',
-		},
+		'consensusTimestamp',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'type',
-				},
+				'transactionType',
 				'result',
-				{
-					label: 'consensus timestamp',
-				},
-				{
-					label: 'transaction id',
-				},
+				'consensusTimestamp',
+				'transactionId',
 				'nonce',
+			],
+			[
 				{
 					label: 'payer',
 				},
@@ -41,9 +33,7 @@
 				{
 					label: 'fee',
 				},
-				{
-					label: 'scheduled flag',
-				},
+				'scheduled',
 			],
 		],
 	},
@@ -108,6 +98,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'hbar-transfers',
+			label: 'hbar transfers',
+			field: '$$hbarTransfers',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'token-transfers',
+			label: 'token transfers',
+			field: '$$tokenTransfers',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'contract-results',
+			label: 'contract results',
+			field: '$$contractResults',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

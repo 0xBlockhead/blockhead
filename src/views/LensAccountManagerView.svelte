@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account',
-		},
+		'$account',
 		{
 			label: 'manager address',
 		},
@@ -23,9 +21,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'account',
-				},
+				'$account',
 				{
 					label: 'manager address',
 				},
@@ -38,6 +34,8 @@
 				{
 					label: 'transaction permission',
 				},
+			],
+			[
 				{
 					label: 'metadata permission',
 				},

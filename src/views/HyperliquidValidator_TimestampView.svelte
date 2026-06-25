@@ -10,28 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'validator',
-		},
-		{
-			label: 'observation time',
-		},
+		'$validator',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'validator',
-				},
-				{
-					label: 'observation time',
-				},
+				'$validator',
+				'timestampMs',
 				'source',
 				'commission',
-				{
-					label: 'recent block count',
-				},
+				'recentBlockCount',
+			],
+			[
 				'stake',
 				{
 					label: 'active state',
@@ -39,10 +31,10 @@
 				{
 					label: 'jailed state',
 				},
-				{
-					label: 'signer address',
-				},
+				'signerAddress',
 				'name',
+			],
+			[
 				'description',
 			],
 		],

@@ -21,19 +21,13 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
+				'$network',
 				'ticker',
-				{
-					label: 'base asset',
-				},
-				{
-					label: 'quote asset',
-				},
-				{
-					label: 'market kind',
-				},
+				'baseAsset',
+				'quoteAsset',
+				'marketKind',
+			],
+			[
 				{
 					label: 'latest oracle price',
 				},
@@ -101,6 +95,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

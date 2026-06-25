@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'AuxPoW ref',
-		},
-		{
-			label: 'branch kind',
-		},
+		'$auxPow',
+		'branchKind',
 		{
 			label: 'branch hash count',
 		},
@@ -23,12 +19,8 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'AuxPoW ref',
-				},
-				{
-					label: 'branch kind',
-				},
+				'$auxPow',
+				'branchKind',
 				{
 					label: 'branch hash count',
 				},

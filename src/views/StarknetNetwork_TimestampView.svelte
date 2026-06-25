@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'observation time',
-		},
+		'$network',
+		'timestampMs',
 		{
 			label: 'latest block',
 		},
@@ -23,28 +19,16 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'observation time',
-				},
+				'$network',
+				'timestampMs',
 				'source',
-				{
-					label: 'latest block number',
-				},
-				{
-					label: 'latest block hash',
-				},
-				{
-					label: 'syncing state',
-				},
-				{
-					label: 'protocol version',
-				},
-				{
-					label: 'pending block hash',
-				},
+				'latestBlockNumber',
+				'latestBlockHash',
+			],
+			[
+				'syncing',
+				'protocolVersion',
+				'pendingBlockHash',
 			],
 		],
 	},

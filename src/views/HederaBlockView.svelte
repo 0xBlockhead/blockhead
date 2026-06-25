@@ -10,40 +10,24 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'block number',
-		},
-		{
-			label: 'block hash',
-		},
+		'$network',
+		'blockNumber',
+		'blockHash',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'block number',
-				},
-				{
-					label: 'block hash',
-				},
+				'$network',
+				'blockNumber',
+				'blockHash',
 				{
 					label: 'consensus start/end',
 				},
-				{
-					label: 'gas used',
-				},
+				'gasUsed',
 				{
 					label: 'record file',
 				},
-				{
-					label: 'transaction count',
-				},
+				'transactionCount',
 			],
 		],
 	},
@@ -78,6 +62,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'transactions',
+			label: 'transactions',
+			field: '$$transactions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

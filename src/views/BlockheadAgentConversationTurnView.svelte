@@ -22,6 +22,8 @@
 				'providerId',
 				'promptVersion',
 				'parentId',
+			],
+			[
 				'$acpPromptTurn',
 				'$a2aTaskEvent',
 				'$$providerCalls',
@@ -74,6 +76,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'provider-calls',
+			label: 'provider calls',
+			field: '$$providerCalls',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,30 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'contract',
-		},
+		'$contract',
 		'level',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'contract',
-				},
+				'$contract',
 				'level',
 				'source',
 				{
 					label: 'balance',
 				},
-				{
-					label: 'storage hash',
-				},
+				'storageHash',
 				'delegate',
-				{
-					label: 'timestamp',
-				},
+				'timestampMs',
 			],
 		],
 	},

@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'linked Network',
-		},
+		'$network',
 		{
 			label: 'latest era',
 		},
@@ -23,9 +21,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'linked Network',
-				},
+				'$network',
 				{
 					label: 'latest era',
 				},
@@ -38,15 +34,11 @@
 				{
 					label: 'native ADA asset',
 				},
-				{
-					label: 'DRep count',
-				},
-				{
-					label: 'governance proposal count',
-				},
-				{
-					label: 'stake pool count',
-				},
+			],
+			[
+				'$$dReps',
+				'$$governanceProposals',
+				'$$stakePools',
 			],
 		],
 	},
@@ -95,12 +87,8 @@
 			{
 				label: 'Governance',
 				items: [
-					{
-						label: 'DReps',
-					},
-					{
-						label: 'governance proposals',
-					},
+					'$$dReps',
+					'$$governanceProposals',
 					{
 						label: 'committee epoch observations',
 					},
@@ -135,6 +123,116 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'blocks',
+			label: 'blocks',
+			field: '$$blocks',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'transactions',
+			label: 'transactions',
+			field: '$$transactions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'addresses',
+			label: 'addresses',
+			field: '$$addresses',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'stake-credentials',
+			label: 'stake credentials',
+			field: '$$stakeCredentials',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'stake-pools',
+			label: 'stake pools',
+			field: '$$stakePools',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'd-reps',
+			label: 'd reps',
+			field: '$$dReps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'governance-proposals',
+			label: 'governance proposals',
+			field: '$$governanceProposals',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'assets',
+			label: 'assets',
+			field: '$$assets',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'protocol-parameter-epochs',
+			label: 'protocol parameter epochs',
+			field: '$$protocolParameterEpochs',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'constitution-epochs',
+			label: 'constitution epochs',
+			field: '$$constitutionEpochs',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'committee-epochs',
+			label: 'committee epochs',
+			field: '$$committeeEpochs',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

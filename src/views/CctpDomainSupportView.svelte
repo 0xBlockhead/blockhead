@@ -14,32 +14,24 @@
 			label: 'CCTP version/domain id',
 		},
 		'name',
-		{
-			label: 'linked network',
-		},
+		'$network',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'CCTP version',
-				},
-				{
-					label: 'domain id',
-				},
+				'cctpVersion',
+				'domainId',
 				'name',
-				{
-					label: 'linked network',
-				},
+				'$network',
 				{
 					label: 'standard/fast source support',
 				},
+			],
+			[
 				{
 					label: 'forwarding destination support',
 				},
-				{
-					label: 'supported token count',
-				},
+				'supportedTokens',
 				{
 					label: 'contract address availability',
 				},
@@ -88,6 +80,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'messages',
+			label: 'messages',
+			field: '$$messages',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'burn-fee-timestamps',
+			label: 'burn fee timestamps',
+			field: '$$burnFeeTimestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

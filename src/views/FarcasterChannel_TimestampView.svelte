@@ -10,31 +10,17 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'channel',
-		},
-		{
-			label: 'observation time',
-		},
-		{
-			label: 'follower count',
-		},
+		'$channel',
+		'timestampMs',
+		'followerCount',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'channel',
-				},
-				{
-					label: 'observation time',
-				},
-				{
-					label: 'follower count',
-				},
-				{
-					label: 'member count',
-				},
+				'$channel',
+				'timestampMs',
+				'followerCount',
+				'memberCount',
 			],
 		],
 	},
@@ -51,12 +37,8 @@
 			{
 				label: 'Membership',
 				items: [
-					{
-						label: 'follower count',
-					},
-					{
-						label: 'member count',
-					},
+					'followerCount',
+					'memberCount',
 				],
 			},
 			{

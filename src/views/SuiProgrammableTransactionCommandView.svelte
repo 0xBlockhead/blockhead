@@ -16,9 +16,7 @@
 		{
 			label: 'package/module/function',
 		},
-		{
-			label: 'type arguments',
-		},
+		'typeArguments',
 	],
 	content: {
 		dl: [
@@ -29,9 +27,7 @@
 				{
 					label: 'package/module/function',
 				},
-				{
-					label: 'type arguments',
-				},
+				'typeArguments',
 				'arguments',
 			],
 		],
@@ -49,29 +45,17 @@
 			{
 				label: 'Command',
 				items: [
-					{
-						label: 'command index',
-					},
-					{
-						label: 'command kind',
-					},
+					'commandIndex',
+					'commandKind',
 				],
 			},
 			{
 				label: 'Move call',
 				items: [
-					{
-						label: 'package id',
-					},
-					{
-						label: 'module name',
-					},
-					{
-						label: 'function name',
-					},
-					{
-						label: 'type arguments',
-					},
+					'packageId',
+					'moduleName',
+					'functionName',
+					'typeArguments',
 				],
 			},
 			{

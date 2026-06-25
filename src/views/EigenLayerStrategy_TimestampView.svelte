@@ -10,43 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'strategy',
-		},
-		{
-			label: 'observation time',
-		},
-		{
-			label: 'total shares',
-		},
+		'$strategy',
+		'timestampMs',
+		'totalShares',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'strategy',
-				},
-				{
-					label: 'observation time',
-				},
+				'$strategy',
+				'timestampMs',
 				'source',
-				{
-					label: 'block number',
-				},
-				{
-					label: 'total shares',
-				},
-				{
-					label: 'total underlying',
-				},
+				'blockNumber',
+				'totalShares',
+				'totalUnderlying',
 			],
 			[
-				{
-					label: 'staker count',
-				},
-				{
-					label: 'delegation count',
-				},
+				'stakerCount',
+				'delegationCount',
 			],
 		],
 	},

@@ -14,9 +14,7 @@
 			label: 'DHT node id',
 		},
 		'source',
-		{
-			label: 'timestamp',
-		},
+		'timestampMs',
 	],
 	content: {
 		dl: [
@@ -25,17 +23,13 @@
 					label: 'DHT node id',
 				},
 				'source',
-				{
-					label: 'timestamp',
-				},
+				'timestampMs',
 				'address',
 				'port',
 				{
 					label: 'reachability',
 				},
-				{
-					label: 'observed info hashes',
-				},
+				'observedInfoHashes',
 			],
 		],
 	},

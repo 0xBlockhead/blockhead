@@ -10,33 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'transaction',
-		},
+		'$transaction',
 		'slot',
 		'status',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'transaction',
-				},
+				'$transaction',
 				'slot',
 				'source',
-				{
-					label: 'timestamp',
-				},
+				'timestampMs',
 				'status',
-				{
-					label: 'confirmation status',
-				},
-				{
-					label: 'fee lamports',
-				},
-				{
-					label: 'compute units consumed',
-				},
+			],
+			[
+				'confirmationStatus',
+				'feeLamports',
+				'computeUnitsConsumed',
 				{
 					label: 'error presence',
 				},

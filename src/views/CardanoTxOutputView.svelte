@@ -10,32 +10,24 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'output index',
-		},
+		'outputIndex',
 		'address',
 		'lovelace',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'output index',
-				},
+				'outputIndex',
 				'address',
 				'lovelace',
 				{
 					label: 'datum hash/inline datum presence',
 				},
-				{
-					label: 'reference script hash',
-				},
+				'referenceScriptHash',
 				{
 					label: 'spent transaction hash/input index',
 				},
-				{
-					label: 'asset count',
-				},
+				'$$assets',
 			],
 		],
 	},
@@ -78,6 +70,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'assets',
+			label: 'assets',
+			field: '$$assets',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,31 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'transaction',
-		},
-		{
-			label: 'observation time',
-		},
+		'$transaction',
+		'timestampMs',
 		'status',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'transaction',
-				},
-				{
-					label: 'observation time',
-				},
+				'$transaction',
+				'timestampMs',
 				'source',
 				'status',
-				{
-					label: 'block height',
-				},
-				{
-					label: 'block id',
-				},
+				'blockHeight',
+				'blockId',
 			],
 		],
 	},

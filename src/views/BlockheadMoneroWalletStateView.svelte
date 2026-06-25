@@ -10,34 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'wallet id',
-		},
-		{
-			label: 'network',
-		},
-		{
-			label: 'primary address',
-		},
+		'walletId',
+		'$network',
+		'primaryAddress',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'wallet id',
-				},
-				{
-					label: 'network',
-				},
-				{
-					label: 'primary address',
-				},
-				{
-					label: 'view-only flag',
-				},
-				{
-					label: 'trusted-daemon flag',
-				},
+				'walletId',
+				'$network',
+				'primaryAddress',
+				'viewOnly',
+				'trustedDaemon',
+			],
+			[
 				{
 					label: 'latest height',
 				},
@@ -53,15 +39,13 @@
 				{
 					label: 'latest sync time',
 				},
-				{
-					label: 'view-key fingerprint',
-				},
+			],
+			[
+				'viewKeyFingerprint',
 				{
 					label: 'spend-key availability',
 				},
-				{
-					label: 'timestamp count',
-				},
+				'$$timestamps',
 			],
 		],
 	},
@@ -136,6 +120,44 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'subaddresses',
+			label: 'subaddresses',
+			field: '$$subaddresses',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'outputs',
+			label: 'outputs',
+			field: '$$outputs',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'transfers',
+			label: 'transfers',
+			field: '$$transfers',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

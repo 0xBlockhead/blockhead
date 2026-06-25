@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'card',
-		},
-		{
-			label: 'protocol binding',
-		},
+		'$card',
+		'protocolBinding',
 		{
 			label: 'endpoint',
 		},
@@ -23,23 +19,13 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'card',
-				},
-				{
-					label: 'protocol binding',
-				},
-				{
-					label: 'endpoint URL',
-				},
+				'$card',
+				'protocolBinding',
+				'endpointUrl',
 			],
 			[
-				{
-					label: 'transport kind',
-				},
-				{
-					label: 'auth kind',
-				},
+				'transportKind',
+				'authKind',
 				{
 					label: 'task refs',
 				},
@@ -77,6 +63,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'tasks',
+			label: 'tasks',
+			field: '$$tasks',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

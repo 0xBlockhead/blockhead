@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'observed timestamp',
-		},
+		'timestampMs',
 		{
 			label: 'parent pool',
 		},
@@ -23,36 +21,30 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'observed timestamp',
-				},
+				'timestampMs',
 				{
 					label: 'parent pool',
 				},
 				{
 					label: 'price USD/native',
 				},
-				{
-					label: 'liquidity USD',
-				},
+				'liquidityUsd',
 				{
 					label: '24h volume',
 				},
+			],
+			[
 				{
 					label: '24h price change',
 				},
 				{
 					label: '24h buys/sells',
 				},
-				{
-					label: 'market cap',
-				},
-				{
-					label: 'FDV',
-				},
-				{
-					label: 'feed key',
-				},
+				'marketCapUsd',
+				'fdvUsd',
+				'feedKey',
+			],
+			[
 				'transport',
 			],
 			[
@@ -65,9 +57,7 @@
 				{
 					label: 'labels',
 				},
-				{
-					label: 'DEX id',
-				},
+				'dexId',
 				{
 					label: 'Dexscreener URL',
 				},
@@ -79,17 +69,13 @@
 			{
 				label: 'Parent pool',
 				items: [
-					{
-						label: 'parent liquidity pool',
-					},
+					'$parentLiquidityPool',
 				],
 			},
 			{
 				label: 'Price/liquidity',
 				items: [
-					{
-						label: 'price',
-					},
+					'priceUsd',
 					{
 						label: 'TVL fields',
 					},
@@ -118,9 +104,7 @@
 					{
 						label: 'labels',
 					},
-					{
-						label: 'DEX id',
-					},
+					'dexId',
 					{
 						label: 'pair URL',
 					},

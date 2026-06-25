@@ -10,48 +10,28 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'observation time',
-		},
+		'timestampMs',
 		'source',
-		{
-			label: 'perp market count',
-		},
+		'perpMarketCount',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'observation time',
-				},
+				'timestampMs',
 				'source',
-				{
-					label: 'perp market count',
-				},
-				{
-					label: 'spot asset count',
-				},
-				{
-					label: 'spot pair count',
-				},
-				{
-					label: 'validator count',
-				},
-				{
-					label: 'active validator count',
-				},
-				{
-					label: 'jailed validator count',
-				},
-				{
-					label: 'total stake',
-				},
-				{
-					label: 'borrow/lend reserve count',
-				},
-				{
-					label: 'vault count',
-				},
+				'perpMarketCount',
+				'spotAssetCount',
+				'spotPairCount',
+			],
+			[
+				'validatorCount',
+				'activeValidatorCount',
+				'jailedValidatorCount',
+				'totalStake',
+				'borrowLendReserveCount',
+			],
+			[
+				'vaultCount',
 			],
 		],
 	},

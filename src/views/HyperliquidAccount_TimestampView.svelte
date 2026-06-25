@@ -10,30 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account',
-		},
-		{
-			label: 'observed time',
-		},
+		'$account',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'account',
-				},
-				{
-					label: 'observed time',
-				},
+				'$account',
+				'timestampMs',
 				'source',
-				{
-					label: 'account value',
-				},
+				'accountValue',
 				{
 					label: 'total notional position',
 				},
+			],
+			[
 				{
 					label: 'raw USD',
 				},
@@ -49,12 +41,10 @@
 				{
 					label: 'position count',
 				},
-				{
-					label: 'spot balance count',
-				},
-				{
-					label: 'approved builder count',
-				},
+			],
+			[
+				'spotBalances',
+				'approvedBuilders',
 			],
 		],
 	},
@@ -87,20 +77,14 @@
 			{
 				label: 'Fees/staking',
 				items: [
-					{
-						label: 'fee schedule',
-					},
-					{
-						label: 'staking summary',
-					},
+					'feeSchedule',
+					'stakingSummary',
 				],
 			},
 			{
 				label: 'Abstraction/builders',
 				items: [
-					{
-						label: 'user abstraction',
-					},
+					'userAbstraction',
 					{
 						label: 'DEX abstraction',
 					},

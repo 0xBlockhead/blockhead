@@ -10,34 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'task',
-		},
-		{
-			label: 'observation time',
-		},
+		'$task',
+		'timestampMs',
 		'state',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'task',
-				},
-				{
-					label: 'timestamp',
-				},
+				'$task',
+				'timestampMs',
 				'source',
 				'state',
 			],
 			[
-				{
-					label: 'status message',
-				},
+				'statusMessage',
 				'error',
-				{
-					label: 'raw status',
-				},
+				'rawStatus',
 			],
 		],
 	},

@@ -10,38 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'channel state',
-		},
-		{
-			label: 'channel',
-		},
-		{
-			label: 'HTLC index',
-		},
+		'$channelState',
+		'$channel',
+		'htlcIndex',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'channel state',
-				},
-				{
-					label: 'channel',
-				},
-				{
-					label: 'HTLC index',
-				},
+				'$channelState',
+				'$channel',
+				'htlcIndex',
 				'direction',
-				{
-					label: 'amount msat',
-				},
-				{
-					label: 'expiry height',
-				},
-				{
-					label: 'hash lock',
-				},
+				'amountMsat',
+			],
+			[
+				'expiryHeight',
+				'hashLock',
 				'state',
 			],
 		],
@@ -75,9 +59,7 @@
 			{
 				label: 'Timing',
 				items: [
-					{
-						label: 'expiry height',
-					},
+					'expiryHeight',
 					{
 						label: 'local state',
 					},

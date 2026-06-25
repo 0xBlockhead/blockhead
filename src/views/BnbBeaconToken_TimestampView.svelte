@@ -10,43 +10,25 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'token',
-		},
-		{
-			label: 'observation time',
-		},
-		{
-			label: 'total supply',
-		},
+		'$token',
+		'timestampMs',
+		'totalSupply',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'token',
-				},
-				{
-					label: 'observation time',
-				},
+				'$token',
+				'timestampMs',
 				'source',
-				{
-					label: 'total supply',
-				},
-				{
-					label: 'mintable flag',
-				},
+				'totalSupply',
+				'mintable',
 				{
 					label: 'mapped contract address',
 				},
 			],
 			[
-				{
-					label: 'holder count',
-				},
-				{
-					label: 'transfer count',
-				},
+				'holderCount',
+				'transferCount',
 			],
 		],
 	},

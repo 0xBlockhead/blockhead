@@ -10,40 +10,24 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'linked Network',
-		},
+		'$network',
 		{
 			label: 'settlement UTXO network',
 		},
-		{
-			label: 'federation name',
-		},
+		'federationName',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'linked Network',
-				},
+				'$network',
 				{
 					label: 'settlement UTXO network',
 				},
-				{
-					label: 'federation name',
-				},
-				{
-					label: 'block time',
-				},
-				{
-					label: 'native asset',
-				},
-				{
-					label: 'confidential-transactions default',
-				},
-				{
-					label: 'asset count',
-				},
+				'federationName',
+				'blockTimeSeconds',
+				'$nativeAsset',
+				'confidentialTransactionsDefault',
+				'$$assets',
 			],
 		],
 	},
@@ -83,6 +67,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'assets',
+			label: 'assets',
+			field: '$$assets',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

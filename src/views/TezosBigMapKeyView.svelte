@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'big map',
-		},
-		{
-			label: 'key hash',
-		},
+		'$bigMap',
+		'keyHash',
 		{
 			label: 'latest key summary',
 		},
@@ -23,12 +19,8 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'big map',
-				},
-				{
-					label: 'key hash',
-				},
+				'$bigMap',
+				'keyHash',
 				{
 					label: 'latest key summary',
 				},
@@ -38,9 +30,7 @@
 				{
 					label: 'first/last level',
 				},
-				{
-					label: 'update count',
-				},
+				'$$updates',
 				{
 					label: 'active state',
 				},
@@ -86,6 +76,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'updates',
+			label: 'updates',
+			field: '$$updates',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

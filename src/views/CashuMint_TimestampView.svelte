@@ -10,30 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'mint',
-		},
-		{
-			label: 'observation time',
-		},
+		'$mint',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'mint',
-				},
-				{
-					label: 'observation time',
-				},
+				'$mint',
+				'timestampMs',
 				'source',
 				{
 					label: 'reachability',
 				},
-				{
-					label: 'server time',
-				},
+				'serverTimeMs',
 				'version',
 				'pubkey',
 			],

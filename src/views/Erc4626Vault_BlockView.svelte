@@ -10,36 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'vault',
-		},
-		{
-			label: 'block number',
-		},
+		'$vault',
+		'blockNumber',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'vault',
-				},
-				{
-					label: 'block number',
-				},
+				'$vault',
+				'blockNumber',
 				'source',
-				{
-					label: 'total assets',
-				},
-				{
-					label: 'total supply',
-				},
-				{
-					label: 'assets per share',
-				},
-				{
-					label: 'shares per asset',
-				},
+				'totalAssets',
+				'totalSupply',
+			],
+			[
+				'assetsPerShare',
+				'sharesPerAsset',
 				{
 					label: 'deposit/mint/withdraw/redeem limits',
 				},

@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'observation time',
-		},
+		'$network',
+		'timestampMs',
 		{
 			label: 'latest block',
 		},
@@ -23,12 +19,8 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'observation time',
-				},
+				'$network',
+				'timestampMs',
 				'source',
 				{
 					label: 'latest block number/hash',
@@ -41,12 +33,8 @@
 				},
 			],
 			[
-				{
-					label: 'app id count',
-				},
-				{
-					label: 'data submission count',
-				},
+				'appIdCount',
+				'dataSubmissionCount',
 			],
 		],
 	},

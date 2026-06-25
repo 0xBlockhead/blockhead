@@ -10,41 +10,27 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'relay',
-		},
-		{
-			label: 'observation time',
-		},
+		'$relay',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'relay',
-				},
-				{
-					label: 'observation time',
-				},
+				'$relay',
+				'timestampMs',
 				'source',
 				{
 					label: 'reachable/status code',
 				},
-				{
-					label: 'delivered-payload sample count',
-				},
-				{
-					label: 'builder sample count',
-				},
+				'deliveredPayloadSampleCount',
+				'builderSampleCount',
 			],
 			[
 				{
 					label: 'slot window',
 				},
-				{
-					label: 'sample limit',
-				},
+				'sampleLimit',
 				'error',
 			],
 		],

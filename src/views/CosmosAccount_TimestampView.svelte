@@ -10,27 +10,17 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account',
-		},
-		{
-			label: 'observation time',
-		},
+		'$account',
+		'timestampMs',
 		'sequence',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'account',
-				},
-				{
-					label: 'observation time',
-				},
+				'$account',
+				'timestampMs',
 				'source',
-				{
-					label: 'account number',
-				},
+				'accountNumber',
 				'sequence',
 			],
 		],
@@ -48,9 +38,7 @@
 			{
 				label: 'Auth state',
 				items: [
-					{
-						label: 'account number',
-					},
+					'accountNumber',
 					'sequence',
 				],
 			},

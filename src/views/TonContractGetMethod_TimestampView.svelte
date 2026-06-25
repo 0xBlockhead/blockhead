@@ -10,45 +10,27 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'method',
-		},
-		{
-			label: 'observation time',
-		},
+		'$method',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'method',
-				},
-				{
-					label: 'observation time',
-				},
+				'$method',
+				'timestampMs',
 				'source',
-				{
-					label: 'method id',
-				},
+				'methodId',
 				{
 					label: 'schema availability',
 				},
-				{
-					label: 'exit code',
-				},
-				{
-					label: 'gas used',
-				},
-				{
-					label: 'result hash',
-				},
-				{
-					label: 'block seqno',
-				},
-				{
-					label: 'last transaction lt',
-				},
+			],
+			[
+				'exitCode',
+				'gasUsed',
+				'resultHash',
+				'blockSeqno',
+				'lastTransactionLt',
 			],
 		],
 	},

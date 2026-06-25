@@ -10,39 +10,29 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
+		'$network',
 		'credential',
-		{
-			label: 'credential kind',
-		},
+		'credentialKind',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
+				'$network',
 				'credential',
-				{
-					label: 'credential kind',
-				},
-				{
-					label: 'reward address',
-				},
+				'credentialKind',
+				'rewardAddress',
 				{
 					label: 'latest registered flag',
 				},
+			],
+			[
 				{
 					label: 'latest active pool',
 				},
 				{
 					label: 'latest active DRep',
 				},
-				{
-					label: 'delegation epoch count',
-				},
+				'$$delegationEpochs',
 				{
 					label: 'address count',
 				},
@@ -101,6 +91,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'delegation-epochs',
+			label: 'delegation epochs',
+			field: '$$delegationEpochs',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'addresses',
+			label: 'addresses',
+			field: '$$addresses',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

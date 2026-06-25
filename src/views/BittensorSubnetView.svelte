@@ -10,29 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
+		'$network',
 		'netuid',
 		'name',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
+				'$network',
 				'netuid',
 				'name',
-				{
-					label: 'subnet-info byte length',
-				},
-				{
-					label: 'dynamic-info byte length',
-				},
-				{
-					label: 'hyperparams byte length',
-				},
+				'subnetInfoByteLength',
+				'dynamicInfoByteLength',
+				'hyperparamsByteLength',
 			],
 		],
 	},
@@ -89,6 +79,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'metagraph-timestamps',
+			label: 'metagraph timestamps',
+			field: '$$metagraphTimestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'neurons',
+			label: 'neurons',
+			field: '$$neurons',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

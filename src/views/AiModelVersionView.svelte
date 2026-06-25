@@ -18,15 +18,9 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'model',
-				},
-				{
-					label: 'version id',
-				},
-				{
-					label: 'artifact',
-				},
+				'$model',
+				'versionId',
+				'$artifact',
 				{
 					label: 'HF repo/revision',
 				},
@@ -38,16 +32,10 @@
 				{
 					label: 'ONNX IR/opsets',
 				},
-				{
-					label: 'created at',
-				},
-				{
-					label: 'training cutoff',
-				},
+				'createdAt',
+				'trainingCutoff',
 				'quantization',
-				{
-					label: 'fine-tune kind',
-				},
+				'fineTuneKind',
 			],
 		],
 	},
@@ -87,6 +75,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'documents',
+			label: 'documents',
+			field: '$$documents',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -27,6 +27,8 @@
 				'sourceWindowRepoCommitCount',
 				'localCatalogActorCount',
 				'localCatalogPostCount',
+			],
+			[
 				'firehoseCursor',
 				'repoRev',
 				'pdsHost',

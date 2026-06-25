@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
+		'$network',
 		'hash',
 		{
 			label: 'success',
@@ -21,9 +19,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
+				'$network',
 				'hash',
 				{
 					label: 'success',
@@ -31,29 +27,19 @@
 				{
 					label: 'bundled block',
 				},
-				{
-					label: 'timestamp',
-				},
+				'timestampMs',
+			],
+			[
 				'fee',
 				'nonce',
-				{
-					label: 'EntryPoint version',
-				},
-				{
-					label: 'EntryPoint',
-				},
-				{
-					label: 'sender',
-				},
-				{
-					label: 'paymaster',
-				},
-				{
-					label: 'bundler',
-				},
-				{
-					label: 'sponsor type',
-				},
+				'entryPointVersion',
+				'$entryPoint',
+				'$sender',
+			],
+			[
+				'$paymaster',
+				'$bundler',
+				'sponsorType',
 			],
 		],
 	},
@@ -73,15 +59,9 @@
 					{
 						label: 'smart account',
 					},
-					{
-						label: 'paymaster',
-					},
-					{
-						label: 'bundler',
-					},
-					{
-						label: 'EntryPoint contract',
-					},
+					'$paymaster',
+					'$bundler',
+					'$entryPoint',
 				],
 			},
 			{

@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'tracker URL',
-		},
-		{
-			label: 'tracker kind',
-		},
+		'trackerUrl',
+		'trackerKind',
 		{
 			label: 'latest status',
 		},
@@ -23,12 +19,8 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'tracker URL',
-				},
-				{
-					label: 'tracker kind',
-				},
+				'trackerUrl',
+				'trackerKind',
 				{
 					label: 'latest status',
 				},
@@ -74,6 +66,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'announces',
+			label: 'announces',
+			field: '$$announces',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'scrapes',
+			label: 'scrapes',
+			field: '$$scrapes',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

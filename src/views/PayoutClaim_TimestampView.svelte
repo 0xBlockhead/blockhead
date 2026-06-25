@@ -10,47 +10,29 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'payout',
-		},
-		{
-			label: 'account',
-		},
-		{
-			label: 'observation time',
-		},
+		'$payout',
+		'$account',
+		'timestampMs',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'payout',
-				},
-				{
-					label: 'account',
-				},
-				{
-					label: 'observation time',
-				},
+				'$payout',
+				'$account',
+				'timestampMs',
 				'source',
-				{
-					label: 'eligible amount',
-				},
-				{
-					label: 'claimed amount',
-				},
-				{
-					label: 'claim status',
-				},
-				{
-					label: 'proof hash',
-				},
-				{
-					label: 'claim transaction',
-				},
+				'eligibleAmount',
+			],
+			[
+				'claimedAmount',
+				'claimStatus',
+				'proofHash',
+				'$claimTransaction',
 				{
 					label: 'expiry',
 				},
+			],
+			[
 				'error',
 			],
 		],
@@ -60,9 +42,7 @@
 			{
 				label: 'Payout',
 				items: [
-					{
-						label: 'parent payout',
-					},
+					'$payout',
 				],
 			},
 			{

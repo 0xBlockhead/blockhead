@@ -10,35 +10,27 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'pool',
-		},
+		'$pool',
 		'epoch',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'pool',
-				},
+				'$pool',
 				'epoch',
 				'source',
-				{
-					label: 'observation time',
-				},
+				'timestampMs',
 				'slot',
+			],
+			[
 				'pledge',
 				'margin',
-				{
-					label: 'fixed cost',
-				},
-				{
-					label: 'reward account',
-				},
-				{
-					label: 'owner count',
-				},
+				'fixedCostLovelace',
+				'rewardAccount',
+				'owners',
+			],
+			[
 				{
 					label: 'metadata URL/hash',
 				},
@@ -47,16 +39,10 @@
 				{
 					label: 'live/active stake',
 				},
-				{
-					label: 'delegator count',
-				},
-				{
-					label: 'block count',
-				},
+				'delegatorCount',
+				'blockCount',
 				'saturation',
-				{
-					label: 'retired flag',
-				},
+				'retired',
 			],
 		],
 	},
@@ -75,24 +61,16 @@
 				items: [
 					'pledge',
 					'margin',
-					{
-						label: 'fixed cost',
-					},
-					{
-						label: 'reward account',
-					},
+					'fixedCostLovelace',
+					'rewardAccount',
 					'owners',
 				],
 			},
 			{
 				label: 'Metadata',
 				items: [
-					{
-						label: 'metadata URL',
-					},
-					{
-						label: 'metadata hash',
-					},
+					'metadataUrl',
+					'metadataHash',
 				],
 			},
 			{
@@ -101,16 +79,10 @@
 					{
 						label: 'live/active stake',
 					},
-					{
-						label: 'delegator count',
-					},
-					{
-						label: 'block count',
-					},
+					'delegatorCount',
+					'blockCount',
 					'saturation',
-					{
-						label: 'retired flag',
-					},
+					'retired',
 				],
 			},
 			{

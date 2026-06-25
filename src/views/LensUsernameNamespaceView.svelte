@@ -28,19 +28,13 @@
 					label: 'namespace string',
 				},
 				'owner',
-				{
-					label: 'token name',
-				},
-				{
-					label: 'token symbol',
-				},
-				{
-					label: 'created time',
-				},
+				'tokenName',
+				'tokenSymbol',
+			],
+			[
+				'createdAt',
 				'description',
-				{
-					label: 'total usernames',
-				},
+				'totalUsernames',
 				{
 					label: 'rule summary',
 				},
@@ -86,6 +80,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'usernames',
+			label: 'usernames',
+			field: '$$usernames',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

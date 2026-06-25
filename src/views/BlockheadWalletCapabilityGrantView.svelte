@@ -10,23 +10,15 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'grant id',
-		},
-		{
-			label: 'authorization kind',
-		},
+		'grantId',
+		'authorizationKind',
 		'issuer',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'grant id',
-				},
-				{
-					label: 'authorization kind',
-				},
+				'grantId',
+				'authorizationKind',
 				'issuer',
 				'audience',
 				{
@@ -34,18 +26,10 @@
 				},
 			],
 			[
-				{
-					label: 'method count',
-				},
-				{
-					label: 'resource count',
-				},
-				{
-					label: 'proof kind',
-				},
-				{
-					label: 'proof summary',
-				},
+				'methods',
+				'resources',
+				'proofKind',
+				'proofSummary',
 				{
 					label: 'raw grant presence',
 				},

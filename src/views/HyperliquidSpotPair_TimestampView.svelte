@@ -10,31 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'spot pair',
-		},
-		{
-			label: 'observation time',
-		},
+		'$spotPair',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'spot pair',
-				},
-				{
-					label: 'observation time',
-				},
+				'$spotPair',
+				'timestampMs',
 				'source',
 				'name',
-				{
-					label: 'base asset id',
-				},
-				{
-					label: 'quote asset id',
-				},
+				'baseAssetId',
+				'quoteAssetId',
 				{
 					label: 'canonical flag',
 				},
@@ -46,9 +34,7 @@
 			{
 				label: 'Spot pair',
 				items: [
-					{
-						label: 'parent spot pair',
-					},
+					'$spotPair',
 				],
 			},
 			{

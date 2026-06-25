@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'session',
-		},
+		'$session',
 		'modality',
 		{
 			label: 'source/target entity types',
@@ -21,34 +19,24 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'session',
-				},
+				'$session',
 				'modality',
-				{
-					label: 'source entity type',
-				},
-				{
-					label: 'target entity type',
-				},
+				'sourceEntityType',
+				'targetEntityType',
 				{
 					label: 'placements',
 				},
-				{
-					label: 'invocation payload hash',
-				},
-				{
-					label: 'resolved intent type',
-				},
+			],
+			[
+				'invocationPayloadHash',
+				'resolvedIntentType',
 				{
 					label: 'intent definition key/hash',
 				},
 				{
 					label: 'selected option index/hash',
 				},
-				{
-					label: 'created time',
-				},
+				'createdAt',
 			],
 		],
 	},
@@ -87,9 +75,7 @@
 					{
 						label: 'definition hash',
 					},
-					{
-						label: 'selected option hash',
-					},
+					'selectedOptionHash',
 				],
 			},
 		],

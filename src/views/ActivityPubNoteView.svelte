@@ -48,6 +48,33 @@
 			},
 			key: 'localStatusId',
 		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'media',
+			label: 'mediases',
+			field: '$$media',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'thread',
+			label: 'threadses',
+			field: '$$thread',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
 	],
 	display: [
 		{
@@ -86,39 +113,23 @@
 		{
 			label: 'content excerpt',
 		},
-		{
-			label: 'author',
-		},
-		{
-			label: 'created date',
-		},
+		'$author',
+		'createdAt',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'ActivityStreams URI',
-				},
-				{
-					label: 'instance origin',
-				},
-				{
-					label: 'local status id',
-				},
-				{
-					label: 'author',
-				},
-				{
-					label: 'created date',
-				},
+				'activityStreamsUri',
+				'instanceOrigin',
+				'localStatusId',
+				'$author',
+				'createdAt',
 				{
 					label: 'reply/reblog refs',
 				},
 			],
 			[
-				{
-					label: 'status URL',
-				},
+				'statusUrl',
 				{
 					label: 'visibility/sensitive/language',
 				},
@@ -137,14 +148,10 @@
 				label: 'Content',
 				items: [
 					'content',
-					{
-						label: 'spoiler text',
-					},
+					'spoilerText',
 					'language',
 					'visibility',
-					{
-						label: 'sensitive flag',
-					},
+					'sensitive',
 					{
 						label: 'media refs',
 					},

@@ -27,6 +27,8 @@
 				'sourceWindowPlaylistCount',
 				'localCatalogChannelCount',
 				'localCatalogVideoCount',
+			],
+			[
 				'localCatalogPlaylistCount',
 				'reachable',
 				'quotaRemaining',

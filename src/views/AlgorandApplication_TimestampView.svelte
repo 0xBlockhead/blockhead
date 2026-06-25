@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'application',
-		},
+		'$application',
 		'round',
 		{
 			label: 'approval/clear program hashes',
@@ -21,22 +19,16 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'application',
-				},
+				'$application',
 				'round',
 				'source',
 				{
 					label: 'approval/clear program hashes',
 				},
-				{
-					label: 'deleted state',
-				},
+				'deleted',
 			],
 			[
-				{
-					label: 'box count',
-				},
+				'boxCount',
 				{
 					label: 'global/local schema',
 				},

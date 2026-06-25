@@ -13,9 +13,7 @@
 		{
 			label: 'AT URI',
 		},
-		{
-			label: 'author',
-		},
+		'$author',
 		'text',
 	],
 	content: {
@@ -24,12 +22,8 @@
 				{
 					label: 'AT URI',
 				},
-				{
-					label: 'author',
-				},
-				{
-					label: 'created time',
-				},
+				'$author',
+				'createdAt',
 				{
 					label: 'indexed time',
 				},
@@ -39,15 +33,9 @@
 				{
 					label: 'languages',
 				},
-				{
-					label: 'self-label values',
-				},
-				{
-					label: 'parent',
-				},
-				{
-					label: 'root',
-				},
+				'selfLabelValues',
+				'$parent',
+				'$root',
 				{
 					label: 'latest engagement snapshot',
 				},
@@ -63,9 +51,7 @@
 					{
 						label: 'languages',
 					},
-					{
-						label: 'self-label values',
-					},
+					'selfLabelValues',
 					{
 						label: 'created/indexed times',
 					},
@@ -111,6 +97,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'thread',
+			label: 'threadses',
+			field: '$$thread',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,37 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'service provider',
-		},
-		{
-			label: 'request id',
-		},
-		{
-			label: 'requester',
-		},
+		'$serviceProvider',
+		'requestId',
+		'$requester',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'service provider',
-				},
-				{
-					label: 'request id',
-				},
-				{
-					label: 'requester',
-				},
-				{
-					label: 'request hash',
-				},
-				{
-					label: 'response hash',
-				},
-				{
-					label: 'settlement trace',
-				},
+				'$serviceProvider',
+				'requestId',
+				'$requester',
+				'requestHash',
+				'responseHash',
+				'$settlementTrace',
 			],
 		],
 	},
@@ -49,17 +31,13 @@
 			{
 				label: 'Provider',
 				items: [
-					{
-						label: 'parent service provider',
-					},
+					'$serviceProvider',
 				],
 			},
 			{
 				label: 'Settlement',
 				items: [
-					{
-						label: 'linked settlement trace',
-					},
+					'$settlementTrace',
 				],
 			},
 			{

@@ -11,41 +11,31 @@
 	const view = {
 	closed: [
 		'hash',
-		{
-			label: 'block slot',
-		},
+		'blockSlot',
 		'fee',
 	],
 	content: {
 		dl: [
 			[
 				'hash',
-				{
-					label: 'block slot',
-				},
+				'blockSlot',
 				'fee',
 				'deposit',
-				{
-					label: 'size',
-				},
+				'sizeBytes',
+			],
+			[
 				{
 					label: 'validity interval',
 				},
-				{
-					label: 'input count',
-				},
-				{
-					label: 'output count',
-				},
-				{
-					label: 'certificate count',
-				},
+				'$$inputs',
+				'$$outputs',
+				'$$certificates',
 				{
 					label: 'script witness count',
 				},
-				{
-					label: 'governance proposal count',
-				},
+			],
+			[
+				'$$governanceProposals',
 				{
 					label: 'vote count',
 				},
@@ -112,6 +102,71 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'inputs',
+			label: 'inputs',
+			field: '$$inputs',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'outputs',
+			label: 'outputs',
+			field: '$$outputs',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'certificates',
+			label: 'certificates',
+			field: '$$certificates',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'scripts',
+			label: 'scripts',
+			field: '$$scripts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'governance-proposals',
+			label: 'governance proposals',
+			field: '$$governanceProposals',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'governance-votes',
+			label: 'governance votes',
+			field: '$$governanceVotes',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'assets',
+			label: 'assets',
+			field: '$$assets',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,36 +10,24 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'offer',
-		},
+		'$offer',
 		'amount',
 		'price',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'offer',
-				},
-				{
-					label: 'observation time',
-				},
+				'$offer',
+				'timestampMs',
 				'source',
-				{
-					label: 'ledger sequence',
-				},
+				'ledgerSequence',
 				'amount',
 				'price',
 			],
 			[
 				'sponsor',
-				{
-					label: 'active state',
-				},
-				{
-					label: 'last modified time',
-				},
+				'active',
+				'lastModifiedTimeMs',
 			],
 		],
 	},

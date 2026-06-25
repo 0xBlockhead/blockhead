@@ -10,24 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'internal index',
-		},
+		'internalIndex',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'internal index',
-				},
+				'internalIndex',
 			],
 			[
 				{
 					label: 'parent transaction link derived from selector txHash',
 				},
-				{
-					label: 'internal index',
-				},
+				'internalIndex',
 				{
 					label: 'call type label',
 				},

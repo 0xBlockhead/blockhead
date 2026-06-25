@@ -47,12 +47,8 @@
 			{
 				label: 'Gas tiers',
 				items: [
-					{
-						label: 'slow',
-					},
-					{
-						label: 'average',
-					},
+					'slowGwei',
+					'averageGwei',
 					{
 						label: 'fast values and provider methodology',
 					},

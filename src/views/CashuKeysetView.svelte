@@ -10,30 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'mint',
-		},
-		{
-			label: 'keyset id',
-		},
+		'$mint',
+		'keysetId',
 		'unit',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'mint',
-				},
-				{
-					label: 'keyset id',
-				},
+				'$mint',
+				'keysetId',
 				'unit',
-				{
-					label: 'active state',
-				},
-				{
-					label: 'input fee ppk',
-				},
+				'active',
+				'inputFeePpk',
 				{
 					label: 'public key count',
 				},

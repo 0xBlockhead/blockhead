@@ -10,47 +10,33 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'item',
-		},
-		{
-			label: 'observation time',
-		},
+		'$item',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'item',
-				},
-				{
-					label: 'observation time',
-				},
+				'$item',
+				'timestampMs',
 				'source',
-				{
-					label: 'owner',
-				},
-				{
-					label: 'owner address',
-				},
-				{
-					label: 'initialized flag',
-				},
+				'$owner',
+				'ownerAddress',
+			],
+			[
+				'initialized',
 				'name',
 				{
 					label: 'image/metadata URI',
 				},
-				{
-					label: 'content hash',
-				},
+				'contentHash',
 				{
 					label: 'code/data hashes',
 				},
+			],
+			[
 				'verification',
-				{
-					label: 'last transaction lt',
-				},
+				'lastTransactionLt',
 			],
 		],
 	},

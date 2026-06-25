@@ -22,9 +22,7 @@
 				},
 			],
 			[
-				{
-					label: 'committee index',
-				},
+				'committeeIndex',
 				{
 					label: 'truncated aggregation bits',
 				},
@@ -44,12 +42,8 @@
 			{
 				label: 'Committee',
 				items: [
-					{
-						label: 'committee index',
-					},
-					{
-						label: 'aggregation bits',
-					},
+					'committeeIndex',
+					'aggregationBits',
 				],
 			},
 			{

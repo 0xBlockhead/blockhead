@@ -10,30 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'endpoint URL',
-		},
-		{
-			label: 'observation time',
-		},
+		'endpointUrl',
+		'timestampMs',
 		'verified',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'endpoint URL',
-				},
-				{
-					label: 'timestamp',
-				},
+				'endpointUrl',
+				'timestampMs',
 				'source',
 				'verified',
 			],
 			[
-				{
-					label: 'registration selector',
-				},
+				'registrationSelector',
 				'error',
 			],
 		],
@@ -43,9 +33,7 @@
 			{
 				label: 'Endpoint',
 				items: [
-					{
-						label: 'endpoint URL',
-					},
+					'endpointUrl',
 				],
 			},
 			{

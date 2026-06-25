@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'price feed id',
-		},
+		'priceFeedId',
 		'symbol',
 		{
 			label: 'mapped market',
@@ -21,20 +19,14 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'price feed id',
-				},
+				'priceFeedId',
 				'channel',
 				'symbol',
-				{
-					label: 'asset class',
-				},
-				{
-					label: 'base asset',
-				},
-				{
-					label: 'quote asset',
-				},
+				'assetClass',
+				'baseAsset',
+			],
+			[
+				'quoteAsset',
 				{
 					label: 'mapped market',
 				},
@@ -105,6 +97,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,35 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'operator address',
-		},
+		'$network',
+		'operatorAddress',
 		'moniker',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'operator address',
-				},
-				{
-					label: 'consensus pubkey',
-				},
+				'$network',
+				'operatorAddress',
+				'consensusPubkey',
 				'moniker',
 			],
 			[
 				{
 					label: 'latest jailed/status/tokens snapshot',
 				},
-				{
-					label: 'delegation count',
-				},
+				'$$delegations',
 				{
 					label: 'description links',
 				},
@@ -74,9 +62,7 @@
 			{
 				label: 'Consensus identity',
 				items: [
-					{
-						label: 'consensus pubkey',
-					},
+					'consensusPubkey',
 					{
 						label: 'proposer mapping when source-backed',
 					},
@@ -92,6 +78,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'delegations',
+			label: 'delegations',
+			field: '$$delegations',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

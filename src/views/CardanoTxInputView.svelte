@@ -10,37 +10,21 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'transaction',
-		},
-		{
-			label: 'input index',
-		},
-		{
-			label: 'input kind',
-		},
+		'$transaction',
+		'inputIndex',
+		'inputKind',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'transaction',
-				},
-				{
-					label: 'input index',
-				},
-				{
-					label: 'input kind',
-				},
+				'$transaction',
+				'inputIndex',
+				'inputKind',
 				{
 					label: 'spent transaction hash/output index',
 				},
-				{
-					label: 'spent output link',
-				},
-				{
-					label: 'redeemer index',
-				},
+				'$spentOutput',
+				'redeemerIndex',
 			],
 		],
 	},

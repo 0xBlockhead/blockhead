@@ -10,49 +10,33 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'quote',
-		},
+		'$quote',
 		'index',
-		{
-			label: 'provider step id',
-		},
+		'providerStepId',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'quote',
-				},
+				'$quote',
 				'index',
-				{
-					label: 'provider step id',
-				},
-				{
-					label: 'step type',
-				},
+				'providerStepId',
+				'stepType',
 				'protocol',
-				{
-					label: 'pool id',
-				},
-				{
-					label: 'liquidity pool ref',
-				},
+			],
+			[
+				'poolId',
+				'$liquidityPool',
 				{
 					label: 'token in/out',
 				},
 				{
 					label: 'amount in/out',
 				},
-				{
-					label: 'fee bps',
-				},
-				{
-					label: 'share bps',
-				},
-				{
-					label: 'gas estimate',
-				},
+				'feeBps',
+			],
+			[
+				'shareBps',
+				'gasEstimate',
 			],
 		],
 	},

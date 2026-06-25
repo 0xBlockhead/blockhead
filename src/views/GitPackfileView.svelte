@@ -10,37 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'pack hash',
-		},
-		{
-			label: 'object format',
-		},
-		{
-			label: 'object count',
-		},
+		'packHash',
+		'objectFormat',
+		'objectCount',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'pack hash',
-				},
-				{
-					label: 'object format',
-				},
-				{
-					label: 'object count',
-				},
-				{
-					label: 'pack size',
-				},
-				{
-					label: 'index hash',
-				},
-				{
-					label: 'repository context',
-				},
+				'packHash',
+				'objectFormat',
+				'objectCount',
+				'packSizeBytes',
+				'indexHash',
+				'$repository',
 			],
 		],
 	},

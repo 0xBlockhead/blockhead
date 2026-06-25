@@ -10,34 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'collection',
-		},
-		{
-			label: 'token key',
-		},
-		{
-			label: 'token id',
-		},
+		'$collection',
+		'tokenKey',
+		'tokenId',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'collection',
-				},
-				{
-					label: 'token key',
-				},
-				{
-					label: 'token id',
-				},
-				{
-					label: 'asset object',
-				},
-				{
-					label: 'metadata link',
-				},
+				'$collection',
+				'tokenKey',
+				'tokenId',
+				'$assetObject',
+				'$metadata',
 				{
 					label: 'usage-right observation count',
 				},
@@ -88,6 +72,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'usage-right-timestamps',
+			label: 'usage right timestamps',
+			field: '$$usageRightTimestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

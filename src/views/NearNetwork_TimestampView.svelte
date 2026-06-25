@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'observed time',
-		},
+		'timestampMs',
 		'source',
 		{
 			label: 'head height/hash',
@@ -21,9 +19,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'observed time',
-				},
+				'timestampMs',
 				'source',
 				{
 					label: 'head height/hash',
@@ -34,15 +30,15 @@
 				{
 					label: 'gas price',
 				},
+			],
+			[
 				{
 					label: 'validator counts',
 				},
 				{
 					label: 'protocol versions',
 				},
-				{
-					label: 'node version',
-				},
+				'nodeVersion',
 				'syncing',
 			],
 		],
@@ -77,9 +73,7 @@
 					{
 						label: 'protocol versions',
 					},
-					{
-						label: 'node version',
-					},
+					'nodeVersion',
 				],
 			},
 			{

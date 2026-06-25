@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'model',
-		},
-		{
-			label: 'observation time',
-		},
+		'$model',
+		'timestampMs',
 		{
 			label: 'availability',
 		},
@@ -23,12 +19,8 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'model',
-				},
-				{
-					label: 'timestamp',
-				},
+				'$model',
+				'timestampMs',
 				'source',
 				{
 					label: 'availability',
@@ -97,12 +89,8 @@
 			{
 				label: 'Defaults',
 				items: [
-					{
-						label: 'tokenizer URL',
-					},
-					{
-						label: 'sampling defaults',
-					},
+					'tokenizerUrl',
+					'samplingDefaults',
 				],
 			},
 			{

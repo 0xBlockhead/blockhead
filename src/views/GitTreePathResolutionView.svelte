@@ -10,31 +10,21 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'repository',
-		},
-		{
-			label: 'commit object id',
-		},
+		'$repository',
+		'commitObjectId',
 		'path',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'repository',
-				},
-				{
-					label: 'commit object id',
-				},
+				'$repository',
+				'commitObjectId',
 				'path',
 				'status',
 				{
 					label: 'terminal blob object id',
 				},
-				{
-					label: 'submodule commit id',
-				},
+				'submoduleCommitId',
 				{
 					label: 'traversed tree object ids',
 				},

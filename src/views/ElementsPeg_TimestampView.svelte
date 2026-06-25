@@ -10,32 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'peg',
-		},
-		{
-			label: 'observation time',
-		},
+		'$peg',
+		'timestampMs',
 		'status',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'peg',
-				},
-				{
-					label: 'observation time',
-				},
+				'$peg',
+				'timestampMs',
 				'source',
 				'status',
 				'confirmations',
-				{
-					label: 'observed Bitcoin height',
-				},
-				{
-					label: 'observed Elements height',
-				},
+				'observedBitcoinHeight',
+				'observedElementsHeight',
 			],
 		],
 	},

@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'output',
-		},
+		'$output',
 		{
 			label: 'asset policy/name/fingerprint',
 		},
@@ -21,9 +19,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'output',
-				},
+				'$output',
 				{
 					label: 'asset policy/name/fingerprint',
 				},

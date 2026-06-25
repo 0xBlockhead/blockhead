@@ -10,51 +10,37 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'timestamp',
-		},
+		'$network',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'timestamp',
-				},
+				'$network',
+				'timestampMs',
 				'source',
 				{
 					label: 'finalized block number/hash',
 				},
-				{
-					label: 'finalized extrinsic count',
-				},
+				'finalizedExtrinsicCount',
+			],
+			[
 				{
 					label: 'runtime spec name/version',
 				},
-				{
-					label: 'transaction version',
-				},
-				{
-					label: 'state version',
-				},
-				{
-					label: 'peer count',
-				},
+				'transactionVersion',
+				'stateVersion',
+				'peerCount',
 				{
 					label: 'sync state',
 				},
+			],
+			[
 				{
 					label: 'era/session indexes',
 				},
-				{
-					label: 'active validator count',
-				},
+				'activeValidatorCount',
 			],
 		],
 	},

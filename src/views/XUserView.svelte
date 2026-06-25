@@ -12,33 +12,21 @@
 	closed: [
 		'id',
 		'username',
-		{
-			label: 'latest name',
-		},
+		'name',
 	],
 	content: {
 		dl: [
 			[
 				'id',
 				'username',
-				{
-					label: 'created date',
-				},
-				{
-					label: 'latest name',
-				},
-				{
-					label: 'latest description',
-				},
-				{
-					label: 'latest verified state',
-				},
-				{
-					label: 'latest location',
-				},
-				{
-					label: 'latest website URL',
-				},
+				'createdAt',
+				'name',
+				'description',
+			],
+			[
+				'verified',
+				'location',
+				'websiteUrl',
 				{
 					label: 'latest media',
 				},
@@ -87,6 +75,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'posts',
+			label: 'posts',
+			field: '$$posts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

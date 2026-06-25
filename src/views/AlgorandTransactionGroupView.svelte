@@ -13,12 +13,8 @@
 		{
 			label: 'group id',
 		},
-		{
-			label: 'transaction count',
-		},
-		{
-			label: 'network',
-		},
+		'$$transactions',
+		'$network',
 	],
 	content: {
 		dl: [
@@ -26,12 +22,8 @@
 				{
 					label: 'group id',
 				},
-				{
-					label: 'transaction count',
-				},
-				{
-					label: 'network',
-				},
+				'$$transactions',
+				'$network',
 				{
 					label: 'member transaction rounds when available',
 				},
@@ -58,6 +50,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'transactions',
+			label: 'transactions',
+			field: '$$transactions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

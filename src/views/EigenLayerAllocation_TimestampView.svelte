@@ -10,49 +10,27 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'operator',
-		},
-		{
-			label: 'AVS',
-		},
-		{
-			label: 'strategy',
-		},
+		'$operator',
+		'$avs',
+		'$strategy',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'operator',
-				},
-				{
-					label: 'AVS',
-				},
-				{
-					label: 'strategy',
-				},
-				{
-					label: 'observation time',
-				},
+				'$operator',
+				'$avs',
+				'$strategy',
+				'timestampMs',
 				'source',
-				{
-					label: 'allocation magnitude',
-				},
-				{
-					label: 'allocated shares',
-				},
+				'allocationMagnitude',
+				'allocatedShares',
 			],
 			[
 				{
 					label: 'operator set',
 				},
-				{
-					label: 'quorum numbers',
-				},
-				{
-					label: 'registration status',
-				},
+				'quorumNumbers',
+				'registrationStatus',
 				{
 					label: 'slashable-until time',
 				},

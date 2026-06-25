@@ -10,32 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'operation kind',
-		},
-		{
-			label: 'ledger',
-		},
-		{
-			label: 'block',
-		},
+		'operationKind',
+		'$ledger',
+		'$block',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'operation kind',
-				},
-				{
-					label: 'ledger',
-				},
-				{
-					label: 'block',
-				},
-				{
-					label: 'transaction hash',
-				},
+				'operationKind',
+				'$ledger',
+				'$block',
+				'transactionHash',
 				'amount',
+			],
+			[
 				'fee',
 				{
 					label: 'from/to/spender',

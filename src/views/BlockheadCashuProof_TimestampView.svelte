@@ -10,37 +10,27 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'proof',
-		},
-		{
-			label: 'observation time',
-		},
+		'$proof',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'proof',
-				},
-				{
-					label: 'observation time',
-				},
+				'$proof',
+				'timestampMs',
 				'source',
 				{
 					label: 'proof Y',
 				},
 				'state',
+			],
+			[
 				{
 					label: 'witness presence',
 				},
-				{
-					label: 'subscription id',
-				},
-				{
-					label: 'quote id',
-				},
+				'subscriptionId',
+				'quoteId',
 				'method',
 			],
 		],

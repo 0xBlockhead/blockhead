@@ -14,9 +14,7 @@
 		{
 			label: 'first/last level',
 		},
-		{
-			label: 'snapshot level',
-		},
+		'snapshotLevel',
 	],
 	content: {
 		dl: [
@@ -25,9 +23,7 @@
 				{
 					label: 'first/last level',
 				},
-				{
-					label: 'snapshot level',
-				},
+				'snapshotLevel',
 				{
 					label: 'random seed presence',
 				},
@@ -87,6 +83,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'baker-timestamps',
+			label: 'baker timestamps',
+			field: '$$bakerTimestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'transaction',
-		},
+		'$transaction',
 		{
 			label: 'ledger',
 		},
@@ -23,12 +21,8 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'transaction',
-				},
-				{
-					label: 'observation time',
-				},
+				'$transaction',
+				'timestampMs',
 				'source',
 				{
 					label: 'ledger',
@@ -42,9 +36,7 @@
 			],
 			[
 				'memo',
-				{
-					label: 'signature count',
-				},
+				'signatures',
 				{
 					label: 'envelope/result/meta XDR availability',
 				},

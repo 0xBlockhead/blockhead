@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'address',
-		},
+		'$address',
 		{
 			label: 'observed time/source',
 		},
@@ -23,21 +21,15 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'address',
-				},
+				'$address',
 				{
 					label: 'observed time/source',
 				},
 				{
 					label: 'balance in sompi',
 				},
-				{
-					label: 'UTXO count',
-				},
-				{
-					label: 'transaction count',
-				},
+				'utxoCount',
+				'transactionCount',
 			],
 		],
 	},

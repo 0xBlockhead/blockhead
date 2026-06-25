@@ -16,9 +16,7 @@
 		{
 			label: 'version',
 		},
-		{
-			label: 'mint',
-		},
+		'$mint',
 	],
 	content: {
 		dl: [
@@ -29,17 +27,13 @@
 				{
 					label: 'version',
 				},
-				{
-					label: 'mint',
-				},
+				'$mint',
 				'unit',
 				'memo',
-				{
-					label: 'proof count',
-				},
-				{
-					label: 'total amount',
-				},
+			],
+			[
+				'proofCount',
+				'totalAmount',
 				{
 					label: 'imported time',
 				},
@@ -89,6 +83,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'proofs',
+			label: 'proofs',
+			field: '$$proofs',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

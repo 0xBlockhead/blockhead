@@ -10,34 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'task',
-		},
+		'$task',
 		'sequence',
-		{
-			label: 'kind',
-		},
+		'eventKind',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'task',
-				},
+				'$task',
 				'sequence',
-				{
-					label: 'kind',
-				},
-				{
-					label: 'timestamp',
-				},
+				'eventKind',
+				'timestampMs',
 			],
 			[
 				'state',
 				'final',
-				{
-					label: 'artifact',
-				},
+				'$artifact',
 				'payload',
 			],
 		],

@@ -10,39 +10,29 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'validator',
-		},
+		'$validator',
 		'slot',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'validator',
-				},
+				'$validator',
 				'slot',
 				'source',
-				{
-					label: 'balance',
-				},
-				{
-					label: 'effective balance',
-				},
+				'balanceGwei',
+				'effectiveBalanceGwei',
+			],
+			[
 				'status',
-				{
-					label: 'slashed flag',
-				},
+				'slashed',
 				{
 					label: 'activation/exit/withdrawable epochs',
 				},
 				{
 					label: 'finalized/execution-optimistic flags',
 				},
-				{
-					label: 'observation time',
-				},
+				'timestampMs',
 			],
 		],
 	},

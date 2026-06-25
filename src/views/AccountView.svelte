@@ -16,9 +16,7 @@
 		{
 			label: 'canonical address when derivable',
 		},
-		{
-			label: 'network',
-		},
+		'$network',
 	],
 	content: {
 		dl: [
@@ -29,15 +27,11 @@
 				{
 					label: 'canonical address when derivable',
 				},
-				{
-					label: 'network',
-				},
+				'$network',
 				{
 					label: 'EVM account/network-account refs when namespace is eip155',
 				},
-				{
-					label: 'native account selector',
-				},
+				'nativeAccountSelector',
 			],
 		],
 	},
@@ -69,6 +63,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'wallet-accounts',
+			label: 'wallet accounts',
+			field: '$$walletAccounts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

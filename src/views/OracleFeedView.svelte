@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
+		'$network',
 		{
 			label: 'feed address',
 		},
@@ -23,9 +21,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
+				'$network',
 				{
 					label: 'feed address',
 				},
@@ -33,9 +29,7 @@
 					label: 'mapped market',
 				},
 				'label',
-				{
-					label: 'feed kind',
-				},
+				'feedKind',
 				{
 					label: 'latest decimals/description',
 				},
@@ -103,6 +97,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'rounds',
+			label: 'rounds',
+			field: '$$rounds',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

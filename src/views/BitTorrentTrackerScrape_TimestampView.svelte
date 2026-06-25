@@ -10,28 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'tracker',
-		},
-		{
-			label: 'info hash',
-		},
+		'$tracker',
+		'infoHash',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'tracker',
-				},
-				{
-					label: 'info hash',
-				},
+				'$tracker',
+				'infoHash',
 				'source',
-				{
-					label: 'timestamp',
-				},
+				'timestampMs',
 				'status',
+			],
+			[
 				'complete',
 				'downloaded',
 				'incomplete',

@@ -10,32 +10,18 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'transaction type',
-		},
-		{
-			label: 'observation time',
-		},
+		'$network',
+		'transactionType',
+		'timestampMs',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'transaction type',
-				},
-				{
-					label: 'observation time',
-				},
+				'$network',
+				'transactionType',
+				'timestampMs',
 				'source',
-				{
-					label: 'gas tinybar',
-				},
+				'gasTinybar',
 				{
 					label: 'base/node/network/service/total tinycent fees',
 				},
@@ -58,18 +44,10 @@
 			{
 				label: 'Fee components',
 				items: [
-					{
-						label: 'node',
-					},
-					{
-						label: 'network',
-					},
-					{
-						label: 'service',
-					},
-					{
-						label: 'base',
-					},
+					'nodeTinycent',
+					'$network',
+					'serviceTinycent',
+					'baseTinycent',
 					'extras',
 				],
 			},

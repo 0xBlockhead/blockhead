@@ -10,39 +10,25 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account',
-		},
+		'$account',
 		'slot',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'account',
-				},
+				'$account',
 				'slot',
 				'source',
-				{
-					label: 'timestamp',
-				},
+				'timestampMs',
 				'lamports',
-				{
-					label: 'owner program id',
-				},
-				{
-					label: 'executable flag',
-				},
-				{
-					label: 'rent epoch',
-				},
-				{
-					label: 'space bytes',
-				},
-				{
-					label: 'data encoding',
-				},
+			],
+			[
+				'ownerProgramId',
+				'executable',
+				'rentEpoch',
+				'spaceBytes',
+				'dataEncoding',
 			],
 		],
 	},

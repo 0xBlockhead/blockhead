@@ -10,37 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'MWEB block',
-		},
-		{
-			label: 'transaction index',
-		},
-		{
-			label: 'kernel offset',
-		},
+		'$mwebBlock',
+		'transactionIndex',
+		'kernelOffset',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'MWEB block',
-				},
-				{
-					label: 'transaction index',
-				},
-				{
-					label: 'kernel offset',
-				},
-				{
-					label: 'output count',
-				},
-				{
-					label: 'peg-in count',
-				},
-				{
-					label: 'peg-out count',
-				},
+				'$mwebBlock',
+				'transactionIndex',
+				'kernelOffset',
+				'$$outputs',
+				'$$pegIns',
+				'$$pegOuts',
 			],
 		],
 	},
@@ -73,9 +55,7 @@
 			{
 				label: 'Block',
 				items: [
-					{
-						label: 'parent MWEB block',
-					},
+					'$mwebBlock',
 				],
 			},
 			{
@@ -96,6 +76,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'outputs',
+			label: 'outputs',
+			field: '$$outputs',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'peg-ins',
+			label: 'peg ins',
+			field: '$$pegIns',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'peg-outs',
+			label: 'peg outs',
+			field: '$$pegOuts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

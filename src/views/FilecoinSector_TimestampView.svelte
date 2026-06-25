@@ -10,37 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'sector',
-		},
-		{
-			label: 'observation time',
-		},
+		'$sector',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'sector',
-				},
-				{
-					label: 'observation time',
-				},
+				'$sector',
+				'timestampMs',
 				'source',
 				'height',
-				{
-					label: 'tipset key',
-				},
-				{
-					label: 'sealed CID',
-				},
-				{
-					label: 'activation epoch',
-				},
-				{
-					label: 'expiration epoch',
-				},
+				'tipsetKey',
+			],
+			[
+				'sealedCid',
+				'activationEpoch',
+				'expirationEpoch',
 				{
 					label: 'deal count',
 				},

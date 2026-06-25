@@ -10,23 +10,15 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'vote',
-		},
-		{
-			label: 'observation time',
-		},
+		'$vote',
+		'timestampMs',
 		'option',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'vote',
-				},
-				{
-					label: 'observation time',
-				},
+				'$vote',
+				'timestampMs',
 				'source',
 				'option',
 				'weight',

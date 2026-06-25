@@ -13,9 +13,7 @@
 		{
 			label: 'storage entry',
 		},
-		{
-			label: 'ledger sequence',
-		},
+		'ledgerSequence',
 		'source',
 	],
 	content: {
@@ -24,23 +22,17 @@
 				{
 					label: 'storage entry',
 				},
-				{
-					label: 'ledger sequence',
-				},
+				'ledgerSequence',
 				'source',
 				{
 					label: 'observed time',
 				},
-				{
-					label: 'found state',
-				},
+				'found',
+			],
+			[
 				'durability',
-				{
-					label: 'last-modified ledger',
-				},
-				{
-					label: 'live-until ledger',
-				},
+				'lastModifiedLedger',
+				'liveUntilLedger',
 				{
 					label: 'value summary',
 				},

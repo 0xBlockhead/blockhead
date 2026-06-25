@@ -10,27 +10,17 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'viewing key',
-		},
-		{
-			label: 'observation time',
-		},
+		'$viewingKey',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'viewing key',
-				},
-				{
-					label: 'observation time',
-				},
+				'$viewingKey',
+				'timestampMs',
 				'source',
-				{
-					label: 'last scanned height',
-				},
+				'lastScannedHeight',
 				{
 					label: 'last scanned time',
 				},

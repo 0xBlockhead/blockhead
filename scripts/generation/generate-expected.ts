@@ -1,7 +1,7 @@
 import { rmSync } from 'node:fs'
 
 import { loadApp } from './load-app.ts'
-import { generatedOwnership, ownershipSummary } from './ownership.ts'
+import { generatedOwnership } from './ownership.ts'
 import { readText, writeText } from './files.ts'
 
 type ExpectedApp = {
@@ -7955,8 +7955,6 @@ ${shell.idExpression === undefined ? '' : `\tid=${shell.idExpression.startsWith(
 
 export const generateExpected = async () => {
 	const app: ExpectedApp = loadApp()
-	const ownershipRows = generatedOwnership()
-	const summary = ownershipSummary(ownershipRows)
 	const emittedRouteMappings = emittedSelectorRouteMappings(app)
 
 	rmSync('.generated/expected', {
@@ -7964,11 +7962,9 @@ export const generateExpected = async () => {
 		recursive: true,
 	})
 
-	writeText('.generated/expected/APP.snapshot.json', json(app))
 	writeText('.generated/expected/SCHEMA.md', schemaMarkdown(app))
 	writeText('.generated/expected/RESOLVER-COVERAGE.md', resolverCoverageMarkdown(app))
 	writeText('.generated/expected/SOURCES.md', sourcesMarkdown(app))
-	writeText('.generated/expected/src/schema/schema.json', json(app.schema))
 	writeText('.generated/expected/src/schema/EntityType.ts', generatedEntityTypeFile(app))
 	writeText('.generated/expected/src/schema/index.ts', generatedSchemaIndexFile(app))
 	for (const entity of app.schema.entities)
@@ -7982,10 +7978,6 @@ export const generateExpected = async () => {
 
 		writeText(`.generated/expected/${shell.file}`, shell.sourceText ?? generatedEntityViewShellSource(entity, shell))
 	}
-	writeText('.generated/expected/src/sources/sources.json', json(app.sources))
-	writeText('.generated/expected/src/resolvers/resolvers.json', json(app.resolvers))
-	writeText('.generated/expected/src/views/views.json', json(app.views))
-	writeText('.generated/expected/src/routes/routes.json', json(app.routes))
 	writeText('.generated/expected/src/routes/entity-selector-route-leaves.ts', generatedSelectorRouteLeavesFile(app))
 	writeText('.generated/expected/src/routes/entity-hub-collection-routes.ts', generatedHubCollectionRoutesFile(app))
 	for (const transform of app.routes.loaderTransforms)
@@ -7997,29 +7989,6 @@ export const generateExpected = async () => {
 	for (const mapping of emittedRouteMappings) {
 		writeText(`.generated/expected/src/routes/${mapping.path}/+page.svelte`, generatedRoutePage(app, mapping))
 	}
-	writeText('.generated/expected/tests/probes.json', json(app.probes))
-	writeText('.generated/expected/ownership.json', json(ownershipRows))
-	writeText('.generated/expected/ownership-summary.json', json(summary))
-	writeText('.generated/expected/README.md', [
-		'# Generated Expected Output',
-		'',
-		'This directory is generated from APP.ts.',
-		'It is intentionally outside src/** so generation stays separate from app runtime code.',
-		'',
-		`Schema entities: ${app.schema.entities.length}`,
-		`Source providers: ${app.sources.providers.length}`,
-		`Source bindings: ${app.sources.bindings.length}`,
-		`Resolver coverage rows: ${app.resolvers.coverage.length}`,
-		`Entity views: ${app.views.entityViews.length}`,
-		`Route pages: ${app.routes.pages.length}`,
-		`Expected emitted route leaf pages: ${emittedRouteMappings.length}`,
-		`Ownership rows: ${ownershipRows.length}`,
-		`Generated-owned rows: ${summary.generated}`,
-		`Hand-owned rows preserved: ${summary.handOwned}`,
-		`Hand-owned entity views remaining: ${summary.remainingHandOwnedGeneratedSurface.views}`,
-		`Hand-owned route pages remaining: ${summary.remainingHandOwnedGeneratedSurface.routes}`,
-		`Hand-owned route sections remaining: ${summary.remainingHandOwnedGeneratedSurface.routeSections}`,
-	].join('\n'))
 
 	console.log('Generated .generated/expected from APP.ts')
 }

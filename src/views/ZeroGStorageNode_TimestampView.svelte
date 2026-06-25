@@ -10,34 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'storage node',
-		},
-		{
-			label: 'observation time',
-		},
+		'$storageNode',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'storage node',
-				},
-				{
-					label: 'observation time',
-				},
+				'$storageNode',
+				'timestampMs',
 				'source',
 				'balance',
-				{
-					label: 'total reward',
-				},
-				{
-					label: 'win count',
-				},
-				{
-					label: 'mining attempts',
-				},
+				'totalReward',
+				'winCount',
+				'miningAttempts',
 			],
 		],
 	},

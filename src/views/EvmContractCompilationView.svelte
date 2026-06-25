@@ -12,21 +12,15 @@
 	closed: [
 		'language',
 		'compiler',
-		{
-			label: 'compiler version',
-		},
+		'compilerVersion',
 	],
 	content: {
 		dl: [
 			[
 				'language',
 				'compiler',
-				{
-					label: 'compiler version',
-				},
-				{
-					label: 'fully qualified name',
-				},
+				'compilerVersion',
+				'fullyQualifiedName',
 				{
 					label: 'truncated compiler settings JSON',
 				},
@@ -54,25 +48,19 @@
 					{
 						label: 'version',
 					},
-					{
-						label: 'fully qualified name',
-					},
+					'fullyQualifiedName',
 				],
 			},
 			{
 				label: 'Settings',
 				items: [
-					{
-						label: 'compiler settings JSON',
-					},
+					'compilerSettingsJson',
 				],
 			},
 			{
 				label: 'Storage layout',
 				items: [
-					{
-						label: 'storage layout JSON',
-					},
+					'storageLayoutJson',
 				],
 			},
 			{

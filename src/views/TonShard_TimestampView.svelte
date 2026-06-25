@@ -10,34 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'workchain',
-		},
-		{
-			label: 'shard prefix',
-		},
+		'$workchain',
+		'shardPrefix',
 		'seqno',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'workchain',
-				},
-				{
-					label: 'shard prefix',
-				},
+				'$workchain',
+				'shardPrefix',
 				'seqno',
 				'source',
-				{
-					label: 'root hash',
-				},
-				{
-					label: 'file hash',
-				},
-				{
-					label: 'timestamp',
-				},
+				'rootHash',
+			],
+			[
+				'fileHash',
+				'timestampMs',
 				{
 					label: 'logical-time range',
 				},

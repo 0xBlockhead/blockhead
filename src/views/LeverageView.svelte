@@ -16,9 +16,7 @@
 		{
 			label: 'network derived from pool',
 		},
-		{
-			label: 'pool',
-		},
+		'$pool',
 	],
 	content: {
 		dl: [
@@ -29,28 +27,18 @@
 				{
 					label: 'network derived from pool',
 				},
-				{
-					label: 'pool',
-				},
-				{
-					label: 'owner',
-				},
-				{
-					label: 'tick lower',
-				},
-				{
-					label: 'tick upper',
-				},
+				'$pool',
+				'$owner',
+				'tickLower',
+			],
+			[
+				'tickUpper',
 				'liquidity',
-				{
-					label: 'token0 owed',
-				},
-				{
-					label: 'token1 owed',
-				},
-				{
-					label: 'token id',
-				},
+				'token0Owed',
+				'token1Owed',
+				'tokenId',
+			],
+			[
 				'origin',
 				{
 					label: 'created timestamp',

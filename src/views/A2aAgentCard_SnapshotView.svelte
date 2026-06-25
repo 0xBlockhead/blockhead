@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'card',
-		},
-		{
-			label: 'content hash',
-		},
+		'$card',
+		'contentHash',
 		{
 			label: 'name/version',
 		},
@@ -23,31 +19,21 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'card',
-				},
+				'$card',
 				{
 					label: 'content hash algorithm/hash',
 				},
-				{
-					label: 'fetched at',
-				},
-				{
-					label: 'snapshot kind',
-				},
+				'fetchedAt',
+				'snapshotKind',
 			],
 			[
 				'name',
 				'version',
-				{
-					label: 'protocol version',
-				},
+				'protocolVersion',
 				{
 					label: 'provider',
 				},
-				{
-					label: 'preferred transport',
-				},
+				'preferredTransport',
 			],
 		],
 	},
@@ -87,9 +73,7 @@
 			{
 				label: 'Security',
 				items: [
-					{
-						label: 'security schemes',
-					},
+					'securitySchemes',
 					{
 						label: 'security requirements',
 					},
@@ -98,6 +82,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'interfaces',
+			label: 'interfaces',
+			field: '$$interfaces',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'services',
+			label: 'services',
+			field: '$$services',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'skills',
+			label: 'skills',
+			field: '$$skills',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

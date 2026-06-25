@@ -10,33 +10,21 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'registration',
-		},
-		{
-			label: 'observation time',
-		},
+		'$registration',
+		'timestampMs',
 		'active',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'registration',
-				},
-				{
-					label: 'timestamp',
-				},
+				'$registration',
+				'timestampMs',
 				'source',
 				'active',
 			],
 			[
-				{
-					label: 'agent URI',
-				},
-				{
-					label: 'owner address',
-				},
+				'agentUri',
+				'ownerAddress',
 				{
 					label: 'agent wallet',
 				},
@@ -70,9 +58,7 @@
 			{
 				label: 'Metadata',
 				items: [
-					{
-						label: 'agent URI',
-					},
+					'agentUri',
 				],
 			},
 		],

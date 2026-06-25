@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'connection id',
-		},
-		{
-			label: 'network',
-		},
+		'connectionId',
+		'$network',
 		{
 			label: 'node pubkey',
 		},
@@ -23,12 +19,8 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'connection id',
-				},
-				{
-					label: 'network',
-				},
+				'connectionId',
+				'$network',
 				{
 					label: 'node pubkey',
 				},
@@ -36,6 +28,8 @@
 				{
 					label: 'latest chain sync',
 				},
+			],
+			[
 				{
 					label: 'latest graph sync',
 				},
@@ -51,6 +45,8 @@
 				{
 					label: 'macaroon permission summary',
 				},
+			],
+			[
 				{
 					label: 'latest sync time',
 				},
@@ -118,9 +114,7 @@
 			{
 				label: 'Permissions',
 				items: [
-					{
-						label: 'macaroon permissions',
-					},
+					'macaroonPermissions',
 					{
 						label: 'connection metadata',
 					},
@@ -136,6 +130,53 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'channel-states',
+			label: 'channel states',
+			field: '$$channelStates',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'channels',
+			label: 'channels',
+			field: '$$channels',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'invoices',
+			label: 'invoices',
+			field: '$$invoices',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'payments',
+			label: 'payments',
+			field: '$$payments',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

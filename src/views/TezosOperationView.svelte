@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'operation kind',
-		},
+		'operationKind',
 		{
 			label: 'operation hash/content index',
 		},
@@ -21,9 +19,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'operation kind',
-				},
+				'operationKind',
 				{
 					label: 'operation hash/content index',
 				},
@@ -34,6 +30,8 @@
 				{
 					label: 'destination/delegate/contract',
 				},
+			],
+			[
 				'counter',
 				{
 					label: 'fee',
@@ -44,9 +42,7 @@
 				{
 					label: 'token transfer count',
 				},
-				{
-					label: 'big-map diff count',
-				},
+				'$$bigMapDiffs',
 			],
 		],
 	},
@@ -55,12 +51,8 @@
 			{
 				label: 'Gas/storage/result',
 				items: [
-					{
-						label: 'consumed gas',
-					},
-					{
-						label: 'storage size',
-					},
+					'consumedGas',
+					'storageSize',
 					{
 						label: 'paid storage diff',
 					},
@@ -119,6 +111,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'internal-operations',
+			label: 'internal operations',
+			field: '$$internalOperations',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'big-map-diffs',
+			label: 'big map diffs',
+			field: '$$bigMapDiffs',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

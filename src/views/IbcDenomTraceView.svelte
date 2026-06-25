@@ -10,34 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'trace key',
-		},
-		{
-			label: 'display denom',
-		},
+		'$network',
+		'traceKey',
+		'displayDenom',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'trace key',
-				},
-				{
-					label: 'display denom',
-				},
-				{
-					label: 'denom hash',
-				},
-				{
-					label: 'base denom',
-				},
+				'$network',
+				'traceKey',
+				'displayDenom',
+				'denomHash',
+				'baseDenom',
+			],
+			[
 				'path',
 				{
 					label: 'source port/channel',
@@ -45,12 +31,8 @@
 				{
 					label: 'local denom',
 				},
-				{
-					label: 'asset instance',
-				},
-				{
-					label: 'channel ref',
-				},
+				'$assetInstance',
+				'$channel',
 			],
 		],
 	},

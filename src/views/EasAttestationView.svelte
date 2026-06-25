@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'UID',
-		},
-		{
-			label: 'schema',
-		},
+		'uid',
+		'$schema',
 		{
 			label: 'recipient/attester',
 		},
@@ -23,29 +19,19 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'UID',
-				},
-				{
-					label: 'network',
-				},
-				{
-					label: 'schema UID',
-				},
+				'uid',
+				'$network',
+				'schemaUid',
 				'recipient',
 				'attester',
-				{
-					label: 'ref UID',
-				},
+			],
+			[
+				'refUid',
 				{
 					label: 'attested time',
 				},
-				{
-					label: 'expiration time',
-				},
-				{
-					label: 'revocable flag',
-				},
+				'expirationTime',
+				'revocable',
 				{
 					label: 'latest revocation/validity status',
 				},
@@ -124,6 +110,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,23 +10,15 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'wallet key state',
-		},
-		{
-			label: 'observation time',
-		},
+		'$walletKeyState',
+		'timestampMs',
 		'balance',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'wallet key state',
-				},
-				{
-					label: 'observation time',
-				},
+				'$walletKeyState',
+				'timestampMs',
 				'source',
 				'tip',
 				'balance',

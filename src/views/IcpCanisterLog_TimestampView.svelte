@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'canister',
-		},
+		'$canister',
 		{
 			label: 'observed time/source',
 		},
@@ -23,21 +21,15 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'canister',
-				},
+				'$canister',
 				{
 					label: 'observed time/source',
 				},
 				{
 					label: 'last analyzed message time',
 				},
-				{
-					label: 'message count',
-				},
-				{
-					label: 'log visibility',
-				},
+				'messageCount',
+				'logVisibility',
 				{
 					label: 'payload availability',
 				},

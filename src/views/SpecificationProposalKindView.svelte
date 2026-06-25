@@ -24,9 +24,7 @@
 					label: 'plural label',
 				},
 				'slug',
-				{
-					label: 'proposal count',
-				},
+				'$$proposals',
 			],
 		],
 	},
@@ -35,9 +33,7 @@
 			{
 				label: 'Realm',
 				items: [
-					{
-						label: 'parent specification realm',
-					},
+					'$specificationRealm',
 				],
 			},
 			{
@@ -61,6 +57,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'proposals',
+			label: 'proposals',
+			field: '$$proposals',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

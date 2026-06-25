@@ -50,9 +50,7 @@
 			{
 				label: 'Trust lines',
 				items: [
-					{
-						label: 'trust lines',
-					},
+					'$$trustlines',
 				],
 			},
 			{
@@ -65,6 +63,44 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'ledger-entries',
+			label: 'ledger entries',
+			field: '$$ledgerEntries',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'transactions',
+			label: 'transactions',
+			field: '$$transactions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'trustlines',
+			label: 'trustlines',
+			field: '$$trustlines',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

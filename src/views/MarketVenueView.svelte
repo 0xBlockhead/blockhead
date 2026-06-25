@@ -37,9 +37,7 @@
 					label: 'venue id',
 				},
 				'label',
-				{
-					label: 'market count',
-				},
+				'$$markets',
 			],
 		],
 	},

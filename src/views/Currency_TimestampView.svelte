@@ -10,28 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'currency',
-		},
+		'$currency',
 		{
 			label: 'snapshot time',
 		},
-		{
-			label: 'market cap',
-		},
+		'marketCap',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'currency',
-				},
+				'$currency',
 				{
 					label: 'snapshot time',
 				},
-				{
-					label: 'market cap',
-				},
+				'marketCap',
 			],
 		],
 	},

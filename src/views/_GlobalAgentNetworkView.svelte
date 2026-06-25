@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network id',
-		},
-		{
-			label: 'protocol kind',
-		},
+		'networkId',
+		'protocolKind',
 		{
 			label: 'latest discovery coverage',
 		},
@@ -23,33 +19,19 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'network id',
-				},
+				'networkId',
 				'label',
-				{
-					label: 'protocol kind',
-				},
+				'protocolKind',
 				{
 					label: 'latest observation',
 				},
 			],
 			[
-				{
-					label: 'ACP programs',
-				},
-				{
-					label: 'A2A cards',
-				},
-				{
-					label: 'MCP servers',
-				},
-				{
-					label: 'EIP-8004 registrations',
-				},
-				{
-					label: 'Blockhead profiles',
-				},
+				'$$acpPrograms',
+				'$$a2aCards',
+				'$$mcpServers',
+				'$$eip8004Registrations',
+				'$$blockheadProfiles',
 			],
 		],
 	},
@@ -105,6 +87,62 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'acp-programs',
+			label: 'acp programs',
+			field: '$$acpPrograms',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'a2a-cards',
+			label: 'a2a cards',
+			field: '$$a2aCards',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'mcp-servers',
+			label: 'mcp servers',
+			field: '$$mcpServers',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'eip8004-registrations',
+			label: 'eip8004 registrations',
+			field: '$$eip8004Registrations',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'blockhead-profiles',
+			label: 'blockhead profiles',
+			field: '$$blockheadProfiles',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

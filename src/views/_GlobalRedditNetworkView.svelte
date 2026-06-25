@@ -57,6 +57,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'source-window-subreddits',
+			label: 'source window subreddits',
+			field: '$$sourceWindowSubreddits',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'source-window-links',
+			label: 'source window links',
+			field: '$$sourceWindowLinks',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

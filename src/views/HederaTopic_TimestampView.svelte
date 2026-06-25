@@ -10,52 +10,40 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'topic',
-		},
-		{
-			label: 'observation time',
-		},
+		'$topic',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'topic',
-				},
-				{
-					label: 'observation time',
-				},
+				'$topic',
+				'timestampMs',
 				'source',
 				'memo',
 				{
 					label: 'admin key presence',
 				},
+			],
+			[
 				{
 					label: 'submit key presence',
 				},
 				{
 					label: 'auto-renew account/period',
 				},
-				{
-					label: 'fee schedule key',
-				},
+				'feeScheduleKey',
 				{
 					label: 'exempt key count',
 				},
 				{
 					label: 'custom fee summary',
 				},
-				{
-					label: 'deleted flag',
-				},
-				{
-					label: 'sequence number',
-				},
-				{
-					label: 'running hash',
-				},
+			],
+			[
+				'deleted',
+				'sequenceNumber',
+				'runningHash',
 			],
 		],
 	},
@@ -72,12 +60,8 @@
 			{
 				label: 'Fee configuration',
 				items: [
-					{
-						label: 'fee exempt keys',
-					},
-					{
-						label: 'custom fees',
-					},
+					'feeExemptKeys',
+					'customFees',
 				],
 			},
 			{

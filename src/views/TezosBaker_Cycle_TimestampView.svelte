@@ -10,26 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'baker',
-		},
+		'$baker',
 		'cycle',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'baker',
-				},
+				'$baker',
 				'cycle',
 				'source',
-				{
-					label: 'snapshot level',
-				},
+				'snapshotLevel',
 				{
 					label: 'staking balance',
 				},
+			],
+			[
 				{
 					label: 'produced/missed blocks',
 				},

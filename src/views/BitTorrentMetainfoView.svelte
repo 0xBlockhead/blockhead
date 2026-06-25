@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'info hash',
-		},
-		{
-			label: 'hash version',
-		},
+		'infoHash',
+		'hashVersion',
 		{
 			label: 'v1/v2 hashes',
 		},
@@ -23,37 +19,23 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'info hash',
-				},
-				{
-					label: 'hash version',
-				},
+				'infoHash',
+				'hashVersion',
 				{
 					label: 'v1/v2 hashes',
 				},
-				{
-					label: 'metainfo hash',
-				},
-				{
-					label: 'bencoded info hash',
-				},
+				'metainfoHash',
+				'bencodedInfoHash',
+			],
+			[
 				'name',
-				{
-					label: 'piece length',
-				},
-				{
-					label: 'total length',
-				},
-				{
-					label: 'private flag',
-				},
-				{
-					label: 'tracker count',
-				},
-				{
-					label: 'file count',
-				},
+				'pieceLength',
+				'totalLength',
+				'private',
+				'$$trackers',
+			],
+			[
+				'$$files',
 			],
 		],
 	},
@@ -117,6 +99,71 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'files',
+			label: 'files',
+			field: '$$files',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'file-tree-entries',
+			label: 'file tree entries',
+			field: '$$fileTreeEntries',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'pieces',
+			label: 'pieces',
+			field: '$$pieces',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'trackers',
+			label: 'trackers',
+			field: '$$trackers',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'magnets',
+			label: 'magnets',
+			field: '$$magnets',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'swarm-timestamps',
+			label: 'swarm timestamps',
+			field: '$$swarmTimestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'client-transfers',
+			label: 'client transfers',
+			field: '$$clientTransfers',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

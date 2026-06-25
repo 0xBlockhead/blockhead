@@ -10,42 +10,26 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'runtime',
-		},
-		{
-			label: 'observation time',
-		},
+		'$runtime',
+		'timestampMs',
 		'health',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'runtime',
-				},
-				{
-					label: 'timestamp',
-				},
+				'$runtime',
+				'timestampMs',
 				'source',
 				'health',
-				{
-					label: 'protocol version',
-				},
+				'protocolVersion',
 			],
 			[
 				{
 					label: 'agent/client info',
 				},
-				{
-					label: 'auth methods',
-				},
-				{
-					label: 'agent capabilities',
-				},
-				{
-					label: 'client capabilities',
-				},
+				'authMethods',
+				'agentCapabilities',
+				'clientCapabilities',
 				'error',
 			],
 		],

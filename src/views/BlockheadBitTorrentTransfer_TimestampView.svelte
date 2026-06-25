@@ -10,32 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'client',
-		},
-		{
-			label: 'torrent',
-		},
-		{
-			label: 'timestamp',
-		},
+		'$client',
+		'$torrent',
+		'timestampMs',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'client',
-				},
-				{
-					label: 'torrent',
-				},
-				{
-					label: 'timestamp',
-				},
+				'$client',
+				'$torrent',
+				'timestampMs',
 				'status',
 				{
 					label: 'selected file count',
 				},
+			],
+			[
 				{
 					label: 'downloaded/uploaded bytes',
 				},
@@ -45,9 +35,7 @@
 				{
 					label: 'verified/failed pieces',
 				},
-				{
-					label: 'connected peer count',
-				},
+				'connectedPeerCount',
 				'error',
 			],
 		],

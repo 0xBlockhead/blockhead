@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'asset instance',
-		},
-		{
-			label: 'extension kind',
-		},
+		'$assetInstance',
+		'extensionKind',
 		{
 			label: 'scope',
 		},
@@ -23,25 +19,17 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'asset instance',
-				},
-				{
-					label: 'extension kind',
-				},
+				'$assetInstance',
+				'extensionKind',
 				{
 					label: 'scope',
 				},
-				{
-					label: 'observation time',
-				},
+				'timestampMs',
 				'source',
-				{
-					label: 'authority selector',
-				},
-				{
-					label: 'ledger coordinate',
-				},
+			],
+			[
+				'authoritySelector',
+				'ledgerCoordinateKind',
 				{
 					label: 'config summary',
 				},
@@ -53,9 +41,7 @@
 			{
 				label: 'Asset',
 				items: [
-					{
-						label: 'parent asset instance',
-					},
+					'$assetInstance',
 				],
 			},
 			{

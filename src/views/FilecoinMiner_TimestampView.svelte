@@ -10,51 +10,31 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'miner',
-		},
-		{
-			label: 'observation time',
-		},
+		'$miner',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'miner',
-				},
-				{
-					label: 'observation time',
-				},
+				'$miner',
+				'timestampMs',
 				'source',
 				'height',
-				{
-					label: 'owner',
-				},
-				{
-					label: 'worker',
-				},
-				{
-					label: 'peer id',
-				},
+				'$owner',
+				'$worker',
+				'peerId',
 			],
 			[
 				{
 					label: 'raw power',
 				},
-				{
-					label: 'quality-adjusted power',
-				},
+				'qualityAdjustedPower',
 				{
 					label: 'network power',
 				},
-				{
-					label: 'live sector count',
-				},
-				{
-					label: 'faulty sector count',
-				},
+				'liveSectorCount',
+				'faultySectorCount',
 			],
 		],
 	},
@@ -79,9 +59,7 @@
 			{
 				label: 'Power',
 				items: [
-					{
-						label: 'miner',
-					},
+					'$miner',
 					{
 						label: 'network power comparison',
 					},

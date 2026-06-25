@@ -10,43 +10,29 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'proposal',
-		},
-		{
-			label: 'voter kind',
-		},
-		{
-			label: 'voter credential',
-		},
+		'$proposal',
+		'voterKind',
+		'voterCredential',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'proposal',
-				},
-				{
-					label: 'voter kind',
-				},
-				{
-					label: 'voter credential',
-				},
+				'$proposal',
+				'voterKind',
+				'voterCredential',
 				'vote',
 				'source',
-				{
-					label: 'DRep',
-				},
-				{
-					label: 'stake pool',
-				},
+			],
+			[
+				'$drep',
+				'$stakePool',
 				{
 					label: 'vote transaction',
 				},
-				{
-					label: 'vote index',
-				},
+				'voteIndex',
 				'epoch',
+			],
+			[
 				'slot',
 				{
 					label: 'anchor URL/hash',

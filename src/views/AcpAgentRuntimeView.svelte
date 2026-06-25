@@ -10,42 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'runtime id',
-		},
-		{
-			label: 'program version',
-		},
-		{
-			label: 'transport',
-		},
+		'runtimeId',
+		'$programVersion',
+		'transportKind',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'runtime id',
-				},
-				{
-					label: 'source',
-				},
-				{
-					label: 'program version',
-				},
-				{
-					label: 'program install',
-				},
-				{
-					label: 'transport kind',
-				},
+				'runtimeId',
+				'$source',
+				'$programVersion',
+				'$programInstall',
+				'transportKind',
 			],
 			[
-				{
-					label: 'process id',
-				},
-				{
-					label: 'initialized at',
-				},
+				'processId',
+				'initializedAt',
 				{
 					label: 'session refs',
 				},
@@ -94,6 +74,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'sessions',
+			label: 'sessions',
+			field: '$$sessions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

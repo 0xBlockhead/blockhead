@@ -10,39 +10,25 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'source',
-		},
-		{
-			label: 'observation time',
-		},
+		'$source',
+		'timestampMs',
 		'health',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'source',
-				},
-				{
-					label: 'observation time',
-				},
-				{
-					label: 'enabled flag',
-				},
+				'$source',
+				'timestampMs',
+				'enabled',
 				'health',
-				{
-					label: 'latency',
-				},
-				{
-					label: 'status code',
-				},
+				'latencyMs',
+			],
+			[
+				'statusCode',
 				{
 					label: 'rate-limit remaining/reset',
 				},
-				{
-					label: 'resolver count',
-				},
+				'resolverCount',
 				'error',
 			],
 		],
@@ -77,9 +63,7 @@
 			{
 				label: 'Resolver coverage',
 				items: [
-					{
-						label: 'resolver count',
-					},
+					'resolverCount',
 					{
 						label: 'local capability notes',
 					},
@@ -88,9 +72,7 @@
 			{
 				label: 'Local config',
 				items: [
-					{
-						label: 'enabled state',
-					},
+					'enabled',
 					{
 						label: 'environment gating result',
 					},

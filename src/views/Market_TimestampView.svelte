@@ -79,42 +79,24 @@
 		},
 	],
 	closed: [
-		{
-			label: 'market',
-		},
-		{
-			label: 'quote time',
-		},
-		{
-			label: 'feed key',
-		},
+		'$market',
+		'timestampMs',
+		'feedKey',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'market',
-				},
-				{
-					label: 'quote time',
-				},
-				{
-					label: 'feed key',
-				},
+				'$market',
+				'timestampMs',
+				'feedKey',
 				'price',
-				{
-					label: 'market cap',
-				},
-				{
-					label: '24h volume',
-				},
-				{
-					label: 'CAIP-19',
-				},
+				'marketCap',
+			],
+			[
+				'volume24h',
+				'caip19',
 				'transport',
-				{
-					label: 'provider asset id',
-				},
+				'providerAssetId',
 			],
 		],
 	},
@@ -123,44 +105,30 @@
 			{
 				label: 'Market',
 				items: [
-					{
-						label: 'Market',
-					},
+					'$market',
 				],
 			},
 			{
 				label: 'Quote',
 				items: [
 					'price',
-					{
-						label: 'source clock',
-					},
-					{
-						label: 'feed key',
-					},
+					'timestampMs',
+					'feedKey',
 				],
 			},
 			{
 				label: 'Liquidity context',
 				items: [
-					{
-						label: 'market cap',
-					},
-					{
-						label: '24h volume',
-					},
+					'marketCap',
+					'volume24h',
 				],
 			},
 			{
 				label: 'Provider mapping',
 				items: [
-					{
-						label: 'CAIP-19',
-					},
+					'caip19',
 					'transport',
-					{
-						label: 'provider asset id',
-					},
+					'providerAssetId',
 				],
 			},
 			{
@@ -171,6 +139,14 @@
 					},
 				],
 			},
+		],
+	},
+	summary: {
+		value: '$market',
+		title: '$market',
+		after: [
+			'timestampMs',
+			'feedKey',
 		],
 	},
 } satisfies ComponentProps<typeof EntityView2>['view']

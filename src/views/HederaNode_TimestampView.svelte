@@ -10,44 +10,32 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'node',
-		},
-		{
-			label: 'observation time',
-		},
+		'$node',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'node',
-				},
-				{
-					label: 'observation time',
-				},
+				'$node',
+				'timestampMs',
 				'source',
-				{
-					label: 'node account',
-				},
+				'$node',
 				'description',
-				{
-					label: 'file id',
-				},
+			],
+			[
+				'fileId',
 				'memo',
-				{
-					label: 'public key',
-				},
+				'publicKey',
 				{
 					label: 'certificate hash',
 				},
 				{
 					label: 'endpoint count',
 				},
-				{
-					label: 'stake',
-				},
+			],
+			[
+				'stakeTinybar',
 				{
 					label: 'rewarded stake',
 				},
@@ -57,9 +45,7 @@
 				{
 					label: 'min/max stake',
 				},
-				{
-					label: 'deleted flag',
-				},
+				'deleted',
 			],
 		],
 	},
@@ -92,9 +78,7 @@
 			{
 				label: 'Stake',
 				items: [
-					{
-						label: 'stake',
-					},
+					'stakeTinybar',
 					{
 						label: 'reward split fields',
 					},

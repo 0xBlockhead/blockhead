@@ -13,12 +13,8 @@
 		{
 			label: 'Dogecoin block',
 		},
-		{
-			label: 'parent block header ref',
-		},
-		{
-			label: 'coinbase branch ref',
-		},
+		'$parentBlockHeader',
+		'$coinbaseBranch',
 	],
 	content: {
 		dl: [
@@ -26,15 +22,9 @@
 				{
 					label: 'Dogecoin block',
 				},
-				{
-					label: 'parent block header ref',
-				},
-				{
-					label: 'coinbase branch ref',
-				},
-				{
-					label: 'chain branch ref',
-				},
+				'$parentBlockHeader',
+				'$coinbaseBranch',
+				'$chainBranch',
 			],
 		],
 	},
@@ -59,12 +49,8 @@
 			{
 				label: 'Merkle branches',
 				items: [
-					{
-						label: 'coinbase branch',
-					},
-					{
-						label: 'chain branch',
-					},
+					'$coinbaseBranch',
+					'$chainBranch',
 				],
 			},
 		],

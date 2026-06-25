@@ -10,36 +10,26 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'validator',
-		},
+		'$validator',
 		'slot',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'validator',
-				},
+				'$validator',
 				'slot',
 				'source',
-				{
-					label: 'timestamp',
-				},
+				'timestampMs',
 				{
 					label: 'activated stake',
 				},
+			],
+			[
 				'commission',
-				{
-					label: 'delinquent flag',
-				},
-				{
-					label: 'last vote slot',
-				},
-				{
-					label: 'root slot',
-				},
+				'delinquent',
+				'lastVoteSlot',
+				'rootSlot',
 				{
 					label: 'epoch-credit summary',
 				},

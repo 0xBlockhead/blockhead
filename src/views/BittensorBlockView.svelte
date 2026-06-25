@@ -10,36 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'block number',
-		},
+		'$network',
+		'blockNumber',
 		'hash',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'block number',
-				},
+				'$network',
+				'blockNumber',
 				'hash',
 				{
 					label: 'parent block',
 				},
-				{
-					label: 'state root',
-				},
-				{
-					label: 'extrinsics root',
-				},
-				{
-					label: 'extrinsic count',
-				},
+				'stateRoot',
+				'extrinsicsRoot',
+				'extrinsicCount',
 			],
 		],
 	},

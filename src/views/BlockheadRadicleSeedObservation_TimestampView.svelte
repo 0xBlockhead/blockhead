@@ -10,44 +10,28 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'repository',
-		},
+		'$repository',
 		{
 			label: 'seed node id',
 		},
-		{
-			label: 'observer node',
-		},
+		'$observerNode',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'repository',
-				},
+				'$repository',
 				{
 					label: 'seed node id',
 				},
-				{
-					label: 'observer node',
-				},
-				{
-					label: 'timestamp',
-				},
+				'$observerNode',
+				'timestampMs',
 				'source',
-				{
-					label: 'advertised flag',
-				},
-				{
-					label: 'reachable flag',
-				},
-				{
-					label: 'ref count',
-				},
-				{
-					label: 'object count',
-				},
+			],
+			[
+				'advertised',
+				'reachable',
+				'refCount',
+				'objectCount',
 			],
 		],
 	},

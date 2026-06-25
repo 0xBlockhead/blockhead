@@ -119,6 +119,8 @@
 				'gatewayUrl',
 				'contentType',
 				'contentLength',
+			],
+			[
 				'fileName',
 				'extension',
 				'displayType',

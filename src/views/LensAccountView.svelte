@@ -11,41 +11,31 @@
 	const view = {
 	closed: [
 		'address',
-		{
-			label: 'local name',
-		},
-		{
-			label: 'legacy profile id',
-		},
+		'localName',
+		'legacyProfileId',
 	],
 	content: {
 		dl: [
 			[
 				'address',
-				{
-					label: 'local name',
-				},
-				{
-					label: 'legacy profile id',
-				},
-				{
-					label: 'display name',
-				},
+				'localName',
+				'legacyProfileId',
+				'displayName',
 				'bio',
+			],
+			[
 				'owner',
 				'score',
 				{
 					label: 'member state',
 				},
-				{
-					label: 'created time',
-				},
+				'createdAt',
 				{
 					label: 'icon URL/media',
 				},
-				{
-					label: 'username',
-				},
+			],
+			[
+				'$username',
 				{
 					label: 'latest follower/following snapshot',
 				},
@@ -104,6 +94,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'account-managers',
+			label: 'account managers',
+			field: '$$accountManagers',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'posts',
+			label: 'posts',
+			field: '$$posts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

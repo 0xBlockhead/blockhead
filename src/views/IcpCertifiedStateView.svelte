@@ -10,37 +10,21 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'canister',
-		},
-		{
-			label: 'certificate hash',
-		},
-		{
-			label: 'path hash',
-		},
+		'$canister',
+		'certificateHash',
+		'pathHash',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'canister',
-				},
-				{
-					label: 'certificate hash',
-				},
-				{
-					label: 'path hash',
-				},
-				{
-					label: 'tree hash',
-				},
+				'$canister',
+				'certificateHash',
+				'pathHash',
+				'treeHash',
 				{
 					label: 'certified time',
 				},
-				{
-					label: 'verification status',
-				},
+				'verificationStatus',
 				{
 					label: 'value presence',
 				},
@@ -71,9 +55,7 @@
 					{
 						label: 'hash-tree path',
 					},
-					{
-						label: 'tree hash',
-					},
+					'treeHash',
 				],
 			},
 			{

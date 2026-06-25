@@ -10,34 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'channel id',
-		},
-		{
-			label: 'short channel id',
-		},
+		'$network',
+		'channelId',
+		'shortChannelId',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'channel id',
-				},
-				{
-					label: 'short channel id',
-				},
+				'$network',
+				'channelId',
+				'shortChannelId',
 				{
 					label: 'node0',
 				},
-				{
-					label: 'node1',
-				},
+				'$node1',
+			],
+			[
 				{
 					label: 'funding outpoint',
 				},
@@ -131,6 +119,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'local-states',
+			label: 'local states',
+			field: '$$localStates',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,37 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'transaction hash',
-		},
-		{
-			label: 'block',
-		},
+		'$network',
+		'txHash',
+		'$block',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'transaction hash',
-				},
-				{
-					label: 'block',
-				},
+				'$network',
+				'txHash',
+				'$block',
 				{
 					label: 'code/codespace',
 				},
-				{
-					label: 'gas wanted',
-				},
-				{
-					label: 'gas used',
-				},
+				'gasWanted',
+			],
+			[
+				'gasUsed',
 				{
 					label: 'fee summary',
 				},
@@ -48,15 +34,11 @@
 				{
 					label: 'signer count',
 				},
-				{
-					label: 'signature count',
-				},
-				{
-					label: 'event type count',
-				},
-				{
-					label: 'message count',
-				},
+				'signatures',
+			],
+			[
+				'eventTypes',
+				'$$messages',
 			],
 		],
 	},
@@ -86,12 +68,8 @@
 					{
 						label: 'gas',
 					},
-					{
-						label: 'raw log',
-					},
-					{
-						label: 'event types',
-					},
+					'rawLog',
+					'eventTypes',
 				],
 			},
 			{
@@ -100,15 +78,9 @@
 					{
 						label: 'fee amount/gas limit',
 					},
-					{
-						label: 'timeout height',
-					},
-					{
-						label: 'signer addresses',
-					},
-					{
-						label: 'public keys',
-					},
+					'timeoutHeight',
+					'signerAddresses',
+					'publicKeys',
 					'signatures',
 				],
 			},
@@ -125,6 +97,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'messages',
+			label: 'messages',
+			field: '$$messages',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

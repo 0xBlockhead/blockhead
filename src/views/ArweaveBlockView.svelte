@@ -11,52 +11,30 @@
 	const view = {
 	closed: [
 		'height',
-		{
-			label: 'indep hash',
-		},
-		{
-			label: 'timestamp',
-		},
+		'indepHash',
+		'timestampMs',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
+				'$network',
 				'height',
-				{
-					label: 'indep hash',
-				},
-				{
-					label: 'previous block',
-				},
-				{
-					label: 'timestamp',
-				},
-				{
-					label: 'transaction count',
-				},
+				'indepHash',
+				'previousBlock',
+				'timestampMs',
+				'transactionCount',
 			],
 			[
-				{
-					label: 'reward address',
-				},
+				'rewardAddress',
 				{
 					label: 'reward pool',
 				},
-				{
-					label: 'weave size',
-				},
-				{
-					label: 'block size',
-				},
+				'weaveSizeBytes',
+				'blockSizeBytes',
 				{
 					label: 'cumulative difficulty',
 				},
-				{
-					label: 'hash-list merkle',
-				},
+				'hashListMerkle',
 			],
 		],
 	},
@@ -81,24 +59,14 @@
 			{
 				label: 'Block header',
 				items: [
-					{
-						label: 'transaction root',
-					},
-					{
-						label: 'wallet list',
-					},
-					{
-						label: 'reward address',
-					},
+					'transactionRoot',
+					'walletList',
+					'rewardAddress',
 					{
 						label: 'reward pool',
 					},
-					{
-						label: 'weave size',
-					},
-					{
-						label: 'block size',
-					},
+					'weaveSizeBytes',
+					'blockSizeBytes',
 				],
 			},
 			{
@@ -128,6 +96,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'transactions',
+			label: 'transactions',
+			field: '$$transactions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

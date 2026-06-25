@@ -13,9 +13,7 @@
 		{
 			label: 'readiness check',
 		},
-		{
-			label: 'kind',
-		},
+		'checkKind',
 		{
 			label: 'latest status',
 		},
@@ -23,30 +21,20 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'session action',
-				},
-				{
-					label: 'check id',
-				},
-				{
-					label: 'kind',
-				},
+				'$sessionAction',
+				'checkId',
+				'checkKind',
 				{
 					label: 'network/account/asset selectors',
 				},
 				{
 					label: 'EVM account/token/spender shortcuts',
 				},
-				{
-					label: 'capability key',
-				},
-				{
-					label: 'required amount',
-				},
-				{
-					label: 'created time',
-				},
+			],
+			[
+				'capabilityKey',
+				'requiredAmount',
+				'createdAt',
 				{
 					label: 'latest status',
 				},
@@ -81,6 +69,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

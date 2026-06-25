@@ -10,28 +10,16 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'module name',
-		},
-		{
-			label: 'authority account',
-		},
+		'$network',
+		'moduleName',
+		'$authority',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'module name',
-				},
-				{
-					label: 'authority account',
-				},
+				'$network',
+				'moduleName',
+				'$authority',
 			],
 		],
 	},

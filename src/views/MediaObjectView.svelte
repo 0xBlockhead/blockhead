@@ -24,9 +24,7 @@
 				'url',
 				'width',
 				'height',
-				{
-					label: 'MIME type',
-				},
+				'mimeType',
 				'size',
 			],
 		],
@@ -47,9 +45,7 @@
 					{
 						label: 'dimensions',
 					},
-					{
-						label: 'MIME type',
-					},
+					'mimeType',
 					{
 						label: 'byte size',
 					},

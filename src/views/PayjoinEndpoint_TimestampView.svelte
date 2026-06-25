@@ -10,23 +10,15 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'endpoint',
-		},
-		{
-			label: 'observation time',
-		},
+		'$endpoint',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'endpoint',
-				},
-				{
-					label: 'observation time',
-				},
+				'$endpoint',
+				'timestampMs',
 				'source',
 				{
 					label: 'output-substitution support',
@@ -34,15 +26,13 @@
 				{
 					label: 'OHTTP requirement',
 				},
-				{
-					label: 'max payload bytes',
-				},
+			],
+			[
+				'maxPayloadBytes',
 				{
 					label: 'last seen time',
 				},
-				{
-					label: 'response status',
-				},
+				'responseStatus',
 				'error',
 			],
 		],

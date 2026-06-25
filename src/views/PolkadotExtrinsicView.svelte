@@ -10,33 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'block',
-		},
-		{
-			label: 'extrinsic index',
-		},
+		'$block',
+		'extrinsicIndex',
 		'hash',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'block',
-				},
-				{
-					label: 'extrinsic index',
-				},
+				'$block',
+				'extrinsicIndex',
 				'hash',
-				{
-					label: 'signer',
-				},
-				{
-					label: 'pallet',
-				},
-				{
-					label: 'call name',
-				},
+				'$signer',
+				'$pallet',
+				'callName',
 				'success',
 			],
 		],

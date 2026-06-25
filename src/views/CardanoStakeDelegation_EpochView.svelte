@@ -10,41 +10,25 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'stake credential',
-		},
+		'$stakeCredential',
 		'epoch',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'stake credential',
-				},
+				'$stakeCredential',
 				'epoch',
 				'source',
-				{
-					label: 'stake pool',
-				},
-				{
-					label: 'DRep',
-				},
-				{
-					label: 'active stake',
-				},
-				{
-					label: 'reward amount',
-				},
-				{
-					label: 'withdrawal amount',
-				},
-				{
-					label: 'registered flag',
-				},
-				{
-					label: 'deregistered flag',
-				},
+				'$stakePool',
+				'$drep',
+			],
+			[
+				'activeStake',
+				'rewardAmount',
+				'withdrawalAmount',
+				'registered',
+				'deregistered',
 			],
 		],
 	},

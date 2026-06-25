@@ -10,37 +10,21 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'blockchain id',
-		},
-		{
-			label: 'subnet',
-		},
-		{
-			label: 'VM id',
-		},
+		'blockchainId',
+		'$subnet',
+		'vmId',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'blockchain id',
-				},
-				{
-					label: 'subnet',
-				},
-				{
-					label: 'VM id',
-				},
+				'blockchainId',
+				'$subnet',
+				'vmId',
 				{
 					label: 'chain name/alias',
 				},
-				{
-					label: 'linked Network',
-				},
-				{
-					label: 'genesis data hash',
-				},
+				'$network',
+				'genesisDataHash',
 				{
 					label: 'creation transaction',
 				},
@@ -52,9 +36,7 @@
 			{
 				label: 'Subnet',
 				items: [
-					{
-						label: 'parent subnet',
-					},
+					'$subnet',
 				],
 			},
 			{
@@ -76,9 +58,7 @@
 			{
 				label: 'Genesis/source evidence',
 				items: [
-					{
-						label: 'genesis data hash',
-					},
+					'genesisDataHash',
 					{
 						label: 'aliases',
 					},

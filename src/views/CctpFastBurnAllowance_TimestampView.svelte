@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'observation time',
-		},
+		'timestampMs',
 		'source',
 		{
 			label: 'allowance in USDC',
@@ -21,9 +19,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'observation time',
-				},
+				'timestampMs',
 				'source',
 				{
 					label: 'allowance in USDC',
@@ -31,9 +27,7 @@
 				{
 					label: 'Circle last-updated time',
 				},
-				{
-					label: 'request id',
-				},
+				'requestId',
 			],
 		],
 	},

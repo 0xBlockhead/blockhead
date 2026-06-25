@@ -10,40 +10,24 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'subaccount',
-		},
-		{
-			label: 'observation time',
-		},
+		'$subaccount',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'subaccount',
-				},
-				{
-					label: 'observation time',
-				},
+				'$subaccount',
+				'timestampMs',
 				'source',
-				{
-					label: 'block height',
-				},
+				'blockHeight',
 				'equity',
-				{
-					label: 'free collateral',
-				},
-				{
-					label: 'margin usage',
-				},
-				{
-					label: 'open position count',
-				},
-				{
-					label: 'open order count',
-				},
+			],
+			[
+				'freeCollateral',
+				'marginUsage',
+				'openPositionCount',
+				'openOrderCount',
 			],
 		],
 	},

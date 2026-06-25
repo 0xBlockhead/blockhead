@@ -10,30 +10,24 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'channel',
-		},
+		'$channel',
 		'version',
 		'intent',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'channel',
-				},
+				'$channel',
 				'version',
 				'intent',
 				{
 					label: 'final flag',
 				},
 				'timestamp',
-				{
-					label: 'allocation count',
-				},
-				{
-					label: 'signature count',
-				},
+			],
+			[
+				'allocations',
+				'signatures',
 				{
 					label: 'state data hash/hex',
 				},

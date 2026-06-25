@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'subject',
-		},
-		{
-			label: 'benchmark',
-		},
+		'subjectKind',
+		'$benchmark',
 		{
 			label: 'metric/value',
 		},
@@ -26,31 +22,21 @@
 				{
 					label: 'subject kind/selector',
 				},
-				{
-					label: 'benchmark',
-				},
-				{
-					label: 'metric',
-				},
+				'$benchmark',
+				'metricType',
 				'value',
 				'unit',
 			],
 			[
-				{
-					label: 'timestamp',
-				},
+				'timestampMs',
 				'source',
 				{
 					label: 'run/result/step',
 				},
-				{
-					label: 'dataset',
-				},
+				'datasetType',
 				'split',
 				'method',
-				{
-					label: 'harness version',
-				},
+				'harnessVersion',
 			],
 		],
 	},

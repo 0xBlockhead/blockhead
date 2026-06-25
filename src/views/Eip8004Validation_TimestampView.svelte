@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'request hash',
-		},
+		'requestHash',
 		{
 			label: 'validator',
 		},
@@ -24,25 +22,19 @@
 				{
 					label: 'request hash algorithm/hash',
 				},
-				{
-					label: 'registration',
-				},
+				'$registration',
 				{
 					label: 'validator',
 				},
 				'response',
 			],
 			[
-				{
-					label: 'request URI',
-				},
+				'requestUri',
 				{
 					label: 'response URI/hash algorithm/hash',
 				},
 				'tag',
-				{
-					label: 'last update',
-				},
+				'lastUpdate',
 			],
 		],
 	},

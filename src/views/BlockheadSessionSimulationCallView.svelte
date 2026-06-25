@@ -10,35 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'simulation',
-		},
-		{
-			label: 'call path',
-		},
-		{
-			label: 'to address',
-		},
+		'$simulation',
+		'callPath',
+		'toAddress',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'simulation',
-				},
-				{
-					label: 'call path',
-				},
+				'$simulation',
+				'callPath',
 				{
 					label: 'parent path',
 				},
 				'depth',
-				{
-					label: 'call index',
-				},
-				{
-					label: 'call type',
-				},
+				'callIndex',
+			],
+			[
+				'callType',
 				{
 					label: 'from/to addresses',
 				},
@@ -46,9 +34,9 @@
 				{
 					label: 'selector',
 				},
-				{
-					label: 'gas used',
-				},
+				'gasUsed',
+			],
+			[
 				'reverted',
 				'error',
 			],
@@ -75,9 +63,7 @@
 			{
 				label: 'Input/output',
 				items: [
-					{
-						label: 'input selector',
-					},
+					'inputSelector',
 					{
 						label: 'input/output data hashes',
 					},

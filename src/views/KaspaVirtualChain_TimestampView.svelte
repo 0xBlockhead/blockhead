@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'start hash',
-		},
+		'$network',
+		'startHash',
 		{
 			label: 'observed time/source',
 		},
@@ -23,12 +19,8 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'start hash',
-				},
+				'$network',
+				'startHash',
 				{
 					label: 'observed time/source',
 				},
@@ -38,12 +30,12 @@
 				{
 					label: 'added block count',
 				},
+			],
+			[
 				{
 					label: 'removed block count',
 				},
-				{
-					label: 'accepted transaction count',
-				},
+				'acceptedTransactionCount',
 				{
 					label: 'next checkpoint',
 				},

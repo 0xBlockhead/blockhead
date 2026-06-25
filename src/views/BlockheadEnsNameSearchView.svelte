@@ -11,23 +11,15 @@
 	const view = {
 	closed: [
 		'query',
-		{
-			label: 'created time',
-		},
-		{
-			label: 'result limit',
-		},
+		'createdAt',
+		'resultLimit',
 	],
 	content: {
 		dl: [
 			[
 				'query',
-				{
-					label: 'created time',
-				},
-				{
-					label: 'result limit',
-				},
+				'createdAt',
+				'resultLimit',
 			],
 		],
 	},
@@ -51,6 +43,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'matching-names',
+			label: 'matching names',
+			field: '$$matchingNames',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

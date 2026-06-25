@@ -10,35 +10,21 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'transaction',
-		},
-		{
-			label: 'input index',
-		},
-		{
-			label: 'spent output',
-		},
+		'$transaction',
+		'inputIndex',
+		'$spentOutput',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'transaction',
-				},
-				{
-					label: 'input index',
-				},
-				{
-					label: 'spent output',
-				},
+				'$transaction',
+				'inputIndex',
+				'$spentOutput',
 				{
 					label: 'coinbase/scriptSig summary',
 				},
 				'sequence',
-				{
-					label: 'witness count',
-				},
+				'witness',
 			],
 		],
 	},
@@ -55,12 +41,8 @@
 			{
 				label: 'Script',
 				items: [
-					{
-						label: 'coinbase script',
-					},
-					{
-						label: 'scriptSig asm',
-					},
+					'coinbaseScript',
+					'scriptSigAsm',
 					{
 						label: 'witness stack',
 					},
@@ -69,9 +51,7 @@
 			{
 				label: 'Transaction',
 				items: [
-					{
-						label: 'parent transaction',
-					},
+					'$transaction',
 				],
 			},
 		],

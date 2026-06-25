@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'icon',
-		},
+		'$icon',
 		{
 			label: 'symbol/name fallback',
 		},
@@ -23,9 +21,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'icon',
-				},
+				'$icon',
 				{
 					label: 'symbol/name fallback',
 				},
@@ -36,11 +32,11 @@
 					label: 'native/token contract kind',
 				},
 				'name',
+			],
+			[
 				'symbol',
 				'decimals',
-				{
-					label: 'CAIP-19',
-				},
+				'caip19',
 				'representation',
 				{
 					label: 'canonical deployment',
@@ -60,6 +56,44 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'markets-with-instance-as-base',
+			label: 'markets with instance as base',
+			field: '$$marketsWithInstanceAsBase',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'markets-with-instance-as-quote',
+			label: 'markets with instance as quote',
+			field: '$$marketsWithInstanceAsQuote',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'outbound-bridge-capabilities',
+			label: 'outbound bridge capabilities',
+			field: '$$outboundBridgeCapabilities',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'inbound-bridge-capabilities',
+			label: 'inbound bridge capabilities',
+			field: '$$inboundBridgeCapabilities',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

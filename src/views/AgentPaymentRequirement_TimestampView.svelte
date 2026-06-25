@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'subject',
-		},
-		{
-			label: 'payment protocol',
-		},
+		'subjectKind',
+		'paymentProtocol',
 		'required',
 	],
 	content: {
@@ -24,25 +20,15 @@
 				{
 					label: 'subject kind/selector',
 				},
-				{
-					label: 'payment protocol',
-				},
-				{
-					label: 'timestamp',
-				},
+				'paymentProtocol',
+				'timestampMs',
 				'source',
 			],
 			[
 				'required',
-				{
-					label: 'HTTP status',
-				},
-				{
-					label: 'request method',
-				},
-				{
-					label: 'resource URL',
-				},
+				'httpStatus',
+				'requestMethod',
+				'resourceUrl',
 			],
 			[
 				'scheme',
@@ -50,9 +36,7 @@
 					label: 'asset/network selectors',
 				},
 				'price',
-				{
-					label: 'pay-to',
-				},
+				'payTo',
 				{
 					label: 'facilitator',
 				},
@@ -79,9 +63,7 @@
 					{
 						label: 'PAYMENT-REQUIRED/PAYMENT-SIGNATURE/PAYMENT-RESPONSE headers',
 					},
-					{
-						label: 'evidence URI',
-					},
+					'evidenceUri',
 					{
 						label: 'source payload',
 					},
@@ -93,9 +75,7 @@
 					{
 						label: 'requirements JSON',
 					},
-					{
-						label: 'payment payload',
-					},
+					'paymentPayload',
 					{
 						label: 'response payload',
 					},

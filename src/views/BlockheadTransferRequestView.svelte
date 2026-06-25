@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'room',
-		},
+		'$network',
+		'$room',
 		{
 			label: 'from/to accounts',
 		},
@@ -23,22 +19,14 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'room',
-				},
+				'$network',
+				'$room',
 				{
 					label: 'from/to accounts',
 				},
-				{
-					label: 'allocation count',
-				},
+				'allocations',
 				'status',
-				{
-					label: 'created time',
-				},
+				'createdAt',
 				{
 					label: 'expiry',
 				},

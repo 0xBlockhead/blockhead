@@ -10,26 +10,16 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'feed URL',
-		},
-		{
-			label: 'GUID',
-		},
+		'feedUrl',
+		'guid',
 		'title',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'feed URL',
-				},
-				{
-					label: 'GUID',
-				},
-				{
-					label: 'feed ref',
-				},
+				'feedUrl',
+				'guid',
+				'$feed',
 				'title',
 				{
 					label: 'published/updated time',
@@ -39,12 +29,8 @@
 			[
 				'link',
 				'categories',
-				{
-					label: 'enclosure URL',
-				},
-				{
-					label: 'comments URL',
-				},
+				'enclosureUrl',
+				'commentsUrl',
 				{
 					label: 'content/description presence',
 				},

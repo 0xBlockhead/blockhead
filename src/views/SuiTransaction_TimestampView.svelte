@@ -10,45 +10,27 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'transaction',
-		},
-		{
-			label: 'checkpoint sequence',
-		},
+		'$transaction',
+		'checkpointSequence',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'transaction',
-				},
-				{
-					label: 'checkpoint sequence',
-				},
+				'$transaction',
+				'checkpointSequence',
 				'source',
-				{
-					label: 'observation time',
-				},
+				'timestampMs',
 				'status',
-				{
-					label: 'confirmed local execution',
-				},
+				'confirmedLocalExecution',
 			],
 			[
-				{
-					label: 'gas budget',
-				},
-				{
-					label: 'gas price',
-				},
+				'gasBudget',
+				'gasPrice',
 				{
 					label: 'gas used summary',
 				},
-				{
-					label: 'effects digest',
-				},
+				'effectsDigest',
 			],
 		],
 	},
@@ -66,12 +48,8 @@
 				label: 'Effects',
 				items: [
 					'status',
-					{
-						label: 'gas used',
-					},
-					{
-						label: 'effects digest',
-					},
+					'gasUsed',
+					'effectsDigest',
 					{
 						label: 'local execution flag',
 					},

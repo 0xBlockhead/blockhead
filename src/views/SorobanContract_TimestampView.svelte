@@ -10,49 +10,27 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'contract',
-		},
-		{
-			label: 'ledger sequence',
-		},
-		{
-			label: 'wasm hash',
-		},
+		'$contract',
+		'ledgerSequence',
+		'wasmHash',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'contract',
-				},
-				{
-					label: 'ledger sequence',
-				},
+				'$contract',
+				'ledgerSequence',
 				'source',
 				{
 					label: 'observed time',
 				},
-				{
-					label: 'found state',
-				},
+				'found',
 			],
 			[
-				{
-					label: 'executable kind',
-				},
-				{
-					label: 'wasm hash',
-				},
-				{
-					label: 'linked WASM',
-				},
-				{
-					label: 'last-modified ledger',
-				},
-				{
-					label: 'live-until ledger',
-				},
+				'executableKind',
+				'wasmHash',
+				'$wasm',
+				'lastModifiedLedger',
+				'liveUntilLedger',
 			],
 		],
 	},

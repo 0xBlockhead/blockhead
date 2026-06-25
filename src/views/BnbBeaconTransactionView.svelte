@@ -10,43 +10,33 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'tx hash',
-		},
-		{
-			label: 'type',
-		},
-		{
-			label: 'block',
-		},
+		'txHash',
+		'txType',
+		'$block',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'tx hash',
-				},
-				{
-					label: 'type',
-				},
-				{
-					label: 'block',
-				},
+				'txHash',
+				'txType',
+				'$block',
 				{
 					label: 'source',
 				},
 				{
 					label: 'destination',
 				},
-				{
-					label: 'token symbol',
-				},
+			],
+			[
+				'tokenSymbol',
 				'amount',
 				{
 					label: 'fee',
 				},
 				'code',
 				'memo',
+			],
+			[
 				{
 					label: 'order/trade fields when present',
 				},
@@ -78,13 +68,9 @@
 					{
 						label: 'destination',
 					},
-					{
-						label: 'token symbol',
-					},
+					'tokenSymbol',
 					'amount',
-					{
-						label: 'order id',
-					},
+					'orderId',
 				],
 			},
 			{
@@ -105,6 +91,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'token-effects',
+			label: 'token effects',
+			field: '$$tokenEffects',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

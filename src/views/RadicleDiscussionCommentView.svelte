@@ -10,41 +10,27 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'discussion selector',
-		},
-		{
-			label: 'comment id',
-		},
-		{
-			label: 'author DID',
-		},
+		'discussionSelector',
+		'commentId',
+		'authorDid',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'discussion selector',
-				},
-				{
-					label: 'comment id',
-				},
-				{
-					label: 'author DID',
-				},
+				'discussionSelector',
+				'commentId',
+				'authorDid',
 				{
 					label: 'created/updated timestamps',
 				},
 				{
 					label: 'reply target',
 				},
+			],
+			[
 				'body',
-				{
-					label: 'body object id',
-				},
-				{
-					label: 'payload object',
-				},
+				'bodyObjectId',
+				'$payloadObject',
 			],
 		],
 	},

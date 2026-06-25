@@ -10,39 +10,29 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'parent cast',
-		},
+		'$cast',
 		{
 			label: 'embed index',
 		},
-		{
-			label: 'URL',
-		},
+		'url',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'parent cast',
-				},
+				'$cast',
 				{
 					label: 'embed index',
 				},
-				{
-					label: 'URL',
-				},
-				{
-					label: 'embedded cast',
-				},
+				'url',
+				'$embeddedCast',
 				'title',
+			],
+			[
 				'description',
 				{
 					label: 'icon URL/media',
 				},
-				{
-					label: 'quoted preview text',
-				},
+				'quotedPreviewText',
 			],
 		],
 	},

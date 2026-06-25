@@ -10,24 +10,16 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'network',
-		},
-		{
-			label: 'observation time',
-		},
+		'$network',
+		'timestampMs',
 		'source',
 		'status',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'network',
-				},
-				{
-					label: 'timestamp',
-				},
+				'$network',
+				'timestampMs',
 				'source',
 				'status',
 				'error',
@@ -64,17 +56,13 @@
 					{
 						label: 'cursor',
 					},
-					{
-						label: 'search result count',
-					},
+					'searchResultCount',
 				],
 			},
 			{
 				label: 'Source health',
 				items: [
-					{
-						label: 'reachable endpoint count',
-					},
+					'reachableEndpointCount',
 					{
 						label: 'rate limit',
 					},

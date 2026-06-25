@@ -13,9 +13,7 @@
 		'id',
 		'label',
 		'protocol',
-		{
-			label: 'implementation status',
-		},
+		'implementationStatus',
 	],
 	content: {
 		dl: [
@@ -23,35 +21,17 @@
 				'id',
 				'label',
 				'protocol',
-				{
-					label: 'discovery kind',
-				},
-				{
-					label: 'transport kind',
-				},
-				{
-					label: 'API surface',
-				},
-				{
-					label: 'session kind',
-				},
+				'discoveryKind',
+				'transportKind',
+				'apiSurfaceKind',
+				'sessionKind',
 			],
 			[
-				{
-					label: 'authorization kind',
-				},
-				{
-					label: 'account exposure kind',
-				},
-				{
-					label: 'request execution kind',
-				},
-				{
-					label: 'dependency policy',
-				},
-				{
-					label: 'implementation status',
-				},
+				'authorizationKind',
+				'accountExposureKind',
+				'requestExecutionKind',
+				'dependencyPolicy',
+				'implementationStatus',
 			],
 		],
 	},

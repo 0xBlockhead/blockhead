@@ -10,38 +10,24 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'asset instance',
-		},
-		{
-			label: 'class key',
-		},
-		{
-			label: 'class kind',
-		},
+		'$assetInstance',
+		'classKey',
+		'classKind',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'asset instance',
-				},
-				{
-					label: 'class key',
-				},
-				{
-					label: 'class kind',
-				},
+				'$assetInstance',
+				'classKey',
+				'classKind',
 				'label',
 				'slot',
+			],
+			[
 				'partition',
 				'series',
-				{
-					label: 'maturity',
-				},
-				{
-					label: 'value decimals',
-				},
+				'maturityMs',
+				'valueDecimals',
 			],
 		],
 	},
@@ -81,6 +67,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'objects',
+			label: 'objects',
+			field: '$$objects',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'supply-ledger-states',
+			label: 'supply ledger states',
+			field: '$$supplyLedgerStates',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'supply-timestamps',
+			label: 'supply timestamps',
+			field: '$$supplyTimestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

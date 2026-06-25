@@ -10,45 +10,29 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'namespace',
-		},
+		'$namespace',
 		'height',
 		'commitment',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'namespace',
-				},
+				'$namespace',
 				'height',
 				'commitment',
-				{
-					label: 'size bytes',
-				},
-				{
-					label: 'share version',
-				},
+				'sizeBytes',
+				'shareVersion',
 				'index',
-				{
-					label: 'tx hash',
-				},
+				'txHash',
 			],
 			[
-				{
-					label: 'block',
-				},
+				'$block',
 				{
 					label: 'proof availability',
 				},
-				{
-					label: 'payload requested',
-				},
+				'payloadRequested',
 				'signer',
-				{
-					label: 'data hash',
-				},
+				'dataHash',
 			],
 		],
 	},

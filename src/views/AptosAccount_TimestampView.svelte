@@ -10,37 +10,23 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account',
-		},
-		{
-			label: 'ledger version',
-		},
+		'$account',
+		'ledgerVersion',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'account',
-				},
-				{
-					label: 'ledger version',
-				},
+				'$account',
+				'ledgerVersion',
 				'source',
-				{
-					label: 'observation time',
-				},
-				{
-					label: 'block height',
-				},
+				'timestampMs',
+				'blockHeight',
+			],
+			[
 				'epoch',
-				{
-					label: 'sequence number',
-				},
-				{
-					label: 'authentication key',
-				},
+				'sequenceNumber',
+				'authenticationKey',
 			],
 		],
 	},

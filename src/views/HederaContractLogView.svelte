@@ -13,12 +13,8 @@
 		{
 			label: 'contract/result',
 		},
-		{
-			label: 'consensus timestamp',
-		},
-		{
-			label: 'log index',
-		},
+		'consensusTimestamp',
+		'logIndex',
 	],
 	content: {
 		dl: [
@@ -26,16 +22,10 @@
 				{
 					label: 'contract/result',
 				},
-				{
-					label: 'consensus timestamp',
-				},
-				{
-					label: 'log index',
-				},
+				'consensusTimestamp',
+				'logIndex',
 				'address',
-				{
-					label: 'topic count',
-				},
+				'topics',
 				{
 					label: 'data presence',
 				},

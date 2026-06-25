@@ -10,35 +10,25 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'order',
-		},
-		{
-			label: 'observation time',
-		},
+		'$order',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'order',
-				},
-				{
-					label: 'observation time',
-				},
+				'$order',
+				'timestampMs',
 				'source',
 				'status',
 				{
 					label: 'status time',
 				},
+			],
+			[
 				'size',
-				{
-					label: 'filled size',
-				},
-				{
-					label: 'remaining size',
-				},
+				'filledSize',
+				'remainingSize',
 				{
 					label: 'latest fill id',
 				},

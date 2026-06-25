@@ -10,15 +10,9 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'subject',
-		},
-		{
-			label: 'identity kind',
-		},
-		{
-			label: 'object',
-		},
+		'subjectKind',
+		'identityKind',
+		'objectKind',
 	],
 	content: {
 		dl: [
@@ -26,22 +20,16 @@
 				{
 					label: 'subject kind/selector',
 				},
-				{
-					label: 'identity kind',
-				},
+				'identityKind',
 				{
 					label: 'object kind/selector',
 				},
 			],
 			[
 				'source',
-				{
-					label: 'timestamp',
-				},
+				'timestampMs',
 				'confidence',
-				{
-					label: 'verification method',
-				},
+				'verificationMethod',
 			],
 		],
 	},
@@ -50,9 +38,7 @@
 			{
 				label: 'Evidence',
 				items: [
-					{
-						label: 'document',
-					},
+					'$document',
 					{
 						label: 'evidence URI/hash algorithm/hash',
 					},
@@ -62,17 +48,13 @@
 			{
 				label: 'Subject',
 				items: [
-					{
-						label: 'subject selector',
-					},
+					'subjectSelector',
 				],
 			},
 			{
 				label: 'Object',
 				items: [
-					{
-						label: 'object selector',
-					},
+					'objectSelector',
 				],
 			},
 		],

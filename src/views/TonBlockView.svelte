@@ -11,25 +11,17 @@
 	const view = {
 	closed: [
 		'workchain',
-		{
-			label: 'shard prefix',
-		},
+		'shardPrefix',
 		'seqno',
 	],
 	content: {
 		dl: [
 			[
 				'workchain',
-				{
-					label: 'shard prefix',
-				},
+				'shardPrefix',
 				'seqno',
-				{
-					label: 'root hash',
-				},
-				{
-					label: 'file hash',
-				},
+				'rootHash',
+				'fileHash',
 				{
 					label: 'generated time',
 				},
@@ -86,6 +78,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'transactions',
+			label: 'transactions',
+			field: '$$transactions',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'messages',
+			label: 'messages',
+			field: '$$messages',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

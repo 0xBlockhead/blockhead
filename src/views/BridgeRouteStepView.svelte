@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'route',
-		},
+		'$route',
 		{
 			label: 'step index',
 		},
@@ -21,15 +19,11 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'route',
-				},
+				'$route',
 				{
 					label: 'step index',
 				},
-				{
-					label: 'step type',
-				},
+				'stepType',
 				'tool',
 			],
 			[
@@ -42,15 +36,9 @@
 				{
 					label: 'rail',
 				},
-				{
-					label: 'settlement model',
-				},
-				{
-					label: 'verification model',
-				},
-				{
-					label: 'asset outcome',
-				},
+				'settlementModel',
+				'verificationModel',
+				'assetOutcome',
 			],
 		],
 	},

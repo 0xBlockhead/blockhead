@@ -10,35 +10,25 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'transaction',
-		},
-		{
-			label: 'ledger index',
-		},
+		'$transaction',
+		'ledgerIndex',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'transaction',
-				},
-				{
-					label: 'ledger index',
-				},
+				'$transaction',
+				'ledgerIndex',
 				'source',
-				{
-					label: 'observation time',
-				},
+				'timestampMs',
 				'validated',
+			],
+			[
 				{
 					label: 'fee drops',
 				},
 				'status',
-				{
-					label: 'result code',
-				},
+				'resultCode',
 			],
 		],
 	},

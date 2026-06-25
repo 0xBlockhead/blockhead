@@ -10,37 +10,25 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'repository',
-		},
-		{
-			label: 'issue id',
-		},
+		'$repository',
+		'issueId',
 		'title',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'repository',
-				},
-				{
-					label: 'issue id',
-				},
+				'$repository',
+				'issueId',
 				'title',
 				'state',
-				{
-					label: 'author DID',
-				},
+				'authorDid',
+			],
+			[
 				{
 					label: 'created/updated timestamps',
 				},
-				{
-					label: 'payload object id',
-				},
-				{
-					label: 'payload object',
-				},
+				'payloadObjectId',
+				'$payloadObject',
 			],
 		],
 	},
@@ -80,6 +68,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'comments',
+			label: 'comments',
+			field: '$$comments',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

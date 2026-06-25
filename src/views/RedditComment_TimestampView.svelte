@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'comment',
-		},
+		'$comment',
 		{
 			label: 'observation time/source',
 		},
@@ -21,9 +19,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'comment',
-				},
+				'$comment',
 				{
 					label: 'observation time/source',
 				},

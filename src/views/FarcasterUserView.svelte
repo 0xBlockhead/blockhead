@@ -12,28 +12,22 @@
 	closed: [
 		'fid',
 		'username',
-		{
-			label: 'display name',
-		},
+		'displayName',
 	],
 	content: {
 		dl: [
 			[
 				'fid',
 				'username',
-				{
-					label: 'display name',
-				},
+				'displayName',
 				{
 					label: 'icon URL/media',
 				},
 				'bio',
-				{
-					label: 'URL',
-				},
-				{
-					label: 'primary EVM account',
-				},
+			],
+			[
+				'url',
+				'$primaryEvmAccount',
 				{
 					label: 'verified address count',
 				},
@@ -71,6 +65,35 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'verified-addresses',
+			label: 'verified addresses',
+			field: '$$verifiedAddresses',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'casts',
+			label: 'casts',
+			field: '$$casts',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

@@ -10,43 +10,29 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'owner',
-		},
-		{
-			label: 'spender',
-		},
-		{
-			label: 'allowance kind',
-		},
+		'$owner',
+		'$spender',
+		'allowanceKind',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'owner',
-				},
-				{
-					label: 'spender',
-				},
-				{
-					label: 'allowance kind',
-				},
-				{
-					label: 'token id',
-				},
+				'$owner',
+				'$spender',
+				'allowanceKind',
+				'tokenId',
 				{
 					label: 'NFT serial',
 				},
+			],
+			[
 				{
 					label: 'token/NFT refs',
 				},
 				{
 					label: 'latest amount or approved-for-all state',
 				},
-				{
-					label: 'timestamp count',
-				},
+				'$$timestamps',
 			],
 		],
 	},
@@ -102,6 +88,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

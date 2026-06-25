@@ -10,56 +10,36 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'name',
-		},
-		{
-			label: 'observation time',
-		},
+		'$name',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'name',
-				},
-				{
-					label: 'observation time',
-				},
+				'$name',
+				'timestampMs',
 				'source',
-				{
-					label: 'resolved actor',
-				},
-				{
-					label: 'resolver contract',
-				},
+				'$resolvedActor',
+				'$resolverContract',
 				{
 					label: 'owner',
 				},
-				{
-					label: 'subdomain count',
-				},
+				'subdomainCount',
 			],
 			[
 				{
 					label: 'text/coin record key counts',
 				},
-				{
-					label: 'TTL',
-				},
+				'ttl',
 				{
 					label: 'migration state',
 				},
 				{
 					label: 'created/expiry dates',
 				},
-				{
-					label: 'subgraph id',
-				},
-				{
-					label: 'block number',
-				},
+				'subgraphId',
+				'blockNumber',
 			],
 		],
 	},
@@ -85,9 +65,7 @@
 					{
 						label: 'resolved-address summary',
 					},
-					{
-						label: 'TTL',
-					},
+					'ttl',
 					{
 						label: 'migration',
 					},

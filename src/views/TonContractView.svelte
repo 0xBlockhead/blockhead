@@ -10,9 +10,7 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'account',
-		},
+		'$account',
 		{
 			label: 'latest interface observation',
 		},
@@ -23,9 +21,7 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'account',
-				},
+				'$account',
 				{
 					label: 'latest interface kind/wallet version observation',
 				},
@@ -49,9 +45,7 @@
 			{
 				label: 'Account state',
 				items: [
-					{
-						label: 'linked account',
-					},
+					'$account',
 					{
 						label: 'account state snapshots',
 					},
@@ -102,6 +96,26 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+		{
+			id: 'get-methods',
+			label: 'get methods',
+			field: '$$getMethods',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

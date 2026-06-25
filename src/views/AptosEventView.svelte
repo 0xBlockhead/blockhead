@@ -10,34 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'event type',
-		},
-		{
-			label: 'transaction version',
-		},
-		{
-			label: 'event index',
-		},
+		'eventType',
+		'transactionVersion',
+		'eventIndex',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'event type',
-				},
-				{
-					label: 'transaction version',
-				},
-				{
-					label: 'event index',
-				},
+				'eventType',
+				'transactionVersion',
+				'eventIndex',
 				{
 					label: 'account/creation/sequence coordinates',
 				},
-				{
-					label: 'parent transaction',
-				},
+				'$transaction',
 				{
 					label: 'value payload',
 				},
@@ -49,9 +35,7 @@
 			{
 				label: 'Transaction',
 				items: [
-					{
-						label: 'parent transaction',
-					},
+					'$transaction',
 				],
 			},
 			{

@@ -10,12 +10,8 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'node state',
-		},
-		{
-			label: 'observation time',
-		},
+		'$nodeState',
+		'timestampMs',
 		{
 			label: 'sync state',
 		},
@@ -23,34 +19,28 @@
 	content: {
 		dl: [
 			[
-				{
-					label: 'node state',
-				},
-				{
-					label: 'observation time',
-				},
+				'$nodeState',
+				'timestampMs',
 				'source',
-				{
-					label: 'server version',
-				},
+				'serverVersion',
 				{
 					label: 'sync state',
 				},
+			],
+			[
 				{
 					label: 'UTXO-index availability',
 				},
-				{
-					label: 'virtual DAA score',
-				},
+				'virtualDaaScore',
 				{
 					label: 'selected parent',
 				},
 				{
 					label: 'pruning point',
 				},
-				{
-					label: 'peer count',
-				},
+				'peerCount',
+			],
+			[
 				{
 					label: 'last synced time',
 				},

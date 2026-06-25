@@ -10,40 +10,22 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'object id',
-		},
-		{
-			label: 'object format',
-		},
-		{
-			label: 'target object id',
-		},
+		'objectId',
+		'objectFormat',
+		'targetObjectId',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'object id',
-				},
-				{
-					label: 'object format',
-				},
-				{
-					label: 'target object id',
-				},
-				{
-					label: 'target kind',
-				},
-				{
-					label: 'tag name',
-				},
-				{
-					label: 'tagger selector',
-				},
-				{
-					label: 'tagger timestamp',
-				},
+				'objectId',
+				'objectFormat',
+				'targetObjectId',
+				'targetKind',
+				'tagName',
+			],
+			[
+				'taggerSelector',
+				'taggerTimestampMs',
 				'message',
 			],
 		],
@@ -84,6 +66,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'signatures',
+			label: 'signatures',
+			field: '$$signatures',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

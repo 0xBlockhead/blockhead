@@ -10,28 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'AuxPoW ref',
-		},
+		'$auxPow',
 		{
 			label: 'parent header hash',
 		},
-		{
-			label: 'merkle root',
-		},
+		'merkleRoot',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'AuxPoW ref',
-				},
+				'$auxPow',
 				{
 					label: 'parent header hash',
 				},
-				{
-					label: 'merkle root',
-				},
+				'merkleRoot',
 				'nonce',
 			],
 		],
@@ -52,9 +44,7 @@
 					{
 						label: 'parent hash',
 					},
-					{
-						label: 'merkle root',
-					},
+					'merkleRoot',
 					'nonce',
 				],
 			},

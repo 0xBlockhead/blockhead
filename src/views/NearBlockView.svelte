@@ -21,20 +21,12 @@
 			[
 				'height',
 				'hash',
-				{
-					label: 'parent',
-				},
-				{
-					label: 'epoch id',
-				},
-				{
-					label: 'timestamp',
-				},
+				'$parent',
+				'epochId',
+				'timestampMs',
 			],
 			[
-				{
-					label: 'chunk count',
-				},
+				'$$chunks',
 				{
 					label: 'parent/chain context',
 				},
@@ -59,15 +51,9 @@
 				items: [
 					'height',
 					'hash',
-					{
-						label: 'parent',
-					},
-					{
-						label: 'epoch id',
-					},
-					{
-						label: 'timestamp',
-					},
+					'$parent',
+					'epochId',
+					'timestampMs',
 				],
 			},
 			{
@@ -102,6 +88,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'chunks',
+			label: 'chunks',
+			field: '$$chunks',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

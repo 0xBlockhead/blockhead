@@ -10,31 +10,19 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'transfer state',
-		},
-		{
-			label: 'observation time',
-		},
+		'$transferState',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'transfer state',
-				},
-				{
-					label: 'observation time',
-				},
+				'$transferState',
+				'timestampMs',
 				'source',
 				'confirmations',
-				{
-					label: 'unlock time',
-				},
-				{
-					label: 'spent state',
-				},
+				'unlockTime',
+				'spent',
 				{
 					label: 'last checked time',
 				},

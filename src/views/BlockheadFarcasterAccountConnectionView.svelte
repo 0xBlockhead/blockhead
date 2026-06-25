@@ -10,40 +10,28 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'FID',
-		},
+		'fid',
 		'username',
-		{
-			label: 'display name',
-		},
+		'displayName',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'FID',
-				},
+				'fid',
 				'username',
-				{
-					label: 'display name',
-				},
-				{
-					label: 'icon',
-				},
+				'displayName',
+				'$icon',
 				'bio',
+			],
+			[
 				{
 					label: 'custody address',
 				},
-				{
-					label: 'auth method',
-				},
+				'authMethod',
 				{
 					label: 'signed time',
 				},
-				{
-					label: 'verification count',
-				},
+				'verifications',
 			],
 		],
 	},

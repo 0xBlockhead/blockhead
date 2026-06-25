@@ -10,28 +10,20 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'parent object',
-		},
+		'$parentObject',
 		{
 			label: 'field name hash/value',
 		},
-		{
-			label: 'child object id',
-		},
+		'childObjectId',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'parent object',
-				},
+				'$parentObject',
 				{
 					label: 'field name hash/value',
 				},
-				{
-					label: 'child object id',
-				},
+				'childObjectId',
 				{
 					label: 'latest field/child type',
 				},
@@ -77,6 +69,17 @@
 			},
 		],
 	},
+	lists: [
+		{
+			id: 'timestamps',
+			label: 'timestamps',
+			field: '$$timestamps',
+			limit: 24,
+			item: 'summary',
+			collapsible: true,
+			emptyText: 'No rows',
+		},
+	],
 } satisfies ComponentProps<typeof EntityView2>['view']
 
 	let {

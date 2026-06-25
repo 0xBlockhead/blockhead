@@ -10,43 +10,25 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'tool call',
-		},
-		{
-			label: 'observation time',
-		},
+		'$toolCall',
+		'timestampMs',
 		'status',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'tool call',
-				},
-				{
-					label: 'timestamp',
-				},
+				'$toolCall',
+				'timestampMs',
 				'source',
 				'status',
-				{
-					label: 'is error',
-				},
+				'isError',
 			],
 			[
-				{
-					label: 'latency',
-				},
-				{
-					label: 'protocol error',
-				},
+				'latencyMs',
+				'protocolError',
 				'content',
-				{
-					label: 'structured content',
-				},
-				{
-					label: 'resource links',
-				},
+				'structuredContent',
+				'resourceLinks',
 			],
 		],
 	},

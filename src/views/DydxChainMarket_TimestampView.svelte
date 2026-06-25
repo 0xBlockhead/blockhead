@@ -10,33 +10,21 @@
 	// State
 	const view = {
 	closed: [
-		{
-			label: 'market',
-		},
-		{
-			label: 'observation time',
-		},
+		'$market',
+		'timestampMs',
 		'source',
 	],
 	content: {
 		dl: [
 			[
-				{
-					label: 'market',
-				},
-				{
-					label: 'observation time',
-				},
+				'$market',
+				'timestampMs',
 				'source',
-				{
-					label: 'oracle price',
-				},
-				{
-					label: 'funding rate',
-				},
-				{
-					label: 'open interest',
-				},
+				'oraclePrice',
+				'fundingRate',
+			],
+			[
+				'openInterest',
 				'status',
 				{
 					label: 'next funding time',
