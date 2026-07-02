@@ -1,19 +1,53 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
+	// Types/constants
+	import type { PageProps } from './$types.ts'
+	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
+
+
+	// Context
+	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
 		params,
-	} = $props()
+	}: PageProps = $props()
+
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import EnsNameTextRecordsView from '$/views/EnsNameTextRecordsView.svelte'
+	import EnsRecordsView from '$/views/EnsRecordsView.svelte'
 </script>
 
 
+<svelte:head>
+	<title>ENS records • Blockhead</title>
+</svelte:head>
+
+
 <Page>
-	<EnsNameTextRecordsView
-		selection={select(EntityType.EnsName, { name: params.ensName })}
+	<EnsRecordsView
+		href={
+			resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/records', {
+				ensName: params.ensName,
+			})
+		}
+		title='ENS records'
+		selection={
+			select(EntityType.EnsName, {
+				name: decodeURIComponent(params.ensName),
+			})[EntityProxyField]<EntityType.EnsRecord>('$$records', {
+				sources: [
+					Source.TheGraph_Graphql,
+					Source.Voltaire_JsonRpc,
+				],
+			})
+		}
+		id='EnsRecordsView-page'
 	/>
 </Page>

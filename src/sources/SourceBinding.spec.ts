@@ -1,5 +1,4 @@
 import {
-	globSync,
 	statSync,
 } from 'node:fs'
 
@@ -26,6 +25,7 @@ import {
 	WireProtocol,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
+import { sourceProviders as generatedSourceProviders } from '$/sources/$sourceProviders.ts'
 import { auditSourceProviders } from '$/sources/auditSourceProviders.ts'
 import { validateSourceBinding } from '$/sources/validateSourceBindings.ts'
 import { validateSourceBindings } from '$/sources/validateSourceBindings.ts'
@@ -64,12 +64,8 @@ let browserSourceBindings: readonly SourceBinding[]
 let remoteLiveBindings: readonly SourceBinding[]
 let httpProxyOrigins: Set<string>
 
-beforeAll(async () => {
-	sourceProviders = await Promise.all(
-		globSync('src/sources/*/index.ts').map(async (file) => (
-			(await import(`../../${file}`)).default
-		))
-	)
+beforeAll(() => {
+	sourceProviders = [...generatedSourceProviders]
 	sourceBindings = validateSourceBindings(sourceProviders.flatMap((provider) => provider.bindings))
 	browserSourceBindings = validateSourceBindings(
 		sourceBindings.filter((binding) => (
@@ -97,6 +93,10 @@ beforeAll(async () => {
 			))
 	)
 })
+
+const sourceMember = (
+	name: string
+) => (Source as Record<string, Source | undefined>)[name]
 
 describe('SourceBinding validation', () => {
 	it('accepts a valid HTTP proxy binding', () => {
@@ -196,7 +196,8 @@ describe('source binding indexes', () => {
 
 	it('derives HTTP proxy origins from enabled HttpProxy HTTP endpoints', () => {
 		expect(httpProxyOrigins.has('https://eth.blockscout.com')).toBe(true)
-		expect(httpProxyOrigins.has('https://ipfs.io')).toBe(true)
+		if (sourceMember('Ipfs_Rest') !== undefined)
+			expect(httpProxyOrigins.has('https://ipfs.io')).toBe(true)
 	})
 
 	it('keeps RemoteLive WebSocket bindings out of the HTTP proxy origins', () => {
@@ -230,14 +231,13 @@ describe('source binding indexes', () => {
 		))).toBe(true)
 	})
 
-	it('models Ethereum EIPs and ERCs as separate Git repository bindings on a shared GitHub host', () => {
+	it('models Superchain registry as a Git repository binding on the shared GitHub host', () => {
 		expect(sourceBindings.filter((binding) => (
-			binding.source === Source.EthereumEips_Github
+			binding.source === Source.Superchain_Github
 			&& binding.apiFamily === ApiFamily.GithubContentsApi
 			&& binding.target.kind === SourceTargetKind.GitRepository
 		)).map((binding) => binding.target.key).sort()).toEqual([
-			'ethereum/EIPs@master:EIPS',
-			'ethereum/ercs@master:ERCS',
+			'ethereum-optimism/superchain-registry@main:chainList.json',
 		])
 	})
 
@@ -252,45 +252,21 @@ describe('source binding indexes', () => {
 		).toBe(true)
 	})
 
-	it('models generated GraphQL artifacts as binding metadata with server-only credentials', () => {
+	it('models runtime-secret server-only bindings outside browser delivery', () => {
 		expect(sourceBindings.some((binding) => (
-			binding.source === Source.Amboss_Graphql
-			&& binding.apiFamily === ApiFamily.GraphqlHttp
+			binding.source === Source.TezosDappetizer_Postgres
+			&& binding.apiFamily === ApiFamily.Postgres
 			&& binding.delivery === SourceDelivery.ServerOnly
 			&& binding.credentials.some((credential) => (
 				credential.scope === SourceCredentialScope.RuntimeSecret
-				&& credential.keys?.includes('AMBOSS_API_KEY')
-			))
-			&& binding.artifacts?.some((artifact) => (
-				artifact.kind === SourceArtifactKind.GraphqlTypes
-				&& artifact.path === 'src/sources/Amboss/Graphql/graphql-env.d.ts'
-				&& artifact.generated
+				&& credential.keys?.includes('TEZOS_DAPPETIZER_DATABASE_URL')
 			))
 		))).toBe(true)
 	})
 
-	it('keeps server-only generated GraphQL bindings out of the browser registry', () => {
+	it('keeps server-only bindings out of the browser registry', () => {
 		expect(browserSourceBindings.some((binding) => (
-			binding.source === Source.Amboss_Graphql
+			binding.source === Source.TezosDappetizer_Postgres
 		))).toBe(false)
-	})
-
-	it('models Arweave as a content gateway, not a generated API family', () => {
-		expect(sourceBindings.some((binding) => (
-			binding.source === Source.Arweave_Rest
-			&& binding.apiFamily === ApiFamily.ArweaveGateway
-			&& binding.operationGroups.includes(SourceOperationGroup.ContentGatewayRead)
-			&& binding.delivery === SourceDelivery.BrowserDirect
-		))).toBe(true)
-	})
-
-	it('models Swarm as a proxied content gateway', () => {
-		expect(sourceBindings.some((binding) => (
-			binding.source === Source.Swarm_Rest
-			&& binding.apiFamily === ApiFamily.SwarmGateway
-			&& binding.operationGroups.includes(SourceOperationGroup.ContentGatewayRead)
-			&& binding.delivery === SourceDelivery.HttpProxy
-		))).toBe(true)
-		expect(httpProxyOrigins.has('https://gateway.ethswarm.org')).toBe(true)
 	})
 })

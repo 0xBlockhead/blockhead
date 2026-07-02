@@ -1,24 +1,26 @@
-import { error } from '@sveltejs/kit'
+// Generated from APP.ts. Do not edit by hand.
 
+import type { PageLoad } from './$types'
+import { error } from '@sveltejs/kit'
+import { networkByCaip2 } from '$/constants/Network.ts'
+import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
+import { parseEntitySelector } from '$/schema/$schema.ts'
+import EvmNetworkSchema from '$/schema/EvmNetwork.ts'
+import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 
-import { parseEntitySelector } from '$/schema/$schema.ts'
-import { caip2ParamValueFromString } from '$/lib/caip2.ts'
-import EntitySchema from '$/schema/EvmNetwork.ts'
-import { schema } from '$/schema/index.ts'
-
-import type { PageLoad } from './$types.ts'
-
-
 export const load: PageLoad = ({ params }) => {
-	const selector = parseEntitySelector(
+	const evmNetworkSelector = parseEntitySelector(
 		schema,
-		EntitySchema,
+		EvmNetworkSchema,
 		{
-			caip2: caip2ParamValueFromString(params.caip2),
+			caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
 		}
 	)
-	if (selector instanceof arktype.errors) error(404, 'Invalid EvmNetwork selector')
+	if (evmNetworkSelector instanceof arktype.errors) error(404, 'Invalid EvmNetwork selector')
 
-	return { selector }
+	return {
+		selector: evmNetworkSelector,
+		title: networkByCaip2[params.caip2].name,
+	}
 }

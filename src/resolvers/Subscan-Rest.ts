@@ -72,12 +72,12 @@ export default {
 		defineResolver(Source.Subscan_Rest, {
 			entityType: EntityType.PolkadotExtrinsic,
 			resolve: {
-				[PolkadotExtrinsicSelector.PolkadotBlockExtrinsicIndex]: async ({ $block, extrinsicIndex }, context) => {
+				[PolkadotExtrinsicSelector.BlockIndexInBlock]: async ({ $block, indexInBlock }, context) => {
 					assertPolkadotMainnet($block.$network)
 					const { getExtrinsic } = await import('$/sources/Subscan/Rest/queries.ts')
 					const extrinsic = (await getExtrinsic({
 						restBaseUrl: await subscanPolkadotRestBaseUrl(),
-						extrinsicIndex: `${$block.blockNumber.toString()}-${extrinsicIndex}`,
+						extrinsicIndex: `${$block.blockNumber.toString()}-${indexInBlock}`,
 						publicEnv: context.publicEnv,
 					})).data
 					return {

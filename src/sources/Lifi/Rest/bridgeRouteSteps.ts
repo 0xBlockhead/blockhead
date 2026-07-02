@@ -65,7 +65,7 @@ export const lifiToolKeyFromQuoteStep = (
 
 export const bridgeRouteStepEntityFieldsFromLifiQuoteStep = (
 	routeId: EntitySelector<typeof schema, EntityType.BridgeRoute>,
-	index: number,
+	indexInRoute: number,
 	step: LifiQuoteStepLike
 ) => {
 	const toolKey = lifiToolKeyFromQuoteStep(step)
@@ -74,7 +74,7 @@ export const bridgeRouteStepEntityFieldsFromLifiQuoteStep = (
 	return {
 		[EntityMetaKey.Selector]: {
 			$route: routeId,
-			index,
+			indexInRoute,
 		},
 		stepType: step.type,
 		tool: toolKey === '' ? step.tool : toolKey,

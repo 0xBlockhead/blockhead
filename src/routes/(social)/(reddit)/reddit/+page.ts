@@ -1,0 +1,23 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import type { PageLoad } from './$types'
+import { error } from '@sveltejs/kit'
+import _GlobalRedditNetworkSchema from '$/schema/_GlobalRedditNetwork.ts'
+import { parseEntitySelector } from '$/schema/$schema.ts'
+import { schema } from '$/schema/index.ts'
+import { type as arktype } from 'arktype'
+
+export const load: PageLoad = ({ params }) => {
+	const globalRedditNetworkSelector = parseEntitySelector(
+		schema,
+		_GlobalRedditNetworkSchema,
+		{
+			scope: '_GlobalRedditNetwork',
+		}
+	)
+	if (globalRedditNetworkSelector instanceof arktype.errors) error(404, 'Invalid _GlobalRedditNetwork selector')
+
+	return {
+		selector: globalRedditNetworkSelector,
+	}
+}

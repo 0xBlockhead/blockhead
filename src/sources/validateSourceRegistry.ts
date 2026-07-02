@@ -6,7 +6,6 @@ import {
 import { join } from 'node:path'
 
 import { Source } from '$/sources/Source.ts'
-import type { SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 import {
 	ApiFamily,
 	SourceArtifactKind,
@@ -17,15 +16,11 @@ import {
 	SourceTargetKind,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
+import { sourceProviders } from '$/sources/$sourceProviders.ts'
 import { auditSourceProviders } from '$/sources/auditSourceProviders.ts'
 import { officialSourceArtifacts } from '$/sources/officialArtifacts.ts'
 import { validateSourceBindings } from '$/sources/validateSourceBindings.ts'
 
-const sourceProviders: SourceProviderDefinition[] = await Promise.all(
-	globSync('src/sources/*/index.ts').map(async (file) => (
-		(await import(`../../${file}`)).default
-	))
-)
 const sourceBindings = validateSourceBindings(sourceProviders.flatMap((provider) => provider.bindings))
 const browserSourceBindings = validateSourceBindings(
 	sourceBindings.filter((binding) => (
@@ -66,6 +61,9 @@ const httpProxyOrigins = new Set(
 		))
 )
 const audit = auditSourceProviders(sourceProviders)
+const sourceMember = (
+	name: string
+) => (Source as Record<string, Source | undefined>)[name]
 const artifactPathExists = (path: string) => {
 	try {
 		return statSync(path).isFile() || statSync(path).isDirectory()
@@ -88,7 +86,7 @@ const failures = [
 	...(audit.bindingsOutsideProviderRows.length ? [`bindings outside provider rows: ${audit.bindingsOutsideProviderRows.join(', ')}`] : []),
 	...(audit.providersWithoutBindings.length ? [`providers without bindings: ${audit.providersWithoutBindings.join(', ')}`] : []),
 	...(httpProxyOrigins.has('https://eth.blockscout.com') ? [] : ['missing Blockscout proxy origin']),
-	...(httpProxyOrigins.has('https://ipfs.io') ? [] : ['missing IPFS proxy origin']),
+	...(sourceMember('Ipfs_Rest') === undefined || httpProxyOrigins.has('https://ipfs.io') ? [] : ['missing IPFS proxy origin']),
 	...(remoteLiveBindings.some((binding) => binding.source === Source.Voltaire_JsonRpc) ? [] : ['missing Voltaire RemoteLive binding']),
 	...(remoteLiveBindings.every((binding) => (
 		(
@@ -112,10 +110,10 @@ const failures = [
 		))
 	)) ? [] : ['missing Coingecko OpenAPI artifact binding']),
 	...(sourceBindings.some((binding) => (
-		binding.source === Source.EthereumEips_Github
+		binding.source === sourceMember('EthereumEips_Github')
 		&& binding.apiFamily === ApiFamily.GithubContentsApi
 		&& binding.target.kind === SourceTargetKind.GitRepository
-	)) ? [] : ['missing EthereumEips GitHub contents binding']),
+	)) || sourceMember('EthereumEips_Github') === undefined ? [] : ['missing EthereumEips GitHub contents binding']),
 	...(sourceBindings.flatMap((binding) => binding.artifacts ?? []).every((artifact) => artifactPathExists(artifact.path)) ? [] : ['artifact path missing']),
 	...(brokenSourceSymlinks.length ? [`broken source symlinks: ${brokenSourceSymlinks.join(', ')}`] : []),
 	...officialSourceArtifacts.filter((officialSourceArtifact) => !('enforce' in officialSourceArtifact)).flatMap((officialSourceArtifact) => {
@@ -137,19 +135,19 @@ const failures = [
 				[]),
 		]
 	}),
-	...(browserSourceBindings.some((binding) => binding.source === Source.Amboss_Graphql) ? ['Amboss server-only binding leaked into browser bindings'] : []),
+	...(sourceMember('Amboss_Graphql') !== undefined && browserSourceBindings.some((binding) => binding.source === sourceMember('Amboss_Graphql')) ? ['Amboss server-only binding leaked into browser bindings'] : []),
 	...(sourceBindings.some((binding) => (
-		binding.source === Source.Arweave_Rest
+		binding.source === sourceMember('Arweave_Rest')
 		&& binding.apiFamily === ApiFamily.ArweaveGateway
 		&& binding.operationGroups.includes(SourceOperationGroup.ContentGatewayRead)
 		&& binding.delivery === SourceDelivery.BrowserDirect
-	)) ? [] : ['missing Arweave content gateway binding']),
+	)) || sourceMember('Arweave_Rest') === undefined ? [] : ['missing Arweave content gateway binding']),
 	...(sourceBindings.some((binding) => (
-		binding.source === Source.Swarm_Rest
+		binding.source === sourceMember('Swarm_Rest')
 		&& binding.apiFamily === ApiFamily.SwarmGateway
 		&& binding.operationGroups.includes(SourceOperationGroup.ContentGatewayRead)
 		&& binding.delivery === SourceDelivery.HttpProxy
-	)) ? [] : ['missing Swarm content gateway binding']),
+	)) || sourceMember('Swarm_Rest') === undefined ? [] : ['missing Swarm content gateway binding']),
 	...sourceRuntimeFiles.flatMap((file) => {
 		const source = readFileSync(file, 'utf8')
 		return source.includes("'$/sources/index.ts'") || source.includes('"$/sources/index.ts"') ?

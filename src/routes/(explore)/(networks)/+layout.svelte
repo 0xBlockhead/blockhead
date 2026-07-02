@@ -1,3 +1,5 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
 	// Context
 	import { resolve } from '$app/paths'
@@ -13,9 +15,8 @@
 
 
 <ParentPageCollapsible
-	title="Networks"
-	href={resolve('/networks')}
-	id="networks"
+	title='Networks'
+	href={resolve('/(explore)/networks')}
 >
 	{@render children()}
 </ParentPageCollapsible>

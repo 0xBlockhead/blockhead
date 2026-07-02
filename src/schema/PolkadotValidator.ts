@@ -1,17 +1,16 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum PolkadotValidatorSelector {
-	NetworkStashAccountId = 'networkStashAccountId',
+	NetworkStashAccountId = 'NetworkStashAccountId',
 }
 export default {
 	entityType: EntityType.PolkadotValidator,
-	label: 'polkadot validator',
-	labelPlural: 'polkadot validators',
+	label: 'Polkadot validator',
+	labelPlural: 'Polkadot validators',
 	selectors: [
 		{
 			name: PolkadotValidatorSelector.NetworkStashAccountId,
@@ -23,25 +22,18 @@ export default {
 	],
 	fields: [
 		{
-			name: '$network',
-			label: 'network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Network,
-			cardinality: EntityFieldCardinality.One,
+				name: '$network',
+				label: 'Network',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.Network,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'stashAccountId',
-			label: 'stash account ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: '$$eras',
-			label: 'eras',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.PolkadotValidator_Era,
-			cardinality: EntityFieldCardinality.Many,
+				name: 'stashAccountId',
+				label: 'Stash account ID',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 	],
 } as const satisfies EntityDefinition

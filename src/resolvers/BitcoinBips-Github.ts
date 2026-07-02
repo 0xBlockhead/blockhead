@@ -52,42 +52,42 @@ export default {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
 				[SpecificationProposalSelector.RealmCategoryNumber]: async ({ category, number, realm }) => {
-				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				const { getProposalMediaWikiText } = await import('$/sources/BitcoinBips/Github/queries.ts')
-				if (realm !== SpecificationRealm.Bitcoin || category !== ProposalCategory.Bip) {
-					throw new Error('BitcoinBips_Github: proposal resolver only supports Bitcoin BIPs')
-				}
-				const text = await getProposalMediaWikiText({ number: number })
-				if (text.trim() === '') throw new Error('BitcoinBips_Github: empty proposal text')
-				return {
-					documentCategory: bipMetadataValue(text, 'Type'),
-					documentTitle: bipMetadataValue(text, 'Title'),
-					documentStatus: bipMetadataValue(text, 'Status'),
-					documentBody: text,
-				}
-			}
-			}
+					const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
+					const { getProposalMediaWikiText } = await import('$/sources/BitcoinBips/Github/queries.ts')
+					if (realm !== SpecificationRealm.Bitcoin || category !== ProposalCategory.Bip) {
+						throw new Error('BitcoinBips_Github: proposal resolver only supports Bitcoin BIPs')
+					}
+					const text = await getProposalMediaWikiText({ number: number })
+					if (text.trim() === '') throw new Error('BitcoinBips_Github: empty proposal text')
+					return {
+						documentCategory: bipMetadataValue(text, 'Type'),
+						documentTitle: bipMetadataValue(text, 'Title'),
+						documentStatus: bipMetadataValue(text, 'Status'),
+						documentBody: text,
+					}
+				},
+			},
 		})({
-				fields: {
-			documentCategory: (snapshot) => snapshot.documentCategory,
-			documentTitle: (snapshot) => snapshot.documentTitle,
-			documentStatus: (snapshot) => snapshot.documentStatus,
-			documentBody: (snapshot) => snapshot.documentBody,
-		},
-			}),
+			fields: {
+				documentCategory: (snapshot) => snapshot.documentCategory,
+				documentTitle: (snapshot) => snapshot.documentTitle,
+				documentStatus: (snapshot) => snapshot.documentStatus,
+				documentBody: (snapshot) => snapshot.documentBody,
+			},
+		}),
 
 		defineResolver(Source.BitcoinBips_Github, {
 			entityType: EntityType._Global,
 			resolve: {
 				[_GlobalSelector.Scope]: async () => {
-				const { getContents } = await import('$/sources/BitcoinBips/Github/queries.ts')
-				return githubBipProposalIndexRows(await getContents())
-			}
-			}
+					const { getContents } = await import('$/sources/BitcoinBips/Github/queries.ts')
+					return githubBipProposalIndexRows(await getContents())
+				},
+			},
 		})({
-				fields: {
-			$$proposals: (snapshot) => snapshot,
-		},
-			}),
+			fields: {
+				$$proposals: (snapshot) => snapshot,
+			},
+		}),
 	],
 }

@@ -49,33 +49,33 @@ export default {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
 				[SpecificationProposalSelector.RealmCategoryNumber]: async ({ category, number, realm }) => {
-				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (realm !== SpecificationRealm.Hyperliquid || category !== ProposalCategory.Hip) {
-					throw new Error('HyperliquidDocs_Rest: proposal resolver only supports Hyperliquid HIPs')
-				}
-				const proposal = (await hyperliquidHipRows()).find((hyperliquidHip) => hyperliquidHip[EntityMetaKey.Selector].number === number)
-				if (proposal == null) throw new Error(`HyperliquidDocs_Rest: HIP not found ${number.toString()}`)
-				return proposal
-			}
-			}
+					const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
+					if (realm !== SpecificationRealm.Hyperliquid || category !== ProposalCategory.Hip) {
+						throw new Error('HyperliquidDocs_Rest: proposal resolver only supports Hyperliquid HIPs')
+					}
+					const proposal = (await hyperliquidHipRows()).find((hyperliquidHip) => hyperliquidHip[EntityMetaKey.Selector].number === number)
+					if (proposal == null) throw new Error(`HyperliquidDocs_Rest: HIP not found ${number.toString()}`)
+					return proposal
+				},
+			},
 		})({
-				fields: {
-			documentCategory: (snapshot) => snapshot.documentCategory,
-			documentTitle: (snapshot) => snapshot.documentTitle,
-			documentStatus: (snapshot) => snapshot.documentStatus,
-			documentBody: (snapshot) => snapshot.documentBody,
-		},
-			}),
+			fields: {
+				documentCategory: (snapshot) => snapshot.documentCategory,
+				documentTitle: (snapshot) => snapshot.documentTitle,
+				documentStatus: (snapshot) => snapshot.documentStatus,
+				documentBody: (snapshot) => snapshot.documentBody,
+			},
+		}),
 
 		defineResolver(Source.HyperliquidDocs_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: hyperliquidHipRows
-			}
+				[_GlobalSelector.Scope]: hyperliquidHipRows,
+			},
 		})({
-				fields: {
-			$$proposals: (snapshot) => snapshot,
-		},
-			}),
+			fields: {
+				$$proposals: (snapshot) => snapshot,
+			},
+		}),
 	],
 }

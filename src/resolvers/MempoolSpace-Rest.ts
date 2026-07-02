@@ -1,5 +1,4 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
-import { stringify } from 'devalue'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -25,8 +24,15 @@ type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const assertBitcoinMainnet = (network: NetworkId) => {
 	if (
-		stringify(network) !== stringify({ caip2: bitcoinNetworkBySlug.bitcoin.caip2 })
-		&& stringify(network) !== stringify({ slug: 'bitcoin' })
+		(
+			!('caip2' in network)
+			|| network.caip2.namespace !== bitcoinNetworkBySlug.bitcoin.caip2.namespace
+			|| network.caip2.reference !== bitcoinNetworkBySlug.bitcoin.caip2.reference
+		)
+		&& (
+			!('slug' in network)
+			|| network.slug !== 'bitcoin'
+		)
 	)
 		throw new Error('MempoolSpace_Rest: unsupported Bitcoin network')
 }
@@ -165,12 +171,12 @@ export default {
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoInput,
 			resolve: {
-				[UtxoInputSelector.UtxoTransactionInputIndex]: async ({ $transaction, inputIndex }) => {
-					const input = (await getTransaction($transaction)).vin[inputIndex]
+				[UtxoInputSelector.TransactionIndexInTransaction]: async ({ $transaction, indexInTransaction }) => {
+					const input = (await getTransaction($transaction)).vin[indexInTransaction]
 					return {
 						[EntityMetaKey.Selector]: {
 							$transaction: $transaction,
-							inputIndex: inputIndex,
+							indexInTransaction: indexInTransaction,
 						},
 						...(input.txid != null && input.vout != null && {
 							$spentOutput: {
@@ -179,7 +185,7 @@ export default {
 										$network: $transaction.$network,
 										txId: input.txid,
 									},
-									outputIndex: input.vout,
+									indexInTransaction: input.vout,
 								},
 							},
 						}),
@@ -272,12 +278,12 @@ export default {
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoOutput,
 			resolve: {
-				[UtxoOutputSelector.UtxoTransactionOutputIndex]: async ({ $transaction, outputIndex }) => {
-					const output = (await getTransaction($transaction)).vout[outputIndex]
+				[UtxoOutputSelector.TransactionIndexInTransaction]: async ({ $transaction, indexInTransaction }) => {
+					const output = (await getTransaction($transaction)).vout[indexInTransaction]
 					return {
 						[EntityMetaKey.Selector]: {
 							$transaction: $transaction,
-							outputIndex: outputIndex,
+							indexInTransaction: indexInTransaction,
 						},
 						valueSats: BigInt(output.value),
 						...(output.scriptpubkey_asm != null && {
@@ -436,11 +442,11 @@ export default {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
 				[UtxoTransactionSelector.NetworkTxId]: async (entitySelector) => (
-					(await getTransaction(entitySelector)).vin.map((input, inputIndex) => (
+					(await getTransaction(entitySelector)).vin.map((input, indexInTransaction) => (
 						{
 							[EntityMetaKey.Selector]: {
 								$transaction: entitySelector,
-								inputIndex,
+								indexInTransaction,
 							},
 						}
 					))
@@ -456,11 +462,11 @@ export default {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
 				[UtxoTransactionSelector.NetworkTxId]: async (entitySelector) => (
-					(await getTransaction(entitySelector)).vout.map((output, outputIndex) => (
+					(await getTransaction(entitySelector)).vout.map((output, indexInTransaction) => (
 						{
 							[EntityMetaKey.Selector]: {
 								$transaction: entitySelector,
-								outputIndex,
+								indexInTransaction,
 							},
 						}
 					))

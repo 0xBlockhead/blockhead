@@ -1,21 +1,19 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-export enum YouTubeChannel_TimestampSelector {
-	YouTubeChannelTimestampMs = 'youTubeChannelTimestampMs',
-	ChannelTimestampMs = '$channel+timestampMs',
+import { type } from 'arktype'
+
+export enum YoutubeChannel_TimestampSelector {
+	YoutubeChannelTimestampMs = 'YoutubeChannelTimestampMs',
 }
 export default {
-	entityType: EntityType.YouTubeChannel_Timestamp,
-	label: 'you tube channel timestamp',
-	labelPlural: 'you tube channel observations',
+	entityType: EntityType.YoutubeChannel_Timestamp,
+	label: 'YouTube channel observation',
+	labelPlural: 'YouTube channel observations',
 	selectors: [
 		{
-			name: YouTubeChannel_TimestampSelector.YouTubeChannelTimestampMs,
+			name: YoutubeChannel_TimestampSelector.YoutubeChannelTimestampMs,
 			fields: [
 				'$channel',
 				'timestampMs',
@@ -24,40 +22,39 @@ export default {
 	],
 	fields: [
 		{
-			name: '$channel',
-			label: 'channel',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.YouTubeChannel,
-			cardinality: EntityFieldCardinality.One,
+				name: '$channel',
+				label: 'Channel',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.YoutubeChannel,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'timestampMs',
-			label: 'Timestamp',
-			description: 'The observation time in Unix milliseconds.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'timestampMs',
+				label: 'Timestamp',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'subscriberCount',
-			label: 'subscriber count',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'subscriberCount',
+				label: 'Subscribers',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'videoCount',
-			label: 'video count',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'videoCount',
+				label: 'Videos',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'viewCount',
-			label: 'view count',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'viewCount',
+				label: 'Views',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 	],
 } as const satisfies EntityDefinition

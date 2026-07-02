@@ -1,52 +1,49 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
 	// Types/constants
-	import {
-		proposalCategoryBySlug,
-		proposalKindAllowedInRealmByKey,
-		specificationRealmBySlug,
-	} from '$/constants/SpecificationProposal.ts'
+	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+
+
+	// Context
+	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+
 
 	// State
 	let {
+		data,
 		params,
-	} = $props()
-
-	const realm = $derived(
-		specificationRealmBySlug[params.specificationRealmSlug]?.id,
-	)
-
-	const category = $derived(
-		proposalCategoryBySlug[params.proposalKindSlug]?.id,
-	)
-
-	const selector = $derived(
-		realm != null && category != null && proposalKindAllowedInRealmByKey[`${realm}:${category}`] != null ?
-			{
-				realm,
-				category,
-			}
-		:
-			undefined,
-	)
+	}: PageProps = $props()
 
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import ProposalKindView from '$/views/SpecificationProposalKindView.svelte'
+	import SpecificationProposalKindView from '$/views/SpecificationProposalKindView.svelte'
 </script>
 
 
+<svelte:head>
+	<title>Specification proposal kind • Blockhead</title>
+</svelte:head>
+
+
 <Page>
-	{#if selector !== undefined}
-		<ProposalKindView
-			selection={select(EntityType.SpecificationProposalKind, selector)}
-			open
-		/>
-	{:else}
-		<p role="alert">
-			Unknown proposal kind in this realm.
-		</p>
-	{/if}
+	<SpecificationProposalKindView
+		href={
+			resolve('/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]', {
+				specificationRealmSlug: params.specificationRealmSlug,
+				proposalKindSlug: params.proposalKindSlug,
+			})
+		}
+		selection={
+			select(EntityType.SpecificationProposalKind, data.selector, {
+				fields: {
+					labelPlural: true,
+					label: true,
+				},
+			})
+		}
+	/>
 </Page>

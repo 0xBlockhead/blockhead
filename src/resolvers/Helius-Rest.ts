@@ -78,11 +78,11 @@ const heliusInstructionRows = (
 	},
 	transaction: HeliusEnhancedTransaction
 ) => (
-	(transaction.instructions ?? []).map((instruction, instructionIndex) => ({
+	(transaction.instructions ?? []).map((instruction, indexInTransaction) => ({
 		[EntityMetaKey.Selector]: {
 			$transaction: transactionId,
 			instructionKind: SolanaInstructionKind.Instruction,
-			instructionIndex,
+			indexInTransaction,
 		},
 		$program: {
 			[EntityMetaKey.Selector]: {
@@ -195,7 +195,7 @@ export default {
 		defineResolver(Source.Helius_Rest, {
 			entityType: EntityType.SolanaInstruction,
 			resolve: {
-				[SolanaInstructionSelector.SolanaTransactionInstruction]: async ({ $transaction, instructionIndex }, context) => {
+				[SolanaInstructionSelector.SolanaTransactionIndexInTransaction]: async ({ $transaction, indexInTransaction }, context) => {
 					const transaction = await getTransaction(
 						$transaction,
 						context
@@ -203,15 +203,17 @@ export default {
 					const instruction = heliusInstructionRows(
 						$transaction,
 						transaction
-					).find((instruction) => instruction[EntityMetaKey.Selector].instructionIndex === instructionIndex)
-					if (instruction == null) throw new Error(`Helius_Rest: instruction not found for ${$transaction.signature}:${String(instructionIndex)}`)
+					).find((instruction) => instruction[EntityMetaKey.Selector].indexInTransaction === indexInTransaction)
+					if (instruction == null) throw new Error(`Helius_Rest: instruction not found for ${$transaction.signature}:${String(indexInTransaction)}`)
 					return instruction
 				},
 			}
 		})({
 			fields: {
+				instructionKind: (instruction) => instruction.instructionKind,
+				indexInTransaction: (instruction) => instruction.indexInTransaction,
 				$program: (instruction) => instruction.$program,
-				innerInstructionIndex: () => undefined,
+				indexInInstruction: () => undefined,
 				data: (instruction) => instruction.data,
 				$$accounts: (instruction) => instruction.$$accounts,
 			},

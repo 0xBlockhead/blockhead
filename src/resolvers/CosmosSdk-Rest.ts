@@ -202,10 +202,10 @@ const cosmosMessageRows = (
 	},
 	wireTransaction: CosmosSdkTxResponse
 ) => (
-	(wireTransaction.tx?.body?.messages ?? []).map((message, messageIndex) => ({
+	(wireTransaction.tx?.body?.messages ?? []).map((message, indexInTransaction) => ({
 		[EntityMetaKey.Selector]: {
 			$transaction: entitySelector,
-			messageIndex,
+			indexInTransaction,
 		},
 		typeUrl: message['@type'] ?? 'unknown',
 		...((message.signer ?? message.sender) != null && {
@@ -341,7 +341,7 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosBlock,
 			resolve: {
-				[CosmosBlockSelector.Height]: async ({ $network, height }) => {
+				[CosmosBlockSelector.NetworkHeight]: async ({ $network, height }) => {
 					assertCosmosHub($network)
 
 					const { getBlock } = await import('$/sources/CosmosSdk/Rest/queries.ts')
@@ -524,7 +524,7 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosMessage,
 			resolve: {
-				[CosmosMessageSelector.CosmosTransactionMessageIndex]: async ({ $transaction, messageIndex }) => {
+				[CosmosMessageSelector.TransactionIndexInTransaction]: async ({ $transaction, indexInTransaction }) => {
 					assertCosmosHub($transaction.$network)
 					const { getTx } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 					const cosmosMessage = cosmosMessageRows(
@@ -533,8 +533,8 @@ export default {
 							restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
 							txHash: $transaction.txHash,
 						})
-						).at(messageIndex)
-					if (cosmosMessage == null) throw new Error(`CosmosSdk_Rest: message not found for ${$transaction.txHash}:${messageIndex}`)
+						).at(indexInTransaction)
+					if (cosmosMessage == null) throw new Error(`CosmosSdk_Rest: message not found for ${$transaction.txHash}:${indexInTransaction}`)
 					return cosmosMessage
 				}
 			},

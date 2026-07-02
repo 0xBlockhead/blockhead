@@ -3,9 +3,6 @@
 	* @see https://docs.coingecko.com/reference/coins-id-ohlc
 	* @see https://docs.coingecko.com/reference/coins-id
 	*/
-
-import { stringify } from 'devalue'
-
 import { throwHttpError } from '$/lib/http.ts'
 import type { CoinId } from '$/constants/Coin.ts'
 import { MarketAssetKind, marketOhlcDayLookbackValues } from '$/constants/Market.ts'
@@ -38,6 +35,30 @@ type OhlcCandle = readonly [
 	low: number,
 	close: number,
 ]
+
+const marketAssetEntitySelectorKey = (
+	asset: EntitySelector<typeof schema, EntityType.Market>['$base']
+) => (
+	asset.kind === MarketAssetKind.Coin ?
+		`coin:${asset.$coin.coinId}`
+	: asset.kind === MarketAssetKind.Currency ?
+		`currency:${asset.$currency.iso4217}`
+	:
+		(() => {
+			throw new Error('Coingecko_OpenApi: CoinInstance market keys are unsupported')
+		})()
+)
+
+const marketEntitySelectorKey = (
+	marketId: EntitySelector<typeof schema, EntityType.Market>
+) => (
+	[
+		marketAssetEntitySelectorKey(marketId.$base),
+		marketAssetEntitySelectorKey(marketId.$quote),
+		marketId.$marketVenue.marketVenueId,
+		marketId.marketKind,
+	].join('|')
+)
 
 const coingeckoOpenApiOhlcDaysByWindow = {
 	1: '1',
@@ -210,7 +231,7 @@ export const collectSpotMarketEntitySelectorsForCoin = async ({
 				)
 				if (marketId == null)
 					return []
-				const key = stringify(marketId)
+				const key = marketEntitySelectorKey(marketId)
 				if (seen.has(key))
 					return []
 			seen.add(key)
@@ -313,7 +334,7 @@ export const collectDerivativeMarketEntitySelectors = async ({
 								) {
 									return []
 								}
-									const key = stringify(marketId)
+									const key = marketEntitySelectorKey(marketId)
 									if (seen.has(key))
 										return []
 									seen.add(key)

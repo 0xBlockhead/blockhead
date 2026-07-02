@@ -1,5 +1,4 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
-import { stringify } from 'devalue'
 import { keccak256, toHex } from '@tevm/voltaire/Hash'
 import { toBytes } from '@tevm/voltaire/Hex'
 import { evmAbiFromJsonString } from '$/lib/evmAbi.ts'
@@ -22,7 +21,7 @@ import {
 	EvmTransactionExecutionStatus,
 	EvmTransactionKind,
 } from '$/constants/Evm.ts'
-import { MarketAssetKind, MarketKind, type MarketIdLabelInput } from '$/constants/Market.ts'
+import { MarketAssetKind, MarketKind } from '$/constants/Market.ts'
 import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 import { catalogCoinSpotUsdMarketByCoinId, type CatalogCoinCurrencyMarket } from '$/constants/MarketCatalog.ts'
 import type {
@@ -164,9 +163,11 @@ const evmLogEntitySelectorFromWire = ({
 		undefined
 	:
 		{
-			$network,
-			txHash: normalizedTxHash,
-			logIndex,
+			$transaction: {
+				$network,
+				txHash: normalizedTxHash,
+			},
+			indexInTransaction: logIndex,
 		}
 }
 
@@ -177,7 +178,6 @@ const evmLogEntityFromIdAndWire = (
 	const address = hexLowerOfByteSize(log.address ?? '', 20)
 	const blockHash = hexLowerOfByteSize(log.blockHash ?? '', 32)
 	const blockNumber = evmRpcQuantityToBigInt(log.blockNumber)
-	const transactionIndex = evmLogIndexFromWire(log.transactionIndex)
 	const data = log.data == null ? undefined : with0xHex(log.data)
 	const topics = (
 		(log.topics ?? [])
@@ -190,28 +190,29 @@ const evmLogEntityFromIdAndWire = (
 		[EntityMetaKey.Selector]: entitySelector,
 		$transaction: {
 			[EntityMetaKey.Selector]: {
-				$network: entitySelector.$network,
-				txHash: entitySelector.txHash,
+				$network: entitySelector.$transaction.$network,
+				txHash: entitySelector.$transaction.txHash,
 			},
 		} satisfies Entity<typeof schema, EntityType.EvmTransaction>,
 		...(blockHash != null && blockNumber != null && {
 			$block: {
 				[EntityMetaKey.Selector]: {
-					$network: entitySelector.$network,
+					$network: entitySelector.$transaction.$network,
 					hash: blockHash,
 				},
 			} satisfies Entity<typeof schema, EntityType.EvmBlock>,
 		}),
-		topics,
+		$$topics: topics.map((hex) => ({
+			[EntityMetaKey.Selector]: {
+				hex,
+			},
+		} satisfies Entity<typeof schema, EntityType.EvmTopic>)),
 		...(data != null && { data }),
-		...(blockNumber != null && { blockNumber }),
-		...(blockHash != null && { blockHash }),
-		...(transactionIndex != null && { transactionIndex }),
 		...(log.removed != null && { removed: log.removed }),
 		...(address != null && {
 			$emitter: {
 				[EntityMetaKey.Selector]: {
-					$network: entitySelector.$network,
+					$network: entitySelector.$transaction.$network,
 					address,
 				},
 			} satisfies Entity<typeof schema, EntityType.EvmContract>,
@@ -353,10 +354,18 @@ const evmInternalTransferEntityFromWire = ({
 
 	return {
 		[EntityMetaKey.Selector]: {
-			$network,
-			txHash: normalizedTxHash,
-			internalIndex,
+			$transaction: {
+				$network,
+				txHash: normalizedTxHash,
+			},
+			indexInTransaction: internalIndex,
 		},
+		$transaction: {
+			[EntityMetaKey.Selector]: {
+				$network,
+				txHash: normalizedTxHash,
+			},
+		} satisfies Entity<typeof schema, EntityType.EvmTransaction>,
 		value,
 		callType,
 		...(wire.success != null && { success: wire.success }),
@@ -384,7 +393,7 @@ const evmInternalTransferEntityFromWire = ({
 	}
 }
 
-const evmInternalTransferEntitySelectorsFromBlockscoutWires = ({
+const evmInternalTransferEntitiesFromBlockscoutWires = ({
 	$network,
 	txHash,
 	wires,
@@ -403,7 +412,7 @@ const evmInternalTransferEntitySelectorsFromBlockscoutWires = ({
 	})
 )
 
-const evmInternalTransferEntitySelectorsFromBlockscoutAddresss = ({
+const evmInternalTransferEntitiesFromBlockscoutAddressWires = ({
 	$network,
 	wires,
 }: {
@@ -425,7 +434,7 @@ const evmInternalTransferEntitySelectorsFromBlockscoutAddresss = ({
 				return normalizedTxHash == null ?
 					[]
 				:
-					evmInternalTransferEntitySelectorsFromBlockscoutWires({
+					evmInternalTransferEntitiesFromBlockscoutWires({
 						$network,
 						txHash: normalizedTxHash,
 						wires: txWires,
@@ -438,7 +447,7 @@ const findBlockscoutInternalTransferWireForEntitySelector = (
 	wires: readonly BlockscoutInternalTransaction[],
 	entitySelector: Entity<typeof schema, EntityType.EvmInternalTransfer>[typeof EntityMetaKey.Selector]
 ): BlockscoutInternalTransaction | undefined => (
-	wires.find((wire) => wire.index === entitySelector.internalIndex)
+	wires.find((wire) => wire.index === entitySelector.indexInTransaction)
 )
 
 const blockscoutLogIndexFromWire = (
@@ -476,6 +485,7 @@ const evmTokenTransferEntityFromFields = ({
 	$network,
 	txHash,
 	logIndex,
+	indexInLog,
 	standard,
 	fromAddress,
 	toAddress,
@@ -489,6 +499,7 @@ const evmTokenTransferEntityFromFields = ({
 	$network: EvmNetworkId
 	txHash: `0x${string}`
 	logIndex: number
+	indexInLog: number
 	standard: EvmTokenStandard
 	fromAddress?: `0x${string}`
 	toAddress?: `0x${string}`
@@ -500,11 +511,24 @@ const evmTokenTransferEntityFromFields = ({
 	tokenDecimals?: number
 }) => ({
 	[EntityMetaKey.Selector]: {
-		$network,
-		txHash,
-		logIndex,
-		transferIndex: logIndex,
+		$log: {
+			$transaction: {
+				$network,
+				txHash,
+			},
+			indexInTransaction: logIndex,
+		},
+		indexInLog,
 	},
+	$log: {
+		[EntityMetaKey.Selector]: {
+			$transaction: {
+				$network,
+				txHash,
+			},
+			indexInTransaction: logIndex,
+		},
+	} satisfies Entity<typeof schema, EntityType.EvmLog>,
 	standard,
 	amount,
 	...(tokenId != null && (
@@ -558,7 +582,7 @@ const evmTokenTransferEntityFromWire = ({
 	transferIndex?: number
 }) => {
 	const normalizedTxHash = hexLowerOfByteSize(txHash, 32)
-	const logIndex = transferIndex ?? blockscoutLogIndexFromWire(wire.log_index)
+	const logIndex = blockscoutLogIndexFromWire(wire.log_index)
 	if (normalizedTxHash == null || logIndex == null) return undefined
 	const standard = evmTokenStandardFromBlockscoutWire(wire)
 	const fromAddress = hexLowerOfByteSize(wire.from?.hash ?? '', 20)
@@ -584,6 +608,7 @@ const evmTokenTransferEntityFromWire = ({
 		$network,
 		txHash: normalizedTxHash,
 		logIndex,
+		indexInLog: transferIndex ?? 0,
 		standard,
 		fromAddress: fromAddress ?? undefined,
 		toAddress: toAddress ?? undefined,
@@ -596,7 +621,7 @@ const evmTokenTransferEntityFromWire = ({
 	})
 }
 
-const evmTokenTransferEntitySelectorsFromBlockscoutWires = ({
+const evmTokenTransferEntitiesFromBlockscoutWires = ({
 	$network,
 	txHash,
 	wires,
@@ -605,17 +630,24 @@ const evmTokenTransferEntitySelectorsFromBlockscoutWires = ({
 	txHash: `0x${string}`
 	wires: readonly BlockscoutTokenTransfer[]
 }) => (
-	wires.flatMap((wire) => {
+	wires.flatMap((wire, index) => {
 		const entity = evmTokenTransferEntityFromWire({
 			$network,
 			txHash,
+			transferIndex: wires
+				.slice(0, index)
+				.filter((previousWire) => (
+					blockscoutLogIndexFromWire(previousWire.log_index)
+					=== blockscoutLogIndexFromWire(wire.log_index)
+				))
+				.length,
 			wire,
 		})
 		return entity == null ? [] : [entity]
 	})
 )
 
-const evmTokenTransferEntitySelectorsFromBlockscoutAddresss = ({
+const evmTokenTransferEntitiesFromBlockscoutAddressWires = ({
 	$network,
 	wires,
 }: {
@@ -637,7 +669,7 @@ const evmTokenTransferEntitySelectorsFromBlockscoutAddresss = ({
 				return normalizedTxHash == null ?
 					[]
 				:
-					evmTokenTransferEntitySelectorsFromBlockscoutWires({
+					evmTokenTransferEntitiesFromBlockscoutWires({
 						$network,
 						txHash: normalizedTxHash,
 						wires: txWires,
@@ -650,9 +682,11 @@ const findBlockscoutTokenTransferForEntitySelector = (
 	wires: readonly BlockscoutTokenTransfer[],
 	entitySelector: Entity<typeof schema, EntityType.EvmTokenTransfer>[typeof EntityMetaKey.Selector]
 ): BlockscoutTokenTransfer | undefined => (
-	wires.find((wire) => (
-		blockscoutLogIndexFromWire(wire.log_index) === entitySelector.logIndex
-	))
+	wires
+		.filter((wire) => (
+			blockscoutLogIndexFromWire(wire.log_index) === entitySelector.$log.indexInTransaction
+		))
+		.at(entitySelector.indexInLog)
 )
 
 const usdPriceStringToPrice1e8 = (
@@ -800,20 +834,17 @@ const erc4337RegistryEntitiesFromBlockscoutWires = <
 	return entities
 }
 
-const marketSelectorFromCatalogCoinCurrencyMarket = (catalogMarket: CatalogCoinCurrencyMarket) => ({
-	$base: {
-		kind: MarketAssetKind.Coin,
-		$coin: { coinId: catalogMarket.baseCoinId },
-	},
-	$quote: {
-		kind: MarketAssetKind.Currency,
-		$currency: { iso4217: catalogMarket.quoteIso4217 },
-	},
-	$marketVenue: {
-		marketVenueId: catalogMarket.marketVenueId,
-	},
-	marketKind: catalogMarket.marketKind,
-}) satisfies MarketIdLabelInput
+const catalogCoinCurrencyMarketMatchesMarket = (
+	catalogMarket: CatalogCoinCurrencyMarket,
+	market: EntitySelector<typeof schema, EntityType.Market>
+) => (
+	market.marketKind === catalogMarket.marketKind
+	&& market.$marketVenue.marketVenueId === catalogMarket.marketVenueId
+	&& market.$base.kind === MarketAssetKind.Coin
+	&& market.$base.$coin.coinId === catalogMarket.baseCoinId
+	&& market.$quote.kind === MarketAssetKind.Currency
+	&& market.$quote.$currency.iso4217 === catalogMarket.quoteIso4217
+)
 
 export default {
 	source: Source.Blockscout_Rest,
@@ -1084,7 +1115,7 @@ export default {
 								},
 							} satisfies Entity<typeof schema, EntityType.EvmAccount>,
 						}),
-						transactionIndex: (
+						indexInBlock: (
 							jsonRpcTransaction.transactionIndex != null ? ((parsed) => (
 							Number.isFinite(parsed) && Number.isInteger(parsed) && parsed >= 0 ?
 								parsed
@@ -1275,7 +1306,7 @@ export default {
 				},
 				$to: (transaction) => transaction.$to,
 				$contract: (transaction) => transaction.$contract,
-				transactionIndex: (transaction) => transaction.transactionIndex,
+				indexInBlock: (transaction) => transaction.indexInBlock,
 				value: (transaction) => transaction.value,
 				nonce: (transaction) => transaction.nonce,
 				input: (transaction) => transaction.input,
@@ -1302,19 +1333,19 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmLog,
 			resolve: {
-				[EvmLogSelector.EvmNetworkTxHashLogIndex]: async (entitySelector) => {
+				[EvmLogSelector.TransactionIndexInTransaction]: async (entitySelector) => {
 					const {
 						blockscoutExplorerRestV2OriginByChainId,
 					} = await import('$/sources/Blockscout/Rest/constants.ts')
 					const { getTransactionLogs } = await import('$/sources/Blockscout/Rest/queries.ts')
-					const origin = blockscoutExplorerRestV2OriginByChainId[chainIdFromEvmNetworkId(entitySelector.$network)]
+					const origin = blockscoutExplorerRestV2OriginByChainId[chainIdFromEvmNetworkId(entitySelector.$transaction.$network)]
 					if (origin == null)
-						throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId(entitySelector.$network)}`)
+						throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId(entitySelector.$transaction.$network)}`)
 					const logs = await getTransactionLogs({
 						explorerOrigin: origin,
-						txHash: entitySelector.txHash,
+						txHash: entitySelector.$transaction.txHash,
 					})
-					const log = findReceiptLogWireForEvmLogId(logs, entitySelector.logIndex)
+					const log = findReceiptLogWireForEvmLogId(logs, entitySelector.indexInTransaction)
 					if (log == null)
 						throw new Error('Blockscout_Rest: receipt log not found for EvmLog')
 					return evmLogEntityFromIdAndWire(entitySelector, log)
@@ -1322,13 +1353,11 @@ export default {
 			},
 		})({
 			fields: {
-				topics: (log) => log.topics,
+				$$topics: (log) => log.$$topics,
 				$transaction: (log) => log.$transaction,
+				indexInTransaction: (log) => log[EntityMetaKey.Selector].indexInTransaction,
 				$block: (log) => log.$block,
 				data: (log) => log.data,
-				blockNumber: (log) => log.blockNumber,
-				blockHash: (log) => log.blockHash,
-				transactionIndex: (log) => log.transactionIndex,
 				removed: (log) => log.removed,
 				$emitter: (log) => log.$emitter,
 			},
@@ -1337,27 +1366,27 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmTokenTransfer,
 			resolve: {
-				[EvmTokenTransferSelector.EvmNetworkTxHashLogIndexTransferIndex]: async (entitySelector) => {
+				[EvmTokenTransferSelector.LogIndexInLog]: async (entitySelector) => {
 					const {
 						blockscoutExplorerRestV2OriginByChainId,
 						blockscoutV2ItemsCountMax,
 					} = await import('$/sources/Blockscout/Rest/constants.ts')
 					const { getTransactionTokenTransfers } = await import('$/sources/Blockscout/Rest/queries.ts')
-					const origin = blockscoutExplorerRestV2OriginByChainId[chainIdFromEvmNetworkId(entitySelector.$network)]
+					const origin = blockscoutExplorerRestV2OriginByChainId[chainIdFromEvmNetworkId(entitySelector.$log.$transaction.$network)]
 					if (origin == null)
-						throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId(entitySelector.$network)}`)
+						throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId(entitySelector.$log.$transaction.$network)}`)
 					const wires = await getTransactionTokenTransfers({
 						explorerOrigin: origin,
-						txHash: entitySelector.txHash,
+						txHash: entitySelector.$log.$transaction.txHash,
 						limit: blockscoutV2ItemsCountMax,
 					})
 					const wire = findBlockscoutTokenTransferForEntitySelector(wires, entitySelector)
 					if (wire == null)
 						throw new Error('Blockscout_Rest: token transfer not found for EvmTokenTransfer')
 					const entity = evmTokenTransferEntityFromWire({
-						$network: entitySelector.$network,
-						txHash: entitySelector.txHash,
-						transferIndex: entitySelector.logIndex,
+						$network: entitySelector.$log.$transaction.$network,
+						txHash: entitySelector.$log.$transaction.txHash,
+						transferIndex: entitySelector.indexInLog,
 						wire,
 					})
 					if (entity == null)
@@ -1368,9 +1397,8 @@ export default {
 		})({
 			fields: {
 				standard: (transfer) => transfer.standard,
-				txHash: (transfer) => transfer[EntityMetaKey.Selector].txHash,
-				logIndex: (transfer) => transfer[EntityMetaKey.Selector].logIndex,
-				transferIndex: (transfer) => transfer[EntityMetaKey.Selector].transferIndex,
+				$log: (transfer) => transfer.$log,
+				indexInLog: (transfer) => transfer[EntityMetaKey.Selector].indexInLog,
 				$from: (transfer) => transfer.$from,
 				$to: (transfer) => transfer.$to,
 				$tokenContract: (transfer) => transfer.$tokenContract,
@@ -1386,26 +1414,26 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmInternalTransfer,
 			resolve: {
-				[EvmInternalTransferSelector.EvmNetworkTxHashInternalIndex]: async (entitySelector) => {
+				[EvmInternalTransferSelector.TransactionIndexInTransaction]: async (entitySelector) => {
 					const {
 						blockscoutExplorerRestV2OriginByChainId,
 						blockscoutV2ItemsCountMax,
 					} = await import('$/sources/Blockscout/Rest/constants.ts')
 					const { getTransactionInternalTransactions } = await import('$/sources/Blockscout/Rest/queries.ts')
-					const origin = blockscoutExplorerRestV2OriginByChainId[chainIdFromEvmNetworkId(entitySelector.$network)]
+					const origin = blockscoutExplorerRestV2OriginByChainId[chainIdFromEvmNetworkId(entitySelector.$transaction.$network)]
 					if (origin == null)
-						throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId(entitySelector.$network)}`)
+						throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId(entitySelector.$transaction.$network)}`)
 					const wires = await getTransactionInternalTransactions({
 						explorerOrigin: origin,
-						txHash: entitySelector.txHash,
+						txHash: entitySelector.$transaction.txHash,
 						limit: blockscoutV2ItemsCountMax,
 					})
 					const wire = findBlockscoutInternalTransferWireForEntitySelector(wires, entitySelector)
 					if (wire == null)
 						throw new Error('Blockscout_Rest: internal transfer not found for EvmInternalTransfer')
 					const entity = evmInternalTransferEntityFromWire({
-						$network: entitySelector.$network,
-						txHash: entitySelector.txHash,
+						$network: entitySelector.$transaction.$network,
+						txHash: entitySelector.$transaction.txHash,
 						wire,
 					})
 					if (entity == null)
@@ -1415,8 +1443,8 @@ export default {
 			},
 		})({
 			fields: {
-				txHash: (transfer) => transfer[EntityMetaKey.Selector].txHash,
-				internalIndex: (transfer) => transfer[EntityMetaKey.Selector].internalIndex,
+				$transaction: (transfer) => transfer.$transaction,
+				indexInTransaction: (transfer) => transfer[EntityMetaKey.Selector].indexInTransaction,
 				$from: (transfer) => transfer.$from,
 				$to: (transfer) => transfer.$to,
 				value: (transfer) => transfer.value,
@@ -1747,7 +1775,7 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Market_Timestamp,
 			resolve: {
-				marketTimestampMsFeedKey: async ({ $market, feedKey, timestampMs: timestampMsSelector }) => {
+				[Market_TimestampSelector.MarketTimestampMsFeedKey]: async ({ $market, feedKey, timestampMs: timestampMsSelector }) => {
 					if ($market.marketKind !== MarketKind.Spot)
 						throw new Error('Blockscout_Rest: Market_Timestamp is spot-only')
 					const coinId = (
@@ -1760,8 +1788,7 @@ export default {
 						throw new Error('Blockscout_Rest: market base is not a catalog coin')
 					if (feedKey !== coinId)
 						throw new Error('Blockscout_Rest: Market_Timestamp feedKey does not match catalog coin id')
-					const catalogMarketId = marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[coinId])
-					if (stringify($market) !== stringify(catalogMarketId))
+					if (!catalogCoinCurrencyMarketMatchesMarket(catalogCoinSpotUsdMarketByCoinId[coinId], $market))
 						throw new Error('Blockscout_Rest: Market_Timestamp only supports catalog USD spot markets')
 					const stats = await blockscoutStatsForNativeCoinId(coinId)
 					const price = usdPriceStringToPrice1e8(stats?.coin_price)
@@ -1790,7 +1817,7 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetwork_GasEstimate_Timestamp,
 			resolve: {
-				'$network+timestampMs+source': async ({ $network, timestampMs }) => {
+				[EvmNetwork_GasEstimate_TimestampSelector.NetworkTimestampMsSource]: async ({ $network, timestampMs }) => {
 					const stats = await blockscoutStatsForChain(chainIdFromEvmNetworkId($network))
 					if (stats == null)
 						throw new Error(
@@ -1821,7 +1848,7 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Coin_Timestamp,
 			resolve: {
-				'$coin+timestampMs+source': async ({ $coin, timestampMs: timestampMsSelector }) => {
+				[Coin_TimestampSelector.CoinTimestampMsSource]: async ({ $coin, timestampMs: timestampMsSelector }) => {
 					const stats = await blockscoutStatsForNativeCoinId($coin.coinId)
 					if (stats == null)
 						throw new Error(`Blockscout_Rest: Coin_Timestamp unsupported for coin ${$coin.coinId}`)
@@ -2164,16 +2191,12 @@ export default {
 							address,
 							limit,
 						})
-						const entities = (
-							evmTokenTransferEntitySelectorsFromBlockscoutAddresss({
+						return (
+							evmTokenTransferEntitiesFromBlockscoutAddressWires({
 								$network: $network,
 								wires,
 							})
-								.map((entity) => ({
-									[EntityMetaKey.Selector]: entity[EntityMetaKey.Selector],
-								}))
 						)
-						return entities
 				}
 			},
 		})({
@@ -2208,7 +2231,7 @@ export default {
 						address,
 						limit,
 					})
-					return evmInternalTransferEntitySelectorsFromBlockscoutAddresss({
+					return evmInternalTransferEntitiesFromBlockscoutAddressWires({
 						$network: $network,
 						wires,
 					})
@@ -2258,7 +2281,7 @@ export default {
 						continue
 						}
 						tokenTransfers.push(
-							...evmTokenTransferEntitySelectorsFromBlockscoutWires({
+							...evmTokenTransferEntitiesFromBlockscoutWires({
 								$network: entitySelector,
 								txHash,
 								wires,
@@ -2314,7 +2337,7 @@ export default {
 						continue
 						}
 						tokenTransfers.push(
-							...evmTokenTransferEntitySelectorsFromBlockscoutWires({
+							...evmTokenTransferEntitiesFromBlockscoutWires({
 								$network: entitySelector,
 								txHash,
 								wires,
@@ -2645,8 +2668,7 @@ export default {
 					)
 					if (coinId == null)
 						return []
-					const catalogMarketId = marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[coinId])
-					if (stringify($market) !== stringify(catalogMarketId))
+					if (!catalogCoinCurrencyMarketMatchesMarket(catalogCoinSpotUsdMarketByCoinId[coinId], $market))
 						return []
 					const stats = await blockscoutStatsForNativeCoinId(coinId)
 					const price = usdPriceStringToPrice1e8(stats?.coin_price)
@@ -2699,14 +2721,11 @@ export default {
 						limit,
 					})
 					return (
-						evmTokenTransferEntitySelectorsFromBlockscoutWires({
+						evmTokenTransferEntitiesFromBlockscoutWires({
 							$network: $network,
 							txHash: txHash,
 							wires,
 						})
-							.map((entity) => ({
-								[EntityMetaKey.Selector]: entity[EntityMetaKey.Selector],
-							}))
 					)
 				}
 			},
@@ -2738,7 +2757,7 @@ export default {
 						limit,
 					})
 					return (
-						evmInternalTransferEntitySelectorsFromBlockscoutWires({
+						evmInternalTransferEntitiesFromBlockscoutWires({
 							$network: $network,
 							txHash: txHash,
 							wires,

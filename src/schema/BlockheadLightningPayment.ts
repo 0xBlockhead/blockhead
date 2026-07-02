@@ -1,17 +1,16 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum BlockheadLightningPaymentSelector {
-	NetworkPaymentHash = '$network+paymentHash',
+	NetworkPaymentHash = 'NetworkPaymentHash',
 }
 export default {
 	entityType: EntityType.BlockheadLightningPayment,
-	label: 'blockhead Lightning payment',
-	labelPlural: 'blockhead Lightning payments',
+	label: 'Lightning payment',
+	labelPlural: 'Lightning payments',
 	selectors: [
 		{
 			name: BlockheadLightningPaymentSelector.NetworkPaymentHash,
@@ -23,67 +22,67 @@ export default {
 	],
 	fields: [
 		{
-			name: '$network',
-			label: 'network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Network,
-			cardinality: EntityFieldCardinality.One,
+				name: '$network',
+				label: 'Network',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.Network,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'paymentHash',
-			label: 'payment hash',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'paymentHash',
+				label: 'Payment hash',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'paymentRequest',
-			label: 'payment request',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'paymentRequest',
+				label: 'Payment request',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'valueMsat',
-			label: 'value msat',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("bigint"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'valueMsat',
+				label: 'Value msat',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'createdAtMs',
-			label: 'created AT ms',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'createdAtMs',
+				label: 'Created',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'paymentIndex',
-			label: 'payment index',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("bigint"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'paymentIndex',
+				label: 'Payment index',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$localNodeState',
-			label: 'local node state',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.BlockheadLightningNodeState,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$localNodeState',
+				label: 'Local node state',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.BlockheadLightningNodeState,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$invoice',
-			label: 'invoice',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.BlockheadLightningInvoice,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$invoice',
+				label: 'Invoice',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.BlockheadLightningInvoice,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$$timestamps',
-			label: 'timestamps',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.BlockheadLightningPayment_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$timestamps',
+				label: 'Observations',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.BlockheadLightningPayment_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
 		},
 	],
 } as const satisfies EntityDefinition

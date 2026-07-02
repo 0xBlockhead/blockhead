@@ -1,3 +1,5 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
@@ -5,12 +7,14 @@
 
 
 	// Context
+	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
+		params,
 	}: PageProps = $props()
 
 
@@ -20,8 +24,27 @@
 </script>
 
 
+<svelte:head>
+	<title>Network • Blockhead</title>
+</svelte:head>
+
+
 <Page>
 	<NetworkView
-		selection={select(EntityType.Network, data.selector)}
+		href={
+			resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
+				networkSlug: params.networkSlug,
+			})
+		}
+		selection={
+			select(EntityType.Network, data.selector, {
+				fields: {
+					$icon: true,
+					name: true,
+					namespace: true,
+					environment: true,
+				},
+			})
+		}
 	/>
 </Page>

@@ -1,17 +1,15 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum XPost_TimestampSelector {
-	XPostTimestampMs = 'xPostTimestampMs',
-	PostTimestampMs = '$post+timestampMs',
+	XPostTimestampMs = 'XPostTimestampMs',
 }
 export default {
 	entityType: EntityType.XPost_Timestamp,
-	label: 'X post timestamp',
+	label: 'X post observation',
 	labelPlural: 'X post observations',
 	selectors: [
 		{
@@ -24,47 +22,46 @@ export default {
 	],
 	fields: [
 		{
-			name: '$post',
-			label: 'post',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.XPost,
-			cardinality: EntityFieldCardinality.One,
+				name: '$post',
+				label: 'Post',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.XPost,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'timestampMs',
-			label: 'Timestamp',
-			description: 'The observation time in Unix milliseconds.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'timestampMs',
+				label: 'Timestamp',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'likeCount',
-			label: 'like count',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'likeCount',
+				label: 'Likes',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'retweetCount',
-			label: 'retweet count',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'retweetCount',
+				label: 'Retweets',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'replyCount',
-			label: 'reply count',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'replyCount',
+				label: 'Replies',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'quoteCount',
-			label: 'quote count',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'quoteCount',
+				label: 'Quotes',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 	],
 } as const satisfies EntityDefinition

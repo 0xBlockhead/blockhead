@@ -19,18 +19,20 @@ const blobscanChainId = async (network: { caip2: { reference: string } }) => {
 	return chainId
 }
 
-const blobscanBlobDetail = async ({ $network, blobIndex, txHash }: {
-	$network: { caip2: { reference: string } }
-	txHash: string
-	blobIndex: number
+const blobscanBlobDetail = async ({ $transaction, indexInTransaction }: {
+	$transaction: {
+		$network: { caip2: { reference: string } }
+		txHash: string
+	}
+	indexInTransaction: number
 }) => {
 	const { getBlobDetail } = await import(
 		'$/sources/Blobscan/Rest/queries.ts'
 	)
 	return getBlobDetail({
-		blobIndex: blobIndex,
-		chainId: await blobscanChainId($network),
-		txHash: txHash,
+		blobIndex: indexInTransaction,
+		chainId: await blobscanChainId($transaction.$network),
+		txHash: $transaction.txHash,
 	})
 }
 
@@ -41,36 +43,36 @@ export default {
 		defineResolver(Source.Blobscan_Rest, {
 			entityType: EntityType.EvmBlob,
 			resolve: {
-				[EvmBlobSelector.EvmNetworkTxHashBlobIndex]: async (entitySelector, _context) => {
-				return (await blobscanBlobDetail(entitySelector))?.blob?.commitment
-			}
-			}
+				[EvmBlobSelector.TransactionIndexInTransaction]: async (entitySelector, _context) => {
+					return (await blobscanBlobDetail(entitySelector))?.blob?.commitment
+				},
+			},
 		})({
-				fields: {
-			kzgCommitment: (snapshot) => snapshot,
-		},
-			}),
+			fields: {
+				kzgCommitment: (snapshot) => snapshot,
+			},
+		}),
 
 		defineResolver(Source.Blobscan_Rest, {
 			entityType: EntityType.EvmBlob,
 			resolve: {
-				[EvmBlobSelector.EvmNetworkTxHashBlobIndex]: async (entitySelector, _context) => {
-				return (await blobscanBlobDetail(entitySelector))?.blobDataStorage
-					?.flatMap((reference) => (
-						reference.storage != null && reference.reference != null ?
-							[{
-								storage: reference.storage,
-								reference: reference.reference,
-							}]
-						:
-							[]
-					))
-			}
-			}
+				[EvmBlobSelector.TransactionIndexInTransaction]: async (entitySelector, _context) => {
+					return (await blobscanBlobDetail(entitySelector))?.blobDataStorage
+						?.flatMap((reference) => (
+							reference.storage != null && reference.reference != null ?
+								[{
+									storage: reference.storage,
+									reference: reference.reference,
+								}]
+							:
+								[]
+						))
+				},
+			},
 		})({
-				fields: {
-			blobDataStorageReferences: (snapshot) => snapshot,
-		},
-			}),
+			fields: {
+				blobDataStorageReferences: (snapshot) => snapshot,
+			},
+		}),
 	],
 }

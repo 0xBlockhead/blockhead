@@ -1,18 +1,17 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum PolkadotBlockSelector {
-	NetworkBlockNumber = 'networkBlockNumber',
-	NetworkBlockNumberHash = 'networkBlockNumberHash',
+	NetworkBlockNumber = 'NetworkBlockNumber',
+	NetworkBlockNumberHash = 'NetworkBlockNumberHash',
 }
 export default {
 	entityType: EntityType.PolkadotBlock,
-	label: 'polkadot block',
-	labelPlural: 'polkadot blocks',
+	label: 'Polkadot block',
+	labelPlural: 'Polkadot blocks',
 	selectors: [
 		{
 			name: PolkadotBlockSelector.NetworkBlockNumber,
@@ -32,62 +31,62 @@ export default {
 	],
 	fields: [
 		{
-			name: '$network',
-			label: 'network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Network,
-			cardinality: EntityFieldCardinality.One,
+				name: '$network',
+				label: 'Network',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.Network,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'blockNumber',
-			label: 'Block number',
-			description: 'The block height or number in its network.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("bigint"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'blockNumber',
+				label: 'Block number',
+				description: 'The block height or number in its network.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'hash',
-			label: 'Hash',
-			description: 'The hash that identifies this object in its protocol.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'hash',
+				label: 'Hash',
+				description: 'The hash that identifies this object in its protocol.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$parent',
-			label: 'parent',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.PolkadotBlock,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$parent',
+				label: 'Parent',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.PolkadotBlock,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'stateRoot',
-			label: 'state root',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'stateRoot',
+				label: 'State root',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'extrinsicsRoot',
-			label: 'extrinsics root',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'extrinsicsRoot',
+				label: 'Extrinsics root',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$$extrinsics',
-			label: 'extrinsics',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.PolkadotExtrinsic,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$extrinsics',
+				label: 'Extrinsics',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.PolkadotExtrinsic,
+				cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$$events',
-			label: 'events',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.PolkadotEvent,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$events',
+				label: 'Events',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.PolkadotEvent,
+				cardinality: EntityFieldCardinality.Many,
 		},
 	],
 } as const satisfies EntityDefinition

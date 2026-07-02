@@ -7,7 +7,16 @@ const {
 	Symbol('isInsidePage')
 )
 
+const {
+	get: getIsPageRoot,
+	set: setIsPageRoot,
+} = useGetSetContext<boolean>(
+	Symbol('isPageRoot')
+)
+
 export {
 	getIsInsidePage,
+	getIsPageRoot,
 	setIsInsidePage,
+	setIsPageRoot,
 }

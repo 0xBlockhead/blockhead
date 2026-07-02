@@ -156,11 +156,11 @@ const solanaInstructionRows = (
 	},
 	transaction: SolanaRpcTransactionWithMeta
 ) => [
-	...transaction.transaction.message.instructions.map((instruction, instructionIndex) => ({
+	...transaction.transaction.message.instructions.map((instruction, indexInTransaction) => ({
 		[EntityMetaKey.Selector]: {
 			$transaction: transactionId,
 			instructionKind: SolanaInstructionKind.Instruction,
-			instructionIndex,
+			indexInTransaction,
 		},
 		...solanaInstructionFields(
 			network,
@@ -169,12 +169,12 @@ const solanaInstructionRows = (
 	})),
 	...(transaction.meta?.innerInstructions ?? [])
 		.flatMap((innerInstructionGroup) => (
-			innerInstructionGroup.instructions.map((instruction, innerInstructionIndex) => ({
+			innerInstructionGroup.instructions.map((instruction, indexInInstruction) => ({
 				[EntityMetaKey.Selector]: {
 					$transaction: transactionId,
 					instructionKind: SolanaInstructionKind.InnerInstruction,
-					instructionIndex: innerInstructionGroup.index,
-					innerInstructionIndex,
+					indexInTransaction: innerInstructionGroup.index,
+					indexInInstruction,
 				},
 				...solanaInstructionFields(
 					network,
@@ -553,27 +553,27 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaInstruction,
 			resolve: {
-				[SolanaInstructionSelector.SolanaTransactionInstruction]: async ({ $transaction, instructionIndex }) => {
+				[SolanaInstructionSelector.SolanaTransactionIndexInTransaction]: async ({ $transaction, indexInTransaction }) => {
 					const transaction = await getTransaction($transaction)
 					return {
 						instructionKind: SolanaInstructionKind.Instruction,
-						instructionIndex,
+						indexInTransaction,
 						...solanaInstructionFields(
 							$transaction.$network,
-							transaction.transaction.message.instructions[instructionIndex]
+							transaction.transaction.message.instructions[indexInTransaction]
 						),
 					}
 				},
-				[SolanaInstructionSelector.SolanaTransactionInnerInstruction]: async ({ $transaction, instructionIndex, innerInstructionIndex }) => {
+				[SolanaInstructionSelector.SolanaTransactionIndexInInstruction]: async ({ $transaction, indexInTransaction, indexInInstruction }) => {
 					const transaction = await getTransaction($transaction)
 					const instruction = transaction.meta?.innerInstructions
-						?.find((innerInstructionGroup) => innerInstructionGroup.index === instructionIndex)
-						?.instructions[innerInstructionIndex]
+						?.find((innerInstructionGroup) => innerInstructionGroup.index === indexInTransaction)
+						?.instructions[indexInInstruction]
 					if (instruction == null) throw new Error(`Solana_JsonRpc: instruction not found for ${$transaction.signature}`)
 					return {
 						instructionKind: SolanaInstructionKind.InnerInstruction,
-						instructionIndex,
-						innerInstructionIndex,
+						indexInTransaction,
+						indexInInstruction,
 						...solanaInstructionFields(
 							$transaction.$network,
 							instruction
@@ -584,13 +584,13 @@ export default {
 		})({
 			fields: {
 				instructionKind: (instruction) => instruction.instructionKind,
-				instructionIndex: (instruction) => instruction.instructionIndex,
-					innerInstructionIndex: (instruction) => (
-						'innerInstructionIndex' in instruction ?
-							instruction.innerInstructionIndex
-						:
-							undefined
-					),
+				indexInTransaction: (instruction) => instruction.indexInTransaction,
+				indexInInstruction: (instruction) => (
+					'indexInInstruction' in instruction ?
+						instruction.indexInInstruction
+					:
+						undefined
+				),
 				$program: (instruction) => instruction.$program,
 				parsedType: (instruction) => instruction.parsedType,
 				data: (instruction) => instruction.data,

@@ -18,6 +18,7 @@ import type {
 	MastodonApiV1Status,
 } from '$/sources/Mastodon/Rest/types.ts'
 import { ActivityPubActorSelector } from '$/schema/ActivityPubActor.ts'
+import { ActivityPubNetworkSelector } from '$/schema/ActivityPubNetwork.ts'
 import { ActivityPubNoteSelector } from '$/schema/ActivityPubNote.ts'
 import { ActivityPubActor_TimestampSelector } from '$/schema/ActivityPubActor_Timestamp.ts'
 import { ActivityPubNote_TimestampSelector } from '$/schema/ActivityPubNote_Timestamp.ts'
@@ -222,6 +223,33 @@ export default {
 	source: Source.Fedi_Rest,
 
 	resolvers: [
+		defineResolver(Source.Fedi_Rest, {
+			entityType: EntityType.ActivityPubNetwork,
+			resolve: {
+				[ActivityPubNetworkSelector.Scope]: async (_selector, context) => {
+					const publicEnv = context.publicEnv
+					const { listPublicTimeline } = await import('$/sources/Fedi/Rest/queries.ts')
+					const limit = resolverContextRowLimit(context)
+					return (await listPublicTimeline(publicEnv, limit))
+						.flatMap((status) => (
+							status.id == null ?
+								[]
+							:
+								[{
+									[EntityMetaKey.Selector]: {
+										instanceOrigin: fediInstanceBySlug.fosstodon.origin,
+										localStatusId: String(status.id),
+									},
+								}]
+						))
+				},
+			},
+		})({
+			fields: {
+				$$activityPubNotes: (notes) => notes,
+			},
+		}),
+
 		defineResolver(Source.Fedi_Rest, {
 			entityType: EntityType.ActivityPubActor,
 			resolve: {

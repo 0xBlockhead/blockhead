@@ -123,39 +123,47 @@ export default {
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconValidator,
 			resolve: {
-				[BeaconValidatorSelector.EvmNetworkValidatorIndex]: async ({ $network, validatorIndex }) => {
+				[BeaconValidatorSelector.NetworkIndexInNetwork]: async ({ $network, indexInNetwork }) => {
 					const { getValidatorSummaryAtHead } = await import('$/sources/Beacon/Rest/queries.ts')
 					const summary = await getValidatorSummaryAtHead(
 						await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
-						validatorIndex
+						indexInNetwork
 					)
 					if (summary == null) {
 						throw new Error(
-							`Beacon_Rest: validator summary not returned for index ${String(validatorIndex)}`
+							`Beacon_Rest: validator summary not returned for index ${String(indexInNetwork)}`
 						)
 					}
 					return {
+						balanceGwei: summary.balanceGwei,
+						effectiveBalanceGwei: summary.effectiveBalanceGwei,
 						pubkey: summary.pubkey,
+						slashed: summary.slashed,
+						status: summary.status,
 					}
 				},
 			},
 		})({
 			fields: {
+				balanceGwei: (validator) => validator.balanceGwei,
+				effectiveBalanceGwei: (validator) => validator.effectiveBalanceGwei,
 				pubkey: (validator) => validator.pubkey,
+				slashed: (validator) => validator.slashed,
+				status: (validator) => validator.status,
 			},
 		}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconCommittee,
 			resolve: {
-				[BeaconCommitteeSelector.EvmNetworkSlotIndex]: async ({ $network, slot, index }) => {
+				[BeaconCommitteeSelector.EvmNetworkSlotIndexInSlot]: async ({ $network, slot, indexInSlot }) => {
 					const { getCommittees } = await import('$/sources/Beacon/Rest/queries.ts')
 					const committee = (
 						await getCommittees(
 							await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
 							String(slot)
 						)
-					).find((committee) => committee.index === index)
+					).find((committee) => committee.index === indexInSlot)
 					if (committee == null) throw new Error('Beacon_Rest: committee not found')
 					return {
 						validatorIndices: committee.validatorIndices,
@@ -192,14 +200,14 @@ export default {
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconAttestation,
 			resolve: {
-				[BeaconAttestationSelector.EvmNetworkSlotIndex]: async ({ $network, slot, index }) => {
+				[BeaconAttestationSelector.EvmNetworkSlotIndexInSlot]: async ({ $network, slot, indexInSlot }) => {
 					const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
 					const attestation = (
 						await getBlockDutySummary(
 							await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
 							slot
 						)
-					).attestations.find((committee) => committee.index === index)
+					).attestations.find((committee) => committee.index === indexInSlot)
 					if (attestation == null) throw new Error('Beacon_Rest: attestation not found')
 					return {
 						...(attestation.committeeIndex != null && { committeeIndex: attestation.committeeIndex }),
@@ -217,14 +225,14 @@ export default {
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconWithdrawal,
 			resolve: {
-				[BeaconWithdrawalSelector.EvmNetworkSlotIndex]: async ({ $network, slot, index }) => {
+				[BeaconWithdrawalSelector.EvmNetworkSlotIndexInSlot]: async ({ $network, slot, indexInSlot }) => {
 					const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
 					const withdrawal = (
 						await getBlockDutySummary(
 							await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
 							slot
 						)
-					).withdrawals.find((committee) => committee.index === index)
+					).withdrawals.find((committee) => committee.index === indexInSlot)
 					if (withdrawal == null) throw new Error('Beacon_Rest: withdrawal not found')
 					return {
 						...(withdrawal.validatorIndex != null && {
@@ -232,7 +240,7 @@ export default {
 							$validator: {
 								[EntityMetaKey.Selector]: {
 									$network,
-									validatorIndex: withdrawal.validatorIndex,
+									indexInNetwork: withdrawal.validatorIndex,
 								},
 							},
 						}),
@@ -403,7 +411,7 @@ export default {
 							.map((validatorIndex) => ({
 								[EntityMetaKey.Selector]: {
 									$network: { caip2 },
-									validatorIndex,
+									indexInNetwork: validatorIndex,
 								},
 							}))
 					)
@@ -430,7 +438,7 @@ export default {
 								[EntityMetaKey.Selector]: {
 									$network,
 									slot,
-									index: committee.index,
+									indexInSlot: committee.index,
 								},
 							}))
 					)
@@ -457,7 +465,7 @@ export default {
 								[EntityMetaKey.Selector]: {
 									$network,
 									slot,
-									index: attestation.index,
+									indexInSlot: attestation.index,
 								},
 							}))
 					)
@@ -484,7 +492,7 @@ export default {
 								[EntityMetaKey.Selector]: {
 									$network,
 									slot,
-									index: withdrawal.index,
+									indexInSlot: withdrawal.index,
 								},
 							}))
 					)
@@ -512,7 +520,7 @@ export default {
 									$network,
 									slot,
 									kind: slashing.kind,
-									index: slashing.index,
+									indexInSlot: slashing.index,
 								},
 							}))
 					)
@@ -540,7 +548,7 @@ export default {
 								[EntityMetaKey.Selector]: {
 									$network: { caip2 },
 									slot: committee.slot,
-									index: committee.index,
+									indexInSlot: committee.index,
 								},
 							}))
 					)
@@ -594,7 +602,7 @@ export default {
 								[EntityMetaKey.Selector]: {
 									$network: { caip2 },
 									slot,
-									index: attestation.index,
+									indexInSlot: attestation.index,
 								},
 							}))
 					)
@@ -623,7 +631,7 @@ export default {
 								[EntityMetaKey.Selector]: {
 									$network: { caip2 },
 									slot,
-									index: withdrawal.index,
+									indexInSlot: withdrawal.index,
 								},
 							}))
 					)
@@ -653,7 +661,7 @@ export default {
 									$network: { caip2 },
 									slot,
 									kind: slashing.kind,
-									index: slashing.index,
+									indexInSlot: slashing.index,
 								},
 							}))
 					)

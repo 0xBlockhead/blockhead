@@ -47,47 +47,47 @@ export default {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
 				[SpecificationProposalSelector.RealmCategoryNumber]: async ({ category, number, realm }) => {
-				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				const {
-					getMarkdownTextForNumber,
-				} = await import('$/sources/Caips/Github/queries.ts')
+					const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
+					const {
+						getMarkdownTextForNumber,
+					} = await import('$/sources/Caips/Github/queries.ts')
 
-				if (
-					category !== ProposalCategory.Caip
-					|| realm !== SpecificationRealm.ChainAgnostic
-				) throw new Error('Caips_Github: unsupported proposal id')
-				const text = await getMarkdownTextForNumber({ number: number })
-				const body = stripFrontmatter(text)
-				const frontmatter = parseFrontmatter(text)
-				return {
-					documentCategory: frontmatter.type.trim() || undefined,
-					documentTitle: frontmatter.title.trim() || undefined,
-					documentStatus: frontmatter.status.trim() || undefined,
-					documentBody: body.length > 0 ? body : undefined,
-				}
-			}
-			}
+					if (
+						category !== ProposalCategory.Caip
+						|| realm !== SpecificationRealm.ChainAgnostic
+					) throw new Error('Caips_Github: unsupported proposal id')
+					const text = await getMarkdownTextForNumber({ number: number })
+					const body = stripFrontmatter(text)
+					const frontmatter = parseFrontmatter(text)
+					return {
+						documentCategory: frontmatter.type.trim() || undefined,
+						documentTitle: frontmatter.title.trim() || undefined,
+						documentStatus: frontmatter.status.trim() || undefined,
+						documentBody: body.length > 0 ? body : undefined,
+					}
+				},
+			},
 		})({
-				fields: {
-			documentCategory: (snapshot) => snapshot.documentCategory,
-			documentTitle: (snapshot) => snapshot.documentTitle,
-			documentStatus: (snapshot) => snapshot.documentStatus,
-			documentBody: (snapshot) => snapshot.documentBody,
-		},
-			}),
+			fields: {
+				documentCategory: (snapshot) => snapshot.documentCategory,
+				documentTitle: (snapshot) => snapshot.documentTitle,
+				documentStatus: (snapshot) => snapshot.documentStatus,
+				documentBody: (snapshot) => snapshot.documentBody,
+			},
+		}),
 
 		defineResolver(Source.Caips_Github, {
 			entityType: EntityType._Global,
 			resolve: {
 				[_GlobalSelector.Scope]: async () => {
-				const { getContents } = await import('$/sources/Caips/Github/queries.ts')
-				return githubCaipProposalIndexRows(await getContents())
-			}
-			}
+					const { getContents } = await import('$/sources/Caips/Github/queries.ts')
+					return githubCaipProposalIndexRows(await getContents())
+				},
+			},
 		})({
-				fields: {
-			$$proposals: (snapshot) => snapshot,
-		},
-			}),
+			fields: {
+				$$proposals: (snapshot) => snapshot,
+			},
+		}),
 	],
 }

@@ -1,134 +1,293 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
+	import { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { UrlString } from '$/schema/UrlString.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// State
-	const view = {
-	closed: [
-		'scope',
-		'$$timestamps',
-		'$$sourceWindowActors',
-	],
-	content: {
-		dl: [
-			[
-				'scope',
-				'$$timestamps',
-			],
-			[
-				'$$sourceWindowActors',
-				'$$sourceWindowPosts',
-				'$$sourceWindowRepoCommits',
-			],
-		],
-	},
-	details: {
-		tabs: [
-			{
-				label: 'Source-window rows',
-				items: [
-					'$$sourceWindowActors',
-					'$$sourceWindowPosts',
-					'$$sourceWindowRepoCommits',
-				],
-			},
-			{
-				label: 'Hub observations',
-				items: [
-					'$$timestamps',
-				],
-			},
-			{
-				label: 'Source evidence',
-				items: [
-					{
-						label: 'SourceBinding.Atproto_BskySocial_Xrpc',
-					},
-					{
-						label: 'SourceBinding.Atproto_Xrpc',
-					},
-					{
-						label: 'SourceBinding.AtprotoSync_Xrpc',
-					},
-					{
-						label: 'SourceBinding.Constants_Internal',
-					},
-				],
-			},
-		],
-	},
-	lists: [
-		{
-			id: 'source-window-actors',
-			label: 'source window actors',
-			field: '$$sourceWindowActors',
-			limit: 24,
-			item: 'summary',
-			collapsible: true,
-			emptyText: 'No rows',
-		},
-		{
-			id: 'source-window-posts',
-			label: 'source window posts',
-			field: '$$sourceWindowPosts',
-			limit: 24,
-			item: 'summary',
-			collapsible: true,
-			emptyText: 'No rows',
-		},
-		{
-			id: 'source-window-repo-commits',
-			label: 'source window repo commits',
-			field: '$$sourceWindowRepoCommits',
-			limit: 24,
-			item: 'summary',
-			collapsible: true,
-			emptyText: 'No rows',
-		},
-		{
-			id: 'timestamps',
-			label: 'timestamps',
-			field: '$$timestamps',
-			limit: 24,
-			item: 'summary',
-			collapsible: true,
-			emptyText: 'No rows',
-		},
-	],
-} satisfies ComponentProps<typeof EntityView2>['view']
-
 	let {
 		selection,
-		open = $bindable(true),
+		prefetched = {},
+		title,
+		href,
+		layout = EntityLayout.SummaryDetails,
+		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType._GlobalAtprotoNetwork>
+			prefetched?: Partial<EntityProxyData<typeof schema, EntityType._GlobalAtprotoNetwork>>
+			title?: string
+			href?: string
+			layout?: EntityLayout
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView2>,
-			| 'layout'
+			ComponentProps<typeof EntityView>,
+			| 'collapsible'
 			| 'showTypeAnnotation'
 		>
 	> = $props()
 
-
+	const globalAtprotoNetwork = $derived(selection({
+		sources: [
+			Source.Constants_Internal,
+		],
+		fields: {
+			protocolName: true,
+			topology: true,
+			homeUrl: true,
+			docsUrl: true,
+			...(open && {
+				$$sourceWindowActors: true,
+				$$sourceWindowPosts: true,
+			}),
+		},
+	}))
+	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).protocolName) ?? '')].filter(Boolean).join(' ') || [String(('AT Protocol') ?? '')].filter(Boolean).join(' ') || 'AT Protocol')
+	const viewDomId = $derived('-global-atproto-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView2 from '$/components/EntityView2.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
+	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import AtprotoActorsView from '$/views/AtprotoActorsView.svelte'
+	import AtprotoPostsView from '$/views/AtprotoPostsView.svelte'
 </script>
 
 
-<EntityView2
-	{selection}
+<EntityView
 	entityType={EntityType._GlobalAtprotoNetwork}
 	entitySelector={selection.entitySelector}
+	id={viewDomId}
+	title={title ?? titleFallback}
+	{href}
+	{layout}
 	bind:open
 	{...EntityViewProps}
-	{view}
-/>
+>
+	{#snippet Title()}
+		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
+			{[String((({ ...selection.entitySelector, ...prefetched }).protocolName) ?? '')].filter(Boolean).join(' ') || title || [String(('AT Protocol') ?? '')].filter(Boolean).join(' ') || 'AT Protocol'}
+		{:else}
+			<ResourceBoundary resource={globalAtprotoNetwork}>
+				{#snippet Pending()}
+					{[String((({ ...selection.entitySelector, ...prefetched }).protocolName) ?? '')].filter(Boolean).join(' ') || title || [String(('AT Protocol') ?? '')].filter(Boolean).join(' ') || 'AT Protocol'}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{[String((entity.protocolName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			AT Protocol is a DID-based social protocol. This hub shows bounded actor and post windows from configured Bluesky-compatible appview sources, not a claim about every repository on the network.
+		</p>
+	{/snippet}
+
+	{#snippet Content({ open: contentOpen })}
+		<dl data-column-item="center">
+			{#if contentOpen}
+				<ResourceBoundary resource={globalAtprotoNetwork}>
+					{#snippet Pending()}
+						{@const topology = prefetched.topology ?? selection.entitySelector.topology}
+						{#if topology !== undefined && topology !== null}
+							<div>
+								<dt>Topology</dt>
+								<dd>
+									{String((topology) ?? '')}
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+
+					{#snippet children(entity)}
+						{@const topology = entity.topology ?? selection.entitySelector.topology ?? prefetched.topology}
+						{#if topology !== undefined && topology !== null}
+							<div>
+								<dt>Topology</dt>
+								<dd>
+									{String((topology) ?? '')}
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
+
+			{#if contentOpen}
+				<div>
+					<dt>Home</dt>
+					<dd>
+						<ResourceBoundary resource={globalAtprotoNetwork}>
+							{#snippet Pending()}
+								{@const homeUrl = prefetched.homeUrl ?? selection.entitySelector.homeUrl}
+								{#if homeUrl !== undefined && homeUrl !== null}
+									<svelte:element
+										this={'a'}
+										href={String(homeUrl)}
+										target="_blank"
+										rel="noreferrer noopener"
+									>
+										<TruncatedValue value={String(homeUrl)} />
+									</svelte:element>
+								{/if}
+							{/snippet}
+
+							{#snippet children(entity)}
+								{@const homeUrl = entity.homeUrl ?? selection.entitySelector.homeUrl ?? prefetched.homeUrl}
+								{#if homeUrl !== undefined && homeUrl !== null}
+									<svelte:element
+										this={'a'}
+										href={String(homeUrl)}
+										target="_blank"
+										rel="noreferrer noopener"
+									>
+										<TruncatedValue value={String(homeUrl)} />
+									</svelte:element>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+
+			{#if contentOpen}
+				<ResourceBoundary resource={globalAtprotoNetwork}>
+					{#snippet Pending()}
+						{@const docsUrl = prefetched.docsUrl ?? selection.entitySelector.docsUrl}
+						{#if docsUrl !== undefined && docsUrl !== null}
+							<div>
+								<dt>Documentation</dt>
+								<dd>
+									<svelte:element
+										this={'a'}
+										href={String(docsUrl)}
+										target="_blank"
+										rel="noreferrer noopener"
+									>
+										<TruncatedValue value={String(docsUrl)} />
+									</svelte:element>
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+
+					{#snippet children(entity)}
+						{@const docsUrl = entity.docsUrl ?? selection.entitySelector.docsUrl ?? prefetched.docsUrl}
+						{#if docsUrl !== undefined && docsUrl !== null}
+							<div>
+								<dt>Documentation</dt>
+								<dd>
+									<svelte:element
+										this={'a'}
+										href={String(docsUrl)}
+										target="_blank"
+										rel="noreferrer noopener"
+									>
+										<TruncatedValue value={String(docsUrl)} />
+									</svelte:element>
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
+		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<AtprotoActorsView
+				selection={selection[EntityProxyField]<EntityType.AtprotoActor>('$$sourceWindowActors')}
+				title='Accounts'
+				href={resolve('/(social)/(atproto)/atproto/actors')}
+				id='AtprotoActorsView-$$sourceWindowActors'
+			/>
+
+			<AtprotoPostsView
+				selection={selection[EntityProxyField]<EntityType.AtprotoPost>('$$sourceWindowPosts')}
+				title='Recent posts'
+				href={resolve('/(social)/(atproto)/atproto/posts')}
+				id='AtprotoPostsView-$$sourceWindowPosts'
+			/>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-directory'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'accounts',
+							label: 'Accounts',
+						},
+						{
+							id: 'recent-posts',
+							label: 'Recent posts',
+						},
+					]
+				}
+				data-card
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Directory and examples</HeadingComponent>
+						<Tooltip contentProps={{ side: 'top' }}>
+							{#snippet Content()}
+								<p>
+									Bounded source windows and example routes from configured AT Protocol appviews.
+								</p>
+							{/snippet}
+
+							<abbr
+								class="entity-heading-tip"
+								aria-label='Directory and examples help'
+							>ⓘ</abbr>
+						</Tooltip>
+					</header>
+				{/snippet}
+
+				{#snippet SectionAccounts({ id, label, open })}
+					<AtprotoActorsView
+						selection={selection[EntityProxyField]<EntityType.AtprotoActor>('$$sourceWindowActors')}
+						href={resolve('/(social)/(atproto)/atproto/actors')}
+						CollapsibleProps={{ canToggle: false }}
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionRecentPosts({ id, label, open })}
+					<AtprotoPostsView
+						selection={selection[EntityProxyField]<EntityType.AtprotoPost>('$$sourceWindowPosts')}
+						href={resolve('/(social)/(atproto)/atproto/posts')}
+						CollapsibleProps={{ canToggle: false }}
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
+	{/snippet}
+</EntityView>

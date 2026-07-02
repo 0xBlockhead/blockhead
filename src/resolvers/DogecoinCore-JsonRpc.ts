@@ -4,6 +4,7 @@ import {
 import {
 	bitcoinNetworkBySlug,
 } from '$/constants/BitcoinNetwork.ts'
+import { networkBySlug } from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
@@ -15,11 +16,15 @@ import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
 const assertDogecoinMainnet = (network: { caip2: {
 	namespace: string
 	reference: string
-} } | { networkSlug: string } | { slug: string }) => {
+} } | { slug: string }) => {
 	if (
-		!('caip2' in network)
-		|| network.caip2.namespace !== bitcoinNetworkBySlug.dogecoin.caip2.namespace
-		|| network.caip2.reference !== bitcoinNetworkBySlug.dogecoin.caip2.reference
+		'caip2' in network ?
+			(
+				network.caip2.namespace !== bitcoinNetworkBySlug.dogecoin.caip2.namespace
+				|| network.caip2.reference !== bitcoinNetworkBySlug.dogecoin.caip2.reference
+			)
+		:
+			network.slug !== networkBySlug.dogecoin.slug
 	) {
 		throw new Error('DogecoinCore_JsonRpc: unsupported Dogecoin network')
 	}

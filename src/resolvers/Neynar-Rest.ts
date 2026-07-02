@@ -306,13 +306,13 @@ export default {
 						mentions: cast.mentions,
 						mentionedProfileFids: mentionFids.length > 0 ? mentionFids : undefined,
 						mentionedChannelIds: mentionChIds.length > 0 ? mentionChIds : undefined,
-						$$embeds: (cast.embeds ?? []).map((embed, index) => {
+						$$embeds: (cast.embeds ?? []).map((embed, indexInCast) => {
 							const ogImages = embed.metadata?.html?.ogImage
 							const og0 = ogImages?.[0]?.url
 							return (({
 								[EntityMetaKey.Selector]: {
 									$cast: castId,
-									index,
+									indexInCast,
 								},
 								url: optionalNonemptyString(embed.url),
 								$embeddedCast: (
@@ -429,13 +429,13 @@ export default {
 						mentions: cast.mentions,
 						mentionedProfileFids: mentionFids.length > 0 ? mentionFids : undefined,
 						mentionedChannelIds: mentionChIds.length > 0 ? mentionChIds : undefined,
-						$$embeds: (cast.embeds ?? []).map((embed, index) => {
+						$$embeds: (cast.embeds ?? []).map((embed, indexInCast) => {
 							const ogImages = embed.metadata?.html?.ogImage
 							const og0 = ogImages?.[0]?.url
 							return (({
 								[EntityMetaKey.Selector]: {
 									$cast: castId,
-									index,
+									indexInCast,
 								},
 								url: optionalNonemptyString(embed.url),
 								$embeddedCast: (

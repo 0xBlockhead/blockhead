@@ -1,62 +1,60 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum PolkadotEventSelector {
-	PolkadotBlockEventIndex = 'polkadotBlockEventIndex',
-	BlockEventIndex = '$block+eventIndex',
+	BlockIndexInBlock = 'BlockIndexInBlock',
 }
 export default {
 	entityType: EntityType.PolkadotEvent,
-	label: 'polkadot event',
-	labelPlural: 'polkadot events',
+	label: 'Polkadot event',
+	labelPlural: 'Polkadot events',
 	selectors: [
 		{
-			name: PolkadotEventSelector.PolkadotBlockEventIndex,
+			name: PolkadotEventSelector.BlockIndexInBlock,
 			fields: [
 				'$block',
-				'eventIndex',
+				'indexInBlock',
 			],
 		},
 	],
 	fields: [
 		{
-			name: '$block',
-			label: 'block',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.PolkadotBlock,
-			cardinality: EntityFieldCardinality.One,
+				name: '$block',
+				label: 'Block',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.PolkadotBlock,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'eventIndex',
-			label: 'event index',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'indexInBlock',
+				label: 'Index in block',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$extrinsic',
-			label: 'extrinsic',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.PolkadotExtrinsic,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$extrinsic',
+				label: 'Extrinsic',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.PolkadotExtrinsic,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$pallet',
-			label: 'pallet',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.PolkadotPallet,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$pallet',
+				label: 'Pallet',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.PolkadotPallet,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'eventName',
-			label: 'event name',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'eventName',
+				label: 'Event name',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 	],
 } as const satisfies EntityDefinition

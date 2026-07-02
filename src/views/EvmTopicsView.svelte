@@ -1,12 +1,16 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { resolve } from '$app/paths'
+	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
 	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -14,53 +18,123 @@
 
 
 	// State
-	const listView = {
-		entityType: EntityType.EvmTopic,
-		item: 'summary',
-		orientation: 'column',
-	} as const
-
 	let {
 		selection,
-		title,
+		title = 'EVM topics',
+		typeAnnotationParagraphs = [],
+		placeholderText = 'Loading EVM topics...',
+		emptyText = undefined,
 		open = $bindable(true),
-		id = 'EvmTopics',
-		href = '',
+		collapsible = true,
+		showTypeAnnotation = true,
+		id = 'EvmTopics-list',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EvmTopic>
 			title?: string
+			typeAnnotationParagraphs?: string[]
+			placeholderText?: string
+			emptyText?: string
 			open?: boolean
+			collapsible?: boolean
+			showTypeAnnotation?: boolean
 			id?: string
-			href?: string
 		},
-		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
+		Pick<
+			ComponentProps<typeof EntitiesList>,
+			| 'href'
+			| 'CollapsibleProps'
+		>
 	> = $props()
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmTopicView from '$/views/EvmTopicView.svelte'
 </script>
 
 
-<EntitiesList
-	entityType={listView.entityType}
-	{title}
-	bind:open
-	{id}
-	href={href}
-	resource={selection}
-	getKey={(entity) => stringify(entity.entitySelector)}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
-	{...EntitiesListProps}
->
-	{#snippet Item({ item })}
-		<EvmTopicView
-			selection={select(EntityType.EvmTopic, item.entitySelector)}
-			layout={EntityLayout.Summary}
-		/>
-	{/snippet}
-</EntitiesList>
+{#snippet TypeAnnotationParagraphs()}
+	{#each typeAnnotationParagraphs as paragraph (paragraph)}
+		<p>{paragraph}</p>
+	{/each}
+{/snippet}
+
+{#if open}
+	<ResourceBoundary
+		resource={
+			selection.sources == null ? selection({
+				sources: [
+					Source.Openchain_Rest,
+				],
+			}) : selection
+		}
+		{placeholderText}
+	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.EvmTopic}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+			/>
+		{/snippet}
+
+		{#snippet children(evmTopics)}
+			{@const uniqueEvmTopics = [...new Map(evmTopics.values.map((evmTopic) => [evmTopic[EntityMetaKey.SelectorKey], evmTopic])).values()]}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.EvmTopic}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				totalCount={evmTopics.values.length === uniqueEvmTopics.length && evmTopics.totalCount != null && evmTopics.totalCount >= uniqueEvmTopics.length ? evmTopics.totalCount : uniqueEvmTopics.length}
+				getKey={(evmTopic) => evmTopic[EntityMetaKey.SelectorKey]}
+				items={uniqueEvmTopics}
+			>
+				{#snippet Empty()}
+					{#if emptyText != null}
+						<p data-text="muted">{emptyText}</p>
+					{:else}
+						<p data-text="muted">No EVM topics yet.</p>
+					{/if}
+				{/snippet}
+
+				{#snippet Item({ item: evmTopic }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmTopic> })}
+					<EvmTopicView
+						href={
+							resolve('/(explore)/(evm)/evm/(topics)/topic/[hex]', {
+								hex: String(({ ...evmTopic.entitySelector, ...evmTopic }).hex),
+							})
+						}
+						selection={select(EntityType.EvmTopic, evmTopic.entitySelector)}
+						prefetched={evmTopic}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/snippet}
+	</ResourceBoundary>
+{:else}
+	<EntitiesList
+		{...EntitiesListProps}
+		entityType={EntityType.EvmTopic}
+		{id}
+		{title}
+		bind:open
+		{collapsible}
+		{showTypeAnnotation}
+		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	/>
+{/if}

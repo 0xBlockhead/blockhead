@@ -1,94 +1,84 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EvmInternalCallType } from '$/constants/Evm.ts'
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+import { type } from 'arktype'
+
 export enum EvmInternalTransferSelector {
-	EvmNetworkTxHashInternalIndex = 'evmNetworkTxHashInternalIndex',
-	NetworkTxHashInternalIndex = '$network+txHash+internalIndex',
+	TransactionIndexInTransaction = 'TransactionIndexInTransaction',
 }
 export default {
 	entityType: EntityType.EvmInternalTransfer,
 	label: 'EVM internal transfer',
 	labelPlural: 'EVM internal transfers',
+	description: 'Native currency moved inside EVM transaction execution.',
 	selectors: [
 		{
-			name: EvmInternalTransferSelector.EvmNetworkTxHashInternalIndex,
+			name: EvmInternalTransferSelector.TransactionIndexInTransaction,
 			fields: [
-				'$network',
-				'txHash',
-				'internalIndex',
+				'$transaction',
+				'indexInTransaction',
 			],
 		},
 	],
 	fields: [
 		{
-			name: '$network',
-			label: 'network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmNetwork,
-			cardinality: EntityFieldCardinality.One,
+				name: '$transaction',
+				label: 'Transaction',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.EvmTransaction,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'txHash',
-			label: 'Transaction hash',
-			description: 'The transaction hash in its network.',
-			type: EntityFieldType.Primitive,
-			primitiveType: ZeroExHex,
-			cardinality: EntityFieldCardinality.One,
+				name: 'indexInTransaction',
+				label: 'Index in transaction',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'internalIndex',
-			label: 'internal index',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.One,
+				name: '$from',
+				label: 'From',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.EvmAccount,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$from',
-			label: 'from',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmAccount,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$to',
+				label: 'To',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.EvmAccount,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$to',
-			label: 'to',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmAccount,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'value',
+				label: 'Value',
+				description: 'Native currency moved by the internal call.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'value',
-			label: 'Value',
-			description: 'The source-domain value.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("bigint"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'callType',
+				label: 'Call type',
+				type: EntityFieldType.Primitive,
+				primitiveType: type.enumerated(...Object.values(EvmInternalCallType)),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'callType',
-			label: 'call type',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'success',
+				label: 'Success',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('boolean'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'success',
-			label: 'success',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("boolean"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$createdContract',
-			label: 'created contract',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmContract,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$createdContract',
+				label: 'Created contract',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.EvmContract,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 	],
 } as const satisfies EntityDefinition

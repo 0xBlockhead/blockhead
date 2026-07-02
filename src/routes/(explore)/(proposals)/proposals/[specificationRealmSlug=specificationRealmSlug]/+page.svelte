@@ -1,22 +1,21 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
-	import { EntityType } from '$/schema/EntityType.ts'
-	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
-	import { specificationRealmBySlug } from '$/constants/SpecificationProposal.ts'
+	import type { PageProps } from './$types.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+
+
+	// Context
+	import { resolve } from '$app/paths'
+	import { select } from '$/routes/+layout.svelte'
+
 
 	// State
 	let {
+		data,
 		params,
-	} = $props()
-
-	const selector = $derived(
-		params.specificationRealmSlug in specificationRealmBySlug ?
-			{
-				realm: specificationRealmBySlug[params.specificationRealmSlug]!.id,
-			}
-		:
-			undefined,
-	)
+	}: PageProps = $props()
 
 
 	// Components
@@ -25,15 +24,24 @@
 </script>
 
 
+<svelte:head>
+	<title>Specification realm • Blockhead</title>
+</svelte:head>
+
+
 <Page>
-	{#if selector !== undefined}
-		<SpecificationRealmView
-			selection={select(EntityType.SpecificationRealm, selector)}
-			open
-		/>
-	{:else}
-		<p role="alert">
-			Unknown specification realm.
-		</p>
-	{/if}
+	<SpecificationRealmView
+		href={
+			resolve('/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]', {
+				specificationRealmSlug: params.specificationRealmSlug,
+			})
+		}
+		selection={
+			select(EntityType.SpecificationRealm, data.selector, {
+				fields: {
+					label: true,
+				},
+			})
+		}
+	/>
 </Page>

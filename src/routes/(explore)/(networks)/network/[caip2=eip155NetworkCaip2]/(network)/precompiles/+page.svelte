@@ -1,18 +1,22 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
-	import { eip155NetworkSelectorFromCaip2 } from '$/lib/caip2.ts'
 	// Types/constants
+	import type { PageProps } from './$types.ts'
+	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
+	import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
 
 
 	// Context
+	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		params,
-	} = $props()
+	}: PageProps = $props()
 
 
 	// Components
@@ -21,17 +25,24 @@
 </script>
 
 
+<svelte:head>
+	<title>Precompiles • Blockhead</title>
+</svelte:head>
+
+
 <Page>
 	<EvmPrecompilesView
-		selection={select(
-			EntityType.EvmNetwork,
-			eip155NetworkSelectorFromCaip2(params.caip2)
-		).$$precompiles({
-			sources: [
-				Source.Constants_Internal,
-			],
-			limit: 64,
-		})}
-		id="precompiles"
+		href={
+			resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/precompiles', {
+				caip2: params.caip2,
+			})
+		}
+		title='Precompiles'
+		selection={
+			select(EntityType.EvmNetwork, {
+				caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+			})[EntityProxyField]<EntityType.EvmContract>('$$precompiles')
+		}
+		id='EvmPrecompilesView-page'
 	/>
 </Page>

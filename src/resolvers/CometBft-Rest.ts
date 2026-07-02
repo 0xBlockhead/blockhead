@@ -32,7 +32,7 @@ export default {
 		defineResolver(Source.CometBft_Rest, {
 			entityType: EntityType.CosmosBlock,
 			resolve: {
-				[CosmosBlockSelector.Height]: async ({ $network, height }) => {
+				[CosmosBlockSelector.NetworkHeight]: async ({ $network, height }) => {
 					assertCosmosHub($network)
 
 					const { getBlock } = await import('$/sources/CometBft/Rest/queries.ts')

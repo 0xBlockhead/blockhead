@@ -1,17 +1,19 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { UrlString } from '$/schema/UrlString.ts'
+import { Source } from '$/sources/Source.ts'
+import { type } from 'arktype'
+
 export enum _GlobalNostrNetworkSelector {
-	Scope = 'scope',
+	Scope = 'Scope',
 }
 export default {
 	entityType: EntityType._GlobalNostrNetwork,
-	label: 'global Nostr network',
-	labelPlural: 'global Nostr networks',
+	label: 'Nostr',
+	labelPlural: 'Nostr',
+	description: 'Nostr is a relay-based social protocol for signed events. Profiles, notes, reposts, and articles are event kinds; relays are transport endpoints and are not global proof that an event exists everywhere.',
 	selectors: [
 		{
 			name: _GlobalNostrNetworkSelector.Scope,
@@ -22,54 +24,128 @@ export default {
 	],
 	fields: [
 		{
-			name: 'scope',
-			label: 'Scope',
-			description: 'The fixed scope value that identifies this hub row.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("'_GlobalNostrNetwork'"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'scope',
+				label: 'Scope',
+				description: 'The fixed scope value that identifies this global hub row.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type.unit('_GlobalNostrNetwork'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$$sourceWindowProfiles',
-			label: 'source window profiles',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.NostrProfile,
-			cardinality: EntityFieldCardinality.Many,
+				name: 'protocolName',
+				label: 'Protocol',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 		},
 		{
-			name: '$$sourceWindowNotes',
-			label: 'source window notes',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.NostrNote,
-			cardinality: EntityFieldCardinality.Many,
+				name: 'registryLabel',
+				label: 'Registry',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 		},
 		{
-			name: '$$sourceWindowRelays',
-			label: 'source window relays',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.NostrRelay,
-			cardinality: EntityFieldCardinality.Many,
+				name: 'homeUrl',
+				label: 'Home',
+				type: EntityFieldType.Primitive,
+				primitiveType: (UrlString),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 		},
 		{
-			name: '$$sourceWindowReposts',
-			label: 'source window reposts',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.NostrRepost,
-			cardinality: EntityFieldCardinality.Many,
+				name: 'docsUrl',
+				label: 'Docs',
+				type: EntityFieldType.Primitive,
+				primitiveType: (UrlString),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 		},
 		{
-			name: '$$sourceWindowArticles',
-			label: 'source window articles',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.NostrArticle,
-			cardinality: EntityFieldCardinality.Many,
+				name: 'topology',
+				label: 'Topology',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 		},
 		{
-			name: '$$timestamps',
-			label: 'timestamps',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType._GlobalNostrNetwork_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$sourceWindowProfiles',
+				label: 'Profiles',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.NostrProfile,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Constants_Internal,
+					Source.NostrBand_Rest,
+				],
+		},
+		{
+				name: '$$sourceWindowNotes',
+				label: 'Notes',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.NostrNote,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Constants_Internal,
+					Source.NostrBand_Rest,
+				],
+		},
+		{
+				name: '$$sourceWindowRelays',
+				label: 'Relays',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.NostrRelay,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Constants_Internal,
+					Source.NostrBand_Rest,
+				],
+		},
+		{
+				name: '$$sourceWindowReposts',
+				label: 'Reposts',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.NostrRepost,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Constants_Internal,
+					Source.NostrBand_Rest,
+				],
+		},
+		{
+				name: '$$sourceWindowReactions',
+				label: 'Reactions',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.NostrReaction,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Constants_Internal,
+					Source.NostrBand_Rest,
+				],
+		},
+		{
+				name: '$$sourceWindowArticles',
+				label: 'Articles',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.NostrArticle,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Constants_Internal,
+					Source.NostrBand_Rest,
+				],
 		},
 	],
 } as const satisfies EntityDefinition

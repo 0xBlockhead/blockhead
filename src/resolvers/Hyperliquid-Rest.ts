@@ -1,5 +1,4 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
-import { stringify } from 'devalue'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -23,7 +22,7 @@ import { HyperliquidValidator_TimestampSelector } from '$/schema/HyperliquidVali
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const assertHyperliquidMainnet = (network: NetworkId) => {
-	if (stringify(network) !== stringify({ slug: networkBySlug.hyperliquid.slug }))
+	if (!('slug' in network) || network.slug !== networkBySlug.hyperliquid.slug)
 		throw new Error('Hyperliquid_Rest: unsupported network')
 }
 

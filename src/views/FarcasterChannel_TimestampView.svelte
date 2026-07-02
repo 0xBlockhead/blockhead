@@ -1,93 +1,185 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/Source.ts'
+
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
-	const view = {
-	closed: [
-		'$channel',
-		'timestampMs',
-		'followerCount',
-	],
-	content: {
-		dl: [
-			[
-				'$channel',
-				'timestampMs',
-				'followerCount',
-				'memberCount',
-			],
-		],
-	},
-	details: {
-		tabs: [
-			{
-				label: 'Channel',
-				items: [
-					{
-						label: 'parent Farcaster channel',
-					},
-				],
-			},
-			{
-				label: 'Membership',
-				items: [
-					'followerCount',
-					'memberCount',
-				],
-			},
-			{
-				label: 'History',
-				items: [
-					{
-						label: 'timestamped channel metric observations',
-					},
-				],
-			},
-			{
-				label: 'Source evidence',
-				items: [
-					{
-						label: 'Farcaster channel payload',
-					},
-				],
-			},
-		],
-	},
-} satisfies ComponentProps<typeof EntityView2>['view']
-
 	let {
 		selection,
-		open = $bindable(true),
+		prefetched = {},
+		title,
+		href,
+		layout = EntityLayout.SummaryDetails,
+		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.FarcasterChannel_Timestamp>
+			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.FarcasterChannel_Timestamp>>
+			title?: string
+			href?: string
+			layout?: EntityLayout
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView2>,
-			| 'layout'
+			ComponentProps<typeof EntityView>,
+			| 'collapsible'
 			| 'showTypeAnnotation'
 		>
 	> = $props()
 
-
+	const farcasterChannelTimestamp = $derived(selection({
+		sources: [
+			Source.Farcaster_Rest,
+			Source.Neynar_Rest,
+		],
+		fields: {
+			followerCount: true,
+			memberCount: true,
+		},
+	}))
+	const titleFallback = $derived('Farcaster channel observation')
+	const viewDomId = $derived('farcaster-channel-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView2 from '$/components/EntityView2.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import NumberValue from '$/components/NumberValue.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
+	import FarcasterChannelView from '$/views/FarcasterChannelView.svelte'
 </script>
 
 
-<EntityView2
-	{selection}
+<EntityView
 	entityType={EntityType.FarcasterChannel_Timestamp}
 	entitySelector={selection.entitySelector}
+	id={viewDomId}
+	title={title ?? titleFallback}
+	{href}
+	{layout}
 	bind:open
 	{...EntityViewProps}
-	{view}
-/>
+>
+	{#snippet Title()}
+		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
+			<FarcasterChannelView
+				selection={select(EntityType.FarcasterChannel, selection.entitySelector.$channel)}
+				layout={EntityLayout.Title}
+				open={false}
+			/>
+		{:else}
+			<ResourceBoundary resource={farcasterChannelTimestamp}>
+				{#snippet Pending()}
+					<FarcasterChannelView
+						selection={select(EntityType.FarcasterChannel, selection.entitySelector.$channel)}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+
+				{#snippet children(entity)}
+					<FarcasterChannelView
+						selection={select(EntityType.FarcasterChannel, selection.entitySelector.$channel)}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
+	{/snippet}
+
+	{#snippet Value()}
+		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
+			{@const timestampMs0 = ({ ...selection.entitySelector, ...prefetched }).timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
+		{:else}
+			<ResourceBoundary resource={farcasterChannelTimestamp}>
+				{#snippet Pending()}
+					{@const timestampMs0 = ({ ...selection.entitySelector, ...prefetched }).timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const timestampMs0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
+	{/snippet}
+
+	{#snippet Content({ open: contentOpen })}
+		<dl data-column-item="center">
+			<ResourceBoundary resource={farcasterChannelTimestamp}>
+				{#snippet Pending()}
+					{@const followerCount = prefetched.followerCount ?? selection.entitySelector.followerCount}
+					{#if followerCount !== undefined && followerCount !== null}
+						<div>
+							<dt>Followers</dt>
+							<dd>
+								<NumberValue value={Number(followerCount)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const followerCount = entity.followerCount ?? selection.entitySelector.followerCount ?? prefetched.followerCount}
+					{#if followerCount !== undefined && followerCount !== null}
+						<div>
+							<dt>Followers</dt>
+							<dd>
+								<NumberValue value={Number(followerCount)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary resource={farcasterChannelTimestamp}>
+				{#snippet Pending()}
+					{@const memberCount = prefetched.memberCount ?? selection.entitySelector.memberCount}
+					{#if memberCount !== undefined && memberCount !== null}
+						<div>
+							<dt>Members</dt>
+							<dd>
+								<NumberValue value={Number(memberCount)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const memberCount = entity.memberCount ?? selection.entitySelector.memberCount ?? prefetched.memberCount}
+					{#if memberCount !== undefined && memberCount !== null}
+						<div>
+							<dt>Members</dt>
+							<dd>
+								<NumberValue value={Number(memberCount)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+	{/snippet}
+</EntityView>

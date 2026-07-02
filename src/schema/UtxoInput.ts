@@ -1,13 +1,11 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum UtxoInputSelector {
-	UtxoTransactionInputIndex = 'utxoTransactionInputIndex',
-	TransactionInputIndex = '$transaction+inputIndex',
+	TransactionIndexInTransaction = 'TransactionIndexInTransaction',
 }
 export default {
 	entityType: EntityType.UtxoInput,
@@ -15,62 +13,62 @@ export default {
 	labelPlural: 'UTXO inputs',
 	selectors: [
 		{
-			name: UtxoInputSelector.UtxoTransactionInputIndex,
+			name: UtxoInputSelector.TransactionIndexInTransaction,
 			fields: [
 				'$transaction',
-				'inputIndex',
+				'indexInTransaction',
 			],
 		},
 	],
 	fields: [
 		{
-			name: '$transaction',
-			label: 'transaction',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.UtxoTransaction,
-			cardinality: EntityFieldCardinality.One,
+				name: '$transaction',
+				label: 'Transaction',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.UtxoTransaction,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'inputIndex',
-			label: 'input index',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'indexInTransaction',
+				label: 'Index in transaction',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$spentOutput',
-			label: 'spent output',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.UtxoOutput,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$spentOutput',
+				label: 'Spent output',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.UtxoOutput,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'coinbaseScript',
-			label: 'coinbase script',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'coinbaseScript',
+				label: 'Coinbase script',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'scriptSigAsm',
-			label: 'script sig asm',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'scriptSigAsm',
+				label: 'Script sig asm',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'sequence',
-			label: 'sequence',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'sequence',
+				label: 'Sequence',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'witness',
-			label: 'witness',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.Many,
+				name: 'witness',
+				label: 'Witness',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.Many,
 		},
 	],
 } as const satisfies EntityDefinition

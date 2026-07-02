@@ -470,6 +470,31 @@ export default {
 				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
 					const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
 					const chains = await fetchChainsJson()
+					const chainId = Number(caip2.reference)
+					if (chains.find((chain) => chain.chainId === chainId) == null)
+						throw new Error('EthereumLists_Rest: network not in chains.json for child layer list')
+
+					return chains.flatMap((chain) => {
+						const parentMatch = chain.parent?.chain == null ? null : /^eip155[:-](\d+)$/i.exec(chain.parent.chain.trim())
+						return parentMatch == null || Number(parentMatch[1]) !== chainId || chain.chainId === chainId ?
+							[]
+						:
+							[{ [EntityMetaKey.Selector]: evmNetworkIdFromChainId(chain.chainId) }]
+					})
+				}
+			},
+		})({
+			fields: {
+				$$childLayers: (childLayers) => childLayers,
+			},
+		}),
+
+		defineResolver(Source.EthereumLists_Rest, {
+			entityType: EntityType.EvmNetwork,
+			resolve: {
+				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
+					const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
+					const chains = await fetchChainsJson()
 					const chain = chains.find((listedChain) => listedChain.chainId === Number(caip2.reference))
 					if (chain == null)
 						throw new Error('EthereumLists_Rest: network not in chains.json for testnet list')

@@ -1,18 +1,15 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
+import { type } from 'arktype'
+
 export enum FarcasterFeedSelector {
-	Variant = 'variant',
-	ByUser = 'byUser',
-	VariantFid = 'variant+fid',
-	ByChannel = 'byChannel',
-	VariantChannelId = 'variant+channelId',
-	Following = 'following',
-	VariantViewerFid = 'variant+viewerFid',
+	Variant = 'Variant',
+	ByUser = 'ByUser',
+	ByChannel = 'ByChannel',
+	Following = 'Following',
 }
 export default {
 	entityType: EntityType.FarcasterFeed,
@@ -49,47 +46,51 @@ export default {
 	],
 	fields: [
 		{
-			name: 'variant',
-			label: 'variant',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'variant',
+				label: 'Variant',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'fid',
-			label: 'FID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'fid',
+				label: 'FID',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'channelId',
-			label: 'channel ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'channelId',
+				label: 'Channel ID',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'viewerFid',
-			label: 'viewer FID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'viewerFid',
+				label: 'Viewer FID',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'label',
-			label: 'Label',
-			description: 'A human-readable name for the subject.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'label',
+				label: 'Label',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$$entries',
-			label: 'entries',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.FarcasterCast,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$entries',
+				label: 'Entries',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.FarcasterCast,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Neynar_Rest,
+					Source.Farcaster_Rest,
+					Source.Snapchain_Rest,
+				],
 		},
 	],
 } as const satisfies EntityDefinition

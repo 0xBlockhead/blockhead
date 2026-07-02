@@ -1,91 +1,119 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import BlockheadWalletConnectionsView from '$/views/BlockheadWalletConnectionsView.svelte'
+	import BlockheadBridgeTransactionsView from '$/views/BlockheadBridgeTransactionsView.svelte'
+	import EvmNetworkActorCoinBalancesView from '$/views/EvmNetworkActorCoinBalancesView.svelte'
+	import EvmAccountsView from '$/views/EvmAccountsView.svelte'
+	import LiquidityPositionsView from '$/views/LiquidityPositionsView.svelte'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
-
-
-	const hubKey = 'accounts'
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// Components
-	import EvmNetworkActorCoinBalancesView from '$/views/EvmNetworkActorCoinBalancesView.svelte'
-	import EvmAccountsView from '$/views/EvmAccountsView.svelte'
-	import BlockheadWalletConnectionsView from '$/views/BlockheadWalletConnectionsView.svelte'
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import Page from '$/components/Page.svelte'
-	import GlobalView from '$/views/GlobalView.svelte'
 </script>
 
 
+<svelte:head>
+	<title>Accounts • Blockhead</title>
+</svelte:head>
+
+
 <Page>
-	<GlobalView
-		selection={select(EntityType._Global, { scope: 'Accounts' })}
-		title="Accounts"
-		href={resolve('/~/accounts')}
+	<CollapsibleTabs
+		id='accounts:hub'
+		sectionIdPrefix='accounts'
+		sections={[
+			{ id: 'connections', label: 'Connections' },
+			{ id: 'watched-accounts', label: 'Watched accounts' },
+			{ id: 'balances', label: 'Balances' },
+			{ id: 'allowances', label: 'Allowances' },
+			{ id: 'positions', label: 'Positions' },
+			{ id: 'transactions', label: 'Transactions' },
+		]}
+		data-card
+		scrollContainerProps={{
+			'data-row': 'start align-start',
+			style: '--carousel-basis: 40ch',
+		}}
 	>
-		{#snippet children({ open: hubOpen,
-		})}
-			<CollapsibleTabs
-				id={`${hubKey}:hub`}
-				sectionIdPrefix={hubKey}
-				sections={[
-					{ id: 'connections', label: 'Connections' },
-					{ id: 'watched-accounts', label: 'Watched accounts' },
-					{ id: 'balances', label: 'Balances' },
-				]}
-				data-card
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-					style: '--carousel-basis: 40ch',
-				}}
+		{#snippet Summary({ open: _open })}
+			<header
+				data-row-item='flexible'
+				data-row='wrap gap-4'
 			>
-				{#snippet Summary({ open: _summaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Accounts
-						</HeadingComponent>
-					</header>
-				{/snippet}
-
-				{#snippet SectionConnections({ id, label })}
-					<BlockheadWalletConnectionsView
-						id="wallet-connections"
-						open={hubOpen}
-					/>
-				{/snippet}
-
-				{#snippet SectionWatchedAccounts({ id, label })}
-					<EvmAccountsView
-						href={resolve('/~/accounts/watched-accounts')}
-						selection={select(
-			EntityType._Global,
-			{ scope: '$$actors' }
-		).$$actors}
-						id="accounts"
-						open={hubOpen}
-					/>
-				{/snippet}
-
-				{#snippet SectionBalances({ id, label })}
-					<EvmNetworkActorCoinBalancesView
-						href={resolve('/~/accounts/balances')}
-						selection={select(
-			EntityType._Global,
-			{ scope: '$$actorCoins' }
-		).$$actorCoins}
-						id="balances"
-						open={hubOpen}
-					/>
-				{/snippet}
-		</CollapsibleTabs>
+				<HeadingComponent>Accounts</HeadingComponent>
+			</header>
 		{/snippet}
-	</GlobalView>
+
+		{#snippet SectionConnections()}
+			<BlockheadWalletConnectionsView
+				href={resolve('/~/accounts/connections')}
+				selection={select(EntityType._Global, { scope: '$$blockheadWalletConnections' })[EntityProxyField]<EntityType.BlockheadWalletConnection>('$$blockheadWalletConnections')({
+					sources: [Source.Local_Internal],
+				})}
+				id='wallet-connections'
+				open={true}
+			/>
+		{/snippet}
+
+		{#snippet SectionWatchedAccounts()}
+			<EvmAccountsView
+				href={resolve('/~/accounts/watched-accounts')}
+				selection={select(EntityType._Global, { scope: '$$actors' })[EntityProxyField]<EntityType.EvmAccount>('$$actors')({
+					sources: [Source.Local_Internal],
+				})}
+				id='accounts'
+				open={true}
+			/>
+		{/snippet}
+
+		{#snippet SectionBalances()}
+			<EvmNetworkActorCoinBalancesView
+				href={resolve('/~/accounts/balances')}
+				selection={select(EntityType._Global, { scope: '$$actorCoins' })[EntityProxyField]<EntityType.EvmNetworkActorCoinBalance>('$$actorCoins')({
+					sources: [Source.Allium_Rest],
+				})}
+				id='balances'
+				open={true}
+			/>
+		{/snippet}
+
+		{#snippet SectionAllowances()}
+			<h2><a href={resolve('/~/accounts/allowances')}>Allowances</a></h2>
+			<p data-text='muted'>
+				Check ERC-20 allowances from known owner, token, and spender addresses.
+			</p>
+		{/snippet}
+
+		{#snippet SectionPositions()}
+			<LiquidityPositionsView
+				href={resolve('/~/accounts/positions')}
+				selection={select(EntityType._Global, { scope: '$$liquidityPositions' })[EntityProxyField]<EntityType.LiquidityPosition>('$$liquidityPositions')}
+				id='positions'
+				open={true}
+			/>
+		{/snippet}
+
+		{#snippet SectionTransactions()}
+			<BlockheadBridgeTransactionsView
+				href={resolve('/~/accounts/transactions')}
+				selection={select(EntityType._Global, { scope: '$$bridgeTransactions' })[EntityProxyField]<EntityType.BlockheadBridgeTransaction>('$$bridgeTransactions')({
+					sources: [Source.Local_Internal],
+				})}
+				id='transactions'
+				open={true}
+			/>
+		{/snippet}
+	</CollapsibleTabs>
 </Page>

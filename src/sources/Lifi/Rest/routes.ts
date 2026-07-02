@@ -4,7 +4,6 @@
  */
 
 import { BridgeRouteTag } from '$/schema/BridgeRoute.ts'
-import { stringify } from 'devalue'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
 import type { schema } from '$/schema/index.ts'
@@ -36,6 +35,19 @@ export type BridgeRouteResolverBundle = {
 }
 
 const bridgeRouteResolverBundleByQuoteId = new Map<string, Promise<BridgeRouteResolverBundle>>()
+
+const bridgeRouteQuoteIdKey = (quoteId: BridgeRouteQuoteId) => (
+	[
+		quoteId.fromChainId,
+		quoteId.toChainId,
+		quoteId.fromToken,
+		quoteId.toToken,
+		quoteId.fromAmount,
+		quoteId.fromAddress,
+		quoteId.slippage,
+		quoteId.toAddress,
+	].join('|')
+)
 
 const bridgeRouteQuoteIdToRequest = (
 	quoteId: BridgeRouteQuoteId
@@ -77,7 +89,7 @@ const parseLifiQuoteAmountBigInt = (
 ) => {
 	const raw = (value ?? fallback ?? '').trim()
 	if (!/^\d+$/.test(raw)) {
-		throw new Error(`Lifi_Rest: invalid ${label} amount ${JSON.stringify(raw)}`)
+		throw new Error(`Lifi_Rest: invalid ${label} amount '${raw}'`)
 	}
 	return BigInt(raw)
 }
@@ -151,7 +163,7 @@ const bridgeRouteBundleFromQuoteStep = (
 export const fetchBridgeRouteBundleForQuoteId = async (
 	quoteId: BridgeRouteQuoteId
 ): Promise<BridgeRouteResolverBundle> => {
-	const quoteIdKey = stringify(quoteId)
+	const quoteIdKey = bridgeRouteQuoteIdKey(quoteId)
 	const existingBundle = bridgeRouteResolverBundleByQuoteId.get(quoteIdKey)
 	if (existingBundle != null)
 		return existingBundle

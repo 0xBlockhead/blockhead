@@ -1,12 +1,15 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { resolve } from '$app/paths'
+	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
 	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -14,53 +17,125 @@
 
 
 	// State
-	const listView = {
-		entityType: EntityType.CosmosModule,
-		item: 'summary',
-		orientation: 'column',
-	} as const
-
 	let {
 		selection,
-		title,
+		title = 'Modules',
+		typeAnnotationParagraphs = [],
+		placeholderText = 'Loading Cosmos modules...',
+		emptyText = undefined,
 		open = $bindable(true),
-		id = 'CosmosModules',
-		href = '',
+		collapsible = true,
+		showTypeAnnotation = true,
+		id = 'CosmosModules-list',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			selection: EntityProxyEntitiesResource<typeof schema, EntityType.CosmosModule>
 			title?: string
+			typeAnnotationParagraphs?: string[]
+			placeholderText?: string
+			emptyText?: string
 			open?: boolean
+			collapsible?: boolean
+			showTypeAnnotation?: boolean
 			id?: string
-			href?: string
 		},
-		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
+		Pick<
+			ComponentProps<typeof EntitiesList>,
+			| 'href'
+			| 'CollapsibleProps'
+		>
 	> = $props()
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CosmosModuleView from '$/views/CosmosModuleView.svelte'
 </script>
 
 
-<EntitiesList
-	entityType={listView.entityType}
-	{title}
-	bind:open
-	{id}
-	href={href}
-	resource={selection}
-	getKey={(entity) => stringify(entity.entitySelector)}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
-	{...EntitiesListProps}
->
-	{#snippet Item({ item })}
-		<CosmosModuleView
-			selection={select(EntityType.CosmosModule, item.entitySelector)}
-			layout={EntityLayout.Summary}
-		/>
-	{/snippet}
-</EntitiesList>
+{#snippet TypeAnnotationParagraphs()}
+	{#each typeAnnotationParagraphs as paragraph (paragraph)}
+		<p>{paragraph}</p>
+	{/each}
+{/snippet}
+
+{#if open}
+	<ResourceBoundary
+		resource={
+			selection.sources == null ? selection({
+				fields: {
+					moduleName: true,
+					$network: true,
+				},
+			}) : selection
+		}
+		{placeholderText}
+	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.CosmosModule}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+			/>
+		{/snippet}
+
+		{#snippet children(cosmosModules)}
+			{@const uniqueCosmosModules = [...new Map(cosmosModules.values.map((cosmosModule) => [cosmosModule[EntityMetaKey.SelectorKey], cosmosModule])).values()]}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.CosmosModule}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				totalCount={cosmosModules.values.length === uniqueCosmosModules.length && cosmosModules.totalCount != null && cosmosModules.totalCount >= uniqueCosmosModules.length ? cosmosModules.totalCount : uniqueCosmosModules.length}
+				getKey={(cosmosModule) => cosmosModule[EntityMetaKey.SelectorKey]}
+				items={uniqueCosmosModules}
+			>
+				{#snippet Empty()}
+					{#if emptyText != null}
+						<p data-text="muted">{emptyText}</p>
+					{:else}
+						<p data-text="muted">No Cosmos modules yet.</p>
+					{/if}
+				{/snippet}
+
+				{#snippet Item({ item: cosmosModule }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CosmosModule> })}
+					<CosmosModuleView
+						href={
+							resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/module/[moduleName]', {
+								caip2: `${String(({ ...cosmosModule.entitySelector, ...cosmosModule }).$network.caip2.namespace)}:${String(({ ...cosmosModule.entitySelector, ...cosmosModule }).$network.caip2.reference)}`,
+								moduleName: String(({ ...cosmosModule.entitySelector, ...cosmosModule }).moduleName),
+							})
+						}
+						selection={select(EntityType.CosmosModule, cosmosModule.entitySelector)}
+						prefetched={cosmosModule}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/snippet}
+	</ResourceBoundary>
+{:else}
+	<EntitiesList
+		{...EntitiesListProps}
+		entityType={EntityType.CosmosModule}
+		{id}
+		{title}
+		bind:open
+		{collapsible}
+		{showTypeAnnotation}
+		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	/>
+{/if}

@@ -1,17 +1,16 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum SolanaProgramSelector {
-	NetworkProgramId = 'networkProgramId',
+	NetworkProgramId = 'NetworkProgramId',
 }
 export default {
 	entityType: EntityType.SolanaProgram,
 	label: 'solana program',
-	labelPlural: 'solana programs',
+	labelPlural: 'Solana programs',
 	selectors: [
 		{
 			name: SolanaProgramSelector.NetworkProgramId,
@@ -23,40 +22,40 @@ export default {
 	],
 	fields: [
 		{
-			name: '$network',
-			label: 'network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Network,
-			cardinality: EntityFieldCardinality.One,
+				name: '$network',
+				label: 'Network',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.Network,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'programId',
-			label: 'program ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'programId',
+				label: 'Program ID',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'name',
-			label: 'Name',
-			description: 'The human-readable name of the subject.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'name',
+				label: 'Name',
+				description: 'The human-readable name of the subject.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$programAccount',
-			label: 'program account',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.SolanaAccount,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$programAccount',
+				label: 'Program account',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.SolanaAccount,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$upgradeAuthority',
-			label: 'upgrade authority',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.SolanaAccount,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$upgradeAuthority',
+				label: 'Upgrade authority',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.SolanaAccount,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 	],
 } as const satisfies EntityDefinition

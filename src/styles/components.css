@@ -83,6 +83,11 @@ abbr.entity-heading-tip {
 		color: var(--color-fg-muted);
 	}
 
+	&[data-text~="long-text"] {
+		white-space: pre-wrap;
+		overflow-wrap: anywhere;
+	}
+
 	&[data-text~="align-end"] {
 		text-align: end;
 	}

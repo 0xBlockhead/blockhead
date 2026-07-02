@@ -1,20 +1,20 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-export enum YouTubePlaylistSelector {
-	PlaylistId = 'playlistId',
+import { Source } from '$/sources/Source.ts'
+import { type } from 'arktype'
+
+export enum YoutubePlaylistSelector {
+	PlaylistId = 'PlaylistId',
 }
 export default {
-	entityType: EntityType.YouTubePlaylist,
-	label: 'you tube playlist',
-	labelPlural: 'you tube playlists',
+	entityType: EntityType.YoutubePlaylist,
+	label: 'YouTube playlist',
+	labelPlural: 'YouTube playlists',
 	selectors: [
 		{
-			name: YouTubePlaylistSelector.PlaylistId,
+			name: YoutubePlaylistSelector.PlaylistId,
 			fields: [
 				'playlistId',
 			],
@@ -22,61 +22,69 @@ export default {
 	],
 	fields: [
 		{
-			name: 'playlistId',
-			label: 'playlist ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'playlistId',
+				label: 'Playlist ID',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'title',
-			label: 'title',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'title',
+				label: 'Title',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'description',
-			label: 'Description',
-			description: 'A human-readable description from the source domain.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'description',
+				label: 'Description',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'publishedAt',
-			label: 'published AT',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'publishedAt',
+				label: 'Published',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'publishedAtMs',
-			label: 'published AT ms',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'publishedAtMs',
+				label: 'Published',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$channel',
-			label: 'channel',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.YouTubeChannel,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$channel',
+				label: 'Channel',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.YoutubeChannel,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$$timestamps',
-			label: 'timestamps',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.YouTubePlaylist_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$timestamps',
+				label: 'Observations',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.YoutubePlaylist_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Youtube_Rest,
+					Source.Piped_Rest,
+				],
 		},
 		{
-			name: '$$videos',
-			label: 'videos',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.YouTubeVideo,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$videos',
+				label: 'Videos',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.YoutubeVideo,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Constants_Internal,
+					Source.Youtube_Rest,
+					Source.Piped_Rest,
+				],
 		},
 	],
 } as const satisfies EntityDefinition

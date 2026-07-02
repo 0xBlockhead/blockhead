@@ -1,5 +1,4 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
-import { stringify } from 'devalue'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -18,9 +17,9 @@ import { BittensorMetagraph_TimestampSelector } from '$/schema/BittensorMetagrap
 import { BittensorNeuronSelector } from '$/schema/BittensorNeuron.ts'
 
 const assertBittensorMainnet = (
-	network: EntitySelector<typeof schema, EntityType.Network>
+	network: EntitySelector<typeof schema, EntityType.Network> & { slug: string }
 ) => {
-	if (stringify(network) !== stringify({ slug: 'bittensor' })) {
+	if (network.slug !== 'bittensor') {
 		throw new Error('Bittensor_JsonRpc: unsupported network')
 	}
 }

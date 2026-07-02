@@ -19,7 +19,6 @@ import {
 	type CatalogCoinCurrencyMarket,
 	type CatalogCurrencyCurrencyMarket,
 } from '$/constants/MarketCatalog.ts'
-import { stringify } from 'devalue'
 import { mediaFromUrl } from '$/resolvers/media.ts'
 import {
 	EntityMetaKey,
@@ -51,6 +50,18 @@ const marketSelectorFromCatalogCoinCurrencyMarket = (catalogMarket: CatalogCoinC
 	},
 	marketKind: catalogMarket.marketKind,
 }) satisfies MarketIdLabelInput
+
+const catalogCoinCurrencyMarketMatchesMarket = (
+	catalogMarket: CatalogCoinCurrencyMarket,
+	market: EntitySelector<typeof schema, EntityType.Market>
+) => (
+	market.marketKind === catalogMarket.marketKind
+	&& market.$marketVenue.marketVenueId === catalogMarket.marketVenueId
+	&& market.$base.kind === MarketAssetKind.Coin
+	&& market.$base.$coin.coinId === catalogMarket.baseCoinId
+	&& market.$quote.kind === MarketAssetKind.Currency
+	&& market.$quote.$currency.iso4217 === catalogMarket.quoteIso4217
+)
 
 const marketSelectorFromCatalogCoinCoinMarket = (catalogMarket: CatalogCoinCoinMarket) => ({
 	$base: {
@@ -146,7 +157,7 @@ export default {
 						throw new Error('Coinpaprika_OpenApi: Market_Timestamp is spot-only')
 					if ($market.$base.kind !== MarketAssetKind.Coin)
 						throw new Error('Market source: market base must be catalog coin')
-					if (stringify(marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[$market.$base.$coin.coinId])) !== stringify($market))
+					if (!catalogCoinCurrencyMarketMatchesMarket(catalogCoinSpotUsdMarketByCoinId[$market.$base.$coin.coinId], $market))
 						throw new Error('Coinpaprika_OpenApi: Market_Timestamp is catalog coin USD market only')
 					const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
 					const { getTickerById } = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
@@ -197,7 +208,7 @@ export default {
 						throw new Error('Coinpaprika_OpenApi: OHLC is spot-only')
 					if ($market.$base.kind !== MarketAssetKind.Coin)
 						throw new Error('Market source: market base must be catalog coin')
-					if (stringify(marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[$market.$base.$coin.coinId])) !== stringify($market))
+					if (!catalogCoinCurrencyMarketMatchesMarket(catalogCoinSpotUsdMarketByCoinId[$market.$base.$coin.coinId], $market))
 						throw new Error('Coinpaprika_OpenApi: OHLC is catalog coin USD market only')
 					const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
 					const {
@@ -348,7 +359,7 @@ export default {
 			},
 		})({
 			fields: {
-				$$marketQuotes: (globalScope) => globalScope,
+				$$marketPrices: (globalScope) => globalScope,
 			},
 		}),
 
@@ -469,7 +480,7 @@ export default {
 						return []
 					if (entitySelector.$base.kind !== MarketAssetKind.Coin)
 						return []
-					if (stringify(marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[entitySelector.$base.$coin.coinId])) !== stringify(entitySelector))
+					if (!catalogCoinCurrencyMarketMatchesMarket(catalogCoinSpotUsdMarketByCoinId[entitySelector.$base.$coin.coinId], entitySelector))
 						return []
 					const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
 					const {
@@ -529,7 +540,7 @@ export default {
 						return []
 					if ($market.$base.kind !== MarketAssetKind.Coin)
 						return []
-					if (stringify(marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[$market.$base.$coin.coinId])) !== stringify($market))
+					if (!catalogCoinCurrencyMarketMatchesMarket(catalogCoinSpotUsdMarketByCoinId[$market.$base.$coin.coinId], $market))
 						return []
 					const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
 					const { getTickerById } = await import('$/sources/Coinpaprika/OpenApi/queries.ts')

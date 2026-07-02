@@ -1,12 +1,15 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { resolve } from '$app/paths'
+	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
 	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -14,53 +17,127 @@
 
 
 	// State
-	const listView = {
-		entityType: EntityType.EnsRecord_Timestamp,
-		item: 'summary',
-		orientation: 'column',
-	} as const
-
 	let {
 		selection,
-		title,
+		title = 'ENS record observations',
+		typeAnnotationParagraphs = [],
+		placeholderText = 'Loading ENS record observations...',
+		emptyText = undefined,
 		open = $bindable(true),
-		id = 'EnsRecord_Timestamps',
-		href = '',
+		collapsible = true,
+		showTypeAnnotation = true,
+		id = 'EnsRecord_Timestamps-list',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EnsRecord_Timestamp>
 			title?: string
+			typeAnnotationParagraphs?: string[]
+			placeholderText?: string
+			emptyText?: string
 			open?: boolean
+			collapsible?: boolean
+			showTypeAnnotation?: boolean
 			id?: string
-			href?: string
 		},
-		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
+		Pick<
+			ComponentProps<typeof EntitiesList>,
+			| 'href'
+			| 'CollapsibleProps'
+		>
 	> = $props()
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EnsRecord_TimestampView from '$/views/EnsRecord_TimestampView.svelte'
 </script>
 
 
-<EntitiesList
-	entityType={listView.entityType}
-	{title}
-	bind:open
-	{id}
-	href={href}
-	resource={selection}
-	getKey={(entity) => stringify(entity.entitySelector)}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
-	{...EntitiesListProps}
->
-	{#snippet Item({ item })}
-		<EnsRecord_TimestampView
-			selection={select(EntityType.EnsRecord_Timestamp, item.entitySelector)}
-			layout={EntityLayout.Summary}
-		/>
-	{/snippet}
-</EntitiesList>
+{#snippet TypeAnnotationParagraphs()}
+	{#each typeAnnotationParagraphs as paragraph (paragraph)}
+		<p>{paragraph}</p>
+	{/each}
+{/snippet}
+
+{#if open}
+	<ResourceBoundary
+		resource={
+			selection.sources == null ? selection({
+				fields: {
+					$record: true,
+					timestampMs: true,
+				},
+			}) : selection
+		}
+		{placeholderText}
+	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.EnsRecord_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+			/>
+		{/snippet}
+
+		{#snippet children(ensRecordTimestamps)}
+			{@const uniqueEnsRecordTimestamps = [...new Map(ensRecordTimestamps.values.map((ensRecordTimestamp) => [ensRecordTimestamp[EntityMetaKey.SelectorKey], ensRecordTimestamp])).values()]}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.EnsRecord_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				totalCount={ensRecordTimestamps.values.length === uniqueEnsRecordTimestamps.length && ensRecordTimestamps.totalCount != null && ensRecordTimestamps.totalCount >= uniqueEnsRecordTimestamps.length ? ensRecordTimestamps.totalCount : uniqueEnsRecordTimestamps.length}
+				getKey={(ensRecordTimestamp) => ensRecordTimestamp[EntityMetaKey.SelectorKey]}
+				items={uniqueEnsRecordTimestamps}
+			>
+				{#snippet Empty()}
+					{#if emptyText != null}
+						<p data-text="muted">{emptyText}</p>
+					{:else}
+						<p data-text="muted">No ENS record observations yet.</p>
+					{/if}
+				{/snippet}
+
+				{#snippet Item({ item: ensRecordTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EnsRecord_Timestamp> })}
+					<EnsRecord_TimestampView
+						href={
+							resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/record/[recordId]/observations/[timestampMs=nonNegativeInteger]/[source]', {
+								ensName: String(ensRecordTimestamp.entitySelector.$record.$name.name),
+								recordId: String(ensRecordTimestamp.entitySelector.$record.recordKey),
+								timestampMs: String(ensRecordTimestamp.entitySelector.timestampMs),
+								source: String(ensRecordTimestamp.entitySelector.source),
+							})
+						}
+						selection={select(EntityType.EnsRecord_Timestamp, ensRecordTimestamp.entitySelector)}
+						prefetched={ensRecordTimestamp}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/snippet}
+	</ResourceBoundary>
+{:else}
+	<EntitiesList
+		{...EntitiesListProps}
+		entityType={EntityType.EnsRecord_Timestamp}
+		{id}
+		{title}
+		bind:open
+		{collapsible}
+		{showTypeAnnotation}
+		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	/>
+{/if}

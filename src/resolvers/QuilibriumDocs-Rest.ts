@@ -35,7 +35,6 @@ export default {
 	source: Source.QuilibriumDocs_Rest,
 
 	resolvers: [
-
 		defineResolver(Source.QuilibriumDocs_Rest, {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
@@ -46,7 +45,7 @@ export default {
 					const document = (await quilibriumDocumentRows()).find((quilibriumDocument) => quilibriumDocument[EntityMetaKey.Selector].number === number)
 					if (document == null) throw new Error(`QuilibriumDocs_Rest: document not found ${number.toString()}`)
 					return document
-				}
+				},
 			},
 		})({
 			fields: {
@@ -57,18 +56,15 @@ export default {
 			},
 		}),
 
-
 		defineResolver(Source.QuilibriumDocs_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: quilibriumDocumentRows
+				[_GlobalSelector.Scope]: quilibriumDocumentRows,
 			},
 		})({
 			fields: {
 				$$proposals: (snapshot) => snapshot,
 			},
 		}),
-
-
 	],
 }

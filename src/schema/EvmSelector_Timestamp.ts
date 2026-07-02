@@ -1,16 +1,15 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum EvmSelector_TimestampSelector {
-	SelectorTimestampMsSource = '$selector+timestampMs+source',
+	SelectorTimestampMsSource = 'SelectorTimestampMsSource',
 }
 export default {
 	entityType: EntityType.EvmSelector_Timestamp,
-	label: 'EVM selector timestamp',
+	label: 'EVM selector observation',
 	labelPlural: 'EVM selector observations',
 	selectors: [
 		{
@@ -24,55 +23,55 @@ export default {
 	],
 	fields: [
 		{
-			name: '$selector',
-			label: 'selector',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmSelector,
-			cardinality: EntityFieldCardinality.One,
+				name: '$selector',
+				label: 'Selector',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.EvmSelector,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'timestampMs',
-			label: 'Timestamp',
-			description: 'The observation time in Unix milliseconds.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'timestampMs',
+				label: 'Timestamp',
+				description: 'The observation time in Unix milliseconds.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'source',
-			label: 'Source',
-			description: 'The source that produced this observation.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'source',
+				label: 'Source',
+				description: 'The source that produced this observation.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'signatures',
-			label: 'signatures',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.Many,
+				name: 'signatures',
+				label: 'Signatures',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: 'filteredSignatureCount',
-			label: 'filtered signature count',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'filteredSignatureCount',
+				label: 'Filtered signature count',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'verifiedCandidateCount',
-			label: 'verified candidate count',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'verifiedCandidateCount',
+				label: 'Verified candidate count',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'reachable',
-			label: 'reachable',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("boolean"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'reachable',
+				label: 'Reachable',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('boolean'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 	],
 } as const satisfies EntityDefinition

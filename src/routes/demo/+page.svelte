@@ -1,13 +1,31 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
+	// Types/constants
+	import { EntityType } from '$/schema/EntityType.ts'
+
+
 	// Context
 	import { resolve } from '$app/paths'
+	import { select } from '$/routes/+layout.svelte'
+
+
+	// Components
+	import Page from '$/components/Page.svelte'
 </script>
 
 
-<main data-column>
-	<section data-card>
-		<h1>Demo</h1>
+<svelte:head>
+	<title>Demo • Blockhead</title>
+</svelte:head>
 
-		<a href={resolve('/test/resource-boundary')}>Resource boundary test route</a>
-	</section>
-</main>
+
+<Page>
+	<main data-column>
+		<section data-card>
+			<h1>Demo</h1>
+
+			<a href={resolve('/test/resource-boundary')}>Resource boundary test route</a>
+		</section>
+	</main>
+</Page>

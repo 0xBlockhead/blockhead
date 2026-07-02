@@ -1,5 +1,4 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
-import { stringify } from 'devalue'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -26,7 +25,15 @@ import { FilecoinMinerSelector } from '$/schema/FilecoinMiner.ts'
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const assertFilecoinMainnet = (network: NetworkId) => {
-	if (stringify(network) !== stringify({ caip2: filecoinNetworkBySlug.filecoin.caip2 }))
+	if (
+		'caip2' in network ?
+			(
+				network.caip2.namespace !== filecoinNetworkBySlug.filecoin.caip2.namespace
+				|| network.caip2.reference !== filecoinNetworkBySlug.filecoin.caip2.reference
+			)
+		:
+			network.slug !== filecoinNetworkBySlug.filecoin.slug
+	)
 		throw new Error('Lotus_JsonRpc: unsupported network')
 }
 

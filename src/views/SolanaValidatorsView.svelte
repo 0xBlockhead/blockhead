@@ -1,12 +1,15 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { resolve } from '$app/paths'
+	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
 	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -14,53 +17,125 @@
 
 
 	// State
-	const listView = {
-		entityType: EntityType.SolanaValidator,
-		item: 'summary',
-		orientation: 'column',
-	} as const
-
 	let {
 		selection,
-		title,
+		title = 'Validators',
+		typeAnnotationParagraphs = [],
+		placeholderText = 'Loading Solana validators...',
+		emptyText = undefined,
 		open = $bindable(true),
-		id = 'SolanaValidators',
-		href = '',
+		collapsible = true,
+		showTypeAnnotation = true,
+		id = 'SolanaValidators-list',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			selection: EntityProxyEntitiesResource<typeof schema, EntityType.SolanaValidator>
 			title?: string
+			typeAnnotationParagraphs?: string[]
+			placeholderText?: string
+			emptyText?: string
 			open?: boolean
+			collapsible?: boolean
+			showTypeAnnotation?: boolean
 			id?: string
-			href?: string
 		},
-		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
+		Pick<
+			ComponentProps<typeof EntitiesList>,
+			| 'href'
+			| 'CollapsibleProps'
+		>
 	> = $props()
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import SolanaValidatorView from '$/views/SolanaValidatorView.svelte'
 </script>
 
 
-<EntitiesList
-	entityType={listView.entityType}
-	{title}
-	bind:open
-	{id}
-	href={href}
-	resource={selection}
-	getKey={(entity) => stringify(entity.entitySelector)}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
-	{...EntitiesListProps}
->
-	{#snippet Item({ item })}
-		<SolanaValidatorView
-			selection={select(EntityType.SolanaValidator, item.entitySelector)}
-			layout={EntityLayout.Summary}
-		/>
-	{/snippet}
-</EntitiesList>
+{#snippet TypeAnnotationParagraphs()}
+	{#each typeAnnotationParagraphs as paragraph (paragraph)}
+		<p>{paragraph}</p>
+	{/each}
+{/snippet}
+
+{#if open}
+	<ResourceBoundary
+		resource={
+			selection.sources == null ? selection({
+				fields: {
+					votePubkey: true,
+					delinquent: true,
+				},
+			}) : selection
+		}
+		{placeholderText}
+	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.SolanaValidator}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+			/>
+		{/snippet}
+
+		{#snippet children(solanaValidators)}
+			{@const uniqueSolanaValidators = [...new Map(solanaValidators.values.map((solanaValidator) => [solanaValidator[EntityMetaKey.SelectorKey], solanaValidator])).values()]}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.SolanaValidator}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				totalCount={solanaValidators.values.length === uniqueSolanaValidators.length && solanaValidators.totalCount != null && solanaValidators.totalCount >= uniqueSolanaValidators.length ? solanaValidators.totalCount : uniqueSolanaValidators.length}
+				getKey={(solanaValidator) => solanaValidator[EntityMetaKey.SelectorKey]}
+				items={uniqueSolanaValidators}
+			>
+				{#snippet Empty()}
+					{#if emptyText != null}
+						<p data-text="muted">{emptyText}</p>
+					{:else}
+						<p data-text="muted">No Solana validators yet.</p>
+					{/if}
+				{/snippet}
+
+				{#snippet Item({ item: solanaValidator }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SolanaValidator> })}
+					<SolanaValidatorView
+						href={
+							resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/validator/[votePubkey]', {
+								networkSlug: String(({ ...solanaValidator.entitySelector, ...solanaValidator }).$network.slug),
+								votePubkey: String(({ ...solanaValidator.entitySelector, ...solanaValidator }).votePubkey),
+							})
+						}
+						selection={select(EntityType.SolanaValidator, solanaValidator.entitySelector)}
+						prefetched={solanaValidator}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/snippet}
+	</ResourceBoundary>
+{:else}
+	<EntitiesList
+		{...EntitiesListProps}
+		entityType={EntityType.SolanaValidator}
+		{id}
+		{title}
+		bind:open
+		{collapsible}
+		{showTypeAnnotation}
+		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	/>
+{/if}

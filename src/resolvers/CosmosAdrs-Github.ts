@@ -42,41 +42,41 @@ export default {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
 				[SpecificationProposalSelector.RealmCategoryNumber]: async ({ category, number, realm }) => {
-				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (realm !== SpecificationRealm.Cosmos || category !== ProposalCategory.Adr) {
-					throw new Error('CosmosAdrs_Github: proposal resolver only supports Cosmos SDK ADRs')
-				}
-				const { getMarkdownText } = await import('$/sources/CosmosAdrs/Github/queries.ts')
-				const text = await getMarkdownText({ number: number })
-				return {
-					documentCategory: 'ADR',
-					documentTitle: markdownTitle(text),
-					documentStatus: markdownStatus(text),
-					documentBody: text,
-				}
-			}
-			}
+					const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
+					if (realm !== SpecificationRealm.Cosmos || category !== ProposalCategory.Adr) {
+						throw new Error('CosmosAdrs_Github: proposal resolver only supports Cosmos SDK ADRs')
+					}
+					const { getMarkdownText } = await import('$/sources/CosmosAdrs/Github/queries.ts')
+					const text = await getMarkdownText({ number: number })
+					return {
+						documentCategory: 'ADR',
+						documentTitle: markdownTitle(text),
+						documentStatus: markdownStatus(text),
+						documentBody: text,
+					}
+				},
+			},
 		})({
-				fields: {
-			documentCategory: (snapshot) => snapshot.documentCategory,
-			documentTitle: (snapshot) => snapshot.documentTitle,
-			documentStatus: (snapshot) => snapshot.documentStatus,
-			documentBody: (snapshot) => snapshot.documentBody,
-		},
-			}),
+			fields: {
+				documentCategory: (snapshot) => snapshot.documentCategory,
+				documentTitle: (snapshot) => snapshot.documentTitle,
+				documentStatus: (snapshot) => snapshot.documentStatus,
+				documentBody: (snapshot) => snapshot.documentBody,
+			},
+		}),
 
 		defineResolver(Source.CosmosAdrs_Github, {
 			entityType: EntityType._Global,
 			resolve: {
 				[_GlobalSelector.Scope]: async () => {
-				const { getContents } = await import('$/sources/CosmosAdrs/Github/queries.ts')
-				return cosmosAdrRows(await getContents())
-			}
-			}
+					const { getContents } = await import('$/sources/CosmosAdrs/Github/queries.ts')
+					return cosmosAdrRows(await getContents())
+				},
+			},
 		})({
-				fields: {
-			$$proposals: (snapshot) => snapshot,
-		},
-			}),
+			fields: {
+				$$proposals: (snapshot) => snapshot,
+			},
+		}),
 	],
 }

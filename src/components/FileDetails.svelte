@@ -41,18 +41,24 @@
 	import { formatByteCount } from '$/lib/bytes.ts'
 
 	const mediaType = $derived(
-		contentType?.split(/;\s*/)[0],
+		contentType === undefined ?
+			undefined
+		:
+			String(contentType).split(/;\s*/)[0],
+	)
+	const displayTypeText = $derived(
+		String(displayType),
 	)
 	const displayIcon = $derived(
-		displayType === 'image' ?
+		displayTypeText === 'image' ?
 			'🖼️'
-		: displayType === 'video' ?
+		: displayTypeText === 'video' ?
 			'🎥'
-		: displayType === 'audio' ?
+		: displayTypeText === 'audio' ?
 			'🔊'
-		: displayType === 'json' || displayType === 'xml' ?
+		: displayTypeText === 'json' || displayTypeText === 'xml' ?
 			'🗒️'
-		: displayType === 'binary' ?
+		: displayTypeText === 'binary' ?
 			'📦'
 		:
 			'📄',
@@ -77,7 +83,7 @@
 				{displayIcon}
 				{#if fileName !== undefined}
 					<TruncatedValue
-						value={fileName}
+						value={String(fileName)}
 						format={TruncatedValueFormat.Visual}
 					/>
 				{:else}
@@ -87,7 +93,7 @@
 		</div>
 
 		<div data-row="wrap">
-			{#if contentSize !== undefined}
+			{#if contentSize !== undefined && Number.isFinite(contentSize)}
 				<span>{formatByteCount(contentSize)}</span>
 			{/if}
 
@@ -103,59 +109,59 @@
 					/>
 				</a>
 			{:else}
-				<span>{displayType}</span>
+				<span>{displayTypeText}</span>
 			{/if}
 
 			{#if extension !== undefined}
-				<span>.{extension}</span>
+				<span>.{String(extension)}</span>
 			{/if}
 		</div>
 	</header>
 
 	<div class="file-preview">
-		{#if displayType === 'text' || displayType === 'json' || displayType === 'xml'}
+		{#if displayTypeText === 'text' || displayTypeText === 'json' || displayTypeText === 'xml'}
 			<pre>{(() => {
 				if (text === undefined) return undefined
-				if (displayType !== 'json') return text
+				if (displayTypeText !== 'json') return text
 
 				try {
 					return JSON.stringify(
-						JSON.parse(text),
+						JSON.parse(String(text)),
 						null,
 						2,
 					)
 				} catch {
-					return text
+					return String(text)
 				}
 			})()}</pre>
-		{:else if displayType === 'iframe' && src !== undefined}
+		{:else if displayTypeText === 'iframe' && src !== undefined}
 			<iframe
-				{src}
+				src={String(src)}
 				title={fileName ?? 'Embedded content'}
 			></iframe>
-		{:else if displayType === 'image' && src !== undefined}
+		{:else if displayTypeText === 'image' && src !== undefined}
 			<img
-				{src}
+				src={String(src)}
 				alt={fileName ?? 'Image'}
 			/>
-		{:else if displayType === 'video' && src !== undefined}
+		{:else if displayTypeText === 'video' && src !== undefined}
 			<video controls>
 				<source
-					src={src}
+					src={String(src)}
 					type={contentType}
 				/>
 				<track kind="captions" />
 			</video>
-		{:else if displayType === 'audio' && src !== undefined}
+		{:else if displayTypeText === 'audio' && src !== undefined}
 			<audio controls>
 				<source
-					src={src}
+					src={String(src)}
 					type={contentType}
 				/>
 			</audio>
-		{:else if displayType === 'pdf' && src !== undefined}
+		{:else if displayTypeText === 'pdf' && src !== undefined}
 			<object
-				data={src}
+				data={String(src)}
 				type={contentType}
 				title={fileName ?? 'PDF preview'}
 			>

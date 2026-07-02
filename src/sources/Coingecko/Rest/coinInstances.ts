@@ -13,7 +13,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { getCoinWithAssetPlatforms } from '$/sources/Coingecko/Rest/queries.ts'
 import type { CoingeckoCoin } from '$/sources/Coingecko/Rest/types.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
-import { stringify } from 'devalue'
 
 
 type CoinInstanceEntitySelector = EntitySelector<typeof schema, EntityType.EvmCoinInstance>
@@ -25,6 +24,18 @@ export type CoinInstanceStub = {
 
 const isEvmContractAddress = (value: string) => (
 	/^0x[a-fA-F0-9]{40}$/.test(value.trim())
+)
+
+const coinInstanceEntitySelectorKey = (instanceId: CoinInstanceEntitySelector) => (
+	[
+		instanceId.$network.caip2.namespace,
+		instanceId.$network.caip2.reference,
+		instanceId.type,
+		instanceId.type === CoinInstanceType.Erc20Token ?
+			instanceId.$contract.address
+		:
+			'',
+	].join(':')
 )
 
 const coinInstanceStubRowsFromCoingeckoCoin = (
@@ -46,7 +57,7 @@ const coinInstanceStubRowsFromCoingeckoCoin = (
 	)
 
 	const pushRow = (instanceId: CoinInstanceEntitySelector) => {
-		const key = stringify(instanceId)
+		const key = coinInstanceEntitySelectorKey(instanceId)
 		if (seenKeys.has(key)) return
 		seenKeys.add(key)
 		const symbolTrimmed = coin.symbol.trim()
@@ -161,7 +172,7 @@ const coinIdByInstanceKeyForEnv = async (
 			publicEnv
 		)
 		for (const row of rows) {
-			map.set(stringify(row[EntityMetaKey.Selector]), coinId)
+			map.set(coinInstanceEntitySelectorKey(row[EntityMetaKey.Selector]), coinId)
 		}
 	}
 
@@ -173,7 +184,7 @@ export const resolveCoinIdForCoinInstanceEntitySelector = async (
 	publicEnv: SourcePublicEnv
 ) => {
 	const map = await coinIdByInstanceKeyForEnv(publicEnv)
-	return map.get(stringify(instanceId)) ?? null
+	return map.get(coinInstanceEntitySelectorKey(instanceId)) ?? null
 }
 
 export const resolveCoinInstanceRepresentation = async (
@@ -184,9 +195,9 @@ export const resolveCoinInstanceRepresentation = async (
 	if (coinId == null) return undefined
 
 	const rows = await fetchCoinInstanceStubsForCoin(coinId, publicEnv)
-	const instanceKey = stringify(instanceId)
+	const instanceKey = coinInstanceEntitySelectorKey(instanceId)
 	return rows.find((row) => (
-		stringify(row[EntityMetaKey.Selector]) === instanceKey
+		coinInstanceEntitySelectorKey(row[EntityMetaKey.Selector]) === instanceKey
 	))?.representation
 }
 
@@ -198,9 +209,9 @@ export const resolveCanonicalCoinInstanceEntitySelector = async (
 	if (coinId == null) return undefined
 
 	const rows = await fetchCoinInstanceStubsForCoin(coinId, publicEnv)
-	const instanceKey = stringify(instanceId)
+	const instanceKey = coinInstanceEntitySelectorKey(instanceId)
 	const self = rows.find((row) => (
-		stringify(row[EntityMetaKey.Selector]) === instanceKey
+		coinInstanceEntitySelectorKey(row[EntityMetaKey.Selector]) === instanceKey
 	))
 	if (self == null) return undefined
 

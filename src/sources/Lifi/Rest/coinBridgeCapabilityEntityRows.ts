@@ -4,7 +4,6 @@ import type { EntitySelector } from '$/schema/$schema.ts'
 import type { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import type { LifiBridgeTool } from '$/sources/Lifi/Rest/types.ts'
-import { stringify } from 'devalue'
 
 
 type CoinInstanceEntitySelector = EntitySelector<typeof schema, EntityType.EvmCoinInstance>
@@ -13,6 +12,28 @@ type CoinBridgeCapabilityEntitySelector = EntitySelector<typeof schema, EntityTy
 
 const bridgeToolsCatalogKeys = new Set<string>(
 	Object.keys(bridgeToolByKey).map((key) => String(key))
+)
+
+const coinInstanceEntitySelectorKey = (instanceId: CoinInstanceEntitySelector) => (
+	[
+		instanceId.$network.caip2.namespace,
+		instanceId.$network.caip2.reference,
+		instanceId.type,
+		instanceId.type === 'Erc20Token' ?
+			instanceId.$contract.address
+		:
+			'',
+	].join(':')
+)
+
+const coinBridgeCapabilityEntitySelectorKey = (
+	capabilityId: CoinBridgeCapabilityEntitySelector
+) => (
+	[
+		coinInstanceEntitySelectorKey(capabilityId.$fromInstance),
+		coinInstanceEntitySelectorKey(capabilityId.$toInstance),
+		capabilityId.toolKey,
+	].join('|')
 )
 
 export const coinBridgeCapabilityEntityRowsFromInstancesAndTools = (
@@ -58,7 +79,7 @@ export const coinBridgeCapabilityEntityRowsFromInstancesAndTools = (
 				toolKey: tool.key,
 			} satisfies CoinBridgeCapabilityEntitySelector
 
-			const dedupeKey = stringify(capabilityId)
+			const dedupeKey = coinBridgeCapabilityEntitySelectorKey(capabilityId)
 			if (seenKeys.has(dedupeKey)) continue
 			seenKeys.add(dedupeKey)
 
@@ -71,6 +92,8 @@ export const coinBridgeCapabilityEntityRowsFromInstancesAndTools = (
 	}
 
 	return rows.toSorted((left, right) => (
-		stringify(left[EntityMetaKey.Selector]).localeCompare(stringify(right[EntityMetaKey.Selector]))
+		coinBridgeCapabilityEntitySelectorKey(left[EntityMetaKey.Selector]).localeCompare(
+			coinBridgeCapabilityEntitySelectorKey(right[EntityMetaKey.Selector])
+		)
 	))
 }

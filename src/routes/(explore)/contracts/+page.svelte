@@ -1,12 +1,15 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
 	// Types/constants
+	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// Components
@@ -15,28 +18,28 @@
 </script>
 
 
+<svelte:head>
+	<title>Contracts • Blockhead</title>
+</svelte:head>
+
+
 <Page>
 	<EvmContractsView
-		href={resolve(
-			'/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/contracts',
-			{
-				caip2: `eip155:`,
-			}
-		)}
-		selection={select(
-			EntityType.EvmNetwork,
-			{
+		href={resolve('/(explore)/contracts')}
+		title='Contracts'
+		selection={
+			select(EntityType.EvmNetwork, {
 				caip2: {
 					namespace: 'eip155',
-					reference: String(1),
+					reference: '1',
 				},
-			}
-		).$$contracts({
-			sources: [
-				Source.Blockscout_Rest,
-			],
-			limit: 16,
-		})}
-		id="contracts"
+			})[EntityProxyField]<EntityType.EvmContract>('$$contracts', {
+				sources: [
+					Source.Blockscout_Rest,
+				],
+				limit: 16,
+			})
+		}
+		id='EvmContractsView-page'
 	/>
 </Page>

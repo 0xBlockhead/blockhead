@@ -1,20 +1,20 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-export enum _GlobalYouTubeNetworkSelector {
-	Scope = 'scope',
+import { Source } from '$/sources/Source.ts'
+import { type } from 'arktype'
+
+export enum _GlobalYoutubeNetworkSelector {
+	Scope = 'Scope',
 }
 export default {
-	entityType: EntityType._GlobalYouTubeNetwork,
-	label: 'global you tube network',
-	labelPlural: 'global you tube networks',
+	entityType: EntityType._GlobalYoutubeNetwork,
+	label: 'YouTube network',
+	labelPlural: 'YouTube networks',
 	selectors: [
 		{
-			name: _GlobalYouTubeNetworkSelector.Scope,
+			name: _GlobalYoutubeNetworkSelector.Scope,
 			fields: [
 				'scope',
 			],
@@ -22,40 +22,52 @@ export default {
 	],
 	fields: [
 		{
-			name: 'scope',
-			label: 'Scope',
-			description: 'The fixed scope value that identifies this hub row.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("'_GlobalYouTubeNetwork'"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'scope',
+				label: 'Scope',
+				description: 'The fixed scope value that identifies this global hub row.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type.unit('_GlobalYoutubeNetwork'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$$sourceWindowChannels',
-			label: 'source window channels',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.YouTubeChannel,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$sourceWindowChannels',
+				label: 'Channels',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.YoutubeChannel,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Constants_Internal,
+					Source.Youtube_Rest,
+				],
 		},
 		{
-			name: '$$sourceWindowVideos',
-			label: 'source window videos',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.YouTubeVideo,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$sourceWindowVideos',
+				label: 'Videos',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.YoutubeVideo,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Constants_Internal,
+					Source.Youtube_Rest,
+				],
 		},
 		{
-			name: '$$sourceWindowPlaylists',
-			label: 'source window playlists',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.YouTubePlaylist,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$sourceWindowPlaylists',
+				label: 'Playlists',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.YoutubePlaylist,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Constants_Internal,
+					Source.Youtube_Rest,
+				],
 		},
 		{
-			name: '$$timestamps',
-			label: 'timestamps',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType._GlobalYouTubeNetwork_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$timestamps',
+				label: 'Observations',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType._GlobalYoutubeNetwork_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
 		},
 	],
 } as const satisfies EntityDefinition

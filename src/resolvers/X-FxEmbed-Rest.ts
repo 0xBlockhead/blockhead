@@ -16,7 +16,7 @@ import { XUserSelector } from '$/schema/XUser.ts'
 import { XPostSelector } from '$/schema/XPost.ts'
 import { XUser_TimestampSelector } from '$/schema/XUser_Timestamp.ts'
 import { XPost_TimestampSelector } from '$/schema/XPost_Timestamp.ts'
-import { _GlobalXNetworkSelector } from '$/schema/_GlobalXNetwork.ts'
+import { XNetworkSelector } from '$/schema/XNetwork.ts'
 
 export default {
 	source: Source.X_FxEmbed_Rest,
@@ -236,9 +236,9 @@ export default {
 		}),
 
 			defineResolver(Source.X_FxEmbed_Rest, {
-				entityType: EntityType._GlobalXNetwork,
+				entityType: EntityType.XNetwork,
 				resolve: {
-					[_GlobalXNetworkSelector.Scope]: async (_entitySelector, context) => {
+					[XNetworkSelector.Scope]: async (_entitySelector, context) => {
 					const { searchStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
 					const limit = resolverContextRowLimit(context)
 					const statusSearchResponse = await searchStatuses(limit)
@@ -256,14 +256,14 @@ export default {
 			},
 			})({
 				fields: {
-					$$sourceWindowUsers: (snapshot) => snapshot,
+					$$xUsers: (snapshot) => snapshot,
 				},
 			}),
 
 			defineResolver(Source.X_FxEmbed_Rest, {
-				entityType: EntityType._GlobalXNetwork,
+				entityType: EntityType.XNetwork,
 				resolve: {
-					[_GlobalXNetworkSelector.Scope]: async (_entitySelector, context) => {
+					[XNetworkSelector.Scope]: async (_entitySelector, context) => {
 					const { searchStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
 					const limit = resolverContextRowLimit(context)
 					return (
@@ -281,7 +281,7 @@ export default {
 			},
 			})({
 				fields: {
-					$$sourceWindowPosts: (snapshot) => snapshot,
+					$$xPosts: (snapshot) => snapshot,
 				},
 			}),
 

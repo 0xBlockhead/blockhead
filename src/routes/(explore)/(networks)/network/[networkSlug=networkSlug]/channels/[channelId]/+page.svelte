@@ -1,9 +1,10 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
 	// Types/constants
-	import type { PageProps } from './$types'
-	import { NetworkNamespace } from '$/constants/Network.ts'
+	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
+	import LightningChannelView from '$/views/LightningChannelView.svelte'
 
 
 	// Context
@@ -15,36 +16,23 @@
 		params,
 	}: PageProps = $props()
 
-	const network = $derived(select(EntityType.Network,
-		{
-			slug: params.networkSlug,
-		},
-		({ sources: [
-				Source.Constants_Internal,
-			], fields: { namespace: true, slug: true } }),
-	))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import LightningChannelView from '$/views/LightningChannelView.svelte'
 </script>
 
 
+<svelte:head>
+	<title>Channel • Blockhead</title>
+</svelte:head>
+
+
 <Page>
-	<ResourceBoundary resource={network}>
-		{#snippet children(network)}
-			{#if network.namespace === NetworkNamespace.Lightning}
-				<LightningChannelView
-					selection={select(EntityType.LightningChannel, {
-						$network: { slug: params.networkSlug },
-						channelId: params.channelId,
-					})}
-				/>
-			{:else}
-				<p data-text="muted">This network does not expose a channel detail route yet.</p>
-			{/if}
-		{/snippet}
-	</ResourceBoundary>
+	<LightningChannelView
+		selection={select(EntityType.LightningChannel, {
+			$network: { slug: params.networkSlug },
+			channelId: params.channelId,
+		})}
+		open={true}
+	/>
 </Page>

@@ -1,17 +1,18 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
+import { type } from 'arktype'
+
 export enum NostrRelaySelector {
-	RelayUrl = 'relayUrl',
+	RelayUrl = 'RelayUrl',
 }
 export default {
 	entityType: EntityType.NostrRelay,
 	label: 'Nostr relay',
 	labelPlural: 'Nostr relays',
+	description: 'A Nostr relay is a WebSocket endpoint that can publish, store, and serve signed events; relay metadata is optional NIP-11 source data.',
 	selectors: [
 		{
 			name: NostrRelaySelector.RelayUrl,
@@ -22,69 +23,89 @@ export default {
 	],
 	fields: [
 		{
-			name: 'relayUrl',
-			label: 'relay URL',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'relayUrl',
+				label: 'Relay URL',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'name',
-			label: 'Name',
-			description: 'The human-readable name of the subject.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'name',
+				label: 'Name',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Constants_Internal,
+					Source.NostrBand_Rest,
+					Source.NostrRelay_Nip11_Http,
+				],
 		},
 		{
-			name: 'description',
-			label: 'Description',
-			description: 'A human-readable description from the source domain.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'description',
+				label: 'Description',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.NostrBand_Rest,
+					Source.NostrRelay_Nip11_Http,
+				],
 		},
 		{
-			name: 'software',
-			label: 'software',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'software',
+				label: 'Software',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.NostrBand_Rest,
+					Source.NostrRelay_Nip11_Http,
+				],
 		},
 		{
-			name: 'version',
-			label: 'version',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'version',
+				label: 'Version',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.NostrBand_Rest,
+					Source.NostrRelay_Nip11_Http,
+				],
 		},
 		{
-			name: 'supportedNipCount',
-			label: 'supported nip count',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'supportedNipCount',
+				label: 'Supported NIPs',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.NostrBand_Rest,
+					Source.NostrRelay_Nip11_Http,
+				],
 		},
 		{
-			name: 'isPaid',
-			label: 'is paid',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("boolean"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'isPaid',
+				label: 'Paid relay',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('boolean'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.NostrBand_Rest,
+					Source.NostrRelay_Nip11_Http,
+				],
 		},
 		{
-			name: 'limit',
-			label: 'limit',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$$timestamps',
-			label: 'timestamps',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.NostrRelay_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
+				name: 'limit',
+				label: 'Event limit',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.NostrBand_Rest,
+					Source.NostrRelay_Nip11_Http,
+				],
 		},
 	],
 } as const satisfies EntityDefinition

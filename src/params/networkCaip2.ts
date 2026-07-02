@@ -7,6 +7,7 @@ export const match = (param: string): param is `${string}:${string}` => {
 	const caip2 = caip2ParamValueFromString(param)
 	return (
 		caip2 !== undefined
+		&& caip2.namespace !== 'eip155'
 		&& matchSchemaPrimitiveParam(
 			EntityType.Network,
 			'caip2',

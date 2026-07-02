@@ -193,9 +193,9 @@ export enum RouteId {
 	Rss = 'rss',
 	X = 'x',
 	YouTube = 'youtube',
-	YouTubeChannels = 'youtube-channels',
-	YouTubeVideos = 'youtube-videos',
-	YouTubePlaylists = 'youtube-playlists',
+	YoutubeChannels = 'youtube-channels',
+	YoutubeVideos = 'youtube-videos',
+	YoutubePlaylists = 'youtube-playlists',
 	Xmtp = 'xmtp',
 	Dashboards = 'dashboards',
 	Accounts = 'accounts',
@@ -4628,40 +4628,40 @@ export const routeEntityViewComponents = {
 		detail: '$/views-new/XrplTrustline_TimestampView.svelte',
 		list: '$/views-new/XrplTrustline_TimestampsView.svelte',
 	},
-	[EntityType.YouTubeChannel]: {
-		detail: '$/views-new/YouTubeChannelView.svelte',
-		list: '$/views-new/YouTubeChannelsView.svelte',
+	[EntityType.YoutubeChannel]: {
+		detail: '$/views-new/YoutubeChannelView.svelte',
+		list: '$/views-new/YoutubeChannelsView.svelte',
 	},
-	[EntityType.YouTubeChannel_Timestamp]: {
-		detail: '$/views-new/YouTubeChannel_TimestampView.svelte',
-		list: '$/views-new/YouTubeChannel_TimestampsView.svelte',
+	[EntityType.YoutubeChannel_Timestamp]: {
+		detail: '$/views-new/YoutubeChannel_TimestampView.svelte',
+		list: '$/views-new/YoutubeChannel_TimestampsView.svelte',
 	},
-	[EntityType.YouTubeComment]: {
-		detail: '$/views-new/YouTubeCommentView.svelte',
-		list: '$/views-new/YouTubeCommentsView.svelte',
+	[EntityType.YoutubeComment]: {
+		detail: '$/views-new/YoutubeCommentView.svelte',
+		list: '$/views-new/YoutubeCommentsView.svelte',
 	},
-	[EntityType.YouTubeComment_Timestamp]: {
-		detail: '$/views-new/YouTubeComment_TimestampView.svelte',
-		list: '$/views-new/YouTubeComment_TimestampsView.svelte',
+	[EntityType.YoutubeComment_Timestamp]: {
+		detail: '$/views-new/YoutubeComment_TimestampView.svelte',
+		list: '$/views-new/YoutubeComment_TimestampsView.svelte',
 	},
-	[EntityType.YouTubeNetwork]: {
-		detail: '$/views-new/YouTubeNetworkView.svelte',
+	[EntityType.YoutubeNetwork]: {
+		detail: '$/views-new/YoutubeNetworkView.svelte',
 	},
-	[EntityType.YouTubePlaylist]: {
-		detail: '$/views-new/YouTubePlaylistView.svelte',
-		list: '$/views-new/YouTubePlaylistsView.svelte',
+	[EntityType.YoutubePlaylist]: {
+		detail: '$/views-new/YoutubePlaylistView.svelte',
+		list: '$/views-new/YoutubePlaylistsView.svelte',
 	},
-	[EntityType.YouTubePlaylist_Timestamp]: {
-		detail: '$/views-new/YouTubePlaylist_TimestampView.svelte',
-		list: '$/views-new/YouTubePlaylist_TimestampsView.svelte',
+	[EntityType.YoutubePlaylist_Timestamp]: {
+		detail: '$/views-new/YoutubePlaylist_TimestampView.svelte',
+		list: '$/views-new/YoutubePlaylist_TimestampsView.svelte',
 	},
-	[EntityType.YouTubeVideo]: {
-		detail: '$/views-new/YouTubeVideoView.svelte',
-		list: '$/views-new/YouTubeVideosView.svelte',
+	[EntityType.YoutubeVideo]: {
+		detail: '$/views-new/YoutubeVideoView.svelte',
+		list: '$/views-new/YoutubeVideosView.svelte',
 	},
-	[EntityType.YouTubeVideo_Timestamp]: {
-		detail: '$/views-new/YouTubeVideo_TimestampView.svelte',
-		list: '$/views-new/YouTubeVideo_TimestampsView.svelte',
+	[EntityType.YoutubeVideo_Timestamp]: {
+		detail: '$/views-new/YoutubeVideo_TimestampView.svelte',
+		list: '$/views-new/YoutubeVideo_TimestampsView.svelte',
 	},
 	[EntityType.ZcashShieldedAction]: {
 		detail: '$/views-new/ZcashShieldedActionView.svelte',
@@ -4849,12 +4849,12 @@ export const routeEntityViewComponents = {
 		detail: '$/views-new/_GlobalXNetwork_TimestampView.svelte',
 		list: '$/views-new/_GlobalXNetwork_TimestampsView.svelte',
 	},
-	[EntityType._GlobalYouTubeNetwork]: {
-		detail: '$/views-new/_GlobalYouTubeNetworkView.svelte',
+	[EntityType._GlobalYoutubeNetwork]: {
+		detail: '$/views-new/_GlobalYoutubeNetworkView.svelte',
 	},
-	[EntityType._GlobalYouTubeNetwork_Timestamp]: {
-		detail: '$/views-new/_GlobalYouTubeNetwork_TimestampView.svelte',
-		list: '$/views-new/_GlobalYouTubeNetwork_TimestampsView.svelte',
+	[EntityType._GlobalYoutubeNetwork_Timestamp]: {
+		detail: '$/views-new/_GlobalYoutubeNetwork_TimestampView.svelte',
+		list: '$/views-new/_GlobalYoutubeNetwork_TimestampsView.svelte',
 	},
 } as const satisfies Partial<Record<EntityType, {
 	detail?: ViewComponentPath
@@ -5682,7 +5682,7 @@ export const routeParams = [
 	{
 		name: 'playlistId',
 		fixture: 'PL123',
-		entityField: 'YouTubePlaylist.playlistId',
+		entityField: 'YoutubePlaylist.playlistId',
 	},
 	{
 		name: 'positionId',
@@ -5785,7 +5785,7 @@ export const routeParams = [
 	{
 		name: 'videoId',
 		fixture: 'dQw4w9WgXcQ',
-		entityField: 'YouTubeVideo.videoId',
+		entityField: 'YoutubeVideo.videoId',
 	},
 ] as const satisfies RouteParam[]
 
@@ -6483,8 +6483,8 @@ export const routeFamilies = [
 		],
 		scope: 'public',
 		hub: 'youtube',
-		entity: EntityType.YouTubeNetwork,
-		defaultView: '$/views/YouTubeView.svelte',
+		entity: EntityType.YoutubeNetwork,
+		defaultView: '$/views/YoutubeView.svelte',
 		members: [
 			{
 				id: 'youtube-channels',
@@ -6495,8 +6495,8 @@ export const routeFamilies = [
 					},
 				],
 				surface: 'list',
-				entity: EntityType.YouTubeChannel,
-				view: '$/views/YouTubeChannelsView.svelte',
+				entity: EntityType.YoutubeChannel,
+				view: '$/views/YoutubeChannelsView.svelte',
 				navigation: {
 					id: 'social-youtube',
 					title: 'Channels',
@@ -6516,11 +6516,11 @@ export const routeFamilies = [
 					},
 				],
 				surface: 'detail',
-				entity: EntityType.YouTubeChannel,
-				view: '$/views/YouTubeChannelView.svelte',
+				entity: EntityType.YoutubeChannel,
+				view: '$/views/YoutubeChannelView.svelte',
 				selection: {
 					kind: RouteSelectionKind.EntitySelector,
-					entity: EntityType.YouTubeChannel,
+					entity: EntityType.YoutubeChannel,
 					selector: {
 						channelId: {
 							kind: RouteSelectionKind.Param,
@@ -6550,8 +6550,8 @@ export const routeFamilies = [
 					},
 				],
 				surface: 'subview',
-				entity: EntityType.YouTubeChannel,
-				view: '$/views/YouTubeVideosView.svelte',
+				entity: EntityType.YoutubeChannel,
+				view: '$/views/YoutubeVideosView.svelte',
 			},
 			{
 				id: 'youtube-video',
@@ -6566,8 +6566,8 @@ export const routeFamilies = [
 					},
 				],
 				surface: 'detail',
-				entity: EntityType.YouTubeVideo,
-				view: '$/views/YouTubeVideoView.svelte',
+				entity: EntityType.YoutubeVideo,
+				view: '$/views/YoutubeVideoView.svelte',
 			},
 		],
 		notes: 'Route families compactly describe repeated hub/list/detail/subview patterns; expansion still needs per-member page/layout/module declarations for exact file generation.',
@@ -6812,17 +6812,17 @@ export const routeTopologyContract = [
 			{ path: '/xmtp', surface: RouteSurface.Hub, entity: EntityType.XmtpNetwork, selector: 'scope' },
 			{ path: '/xmtp/conversations', surface: RouteSurface.List, entity: EntityType.XmtpNetwork, selector: 'scope' },
 			{ path: '/xmtp/conversation/[conversationId]', surface: RouteSurface.Detail, entity: EntityType.XmtpConversation, selector: 'id' },
-			{ path: '/youtube', surface: RouteSurface.Hub, entity: EntityType._GlobalYouTubeNetwork, selector: 'scope' },
-			{ path: '/youtube/channels', surface: RouteSurface.List, entity: EntityType._GlobalYouTubeNetwork, selector: 'scope' },
-			{ path: '/youtube/channel/[channelId]', surface: RouteSurface.Detail, entity: EntityType.YouTubeChannel, selector: 'channelId' },
-			{ path: '/youtube/channel/[channelId]/videos', surface: RouteSurface.Subview, entity: EntityType.YouTubeChannel, selector: 'channelId' },
-			{ path: '/youtube/channel/[channelId]/playlists', surface: RouteSurface.Subview, entity: EntityType.YouTubeChannel, selector: 'channelId' },
-			{ path: '/youtube/videos', surface: RouteSurface.List, entity: EntityType._GlobalYouTubeNetwork, selector: 'scope' },
-			{ path: '/youtube/video/[videoId]', surface: RouteSurface.Detail, entity: EntityType.YouTubeVideo, selector: 'videoId' },
-			{ path: '/youtube/video/[videoId]/comments', surface: RouteSurface.Subview, entity: EntityType.YouTubeVideo, selector: 'videoId' },
-			{ path: '/youtube/playlists', surface: RouteSurface.List, entity: EntityType._GlobalYouTubeNetwork, selector: 'scope' },
-			{ path: '/youtube/playlist/[playlistId]', surface: RouteSurface.Detail, entity: EntityType.YouTubePlaylist, selector: 'playlistId' },
-			{ path: '/youtube/playlist/[playlistId]/videos', surface: RouteSurface.Subview, entity: EntityType.YouTubePlaylist, selector: 'playlistId' },
+			{ path: '/youtube', surface: RouteSurface.Hub, entity: EntityType._GlobalYoutubeNetwork, selector: 'scope' },
+			{ path: '/youtube/channels', surface: RouteSurface.List, entity: EntityType._GlobalYoutubeNetwork, selector: 'scope' },
+			{ path: '/youtube/channel/[channelId]', surface: RouteSurface.Detail, entity: EntityType.YoutubeChannel, selector: 'channelId' },
+			{ path: '/youtube/channel/[channelId]/videos', surface: RouteSurface.Subview, entity: EntityType.YoutubeChannel, selector: 'channelId' },
+			{ path: '/youtube/channel/[channelId]/playlists', surface: RouteSurface.Subview, entity: EntityType.YoutubeChannel, selector: 'channelId' },
+			{ path: '/youtube/videos', surface: RouteSurface.List, entity: EntityType._GlobalYoutubeNetwork, selector: 'scope' },
+			{ path: '/youtube/video/[videoId]', surface: RouteSurface.Detail, entity: EntityType.YoutubeVideo, selector: 'videoId' },
+			{ path: '/youtube/video/[videoId]/comments', surface: RouteSurface.Subview, entity: EntityType.YoutubeVideo, selector: 'videoId' },
+			{ path: '/youtube/playlists', surface: RouteSurface.List, entity: EntityType._GlobalYoutubeNetwork, selector: 'scope' },
+			{ path: '/youtube/playlist/[playlistId]', surface: RouteSurface.Detail, entity: EntityType.YoutubePlaylist, selector: 'playlistId' },
+			{ path: '/youtube/playlist/[playlistId]/videos', surface: RouteSurface.Subview, entity: EntityType.YoutubePlaylist, selector: 'playlistId' },
 		],
 	},
 	{
@@ -7391,7 +7391,7 @@ export const staticEntityParentPageLayoutRoutes = [
 	},
 	{
 		file: 'src/routes/(social)/(youtube)/+layout.svelte',
-		entity: EntityType.YouTubeNetwork,
+		entity: EntityType.YoutubeNetwork,
 		component: {
 			name: 'YouTubeView',
 		},
@@ -7400,7 +7400,7 @@ export const staticEntityParentPageLayoutRoutes = [
 		},
 		selector: {
 			field: 'scope',
-			value: 'YouTubeNetwork',
+			value: 'YoutubeNetwork',
 		},
 	},
 ] as const satisfies StaticEntityParentPageLayoutRoute[]
@@ -7512,9 +7512,9 @@ export const paramEntityParentPageLayoutRoutes = [
 	},
 	{
 		file: 'src/routes/(social)/(youtube)/youtube/channel/[channelId]/(channel)/+layout.svelte',
-		entity: EntityType.YouTubeChannel,
+		entity: EntityType.YoutubeChannel,
 		component: {
-			name: 'YouTubeChannelView',
+			name: 'YoutubeChannelView',
 		},
 		href: {
 			path: '/(social)/(youtube)/youtube/channel/[channelId]',
@@ -7538,9 +7538,9 @@ export const paramEntityParentPageLayoutRoutes = [
 	},
 	{
 		file: 'src/routes/(social)/(youtube)/youtube/playlist/[playlistId]/(playlist)/+layout.svelte',
-		entity: EntityType.YouTubePlaylist,
+		entity: EntityType.YoutubePlaylist,
 		component: {
-			name: 'YouTubePlaylistView',
+			name: 'YoutubePlaylistView',
 		},
 		href: {
 			path: '/(social)/(youtube)/youtube/playlist/[playlistId]',
@@ -7564,9 +7564,9 @@ export const paramEntityParentPageLayoutRoutes = [
 	},
 	{
 		file: 'src/routes/(social)/(youtube)/youtube/video/[videoId]/(video)/+layout.svelte',
-		entity: EntityType.YouTubeVideo,
+		entity: EntityType.YoutubeVideo,
 		component: {
-			name: 'YouTubeVideoView',
+			name: 'YoutubeVideoView',
 		},
 		href: {
 			path: '/(social)/(youtube)/youtube/video/[videoId]',
@@ -8620,14 +8620,14 @@ export const routes = [
 		scope: 'public',
 		surface: 'hub',
 		entity: {
-			entity: EntityType._GlobalYouTubeNetwork,
+			entity: EntityType._GlobalYoutubeNetwork,
 			selector: 'scope',
 			fields: [
 				'$$sourceWindowChannels',
 				'$$sourceWindowVideos',
 				'$$sourceWindowPlaylists',
 			],
-			view: routeEntityViewComponents[EntityType._GlobalYouTubeNetwork],
+			view: routeEntityViewComponents[EntityType._GlobalYoutubeNetwork],
 		},
 		navigation: {
 			id: 'social-youtube',

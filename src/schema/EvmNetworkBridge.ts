@@ -1,13 +1,12 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { UrlString } from '$/schema/UrlString.ts'
+import { type } from 'arktype'
+
 export enum EvmNetworkBridgeSelector {
-	FromToUrl = 'fromToUrl',
-	FromNetworkToNetworkUrl = '$fromNetwork+$toNetwork+url',
+	FromToUrl = 'FromToUrl',
 }
 export default {
 	entityType: EntityType.EvmNetworkBridge,
@@ -25,33 +24,33 @@ export default {
 	],
 	fields: [
 		{
-			name: '$fromNetwork',
-			label: 'from network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmNetwork,
-			cardinality: EntityFieldCardinality.One,
+				name: '$fromNetwork',
+				label: 'From network',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.EvmNetwork,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$toNetwork',
-			label: 'to network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmNetwork,
-			cardinality: EntityFieldCardinality.One,
+				name: '$toNetwork',
+				label: 'To network',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.EvmNetwork,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'url',
-			label: 'URL',
-			description: 'The URL for the source-domain resource.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'url',
+				label: 'URL',
+				description: 'The URL for the source-domain resource.',
+				type: EntityFieldType.Primitive,
+				primitiveType: (UrlString),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'relationshipType',
-			label: 'relationship type',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'relationshipType',
+				label: 'Relationship type',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 	],
 } as const satisfies EntityDefinition

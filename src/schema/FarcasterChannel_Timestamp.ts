@@ -1,17 +1,15 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum FarcasterChannel_TimestampSelector {
-	FarcasterChannelTimestampMs = 'farcasterChannelTimestampMs',
-	ChannelTimestampMs = '$channel+timestampMs',
+	FarcasterChannelTimestampMs = 'FarcasterChannelTimestampMs',
 }
 export default {
 	entityType: EntityType.FarcasterChannel_Timestamp,
-	label: 'Farcaster channel timestamp',
+	label: 'Farcaster channel observation',
 	labelPlural: 'Farcaster channel observations',
 	selectors: [
 		{
@@ -24,33 +22,32 @@ export default {
 	],
 	fields: [
 		{
-			name: '$channel',
-			label: 'channel',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.FarcasterChannel,
-			cardinality: EntityFieldCardinality.One,
+				name: '$channel',
+				label: 'Channel',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.FarcasterChannel,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'timestampMs',
-			label: 'Timestamp',
-			description: 'The observation time in Unix milliseconds.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'timestampMs',
+				label: 'Timestamp',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'followerCount',
-			label: 'follower count',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'followerCount',
+				label: 'Followers',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'memberCount',
-			label: 'member count',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'memberCount',
+				label: 'Members',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 	],
 } as const satisfies EntityDefinition

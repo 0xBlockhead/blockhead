@@ -4,6 +4,7 @@ import {
 import {
 	bitcoinNetworkBySlug,
 } from '$/constants/BitcoinNetwork.ts'
+import { networkBySlug } from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
@@ -17,24 +18,28 @@ import { BitcoinCashCashTokenCommitmentSelector } from '$/schema/BitcoinCashCash
 type NetworkId = { caip2: {
 	namespace: string
 	reference: string
-} } | { networkSlug: string } | { slug: string }
+} } | { slug: string }
 
 const assertBitcoinCashMainnet = (network: NetworkId) => {
 	if (
-		!('caip2' in network)
-		|| network.caip2.namespace !== bitcoinNetworkBySlug['bitcoin-cash'].caip2.namespace
-		|| network.caip2.reference !== bitcoinNetworkBySlug['bitcoin-cash'].caip2.reference
+		'caip2' in network ?
+			(
+				network.caip2.namespace !== bitcoinNetworkBySlug['bitcoin-cash'].caip2.namespace
+				|| network.caip2.reference !== bitcoinNetworkBySlug['bitcoin-cash'].caip2.reference
+			)
+		:
+			network.slug !== networkBySlug['bitcoin-cash'].slug
 	) {
 		throw new Error('BitcoinCashNode_JsonRpc: unsupported network')
 	}
 }
 
-const getOutput = async ({ $transaction, outputIndex }: {
+const getOutput = async ({ $transaction, indexInTransaction }: {
 	$transaction: {
 		$network: NetworkId
 		txId: string
 	}
-	outputIndex: number
+	indexInTransaction: number
 }) => {
 	assertBitcoinCashMainnet($transaction.$network)
 	const { getRawTransaction } = await import('$/sources/BitcoinCashNode/JsonRpc/queries.ts')
@@ -42,8 +47,8 @@ const getOutput = async ({ $transaction, outputIndex }: {
 		rpcUrl: bitcoinNetworkBySlug['bitcoin-cash'].bitcoinCashNodeRpcUrl,
 		txId: $transaction.txId,
 	})
-	const output = transaction.vout.at(outputIndex)
-	if (output == null) throw new Error(`BitcoinCashNode_JsonRpc: output not found for ${$transaction.txId}:${String(outputIndex)}`)
+	const output = transaction.vout.at(indexInTransaction)
+	if (output == null) throw new Error(`BitcoinCashNode_JsonRpc: output not found for ${$transaction.txId}:${String(indexInTransaction)}`)
 	return output
 }
 
@@ -54,7 +59,7 @@ export default {
 		defineResolver(Source.BitcoinCashNode_JsonRpc, {
 			entityType: EntityType.UtxoOutput,
 			resolve: {
-				[UtxoOutputSelector.UtxoTransactionOutputIndex]: async (entitySelector) => {
+				[UtxoOutputSelector.TransactionIndexInTransaction]: async (entitySelector) => {
 					const output = await getOutput(entitySelector)
 					return {
 						valueSats: BigInt(Math.round(output.value * 100_000_000)),

@@ -92,19 +92,19 @@ test.describe('assertLoaded verification', () => {
 
 	test('YouTube list fields expose provider totals through count selectors', () => {
 		expect(YoutubeRest.resolvers.some((resolver) => (
-			resolver.entityType === EntityType.YouTubeChannel
+			resolver.entityType === EntityType.YoutubeChannel
 			&& resolverHasCountSelector(resolver.fields, '$$videos')
 		))).toBe(true)
 		expect(YoutubeRest.resolvers.some((resolver) => (
-			resolver.entityType === EntityType.YouTubePlaylist
+			resolver.entityType === EntityType.YoutubePlaylist
 			&& resolverHasCountSelector(resolver.fields, '$$videos')
 		))).toBe(true)
 		expect(YoutubeRest.resolvers.some((resolver) => (
-			resolver.entityType === EntityType.YouTubeVideo
+			resolver.entityType === EntityType.YoutubeVideo
 			&& resolverHasCountSelector(resolver.fields, '$$comments')
 		))).toBe(true)
 		expect(YoutubeRest.resolvers.some((resolver) => (
-			resolver.entityType === EntityType.YouTubeComment
+			resolver.entityType === EntityType.YoutubeComment
 			&& resolverHasCountSelector(resolver.fields, '$$replies')
 		))).toBe(true)
 	})

@@ -1,222 +1,42 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
 	// Types/constants
-	import type { PageProps } from './$types'
-	import { NetworkNamespace } from '$/constants/Network.ts'
+	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
+	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
+	import UtxoBlocksView from '$/views/UtxoBlocksView.svelte'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
 		params,
 	}: PageProps = $props()
 
-	const network = $derived(select(EntityType.Network,
-		{
-			slug: params.networkSlug,
-		},
-		({ sources: [
-				Source.Constants_Internal,
-			], fields: { caip2: true, namespace: true, slug: true } }),
-	))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import BittensorBlocksView from '$/views/BittensorBlocksView.svelte'
-	import CosmosBlocksView from '$/views/CosmosBlocksView.svelte'
-	import FilecoinTipsetsView from '$/views/FilecoinTipsetsView.svelte'
-	import HyperliquidBlocksView from '$/views/HyperliquidBlocksView.svelte'
-	import MoneroBlocksView from '$/views/MoneroBlocksView.svelte'
-	import NearBlocksView from '$/views/NearBlocksView.svelte'
-	import PolkadotBlocksView from '$/views/PolkadotBlocksView.svelte'
-	import SolanaBlocksView from '$/views/SolanaBlocksView.svelte'
-	import TronBlocksView from '$/views/TronBlocksView.svelte'
-	import UtxoBlocksView from '$/views/UtxoBlocksView.svelte'
-	import ZeroGBlocksView from '$/views/ZeroGBlocksView.svelte'
 </script>
 
 
+<svelte:head>
+	<title>Blocks • Blockhead</title>
+</svelte:head>
+
+
 <Page>
-	<ResourceBoundary resource={network}>
-		{#snippet children(network)}
-			{@const href = resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/blocks', {
-				networkSlug: params.networkSlug,
-			})}
-			{#if network.namespace === NetworkNamespace.Bitcoin || network.namespace === NetworkNamespace.BitcoinCash || network.namespace === NetworkNamespace.Litecoin || network.namespace === NetworkNamespace.Dogecoin || network.namespace === NetworkNamespace.Zcash}
-				<UtxoBlocksView
-					selection={select(
-						EntityType.UtxoNetwork,
-						{
-							$network: network.caip2 == null ?
-								{ slug: params.networkSlug }
-							:
-								{ caip2: network.caip2 },
-						}
-					).$$blocks({
-						limit: 16,
-					})}
-					{href}
-					id="blocks"
-				/>
-			{:else if network.namespace === NetworkNamespace.Solana && network.caip2 != null}
-				<SolanaBlocksView
-					selection={select(
-						EntityType.SolanaNetwork,
-						{
-							caip2: {
-								namespace: 'solana',
-								reference: network.caip2.reference,
-							},
-						}
-					).$$blocks({
-						limit: 16,
-					})}
-					{href}
-					id="blocks"
-				/>
-			{:else if network.namespace === NetworkNamespace.Cosmos}
-				<CosmosBlocksView
-					selection={select(
-						EntityType.CosmosNetwork,
-						{
-							$network: network.caip2 == null ?
-								{ slug: params.networkSlug }
-							:
-								{ caip2: network.caip2 },
-						}
-					).$$blocks({
-						limit: 16,
-					})}
-					{href}
-					id="blocks"
-				/>
-			{:else if network.namespace === NetworkNamespace.Filecoin}
-				<FilecoinTipsetsView
-					selection={select(
-						EntityType.FilecoinNetwork,
-						{
-							$network: network.caip2 == null ?
-								{ slug: params.networkSlug }
-							:
-								{ caip2: network.caip2 },
-						}
-					).$$tipsets({
-						limit: 16,
-					})}
-					{href}
-					id="blocks"
-					title="Tipsets"
-				/>
-			{:else if network.namespace === NetworkNamespace.Polkadot}
-				<PolkadotBlocksView
-					selection={select(
-						EntityType.PolkadotNetwork,
-						{
-							$network: network.caip2 == null ?
-								{ slug: params.networkSlug }
-							:
-								{ caip2: network.caip2 },
-						}
-					).$$blocks({
-						limit: 16,
-					})}
-					{href}
-					id="blocks"
-				/>
-			{:else if network.namespace === NetworkNamespace.Near}
-				<NearBlocksView
-					selection={select(
-						EntityType.NearNetwork,
-						{ slug: 'near' }
-					).$$blocks({
-						limit: 16,
-					})}
-					{href}
-					id="blocks"
-				/>
-			{:else if network.namespace === NetworkNamespace.Tron}
-				<TronBlocksView
-					selection={select(
-						EntityType.TronNetwork,
-						{
-							$network: network.caip2 == null ?
-								{ slug: params.networkSlug }
-							:
-								{ caip2: network.caip2 },
-						}
-					).$$blocks({
-						limit: 16,
-					})}
-					{href}
-					id="blocks"
-				/>
-			{:else if network.namespace === NetworkNamespace.Monero}
-				<MoneroBlocksView
-					selection={select(
-						EntityType.MoneroNetwork,
-						{
-							$network: network.caip2 == null ?
-								{ slug: params.networkSlug }
-							:
-								{ caip2: network.caip2 },
-						}
-					).$$blocks({
-						limit: 16,
-					})}
-					{href}
-					id="blocks"
-				/>
-			{:else if network.namespace === NetworkNamespace.Hyperliquid}
-				<HyperliquidBlocksView
-					selection={select(
-						EntityType.HyperliquidNetwork,
-						{
-							$network: network.caip2 == null ?
-								{ slug: params.networkSlug }
-							:
-								{ caip2: network.caip2 },
-						}
-					).$$blocks({
-						limit: 16,
-					})}
-					{href}
-					id="blocks"
-				/>
-			{:else if network.namespace === NetworkNamespace.Bittensor}
-				<BittensorBlocksView
-					selection={select(
-						EntityType.BittensorNetwork,
-						{
-							$network: network.caip2 == null ?
-								{ slug: params.networkSlug }
-							:
-								{ caip2: network.caip2 },
-						}
-					).$$blocks({
-						limit: 16,
-					})}
-					{href}
-					id="blocks"
-				/>
-			{:else if network.namespace === NetworkNamespace.ZeroG}
-				<ZeroGBlocksView
-					selection={select(
-						EntityType.ZeroGNetwork,
-						{ slug: '0g' }
-					).$$blocks({
-						limit: 16,
-					})}
-					{href}
-					id="blocks"
-				/>
-			{:else}
-				<p data-text="muted">This network does not expose a block list route yet.</p>
-			{/if}
-		{/snippet}
-	</ResourceBoundary>
+	<UtxoBlocksView
+		selection={select(EntityType.UtxoNetwork, {
+			$network: { slug: params.networkSlug },
+		})[EntityProxyField]<EntityType.UtxoBlock>('$$blocks')({ limit: 16 })}
+		href={resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/blocks', {
+			networkSlug: params.networkSlug,
+		})}
+		id='blocks'
+	/>
 </Page>

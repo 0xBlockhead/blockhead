@@ -1,11 +1,15 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
+	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// Components
@@ -14,13 +18,24 @@
 </script>
 
 
+<svelte:head>
+	<title>Dashboards • Blockhead</title>
+</svelte:head>
+
+
 <Page>
 	<BlockheadPanelTreesView
-		href={resolve('/~/manage/data')}
-		selection={select(
-			EntityType._Global,
-			{ scope: '$$blockheadPanelTrees' }
-		).$$blockheadPanelTrees}
-		id="dashboards"
+		href={resolve('/~/dashboards')}
+		title='Dashboards'
+		selection={
+			select(EntityType._Global, {
+				scope: '$$blockheadPanelTrees',
+			})[EntityProxyField]<EntityType.BlockheadPanelTree>('$$blockheadPanelTrees', {
+				sources: [
+					Source.Local_Internal,
+				],
+			})
+		}
+		id='BlockheadPanelTreesView-page'
 	/>
 </Page>

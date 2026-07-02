@@ -1,5 +1,4 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
-import { stringify } from 'devalue'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -25,8 +24,15 @@ const polkadotMainnetRpcEndpoints = async () => (
 
 const assertPolkadotMainnet = (network: NetworkId) => {
 	if (
-		stringify(network) !== stringify({ caip2: networkBySlug.polkadot.caip2 })
-		&& stringify(network) !== stringify({ slug: 'polkadot' })
+		(
+			!('caip2' in network)
+			|| network.caip2.namespace !== networkBySlug.polkadot.caip2.namespace
+			|| network.caip2.reference !== networkBySlug.polkadot.caip2.reference
+		)
+		&& (
+			!('slug' in network)
+			|| network.slug !== 'polkadot'
+		)
 	) {
 		throw new Error('Polkadot_JsonRpc: unsupported network')
 	}
@@ -46,7 +52,7 @@ const polkadotExtrinsicRows = (
 				blockNumber: blockNumberFromHeader(block.block.header),
 				hash,
 			},
-			extrinsicIndex,
+			indexInBlock: extrinsicIndex,
 		},
 	}))
 )

@@ -1,131 +1,107 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
+	import { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// State
-	const view = {
-	closed: [
-		'scope',
-		'$$timestamps',
-		'$$sourceWindowChannels',
-	],
-	content: {
-		dl: [
-			[
-				'scope',
-				'$$timestamps',
-			],
-			[
-				'$$sourceWindowChannels',
-				'$$sourceWindowVideos',
-				'$$sourceWindowPlaylists',
-			],
-		],
-	},
-	details: {
-		tabs: [
-			{
-				label: 'Source-window rows',
-				items: [
-					'$$sourceWindowChannels',
-					'$$sourceWindowVideos',
-					'$$sourceWindowPlaylists',
-				],
-			},
-			{
-				label: 'Hub observations',
-				items: [
-					'$$timestamps',
-				],
-			},
-			{
-				label: 'Source evidence',
-				items: [
-					{
-						label: 'SourceBinding.Constants_Internal',
-					},
-					{
-						label: 'SourceBinding.Piped_Rest',
-					},
-					{
-						label: 'SourceBinding.Youtube_Rest',
-					},
-				],
-			},
-		],
-	},
-	lists: [
-		{
-			id: 'source-window-channels',
-			label: 'source window channels',
-			field: '$$sourceWindowChannels',
-			limit: 24,
-			item: 'summary',
-			collapsible: true,
-			emptyText: 'No rows',
-		},
-		{
-			id: 'source-window-videos',
-			label: 'source window videos',
-			field: '$$sourceWindowVideos',
-			limit: 24,
-			item: 'summary',
-			collapsible: true,
-			emptyText: 'No rows',
-		},
-		{
-			id: 'source-window-playlists',
-			label: 'source window playlists',
-			field: '$$sourceWindowPlaylists',
-			limit: 24,
-			item: 'summary',
-			collapsible: true,
-			emptyText: 'No rows',
-		},
-		{
-			id: 'timestamps',
-			label: 'timestamps',
-			field: '$$timestamps',
-			limit: 24,
-			item: 'summary',
-			collapsible: true,
-			emptyText: 'No rows',
-		},
-	],
-} satisfies ComponentProps<typeof EntityView2>['view']
-
 	let {
 		selection,
-		open = $bindable(true),
+		prefetched = {},
+		title,
+		href,
+		layout = EntityLayout.SummaryDetails,
+		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType._GlobalYouTubeNetwork>
+			selection: EntityProxyResource<typeof schema, EntityType._GlobalYoutubeNetwork>
+			prefetched?: Partial<EntityProxyData<typeof schema, EntityType._GlobalYoutubeNetwork>>
+			title?: string
+			href?: string
+			layout?: EntityLayout
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView2>,
-			| 'layout'
+			ComponentProps<typeof EntityView>,
+			| 'collapsible'
 			| 'showTypeAnnotation'
 		>
 	> = $props()
 
-
+	const globalYoutubeNetwork = $derived(selection({
+		sources: [
+			Source.Constants_Internal,
+		],
+	}))
+	const titleFallback = $derived(['YouTube'].filter(Boolean).join(' ') || 'YouTube network')
+	const viewDomId = $derived('-global-youtube-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView2 from '$/components/EntityView2.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import YoutubeChannelsView from '$/views/YoutubeChannelsView.svelte'
+	import YoutubeVideosView from '$/views/YoutubeVideosView.svelte'
+	import YoutubePlaylistsView from '$/views/YoutubePlaylistsView.svelte'
 </script>
 
 
-<EntityView2
-	{selection}
-	entityType={EntityType._GlobalYouTubeNetwork}
+<EntityView
+	entityType={EntityType._GlobalYoutubeNetwork}
 	entitySelector={selection.entitySelector}
+	id={viewDomId}
+	title={title ?? titleFallback}
+	{href}
+	{layout}
 	bind:open
 	{...EntityViewProps}
-	{view}
-/>
+>
+	{#snippet Title()}
+		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
+			{['YouTube'].filter(Boolean).join(' ') || title || 'YouTube network'}
+		{:else}
+			<ResourceBoundary resource={globalYoutubeNetwork}>
+				{#snippet Pending()}
+					{['YouTube'].filter(Boolean).join(' ') || title || 'YouTube network'}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{['YouTube'].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<YoutubeChannelsView
+				selection={selection[EntityProxyField]<EntityType.YoutubeChannel>('$$sourceWindowChannels')}
+				title='Channels'
+				href={resolve('/(social)/(youtube)/youtube/channels')}
+				id='YoutubeChannelsView-$$sourceWindowChannels'
+			/>
+
+			<YoutubeVideosView
+				selection={selection[EntityProxyField]<EntityType.YoutubeVideo>('$$sourceWindowVideos')}
+				title='Videos'
+				href={resolve('/(social)/(youtube)/youtube/videos')}
+				id='YoutubeVideosView-$$sourceWindowVideos'
+			/>
+
+			<YoutubePlaylistsView
+				selection={selection[EntityProxyField]<EntityType.YoutubePlaylist>('$$sourceWindowPlaylists')}
+				title='Playlists'
+				href={resolve('/(social)/(youtube)/youtube/playlists')}
+				id='YoutubePlaylistsView-$$sourceWindowPlaylists'
+			/>
+		{/if}
+	{/snippet}
+</EntityView>

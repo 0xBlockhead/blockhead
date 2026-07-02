@@ -1,12 +1,15 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { resolve } from '$app/paths'
+	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
 	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -14,53 +17,131 @@
 
 
 	// State
-	const listView = {
-		entityType: EntityType.AssetSupply_Timestamp,
-		item: 'summary',
-		orientation: 'column',
-	} as const
-
 	let {
 		selection,
-		title,
+		title = 'Asset supply observations',
+		typeAnnotationParagraphs = [],
+		placeholderText = 'Loading Asset supply observations...',
+		emptyText = undefined,
 		open = $bindable(true),
-		id = 'AssetSupply_Timestamps',
-		href = '',
+		collapsible = true,
+		showTypeAnnotation = true,
+		id = 'AssetSupply_Timestamps-list',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			selection: EntityProxyEntitiesResource<typeof schema, EntityType.AssetSupply_Timestamp>
 			title?: string
+			typeAnnotationParagraphs?: string[]
+			placeholderText?: string
+			emptyText?: string
 			open?: boolean
+			collapsible?: boolean
+			showTypeAnnotation?: boolean
 			id?: string
-			href?: string
 		},
-		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
+		Pick<
+			ComponentProps<typeof EntitiesList>,
+			| 'href'
+			| 'CollapsibleProps'
+		>
 	> = $props()
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AssetSupply_TimestampView from '$/views/AssetSupply_TimestampView.svelte'
 </script>
 
 
-<EntitiesList
-	entityType={listView.entityType}
-	{title}
-	bind:open
-	{id}
-	href={href}
-	resource={selection}
-	getKey={(entity) => stringify(entity.entitySelector)}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
-	{...EntitiesListProps}
->
-	{#snippet Item({ item })}
-		<AssetSupply_TimestampView
-			selection={select(EntityType.AssetSupply_Timestamp, item.entitySelector)}
-			layout={EntityLayout.Summary}
-		/>
-	{/snippet}
-</EntitiesList>
+{#snippet TypeAnnotationParagraphs()}
+	{#each typeAnnotationParagraphs as paragraph (paragraph)}
+		<p>{paragraph}</p>
+	{/each}
+{/snippet}
+
+{#if open}
+	<ResourceBoundary
+		resource={
+			selection.sources == null ? selection({
+				fields: {
+					supplyScopeKey: true,
+					totalSupply: true,
+					circulatingSupply: true,
+					source: true,
+				},
+			}) : selection
+		}
+		{placeholderText}
+	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AssetSupply_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+			/>
+		{/snippet}
+
+		{#snippet children(assetSupplyTimestamps)}
+			{@const uniqueAssetSupplyTimestamps = [...new Map(assetSupplyTimestamps.values.map((assetSupplyTimestamp) => [assetSupplyTimestamp[EntityMetaKey.SelectorKey], assetSupplyTimestamp])).values()]}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AssetSupply_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				totalCount={assetSupplyTimestamps.values.length === uniqueAssetSupplyTimestamps.length && assetSupplyTimestamps.totalCount != null && assetSupplyTimestamps.totalCount >= uniqueAssetSupplyTimestamps.length ? assetSupplyTimestamps.totalCount : uniqueAssetSupplyTimestamps.length}
+				getKey={(assetSupplyTimestamp) => assetSupplyTimestamp[EntityMetaKey.SelectorKey]}
+				items={uniqueAssetSupplyTimestamps}
+			>
+				{#snippet Empty()}
+					{#if emptyText != null}
+						<p data-text="muted">{emptyText}</p>
+					{:else}
+						<p data-text="muted">No asset supply observations yet.</p>
+					{/if}
+				{/snippet}
+
+				{#snippet Item({ item: assetSupplyTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AssetSupply_Timestamp> })}
+					<AssetSupply_TimestampView
+						href={
+							resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]/supply/[supplyScopeKey]/[timestampMs=nonNegativeInteger]/[source]', {
+								caip2: `${String(({ ...assetSupplyTimestamp.entitySelector, ...assetSupplyTimestamp }).$assetInstance.$network.caip2.namespace)}:${String(({ ...assetSupplyTimestamp.entitySelector, ...assetSupplyTimestamp }).$assetInstance.$network.caip2.reference)}`,
+								kind: String(({ ...assetSupplyTimestamp.entitySelector, ...assetSupplyTimestamp }).$assetInstance.kind),
+								assetKey: String(({ ...assetSupplyTimestamp.entitySelector, ...assetSupplyTimestamp }).$assetInstance.assetKey),
+								supplyScopeKey: String(({ ...assetSupplyTimestamp.entitySelector, ...assetSupplyTimestamp }).supplyScopeKey),
+								timestampMs: String(({ ...assetSupplyTimestamp.entitySelector, ...assetSupplyTimestamp }).timestampMs),
+								source: String(({ ...assetSupplyTimestamp.entitySelector, ...assetSupplyTimestamp }).source),
+							})
+						}
+						selection={select(EntityType.AssetSupply_Timestamp, assetSupplyTimestamp.entitySelector)}
+						prefetched={assetSupplyTimestamp}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/snippet}
+	</ResourceBoundary>
+{:else}
+	<EntitiesList
+		{...EntitiesListProps}
+		entityType={EntityType.AssetSupply_Timestamp}
+		{id}
+		{title}
+		bind:open
+		{collapsible}
+		{showTypeAnnotation}
+		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	/>
+{/if}

@@ -55,7 +55,7 @@ export default {
 			name: 'marketKind',
 			label: 'market kind',
 			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(MarketKind),
+			primitiveType: type.enumerated(...Object.values(MarketKind)),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{

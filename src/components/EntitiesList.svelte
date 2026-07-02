@@ -48,6 +48,7 @@
 	type HeadingForwardProps = Omit<ComponentProps<typeof Heading>, 'children'>
 
 	type UnorderedListForwardProps = {
+		limit?: number
 		orientation?: ListOrientation
 	}
 	type ItemsInput = Iterable<_Item>
@@ -59,7 +60,7 @@
 
 	// Context
 	import { getIsInsideEntityList, setIsInsideEntityList } from '$/context/isInsideEntityList.ts'
-	import { getIsInsidePage } from '$/context/isInsidePage.ts'
+	import { getIsInsidePage, getIsPageRoot, setIsPageRoot } from '$/context/isInsidePage.ts'
 	import { incrementHeadingLevel } from '$/context/headingLevel.ts'
 	import {
 		getOnNestedCollapsibleClose,
@@ -83,6 +84,7 @@
 		getSortValue,
 		placeholderText,
 		resource,
+		totalCount,
 		placeholderKeys = new SvelteSet<_Key>(),
 		Item,
 		ItemPlaceholder,
@@ -91,7 +93,9 @@
 		TypeAnnotationTooltip,
 		collapsible: _collapsible = true,
 		layout = EntitiesListLayout.Default,
+		showTypeAnnotation = true,
 		showSummary = true,
+		showTitle = true,
 		panelStyle,
 
 		// Collapsible.svelte
@@ -110,7 +114,9 @@
 			}]>
 			collapsible?: boolean
 			layout?: EntitiesListLayout
+			showTypeAnnotation?: boolean
 			showSummary?: boolean
+			showTitle?: boolean
 			panelStyle?: string
 			CollapsibleProps?: CollapsibleForwardProps
 			Empty?: Snippet
@@ -129,6 +135,7 @@
 			open?: boolean
 			placeholderText?: string
 			resource?: SvelteKitResource<ResourceItemsInput | undefined>
+			totalCount?: number
 			placeholderKeys?: Set<_Key>
 			title?: string
 			UnorderedListProps?: UnorderedListForwardProps
@@ -138,6 +145,7 @@
 
 	const onNestedCollapsibleClose = getOnNestedCollapsibleClose()
 	const isInsidePage = getIsInsidePage()
+	const wasPageRoot = getIsPageRoot()
 
 
 	// Inner context
@@ -152,6 +160,7 @@
 		)
 	})
 	setIsInsideEntityList(true)
+	setIsPageRoot(false)
 	const emptyItems = new SvelteSet<number>()
 	const emptyPlaceholderKeys = new SvelteSet<number>()
 
@@ -175,8 +184,8 @@
 			undefined,
 	)
 
-	const totalCount = $derived(
-		listSummary.total,
+	const displayedTotalCount = $derived(
+		totalCount ?? listSummary.total,
 	)
 
 
@@ -206,11 +215,12 @@
 		{#if Empty}
 			{@render Empty()}
 		{:else}
+			{@const emptyLabel = entityDefinitionByType[entityType].labelPlural}
 			<div
 				class="entity-details"
 				style:view-transition-name={`EntitiesList-Details-${id}`}
 			>
-				<p>–</p>
+				<p data-text="muted">No {emptyLabel[0]?.toUpperCase() ?? ''}{emptyLabel.slice(1)} yet.</p>
 			</div>
 		{/if}
 	{/snippet}
@@ -221,17 +231,19 @@
 			data-row="wrap gap-4"
 			style:view-transition-name={`EntitiesList-Summary-${id}`}
 		>
-			<Heading {...HeadingProps}>
-				<a {href}>{title}</a>
-				{#if (count !== undefined || totalCount !== undefined)}
-					<small>({#if count !== undefined}<NumberValue value={count} />{/if}{#if (count !== undefined && totalCount !== undefined && totalCount !== count)}/<NumberValue value={totalCount!} />{/if}{#if count === undefined && totalCount !== undefined}<NumberValue value={totalCount} />{/if})</small>
-				{/if}
-			</Heading>
+			{#if showTitle}
+				<Heading {...HeadingProps}>
+					<a {href}>{title}</a>
+					{#if (count !== undefined || displayedTotalCount !== undefined)}
+						<small>({#if count !== undefined}<NumberValue value={count} />{/if}{#if (count !== undefined && displayedTotalCount !== undefined && displayedTotalCount !== count)}/<NumberValue value={displayedTotalCount!} />{/if}{#if count === undefined && displayedTotalCount !== undefined}<NumberValue value={displayedTotalCount} />{/if})</small>
+					{/if}
+				</Heading>
+			{/if}
 		</header>
 	{/snippet}
 
 	{#snippet SummaryAnnotation()}
-		{#if TypeAnnotationTooltip}
+		{#if showTypeAnnotation && TypeAnnotationTooltip}
 			<Tooltip contentProps={{ side: 'top' }}>
 				{#snippet Content()}
 					{@render TypeAnnotationTooltip()}
@@ -239,7 +251,7 @@
 
 				<span data-text="annotation">{entityDefinitionByType[entityType].labelPlural}</span>
 			</Tooltip>
-		{:else}
+		{:else if showTypeAnnotation}
 			<span data-text="annotation">{entityDefinitionByType[entityType].labelPlural}</span>
 		{/if}
 	{/snippet}
@@ -303,12 +315,18 @@
 
 	{#if !showSummary}
 		{@render listColumnBody()}
+	{:else if !_collapsible}
+		{@render SummaryHeader()}
+		{@render SummaryAnnotation()}
+		{@render listColumnBody()}
 	{:else}
 		<Collapsible
 			bind:open
 			{...CollapsibleProps}
 			onclose={(_closeId) => {
-				if (!isInsidePage)
+				if (wasPageRoot)
+					onNestedCollapsibleClose?.()
+				else if (!isInsidePage)
 					onNestedCollapsibleClose?.(id)
 				CollapsibleProps.onclose?.(_closeId)
 			}}

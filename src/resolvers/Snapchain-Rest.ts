@@ -275,14 +275,14 @@ export default {
 									},
 								} satisfies Entity<typeof schema, EntityType.FarcasterChannel>
 						),
-						$$embeds: (castAddBody?.embeds ?? []).flatMap((embed, index) => [
+						$$embeds: (castAddBody?.embeds ?? []).flatMap((embed, indexInCast) => [
 							({
 								[EntityMetaKey.Selector]: {
 									$cast: {
 										fid,
 										hash,
 									},
-									index,
+									indexInCast,
 								},
 								url: optionalNonemptyString(embed.url),
 								$embeddedCast: (

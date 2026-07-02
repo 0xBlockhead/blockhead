@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { EntityType } from '$/schema/EntityType.ts'
-	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import type { NavigationItem } from '$/routes/NavigationItem.ts'
 	import type { Snippet } from 'svelte'
@@ -54,9 +52,8 @@
 	import Icon from '$/components/Icon.svelte'
 	import SearchableText from '$/components/SearchableText.svelte'
 	import Tree from '$/components/Tree.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
-	import EvmAccountView from '$/views/EvmAccountView.svelte'
+	import EntityId from '$/components/EntityId.svelte'
+	import TruncatedValue from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -113,6 +110,7 @@
 			if (event.key === 'Escape') event.currentTarget.blur()
 		}}
 	/>
+
 	<Tree
 		{items}
 		getKey={(item) => item.id}
@@ -136,6 +134,7 @@
 	>
 		{#snippet Content({ node })}
 			{#if node.href && node.address}
+				{@const address = node.address}
 				{@const navHref = node.href}
 				<span
 					data-row="start"
@@ -147,28 +146,32 @@
 					>
 						{#if LabelSnippet}
 							{@render LabelSnippet({ node })}
-						{:else if node.address.network}
-							<EvmNetworkAccountView
-								selection={select(EntityType.EvmNetworkAccount, {
+						{:else if address.network}
+							<EntityId
+								entitySelector={{
 									$network: {
 										caip2: {
 											namespace: 'eip155',
-											reference: String(node.address.network.chainId),
+											reference: String(address.network.chainId),
 										},
 									},
-									$actor: { address: node.address.address },
-								})}
+									$actor: { address: address.address },
+								}}
 								href={navHref}
-								layout={EntityLayout.Title}
-
-							/>
+							>
+								{#snippet children()}
+									<TruncatedValue value={address.address} />
+								{/snippet}
+							</EntityId>
 						{:else}
-							<EvmAccountView
-								selection={select(EntityType.EvmAccount, { address: node.address.address })}
+							<EntityId
+								entitySelector={{ address: address.address }}
 								href={navHref}
-								layout={EntityLayout.Title}
-
-							/>
+							>
+								{#snippet children()}
+									<TruncatedValue value={address.address} />
+								{/snippet}
+							</EntityId>
 						{/if}
 					</span>
 
@@ -203,7 +206,7 @@
 			{:else if node.href}
 				{@const navHref = node.href}
 				<a
-					href={navHref}
+					href={resolve(navHref as '/')}
 					data-row="start"
 					aria-current={currentPathname === node.href ? 'page' : undefined}
 					onmouseenter={() => {
@@ -266,6 +269,7 @@
 					{/if}
 				</a>
 			{:else}
+				{@const address = node.address}
 				<span data-row="start">
 					<span
 						data-row="start inline"
@@ -274,29 +278,30 @@
 						{#if LabelSnippet}
 							{@render LabelSnippet({ node })}
 						{:else}
-							{#if node.address?.network}
-								<EvmNetworkAccountView
-									selection={select(EntityType.EvmNetworkAccount, {
+							{#if address?.network}
+								<EntityId
+									entitySelector={{
 										$network: {
 											caip2: {
 												namespace: 'eip155',
-												reference: String(node.address.network.chainId),
+												reference: String(address.network.chainId),
 											},
 										},
-										$actor: { address: node.address.address },
-									})}
-									layout={EntityLayout.Title}
-
-								/>
-							{:else if node.address}
-								<EvmAccountView
-									selection={select(EntityType.EvmAccount, { address: node.address.address })}
-									href={resolve('/account/[address=evmAddress]', {
-										address: node.address.address,
-									})}
-									layout={EntityLayout.Title}
-
-								/>
+										$actor: { address: address.address },
+									}}
+								>
+									{#snippet children()}
+										<TruncatedValue value={address.address} />
+									{/snippet}
+								</EntityId>
+							{:else if address}
+								<EntityId
+									entitySelector={{ address: address.address }}
+								>
+									{#snippet children()}
+										<TruncatedValue value={address.address} />
+									{/snippet}
+								</EntityId>
 							{:else if node.icon}
 								<Icon
 									{...navIconProps(node.icon)}
@@ -304,7 +309,7 @@
 								/>
 							{/if}
 
-							{#if !node.address}
+							{#if !address}
 								<SearchableText
 									text={node.title}
 									query={searchFilter}

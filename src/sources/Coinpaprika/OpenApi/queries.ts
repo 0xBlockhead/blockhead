@@ -3,9 +3,6 @@
 	* @see https://docs.coinpaprika.com/api-reference/coins/get-coin-by-id.md
 	* @see https://docs.coinpaprika.com/api-reference/tickers/get-ticker-for-a-specific-coin.md
 	*/
-
-import { stringify } from 'devalue'
-
 import type { CoinId } from '$/constants/Coin.ts'
 import { Iso4217 } from '$/constants/Currency.ts'
 import { MarketAssetKind, MarketKind, marketOhlcDayLookbackValues } from '$/constants/Market.ts'
@@ -36,6 +33,30 @@ type OhlcCandle = readonly [
 	close: number,
 	quoteVolume?: number,
 ]
+
+const marketAssetEntitySelectorKey = (
+	asset: EntitySelector<typeof schema, EntityType.Market>['$base']
+) => (
+	asset.kind === MarketAssetKind.Coin ?
+		`coin:${asset.$coin.coinId}`
+	: asset.kind === MarketAssetKind.Currency ?
+		`currency:${asset.$currency.iso4217}`
+	:
+		(() => {
+			throw new Error('Coinpaprika_OpenApi: CoinInstance market keys are unsupported')
+		})()
+)
+
+const marketEntitySelectorKey = (
+	marketId: EntitySelector<typeof schema, EntityType.Market>
+) => (
+	[
+		marketAssetEntitySelectorKey(marketId.$base),
+		marketAssetEntitySelectorKey(marketId.$quote),
+		marketId.$marketVenue.marketVenueId,
+		marketId.marketKind,
+	].join('|')
+)
 
 
 export const getMarketKindFromMarketCategory = (
@@ -154,7 +175,7 @@ export const collectMarketEntitySelectorsForCoin = async ({
 			})
 			if (marketId == null)
 				return []
-			const key = stringify(marketId)
+			const key = marketEntitySelectorKey(marketId)
 			if (seen.has(key))
 				return []
 			seen.add(key)
@@ -189,7 +210,7 @@ export const collectMarketEntitySelectorsForExchange = async ({
 			})
 			if (marketId == null)
 				return []
-			const key = stringify(marketId)
+			const key = marketEntitySelectorKey(marketId)
 			if (seen.has(key))
 				return []
 			seen.add(key)

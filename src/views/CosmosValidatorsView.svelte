@@ -1,12 +1,15 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { resolve } from '$app/paths'
+	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
 	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -14,53 +17,126 @@
 
 
 	// State
-	const listView = {
-		entityType: EntityType.CosmosValidator,
-		item: 'summary',
-		orientation: 'column',
-	} as const
-
 	let {
 		selection,
-		title,
+		title = 'Validators',
+		typeAnnotationParagraphs = [],
+		placeholderText = 'Loading Cosmos validators...',
+		emptyText = undefined,
 		open = $bindable(true),
-		id = 'CosmosValidators',
-		href = '',
+		collapsible = true,
+		showTypeAnnotation = true,
+		id = 'CosmosValidators-list',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			selection: EntityProxyEntitiesResource<typeof schema, EntityType.CosmosValidator>
 			title?: string
+			typeAnnotationParagraphs?: string[]
+			placeholderText?: string
+			emptyText?: string
 			open?: boolean
+			collapsible?: boolean
+			showTypeAnnotation?: boolean
 			id?: string
-			href?: string
 		},
-		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
+		Pick<
+			ComponentProps<typeof EntitiesList>,
+			| 'href'
+			| 'CollapsibleProps'
+		>
 	> = $props()
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CosmosValidatorView from '$/views/CosmosValidatorView.svelte'
 </script>
 
 
-<EntitiesList
-	entityType={listView.entityType}
-	{title}
-	bind:open
-	{id}
-	href={href}
-	resource={selection}
-	getKey={(entity) => stringify(entity.entitySelector)}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
-	{...EntitiesListProps}
->
-	{#snippet Item({ item })}
-		<CosmosValidatorView
-			selection={select(EntityType.CosmosValidator, item.entitySelector)}
-			layout={EntityLayout.Summary}
-		/>
-	{/snippet}
-</EntitiesList>
+{#snippet TypeAnnotationParagraphs()}
+	{#each typeAnnotationParagraphs as paragraph (paragraph)}
+		<p>{paragraph}</p>
+	{/each}
+{/snippet}
+
+{#if open}
+	<ResourceBoundary
+		resource={
+			selection.sources == null ? selection({
+				fields: {
+					moniker: true,
+					operatorAddress: true,
+					$network: true,
+				},
+			}) : selection
+		}
+		{placeholderText}
+	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.CosmosValidator}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+			/>
+		{/snippet}
+
+		{#snippet children(cosmosValidators)}
+			{@const uniqueCosmosValidators = [...new Map(cosmosValidators.values.map((cosmosValidator) => [cosmosValidator[EntityMetaKey.SelectorKey], cosmosValidator])).values()]}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.CosmosValidator}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				totalCount={cosmosValidators.values.length === uniqueCosmosValidators.length && cosmosValidators.totalCount != null && cosmosValidators.totalCount >= uniqueCosmosValidators.length ? cosmosValidators.totalCount : uniqueCosmosValidators.length}
+				getKey={(cosmosValidator) => cosmosValidator[EntityMetaKey.SelectorKey]}
+				items={uniqueCosmosValidators}
+			>
+				{#snippet Empty()}
+					{#if emptyText != null}
+						<p data-text="muted">{emptyText}</p>
+					{:else}
+						<p data-text="muted">No Cosmos validators yet.</p>
+					{/if}
+				{/snippet}
+
+				{#snippet Item({ item: cosmosValidator }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CosmosValidator> })}
+					<CosmosValidatorView
+						href={
+							resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/validator/[operatorAddress]', {
+								caip2: `${String(({ ...cosmosValidator.entitySelector, ...cosmosValidator }).$network.caip2.namespace)}:${String(({ ...cosmosValidator.entitySelector, ...cosmosValidator }).$network.caip2.reference)}`,
+								operatorAddress: String(({ ...cosmosValidator.entitySelector, ...cosmosValidator }).operatorAddress),
+							})
+						}
+						selection={select(EntityType.CosmosValidator, cosmosValidator.entitySelector)}
+						prefetched={cosmosValidator}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/snippet}
+	</ResourceBoundary>
+{:else}
+	<EntitiesList
+		{...EntitiesListProps}
+		entityType={EntityType.CosmosValidator}
+		{id}
+		{title}
+		bind:open
+		{collapsible}
+		{showTypeAnnotation}
+		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	/>
+{/if}

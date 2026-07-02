@@ -1,13 +1,12 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+import { type } from 'arktype'
+
 export enum EvmSelectorSelector {
-	Hex = 'hex',
+	Hex = 'Hex',
 }
 export default {
 	entityType: EntityType.EvmSelector,
@@ -23,18 +22,25 @@ export default {
 	],
 	fields: [
 		{
-			name: 'hex',
-			label: 'hex',
-			type: EntityFieldType.Primitive,
-			primitiveType: ZeroExHex,
-			cardinality: EntityFieldCardinality.One,
+				name: 'hex',
+				label: 'Hex',
+				type: EntityFieldType.Primitive,
+				primitiveType: (ZeroExHex),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$$timestamps',
-			label: 'timestamps',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.EvmSelector_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
+				name: 'signatures',
+				label: 'Signatures',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.Many,
+		},
+		{
+				name: '$$timestamps',
+				label: 'Observations',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.EvmSelector_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
 		},
 	],
 } as const satisfies EntityDefinition

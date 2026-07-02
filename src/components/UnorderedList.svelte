@@ -599,9 +599,16 @@
 	)
 
 	$effect(() => {
+		const loaded = sortedItems.length
+		const total = placeholderKeys.size > 0 ? placeholderKeys.size : undefined
+		if (
+			summary.loaded === loaded
+			&& summary.total === total
+		) return
+
 		summary = {
-			loaded: sortedItems.length,
-			total: placeholderKeys.size > 0 ? placeholderKeys.size : undefined,
+			loaded,
+			total,
 		}
 	})
 	$effect(() => {

@@ -34,6 +34,7 @@ export default {
 			},
 		})({
 			fields: {
+				signatures: (timestamps) => timestamps.flatMap((timestamp) => timestamp.signatures),
 				$$timestamps: (timestamps) => timestamps,
 			},
 		}),
@@ -73,6 +74,7 @@ export default {
 			},
 		})({
 			fields: {
+				signatures: (timestamps) => timestamps.flatMap((timestamp) => timestamp.signatures),
 				$$timestamps: (timestamps) => timestamps,
 			},
 		}),

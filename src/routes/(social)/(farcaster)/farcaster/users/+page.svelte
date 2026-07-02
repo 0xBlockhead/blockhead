@@ -1,0 +1,42 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
+<script lang="ts">
+	// Types/constants
+	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
+
+
+	// Context
+	import { resolve } from '$app/paths'
+	import { select } from '$/routes/+layout.svelte'
+
+
+	// Components
+	import Page from '$/components/Page.svelte'
+	import FarcasterUsersView from '$/views/FarcasterUsersView.svelte'
+</script>
+
+
+<svelte:head>
+	<title>Farcaster users • Blockhead</title>
+</svelte:head>
+
+
+<Page>
+	<FarcasterUsersView
+		href={resolve('/(social)/(farcaster)/farcaster/users')}
+		title='Farcaster users'
+		selection={
+			select(EntityType.FarcasterNetwork, {
+				scope: 'FarcasterNetwork',
+			})[EntityProxyField]<EntityType.FarcasterUser>('$$users', {
+				sources: [
+					Source.Snapchain_Rest,
+					Source.Neynar_Rest,
+				],
+			})
+		}
+		id='FarcasterUsersView-page'
+	/>
+</Page>

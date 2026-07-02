@@ -1,15 +1,21 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
-	import { EntityType } from '$/schema/EntityType.ts'
-	import { select } from '$/routes/+layout.svelte'
-	import { eip155NetworkSelectorFromCaip2 } from '$/lib/caip2.ts'
 	// Types/constants
-	import { with0xHex } from '$/lib/hexLowerOfByteSize.ts'
+	import type { PageProps } from './$types.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+
+
+	// Context
+	import { resolve } from '$app/paths'
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
+		data,
 		params,
-	} = $props()
+	}: PageProps = $props()
 
 
 	// Components
@@ -18,11 +24,25 @@
 </script>
 
 
+<svelte:head>
+	<title>ERC-4337 bundler • Blockhead</title>
+</svelte:head>
+
+
 <Page>
 	<Erc4337BundlerView
-		selection={select(EntityType.Erc4337Bundler, {
-			$network: eip155NetworkSelectorFromCaip2(params.caip2),
-			address: with0xHex(params.address),
-		})}
+		href={
+			resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/bundler/[address=evmAddress]', {
+				caip2: params.caip2,
+				address: params.address,
+			})
+		}
+		selection={
+			select(EntityType.Erc4337Bundler, data.selector, {
+				fields: {
+					$contract: true,
+				},
+			})
+		}
 	/>
 </Page>

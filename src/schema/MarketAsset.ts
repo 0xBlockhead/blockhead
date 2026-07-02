@@ -12,7 +12,7 @@ export const marketAsset = type.or(
 	type({
 		kind: type.unit(MarketAssetKind.Coin),
 		$coin: type({
-			coinId: type.valueOf(CoinId),
+			coinId: type.enumerated(...Object.values(CoinId)),
 		}),
 	}),
 	type({
@@ -50,7 +50,7 @@ export const marketAsset = type.or(
 	type({
 		kind: type.unit(MarketAssetKind.Currency),
 		$currency: type({
-			iso4217: type.valueOf(Iso4217),
+			iso4217: type.enumerated(...Object.values(Iso4217)),
 		}),
 	})
 )

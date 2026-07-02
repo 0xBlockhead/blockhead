@@ -4,6 +4,7 @@ import {
 	type BridgeToolRow,
 	CoinInstanceRepresentation,
 } from '$/constants/Bridge.ts'
+import { ChainId } from '$/constants/ChainId.ts'
 import { CoinId } from '$/constants/Coin.ts'
 import {
 	currencies,
@@ -25,13 +26,13 @@ import {
 	catalogCoinSpotUsdMarketByCoinId,
 	catalogMarketsWithCoinAsQuoteByQuoteCoinId,
 	catalogMarketsWithCurrencyAsBaseByIso4217,
+	catalogSpotMarketsWithCoinAsQuote,
 	catalogSpotMarketsWithCurrencyAsBase,
 	type CatalogCoinCoinMarket,
 	type CatalogCoinCurrencyMarket,
 	type CatalogCurrencyCurrencyMarket,
 } from '$/constants/MarketCatalog.ts'
 import type { NetworkUpgradeActivationProposal } from '$/constants/EthereumNetworkUpgradeActivations.ts'
-import { stringify } from 'devalue'
 import { NetworkExecutionUpgradeLayer } from '$/schema/NetworkUpgradeProtocols.ts'
 import {
 	networkByCaip2,
@@ -42,18 +43,9 @@ import {
 	networks,
 } from '$/constants/Network.ts'
 import {
-	NetworkStackId,
 	networkStackByNetworkStackId,
 } from '$/constants/NetworkStack.ts'
 import { TransportType } from '$/constants/TransportType.ts'
-import {
-	ExecutionEnvironmentId,
-	executionEnvironmentByExecutionEnvironmentId,
-} from '$/constants/ExecutionEnvironment.ts'
-import {
-	ConsensusMechanismId,
-	consensusMechanismById,
-} from '$/constants/ConsensusMechanism.ts'
 import { AssetInstanceKind } from '$/schema/AssetInstance.ts'
 import {
 	MarketVenueId,
@@ -66,6 +58,7 @@ import {
 	proposalKindAllowedInRealmByKey,
 	proposalKinds,
 	SpecificationRealm,
+	specificationRealmById,
 	specificationRealms,
 } from '$/constants/SpecificationProposal.ts'
 import { activityPubNetworkSeedActors } from '$/constants/Social/ActivityPub.ts'
@@ -74,6 +67,7 @@ import {
 	atprotoNetworkSeedPostByUri,
 	atprotoNetworkSeedPosts,
 } from '$/constants/Social/Atproto.ts'
+import { farcasterFeedKindByVariant } from '$/constants/Social/Farcaster.ts'
 import { lensNetworkSeedAccounts } from '$/constants/Social/Lens.ts'
 import {
 	nostrNetworkSeedNotes,
@@ -94,7 +88,7 @@ import {
 	youtubeNetworkSeedPlaylistByPlaylistId,
 	youtubeNetworkSeedVideos,
 	youtubeNetworkSeedVideoByVideoId,
-} from '$/constants/Social/YouTube.ts'
+} from '$/constants/Social/Youtube.ts'
 import {
 	xNetworkSeedPostById,
 	xNetworkSeedUsers,
@@ -148,11 +142,12 @@ import { PolkadotReferendumSelector } from '$/schema/PolkadotReferendum.ts'
 import { ActivityPubNetworkSelector } from '$/schema/ActivityPubNetwork.ts'
 import { AtprotoNetworkSelector } from '$/schema/AtprotoNetwork.ts'
 import { AtprotoPostSelector } from '$/schema/AtprotoPost.ts'
+import { _GlobalAtprotoNetworkSelector } from '$/schema/_GlobalAtprotoNetwork.ts'
 import { FarcasterNetworkSelector } from '$/schema/FarcasterNetwork.ts'
 import { IpfsProtocolSelector } from '$/schema/IpfsProtocol.ts'
 import { SwarmProtocolSelector } from '$/schema/SwarmProtocol.ts'
 import { LensNetworkSelector } from '$/schema/LensNetwork.ts'
-import { NostrNetworkSelector } from '$/schema/NostrNetwork.ts'
+import { _GlobalNostrNetworkSelector } from '$/schema/_GlobalNostrNetwork.ts'
 import { NostrNoteSelector } from '$/schema/NostrNote.ts'
 import { NostrProfileSelector } from '$/schema/NostrProfile.ts'
 import { NostrRelaySelector } from '$/schema/NostrRelay.ts'
@@ -164,157 +159,15 @@ import { RssNetworkSelector } from '$/schema/RssNetwork.ts'
 import { XNetworkSelector } from '$/schema/XNetwork.ts'
 import { XPostSelector } from '$/schema/XPost.ts'
 import { XmtpNetworkSelector } from '$/schema/XmtpNetwork.ts'
-import { YouTubeChannelSelector } from '$/schema/YouTubeChannel.ts'
-import { YouTubeNetworkSelector } from '$/schema/YouTubeNetwork.ts'
-import { YouTubePlaylistSelector } from '$/schema/YouTubePlaylist.ts'
-import { YouTubeVideoSelector } from '$/schema/YouTubeVideo.ts'
+import { YoutubeChannelSelector } from '$/schema/YoutubeChannel.ts'
+import { YoutubeNetworkSelector } from '$/schema/YoutubeNetwork.ts'
+import { _GlobalYoutubeNetworkSelector } from '$/schema/_GlobalYoutubeNetwork.ts'
+import { _GlobalRedditNetworkSelector } from '$/schema/_GlobalRedditNetwork.ts'
+import { YoutubePlaylistSelector } from '$/schema/YoutubePlaylist.ts'
+import { YoutubeVideoSelector } from '$/schema/YoutubeVideo.ts'
 import { _GlobalEnsNetworkSelector } from '$/schema/_GlobalEnsNetwork.ts'
 import { SpecificationProposalKindSelector } from '$/schema/SpecificationProposalKind.ts'
 import { SpecificationRealmSelector } from '$/schema/SpecificationRealm.ts'
-
-const networkStackIdByNamespace = {
-	[NetworkNamespace.Bittensor]: NetworkStackId.Bittensor,
-	[NetworkNamespace.Bitcoin]: NetworkStackId.Bitcoin,
-	[NetworkNamespace.BitcoinCash]: NetworkStackId.BitcoinCash,
-	[NetworkNamespace.Cosmos]: NetworkStackId.CosmosSdkCometBft,
-	[NetworkNamespace.Dogecoin]: NetworkStackId.Dogecoin,
-	[NetworkNamespace.Elements]: NetworkStackId.Elements,
-	[NetworkNamespace.Evm]: NetworkStackId.Ethereum,
-	[NetworkNamespace.Filecoin]: NetworkStackId.Filecoin,
-	[NetworkNamespace.Hyperliquid]: NetworkStackId.Hyperliquid,
-	[NetworkNamespace.Lightning]: NetworkStackId.Lightning,
-	[NetworkNamespace.Litecoin]: NetworkStackId.Litecoin,
-	[NetworkNamespace.Logos]: NetworkStackId.Logos,
-	[NetworkNamespace.Monero]: NetworkStackId.Monero,
-	[NetworkNamespace.Near]: NetworkStackId.Near,
-	[NetworkNamespace.Polkadot]: NetworkStackId.PolkadotSdk,
-	[NetworkNamespace.Quilibrium]: NetworkStackId.Quilibrium,
-	[NetworkNamespace.Solana]: NetworkStackId.Solana,
-	[NetworkNamespace.Tron]: NetworkStackId.Tron,
-	[NetworkNamespace.Zcash]: NetworkStackId.Zcash,
-	[NetworkNamespace.ZeroG]: NetworkStackId.ZeroG,
-} as const satisfies Record<NetworkNamespace, NetworkStackId>
-
-const executionEnvironmentIdsByNamespace = {
-	[NetworkNamespace.Bittensor]: [
-		ExecutionEnvironmentId.BittensorSubtensorRuntime,
-	],
-	[NetworkNamespace.Bitcoin]: [
-		ExecutionEnvironmentId.BitcoinScript,
-	],
-	[NetworkNamespace.BitcoinCash]: [
-		ExecutionEnvironmentId.BitcoinCashScript,
-	],
-	[NetworkNamespace.Cosmos]: [
-		ExecutionEnvironmentId.CosmWasm,
-	],
-	[NetworkNamespace.Dogecoin]: [
-		ExecutionEnvironmentId.BitcoinScript,
-	],
-	[NetworkNamespace.Elements]: [
-		ExecutionEnvironmentId.ElementsScript,
-	],
-	[NetworkNamespace.Evm]: [
-		ExecutionEnvironmentId.Evm,
-	],
-	[NetworkNamespace.Filecoin]: [
-		ExecutionEnvironmentId.FilecoinVm,
-	],
-	[NetworkNamespace.Hyperliquid]: [
-		ExecutionEnvironmentId.HyperEvm,
-	],
-	[NetworkNamespace.Lightning]: [
-		ExecutionEnvironmentId.LightningProtocol,
-	],
-	[NetworkNamespace.Litecoin]: [
-		ExecutionEnvironmentId.BitcoinScript,
-	],
-	[NetworkNamespace.Logos]: [
-		ExecutionEnvironmentId.LogosBlockchainRuntime,
-	],
-	[NetworkNamespace.Monero]: [],
-	[NetworkNamespace.Near]: [
-		ExecutionEnvironmentId.NearRuntime,
-	],
-	[NetworkNamespace.Polkadot]: [
-		ExecutionEnvironmentId.SubstrateRuntime,
-	],
-	[NetworkNamespace.Quilibrium]: [
-		ExecutionEnvironmentId.QuilibriumQcl,
-	],
-	[NetworkNamespace.Solana]: [
-		ExecutionEnvironmentId.SolanaSvm,
-	],
-	[NetworkNamespace.Tron]: [
-		ExecutionEnvironmentId.TronTvm,
-	],
-	[NetworkNamespace.Zcash]: [
-		ExecutionEnvironmentId.BitcoinScript,
-	],
-	[NetworkNamespace.ZeroG]: [
-		ExecutionEnvironmentId.ZeroGChainEvm,
-		ExecutionEnvironmentId.ZeroGServingFramework,
-	],
-} as const satisfies Record<NetworkNamespace, readonly ExecutionEnvironmentId[]>
-
-const consensusMechanismIdsByNamespace = {
-	[NetworkNamespace.Bittensor]: [
-		ConsensusMechanismId.BittensorYumaConsensus,
-	],
-	[NetworkNamespace.Bitcoin]: [
-		ConsensusMechanismId.NakamotoProofOfWork,
-	],
-	[NetworkNamespace.BitcoinCash]: [
-		ConsensusMechanismId.NakamotoProofOfWork,
-	],
-	[NetworkNamespace.Cosmos]: [
-		ConsensusMechanismId.CometBft,
-	],
-	[NetworkNamespace.Dogecoin]: [
-		ConsensusMechanismId.DogecoinAuxProofOfWork,
-	],
-	[NetworkNamespace.Elements]: [],
-	[NetworkNamespace.Evm]: [
-		ConsensusMechanismId.EthereumBeaconProofOfStake,
-	],
-	[NetworkNamespace.Filecoin]: [
-		ConsensusMechanismId.FilecoinExpectedConsensus,
-	],
-	[NetworkNamespace.Hyperliquid]: [
-		ConsensusMechanismId.HyperBft,
-	],
-	[NetworkNamespace.Lightning]: [],
-	[NetworkNamespace.Litecoin]: [
-		ConsensusMechanismId.NakamotoProofOfWork,
-	],
-	[NetworkNamespace.Logos]: [
-		ConsensusMechanismId.LogosBedrock,
-	],
-	[NetworkNamespace.Monero]: [
-		ConsensusMechanismId.MoneroRandomXProofOfWork,
-	],
-	[NetworkNamespace.Near]: [
-		ConsensusMechanismId.NearNightshade,
-	],
-	[NetworkNamespace.Polkadot]: [
-		ConsensusMechanismId.PolkadotNposBabeGrandpa,
-	],
-	[NetworkNamespace.Quilibrium]: [
-		ConsensusMechanismId.QuilibriumProofOfMeaningfulWork,
-	],
-	[NetworkNamespace.Solana]: [
-		ConsensusMechanismId.SolanaProofOfHistoryTowerBft,
-	],
-	[NetworkNamespace.Tron]: [
-		ConsensusMechanismId.TronDpos,
-	],
-	[NetworkNamespace.Zcash]: [
-		ConsensusMechanismId.ZcashProofOfWork,
-	],
-	[NetworkNamespace.ZeroG]: [
-		ConsensusMechanismId.ZeroGProofOfStake,
-	],
-} as const satisfies Record<NetworkNamespace, readonly ConsensusMechanismId[]>
 
 const nativeAssetCoinIdByNamespace = {
 	[NetworkNamespace.Bittensor]: CoinId.TAO,
@@ -378,6 +231,25 @@ const marketSelectorFromCatalogCoinCurrencyMarket = (catalogMarket: CatalogCoinC
 	},
 	marketKind: catalogMarket.marketKind,
 }) satisfies MarketIdLabelInput
+
+const catalogCoinCurrencyMarketMatchesMarket = (
+	catalogMarket: CatalogCoinCurrencyMarket,
+	market: EntitySelector<typeof schema, EntityType.Market>
+) => (
+	market.marketKind === catalogMarket.marketKind
+	&& market.$marketVenue.marketVenueId === catalogMarket.marketVenueId
+	&& market.$base.kind === MarketAssetKind.Coin
+	&& market.$base.$coin.coinId === catalogMarket.baseCoinId
+	&& market.$quote.kind === MarketAssetKind.Currency
+	&& market.$quote.$currency.iso4217 === catalogMarket.quoteIso4217
+)
+
+const ethNativeCoinInstanceRepresentationByChainId = {
+	[ChainId.Ethereum]: CoinInstanceRepresentation.IssuerNative,
+	[ChainId.Optimism]: CoinInstanceRepresentation.CanonicalL2Native,
+	[ChainId.Arbitrum]: CoinInstanceRepresentation.CanonicalL2Native,
+	[ChainId.Base]: CoinInstanceRepresentation.CanonicalL2Native,
+} as const
 
 const marketSelectorFromCatalogCoinCoinMarket = (catalogMarket: CatalogCoinCoinMarket) => ({
 	$base: {
@@ -445,7 +317,9 @@ const uniqueProposalRefs = (
 ) => (
 	proposals.filter((proposal, index) => (
 		proposals.findIndex((otherProposal) => (
-			stringify(otherProposal[EntityMetaKey.Selector]) === stringify(proposal[EntityMetaKey.Selector])
+			otherProposal[EntityMetaKey.Selector].realm === proposal[EntityMetaKey.Selector].realm
+			&& otherProposal[EntityMetaKey.Selector].category === proposal[EntityMetaKey.Selector].category
+			&& otherProposal[EntityMetaKey.Selector].number === proposal[EntityMetaKey.Selector].number
 		)) === index
 	))
 )
@@ -825,14 +699,14 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Coin,
 			resolve: {
-				[CoinSelector.CoinId]: async ({ coinId }) => {
-					const decimals = coinDecimalsByCoinId.get(coinId)
-					if (decimals != null)
-						return { decimals }
+					[CoinSelector.CoinId]: async ({ coinId }) => {
+						const decimals = coinDecimalsByCoinId.get(coinId)
+						if (decimals != null)
+							return { decimals }
 
-					throw new Error(`Constants_Internal: Coin ${coinId} decimals not in catalog`)
-				}
-			},
+						throw new Error(`Constants_Internal: Coin ${coinId} decimals not in catalog`)
+					}
+				},
 		})({
 			fields: {
 				decimals: (coin) => coin.decimals,
@@ -843,9 +717,10 @@ export default {
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
 				[EvmCoinInstanceSelector.NetworkType]: async ({ $network, type }) => {
+					const representation = ethNativeCoinInstanceRepresentationByChainId[Number($network.caip2.reference)]
 					if (
 					type !== CoinInstanceType.NativeCurrency
-					|| Number($network.caip2.reference) !== 1
+					|| representation == null
 					) {
 						throw new Error('Constants_Internal: CoinInstance not found')
 					}
@@ -853,13 +728,14 @@ export default {
 						coinId: CoinId.ETH,
 						symbol: 'ETH',
 						decimals: 18,
-						representation: CoinInstanceRepresentation.IssuerNative,
+						representation,
 					}
 				},
 				[EvmCoinInstanceSelector.NetworkTypeContract]: async ({ $network, type }) => {
+					const representation = ethNativeCoinInstanceRepresentationByChainId[Number($network.caip2.reference)]
 					if (
 					type !== CoinInstanceType.NativeCurrency
-					|| Number($network.caip2.reference) !== 1
+					|| representation == null
 					) {
 						throw new Error('Constants_Internal: CoinInstance not found')
 					}
@@ -867,7 +743,7 @@ export default {
 						coinId: CoinId.ETH,
 						symbol: 'ETH',
 						decimals: 18,
-						representation: CoinInstanceRepresentation.IssuerNative,
+						representation,
 					}
 				},
 			},
@@ -906,6 +782,29 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
+				[EvmNetworkSelector.Slug]: async ({ slug }) => {
+					const { beaconRestBaseByExecutionChainId } = await import('$/constants/BeaconConsensus.ts')
+					const network = networkBySlug[slug]
+					const beaconRestBase = beaconRestBaseByExecutionChainId[Number(network.caip2.reference)]
+					return {
+						slug: network.slug,
+						name: network.name,
+						caip2: network.caip2,
+						namespace: network.namespace,
+						environment: network.environment,
+						consensusEndpoints: (
+							beaconRestBase == null ?
+								[]
+							:
+								[
+									{
+										restBaseUrl: beaconRestBase.restBaseUrl,
+										consensusProtocol: beaconRestBase.consensusProtocol,
+									},
+								]
+						),
+					}
+				},
 				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
 					const { beaconRestBaseByExecutionChainId } = await import('$/constants/BeaconConsensus.ts')
 					const network = networkByCaip2[`${caip2.namespace}:${caip2.reference}`]
@@ -964,8 +863,6 @@ export default {
 				protocolName: (protocol) => protocol.protocolName,
 				homeUrl: (protocol) => protocol.homeUrl,
 				docsUrl: (protocol) => protocol.docsUrl,
-				registryLabel: (protocol) => protocol.registryLabel,
-				topology: (protocol) => protocol.topology,
 			},
 		}),
 
@@ -976,7 +873,46 @@ export default {
 			},
 		})({
 			fields: {
+				marketVenueId: (marketVenue) => marketVenue.id,
 				label: (marketVenue) => marketVenue.label,
+				$$markets: (marketVenue, _marketVenueSelector, context) => {
+					const limit = resolverContextRowLimit(context)
+					const marketReferences: {
+						[EntityMetaKey.Selector]: EntitySelector<typeof schema, EntityType.Market>
+					}[] = []
+
+					for (const catalogMarket of catalogCoinSpotUsdMarkets) {
+						if (marketReferences.length >= limit)
+							return marketReferences
+
+						if (catalogMarket.marketVenueId === marketVenue.id)
+							marketReferences.push({
+								[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(catalogMarket),
+							})
+					}
+
+					for (const catalogMarket of catalogSpotMarketsWithCoinAsQuote) {
+						if (marketReferences.length >= limit)
+							return marketReferences
+
+						if (catalogMarket.marketVenueId === marketVenue.id)
+							marketReferences.push({
+								[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCoinMarket(catalogMarket),
+							})
+					}
+
+					for (const catalogMarket of catalogSpotMarketsWithCurrencyAsBase) {
+						if (marketReferences.length >= limit)
+							return marketReferences
+
+						if (catalogMarket.marketVenueId === marketVenue.id)
+							marketReferences.push({
+								[EntityMetaKey.Selector]: marketSelectorFromCatalogCurrencyCurrencyMarket(catalogMarket),
+							})
+					}
+
+					return marketReferences
+				},
 			},
 		}),
 
@@ -1035,60 +971,41 @@ export default {
 			resolve: {
 				[NetworkSelector.Caip2]: async ({ caip2 }) => {
 					const network = networkByCaip2[`${caip2.namespace}:${caip2.reference}`]
-					const namespace = network.namespace as NetworkNamespace
 					return {
 						slug: network.slug,
 						name: network.name,
 						...('caip2' in network && {
 							caip2: network.caip2,
-							}),
-							namespace,
-							environment: network.environment,
-							$networkStack: {
-								[EntityMetaKey.Selector]: {
-									networkStackId: networkStackIdByNamespace[namespace],
-								},
-							},
-							executionEnvironments: [...executionEnvironmentIdsByNamespace[namespace]],
-							consensusMechanisms: [...consensusMechanismIdsByNamespace[namespace]],
-						}
-					},
+						}),
+						namespace: network.namespace,
+						environment: network.environment,
+					}
+				},
 				[NetworkSelector.Slug]: async ({ slug }) => {
 					const network = networkBySlug[slug]
 					if (network == null)
-							throw new Error(`Constants_Internal: Network not found`)
-					const namespace = network.namespace as NetworkNamespace
+						throw new Error('Constants_Internal: Network not found')
 
 					return {
 						slug: network.slug,
 						name: network.name,
 						...('caip2' in network && {
 							caip2: network.caip2,
-							}),
-							namespace,
-							environment: network.environment,
-							$networkStack: {
-								[EntityMetaKey.Selector]: {
-									networkStackId: networkStackIdByNamespace[namespace],
-								},
-							},
-							executionEnvironments: [...executionEnvironmentIdsByNamespace[namespace]],
-							consensusMechanisms: [...consensusMechanismIdsByNamespace[namespace]],
-						}
-					},
+						}),
+						namespace: network.namespace,
+						environment: network.environment,
+					}
+				},
 			},
 		})({
 			fields: {
 				slug: (network) => network.slug,
 				name: (network) => network.name,
-					caip2: (network) => network.caip2,
-					namespace: (network) => network.namespace,
-					environment: (network) => network.environment,
-						$networkStack: (network) => network.$networkStack,
-						executionEnvironments: (network) => network.executionEnvironments,
-						consensusMechanisms: (network) => network.consensusMechanisms,
-				},
-			}),
+				caip2: (network) => network.caip2,
+				namespace: (network) => network.namespace,
+				environment: (network) => network.environment,
+			},
+		}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.NearNetwork,
@@ -1184,6 +1101,7 @@ export default {
 						throw new Error('Constants_Internal: SolanaNetwork not found')
 
 					return {
+						name: network.name,
 						caip2: network.caip2,
 						$network: {
 							[EntityMetaKey.Selector]: {
@@ -1208,6 +1126,7 @@ export default {
 			},
 		})({
 			fields: {
+				name: (network) => network.name,
 				caip2: (network) => network.caip2,
 				$network: (network) => network.$network,
 				environment: (network) => network.environment,
@@ -1308,11 +1227,15 @@ export default {
 			entityType: EntityType.ActivityPubNetwork,
 			resolve: {
 				[ActivityPubNetworkSelector.Scope]: async () => ({
+					$$activityPubActors: activityPubNetworkSeedActors.map((actor) => ({
+						[EntityMetaKey.Selector]: {
+							instanceOrigin: actor.instanceOrigin,
+							acct: actor.acct,
+						},
+					})),
 					docsUrl: 'https://w3c.github.io/activitypub/',
 					homeUrl: 'https://www.w3.org/TR/activitypub/',
 					protocolName: 'ActivityPub (federated)',
-					registryLabel: 'Configured Mastodon-compatible instances + curated seed actors',
-					topology: 'Constants seeds + live REST (multi-instance) -> network -> actors -> notes -> thread',
 				})
 			},
 		})({
@@ -1320,8 +1243,7 @@ export default {
 				protocolName: (entity) => entity.protocolName,
 				homeUrl: (entity) => entity.homeUrl,
 				docsUrl: (entity) => entity.docsUrl,
-				registryLabel: (entity) => entity.registryLabel,
-				topology: (entity) => entity.topology,
+				$$activityPubActors: (entity) => entity.$$activityPubActors,
 			},
 		}),
 
@@ -1332,8 +1254,6 @@ export default {
 					docsUrl: 'https://atproto.com/specs/atp',
 					homeUrl: 'https://atproto.com',
 					protocolName: 'AT Protocol (Bluesky / appviews)',
-					registryLabel: 'Curated seed actors + public appview feeds',
-					topology: 'Constants seeds + live XRPC -> network -> actors -> posts',
 				})
 			},
 		})({
@@ -1341,8 +1261,37 @@ export default {
 				protocolName: (entity) => entity.protocolName,
 				homeUrl: (entity) => entity.homeUrl,
 				docsUrl: (entity) => entity.docsUrl,
-				registryLabel: (entity) => entity.registryLabel,
+			},
+		}),
+
+		defineResolver(Source.Constants_Internal, {
+			entityType: EntityType._GlobalAtprotoNetwork,
+			resolve: {
+				[_GlobalAtprotoNetworkSelector.Scope]: async () => ({
+					$$sourceWindowActors: atprotoNetworkSeedActors.map((actor) => ({
+						[EntityMetaKey.Selector]: {
+							did: actor.did,
+						},
+					})),
+					$$sourceWindowPosts: atprotoNetworkSeedPosts.map((post) => ({
+						[EntityMetaKey.Selector]: {
+							uri: post.uri,
+						},
+					})),
+					docsUrl: 'https://atproto.com/specs/atp',
+					homeUrl: 'https://atproto.com',
+					protocolName: 'AT Protocol',
+					topology: 'DIDs identify repos; PDS hosts serve signed records; appviews index public profiles, feeds, and relationships.',
+				})
+			},
+		})({
+			fields: {
+				protocolName: (entity) => entity.protocolName,
 				topology: (entity) => entity.topology,
+				homeUrl: (entity) => entity.homeUrl,
+				docsUrl: (entity) => entity.docsUrl,
+				$$sourceWindowActors: (entity) => entity.$$sourceWindowActors,
+				$$sourceWindowPosts: (entity) => entity.$$sourceWindowPosts,
 			},
 		}),
 
@@ -1402,8 +1351,6 @@ export default {
 				protocolName: (entity) => entity.protocolName,
 				homeUrl: (entity) => entity.homeUrl,
 				docsUrl: (entity) => entity.docsUrl,
-				registryLabel: (entity) => entity.registryLabel,
-				topology: (entity) => entity.topology,
 			},
 		}),
 
@@ -1417,8 +1364,6 @@ export default {
 				protocolName: (entity) => entity.protocolName,
 				homeUrl: (entity) => entity.homeUrl,
 				docsUrl: (entity) => entity.docsUrl,
-				registryLabel: (entity) => entity.registryLabel,
-				topology: (entity) => entity.topology,
 			},
 		}),
 
@@ -1429,8 +1374,14 @@ export default {
 					docsUrl: 'https://docs.farcaster.xyz',
 					homeUrl: 'https://www.farcaster.xyz',
 					protocolName: 'Farcaster',
-					registryLabel: 'Client API registries + Snapchain / Neynar feeds',
-					topology: 'live REST hub + indexer -> network -> feeds / channels / users -> casts',
+					registryLabel: 'Farcaster hub and indexer source window',
+					topology: 'FID-keyed users, channels, and immutable casts resolved through configured Farcaster REST, Neynar, and Snapchain sources.',
+					$$feeds: Object.values(farcasterFeedKindByVariant).map((feed) => ({
+						[EntityMetaKey.Selector]: {
+							variant: feed.variant,
+						},
+						label: feed.label,
+					})),
 				})
 			},
 		})({
@@ -1440,6 +1391,7 @@ export default {
 				docsUrl: (entity) => entity.docsUrl,
 				registryLabel: (entity) => entity.registryLabel,
 				topology: (entity) => entity.topology,
+				$$feeds: (entity) => entity.$$feeds,
 			},
 		}),
 
@@ -1450,8 +1402,13 @@ export default {
 					docsUrl: 'https://docs.lens.xyz',
 					homeUrl: 'https://lens.xyz',
 					protocolName: 'Lens',
-					registryLabel: 'Curated seed accounts + GraphQL author feeds',
-					topology: 'Constants seeds + live GraphQL -> network -> accounts -> posts',
+					registryLabel: 'Lens GraphQL source window',
+					topology: 'Profiles and posts are indexed social graph records resolved through configured Lens GraphQL endpoints.',
+					$$lensAccounts: lensNetworkSeedAccounts.map((account) => ({
+						[EntityMetaKey.Selector]: {
+							address: account.address,
+						},
+					})),
 				})
 			},
 		})({
@@ -1461,61 +1418,79 @@ export default {
 				docsUrl: (entity) => entity.docsUrl,
 				registryLabel: (entity) => entity.registryLabel,
 				topology: (entity) => entity.topology,
+				$$lensAccounts: (entity) => entity.$$lensAccounts,
 			},
 		}),
 
 		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.NostrNetwork,
+			entityType: EntityType._GlobalNostrNetwork,
 			resolve: {
-				[NostrNetworkSelector.Scope]: async () => ({
+				[_GlobalNostrNetworkSelector.Scope]: async (_entitySelector, context) => ({
 					docsUrl: 'https://github.com/nostr-protocol/nips',
 					homeUrl: 'https://nostr.com',
 					protocolName: 'Nostr',
-					registryLabel: 'Curated seed profiles + relay/indexer feeds',
-					topology: 'Constants seeds + live REST/indexer -> network -> relays / profiles -> notes / reposts / articles',
+					registryLabel: 'Nostr public relay and indexer source window',
+					topology: 'Profiles, notes, reposts, reactions, and articles are signed events. Relays are WebSocket transports; they do not imply a single global canonical database.',
+					$$sourceWindowProfiles: nostrNetworkSeedProfiles.slice(0, resolverContextRowLimit(context)).map((profile) => ({
+						[EntityMetaKey.Selector]: {
+							pubkey: profile.pubkey,
+						},
+					})),
+					$$sourceWindowNotes: nostrNetworkSeedNotes.slice(0, resolverContextRowLimit(context)).map((note) => ({
+						[EntityMetaKey.Selector]: {
+							eventId: note.eventId,
+						},
+					})),
+					$$sourceWindowRelays: nostrNetworkSeedRelays.slice(0, resolverContextRowLimit(context)).map((relay) => ({
+						[EntityMetaKey.Selector]: {
+							relayUrl: relay.relayUrl,
+						},
+					})),
+					$$sourceWindowReposts: [],
+					$$sourceWindowArticles: [],
 				})
 			},
 		})({
 			fields: {
-				protocolName: (entity) => entity.protocolName,
-				homeUrl: (entity) => entity.homeUrl,
-				docsUrl: (entity) => entity.docsUrl,
-				registryLabel: (entity) => entity.registryLabel,
-				topology: (entity) => entity.topology,
+				protocolName: (network) => network.protocolName,
+				registryLabel: (network) => network.registryLabel,
+				homeUrl: (network) => network.homeUrl,
+				docsUrl: (network) => network.docsUrl,
+				topology: (network) => network.topology,
+				$$sourceWindowProfiles: (network) => network.$$sourceWindowProfiles,
+				$$sourceWindowNotes: (network) => network.$$sourceWindowNotes,
+				$$sourceWindowRelays: (network) => network.$$sourceWindowRelays,
+				$$sourceWindowReposts: (network) => network.$$sourceWindowReposts,
+				$$sourceWindowArticles: (network) => network.$$sourceWindowArticles,
 			},
 		}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.NostrProfile,
 			resolve: {
-				[NostrProfileSelector.CanonicalPubkey]: async ({ pubkey }) => ({
-					pubkey,
-					displayName: undefined,
-					about: undefined,
-					nip05: undefined,
-					lud16: undefined,
-					lud06: undefined,
-					website: undefined,
-					metadataUpdatedAt: undefined,
-					$icon: undefined,
-					$banner: undefined,
-					$$notes: [],
-					$$articles: [],
-					$$reposts: [],
-				})
+				[NostrProfileSelector.CanonicalPubkey]: async ({ pubkey }, context) => {
+					const profile = nostrNetworkSeedProfiles.find((seedProfile) => seedProfile.pubkey === pubkey)
+					if (profile == null)
+						throw new Error('Constants_Internal: NostrProfile seed not found')
+
+					return {
+						...profile,
+						$$notes: nostrNetworkSeedNotes
+							.filter((note) => note.pubkey === pubkey)
+							.slice(0, resolverContextRowLimit(context))
+							.map((note) => ({
+								[EntityMetaKey.Selector]: {
+									eventId: note.eventId,
+								},
+							})),
+						$$articles: [],
+						$$reposts: [],
+					}
+				}
 			},
 		})({
 			fields: {
 				pubkey: (profile) => profile.pubkey,
-				displayName: (profile) => profile.displayName,
-				about: (profile) => profile.about,
-				nip05: (profile) => profile.nip05,
-				lud16: (profile) => profile.lud16,
-				lud06: (profile) => profile.lud06,
-				website: (profile) => profile.website,
-				metadataUpdatedAt: (profile) => profile.metadataUpdatedAt,
-				$icon: (profile) => profile.$icon,
-				$banner: (profile) => profile.$banner,
 				$$notes: (profile) => profile.$$notes,
 				$$articles: (profile) => profile.$$articles,
 				$$reposts: (profile) => profile.$$reposts,
@@ -1525,27 +1500,21 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.NostrRelay,
 			resolve: {
-				[NostrRelaySelector.RelayUrl]: async ({ relayUrl }) => ({
-					relayUrl,
-					name: relayUrl.replace(/^wss:\/\//i, ''),
-					description: undefined,
-					software: undefined,
-					version: undefined,
-					supportedNipCount: undefined,
-					isPaid: undefined,
-					limit: undefined,
-				})
+				[NostrRelaySelector.RelayUrl]: async ({ relayUrl }) => {
+					const relay = nostrNetworkSeedRelays.find((seedRelay) => seedRelay.relayUrl === relayUrl)
+					if (relay == null)
+						throw new Error('Constants_Internal: NostrRelay seed not found')
+
+					return {
+						...relay,
+						name: relay.relayUrl.replace(/^wss:\/\//i, ''),
+					}
+				}
 			},
 		})({
 			fields: {
 				relayUrl: (relay) => relay.relayUrl,
 				name: (relay) => relay.name,
-				description: (relay) => relay.description,
-				software: (relay) => relay.software,
-				version: (relay) => relay.version,
-				supportedNipCount: (relay) => relay.supportedNipCount,
-				isPaid: (relay) => relay.isPaid,
-				limit: (relay) => relay.limit,
 			},
 		}),
 
@@ -1562,16 +1531,12 @@ export default {
 						kind: 1,
 						pubkey: note.pubkey,
 						content: note.content,
-						createdAt: note.createdAt,
-						tags: [],
+						createdAt: note.createdAt * 1000,
 						$author: {
 							[EntityMetaKey.Selector]: {
 								pubkey: note.pubkey,
 							},
 						},
-						replyToEventId: undefined,
-						rootEventId: undefined,
-						$replyToNote: undefined,
 						$$replies: [],
 						$$reactions: [],
 					}
@@ -1584,11 +1549,7 @@ export default {
 				pubkey: (note) => note.pubkey,
 				content: (note) => note.content,
 				createdAt: (note) => note.createdAt,
-				tags: (note) => note.tags,
 				$author: (note) => note.$author,
-				replyToEventId: (note) => note.replyToEventId,
-				rootEventId: (note) => note.rootEventId,
-				$replyToNote: (note) => note.$replyToNote,
 				$$replies: (note) => note.$$replies,
 				$$reactions: (note) => note.$$reactions,
 			},
@@ -1601,8 +1562,6 @@ export default {
 					docsUrl: 'https://www.reddit.com/dev/api/',
 					homeUrl: 'https://www.reddit.com',
 					protocolName: 'Reddit data API',
-					registryLabel: 'Curated seed subreddits + live /r/popular hot feed',
-					topology: 'Constants seeds + Reddit API (/r/popular/hot) -> network -> subreddits -> links -> comments',
 				})
 			},
 		})({
@@ -1610,8 +1569,6 @@ export default {
 				protocolName: (entity) => entity.protocolName,
 				homeUrl: (entity) => entity.homeUrl,
 				docsUrl: (entity) => entity.docsUrl,
-				registryLabel: (entity) => entity.registryLabel,
-				topology: (entity) => entity.topology,
 			},
 		}),
 
@@ -1622,8 +1579,13 @@ export default {
 					docsUrl: 'https://www.rssboard.org/rss-specification',
 					homeUrl: 'https://www.rssboard.org',
 					protocolName: 'RSS / Atom syndication',
-					registryLabel: 'Constants feedUrl seeds + live item streams',
-					topology: 'Constants feedUrl seeds + Rss_Rest XML / Rss2Json proxy -> network -> feeds -> items',
+					registryLabel: 'Seed feeds',
+					topology: 'A configured feed directory with live item windows resolved from each feed URL.',
+					$$rssFeeds: rssNetworkSeedFeeds.map((feed) => ({
+						[EntityMetaKey.Selector]: {
+							feedUrl: feed.feedUrl,
+						},
+					})),
 				})
 			},
 		})({
@@ -1633,6 +1595,7 @@ export default {
 				docsUrl: (entity) => entity.docsUrl,
 				registryLabel: (entity) => entity.registryLabel,
 				topology: (entity) => entity.topology,
+				$$rssFeeds: (entity) => entity.$$rssFeeds,
 			},
 		}),
 
@@ -1643,8 +1606,8 @@ export default {
 					docsUrl: 'https://developer.x.com',
 					homeUrl: 'https://x.com',
 					protocolName: 'X (API v2)',
-					registryLabel: 'Curated seed users + live user timelines',
-					topology: 'Constants seeds + live REST -> network -> users -> posts',
+					registryLabel: 'Public profiles and posts',
+					topology: 'Public X users and posts resolved from configured HTTP sources.',
 				})
 			},
 		})({
@@ -1664,8 +1627,8 @@ export default {
 					docsUrl: 'https://docs.xmtp.org',
 					homeUrl: 'https://xmtp.org',
 					protocolName: 'XMTP (wallet messaging)',
-					registryLabel: 'Session-local wallets + conversations',
-					topology: 'Constants metadata + session-local -> network -> conversations',
+					registryLabel: 'Local inbox state',
+					topology: 'Local catalog conversations associated with provisioned wallet identities.',
 				})
 			},
 		})({
@@ -1679,14 +1642,12 @@ export default {
 		}),
 
 		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.YouTubeNetwork,
+			entityType: EntityType.YoutubeNetwork,
 			resolve: {
-				[YouTubeNetworkSelector.Scope]: async () => ({
+				[YoutubeNetworkSelector.Scope]: async () => ({
 					docsUrl: 'https://developers.google.com/youtube/v3',
 					homeUrl: 'https://www.youtube.com',
 					protocolName: 'YouTube Data API',
-					registryLabel: 'Curated seed channels + live channel uploads',
-					topology: 'Constants seeds + live REST -> network -> channels / playlists -> videos',
 				})
 			},
 			})({
@@ -1694,17 +1655,15 @@ export default {
 					protocolName: (entity) => entity.protocolName,
 					homeUrl: (entity) => entity.homeUrl,
 					docsUrl: (entity) => entity.docsUrl,
-					registryLabel: (entity) => entity.registryLabel,
-					topology: (entity) => entity.topology,
 				},
 			}),
 
 			defineResolver(Source.Constants_Internal, {
-				entityType: EntityType.YouTubeChannel,
+				entityType: EntityType.YoutubeChannel,
 				resolve: {
-				[YouTubeChannelSelector.ChannelId]: async ({ channelId }) => {
+				[YoutubeChannelSelector.ChannelId]: async ({ channelId }) => {
 						const channel = youtubeNetworkSeedChannelByChannelId[channelId]
-						if (channel == null) throw new Error(`Constants_Internal: YouTubeChannel ${channelId} not found`)
+						if (channel == null) throw new Error(`Constants_Internal: YoutubeChannel ${channelId} not found`)
 
 						return channel
 					}
@@ -1716,11 +1675,11 @@ export default {
 			}),
 
 			defineResolver(Source.Constants_Internal, {
-				entityType: EntityType.YouTubePlaylist,
+				entityType: EntityType.YoutubePlaylist,
 				resolve: {
-				[YouTubePlaylistSelector.PlaylistId]: async ({ playlistId }) => {
+				[YoutubePlaylistSelector.PlaylistId]: async ({ playlistId }) => {
 						const playlist = youtubeNetworkSeedPlaylistByPlaylistId[playlistId]
-						if (playlist == null) throw new Error(`Constants_Internal: YouTubePlaylist ${playlistId} not found`)
+						if (playlist == null) throw new Error(`Constants_Internal: YoutubePlaylist ${playlistId} not found`)
 
 						return playlist
 					}
@@ -1737,11 +1696,44 @@ export default {
 			}),
 
 			defineResolver(Source.Constants_Internal, {
-				entityType: EntityType.YouTubeVideo,
+				entityType: EntityType.YoutubePlaylist,
 				resolve: {
-				[YouTubeVideoSelector.VideoId]: async ({ videoId }) => {
+					[YoutubePlaylistSelector.PlaylistId]: async ({ playlistId }) => {
+						const playlist = youtubeNetworkSeedPlaylistByPlaylistId[playlistId]
+						if (playlist == null) throw new Error(`Constants_Internal: YoutubePlaylist ${playlistId} not found`)
+
+						return [...youtubeNetworkSeedVideos]
+							.filter((video) => video.channelId === playlist.channelId)
+							.map((video) => ({
+								[EntityMetaKey.Selector]: {
+									videoId: video.videoId,
+								},
+								[EntityMetaKey.Fields]: {
+									title: video.title,
+									publishedAt: video.publishedAt,
+									publishedAtMs: video.publishedAtMs,
+									thumbnailUrl: video.thumbnailUrl,
+									$author: {
+										[EntityMetaKey.Selector]: {
+											channelId: video.channelId,
+										},
+									},
+								},
+							}))
+					},
+				},
+			})({
+				fields: {
+					$$videos: (entity) => entity,
+				},
+			}),
+
+			defineResolver(Source.Constants_Internal, {
+				entityType: EntityType.YoutubeVideo,
+				resolve: {
+				[YoutubeVideoSelector.VideoId]: async ({ videoId }) => {
 						const video = youtubeNetworkSeedVideoByVideoId[videoId]
-						if (video == null) throw new Error(`Constants_Internal: YouTubeVideo ${videoId} not found`)
+						if (video == null) throw new Error(`Constants_Internal: YoutubeVideo ${videoId} not found`)
 
 						return video
 					}
@@ -1759,6 +1751,138 @@ export default {
 					}),
 				},
 			}),
+
+			defineResolver(Source.Constants_Internal, {
+				entityType: EntityType._GlobalRedditNetwork,
+				resolve: {
+					[_GlobalRedditNetworkSelector.Scope]: async ({ scope }) => ({
+						scope,
+					}),
+				},
+			})({
+				fields: {
+					scope: (entity) => entity.scope,
+				},
+			}),
+
+			defineResolver(Source.Constants_Internal, {
+				entityType: EntityType._GlobalRedditNetwork,
+				resolve: {
+					[_GlobalRedditNetworkSelector.Scope]: async () => (
+						[...redditNetworkSeedSubreddits].map((subreddit) => ({
+							[EntityMetaKey.Selector]: {
+								name: subreddit.name,
+							},
+						}))
+					),
+				},
+			})({
+				fields: {
+					$$sourceWindowSubreddits: (entity) => entity,
+				},
+			}),
+
+			defineResolver(Source.Constants_Internal, {
+				entityType: EntityType._GlobalRedditNetwork,
+				resolve: {
+					[_GlobalRedditNetworkSelector.Scope]: async () => (
+						[...redditNetworkSeedLinks].map((link) => ({
+							[EntityMetaKey.Selector]: {
+								fullname: link.fullname,
+							},
+							[EntityMetaKey.Fields]: {
+								title: link.title,
+								permalink: link.permalink,
+								author: link.author,
+								createdAt: link.createdAt,
+								$subreddit: {
+									[EntityMetaKey.Selector]: {
+										name: link.subredditName,
+									},
+								},
+							},
+						}))
+					),
+				},
+			})({
+				fields: {
+					$$sourceWindowLinks: (entity) => entity,
+				},
+			}),
+
+			defineResolver(Source.Constants_Internal, {
+				entityType: EntityType._GlobalYoutubeNetwork,
+				resolve: {
+					[_GlobalYoutubeNetworkSelector.Scope]: async () => (
+						[...youtubeNetworkSeedChannels].map((channel) => ({
+							[EntityMetaKey.Selector]: {
+								channelId: channel.channelId,
+							},
+							[EntityMetaKey.Fields]: {
+								title: channel.title,
+							},
+						}))
+					),
+				},
+			})({
+				fields: {
+					$$sourceWindowChannels: (entity) => entity,
+				},
+			}),
+
+			defineResolver(Source.Constants_Internal, {
+				entityType: EntityType._GlobalYoutubeNetwork,
+				resolve: {
+					[_GlobalYoutubeNetworkSelector.Scope]: async () => (
+						[...youtubeNetworkSeedVideos].map((video) => ({
+							[EntityMetaKey.Selector]: {
+								videoId: video.videoId,
+							},
+							[EntityMetaKey.Fields]: {
+								title: video.title,
+								publishedAt: video.publishedAt,
+								publishedAtMs: video.publishedAtMs,
+								thumbnailUrl: video.thumbnailUrl,
+								$author: {
+									[EntityMetaKey.Selector]: {
+										channelId: video.channelId,
+									},
+								},
+							},
+						}))
+					),
+				},
+			})({
+				fields: {
+					$$sourceWindowVideos: (entity) => entity,
+				},
+			}),
+
+			defineResolver(Source.Constants_Internal, {
+				entityType: EntityType._GlobalYoutubeNetwork,
+				resolve: {
+					[_GlobalYoutubeNetworkSelector.Scope]: async () => (
+						[...youtubeNetworkSeedPlaylists].map((playlist) => ({
+							[EntityMetaKey.Selector]: {
+								playlistId: playlist.playlistId,
+							},
+							[EntityMetaKey.Fields]: {
+								title: playlist.title,
+								$channel: {
+									[EntityMetaKey.Selector]: {
+										channelId: playlist.channelId,
+									},
+								},
+							},
+						}))
+					),
+				},
+			})({
+				fields: {
+					$$sourceWindowPlaylists: (entity) => entity,
+				},
+			}),
+
 			defineResolver(Source.Constants_Internal, {
 				entityType: EntityType._Global,
 				resolve: {
@@ -1831,7 +1955,7 @@ export default {
 						{
 							[EntityMetaKey.Selector]: {
 								$network: {
-									slug,
+									caip2: network.caip2,
 								},
 								kind: AssetInstanceKind.Native,
 								assetKey: coinId,
@@ -2135,19 +2259,17 @@ export default {
 					coinId !== CoinId.ETH ?
 						[]
 					:
-						[
-							{
+						Object.keys(ethNativeCoinInstanceRepresentationByChainId).map((chainId) => ({
 							[EntityMetaKey.Selector]: {
 								$network: {
 									caip2: {
 										namespace: 'eip155' as const,
-										reference: '1',
+										reference: chainId,
 									},
 								},
 								type: CoinInstanceType.NativeCurrency as const,
 							},
-							},
-						]
+						}))
 				)
 			},
 		})({
@@ -2160,21 +2282,17 @@ export default {
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
 				[EvmCoinInstanceSelector.NetworkType]: async ({ $network, type }) => {
-					if (
-					type === CoinInstanceType.NativeCurrency
-					&& Number($network.caip2.reference) === 1
-					) {
-						return CoinInstanceRepresentation.IssuerNative
-					}
+					const representation = ethNativeCoinInstanceRepresentationByChainId[Number($network.caip2.reference)]
+					if (type === CoinInstanceType.NativeCurrency && representation != null)
+						return representation
+
 					throw new Error('Constants_Internal: CoinInstance representation unsupported')
 				},
 				[EvmCoinInstanceSelector.NetworkTypeContract]: async ({ $network, type }) => {
-					if (
-					type === CoinInstanceType.NativeCurrency
-					&& Number($network.caip2.reference) === 1
-					) {
-						return CoinInstanceRepresentation.IssuerNative
-					}
+					const representation = ethNativeCoinInstanceRepresentationByChainId[Number($network.caip2.reference)]
+					if (type === CoinInstanceType.NativeCurrency && representation != null)
+						return representation
+
 					throw new Error('Constants_Internal: CoinInstance representation unsupported')
 				},
 			},
@@ -2210,7 +2328,7 @@ export default {
 				[MarketSelector.BaseQuoteMarketVenueKind]: async (entitySelector: EntitySelector<typeof schema, EntityType.Market>) => (
 					(
 						entitySelector.$base.kind === MarketAssetKind.Coin
-					&& stringify(marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[entitySelector.$base.$coin.coinId])) === stringify(entitySelector)
+					&& catalogCoinCurrencyMarketMatchesMarket(catalogCoinSpotUsdMarketByCoinId[entitySelector.$base.$coin.coinId], entitySelector)
 					) ?
 						[
 							{
@@ -2262,6 +2380,10 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
+				[EvmNetworkSelector.Slug]: async ({ slug }) => {
+					const { beaconRestBaseByExecutionChainId } = await import('$/constants/BeaconConsensus.ts')
+					return beaconRestBaseByExecutionChainId[Number(networkBySlug[slug].caip2.reference)]?.consensusProtocol
+				},
 				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
 					const { beaconRestBaseByExecutionChainId } = await import('$/constants/BeaconConsensus.ts')
 					return beaconRestBaseByExecutionChainId[Number(caip2.reference)]?.consensusProtocol
@@ -2276,6 +2398,97 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
+				[EvmNetworkSelector.Slug]: async ({ slug }) => {
+					const caip2 = networkBySlug[slug].caip2
+					const coinId = nativeAssetCoinIdByNamespace[NetworkNamespace.Evm]
+					return {
+						nativeCoin: {
+							[EntityMetaKey.Selector]: {
+								coinId,
+							},
+						},
+						nativeCoinInstance: {
+							[EntityMetaKey.Selector]: {
+								$network: {
+									caip2,
+								},
+								type: CoinInstanceType.NativeCurrency,
+							},
+						},
+						nativeAssets: [
+							{
+								[EntityMetaKey.Selector]: {
+									$network: {
+										caip2,
+									},
+									kind: AssetInstanceKind.Native,
+									assetKey: coinId,
+								},
+								coinId,
+								symbol: coinId,
+							},
+						],
+					}
+				},
+				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
+					const coinId = nativeAssetCoinIdByNamespace[NetworkNamespace.Evm]
+					return {
+						nativeCoin: {
+							[EntityMetaKey.Selector]: {
+								coinId,
+							},
+						},
+						nativeCoinInstance: {
+							[EntityMetaKey.Selector]: {
+								$network: {
+									caip2,
+								},
+								type: CoinInstanceType.NativeCurrency,
+							},
+						},
+						nativeAssets: [
+							{
+								[EntityMetaKey.Selector]: {
+									$network: {
+										caip2,
+									},
+									kind: AssetInstanceKind.Native,
+									assetKey: coinId,
+								},
+								coinId,
+								symbol: coinId,
+							},
+						],
+					}
+				},
+			},
+		})({
+			fields: {
+				$nativeCoin: (entity) => entity.nativeCoin,
+				$nativeCoinInstance: (entity) => entity.nativeCoinInstance,
+				$$nativeAssets: (entity) => entity.nativeAssets,
+			},
+		}),
+
+		defineResolver(Source.Constants_Internal, {
+			entityType: EntityType.EvmNetwork,
+			resolve: {
+				[EvmNetworkSelector.Slug]: async ({ slug }) => {
+					const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
+					const caip2 = networkBySlug[slug].caip2
+					const chainId = Number(caip2.reference)
+					return (
+						mevRelayHosts
+							.filter((mevRelayHost) => mevRelayHost.chainId === chainId)
+							.map((mevRelayHost) => ({
+								[EntityMetaKey.Selector]: {
+									$network: { caip2 },
+									host: mevRelayHost.host,
+								},
+								url: `https://${mevRelayHost.host}`,
+							}))
+					)
+				},
 				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
 					const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
 					const chainId = Number(caip2.reference)
@@ -2301,6 +2514,24 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
+				[EvmNetworkSelector.Slug]: async ({ slug }) => {
+					const {
+						networkUpgrades,
+						networkExecutionUpgradeByChainIdAndUpgradeId,
+						networkConsensusUpgradeByChainIdAndUpgradeId,
+					} = await import('$/constants/EthereumNetworkUpgrades.ts')
+					return networkUpgrades
+						.filter((networkUpgrade) => (
+						String(networkUpgrade.chainId) === networkBySlug[slug].caip2.reference
+						))
+						.map((networkUpgrade) => (
+						evmNetworkUpgradeEntityFromRow(
+							networkUpgrade,
+							networkExecutionUpgradeByChainIdAndUpgradeId,
+							networkConsensusUpgradeByChainIdAndUpgradeId
+						)
+						))
+				},
 				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
 					const {
 						networkUpgrades,
@@ -2329,6 +2560,18 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
+				[EvmNetworkSelector.Slug]: async ({ slug }) => {
+					const { networkExecutionUpgrades } = await import('$/constants/EthereumNetworkUpgrades.ts')
+					return networkExecutionUpgrades
+						.filter((networkExecutionUpgrade) => (
+						String(networkExecutionUpgrade.chainId) === networkBySlug[slug].caip2.reference
+						))
+						.map((networkExecutionUpgrade) => ({
+							...networkExecutionUpgrade,
+							[EntityMetaKey.Selector]: evmNetworkUpgradeSelector(networkExecutionUpgrade),
+							$$proposals: ethereumProposalRefs(networkExecutionUpgrade.proposalIds),
+						}))
+				},
 				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
 					const { networkExecutionUpgrades } = await import('$/constants/EthereumNetworkUpgrades.ts')
 					return networkExecutionUpgrades
@@ -2351,6 +2594,18 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
+				[EvmNetworkSelector.Slug]: async ({ slug }) => {
+					const { networkConsensusUpgrades } = await import('$/constants/EthereumNetworkUpgrades.ts')
+					return networkConsensusUpgrades
+						.filter((networkConsensusUpgrade) => (
+						String(networkConsensusUpgrade.chainId) === networkBySlug[slug].caip2.reference
+						))
+						.map((networkConsensusUpgrade) => ({
+							...networkConsensusUpgrade,
+							[EntityMetaKey.Selector]: evmNetworkUpgradeSelector(networkConsensusUpgrade),
+							$$proposals: ethereumProposalRefs(networkConsensusUpgrade.proposalIds),
+						}))
+				},
 				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
 					const { networkConsensusUpgrades } = await import('$/constants/EthereumNetworkUpgrades.ts')
 					return networkConsensusUpgrades
@@ -2533,59 +2788,46 @@ export default {
 			entityType: EntityType.RedditSubreddit,
 			resolve: {
 				[RedditSubredditSelector.Name]: async ({ name }) => {
-					if (!redditNetworkSeedSubreddits.some((subreddit) => subreddit.name === name))
+					const subreddit = redditNetworkSeedSubreddits.find((seedSubreddit) => seedSubreddit.name === name)
+					if (subreddit == null)
 						throw new Error('Constants_Internal: RedditSubreddit seed not found')
 
-					return {
-						name,
-						title: `r/${name}`,
-						publicDescription: undefined,
-						createdAt: undefined,
-						over18: undefined,
-						$icon: undefined,
-					}
+					return subreddit
 				}
 			},
 		})({
 			fields: {
 				name: (subreddit) => subreddit.name,
-				title: (subreddit) => subreddit.title,
-				publicDescription: (subreddit) => subreddit.publicDescription,
-				createdAt: (subreddit) => subreddit.createdAt,
-				over18: (subreddit) => subreddit.over18,
-				$icon: (subreddit) => subreddit.$icon,
 			},
 		}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.RedditSubreddit,
 			resolve: {
-				[RedditSubredditSelector.Name]: async ({ name }) => {
-					if (!redditNetworkSeedSubreddits.some((subreddit) => subreddit.name === name))
-						throw new Error('Constants_Internal: RedditSubreddit seed not found')
-
-					return []
-				}
+				[RedditSubredditSelector.Name]: async ({ name }) => (
+					[...redditNetworkSeedLinks]
+						.filter((link) => link.subredditName === name)
+						.map((link) => ({
+							[EntityMetaKey.Selector]: {
+								fullname: link.fullname,
+							},
+							[EntityMetaKey.Fields]: {
+								title: link.title,
+								permalink: link.permalink,
+								author: link.author,
+								createdAt: link.createdAt,
+								$subreddit: {
+									[EntityMetaKey.Selector]: {
+										name: link.subredditName,
+									},
+								},
+							},
+						}))
+				),
 			},
 		})({
 			fields: {
-				$$links: (links) => links,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.RedditSubreddit,
-			resolve: {
-				[RedditSubredditSelector.Name]: async ({ name }) => {
-					if (!redditNetworkSeedSubreddits.some((subreddit) => subreddit.name === name))
-						throw new Error('Constants_Internal: RedditSubreddit seed not found')
-
-					return []
-				}
-			},
-		})({
-			fields: {
-				$$timestamps: (timestamps) => timestamps,
+				$$links: (entity) => entity,
 			},
 		}),
 
@@ -2600,8 +2842,6 @@ export default {
 					return {
 						fullname: link.fullname,
 						title: link.title,
-						selftext: undefined,
-						url: undefined,
 						permalink: link.permalink,
 						author: link.author,
 						createdAt: link.createdAt,
@@ -2610,8 +2850,6 @@ export default {
 								name: link.subredditName,
 							},
 						},
-						$$comments: [],
-						$$timestamps: [],
 					}
 				}
 			},
@@ -2619,14 +2857,39 @@ export default {
 			fields: {
 				fullname: (link) => link.fullname,
 				title: (link) => link.title,
-				selftext: (link) => link.selftext,
-				url: (link) => link.url,
 				permalink: (link) => link.permalink,
 				author: (link) => link.author,
 				createdAt: (link) => link.createdAt,
 				$subreddit: (link) => link.$subreddit,
-				$$comments: (link) => link.$$comments,
-				$$timestamps: (link) => link.$$timestamps,
+			},
+		}),
+
+		defineResolver(Source.Constants_Internal, {
+			entityType: EntityType.RedditLink,
+			resolve: {
+				[RedditLinkSelector.Fullname]: async ({ fullname }) => (
+					[...redditNetworkSeedComments]
+						.filter((comment) => comment.linkFullname === fullname)
+						.map((comment) => ({
+							[EntityMetaKey.Selector]: {
+								fullname: comment.fullname,
+							},
+							[EntityMetaKey.Fields]: {
+								body: comment.body,
+								author: comment.author,
+								createdAt: comment.createdAt,
+								$link: {
+									[EntityMetaKey.Selector]: {
+										fullname: comment.linkFullname,
+									},
+								},
+							},
+						}))
+				),
+			},
+		})({
+			fields: {
+				$$comments: (entity) => entity,
 			},
 		}),
 
@@ -2643,15 +2906,11 @@ export default {
 						body: comment.body,
 						author: comment.author,
 						createdAt: comment.createdAt,
-						depth: undefined,
 						$link: {
 							[EntityMetaKey.Selector]: {
 								fullname: comment.linkFullname,
 							},
 						},
-						$parentComment: undefined,
-						$$replies: [],
-						$$timestamps: [],
 					}
 				}
 			},
@@ -2661,11 +2920,18 @@ export default {
 				body: (comment) => comment.body,
 				author: (comment) => comment.author,
 				createdAt: (comment) => comment.createdAt,
-				depth: (comment) => comment.depth,
 				$link: (comment) => comment.$link,
-				$parentComment: (comment) => comment.$parentComment,
-				$$replies: (comment) => comment.$$replies,
-				$$timestamps: (comment) => comment.$$timestamps,
+			},
+		}),
+
+		defineResolver(Source.Constants_Internal, {
+			entityType: EntityType.RedditComment,
+			resolve: {
+				[RedditCommentSelector.Fullname]: async () => [],
+			},
+		})({
+			fields: {
+				$$replies: (entity) => entity,
 			},
 		}),
 
@@ -2728,6 +2994,7 @@ export default {
 									$network: { caip2 },
 									address,
 								},
+								precompileName: precompile.name,
 							}]
 						})
 				}

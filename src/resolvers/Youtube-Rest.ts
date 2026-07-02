@@ -11,7 +11,7 @@ import {
 } from '$/schema/$schema.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { YouTubeLiveBroadcastContent } from '$/schema/YouTubeVideo.ts'
+import { YoutubeLiveBroadcastContent } from '$/schema/YoutubeVideo.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { youtubeNetworkSeedChannels } from '$/constants/Social/YouTube.ts'
 import { Source } from '$/sources/Source.ts'
@@ -24,15 +24,15 @@ import type {
 	YoutubeApiThumbnail,
 	YoutubeApiVideo,
 } from '$/sources/Youtube/Rest/types.ts'
-import { YouTubeChannelSelector } from '$/schema/YouTubeChannel.ts'
-import { YouTubeVideoSelector } from '$/schema/YouTubeVideo.ts'
-import { YouTubePlaylistSelector } from '$/schema/YouTubePlaylist.ts'
-import { YouTubeCommentSelector } from '$/schema/YouTubeComment.ts'
-import { YouTubeChannel_TimestampSelector } from '$/schema/YouTubeChannel_Timestamp.ts'
-import { YouTubeVideo_TimestampSelector } from '$/schema/YouTubeVideo_Timestamp.ts'
-import { YouTubeComment_TimestampSelector } from '$/schema/YouTubeComment_Timestamp.ts'
-import { YouTubePlaylist_TimestampSelector } from '$/schema/YouTubePlaylist_Timestamp.ts'
-import { YouTubeNetworkSelector } from '$/schema/YouTubeNetwork.ts'
+import { YoutubeChannelSelector } from '$/schema/YoutubeChannel.ts'
+import { YoutubeVideoSelector } from '$/schema/YoutubeVideo.ts'
+import { YoutubePlaylistSelector } from '$/schema/YoutubePlaylist.ts'
+import { YoutubeCommentSelector } from '$/schema/YoutubeComment.ts'
+import { YoutubeChannel_TimestampSelector } from '$/schema/YoutubeChannel_Timestamp.ts'
+import { YoutubeVideo_TimestampSelector } from '$/schema/YoutubeVideo_Timestamp.ts'
+import { YoutubeComment_TimestampSelector } from '$/schema/YoutubeComment_Timestamp.ts'
+import { YoutubePlaylist_TimestampSelector } from '$/schema/YoutubePlaylist_Timestamp.ts'
+import { _GlobalYoutubeNetworkSelector } from '$/schema/_GlobalYoutubeNetwork.ts'
 
 
 const youtubeThumbnailUrl = (thumbnails: Partial<Record<string, YoutubeApiThumbnail>> | undefined) => (
@@ -50,9 +50,9 @@ export default {
 
 	resolvers: [
 		defineResolver(Source.Youtube_Rest, {
-			entityType: EntityType.YouTubeChannel,
+			entityType: EntityType.YoutubeChannel,
 			resolve: {
-				[YouTubeChannelSelector.ChannelId]: async ({ channelId }, context) => {
+				[YoutubeChannelSelector.ChannelId]: async ({ channelId }, context) => {
 					const { getChannel } = await import('$/sources/Youtube/Rest/queries.ts')
 					const d = (await getChannel(context.publicEnv, channelId))
 						.items?.[0]
@@ -85,9 +85,9 @@ export default {
 		}),
 
 		defineResolver(Source.Youtube_Rest, {
-			entityType: EntityType.YouTubeVideo,
+			entityType: EntityType.YoutubeVideo,
 			resolve: {
-				[YouTubeVideoSelector.VideoId]: async ({ videoId }, context) => {
+				[YoutubeVideoSelector.VideoId]: async ({ videoId }, context) => {
 					const { getVideo } = await import('$/sources/Youtube/Rest/queries.ts')
 					const d = (await getVideo(context.publicEnv, videoId))
 						.items?.[0]
@@ -101,14 +101,14 @@ export default {
 					})()
 					const liveBroadcastContentLabel = optionalNonemptyString(d.snippet?.liveBroadcastContent)
 					const liveBroadcastContent = (
-						liveBroadcastContentLabel === YouTubeLiveBroadcastContent.Live ?
-							YouTubeLiveBroadcastContent.Live
+						liveBroadcastContentLabel === YoutubeLiveBroadcastContent.Live ?
+							YoutubeLiveBroadcastContent.Live
 						:
-							liveBroadcastContentLabel === YouTubeLiveBroadcastContent.Upcoming ?
-								YouTubeLiveBroadcastContent.Upcoming
+							liveBroadcastContentLabel === YoutubeLiveBroadcastContent.Upcoming ?
+								YoutubeLiveBroadcastContent.Upcoming
 							:
-								liveBroadcastContentLabel === YouTubeLiveBroadcastContent.None ?
-									YouTubeLiveBroadcastContent.None
+								liveBroadcastContentLabel === YoutubeLiveBroadcastContent.None ?
+									YoutubeLiveBroadcastContent.None
 								:
 									undefined
 					)
@@ -171,9 +171,9 @@ export default {
 		}),
 
 		defineResolver(Source.Youtube_Rest, {
-			entityType: EntityType.YouTubePlaylist,
+			entityType: EntityType.YoutubePlaylist,
 			resolve: {
-				[YouTubePlaylistSelector.PlaylistId]: async ({ playlistId }, context) => {
+				[YoutubePlaylistSelector.PlaylistId]: async ({ playlistId }, context) => {
 					const { getPlaylist } = await import('$/sources/Youtube/Rest/queries.ts')
 					const d = (await getPlaylist(context.publicEnv, playlistId))
 						.items?.[0]
@@ -208,9 +208,9 @@ export default {
 		}),
 
 		defineResolver(Source.Youtube_Rest, {
-			entityType: EntityType.YouTubeComment,
+			entityType: EntityType.YoutubeComment,
 			resolve: {
-				[YouTubeCommentSelector.VideoIdCommentId]: async ({ commentId, videoId: videoIdSelector }, context) => {
+				[YoutubeCommentSelector.VideoIdCommentId]: async ({ commentId, videoId: videoIdSelector }, context) => {
 					const { getComment } = await import('$/sources/Youtube/Rest/queries.ts')
 					const publicEnv = context.publicEnv
 					const d = (await getComment(publicEnv, commentId))
@@ -231,7 +231,6 @@ export default {
 					return {
 						text: optionalNonemptyString(snippet?.textDisplay) ?? optionalNonemptyString(snippet?.textOriginal),
 						...(authorDisplayName != null && { authorDisplayName }),
-						...(authorChannelId != null && { authorChannelId }),
 						...(authorChannelId != null && {
 							$author: {
 								[EntityMetaKey.Selector]: { channelId: authorChannelId },
@@ -260,7 +259,6 @@ export default {
 			fields: {
 				text: (comment) => comment.text,
 				authorDisplayName: (comment) => comment.authorDisplayName,
-				authorChannelId: (comment) => comment.authorChannelId,
 				$author: (comment) => comment.$author,
 				publishedAt: (comment) => comment.publishedAt,
 				publishedAtMs: (comment) => comment.publishedAtMs,
@@ -270,9 +268,9 @@ export default {
 		}),
 
 		defineResolver(Source.Youtube_Rest, {
-			entityType: EntityType.YouTubeChannel_Timestamp,
+			entityType: EntityType.YoutubeChannel_Timestamp,
 			resolve: {
-				[YouTubeChannel_TimestampSelector.YouTubeChannelTimestampMs]: async ({ $channel }, context) => {
+				[YoutubeChannel_TimestampSelector.YoutubeChannelTimestampMs]: async ({ $channel }, context) => {
 					const { getChannel } = await import('$/sources/Youtube/Rest/queries.ts')
 					const channel = (await getChannel(context.publicEnv, $channel.channelId))
 						.items?.[0]
@@ -299,9 +297,9 @@ export default {
 		}),
 
 		defineResolver(Source.Youtube_Rest, {
-			entityType: EntityType.YouTubeVideo_Timestamp,
+			entityType: EntityType.YoutubeVideo_Timestamp,
 			resolve: {
-				[YouTubeVideo_TimestampSelector.YouTubeVideoTimestampMs]: async ({ $video }, context) => {
+				[YoutubeVideo_TimestampSelector.YoutubeVideoTimestampMs]: async ({ $video }, context) => {
 					const { getVideo } = await import('$/sources/Youtube/Rest/queries.ts')
 					const video = (await getVideo(context.publicEnv, $video.videoId))
 						.items?.[0]
@@ -328,9 +326,9 @@ export default {
 		}),
 
 		defineResolver(Source.Youtube_Rest, {
-			entityType: EntityType.YouTubeComment_Timestamp,
+			entityType: EntityType.YoutubeComment_Timestamp,
 			resolve: {
-				[YouTubeComment_TimestampSelector.YouTubeCommentTimestampMs]: async ({ $comment }, context) => {
+				[YoutubeComment_TimestampSelector.YoutubeCommentTimestampMs]: async ({ $comment }, context) => {
 					const {
 						getComment,
 						getCommentThread,
@@ -362,9 +360,9 @@ export default {
 		}),
 
 		defineResolver(Source.Youtube_Rest, {
-			entityType: EntityType.YouTubePlaylist_Timestamp,
+			entityType: EntityType.YoutubePlaylist_Timestamp,
 			resolve: {
-				[YouTubePlaylist_TimestampSelector.YouTubePlaylistTimestampMs]: async ({ $playlist }, context) => {
+				[YoutubePlaylist_TimestampSelector.YoutubePlaylistTimestampMs]: async ({ $playlist }, context) => {
 					const { getPlaylist } = await import('$/sources/Youtube/Rest/queries.ts')
 					const playlist = (await getPlaylist(context.publicEnv, $playlist.playlistId))
 						.items?.[0]
@@ -382,9 +380,9 @@ export default {
 			},
 		}),
 		defineResolver(Source.Youtube_Rest, {
-			entityType: EntityType.YouTubeChannel,
+			entityType: EntityType.YoutubeChannel,
 			resolve: {
-				[YouTubeChannelSelector.ChannelId]: async (entitySelector, context) => {
+				[YoutubeChannelSelector.ChannelId]: async (entitySelector, context) => {
 					const { getChannel } = await import('$/sources/Youtube/Rest/queries.ts')
 					const channel = (await getChannel(context.publicEnv, entitySelector.channelId))
 						.items?.[0]
@@ -415,9 +413,9 @@ export default {
 		}),
 
 		defineResolver(Source.Youtube_Rest, {
-			entityType: EntityType.YouTubeChannel,
+			entityType: EntityType.YoutubeChannel,
 			resolve: {
-				[YouTubeChannelSelector.ChannelId]: async ({ channelId }, context) => {
+				[YoutubeChannelSelector.ChannelId]: async ({ channelId }, context) => {
 					const { searchChannelVideos } = await import('$/sources/Youtube/Rest/queries.ts')
 					const publicEnv = context.publicEnv
 					const limit = resolverContextRowLimit(context)
@@ -441,9 +439,9 @@ export default {
 		}),
 
 		defineResolver(Source.Youtube_Rest, {
-			entityType: EntityType.YouTubeChannel,
+			entityType: EntityType.YoutubeChannel,
 			resolve: {
-				[YouTubeChannelSelector.ChannelId]: async ({ channelId }, context) => {
+				[YoutubeChannelSelector.ChannelId]: async ({ channelId }, context) => {
 					const { getChannel } = await import('$/sources/Youtube/Rest/queries.ts')
 					const channel = (await getChannel(context.publicEnv, channelId))
 						.items?.[0]
@@ -463,9 +461,9 @@ export default {
 		}),
 
 		defineResolver(Source.Youtube_Rest, {
-			entityType: EntityType.YouTubeChannel,
+			entityType: EntityType.YoutubeChannel,
 			resolve: {
-				[YouTubeChannelSelector.ChannelId]: async ({ channelId }, context) => {
+				[YoutubeChannelSelector.ChannelId]: async ({ channelId }, context) => {
 					const { listChannelPlaylists } = await import('$/sources/Youtube/Rest/queries.ts')
 					const publicEnv = context.publicEnv
 					const limit = resolverContextRowLimit(context)
@@ -489,9 +487,9 @@ export default {
 		}),
 
 		defineResolver(Source.Youtube_Rest, {
-			entityType: EntityType.YouTubePlaylist,
+			entityType: EntityType.YoutubePlaylist,
 			resolve: {
-				[YouTubePlaylistSelector.PlaylistId]: async (entitySelector, context) => {
+				[YoutubePlaylistSelector.PlaylistId]: async (entitySelector, context) => {
 					const { getPlaylist } = await import('$/sources/Youtube/Rest/queries.ts')
 					const playlist = (await getPlaylist(context.publicEnv, entitySelector.playlistId))
 						.items?.[0]
@@ -516,9 +514,9 @@ export default {
 		}),
 
 		defineResolver(Source.Youtube_Rest, {
-			entityType: EntityType.YouTubePlaylist,
+			entityType: EntityType.YoutubePlaylist,
 			resolve: {
-				[YouTubePlaylistSelector.PlaylistId]: async ({ playlistId }, context) => {
+				[YoutubePlaylistSelector.PlaylistId]: async ({ playlistId }, context) => {
 					const { listPlaylistItems } = await import('$/sources/Youtube/Rest/queries.ts')
 					const publicEnv = context.publicEnv
 					const limit = resolverContextRowLimit(context)
@@ -547,9 +545,9 @@ export default {
 		}),
 
 		defineResolver(Source.Youtube_Rest, {
-			entityType: EntityType.YouTubePlaylist,
+			entityType: EntityType.YoutubePlaylist,
 			resolve: {
-				[YouTubePlaylistSelector.PlaylistId]: async ({ playlistId }, context) => {
+				[YoutubePlaylistSelector.PlaylistId]: async ({ playlistId }, context) => {
 					const { getPlaylist } = await import('$/sources/Youtube/Rest/queries.ts')
 					const playlist = (await getPlaylist(context.publicEnv, playlistId))
 						.items?.[0]
@@ -568,9 +566,9 @@ export default {
 		}),
 
 		defineResolver(Source.Youtube_Rest, {
-			entityType: EntityType.YouTubeVideo,
+			entityType: EntityType.YoutubeVideo,
 			resolve: {
-				[YouTubeVideoSelector.VideoId]: async (entitySelector, context) => {
+				[YoutubeVideoSelector.VideoId]: async (entitySelector, context) => {
 					const { getVideo } = await import('$/sources/Youtube/Rest/queries.ts')
 					const video = (await getVideo(context.publicEnv, entitySelector.videoId))
 						.items?.[0]
@@ -601,9 +599,9 @@ export default {
 		}),
 
 		defineResolver(Source.Youtube_Rest, {
-			entityType: EntityType.YouTubeVideo,
+			entityType: EntityType.YoutubeVideo,
 			resolve: {
-				[YouTubeVideoSelector.VideoId]: async ({ videoId }, context) => {
+				[YoutubeVideoSelector.VideoId]: async ({ videoId }, context) => {
 					const { listCommentThreads } = await import('$/sources/Youtube/Rest/queries.ts')
 					const publicEnv = context.publicEnv
 					const limit = resolverContextRowLimit(context)
@@ -650,9 +648,9 @@ export default {
 		}),
 
 		defineResolver(Source.Youtube_Rest, {
-			entityType: EntityType.YouTubeVideo,
+			entityType: EntityType.YoutubeVideo,
 			resolve: {
-				[YouTubeVideoSelector.VideoId]: async ({ videoId }, context) => {
+				[YoutubeVideoSelector.VideoId]: async ({ videoId }, context) => {
 					const { getVideo } = await import('$/sources/Youtube/Rest/queries.ts')
 					const video = (await getVideo(context.publicEnv, videoId))
 						.items?.[0]
@@ -672,9 +670,9 @@ export default {
 		}),
 
 		defineResolver(Source.Youtube_Rest, {
-			entityType: EntityType.YouTubeComment,
+			entityType: EntityType.YoutubeComment,
 			resolve: {
-				[YouTubeCommentSelector.VideoIdCommentId]: async (entitySelector, context) => {
+				[YoutubeCommentSelector.VideoIdCommentId]: async (entitySelector, context) => {
 					const {
 						getComment,
 						getCommentThread,
@@ -710,9 +708,9 @@ export default {
 		}),
 
 		defineResolver(Source.Youtube_Rest, {
-			entityType: EntityType.YouTubeComment,
+			entityType: EntityType.YoutubeComment,
 			resolve: {
-				[YouTubeCommentSelector.VideoIdCommentId]: async ({ commentId: commentIdSelector, videoId }, context) => {
+				[YoutubeCommentSelector.VideoIdCommentId]: async ({ commentId: commentIdSelector, videoId }, context) => {
 					const {
 						getComment,
 						listCommentReplies,
@@ -763,9 +761,9 @@ export default {
 		}),
 
 		defineResolver(Source.Youtube_Rest, {
-			entityType: EntityType.YouTubeComment,
+			entityType: EntityType.YoutubeComment,
 			resolve: {
-				[YouTubeCommentSelector.VideoIdCommentId]: async ({ commentId }, context) => {
+				[YoutubeCommentSelector.VideoIdCommentId]: async ({ commentId }, context) => {
 					const {
 						getComment,
 						getCommentThread,
@@ -787,6 +785,95 @@ export default {
 				$$replies: {
 					resolveCount: (count) => count,
 				},
+			},
+		}),
+
+		defineResolver(Source.Youtube_Rest, {
+			entityType: EntityType._GlobalYoutubeNetwork,
+			resolve: {
+				[_GlobalYoutubeNetworkSelector.Scope]: async (_entitySelector, context) => {
+					const { listPopularVideos } = await import('$/sources/Youtube/Rest/queries.ts')
+					const publicEnv = context.publicEnv
+					const limit = resolverContextRowLimit(context)
+					return (
+						((await listPopularVideos(publicEnv, limit)).items ?? [])
+							.flatMap((video) => {
+								const channelId = optionalNonemptyString(video.snippet?.channelId)
+								if (channelId == null) return []
+								return [{
+									[EntityMetaKey.Selector]: { channelId },
+								}]
+							})
+					)
+				}
+			},
+		})({
+			fields: {
+				$$sourceWindowChannels: (network) => network,
+			},
+		}),
+
+		defineResolver(Source.Youtube_Rest, {
+			entityType: EntityType._GlobalYoutubeNetwork,
+			resolve: {
+				[_GlobalYoutubeNetworkSelector.Scope]: async (_entitySelector, context) => {
+					const { listPopularVideos } = await import('$/sources/Youtube/Rest/queries.ts')
+					const publicEnv = context.publicEnv
+					const limit = resolverContextRowLimit(context)
+					return (
+						((await listPopularVideos(publicEnv, limit)).items ?? [])
+							.flatMap((video) => (
+								video.id == null ?
+									[]
+								:
+									[{
+										[EntityMetaKey.Selector]: { videoId: video.id },
+									}]
+							))
+					)
+				}
+			},
+		})({
+			fields: {
+				$$sourceWindowVideos: (network) => network,
+			},
+		}),
+
+		defineResolver(Source.Youtube_Rest, {
+			entityType: EntityType._GlobalYoutubeNetwork,
+			resolve: {
+				[_GlobalYoutubeNetworkSelector.Scope]: async (_entitySelector, context) => {
+					const {
+						listChannelPlaylists,
+						listPopularVideos,
+					} = await import('$/sources/Youtube/Rest/queries.ts')
+					const publicEnv = context.publicEnv
+					const limit = resolverContextRowLimit(context)
+					const channelIds: string[] = [
+						...youtubeNetworkSeedChannels.map(({ channelId }) => channelId),
+					]
+					for (const video of ((await listPopularVideos(publicEnv, limit)).items ?? [])) {
+						const channelId = optionalNonemptyString(video.snippet?.channelId)
+						if (channelId != null) channelIds.push(channelId)
+					}
+					const refs: { [EntityMetaKey.Selector]: { playlistId: string } }[] = []
+					for (const channelId of channelIds) {
+						for (const playlist of ((await listChannelPlaylists(publicEnv, channelId, limit)).items ?? [])) {
+							const playlistId = optionalNonemptyString(playlist.id)
+							if (playlistId == null) continue
+							refs.push({
+								[EntityMetaKey.Selector]: { playlistId },
+							})
+							if (refs.length >= limit) break
+						}
+						if (refs.length >= limit) break
+					}
+					return refs.slice(0, limit)
+				}
+			},
+		})({
+			fields: {
+				$$sourceWindowPlaylists: (network) => network,
 			},
 		}),
 	],

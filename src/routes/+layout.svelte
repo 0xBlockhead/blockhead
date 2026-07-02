@@ -26,10 +26,15 @@
 	import { schema } from '$/schema/index.ts'
 	import { sourceProviders } from '$/sources/index.ts'
 
+	const database = await openBrowserWASQLiteOPFSDatabase({
+		databaseName: e2eDatabaseName(BLOCKHEAD_WA_SQLITE_DATABASE_NAME),
+	})
+	import.meta.hot?.dispose(() => {
+		void database.close?.()
+	})
+
 	const basePersistence = createBrowserWASQLitePersistence({
-		database: await openBrowserWASQLiteOPFSDatabase({
-			databaseName: e2eDatabaseName(BLOCKHEAD_WA_SQLITE_DATABASE_NAME),
-		}),
+		database,
 		schemaMismatchPolicy: 'reset',
 	})
 	const e2eInstrumentation = createE2EClientInstrumentation(basePersistence)
@@ -78,7 +83,7 @@
 	import {
 		mountWalletConnectionRuntime,
 	} from '$/state/wallets/walletConnectionRuntime.svelte.ts'
-	import { useNavigationItems } from './navigationItems.svelte.ts'
+	import { navigationItems } from './navigationItems.svelte.ts'
 
 
 	// State
@@ -123,7 +128,7 @@
 	</a>
 
 	<Navigation
-		navigationItems={useNavigationItems().navigationItems}
+		{navigationItems}
 	/>
 
 	<div

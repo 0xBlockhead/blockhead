@@ -2,8 +2,23 @@
 	// Types/constants
 	import { stringify } from 'devalue'
 	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
+	import type { MarketTimeInterval } from '$/constants/Market.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+
+	type MarketTimeIntervalTimestampPoint = (
+		& SubscribeEntityReferenceResult<typeof schema, EntityType.Market_TimeInterval_Timestamp>
+		& {
+			entitySelector: {
+				timestampMs: number
+				timeInterval: MarketTimeInterval
+			}
+			open?: bigint | number
+			high?: bigint | number
+			low?: bigint | number
+			close?: bigint | number
+		}
+	)
 
 
 	// State
@@ -17,7 +32,7 @@
 		height = '22rem',
 	}: {
 		title?: string
-		points?: readonly SubscribeEntityReferenceResult<typeof schema, EntityType.Market_TimeInterval_Timestamp>[]
+		points?: readonly MarketTimeIntervalTimestampPoint[]
 		priceDecimals?: number
 		min?: number
 		max?: number
@@ -192,8 +207,10 @@
 		scroll-timeline: --chart-pan inline;
 		timeline-scope: --chart-pan;
 
+		box-sizing: border-box;
 		block-size: var(--chart-size-block);
 		max-inline-size: 100%;
+		overflow-y: hidden;
 		padding: var(--card-padding);
 		resize: horizontal;
 		scrollbar-gutter: stable both-edges;
@@ -212,7 +229,10 @@
 		grid-auto-columns: calc(var(--chart-step-inline-size) * var(--chart-zoom));
 		align-items: stretch;
 
+		box-sizing: border-box;
+		block-size: 100%;
 		min-block-size: 100%;
+		margin: 0;
 		padding-block: 0.75rem 1.5rem;
 		padding-inline: calc(var(--chart-step-inline-size) * 2);
 

@@ -1,12 +1,15 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
+	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// Components
@@ -15,17 +18,25 @@
 </script>
 
 
+<svelte:head>
+	<title>All OHLC candles • Blockhead</title>
+</svelte:head>
+
+
 <Page>
 	<Market_TimeInterval_TimestampsView
-		href={resolve('/markets')}
-		collapsible={false}
-		selection={select(
-			EntityType._Global,
-			{ scope: '$$marketTimeIntervalTimestamps' }
-		).$$marketTimeIntervalTimestamps}
-		sources={[Source.Constants_Internal]}
-		id="coin-ohlc-candles-page"
-		limit={256}
-		title="All OHLC candles"
+		href={resolve('/(assets)/coins/candles')}
+		title='All OHLC candles'
+		selection={
+			select(EntityType._Global, {
+				scope: '$$marketTimeIntervalTimestamps',
+			})[EntityProxyField]<EntityType.Market_TimeInterval_Timestamp>('$$marketTimeIntervalTimestamps', {
+				sources: [
+					Source.Constants_Internal,
+				],
+				limit: 256,
+			})
+		}
+		id='Market_TimeInterval_TimestampsView-page'
 	/>
 </Page>

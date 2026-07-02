@@ -1,17 +1,18 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
+import { type } from 'arktype'
+
 export enum RssNetworkSelector {
-	Scope = 'scope',
+	Scope = 'Scope',
 }
 export default {
 	entityType: EntityType.RssNetwork,
-	label: 'RSS network',
-	labelPlural: 'RSS networks',
+	label: 'RSS / Atom',
+	labelPlural: 'RSS / Atom',
+	description: 'RSS and Atom syndication feeds publish ordered item streams keyed by feed URL.',
 	selectors: [
 		{
 			name: RssNetworkSelector.Scope,
@@ -22,47 +23,68 @@ export default {
 	],
 	fields: [
 		{
-			name: 'scope',
-			label: 'Scope',
-			description: 'The fixed scope value that identifies this hub row.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'scope',
+				label: 'Scope',
+				description: 'The fixed scope value that identifies this hub row.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'protocolName',
-			label: 'protocol name',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'protocolName',
+				label: 'Protocol',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'homeUrl',
-			label: 'home URL',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'homeUrl',
+				label: 'Home URL',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'docsUrl',
-			label: 'docs URL',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'docsUrl',
+				label: 'Docs URL',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'registryLabel',
-			label: 'registry label',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'registryLabel',
+				label: 'Registry',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'topology',
-			label: 'topology',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'topology',
+				label: 'Topology',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+				name: '$$rssFeeds',
+				label: 'Feeds',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.RssFeed,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
+		},
+		{
+				name: '$$sourceWindowItems',
+				label: 'Items',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.RssItem,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Rss_Rest,
+					Source.Rss2Json_Rest,
+				],
 		},
 	],
 } as const satisfies EntityDefinition

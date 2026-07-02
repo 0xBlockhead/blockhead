@@ -21,7 +21,7 @@
 		"check:e2e": "svelte-kit sync && tsc --project ./tsconfig.e2e.json",
 		"app:generate": "pnpm exec tsx scripts/generate.ts generate",
 		"app:check": "pnpm exec tsx scripts/generate.ts check",
-		"app:sync": "pnpm exec tsx scripts/generate.ts sync",
+		"app:clean": "pnpm exec tsx scripts/generate.ts clean",
 		"sources:graphql": "pnpm exec tsx scripts/graphql-source.ts",
 		"sources:graphql:check": "pnpm exec tsx scripts/graphql-source.ts check",
 		"sources:openapi": "pnpm exec tsx scripts/openapi-source.ts",
@@ -89,7 +89,7 @@
 		"insane": "^2.6.2",
 		"map.prototype.getorinsertcomputed": "^1.0.1",
 		"multiformats": "^14.0.0",
-		"starkdown": "^4.0.2",
+		"satteri": "^0.9.3",
 		"weakmap.prototype.getorinsertcomputed": "^1.0.0"
 	}
 }

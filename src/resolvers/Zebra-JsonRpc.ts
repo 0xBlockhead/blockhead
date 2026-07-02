@@ -132,19 +132,19 @@ export default {
 						virtualSizeBytes: transaction.vsize,
 						weightUnits: transaction.weight,
 						isCoinbase: transaction.vin.some((input) => input.coinbase != null),
-						$$inputs: transaction.vin.map((input, inputIndex) => (
+						$$inputs: transaction.vin.map((input, indexInTransaction) => (
 							{
 								[EntityMetaKey.Selector]: {
 									$transaction: entitySelector,
-									inputIndex,
+									indexInTransaction,
 								},
 							}
 						)),
-						$$outputs: transaction.vout.map((output, outputIndex) => (
+						$$outputs: transaction.vout.map((output, indexInTransaction) => (
 							{
 								[EntityMetaKey.Selector]: {
 									$transaction: entitySelector,
-									outputIndex,
+									indexInTransaction,
 								},
 							}
 						)),
@@ -167,12 +167,12 @@ export default {
 		defineResolver(Source.Zebra_JsonRpc, {
 			entityType: EntityType.UtxoInput,
 			resolve: {
-				[UtxoInputSelector.UtxoTransactionInputIndex]: async ({ $transaction, inputIndex }) => {
-					const input = (await getTransaction($transaction)).vin[inputIndex]
+				[UtxoInputSelector.TransactionIndexInTransaction]: async ({ $transaction, indexInTransaction }) => {
+					const input = (await getTransaction($transaction)).vin[indexInTransaction]
 					return {
 						[EntityMetaKey.Selector]: {
 							$transaction: $transaction,
-							inputIndex: inputIndex,
+							indexInTransaction: indexInTransaction,
 						},
 						...(input.txid != null && input.vout != null && {
 							$spentOutput: {
@@ -181,7 +181,7 @@ export default {
 										$network: $transaction.$network,
 										txId: input.txid,
 									},
-									outputIndex: input.vout,
+									indexInTransaction: input.vout,
 								},
 							},
 						}),
@@ -211,12 +211,12 @@ export default {
 		defineResolver(Source.Zebra_JsonRpc, {
 			entityType: EntityType.UtxoOutput,
 			resolve: {
-				[UtxoOutputSelector.UtxoTransactionOutputIndex]: async ({ $transaction, outputIndex }) => {
-					const output = (await getTransaction($transaction)).vout[outputIndex]
+				[UtxoOutputSelector.TransactionIndexInTransaction]: async ({ $transaction, indexInTransaction }) => {
+					const output = (await getTransaction($transaction)).vout[indexInTransaction]
 					return {
 						[EntityMetaKey.Selector]: {
 							$transaction: $transaction,
-							outputIndex: outputIndex,
+							indexInTransaction: indexInTransaction,
 						},
 						valueSats: valueSatsFromZec(output.value),
 						scriptPubKeyAsm: output.scriptPubKey.asm,

@@ -4,7 +4,7 @@
 
 
 	// Context
-	import { setIsInsidePage } from '$/context/isInsidePage.ts'
+	import { setIsInsidePage, setIsPageRoot } from '$/context/isInsidePage.ts'
 
 
 	// State
@@ -17,6 +17,7 @@
 
 	// Inner context
 	setIsInsidePage(true)
+	setIsPageRoot(true)
 </script>
 
 

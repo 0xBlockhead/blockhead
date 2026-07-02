@@ -12,7 +12,7 @@
 	// Types/constants
 	import type { Snippet } from 'svelte'
 
-	import { serializeError } from '$/lib/errors.ts'
+	import { errorDisplayMessage } from '$/lib/errors.ts'
 	import type {
 		QueryResourceError,
 		TanStackLiveQuerySnapshot,
@@ -61,13 +61,13 @@
 			<span
 				data-badge
 				class="inline-placeholder"
-				aria-label={err instanceof Error ? err.message : serializeError(err)}
+				aria-label={errorDisplayMessage(err)}
 			>
 				•••
 			</span>
 		{:else}
 			<div data-card>
-				<p>{err instanceof Error ? err.message : serializeError(err)}</p>
+				<p>{errorDisplayMessage(err)}</p>
 			</div>
 		{/if}
 	</div>

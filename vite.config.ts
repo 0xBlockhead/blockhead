@@ -5,13 +5,13 @@ import { defineConfig } from 'vitest/config'
 import { playwright } from '@vitest/browser-playwright'
 import { sveltekit } from '@sveltejs/kit/vite'
 
-/**
- * Prebuilt `@tanstack/browser-db-sqlite-persistence` ships a worker wrapper with a
- * Node-flavored default export shape under Vite. Alias to source so Vite bundles the
- * OPFS worker consistently for browser tests and the app.
- */
 const tanstackBrowserSqliteSrc = fileURLToPath(new URL(
 	'node_modules/@tanstack/browser-db-sqlite-persistence/src/index.ts',
+	import.meta.url
+))
+
+const satteriBrowserEntry = fileURLToPath(new URL(
+	'node_modules/satteri/browser.js',
 	import.meta.url
 ))
 
@@ -29,6 +29,7 @@ export default defineConfig({
 		alias: {
 			'bun:ffi': resolve(import.meta.dirname, 'shims/bun-ffi.js'),
 			'@tanstack/browser-db-sqlite-persistence': tanstackBrowserSqliteSrc,
+			'satteri-browser': satteriBrowserEntry,
 		},
 	},
 	optimizeDeps: {

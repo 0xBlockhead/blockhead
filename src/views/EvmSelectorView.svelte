@@ -1,131 +1,155 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// State
-	const view = {
-	actions: [
-		{
-			id: 'copy-selector',
-			label: 'Copy selector',
-			kind: 'copy',
-			field: 'hex',
-		},
-	],
-	transforms: [
-		{
-			id: 'selector-encodings',
-			label: 'Selector encodings',
-			field: 'hex',
-			kind: 'selectorEncoding',
-			slot: 'SelectorEncodings',
-		},
-	],
-	closed: [
-		{
-			label: 'selector hex',
-		},
-		{
-			label: 'latest candidate signature',
-		},
-		{
-			label: 'candidate count',
-		},
-	],
-	content: {
-		dl: [
-			[
-				{
-					label: 'selector hex',
-				},
-				{
-					label: 'latest candidate signature',
-				},
-				{
-					label: 'latest source',
-				},
-				{
-					label: 'candidate count',
-				},
-			],
-		],
-	},
-	details: {
-		tabs: [
-			{
-				label: 'Catalog observations',
-				items: [
-					{
-						label: 'timestamped candidate-signature lookups',
-					},
-				],
-			},
-			{
-				label: 'Decode context',
-				items: [
-					{
-						label: 'verified contract ABI required before authoritative decode',
-					},
-				],
-			},
-			{
-				label: 'Related rows',
-				items: [
-					{
-						label: 'EvmContract ABI',
-					},
-					{
-						label: 'EvmTransaction input decode',
-					},
-				],
-			},
-		],
-	},
-	lists: [
-		{
-			id: 'timestamps',
-			label: 'timestamps',
-			field: '$$timestamps',
-			limit: 24,
-			item: 'summary',
-			collapsible: true,
-			emptyText: 'No rows',
-		},
-	],
-} satisfies ComponentProps<typeof EntityView2>['view']
-
 	let {
 		selection,
-		open = $bindable(true),
+		prefetched = {},
+		title,
+		href,
+		layout = EntityLayout.SummaryDetails,
+		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.EvmSelector>
+			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.EvmSelector>>
+			title?: string
+			href?: string
+			layout?: EntityLayout
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView2>,
-			| 'layout'
+			ComponentProps<typeof EntityView>,
+			| 'collapsible'
 			| 'showTypeAnnotation'
 		>
 	> = $props()
 
-
+	const evmSelector = $derived(selection({
+		sources: [
+			Source.Openchain_Rest,
+		],
+		fields: {
+			signatures: true,
+			...(open && {
+				$$timestamps: true,
+			}),
+		},
+	}))
+	const titleFallback = $derived('EVM selector')
+	const viewDomId = $derived('evm-selector-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView2 from '$/components/EntityView2.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import EvmSelector_TimestampsView from '$/views/EvmSelector_TimestampsView.svelte'
 </script>
 
 
-<EntityView2
-	{selection}
+<EntityView
 	entityType={EntityType.EvmSelector}
 	entitySelector={selection.entitySelector}
+	id={viewDomId}
+	title={title ?? titleFallback}
+	href={
+		href ?? resolve('/(explore)/(evm)/evm/(selectors)/selector/[hex]', {
+			hex: String(({ ...selection.entitySelector, ...prefetched }).hex),
+		})
+	}
+	{layout}
 	bind:open
 	{...EntityViewProps}
-	{view}
-/>
+>
+	{#snippet Title()}
+		<ResourceBoundary
+			resource={evmSelector}
+			placeholderText="Loading decoded function selector..."
+		>
+			{#snippet Pending()}
+				{selection.entitySelector.hex}
+			{/snippet}
+
+			{#snippet children(entity)}
+				{entity.signatures?.[0] ?? selection.entitySelector.hex}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Value()}
+		<span data-text="font-monospace">
+			{selection.entitySelector.hex}
+		</span>
+	{/snippet}
+
+	{#snippet Content({ open: contentOpen })}
+		<dl data-column-item="center">
+			<div>
+				<dt>Selector</dt>
+				<dd>
+					<ResourceBoundary resource={evmSelector}>
+						{#snippet Pending()}
+							{@const hex = prefetched.hex ?? selection.entitySelector.hex}
+							{#if hex !== undefined && hex !== null}
+								<TruncatedValue value={String(hex)} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const hex = entity.hex ?? selection.entitySelector.hex ?? prefetched.hex}
+							{#if hex !== undefined && hex !== null}
+								<TruncatedValue value={String(hex)} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			{#if contentOpen}
+				<ResourceBoundary resource={evmSelector}>
+					{#snippet children(entity)}
+						<div>
+							<dt>Signatures</dt>
+							<dd>
+								{#if entity.signatures?.length}
+									<ul>
+										{#each entity.signatures as signature (signature)}
+											<li><code>{signature}</code></li>
+										{/each}
+									</ul>
+								{:else}
+									<p data-text="muted">No catalog signatures matched this function selector.</p>
+								{/if}
+							</dd>
+						</div>
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
+		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<EvmSelector_TimestampsView
+				selection={selection[EntityProxyField]<EntityType.EvmSelector_Timestamp>('$$timestamps')}
+				title='Observations'
+				emptyText='No Openchain observations for this selector.'
+				id='EvmSelector_TimestampsView-$$timestamps'
+			/>
+		{/if}
+	{/snippet}
+</EntityView>

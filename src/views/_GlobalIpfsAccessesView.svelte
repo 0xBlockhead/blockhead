@@ -1,0 +1,129 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
+<script lang="ts">
+	// Types/constants
+	import type { ComponentProps } from 'svelte'
+	import { resolve } from '$app/paths'
+	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { schema } from '$/schema/index.ts'
+
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
+	// State
+	let {
+		selection,
+		title = 'Global IPFS accesses',
+		typeAnnotationParagraphs = [],
+		placeholderText = 'Loading Global IPFS accesses...',
+		emptyText = undefined,
+		open = $bindable(true),
+		collapsible = true,
+		showTypeAnnotation = true,
+		id = 'GlobalIpfsAccesses-list',
+		...EntitiesListProps
+	}: WithRest<
+		{
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType._GlobalIpfsAccess>
+			title?: string
+			typeAnnotationParagraphs?: string[]
+			placeholderText?: string
+			emptyText?: string
+			open?: boolean
+			collapsible?: boolean
+			showTypeAnnotation?: boolean
+			id?: string
+		},
+		Pick<
+			ComponentProps<typeof EntitiesList>,
+			| 'href'
+			| 'CollapsibleProps'
+		>
+	> = $props()
+
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import GlobalIpfsAccessView from '$/views/_GlobalIpfsAccessView.svelte'
+</script>
+
+
+{#snippet TypeAnnotationParagraphs()}
+	{#each typeAnnotationParagraphs as paragraph (paragraph)}
+		<p>{paragraph}</p>
+	{/each}
+{/snippet}
+
+{#if open}
+	<ResourceBoundary
+		resource={selection}
+		{placeholderText}
+	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType._GlobalIpfsAccess}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+			/>
+		{/snippet}
+
+		{#snippet children(globalIpfsAccesses)}
+			{@const uniqueGlobalIpfsAccesses = [...new Map(globalIpfsAccesses.values.map((globalIpfsAccess) => [globalIpfsAccess[EntityMetaKey.SelectorKey], globalIpfsAccess])).values()]}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType._GlobalIpfsAccess}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				totalCount={globalIpfsAccesses.values.length === uniqueGlobalIpfsAccesses.length && globalIpfsAccesses.totalCount != null && globalIpfsAccesses.totalCount >= uniqueGlobalIpfsAccesses.length ? globalIpfsAccesses.totalCount : uniqueGlobalIpfsAccesses.length}
+				getKey={(globalIpfsAccess) => globalIpfsAccess[EntityMetaKey.SelectorKey]}
+				items={uniqueGlobalIpfsAccesses}
+			>
+				{#snippet Empty()}
+					{#if emptyText != null}
+						<p data-text="muted">{emptyText}</p>
+					{:else}
+						<p data-text="muted">No global IPFS accesses yet.</p>
+					{/if}
+				{/snippet}
+
+				{#snippet Item({ item: globalIpfsAccess }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalIpfsAccess> })}
+					<GlobalIpfsAccessView
+						href={resolve('/(explore)/(ipfs)/ipfs/access')}
+						selection={select(EntityType._GlobalIpfsAccess, globalIpfsAccess.entitySelector)}
+						prefetched={globalIpfsAccess}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/snippet}
+	</ResourceBoundary>
+{:else}
+	<EntitiesList
+		{...EntitiesListProps}
+		entityType={EntityType._GlobalIpfsAccess}
+		{id}
+		{title}
+		bind:open
+		{collapsible}
+		{showTypeAnnotation}
+		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	/>
+{/if}

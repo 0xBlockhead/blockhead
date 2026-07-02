@@ -1,0 +1,133 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
+<script lang="ts">
+	// Types/constants
+	import type { ComponentProps } from 'svelte'
+	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { schema } from '$/schema/index.ts'
+
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
+	// State
+	let {
+		selection,
+		title = 'XMTP',
+		typeAnnotationParagraphs = ['XMTP transports encrypted payloads between inbox identities. This hub shows local conversation state from the local catalog.'],
+		placeholderText = 'Loading XMTP...',
+		emptyText = undefined,
+		open = $bindable(true),
+		collapsible = true,
+		showTypeAnnotation = true,
+		id = 'XmtpNetworks-list',
+		...EntitiesListProps
+	}: WithRest<
+		{
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.XmtpNetwork>
+			title?: string
+			typeAnnotationParagraphs?: string[]
+			placeholderText?: string
+			emptyText?: string
+			open?: boolean
+			collapsible?: boolean
+			showTypeAnnotation?: boolean
+			id?: string
+		},
+		Pick<
+			ComponentProps<typeof EntitiesList>,
+			| 'href'
+			| 'CollapsibleProps'
+		>
+	> = $props()
+
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import XmtpNetworkView from '$/views/XmtpNetworkView.svelte'
+</script>
+
+
+{#snippet TypeAnnotationParagraphs()}
+	{#each typeAnnotationParagraphs as paragraph (paragraph)}
+		<p>{paragraph}</p>
+	{/each}
+{/snippet}
+
+{#if open}
+	<ResourceBoundary
+		resource={
+			selection.sources == null ? selection({
+				fields: {
+					protocolName: true,
+				},
+			}) : selection
+		}
+		{placeholderText}
+	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.XmtpNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+			/>
+		{/snippet}
+
+		{#snippet children(xmtpNetworks)}
+			{@const uniqueXmtpNetworks = [...new Map(xmtpNetworks.values.map((xmtpNetwork) => [xmtpNetwork[EntityMetaKey.SelectorKey], xmtpNetwork])).values()]}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.XmtpNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				totalCount={xmtpNetworks.values.length === uniqueXmtpNetworks.length && xmtpNetworks.totalCount != null && xmtpNetworks.totalCount >= uniqueXmtpNetworks.length ? xmtpNetworks.totalCount : uniqueXmtpNetworks.length}
+				getKey={(xmtpNetwork) => xmtpNetwork[EntityMetaKey.SelectorKey]}
+				items={uniqueXmtpNetworks}
+			>
+				{#snippet Empty()}
+					{#if emptyText != null}
+						<p data-text="muted">{emptyText}</p>
+					{:else}
+						<p data-text="muted">No XMTP yet.</p>
+					{/if}
+				{/snippet}
+
+				{#snippet Item({ item: xmtpNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.XmtpNetwork> })}
+					<XmtpNetworkView
+						selection={select(EntityType.XmtpNetwork, xmtpNetwork.entitySelector)}
+						prefetched={xmtpNetwork}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/snippet}
+	</ResourceBoundary>
+{:else}
+	<EntitiesList
+		{...EntitiesListProps}
+		entityType={EntityType.XmtpNetwork}
+		{id}
+		{title}
+		bind:open
+		{collapsible}
+		{showTypeAnnotation}
+		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	/>
+{/if}

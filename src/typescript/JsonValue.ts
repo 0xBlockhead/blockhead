@@ -19,6 +19,14 @@ export const isJsonString = (value: JsonValue): value is string => (
 	typeof value === 'string'
 )
 
+export const isJsonNumber = (value: JsonValue): value is number => (
+	typeof value === 'number'
+)
+
+export const isJsonBoolean = (value: JsonValue): value is boolean => (
+	typeof value === 'boolean'
+)
+
 export const isJsonArray = (value: JsonValue): value is readonly JsonValue[] => (
 	Array.isArray(value)
 )

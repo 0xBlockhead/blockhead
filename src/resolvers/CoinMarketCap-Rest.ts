@@ -21,7 +21,6 @@ import {
 	type CatalogCoinCurrencyMarket,
 	type CatalogCurrencyCurrencyMarket,
 } from '$/constants/MarketCatalog.ts'
-import { stringify } from 'devalue'
 import { mediaFromUrl } from '$/resolvers/media.ts'
 import {
 	EntityMetaKey,
@@ -53,6 +52,18 @@ const marketSelectorFromCatalogCoinCurrencyMarket = (catalogMarket: CatalogCoinC
 	},
 	marketKind: catalogMarket.marketKind,
 }) satisfies MarketIdLabelInput
+
+const catalogCoinCurrencyMarketMatchesMarket = (
+	catalogMarket: CatalogCoinCurrencyMarket,
+	market: EntitySelector<typeof schema, EntityType.Market>
+) => (
+	market.marketKind === catalogMarket.marketKind
+	&& market.$marketVenue.marketVenueId === catalogMarket.marketVenueId
+	&& market.$base.kind === MarketAssetKind.Coin
+	&& market.$base.$coin.coinId === catalogMarket.baseCoinId
+	&& market.$quote.kind === MarketAssetKind.Currency
+	&& market.$quote.$currency.iso4217 === catalogMarket.quoteIso4217
+)
 
 const marketSelectorFromCatalogCoinCoinMarket = (catalogMarket: CatalogCoinCoinMarket) => ({
 	$base: {
@@ -148,7 +159,7 @@ export default {
 						throw new Error('CoinMarketCap_Rest: Market_Timestamp is spot-only')
 					if ($market.$base.kind !== MarketAssetKind.Coin)
 						throw new Error('Market source: market base must be catalog coin')
-					if (stringify(marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[$market.$base.$coin.coinId])) !== stringify($market))
+					if (!catalogCoinCurrencyMarketMatchesMarket(catalogCoinSpotUsdMarketByCoinId[$market.$base.$coin.coinId], $market))
 						throw new Error('CoinMarketCap_Rest: Market_Timestamp is catalog coin USD market only')
 					const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
 					const coinId = $market.$base.$coin.coinId
@@ -222,7 +233,7 @@ export default {
 						throw new Error('CoinMarketCap_Rest: OHLC is spot-only')
 					if ($market.$base.kind !== MarketAssetKind.Coin)
 						throw new Error('Market source: market base must be catalog coin')
-					if (stringify(marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[$market.$base.$coin.coinId])) !== stringify($market))
+					if (!catalogCoinCurrencyMarketMatchesMarket(catalogCoinSpotUsdMarketByCoinId[$market.$base.$coin.coinId], $market))
 						throw new Error('CoinMarketCap_Rest: OHLC is catalog coin USD market only')
 					const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
 					const { getOhlcvHistoricalRows } = await import(
@@ -366,7 +377,7 @@ export default {
 			},
 		})({
 			fields: {
-				$$marketQuotes: (marketPrices) => marketPrices,
+				$$marketPrices: (marketPrices) => marketPrices,
 			},
 		}),
 
@@ -468,7 +479,7 @@ export default {
 						return []
 					if (entitySelector.$base.kind !== MarketAssetKind.Coin)
 						return []
-					if (stringify(marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[entitySelector.$base.$coin.coinId])) !== stringify(entitySelector))
+					if (!catalogCoinCurrencyMarketMatchesMarket(catalogCoinSpotUsdMarketByCoinId[entitySelector.$base.$coin.coinId], entitySelector))
 						return []
 					const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
 					const { getOhlcvHistoricalRows } = await import(
@@ -517,7 +528,7 @@ export default {
 						return []
 					if ($market.$base.kind !== MarketAssetKind.Coin)
 						return []
-					if (stringify(marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[$market.$base.$coin.coinId])) !== stringify($market))
+					if (!catalogCoinCurrencyMarketMatchesMarket(catalogCoinSpotUsdMarketByCoinId[$market.$base.$coin.coinId], $market))
 						return []
 					const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
 					const coinId = $market.$base.$coin.coinId

@@ -1,16 +1,15 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum RssFeed_TimestampSelector {
-	FeedTimestampMsSource = '$feed+timestampMs+source',
+	FeedTimestampMsSource = 'FeedTimestampMsSource',
 }
 export default {
 	entityType: EntityType.RssFeed_Timestamp,
-	label: 'RSS feed timestamp',
+	label: 'RSS feed observation',
 	labelPlural: 'RSS feed observations',
 	selectors: [
 		{
@@ -24,98 +23,46 @@ export default {
 	],
 	fields: [
 		{
-			name: '$feed',
-			label: 'feed',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.RssFeed,
-			cardinality: EntityFieldCardinality.One,
+				name: '$feed',
+				label: 'Feed',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.RssFeed,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'timestampMs',
-			label: 'Timestamp',
-			description: 'The observation time in Unix milliseconds.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'timestampMs',
+				label: 'Timestamp',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'source',
-			label: 'Source',
-			description: 'The source that produced this observation.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'source',
+				label: 'Source',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'reachable',
-			label: 'reachable',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("boolean"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'reachable',
+				label: 'Reachable',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('boolean'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'title',
-			label: 'title',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'sourceWindowItemCount',
+				label: 'Source window items',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'description',
-			label: 'Description',
-			description: 'A human-readable description from the source domain.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'link',
-			label: 'link',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'siteUrl',
-			label: 'site URL',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'language',
-			label: 'language',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'lastBuildDate',
-			label: 'last build date',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'imageUrl',
-			label: 'image URL',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'sourceWindowItemCount',
-			label: 'source window item count',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'fetchWindowKind',
-			label: 'fetch window kind',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'fetchWindowKind',
+				label: 'Fetch window',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 	],
 } as const satisfies EntityDefinition

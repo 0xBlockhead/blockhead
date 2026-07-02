@@ -3,6 +3,7 @@ import type {
 	ClientContext,
 	SubscribeSelection,
 	SubscribeEntityReferenceResult,
+	SubscribeAllResultFields,
 } from '$/client/$client.svelte.ts'
 import {
 	subscribeEntity,
@@ -36,6 +37,10 @@ export type EntityProxyFieldResource<
 		entityType: _EntityType
 		entitySelector: EntitySelector<_Schema, _EntityType>
 		fieldName: _FieldName
+		sources?: readonly string[]
+		first: <const _FieldEntityType extends EntityType<_Schema> = EntityType<_Schema>>(
+			selection?: SubscribeSelection<_Schema, _EntityType>
+		) => SvelteKitResource<SubscribeEntityReferenceResult<_Schema, _FieldEntityType> | undefined>
 	}
 )
 
@@ -60,13 +65,17 @@ export type EntityProxyEntitiesResource<
 		entityType: EntityType<_Schema>
 		entitySelector: EntitySelector<_Schema, EntityType<_Schema>>
 		fieldName: EntityFieldName<_Schema, EntityType<_Schema>>
+		sources?: readonly string[]
 	}
 )
 
 export type EntityProxyData<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
-> = EntityResourceData<_Schema, _EntityType>
+> = (
+	& EntityResourceData<_Schema, _EntityType>
+	& SubscribeAllResultFields<_Schema, _EntityType>
+)
 
 export type EntityProxyResource<
 	_Schema extends Schema,
@@ -79,10 +88,17 @@ export type EntityProxyResource<
 	& {
 		entityType: _EntityType
 		entitySelector: EntitySelector<_Schema, _EntityType>
-		[EntityProxyField]: <const _FieldName extends EntityFieldName<_Schema, _EntityType>>(
-			fieldName: _FieldName,
+		sources?: readonly string[]
+		[EntityProxyField]: <
+			const _FieldEntityType extends EntityType<_Schema> = EntityType<_Schema>,
+			const _Multiple extends boolean = true,
+		>(
+			fieldName: string,
 			selection?: SubscribeSelection<_Schema, _EntityType>
-		) => EntityProxyFieldResource<_Schema, _EntityType, _FieldName>
+		) => _Multiple extends true ?
+			EntityProxyEntitiesResource<_Schema, _FieldEntityType>
+		:
+			SvelteKitResource<SubscribeEntityReferenceResult<_Schema, _FieldEntityType> | undefined>
 		value: {
 			entitySelector: EntitySelector<_Schema, _EntityType>
 			[EntityMetaKey.Selector]: EntitySelector<_Schema, _EntityType>
@@ -198,6 +214,9 @@ const projectReferenceData = (value: ({ [EntityMetaKey.Fields]?: object } & obje
 	:
 		{
 			...value,
+			...(EntityMetaKey.Selector in value ? {
+				entitySelector: value[EntityMetaKey.Selector],
+			} : {}),
 			...(EntityMetaKey.Fields in value ? value[EntityMetaKey.Fields] : {}),
 		}
 )
@@ -294,6 +313,31 @@ export function createEntityFieldProxy(
 				return entitySelector
 			if (property === 'fieldName')
 				return fieldName
+			if (property === 'sources')
+				return selection.sources
+			if (property === 'first')
+				return (
+					selectionOverride?: SubscribeSelection<Schema, EntityType<Schema>, object>
+				) => {
+					const references: SvelteKitResource<EntityProxyEntitiesData<Schema, EntityType<Schema>>> = createEntityFieldProxy(
+						context,
+						entityType,
+						entitySelector,
+						fieldName,
+						mergeSelection(
+							selection,
+							{
+								limit: 1,
+								...selectionOverride,
+							}
+						)
+					)
+
+					return projectResource(
+						references,
+						(data) => data.values[0]
+					)
+				}
 
 			return resourceProperty(
 				getResource,
@@ -372,6 +416,8 @@ export function createEntityProxy(
 				return entityType
 			if (property === 'entitySelector')
 				return entitySelector
+			if (property === 'sources')
+				return selection.sources
 			if (property === EntityMetaKey.Selector)
 				return entitySelector
 			if (property === 'value')

@@ -6,6 +6,7 @@
 	export type CollapsibleTabsSectionContentProps = {
 		id: string
 		label: string
+		open?: boolean
 	}
 
 	export type CollapsibleTabsSectionSnippet = Snippet<[
@@ -32,6 +33,7 @@
 	> = {
 		sectionIdPrefix: string
 		sections: Sections
+		initialSection?: CollapsibleTabsSectionIds<Sections> | string
 
 		Summary?: Snippet<[context: {
 			open?: boolean,
@@ -74,7 +76,7 @@
 	generics="Sections extends readonly CollapsibleTabsSectionRow[]"
 >
 	// Types/constants
-		import type { SvelteHTMLElements } from 'svelte/elements'
+	import type { SvelteHTMLElements } from 'svelte/elements'
 
 
 	type CollapsibleTabsForwardedProps = {
@@ -92,6 +94,7 @@
 	let {
 		sectionIdPrefix,
 		sections,
+		initialSection,
 
 		Summary,
 		Toolbar,
@@ -108,6 +111,11 @@
 		...collapsibleTabsSectionSnippets
 	}: CollapsibleTabsOwnProps<Sections> & CollapsibleTabsForwardedProps = $props()
 
+	let selectedSectionId = $state<CollapsibleTabsSectionIds<Sections>>()
+	let activeSectionId = $derived<CollapsibleTabsSectionIds<Sections> | string>(
+		selectedSectionId ?? initialSection ?? sections[0].id,
+	)
+
 
 	// Functions
 	const sectionAnchorId = (
@@ -116,11 +124,11 @@
 		`${sectionIdPrefix}:${sectionId}`
 	)
 
-		const sectionSnippetForSection = (
-			section: Sections[number],
-		): CollapsibleTabsSectionSnippet | undefined => (
-			collapsibleTabsSectionSnippets[sectionSnippetName(section.id)]
-		)
+	const sectionSnippetForSection = (
+		section: Sections[number],
+	): CollapsibleTabsSectionSnippet | undefined => (
+		collapsibleTabsSectionSnippets[sectionSnippetName(section.id)]
+	)
 
 
 	// Components
@@ -144,7 +152,11 @@
 		{#each sections as section (section.id)}
 			<a
 				data-scroll-marker-label={section.label}
+				data-active={section.id === activeSectionId}
 				href={`#${sectionAnchorId(section.id)}`}
+				onclick={() => {
+					selectedSectionId = section.id
+				}}
 			>{section.label}</a>
 		{/each}
 	{/snippet}
@@ -152,12 +164,16 @@
 	{#snippet body(_bodyContext)}
 		{#each sections as section (section.id)}
 			{@const Section = sectionSnippetForSection(section)}
-			<section id={sectionAnchorId(section.id)}>
+			<section
+				id={sectionAnchorId(section.id)}
+				data-active={section.id === activeSectionId}
+			>
 				{#if Section}
 					{@render Section(
 						{
 							id: sectionAnchorId(section.id),
 							label: section.label,
+							open: section.id === activeSectionId,
 						},
 					)}
 				{/if}

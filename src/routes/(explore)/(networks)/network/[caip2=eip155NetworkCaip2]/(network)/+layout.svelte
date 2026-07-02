@@ -1,23 +1,22 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
 	// Types/constants
+	import type { LayoutProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { eip155NetworkSelectorFromCaip2 } from '$/lib/caip2.ts'
+	import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		children,
 		params,
-	} = $props()
-
-
-	// Functions
-	import { select } from '$/routes/+layout.svelte'
+	}: LayoutProps = $props()
 
 
 	// Components
@@ -27,23 +26,29 @@
 </script>
 
 
-{#key params.caip2}
-	<ParentPageCollapsible
-		href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', params)}
-		id={stringify(eip155NetworkSelectorFromCaip2(params.caip2))}
-	>
-		{#snippet Summary({ open: _open })}
-			<EvmNetworkView
-				selection={
-					select(
-						EntityType.EvmNetwork,
-						eip155NetworkSelectorFromCaip2(params.caip2)
-					)
-				}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={
+		resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
+			caip2: params.caip2,
+		})
+	}
+	id={params.caip2}
+>
+	{#snippet Summary()}
+		<EvmNetworkView
+			selection={
+				select(EntityType.EvmNetwork, {
+					caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+				})
+			}
+			href={
+				resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
+					caip2: params.caip2,
+				})
+			}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

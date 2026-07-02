@@ -794,7 +794,7 @@ Change checklist (any edit touching collections, layout persistence, or catalog 
 
 - `Value` / `Title` / `Heading` snippets: value-only id (no kind prefix); labeled card/link text; loaded summary when resolver data beats the raw id.
 - Card summary: `Heading` → `Title` → `Value` → `title` prop. `EntityLayout.Value` → `Value` only; `EntityLayout.Title` → `Title` then `Value`. Do not use bare `{@render Value()}` for `Title` when a loaded label exists.
-- `Title` / `Heading` patterns — kind + `{@render Value()}` (`EvmBlockView`); `ResourceBoundary` + fallback (`YouTubeVideoView`, `EvmSelectorView`); `Heading` loaded, `Value` id + `EntityLayout.Value` inline (`CoinView`); `Title` prose vs `Value` id (`LiquidityPoolView`, `EnsView`); hub/protocol name, not `entityId.scope` (`FarcasterView`, `GlobalView`). No `·` in title copy.
+- `Title` / `Heading` patterns — kind + `{@render Value()}` (`EvmBlockView`); `ResourceBoundary` + fallback (`YoutubeVideoView`, `EvmSelectorView`); `Heading` loaded, `Value` id + `EntityLayout.Value` inline (`CoinView`); `Title` prose vs `Value` id (`LiquidityPoolView`, `EnsView`); hub/protocol name, not `entityId.scope` (`FarcasterView`, `GlobalView`). No `·` in title copy.
 - `EntityId`: icon + linked label; summary link wraps `#snippet Icon` and label so the row is one draggable target. `EntityView` header uses the HTML `<Heading>` component; `HeadingAfter` and collapsed `Content` live there, not on `EntityId`.
 - Readable ids: no `stringify(entityId)` in user-visible snippets; use `<Address>`, `<TruncatedValue>`, domain labels. Fine for `id`, view-transition names, drag text, route params.
 - Do not repeat summary identity in `<dl>` rows (see `<dl>` vs heading above). `EntitiesList` context hides per-row type annotation.

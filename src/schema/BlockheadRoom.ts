@@ -1,17 +1,16 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum BlockheadRoomSelector {
-	Id = 'id',
+	Id = 'Id',
 }
 export default {
 	entityType: EntityType.BlockheadRoom,
-	label: 'blockhead room',
-	labelPlural: 'blockhead rooms',
+	label: 'room',
+	labelPlural: 'rooms',
 	selectors: [
 		{
 			name: BlockheadRoomSelector.Id,
@@ -22,42 +21,39 @@ export default {
 	],
 	fields: [
 		{
-			name: 'id',
-			label: 'ID',
-			description: 'The identifier assigned by the source domain.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'id',
+				label: 'ID',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'createdAt',
-			label: 'Created',
-			description: 'The time when the subject was created according to the source.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'name',
+				label: 'Name',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'createdBy',
-			label: 'created by',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'createdAt',
+				label: 'Created',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'name',
-			label: 'Name',
-			description: 'The human-readable name of the subject.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'createdBy',
+				label: 'Created by',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$$peers',
-			label: 'peers',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.BlockheadRoomPeer,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
+				name: '$$peers',
+				label: 'Peers',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.BlockheadRoomPeer,
+				cardinality: EntityFieldCardinality.ZeroOrMany,
 		},
 	],
 } as const satisfies EntityDefinition

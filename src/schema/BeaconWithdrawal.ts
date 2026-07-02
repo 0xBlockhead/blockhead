@@ -1,77 +1,75 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum BeaconWithdrawalSelector {
-	EvmNetworkSlotIndex = 'evmNetworkSlotIndex',
-	NetworkSlotIndex = '$network+slot+index',
+	EvmNetworkSlotIndexInSlot = 'EvmNetworkSlotIndexInSlot',
 }
 export default {
 	entityType: EntityType.BeaconWithdrawal,
 	label: 'beacon withdrawal',
-	labelPlural: 'beacon withdrawals',
+	labelPlural: 'Beacon withdrawals',
 	selectors: [
 		{
-			name: BeaconWithdrawalSelector.EvmNetworkSlotIndex,
+			name: BeaconWithdrawalSelector.EvmNetworkSlotIndexInSlot,
 			fields: [
 				'$network',
 				'slot',
-				'index',
+				'indexInSlot',
 			],
 		},
 	],
 	fields: [
 		{
-			name: '$network',
-			label: 'network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmNetwork,
-			cardinality: EntityFieldCardinality.One,
+				name: '$network',
+				label: 'Network',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.EvmNetwork,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'slot',
-			label: 'slot',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'slot',
+				label: 'Slot',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'index',
-			label: 'index',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'indexInSlot',
+				label: 'Index in slot',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'validatorIndex',
-			label: 'validator index',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'validatorIndex',
+				label: 'Validator index',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$validator',
-			label: 'validator',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.BeaconValidator,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$validator',
+				label: 'Validator',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.BeaconValidator,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$account',
-			label: 'account',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmAccount,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$account',
+				label: 'Account',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.EvmAccount,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'amountGwei',
-			label: 'amount gwei',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("bigint"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'amountGwei',
+				label: 'Amount',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 	],
 } as const satisfies EntityDefinition

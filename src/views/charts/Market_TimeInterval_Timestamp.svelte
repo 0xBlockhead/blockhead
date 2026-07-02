@@ -1,10 +1,25 @@
 <script lang="ts">
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
+	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { MarketTimeInterval } from '$/constants/Market.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
+
+	type MarketTimeIntervalTimestampPoint = (
+		& SubscribeEntityReferenceResult<typeof schema, EntityType.Market_TimeInterval_Timestamp>
+		& {
+			entitySelector: {
+				timestampMs: number
+				timeInterval: MarketTimeInterval
+			}
+			open?: bigint | number
+			high?: bigint | number
+			low?: bigint | number
+			close?: bigint | number
+		}
+	)
 
 
 	// State
@@ -27,6 +42,12 @@
 	} = $props()
 
 
+	// Functions
+	const marketTimeIntervalTimestampPoint = (
+		point: SubscribeEntityReferenceResult<typeof schema, EntityType.Market_TimeInterval_Timestamp>
+	): point is MarketTimeIntervalTimestampPoint => true
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import MarketTimeIntervalTimestampChartCanvas from '$/views/charts/Market_TimeInterval_TimestampChartCanvas.svelte'
@@ -46,9 +67,10 @@
 	placeholderText="Loading OHLC candles…"
 >
 	{#snippet children(marketTimeIntervalTimestamps)}
+		{@const pointRows = marketTimeIntervalTimestamps.values.filter(marketTimeIntervalTimestampPoint)}
 		{@const points = Object.values(
 			Object.groupBy(
-				marketTimeIntervalTimestamps.values.filter((point) => (
+				pointRows.filter((point) => (
 					point.entitySelector.timeInterval.unit === timeInterval.unit
 					&& point.entitySelector.timeInterval.value === timeInterval.value
 				)),

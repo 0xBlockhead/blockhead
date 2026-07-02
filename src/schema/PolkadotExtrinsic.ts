@@ -1,77 +1,75 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum PolkadotExtrinsicSelector {
-	PolkadotBlockExtrinsicIndex = 'polkadotBlockExtrinsicIndex',
-	BlockExtrinsicIndex = '$block+extrinsicIndex',
+	BlockIndexInBlock = 'BlockIndexInBlock',
 }
 export default {
 	entityType: EntityType.PolkadotExtrinsic,
-	label: 'polkadot extrinsic',
-	labelPlural: 'polkadot extrinsics',
+	label: 'Polkadot extrinsic',
+	labelPlural: 'Polkadot extrinsics',
 	selectors: [
 		{
-			name: PolkadotExtrinsicSelector.PolkadotBlockExtrinsicIndex,
+			name: PolkadotExtrinsicSelector.BlockIndexInBlock,
 			fields: [
 				'$block',
-				'extrinsicIndex',
+				'indexInBlock',
 			],
 		},
 	],
 	fields: [
 		{
-			name: '$block',
-			label: 'block',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.PolkadotBlock,
-			cardinality: EntityFieldCardinality.One,
+				name: '$block',
+				label: 'Block',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.PolkadotBlock,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'extrinsicIndex',
-			label: 'extrinsic index',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'indexInBlock',
+				label: 'Index in block',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'hash',
-			label: 'Hash',
-			description: 'The hash that identifies this object in its protocol.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'hash',
+				label: 'Hash',
+				description: 'The hash that identifies this object in its protocol.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$signer',
-			label: 'signer',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.PolkadotAccount,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$signer',
+				label: 'Signer',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.PolkadotAccount,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$pallet',
-			label: 'pallet',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.PolkadotPallet,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$pallet',
+				label: 'Pallet',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.PolkadotPallet,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'callName',
-			label: 'call name',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'callName',
+				label: 'Call name',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'success',
-			label: 'success',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("boolean"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'success',
+				label: 'Success',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('boolean'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 	],
 } as const satisfies EntityDefinition

@@ -1,95 +1,171 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// State
-	const view = {
-	closed: [
-		'$comment',
-		{
-			label: 'observation time/source',
-		},
-		'score',
-	],
-	content: {
-		dl: [
-			[
-				'$comment',
-				{
-					label: 'observation time/source',
-				},
-				'score',
-			],
-		],
-	},
-	details: {
-		tabs: [
-			{
-				label: 'Comment',
-				items: [
-					{
-						label: 'RedditComment',
-					},
-				],
-			},
-			{
-				label: 'Ranking',
-				items: [
-					'score',
-				],
-			},
-			{
-				label: 'History',
-				items: [
-					{
-						label: 'RedditComment_Timestamp list',
-					},
-				],
-			},
-			{
-				label: 'Source evidence',
-				items: [
-					{
-						label: 'Reddit comment payload',
-					},
-				],
-			},
-		],
-	},
-} satisfies ComponentProps<typeof EntityView2>['view']
+	// Context
+	import { select } from '$/routes/+layout.svelte'
 
+
+	// State
 	let {
 		selection,
-		open = $bindable(true),
+		prefetched = {},
+		title,
+		href,
+		layout = EntityLayout.SummaryDetails,
+		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selection: EntityProxyResource<typeof schema, EntityType.RedditComment_Timestamp>
+			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.RedditComment_Timestamp>>
+			title?: string
+			href?: string
+			layout?: EntityLayout
 			open?: boolean
 		},
 		Pick<
-			ComponentProps<typeof EntityView2>,
-			| 'layout'
+			ComponentProps<typeof EntityView>,
+			| 'collapsible'
 			| 'showTypeAnnotation'
 		>
 	> = $props()
 
-
+	const redditCommentTimestamp = $derived(selection({
+		fields: {
+			score: true,
+		},
+	}))
+	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'Reddit comment timestamp')
+	const viewDomId = $derived('reddit-comment-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView2 from '$/components/EntityView2.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import NumberValue from '$/components/NumberValue.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
+	import RedditCommentView from '$/views/RedditCommentView.svelte'
 </script>
 
 
-<EntityView2
-	{selection}
+<EntityView
 	entityType={EntityType.RedditComment_Timestamp}
 	entitySelector={selection.entitySelector}
+	id={viewDomId}
+	title={title ?? titleFallback}
+	href={
+		href ?? resolve('/(social)/(reddit)/reddit/comment/[fullname]/(comment)/observations/[timestampMs=nonNegativeInteger]/[source]', {
+			fullname: String(({ ...selection.entitySelector, ...prefetched }).$comment.fullname),
+			timestampMs: String(({ ...selection.entitySelector, ...prefetched }).timestampMs),
+			source: String(({ ...selection.entitySelector, ...prefetched }).source),
+		})
+	}
+	{layout}
 	bind:open
 	{...EntityViewProps}
-	{view}
-/>
+>
+	{#snippet Title()}
+		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
+			{@const timestampMs0 = ({ ...selection.entitySelector, ...prefetched }).timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
+		{:else}
+			<ResourceBoundary resource={redditCommentTimestamp}>
+				{#snippet Pending()}
+					{@const timestampMs0 = ({ ...selection.entitySelector, ...prefetched }).timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const timestampMs0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
+	{/snippet}
+
+	{#snippet Value()}
+		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
+			{@const score0 = ({ ...selection.entitySelector, ...prefetched }).score}
+			{#if score0 !== undefined && score0 !== null}
+				<NumberValue value={Number(score0)} />
+			{/if}
+		{:else}
+			<ResourceBoundary resource={redditCommentTimestamp}>
+				{#snippet Pending()}
+					{@const score0 = ({ ...selection.entitySelector, ...prefetched }).score}
+					{#if score0 !== undefined && score0 !== null}
+						<NumberValue value={Number(score0)} />
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const score0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).score}
+					{#if score0 !== undefined && score0 !== null}
+						<NumberValue value={Number(score0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
+	{/snippet}
+
+	{#snippet HeadingAfter()}
+		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
+			{@const source0 = prefetched.source}
+			{#if source0 !== undefined && source0 !== null}
+				<span data-text="muted">
+					{String((source0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={redditCommentTimestamp}>
+				{#snippet Pending()}
+					{@const source0 = prefetched.source}
+					{#if source0 !== undefined && source0 !== null}
+						<span data-text="muted">
+							{String((source0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const source0 = entity.source}
+					{#if source0 !== undefined && source0 !== null}
+						<span data-text="muted">
+							{String((source0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
+	{/snippet}
+
+	{#snippet Content({ open: contentOpen })}
+		<dl data-column-item="center">
+			<div>
+				<dt>Comment</dt>
+				<dd>
+					<RedditCommentView
+						selection={select(EntityType.RedditComment, selection.entitySelector.$comment)}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</dd>
+			</div>
+		</dl>
+	{/snippet}
+</EntityView>

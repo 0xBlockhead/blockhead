@@ -1,56 +1,50 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
-	import { EntityType } from '$/schema/EntityType.ts'
-	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
-	import {
-		currencies,
-		currencyByIso4217,
-		type Iso4217,
-	} from '$/constants/Currency.ts'
+	import type { PageProps } from './$types.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+
+
+	// Context
+	import { resolve } from '$app/paths'
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
+		data,
 		params,
-	} = $props()
-
-	const route = $derived.by(() => {
-		const param = params.iso4217 ?? ''
-		const iso4217 = iso4217FromParam(param)
-		return { param, iso4217 }
-	})
+	}: PageProps = $props()
 
 
 	// Components
 	import Page from '$/components/Page.svelte'
 	import CurrencyView from '$/views/CurrencyView.svelte'
-
-
-	// Functions
-	const iso4217FromParam = (param: string): Iso4217 | null => (
-		currencies.find((currency) => currency.iso4217 === param)?.iso4217 ?? null
-	)
 </script>
 
 
 <svelte:head>
-	<title>
-		{route.iso4217 ? currencyByIso4217[route.iso4217].name : route.param || 'Currency'}
-	</title>
+	<title>currency • Blockhead</title>
 </svelte:head>
 
 
 <Page>
-	{#if route.iso4217 == null}
-		<h1>
-			Not found
-		</h1>
-		<p>
-			Unknown ISO&nbsp;4217 code.
-		</p>
-	{:else}
-		<CurrencyView
-			selection={select(EntityType.Currency, { iso4217: route.iso4217 })}
-		/>
-	{/if}
+	<CurrencyView
+		href={
+			resolve('/(assets)/(currencies)/currency/[iso4217=iso4217]', {
+				iso4217: params.iso4217,
+			})
+		}
+		selection={
+			select(EntityType.Currency, data.selector, {
+				fields: {
+					name: true,
+					symbol: true,
+					minorUnitExponent: true,
+					catalogSortWeight: true,
+				},
+			})
+		}
+	/>
 </Page>

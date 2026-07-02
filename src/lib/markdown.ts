@@ -1,10 +1,10 @@
 /**
- * Markdown -> safe HTML via starkdown + insane. No raw HTML pass-through; links limited to http/https/mailto.
- * On parse error (e.g. unsupported token), normalize input and fall back to escaped plain text in <pre>.
+ * Markdown -> safe HTML via Sätteri + insane. No raw HTML pass-through; links limited to http/https/mailto.
+ * On parse error, fall back to escaped plain text in <pre>.
  */
 
 import insane, { type SanitizeOptions } from 'insane'
-import { starkdown } from 'starkdown'
+import { parseToHtml } from 'satteri-browser'
 
 const escapeHtml = (s: string) => (
 	s
@@ -13,39 +13,6 @@ const escapeHtml = (s: string) => (
 		.replace(/>/g, '&gt;')
 		.replace(/"/g, '&quot;')
 )
-
-const isFenceLineAtStart = (line: string) => (
-	/^`{3,}\s*[\w-]*$/.test(line)
-)
-
-const normalizeFenceLine = (line: string) => (
-	line.replace(/^(`{3,})(\s*[\w-]*)$/, (_match, _run, rest) => `\`\`\`${rest}`)
-)
-
-const escapeBareLt = (line: string) => (
-	line.replace(/<(?!\/?[a-zA-Z!?])/g, '&lt;')
-)
-
-const normalizeForStarkdown = (s: string) => {
-	let inCodeBlock = false
-	return s
-		.replace(/\0/g, '')
-		.replace(/\r\n/g, '\n')
-		.replace(/\r/g, '\n')
-		.split('\n')
-		.map((line) => {
-			if (isFenceLineAtStart(line)) {
-				inCodeBlock = !inCodeBlock
-				return normalizeFenceLine(line)
-			}
-
-			return inCodeBlock ?
-				line
-			:
-				escapeBareLt(line.replace(/``/g, '`\u200B`'))
-		})
-		.join('\n')
-}
 
 const syndicationHtmlSanitizerOptions = {
 	allowedSchemes: [
@@ -108,9 +75,12 @@ export const syndicationHtmlToSafeHtml = (
 export const markdownToHtml = (
 	markdownText: string | null | undefined
 ): string => {
-	const markdown = markdownText === undefined || markdownText === null ? '' : markdownText
+	const markdown = (markdownText === undefined || markdownText === null ? '' : markdownText)
+		.replace(/\0/g, '')
+		.replace(/\r\n/g, '\n')
+		.replace(/\r/g, '\n')
 	try {
-		return insane(starkdown(normalizeForStarkdown(markdown)), syndicationHtmlSanitizerOptions)
+		return insane(parseToHtml(markdown), syndicationHtmlSanitizerOptions)
 	} catch {
 		return `<pre>${escapeHtml(markdown)}</pre>`
 	}

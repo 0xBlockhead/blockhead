@@ -11,7 +11,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { RssFeedSelector } from '$/schema/RssFeed.ts'
 import { RssItemSelector } from '$/schema/RssItem.ts'
-import { _GlobalRssNetworkSelector } from '$/schema/_GlobalRssNetwork.ts'
+import { RssNetworkSelector } from '$/schema/RssNetwork.ts'
 
 
 export default {
@@ -112,9 +112,9 @@ export default {
 			}),
 
 			defineResolver(Source.Rss2Json_Rest, {
-				entityType: EntityType._GlobalRssNetwork,
+				entityType: EntityType.RssNetwork,
 				resolve: {
-					[_GlobalRssNetworkSelector.Scope]: async (_entitySelector, context) => {
+					[RssNetworkSelector.Scope]: async (_entitySelector, context) => {
 				const {
 					normalizeRssFeedUrl,
 					rssItemGuidFromParts,

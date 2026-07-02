@@ -1,18 +1,16 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum EvmActorCoinAllowanceSelector {
-	EvmAccountEvmContractSpenderInteropAddress = 'evmAccountEvmContractSpenderInteropAddress',
-	ActorContractSpenderInteropAddress = '$actor+$contract+$spender+interopAddress',
+	EvmAccountEvmContractSpenderInteropAddress = 'EvmAccountEvmContractSpenderInteropAddress',
 }
 export default {
 	entityType: EntityType.EvmActorCoinAllowance,
-	label: 'EVM actor coin allowance',
-	labelPlural: 'EVM actor coin allowances',
+	label: 'allowance',
+	labelPlural: 'allowances',
 	selectors: [
 		{
 			name: EvmActorCoinAllowanceSelector.EvmAccountEvmContractSpenderInteropAddress,
@@ -26,53 +24,53 @@ export default {
 	],
 	fields: [
 		{
-			name: '$actor',
-			label: 'actor',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmAccount,
-			cardinality: EntityFieldCardinality.One,
+				name: '$actor',
+				label: 'Owner',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.EvmAccount,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$contract',
-			label: 'contract',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmContract,
-			cardinality: EntityFieldCardinality.One,
+				name: '$contract',
+				label: 'Token',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.EvmContract,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$actorCoin',
-			label: 'actor coin',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmNetworkActorCoinBalance,
-			cardinality: EntityFieldCardinality.One,
+				name: '$actorCoin',
+				label: 'Balance',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.EvmNetworkActorCoinBalance,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$spender',
-			label: 'spender',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmAccount,
-			cardinality: EntityFieldCardinality.One,
+				name: '$spender',
+				label: 'Spender',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.EvmAccount,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'interopAddress',
-			label: 'interop address',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'interopAddress',
+				label: 'Interop address',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$spenderContract',
-			label: 'spender contract',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmContract,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$spenderContract',
+				label: 'Spender contract',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.EvmContract,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$$blocks',
-			label: 'blocks',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.EvmActorCoinAllowance_Block,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$blocks',
+				label: 'Blocks',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.EvmActorCoinAllowance_Block,
+				cardinality: EntityFieldCardinality.Many,
 		},
 	],
 } as const satisfies EntityDefinition

@@ -16,6 +16,13 @@ export const caip2ParamValueFromString = (
 	)
 }
 
+export const caip2SelectorValueFromString = (
+	param: string
+) => caip2ParamValueFromString(param) ?? {
+	namespace: '',
+	reference: '',
+}
+
 export const networkSelectorFromCaip2 = (
 	caip2: `${string}:${string}`
 ) => {

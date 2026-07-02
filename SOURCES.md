@@ -412,12 +412,12 @@ export enum SourceBinding {
 | `Constants_Internal` | `Constants_Internal` | _GlobalXNetwork_Timestamp |
 | `X_FxEmbed_Rest` | `X_FxEmbed_Rest` | _GlobalXNetwork_Timestamp |
 | `X_Rest` | `X_Rest` | _GlobalXNetwork_Timestamp |
-| `Constants_Internal` | `Constants_Internal` | _GlobalYouTubeNetwork |
-| `Piped_Rest` | `Piped_Rest` | _GlobalYouTubeNetwork |
-| `Youtube_Rest` | `Youtube_Rest` | _GlobalYouTubeNetwork |
-| `Constants_Internal` | `Constants_Internal` | _GlobalYouTubeNetwork_Timestamp |
-| `Piped_Rest` | `Piped_Rest` | _GlobalYouTubeNetwork_Timestamp |
-| `Youtube_Rest` | `Youtube_Rest` | _GlobalYouTubeNetwork_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | _GlobalYoutubeNetwork |
+| `Piped_Rest` | `Piped_Rest` | _GlobalYoutubeNetwork |
+| `Youtube_Rest` | `Youtube_Rest` | _GlobalYoutubeNetwork |
+| `Constants_Internal` | `Constants_Internal` | _GlobalYoutubeNetwork_Timestamp |
+| `Piped_Rest` | `Piped_Rest` | _GlobalYoutubeNetwork_Timestamp |
+| `Youtube_Rest` | `Youtube_Rest` | _GlobalYoutubeNetwork_Timestamp |
 | `Constants_Internal` | `Constants_Internal` | Account |
 | `CosmosSdk_Rest` | `CosmosSdk_Rest` | Account |
 | `Hyperliquid_JsonRpc` | `Hyperliquid_JsonRpc` | Account |
@@ -3010,22 +3010,22 @@ export enum SourceBinding {
 | `X_Rest` | `X_Rest` | XUser |
 | `X_FxEmbed_Rest` | `X_FxEmbed_Rest` | XUser_Timestamp |
 | `X_Rest` | `X_Rest` | XUser_Timestamp |
-| `Youtube_Rest` | `Youtube_Rest` | YouTubeChannel |
-| `Piped_Rest` | `Piped_Rest` | YouTubeChannel_Timestamp |
-| `Youtube_Rest` | `Youtube_Rest` | YouTubeChannel_Timestamp |
-| `Piped_Rest` | `Piped_Rest` | YouTubeComment |
-| `Youtube_Rest` | `Youtube_Rest` | YouTubeComment |
-| `Piped_Rest` | `Piped_Rest` | YouTubeComment_Timestamp |
-| `Youtube_Rest` | `Youtube_Rest` | YouTubeComment_Timestamp |
-| `Piped_Rest` | `Piped_Rest` | YouTubePlaylist |
-| `Youtube_Rest` | `Youtube_Rest` | YouTubePlaylist |
-| `Piped_Rest` | `Piped_Rest` | YouTubePlaylist_Timestamp |
-| `Youtube_Rest` | `Youtube_Rest` | YouTubePlaylist_Timestamp |
-| `Constants_Internal` | `Constants_Internal` | YouTubeNetwork |
-| `Piped_Rest` | `Piped_Rest` | YouTubeVideo |
-| `Youtube_Rest` | `Youtube_Rest` | YouTubeVideo |
-| `Piped_Rest` | `Piped_Rest` | YouTubeVideo_Timestamp |
-| `Youtube_Rest` | `Youtube_Rest` | YouTubeVideo_Timestamp |
+| `Youtube_Rest` | `Youtube_Rest` | YoutubeChannel |
+| `Piped_Rest` | `Piped_Rest` | YoutubeChannel_Timestamp |
+| `Youtube_Rest` | `Youtube_Rest` | YoutubeChannel_Timestamp |
+| `Piped_Rest` | `Piped_Rest` | YoutubeComment |
+| `Youtube_Rest` | `Youtube_Rest` | YoutubeComment |
+| `Piped_Rest` | `Piped_Rest` | YoutubeComment_Timestamp |
+| `Youtube_Rest` | `Youtube_Rest` | YoutubeComment_Timestamp |
+| `Piped_Rest` | `Piped_Rest` | YoutubePlaylist |
+| `Youtube_Rest` | `Youtube_Rest` | YoutubePlaylist |
+| `Piped_Rest` | `Piped_Rest` | YoutubePlaylist_Timestamp |
+| `Youtube_Rest` | `Youtube_Rest` | YoutubePlaylist_Timestamp |
+| `Constants_Internal` | `Constants_Internal` | YoutubeNetwork |
+| `Piped_Rest` | `Piped_Rest` | YoutubeVideo |
+| `Youtube_Rest` | `Youtube_Rest` | YoutubeVideo |
+| `Piped_Rest` | `Piped_Rest` | YoutubeVideo_Timestamp |
+| `Youtube_Rest` | `Youtube_Rest` | YoutubeVideo_Timestamp |
 | `Zcashd_JsonRpc` | `Zcashd_JsonRpc` | ZcashShieldedAction |
 | `Zcashd_JsonRpc` | `Zcashd_JsonRpc` | ZcashShieldedPool |
 | `Zcashd_JsonRpc` | `Zcashd_JsonRpc` | ZcashShieldedPoolBlockState |
@@ -3997,7 +3997,7 @@ export enum SourceBinding {
 | `CometBft_Rest` | `CometBft` | Caip2Network:cosmos:cosmoshub-4 | HttpRest | RestJson | BrowserDirect | GenericRead | 1 | 1 |
 | `Conseil_Postgres` | `Conseil` | SqlDataset:conseil | Sql | Postgres | ServerOnly | GenericRead | 0 | 1 |
 | `Constants_Internal` | `_Constants` | Global:checked-in-catalog | InProcess | CatalogRows | BrowserDirect | GenericRead | 0 | 1 |
-| `CosmosAdrs_Github` | `CosmosAdrs` | GitRepository:cosmos/cosmos-sdk@main:docs/architecture | HttpRest | GithubContentsApi | BrowserDirect | GithubRepositoryContents | 0 | 2 |
+| `CosmosAdrs_Github` | `CosmosAdrs` | GitRepository:cosmos/cosmos/sdk@main:docs/architecture | HttpRest | GithubContentsApi | BrowserDirect | GithubRepositoryContents | 0 | 2 |
 | `CosmosChainRegistry_Github` | `CosmosChainRegistry` | GitRepository:cosmos/chain-registry@master: | HttpRest | GithubContentsApi | BrowserDirect | GithubRepositoryContents | 0 | 2 |
 | `CosmosSdk_Rest` | `CosmosSdk` | Caip2Network:cosmos:cosmoshub-4 | HttpRest | RestJson | BrowserDirect | GenericRead | 1 | 1 |
 | `CronosExplorer_Rest` | `CronosExplorer` | Global:cronos-explorer-api | HttpRest | RestJson | RemoteQuery | GenericRead | 0 | 1 |
@@ -4170,7 +4170,7 @@ export enum SourceBinding {
 | `Solana_JsonRpc` | `Solana` | Caip2Network:solana:mainnet | JsonRpc2 | SolanaJsonRpc | HttpProxy | GenericRead | 1 | 1 |
 | `Solana_JsonRpc` | `Solana` | Caip2Network:solana:mainnet | JsonRpc2 | SolanaJsonRpc | RemoteLive | GenericSubscribe | 1 | 1 |
 | `SolanaMobileWalletAdapter_WalletApi` | `SolanaMobileWalletAdapter` | LocalDevice:solana-mobile-wallet-adapter | WalletProvider | WalletApi | BrowserDirect | WalletAccountRead, WalletSign | 0 | 1 |
-| `SolanaSimds_Github` | `SolanaSimds` | GitRepository:solana-foundation/solana-improvement-documents@main:proposals | HttpRest | GithubContentsApi | BrowserDirect | GithubRepositoryContents | 0 | 2 |
+| `SolanaSimds_Github` | `SolanaSimds` | GitRepository:solana-foundation/solana/improvement-documents@main:proposals | HttpRest | GithubContentsApi | BrowserDirect | GithubRepositoryContents | 0 | 2 |
 | `Sourcify_Rest` | `Sourcify` | Global:repository | HttpRest | SourcifyRestV2 | HttpProxy | GenericRead | 1 | 1 |
 | `SpdxDocument_Local` | `Spdx` | LocalDevice:spdx-document | LocalFile | LocalParser | LocalOnly | AiArtifactCatalog, DocumentClaimExtraction | 0 | 1 |
 | `Starknet_JsonRpc` | `Starknet` | Caip2Network:starknet | JsonRpc2 | StarknetJsonRpc | RemoteQuery | GenericRead | 0 | 1 |

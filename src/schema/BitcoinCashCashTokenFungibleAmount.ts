@@ -1,18 +1,16 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum BitcoinCashCashTokenFungibleAmountSelector {
-	UtxoOutput = 'utxoOutput',
-	Output = '$output',
+	UtxoOutput = 'UtxoOutput',
 }
 export default {
 	entityType: EntityType.BitcoinCashCashTokenFungibleAmount,
-	label: 'Bitcoin cash cash token fungible amount',
-	labelPlural: 'Bitcoin cash cash token fungible amounts',
+	label: 'Bitcoin Cash CashToken fungible amount',
+	labelPlural: 'Bitcoin Cash CashToken fungible amounts',
 	selectors: [
 		{
 			name: BitcoinCashCashTokenFungibleAmountSelector.UtxoOutput,
@@ -23,25 +21,25 @@ export default {
 	],
 	fields: [
 		{
-			name: '$output',
-			label: 'output',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.UtxoOutput,
-			cardinality: EntityFieldCardinality.One,
+				name: '$output',
+				label: 'Output',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.UtxoOutput,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$category',
-			label: 'category',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.BitcoinCashCashTokenCategory,
-			cardinality: EntityFieldCardinality.One,
+				name: '$category',
+				label: 'Category',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.BitcoinCashCashTokenCategory,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'amount',
-			label: 'amount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("bigint"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'amount',
+				label: 'Amount',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.One,
 		},
 	],
 } as const satisfies EntityDefinition

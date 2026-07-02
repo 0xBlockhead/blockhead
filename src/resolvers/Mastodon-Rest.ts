@@ -1,4 +1,5 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import { mastodonInstanceByKey } from '$/constants/Mastodon.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -17,6 +18,7 @@ import type {
 	MastodonApiV1Status,
 } from '$/sources/Mastodon/Rest/types.ts'
 import { ActivityPubActorSelector } from '$/schema/ActivityPubActor.ts'
+import { ActivityPubNetworkSelector } from '$/schema/ActivityPubNetwork.ts'
 import { ActivityPubNoteSelector } from '$/schema/ActivityPubNote.ts'
 import { ActivityPubActor_TimestampSelector } from '$/schema/ActivityPubActor_Timestamp.ts'
 import { ActivityPubNote_TimestampSelector } from '$/schema/ActivityPubNote_Timestamp.ts'
@@ -221,6 +223,33 @@ export default {
 	source: Source.Mastodon_Rest,
 
 	resolvers: [
+		defineResolver(Source.Mastodon_Rest, {
+			entityType: EntityType.ActivityPubNetwork,
+			resolve: {
+				[ActivityPubNetworkSelector.Scope]: async (_selector, context) => {
+					const publicEnv = context.publicEnv
+					const { listPublicTimeline } = await import('$/sources/Mastodon/Rest/queries.ts')
+					const limit = resolverContextRowLimit(context)
+					return (await listPublicTimeline(publicEnv, limit))
+						.flatMap((status) => (
+							status.id == null ?
+								[]
+							:
+								[{
+									[EntityMetaKey.Selector]: {
+										instanceOrigin: mastodonInstanceByKey.mastodon_social.origin,
+										localStatusId: String(status.id),
+									},
+								}]
+						))
+				},
+			},
+		})({
+			fields: {
+				$$activityPubNotes: (notes) => notes,
+			},
+		}),
+
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubActor,
 			resolve: {

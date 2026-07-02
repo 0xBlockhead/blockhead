@@ -1,17 +1,21 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
-	import { EntityType } from '$/schema/EntityType.ts'
-	import { select } from '$/routes/+layout.svelte'
-	import { eip155NetworkSelectorFromCaip2 } from '$/lib/caip2.ts'
 	// Types/constants
-	import { with0xHex } from '$/lib/hexLowerOfByteSize.ts'
+	import type { PageProps } from './$types.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+
+
+	// Context
+	import { resolve } from '$app/paths'
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
+		data,
 		params,
-	} = $props()
-
-	const networkSelector = $derived(eip155NetworkSelectorFromCaip2(params.caip2))
+	}: PageProps = $props()
 
 
 	// Components
@@ -20,11 +24,31 @@
 </script>
 
 
+<svelte:head>
+	<title>EVM contract • Blockhead</title>
+</svelte:head>
+
+
 <Page>
 	<EvmContractView
-		selection={select(EntityType.EvmContract, {
-			$network: networkSelector,
-			address: with0xHex(params.address),
-		})}
+		href={
+			resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
+				caip2: params.caip2,
+				address: params.address,
+			})
+		}
+		selection={
+			select(EntityType.EvmContract, data.selector, {
+				fields: {
+					precompileName: true,
+					$deployer: true,
+					$creationTransaction: true,
+					$implementation: true,
+					$verification: true,
+					codeHash: true,
+					code: true,
+				},
+			})
+		}
 	/>
 </Page>

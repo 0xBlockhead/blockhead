@@ -1,12 +1,12 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
+import { type } from 'arktype'
+
 export enum RedditCommentSelector {
-	Fullname = 'fullname',
+	Fullname = 'Fullname',
 }
 export default {
 	entityType: EntityType.RedditComment,
@@ -22,68 +22,75 @@ export default {
 	],
 	fields: [
 		{
-			name: 'fullname',
-			label: 'fullname',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'fullname',
+				label: 'Fullname',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'body',
-			label: 'body',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'body',
+				label: 'Body',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'author',
-			label: 'author',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'author',
+				label: 'Author',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$$timestamps',
-			label: 'timestamps',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.RedditComment_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
+				name: 'createdAt',
+				label: 'Created',
+				description: 'The time when the comment was created according to Reddit.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'createdAt',
-			label: 'Created',
-			description: 'The time when the subject was created according to the source.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'depth',
+				label: 'Depth',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'depth',
-			label: 'depth',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$link',
+				label: 'Submission',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.RedditLink,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$link',
-			label: 'link',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.RedditLink,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$parentComment',
+				label: 'Parent comment',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.RedditComment,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$parentComment',
-			label: 'parent comment',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.RedditComment,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$$timestamps',
+				label: 'Observations',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.RedditComment_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Reddit_PublicJson,
+				],
 		},
 		{
-			name: '$$replies',
-			label: 'replies',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.RedditComment,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$replies',
+				label: 'Replies',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.RedditComment,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Constants_Internal,
+					Source.Reddit_PublicJson,
+				],
 		},
 	],
 } as const satisfies EntityDefinition

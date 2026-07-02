@@ -1,82 +1,74 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import BlockheadRoomPeersView from '$/views/BlockheadRoomPeersView.svelte'
+	import BlockheadRoomsView from '$/views/BlockheadRoomsView.svelte'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
-
-
-	const hubKey = 'multiplayer'
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// Components
-	import BlockheadRoomPeersView from '$/views/BlockheadRoomPeersView.svelte'
-	import BlockheadRoomsView from '$/views/BlockheadRoomsView.svelte'
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import Page from '$/components/Page.svelte'
-	import GlobalView from '$/views/GlobalView.svelte'
 </script>
 
 
+<svelte:head>
+	<title>Multiplayer • Blockhead</title>
+</svelte:head>
+
+
 <Page>
-	<GlobalView
-		selection={select(EntityType._Global, { scope: 'Multiplayer' })}
-		title={'Multiplayer'}
-		href={resolve('/~/multiplayer')}
+	<CollapsibleTabs
+		id='multiplayer:hub'
+		sectionIdPrefix='multiplayer'
+		sections={[
+			{ id: 'rooms', label: 'Rooms' },
+			{ id: 'contacts', label: 'Contacts' },
+		]}
+		data-card
+		scrollContainerProps={{
+			'data-row': 'start align-start',
+			style: '--carousel-basis: 40ch',
+		}}
 	>
-		{#snippet children({ open: hubOpen,
-		})}
-			<CollapsibleTabs
-				id={`${hubKey}:hub`}
-				sectionIdPrefix={hubKey}
-				sections={[
-					{ id: 'rooms', label: 'Rooms' },
-					{ id: 'contacts', label: 'Contacts' },
-				]}
-				data-card
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-					style: '--carousel-basis: 40ch',
-				}}
+		{#snippet Summary({ open: _open })}
+			<header
+				data-row-item='flexible'
+				data-row='wrap gap-4'
 			>
-				{#snippet Summary({ open: _summaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Multiplayer
-						</HeadingComponent>
-					</header>
-				{/snippet}
-
-				{#snippet SectionRooms({ id, label })}
-					<BlockheadRoomsView
-						href={resolve('/~/multiplayer/rooms')}
-						selection={select(
-			EntityType._Global,
-			{ scope: '$$blockheadRooms' }
-		).$$blockheadRooms}
-						id="rooms"
-						open={hubOpen}
-					/>
-				{/snippet}
-
-				{#snippet SectionContacts({ id, label })}
-					<BlockheadRoomPeersView
-						href={resolve('/~/multiplayer/contacts')}
-						selection={select(
-			EntityType._Global,
-			{ scope: '$$blockheadRoomPeers' }
-		).$$blockheadRoomPeers}
-						id="contacts"
-						open={hubOpen}
-					/>
-				{/snippet}
-		</CollapsibleTabs>
+				<HeadingComponent>Multiplayer</HeadingComponent>
+			</header>
 		{/snippet}
-	</GlobalView>
+
+		{#snippet SectionRooms()}
+			<BlockheadRoomsView
+				href={resolve('/~/multiplayer/rooms')}
+				selection={select(EntityType._Global, { scope: '$$blockheadRooms' })[EntityProxyField]<EntityType.BlockheadRoom>('$$blockheadRooms')({
+					sources: [Source.Local_Internal],
+				})}
+				id='rooms'
+				open={true}
+			/>
+		{/snippet}
+
+		{#snippet SectionContacts()}
+			<BlockheadRoomPeersView
+				href={resolve('/~/multiplayer/contacts')}
+				selection={select(EntityType._Global, { scope: '$$blockheadRoomPeers' })[EntityProxyField]<EntityType.BlockheadRoomPeer>('$$blockheadRoomPeers')({
+					sources: [Source.Local_Internal],
+				})}
+				id='contacts'
+				open={true}
+			/>
+		{/snippet}
+	</CollapsibleTabs>
 </Page>

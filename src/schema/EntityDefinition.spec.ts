@@ -420,13 +420,13 @@ describe('entity selectors', () => {
 		expect(selectors.map((selector) => selector.fields)).toContainEqual([
 			'$transaction',
 			'instructionKind',
-			'instructionIndex',
+			'indexInTransaction',
 		])
 		expect(selectors.map((selector) => selector.fields)).toContainEqual([
 			'$transaction',
 			'instructionKind',
-			'instructionIndex',
-			'innerInstructionIndex',
+			'indexInTransaction',
+			'indexInInstruction',
 		])
 	})
 
@@ -497,6 +497,7 @@ describe('entity selectors', () => {
 						return []
 
 					const referencedEntityDefinition = entityDefinitionByType[fieldDefinition.entityType]
+					// oxlint-disable-next-line typescript/no-unnecessary-condition -- schema fixture coverage checks invalid references at runtime
 					if (referencedEntityDefinition == null)
 						return [`${[...path, entityDefinition.entityType, selector.name, fieldName].join('.')}: unknown referenced entity ${fieldDefinition.entityType}`]
 

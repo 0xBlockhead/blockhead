@@ -16,7 +16,7 @@
 	}: {
 		entitySelector: SchemaEntitySelector<typeof schema, SchemaEntityType<typeof schema>>
 		href?: string
-		/** `text/plain` for drag; default `stringify(entitySelector)`. */
+		/** `text/plain` for drag. Omit when no display-safe value is available. */
 		idDragPlainText?: string
 		Icon?: Snippet
 		children: Snippet
@@ -25,7 +25,9 @@
 
 	// Inner context
 	const onDragStart = (e: DragEvent) => {
-		e.dataTransfer?.setData('text/plain', idDragPlainText ?? stringify(entitySelector))
+		if (idDragPlainText !== undefined && idDragPlainText.length > 0)
+			e.dataTransfer?.setData('text/plain', idDragPlainText)
+
 		if (href !== undefined && href.length > 0) {
 			e.dataTransfer?.setData('text/uri', href)
 		}

@@ -1,12 +1,11 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum CosmosModuleSelector {
-	NetworkModuleName = 'networkModuleName',
+	NetworkModuleName = 'NetworkModuleName',
 }
 export default {
 	entityType: EntityType.CosmosModule,
@@ -23,25 +22,25 @@ export default {
 	],
 	fields: [
 		{
-			name: '$network',
-			label: 'network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Network,
-			cardinality: EntityFieldCardinality.One,
+				name: '$network',
+				label: 'Network',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.Network,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'moduleName',
-			label: 'module name',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'moduleName',
+				label: 'Module name',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$authority',
-			label: 'authority',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.CosmosAccount,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$authority',
+				label: 'Authority',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.CosmosAccount,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 	],
 } as const satisfies EntityDefinition

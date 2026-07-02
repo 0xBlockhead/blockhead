@@ -454,6 +454,30 @@ export default {
 				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
 					const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
 					const chains = await fetchRpcsJson()
+					if (chains.find((chain) => chain.chainId === Number(caip2.reference)) == null)
+						throw new Error('Chainlist_Rest: network not in rpcs.json for child layer list')
+
+					return chains.flatMap((chain) => {
+						const parentMatch = chain.parent?.chain == null ? null : /^eip155[:-](\d+)$/i.exec(chain.parent.chain.trim())
+						return parentMatch == null || Number(parentMatch[1]) !== Number(caip2.reference) || chain.chainId === Number(caip2.reference) ?
+							[]
+						:
+							[{ [EntityMetaKey.Selector]: evmNetworkIdFromChainId(chain.chainId) }]
+					})
+				}
+			},
+		})({
+			fields: {
+				$$childLayers: (childLayers) => childLayers,
+			},
+		}),
+
+		defineResolver(Source.Chainlist_Rest, {
+			entityType: EntityType.EvmNetwork,
+			resolve: {
+				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
+					const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
+					const chains = await fetchRpcsJson()
 					const chain = chains.find((listedChain) => listedChain.chainId === Number(caip2.reference))
 					if (chain == null)
 						throw new Error('Chainlist_Rest: network not in rpcs.json for testnet list')

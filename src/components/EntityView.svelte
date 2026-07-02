@@ -31,12 +31,14 @@
 
 	// Context
 	import { getIsInsideEntityList, setIsInsideEntityList } from '$/context/isInsideEntityList.ts'
-	import { getIsInsidePage } from '$/context/isInsidePage.ts'
+	import { getIsInsidePage, getIsPageRoot, setIsPageRoot } from '$/context/isInsidePage.ts'
 	import { getOnNestedCollapsibleClose } from '$/context/onNestedCollapsibleClose.ts'
 
 	const isInsideEntityList = getIsInsideEntityList()
 	setIsInsideEntityList(false)
 	const isInsidePage = getIsInsidePage()
+	const wasPageRoot = getIsPageRoot()
+	setIsPageRoot(false)
 	const onNestedCollapsibleClose = getOnNestedCollapsibleClose()
 
 
@@ -57,7 +59,7 @@
 		title,
 		href,
 
-		/** Override `text/plain` when dragging the default title row; default is `stringify(entitySelector)`. */
+		/** `text/plain` when dragging the default title row. Omit when no display-safe value is available. */
 		idDragPlainText,
 
 		layout = EntityLayout.SummaryDetails,
@@ -112,6 +114,7 @@
 		} & EntityViewLayoutProps,
 		SvelteHTMLElements['article']
 	> = $props()
+
 
 	const entityTitle = $derived(
 		title ?? entityDefinitionByType[entityType].label,
@@ -250,8 +253,8 @@
 		data-column-item="flexible"
 		data-column
 		{...articleProps}
-		id={stringify(entitySelector)}
-		style:view-transition-name={`EntityView-${stringify(entitySelector)}`}
+		id={articleProps.id ?? stringify(entitySelector)}
+		style:view-transition-name={`EntityView-${articleProps.id ?? stringify(entitySelector)}`}
 	>
 		{#snippet Annotation()}
 			{#if TypeAnnotationTooltip}
@@ -273,7 +276,9 @@
 			canToggle={collapsible}
 			{ontoggle}
 			onclose={() => {
-				if (!isInsidePage)
+				if (wasPageRoot)
+					onNestedCollapsibleClose?.()
+				else if (!isInsidePage)
 					onNestedCollapsibleClose?.(stringify(entitySelector))
 			}}
 			data-column-item="flexible"

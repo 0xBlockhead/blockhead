@@ -113,6 +113,7 @@
 		data-row="align-center"
 	>
 		<ProfileSwitcher />
+
 		<NetworkEnvironmentInput />
 	</footer>
 </nav>

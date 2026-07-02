@@ -8,7 +8,6 @@ import type { EntitySelector } from '$/schema/$schema.ts'
 import type { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import type { LifiToolsResponse } from '$/sources/Lifi/Rest/types.ts'
-import { stringify } from 'devalue'
 
 
 export const coinBridgeCapabilityRowsFromInstancesAndTools = (
@@ -19,17 +18,31 @@ export const coinBridgeCapabilityRowsFromInstancesAndTools = (
 	return coinBridgeCapabilityEntityRowsFromInstancesAndTools(instanceRows, bridges)
 }
 
+const coinInstanceEntitySelectorKey = (
+	instanceId: EntitySelector<typeof schema, EntityType.EvmCoinInstance>
+) => (
+	[
+		instanceId.$network.caip2.namespace,
+		instanceId.$network.caip2.reference,
+		instanceId.type,
+		instanceId.type === 'Erc20Token' ?
+			instanceId.$contract.address
+		:
+			'',
+	].join(':')
+)
+
 export const filterCoinBridgeCapabilityRowsForInstance = (
 	rows: ReturnType<typeof coinBridgeCapabilityEntityRowsFromInstancesAndTools>,
 	instanceId: EntitySelector<typeof schema, EntityType.EvmCoinInstance>,
 	direction: 'inbound' | 'outbound'
 ) => {
-	const instanceKey = stringify(instanceId)
+	const instanceKey = coinInstanceEntitySelectorKey(instanceId)
 	const filtered = rows.filter((row) => (
 		direction === 'outbound' ?
-			stringify(row[EntityMetaKey.Selector].$fromInstance) === instanceKey
+			coinInstanceEntitySelectorKey(row[EntityMetaKey.Selector].$fromInstance) === instanceKey
 		:
-			stringify(row[EntityMetaKey.Selector].$toInstance) === instanceKey
+			coinInstanceEntitySelectorKey(row[EntityMetaKey.Selector].$toInstance) === instanceKey
 	))
 	return filtered
 }

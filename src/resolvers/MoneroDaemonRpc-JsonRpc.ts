@@ -1,5 +1,4 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
-import { stringify } from 'devalue'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -30,7 +29,10 @@ type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 const moneroMainnetCaip2 = networkBySlug.monero.caip2
 
 const assertMoneroMainnet = (network: NetworkId) => {
-	if (stringify(network) !== stringify({ caip2: moneroMainnetCaip2 }))
+	if (
+		network.caip2.namespace !== moneroMainnetCaip2.namespace
+		|| network.caip2.reference !== moneroMainnetCaip2.reference
+	)
 		throw new Error('MoneroDaemonRpc_JsonRpc: unsupported network')
 }
 

@@ -3,6 +3,7 @@ node_modules
 # Output
 .generated
 .output
+.tmp
 .vercel
 .netlify
 .wrangler

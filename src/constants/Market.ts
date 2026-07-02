@@ -32,6 +32,11 @@ export type MarketIdLabelInput = {
 	marketKind: MarketKind
 }
 
+export type MarketAssetRouteLabel = (
+	| 'coin'
+	| 'currency'
+)
+
 
 /**
 	* `Market` graph model (source-agnostic ids; resolvers map into provider APIs):
@@ -105,6 +110,38 @@ const marketKinds = [
 	label: string
 }[]
 
+const marketAssetRouteLabels = [
+	{
+		kind: MarketAssetKind.Coin,
+		label: 'coin',
+	},
+	{
+		kind: MarketAssetKind.CoinInstance,
+		label: 'currency',
+	},
+	{
+		kind: MarketAssetKind.Currency,
+		label: 'currency',
+	},
+] as const satisfies readonly {
+	kind: MarketAssetKind
+	label: MarketAssetRouteLabel
+}[]
+
+const marketCoinInstanceRouteLabels = [
+	{
+		type: 'NativeCurrency',
+		label: 'native',
+	},
+	{
+		type: 'Contract',
+		label: 'erc20',
+	},
+] as const satisfies readonly {
+	type: string
+	label: string
+}[]
+
 
 // Lookups
 
@@ -112,5 +149,19 @@ export const marketKindByMarketKind = Object.fromEntries(
 	marketKinds.map((row) => [
 		row.marketKind,
 		row,
+	])
+)
+
+export const marketAssetRouteLabelByKind = Object.fromEntries(
+	marketAssetRouteLabels.map((row) => [
+		row.kind,
+		row.label,
+	])
+)
+
+export const marketCoinInstanceRouteLabelByType = Object.fromEntries(
+	marketCoinInstanceRouteLabels.map((row) => [
+		row.type,
+		row.label,
 	])
 )

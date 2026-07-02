@@ -1,23 +1,23 @@
-import { error } from '@sveltejs/kit'
+// Generated from APP.ts. Do not edit by hand.
 
+import type { PageLoad } from './$types'
+import { error } from '@sveltejs/kit'
+import { parseEntitySelector } from '$/schema/$schema.ts'
+import { schema } from '$/schema/index.ts'
+import NetworkSchema from '$/schema/Network.ts'
 import { type as arktype } from 'arktype'
 
-import { parseEntitySelector } from '$/schema/$schema.ts'
-import EntitySchema from '$/schema/Network.ts'
-import { schema } from '$/schema/index.ts'
-
-import type { PageLoad } from './$types.ts'
-
-
 export const load: PageLoad = ({ params }) => {
-	const selector = parseEntitySelector(
+	const networkSelector = parseEntitySelector(
 		schema,
-		EntitySchema,
+		NetworkSchema,
 		{
-			slug: decodeURIComponent(params.networkSlug),
+			slug: params.networkSlug,
 		}
 	)
-	if (selector instanceof arktype.errors) error(404, 'Invalid Network selector')
+	if (networkSelector instanceof arktype.errors) error(404, 'Invalid Network selector')
 
-	return { selector }
+	return {
+		selector: networkSelector,
+	}
 }

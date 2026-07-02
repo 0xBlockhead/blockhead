@@ -15,6 +15,7 @@ export const matchSchemaPrimitiveParam = <
 	value: string | number | bigint | object
 ) => {
 	const fieldDefinition = schemaMeta.entityFieldDefinitionByEntityTypeAndName[entityType][fieldName]
+	// oxlint-disable-next-line typescript/no-unnecessary-condition -- route params can name fields outside the generated schema type surface at runtime
 	if (fieldDefinition === undefined)
 		return false
 

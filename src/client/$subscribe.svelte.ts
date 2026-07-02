@@ -1,4 +1,5 @@
 import {
+	BasicIndex,
 	and,
 	createLiveQueryCollection,
 	eq,
@@ -45,6 +46,8 @@ enum FieldConditionState {
 	Unconditional = 'unconditional',
 	Unknown = 'unknown',
 }
+
+const fieldCollectionOrderIndexKeys = new WeakMap<object, Set<string>>()
 
 export type EntityResourceData<
 	_Schema extends Schema,
@@ -149,20 +152,24 @@ const subscribeToLiveQueryCollections = (
 ) => {
 	const subscriptions = [
 		subscribeToFailures(update),
-		...queries.flatMap((query) => {
+	]
+
+	for (const query of queries) {
 		query.collection.onFirstReady(update)
 		const subscription = query.collection.subscribeChanges(update, {
 			includeInitialState: true,
 			onStatusChange: update,
 		})
-		if (query.collection.status === 'idle')
-			query.collection.preload().catch(update)
+		subscriptions.push(subscription.unsubscribe)
+	}
 
-			return [
-				subscription.unsubscribe,
-			]
-		}),
-	]
+	void (async () => {
+		for (const query of queries) {
+			if (query.collection.status === 'idle')
+				await query.collection.preload().catch(update)
+		}
+	})()
+
 	return () => {
 		for (const subscription of subscriptions)
 			subscription()
@@ -203,9 +210,13 @@ const waitForLiveQueryCollections = (
 		for (const query of queries) {
 			query.collection.onFirstReady(complete)
 			subscriptions.push(query.collection.on('loadingSubset:change', complete))
-			if (query.collection.status === 'idle')
-				query.collection.preload().catch(complete)
 		}
+		void (async () => {
+			for (const query of queries) {
+				if (query.collection.status === 'idle')
+					await query.collection.preload().catch(complete)
+			}
+		})()
 		queueMicrotask(complete)
 	})
 )
@@ -505,6 +516,25 @@ const fieldResourceQueries = <
 		entitySelector
 	)
 	const fieldCollection = context.entityFieldCollections[entityType][fieldName]
+	if (selection.orderBy != null) {
+		const orderIndexKeys = fieldCollectionOrderIndexKeys.get(fieldCollection) ?? new Set<string>()
+		if (!fieldCollectionOrderIndexKeys.has(fieldCollection))
+			fieldCollectionOrderIndexKeys.set(fieldCollection, orderIndexKeys)
+
+		for (const [accessor] of selection.orderBy) {
+			const indexKey = String(accessor)
+			if (orderIndexKeys.has(indexKey))
+				continue
+
+			fieldCollection.createIndex(
+				(row) => accessor({ fieldRow: row }),
+				{
+					indexType: BasicIndex,
+				}
+			)
+			orderIndexKeys.add(indexKey)
+		}
+	}
 	const rowsCollection = createLiveQueryCollection({
 		startSync: true,
 		query: (query) => {

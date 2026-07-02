@@ -1,4 +1,4 @@
-import { YouTubeLiveBroadcastContent } from '$/schema/YouTubeVideo.ts'
+import { YoutubeLiveBroadcastContent } from '$/schema/YoutubeVideo.ts'
 
 
 // Constants
@@ -62,19 +62,19 @@ export const youtubeNetworkSeedVideos = [
 
 const youTubeVideoLiveBroadcastPhases = [
 	{
-		liveBroadcastContent: YouTubeLiveBroadcastContent.None,
+		liveBroadcastContent: YoutubeLiveBroadcastContent.None,
 		label: 'None',
 	},
 	{
-		liveBroadcastContent: YouTubeLiveBroadcastContent.Live,
+		liveBroadcastContent: YoutubeLiveBroadcastContent.Live,
 		label: 'Live',
 	},
 	{
-		liveBroadcastContent: YouTubeLiveBroadcastContent.Upcoming,
+		liveBroadcastContent: YoutubeLiveBroadcastContent.Upcoming,
 		label: 'Upcoming',
 	},
 ] as const satisfies readonly {
-	liveBroadcastContent: YouTubeLiveBroadcastContent
+	liveBroadcastContent: YoutubeLiveBroadcastContent
 	label: string
 }[]
 

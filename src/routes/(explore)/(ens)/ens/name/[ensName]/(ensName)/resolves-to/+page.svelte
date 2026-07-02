@@ -1,20 +1,54 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
+	// Types/constants
+	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+
+
+	// Context
+	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
+		data,
 		params,
-	} = $props()
+	}: PageProps = $props()
 
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import EnsResolvesToView from '$/views/EnsResolvesToView.svelte'
+	import EnsNameView from '$/views/EnsNameView.svelte'
 </script>
 
 
+<svelte:head>
+	<title>ENS resolves to • Blockhead</title>
+</svelte:head>
+
+
 <Page>
-	<EnsResolvesToView
-		selection={select(EntityType.EnsName, { name: params.ensName })}
+	<EnsNameView
+		href={
+			resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/resolves-to', {
+				ensName: params.ensName,
+			})
+		}
+		selection={
+			select(EntityType.EnsName, data.selector, {
+				fields: {
+					normalizedName: true,
+					node: true,
+					labelName: true,
+					labelhash: true,
+					$parent: true,
+					$resolverContract: true,
+					$subgraphResolvedActor: true,
+					$ownerActor: true,
+				},
+			})
+		}
 	/>
 </Page>

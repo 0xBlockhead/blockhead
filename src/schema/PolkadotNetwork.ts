@@ -1,17 +1,16 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum PolkadotNetworkSelector {
-	Network = 'network',
+	Network = 'Network',
 }
 export default {
 	entityType: EntityType.PolkadotNetwork,
-	label: 'polkadot network',
-	labelPlural: 'polkadot networks',
+	label: 'Polkadot network',
+	labelPlural: 'Polkadot networks',
 	selectors: [
 		{
 			name: PolkadotNetworkSelector.Network,
@@ -22,53 +21,39 @@ export default {
 	],
 	fields: [
 		{
-			name: '$network',
-			label: 'network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Network,
-			cardinality: EntityFieldCardinality.One,
+				name: '$network',
+				label: 'Network',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.Network,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'rpcEndpoints',
-			label: 'RPC endpoints',
-			type: EntityFieldType.Primitive,
-			primitiveType: type({"url": "string", "transportType": "string", "providerName": "string"}),
-			cardinality: EntityFieldCardinality.Many,
+				name: 'rpcEndpoints',
+				label: 'RPC endpoints',
+				type: EntityFieldType.Primitive,
+				primitiveType: type({ 'url': type('string'), 'transportType': type('string'), 'providerName': type('string') }),
+				cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$$timestamps',
-			label: 'timestamps',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.PolkadotNetwork_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$timestamps',
+				label: 'Runtime snapshots',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.PolkadotNetwork_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$$blocks',
-			label: 'blocks',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.PolkadotBlock,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$blocks',
+				label: 'Blocks',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.PolkadotBlock,
+				cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$$assets',
-			label: 'assets',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.PolkadotAsset,
-			cardinality: EntityFieldCardinality.Many,
-		},
-		{
-			name: '$$assetBalanceTimestamps',
-			label: 'asset balance timestamps',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.PolkadotAssetBalance_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
-		},
-		{
-			name: '$$validators',
-			label: 'validators',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.PolkadotValidator,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$validators',
+				label: 'Validators',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.PolkadotValidator,
+				cardinality: EntityFieldCardinality.Many,
 		},
 	],
 } as const satisfies EntityDefinition

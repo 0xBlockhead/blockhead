@@ -278,16 +278,16 @@ export default {
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.BridgeRouteStep,
 			resolve: {
-				[BridgeRouteStepSelector.BridgeRouteIndex]: async ({ $route, index }): Promise<Omit<BridgeRouteStepFields, typeof EntityMetaKey.Selector>> => {
+				[BridgeRouteStepSelector.RouteIndexInRoute]: async ({ $route, indexInRoute }): Promise<Omit<BridgeRouteStepFields, typeof EntityMetaKey.Selector>> => {
 					const { fetchBridgeRouteBundleForQuoteId } = await import(
 						'$/sources/Lifi/Rest/routes.ts'
 					)
 					const bundle = await fetchBridgeRouteBundleForQuoteId($route)
-					const step = bundle.steps[index]
+					const step = bundle.steps[indexInRoute]
 					if (step == null)
 						throw new Error(
-							`Lifi_Rest: BridgeRouteStep index ${index} missing on quote route`
-					)
+							`Lifi_Rest: BridgeRouteStep index ${indexInRoute} missing on quote route`
+						)
 					const { [EntityMetaKey.Selector]: _id, ...fields } = step
 					return fields
 				}

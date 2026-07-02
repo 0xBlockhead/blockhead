@@ -1,6 +1,9 @@
 import { type as arktype, type Type } from 'arktype'
 
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import {
+	SourceCredentialScope,
+	type SourceBinding,
+} from '$/sources/SourceBinding.ts'
 
 export type SourcePublicEnv = {
 	readonly [key: string]: string
@@ -136,9 +139,31 @@ export const indexSourceProviders = <
 			if (sourceSubset == null)
 				return []
 
+			const sourceBindings = sourceProvider.bindings.filter((binding) => (
+				binding.source === sourceDefinition.source
+			))
+			const bindingSubsets = sourceBindings.flatMap((binding) => {
+				const credentialSubsets = binding.credentials.flatMap((credential) => {
+					if (
+						credential.scope !== SourceCredentialScope.PublicConfig
+						|| credential.env == null
+					) return [{}]
+
+					const credentialSubset = envSubsetFromSchema(credential.env)
+					return credentialSubset == null ? [] : [credentialSubset]
+				})
+				if (credentialSubsets.length !== binding.credentials.length)
+					return []
+
+				return [Object.assign({}, ...credentialSubsets) satisfies SourcePublicEnv]
+			})
+			if (sourceBindings.length > 0 && bindingSubsets.length === 0)
+				return []
+
 			const merged = {
 				...providerSubset,
 				...sourceSubset,
+				...Object.assign({}, ...bindingSubsets),
 			}
 			return [{
 				sourceDefinition,

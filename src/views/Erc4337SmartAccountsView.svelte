@@ -1,12 +1,15 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { resolve } from '$app/paths'
+	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
 	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -14,53 +17,125 @@
 
 
 	// State
-	const listView = {
-		entityType: EntityType.Erc4337SmartAccount,
-		item: 'summary',
-		orientation: 'column',
-	} as const
-
 	let {
 		selection,
-		title,
+		title = 'ERC-4337 smart accounts',
+		typeAnnotationParagraphs = [],
+		placeholderText = 'Loading ERC-4337 smart accounts...',
+		emptyText = undefined,
 		open = $bindable(true),
-		id = 'Erc4337SmartAccounts',
-		href = '',
+		collapsible = true,
+		showTypeAnnotation = true,
+		id = 'Erc4337SmartAccounts-list',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			selection: EntityProxyEntitiesResource<typeof schema, EntityType.Erc4337SmartAccount>
 			title?: string
+			typeAnnotationParagraphs?: string[]
+			placeholderText?: string
+			emptyText?: string
 			open?: boolean
+			collapsible?: boolean
+			showTypeAnnotation?: boolean
 			id?: string
-			href?: string
 		},
-		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
+		Pick<
+			ComponentProps<typeof EntitiesList>,
+			| 'href'
+			| 'CollapsibleProps'
+		>
 	> = $props()
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import Erc4337SmartAccountView from '$/views/Erc4337SmartAccountView.svelte'
 </script>
 
 
-<EntitiesList
-	entityType={listView.entityType}
-	{title}
-	bind:open
-	{id}
-	href={href}
-	resource={selection}
-	getKey={(entity) => stringify(entity.entitySelector)}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
-	{...EntitiesListProps}
->
-	{#snippet Item({ item })}
-		<Erc4337SmartAccountView
-			selection={select(EntityType.Erc4337SmartAccount, item.entitySelector)}
-			layout={EntityLayout.Summary}
-		/>
-	{/snippet}
-</EntitiesList>
+{#snippet TypeAnnotationParagraphs()}
+	{#each typeAnnotationParagraphs as paragraph (paragraph)}
+		<p>{paragraph}</p>
+	{/each}
+{/snippet}
+
+{#if open}
+	<ResourceBoundary
+		resource={
+			selection.sources == null ? selection({
+				fields: {
+					address: true,
+					$network: true,
+				},
+			}) : selection
+		}
+		{placeholderText}
+	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.Erc4337SmartAccount}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+			/>
+		{/snippet}
+
+		{#snippet children(erc4337SmartAccounts)}
+			{@const uniqueErc4337SmartAccounts = [...new Map(erc4337SmartAccounts.values.map((erc4337SmartAccount) => [erc4337SmartAccount[EntityMetaKey.SelectorKey], erc4337SmartAccount])).values()]}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.Erc4337SmartAccount}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				totalCount={erc4337SmartAccounts.values.length === uniqueErc4337SmartAccounts.length && erc4337SmartAccounts.totalCount != null && erc4337SmartAccounts.totalCount >= uniqueErc4337SmartAccounts.length ? erc4337SmartAccounts.totalCount : uniqueErc4337SmartAccounts.length}
+				getKey={(erc4337SmartAccount) => erc4337SmartAccount[EntityMetaKey.SelectorKey]}
+				items={uniqueErc4337SmartAccounts}
+			>
+				{#snippet Empty()}
+					{#if emptyText != null}
+						<p data-text="muted">{emptyText}</p>
+					{:else}
+						<p data-text="muted">No ERC-4337 smart accounts yet.</p>
+					{/if}
+				{/snippet}
+
+				{#snippet Item({ item: erc4337SmartAccount }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Erc4337SmartAccount> })}
+					<Erc4337SmartAccountView
+						href={
+							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/smart-account/[address=evmAddress]', {
+								caip2: `${String(({ ...erc4337SmartAccount.entitySelector, ...erc4337SmartAccount }).caip2.namespace)}:${String(({ ...erc4337SmartAccount.entitySelector, ...erc4337SmartAccount }).caip2.reference)}`,
+								address: String(({ ...erc4337SmartAccount.entitySelector, ...erc4337SmartAccount }).address),
+							})
+						}
+						selection={select(EntityType.Erc4337SmartAccount, erc4337SmartAccount.entitySelector)}
+						prefetched={erc4337SmartAccount}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/snippet}
+	</ResourceBoundary>
+{:else}
+	<EntitiesList
+		{...EntitiesListProps}
+		entityType={EntityType.Erc4337SmartAccount}
+		{id}
+		{title}
+		bind:open
+		{collapsible}
+		{showTypeAnnotation}
+		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	/>
+{/if}

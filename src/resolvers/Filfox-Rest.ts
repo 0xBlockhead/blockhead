@@ -19,13 +19,17 @@ import { FilecoinMinerSelector } from '$/schema/FilecoinMiner.ts'
 type NetworkId = { caip2: {
 	namespace: string
 	reference: string
-} } | { networkSlug: string } | { slug: string }
+} } | { slug: string }
 
 const assertFilecoinMainnet = (network: NetworkId) => {
 	if (
-		!('caip2' in network)
-		|| network.caip2.namespace !== filecoinNetworkBySlug.filecoin.caip2.namespace
-		|| network.caip2.reference !== filecoinNetworkBySlug.filecoin.caip2.reference
+		'caip2' in network ?
+			(
+				network.caip2.namespace !== filecoinNetworkBySlug.filecoin.caip2.namespace
+				|| network.caip2.reference !== filecoinNetworkBySlug.filecoin.caip2.reference
+			)
+		:
+			network.slug !== filecoinNetworkBySlug.filecoin.slug
 	) {
 		throw new Error('Filfox_Rest: unsupported network')
 	}

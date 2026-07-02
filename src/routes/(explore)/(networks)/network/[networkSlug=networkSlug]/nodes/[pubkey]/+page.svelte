@@ -1,53 +1,38 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
-	import type { PageProps } from './$types'
-	import { NetworkNamespace } from '$/constants/Network.ts'
+	// Types/constants
+	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
-	import { Source } from '$/sources/Source.ts'
+	import LightningNodeView from '$/views/LightningNodeView.svelte'
+
+
+	// Context
 	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
 		params,
 	}: PageProps = $props()
 
-	const network = $derived(select(EntityType.Network,
-		{
-			slug: params.networkSlug,
-		},
-		({ sources: [
-				Source.Constants_Internal,
-			], fields: { namespace: true } }),
-	))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import LightningNodeView from '$/views/LightningNodeView.svelte'
-	import ZeroGStorageNodeView from '$/views/ZeroGStorageNodeView.svelte'
 </script>
 
 
+<svelte:head>
+	<title>Node • Blockhead</title>
+</svelte:head>
+
+
 <Page>
-	<ResourceBoundary resource={network}>
-			{#snippet children(network)}
-				{#if network.namespace === NetworkNamespace.Lightning}
-					<LightningNodeView
-						selection={select(EntityType.LightningNode, {
-							$network: { slug: params.networkSlug },
-							publicKey: params.pubkey,
-						})}
-					/>
-				{:else if network.namespace === NetworkNamespace.ZeroG}
-					<ZeroGStorageNodeView
-						selection={select(EntityType.ZeroGStorageNode, {
-							$network: { slug: params.networkSlug },
-							nodeId: EvmAddress.assert(params.pubkey),
-						})}
-					/>
-			{:else}
-				<p data-text="muted">This network does not expose a node detail route yet.</p>
-			{/if}
-		{/snippet}
-	</ResourceBoundary>
+	<LightningNodeView
+		selection={select(EntityType.LightningNode, {
+			$network: { slug: params.networkSlug },
+			publicKey: params.pubkey,
+		})}
+		open={true}
+	/>
 </Page>

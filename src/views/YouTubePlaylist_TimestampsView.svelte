@@ -1,12 +1,15 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { resolve } from '$app/paths'
+	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
 	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -14,53 +17,125 @@
 
 
 	// State
-	const listView = {
-		entityType: EntityType.YouTubePlaylist_Timestamp,
-		item: 'summary',
-		orientation: 'column',
-	} as const
-
 	let {
 		selection,
-		title,
+		title = 'YouTube playlist observations',
+		typeAnnotationParagraphs = [],
+		placeholderText = 'Loading YouTube playlist observations...',
+		emptyText = undefined,
 		open = $bindable(true),
-		id = 'YouTubePlaylist_Timestamps',
-		href = '',
+		collapsible = true,
+		showTypeAnnotation = true,
+		id = 'YoutubePlaylist_Timestamps-list',
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.YouTubePlaylist_Timestamp>
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.YoutubePlaylist_Timestamp>
 			title?: string
+			typeAnnotationParagraphs?: string[]
+			placeholderText?: string
+			emptyText?: string
 			open?: boolean
+			collapsible?: boolean
+			showTypeAnnotation?: boolean
 			id?: string
-			href?: string
 		},
-		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
+		Pick<
+			ComponentProps<typeof EntitiesList>,
+			| 'href'
+			| 'CollapsibleProps'
+		>
 	> = $props()
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import YouTubePlaylist_TimestampView from '$/views/YouTubePlaylist_TimestampView.svelte'
+	import YoutubePlaylist_TimestampView from '$/views/YoutubePlaylist_TimestampView.svelte'
 </script>
 
 
-<EntitiesList
-	entityType={listView.entityType}
-	{title}
-	bind:open
-	{id}
-	href={href}
-	resource={selection}
-	getKey={(entity) => stringify(entity.entitySelector)}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
-	{...EntitiesListProps}
->
-	{#snippet Item({ item })}
-		<YouTubePlaylist_TimestampView
-			selection={select(EntityType.YouTubePlaylist_Timestamp, item.entitySelector)}
-			layout={EntityLayout.Summary}
-		/>
-	{/snippet}
-</EntitiesList>
+{#snippet TypeAnnotationParagraphs()}
+	{#each typeAnnotationParagraphs as paragraph (paragraph)}
+		<p>{paragraph}</p>
+	{/each}
+{/snippet}
+
+{#if open}
+	<ResourceBoundary
+		resource={
+			selection.sources == null ? selection({
+				fields: {
+					$playlist: true,
+					timestampMs: true,
+				},
+			}) : selection
+		}
+		{placeholderText}
+	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.YoutubePlaylist_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+			/>
+		{/snippet}
+
+		{#snippet children(youtubePlaylistTimestamps)}
+			{@const uniqueYoutubePlaylistTimestamps = [...new Map(youtubePlaylistTimestamps.values.map((youtubePlaylistTimestamp) => [youtubePlaylistTimestamp[EntityMetaKey.SelectorKey], youtubePlaylistTimestamp])).values()]}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.YoutubePlaylist_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				totalCount={youtubePlaylistTimestamps.values.length === uniqueYoutubePlaylistTimestamps.length && youtubePlaylistTimestamps.totalCount != null && youtubePlaylistTimestamps.totalCount >= uniqueYoutubePlaylistTimestamps.length ? youtubePlaylistTimestamps.totalCount : uniqueYoutubePlaylistTimestamps.length}
+				getKey={(youtubePlaylistTimestamp) => youtubePlaylistTimestamp[EntityMetaKey.SelectorKey]}
+				items={uniqueYoutubePlaylistTimestamps}
+			>
+				{#snippet Empty()}
+					{#if emptyText != null}
+						<p data-text="muted">{emptyText}</p>
+					{:else}
+						<p data-text="muted">No YouTube playlist observations yet.</p>
+					{/if}
+				{/snippet}
+
+				{#snippet Item({ item: youtubePlaylistTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.YoutubePlaylist_Timestamp> })}
+					<YoutubePlaylist_TimestampView
+						href={
+							resolve('/(social)/(youtube)/youtube/playlist/[playlistId]/observations/[timestampMs]', {
+								playlistId: String(youtubePlaylistTimestamp.entitySelector.$playlist.playlistId),
+								timestampMs: String(youtubePlaylistTimestamp.entitySelector.timestampMs),
+							})
+						}
+						selection={select(EntityType.YoutubePlaylist_Timestamp, youtubePlaylistTimestamp.entitySelector)}
+						prefetched={youtubePlaylistTimestamp}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/snippet}
+	</ResourceBoundary>
+{:else}
+	<EntitiesList
+		{...EntitiesListProps}
+		entityType={EntityType.YoutubePlaylist_Timestamp}
+		{id}
+		{title}
+		bind:open
+		{collapsible}
+		{showTypeAnnotation}
+		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	/>
+{/if}

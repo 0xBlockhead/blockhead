@@ -1014,7 +1014,7 @@ export default {
 			},
 		})({
 				fields: {
-				$$blockheadBridgeTransactions: (entity) => entity,
+				$$bridgeTransactions: (entity) => entity,
 			},
 			}),
 

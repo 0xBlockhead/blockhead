@@ -15,6 +15,7 @@
 	import type { Snippet } from 'svelte'
 
 	import {
+		errorDisplayMessage,
 		normalizeBoundaryError,
 		serializeError,
 	} from '$/lib/errors.ts'
@@ -85,13 +86,13 @@
 		<span
 			data-tag
 			class="inline-placeholder"
-			aria-label={normalizedError instanceof Error ? normalizedError.message : serializeError(normalizedError)}
+			aria-label={errorDisplayMessage(normalizedError)}
 		>
 			•••
 		</span>
 	{:else}
 		<div data-card>
-			<p>{normalizedError instanceof Error ? normalizedError.message : serializeError(normalizedError)}</p>
+			<p>{errorDisplayMessage(normalizedError)}</p>
 		</div>
 	{/if}
 {/snippet}

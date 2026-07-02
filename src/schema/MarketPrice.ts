@@ -1,16 +1,16 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
+import { type } from 'arktype'
+
 export enum MarketPriceSelector {
-	Market = 'market',
+	Market = 'Market',
 }
 export default {
 	entityType: EntityType.MarketPrice,
-	label: 'market price',
+	label: 'Market price',
 	labelPlural: 'market prices',
 	selectors: [
 		{
@@ -22,25 +22,40 @@ export default {
 	],
 	fields: [
 		{
-			name: '$market',
-			label: 'market',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Market,
-			cardinality: EntityFieldCardinality.One,
+				name: '$market',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.Market,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$parentMarket',
-			label: 'parent market',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Market,
-			cardinality: EntityFieldCardinality.One,
+				name: '$parentMarket',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.Market,
+				cardinality: EntityFieldCardinality.One,
+				defaultSources: [
+					Source.Constants_Internal,
+					Source.Coingecko_Rest,
+					Source.Coingecko_OpenApi,
+					Source.CoinMarketCap_Rest,
+					Source.Coinpaprika_OpenApi,
+					Source.Defillama_OpenApi,
+					Source.Defillama_Rest,
+				],
 		},
 		{
-			name: '$$quotes',
-			label: 'quotes',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.Market_Timestamp,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
+				name: '$$quotes',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.Market_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Blockscout_Rest,
+					Source.Coingecko_Rest,
+					Source.Coingecko_OpenApi,
+					Source.CoinMarketCap_Rest,
+					Source.Coinpaprika_OpenApi,
+					Source.Defillama_OpenApi,
+					Source.Defillama_Rest,
+				],
 		},
 	],
 } as const satisfies EntityDefinition

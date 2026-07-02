@@ -271,12 +271,12 @@ export default {
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoInput,
 			resolve: {
-				[UtxoInputSelector.UtxoTransactionInputIndex]: async ({ $transaction, inputIndex }) => {
-					const input = (await getTransactionDashboard($transaction)).inputs[inputIndex]
+				[UtxoInputSelector.TransactionIndexInTransaction]: async ({ $transaction, indexInTransaction }) => {
+					const input = (await getTransactionDashboard($transaction)).inputs[indexInTransaction]
 					return {
 						[EntityMetaKey.Selector]: {
 							$transaction: $transaction,
-							inputIndex: inputIndex,
+							indexInTransaction: indexInTransaction,
 						},
 						...(input.transaction_hash != null && input.index != null && {
 							$spentOutput: {
@@ -285,7 +285,7 @@ export default {
 										$network: $transaction.$network,
 										txId: input.transaction_hash,
 									},
-									outputIndex: input.index,
+									indexInTransaction: input.index,
 								},
 							},
 						}),
@@ -315,12 +315,12 @@ export default {
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoOutput,
 			resolve: {
-				[UtxoOutputSelector.UtxoTransactionOutputIndex]: async ({ $transaction, outputIndex }) => {
-					const output = (await getTransactionDashboard($transaction)).outputs[outputIndex]
+				[UtxoOutputSelector.TransactionIndexInTransaction]: async ({ $transaction, indexInTransaction }) => {
+					const output = (await getTransactionDashboard($transaction)).outputs[indexInTransaction]
 					return {
 						[EntityMetaKey.Selector]: {
 							$transaction: $transaction,
-							outputIndex: outputIndex,
+							indexInTransaction: indexInTransaction,
 						},
 						...(output.value != null && {
 							valueSats: BigInt(output.value),
@@ -520,11 +520,11 @@ export default {
 			resolve: {
 				[UtxoTransactionSelector.NetworkTxId]: async (entitySelector) => {
 					const transactionDashboard = await getTransactionDashboard(entitySelector)
-					return transactionDashboard.inputs.map((input, inputIndex) => (
+					return transactionDashboard.inputs.map((input, indexInTransaction) => (
 						{
 							[EntityMetaKey.Selector]: {
 								$transaction: entitySelector,
-								inputIndex,
+								indexInTransaction,
 							},
 						}
 					))
@@ -541,11 +541,11 @@ export default {
 			resolve: {
 				[UtxoTransactionSelector.NetworkTxId]: async (entitySelector) => {
 					const transactionDashboard = await getTransactionDashboard(entitySelector)
-					return transactionDashboard.outputs.map((output, outputIndex) => (
+					return transactionDashboard.outputs.map((output, indexInTransaction) => (
 						{
 							[EntityMetaKey.Selector]: {
 								$transaction: entitySelector,
-								outputIndex,
+								indexInTransaction,
 							},
 						}
 					))

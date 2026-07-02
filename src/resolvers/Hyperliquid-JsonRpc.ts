@@ -1,5 +1,4 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
-import { stringify } from 'devalue'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -24,7 +23,7 @@ const hyperliquidEvmRpcUrl = async () =>
 
 
 const assertHyperliquidMainnet = (network: EntitySelector<typeof schema, EntityType.Network>) => {
-	if (stringify(network) !== stringify({ slug: networkBySlug.hyperliquid.slug }))
+	if (!('slug' in network) || network.slug !== networkBySlug.hyperliquid.slug)
 		throw new Error('Hyperliquid_JsonRpc: unsupported network')
 }
 

@@ -20,6 +20,7 @@ import {
 	ERC4337_SMART_ACCOUNT_ADDRESS,
 	NOSTR_PROBE_ARTICLE_IDENTIFIER,
 	NOSTR_PROBE_ARTICLE_PUBKEY,
+	NOSTR_PROBE_NOTE_EVENT_ID,
 	NOSTR_PROBE_PUBKEY,
 	NOSTR_PROBE_REACTION_EVENT_ID,
 	NOSTR_PROBE_RELAY_URL,
@@ -37,8 +38,6 @@ import {
 	probeEntitySelectorByType,
 } from '$/routes/api/e2e/assert-loaded-resolvers/_fixtures.ts'
 
-
-const NOSTR_PROBE_NOTE_EVENT_ID = '69be3416ed20ce50dea9cdd5471dbef55d320df41d97e1e999108321c2c3e3df' as const
 
 const YOUTUBE_PROBE_CHANNEL_ID = 'UC_x5XG1OV2P6uZZ5FSM9Ttw' as const
 
@@ -249,7 +248,7 @@ export const e2eBoundaryLiveOptionalPathnames = new Set<string>([
 	'/nostr/articles',
 	'/nostr/notes',
 	'/nostr/profiles',
-	'/nostr/reactions',
+	`/nostr/note/${NOSTR_PROBE_NOTE_EVENT_ID}/reactions`,
 	'/nostr/relays',
 	'/nostr/reposts',
 	'/reddit/comment/t1_osbo75d',

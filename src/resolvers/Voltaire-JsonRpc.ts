@@ -13,7 +13,6 @@ import { hexLowerOfByteSize, with0xHex, zeroExLowerCase } from '$/lib/hexLowerOf
 import { resolveMediaUrlTransport } from '$/lib/media.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
 import type { StreamBlock } from '@tevm/voltaire/block'
-import { stringify } from 'devalue'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -204,9 +203,11 @@ const evmLogEntitySelectorFromWire = ({
 		undefined
 	:
 		{
-			$network,
-			txHash: normalizedTxHash,
-			logIndex,
+			$transaction: {
+				$network,
+				txHash: normalizedTxHash,
+			},
+			indexInTransaction: logIndex,
 		}
 }
 
@@ -217,7 +218,6 @@ const evmLogEntityFromIdAndWire = (
 	const address = hexLowerOfByteSize(log.address ?? '', 20)
 	const blockHash = hexLowerOfByteSize(log.blockHash ?? '', 32)
 	const blockNumber = evmLogRpcQuantityToBigInt(log.blockNumber)
-	const transactionIndex = evmLogIndexFromWire(log.transactionIndex)
 	const data = log.data == null ? undefined : with0xHex(log.data)
 	const topics = (
 		(log.topics ?? [])
@@ -230,28 +230,29 @@ const evmLogEntityFromIdAndWire = (
 		[EntityMetaKey.Selector]: entitySelector,
 		$transaction: {
 			[EntityMetaKey.Selector]: {
-				$network: entitySelector.$network,
-				txHash: entitySelector.txHash,
+				$network: entitySelector.$transaction.$network,
+				txHash: entitySelector.$transaction.txHash,
 			},
 		} satisfies Entity<typeof schema, EntityType.EvmTransaction>,
 		...(blockHash != null && blockNumber != null && {
 			$block: {
 				[EntityMetaKey.Selector]: {
-					$network: entitySelector.$network,
+					$network: entitySelector.$transaction.$network,
 					hash: blockHash,
 				},
 			} satisfies Entity<typeof schema, EntityType.EvmBlock>,
 		}),
-		topics,
+		$$topics: topics.map((hex) => ({
+			[EntityMetaKey.Selector]: {
+				hex,
+			},
+		} satisfies Entity<typeof schema, EntityType.EvmTopic>)),
 		...(data != null && { data }),
-		...(blockNumber != null && { blockNumber }),
-		...(blockHash != null && { blockHash }),
-		...(transactionIndex != null && { transactionIndex }),
 		...(log.removed != null && { removed: log.removed }),
 		...(address != null && {
 			$emitter: {
 				[EntityMetaKey.Selector]: {
-					$network: entitySelector.$network,
+					$network: entitySelector.$transaction.$network,
 					address,
 				},
 			} satisfies Entity<typeof schema, EntityType.EvmContract>,
@@ -329,9 +330,11 @@ const evmBlobEntityRefsFromVoltaireTx = ({
 }) => (
 	(blobVersionedHashes ?? []).map((_blobVersionedHash, blobIndex) => ({
 		[EntityMetaKey.Selector]: {
-			$network,
-			txHash,
-			blobIndex,
+			$transaction: {
+				$network,
+				txHash,
+			},
+			indexInTransaction: blobIndex,
 		},
 	}))
 )
@@ -340,13 +343,7 @@ const errorMessage = (error: unknown) => (
 	error instanceof Error ?
 		error.message
 	:
-		(() => {
-		try {
-				return stringify(error)
-		} catch {
-			return String(error)
-		}
-		})()
+		String(error)
 )
 
 const allJsonRpcEndpointsFailedError = (
@@ -502,9 +499,11 @@ const evmBlobEntitiesFromVoltaireBlockWire = (
 			if (versionedHash == null || !versionedHash.startsWith('0x01')) continue
 			out.push({
 				[EntityMetaKey.Selector]: {
-					$network: evmNetworkIdFromChainId(chainId),
-					txHash,
-					blobIndex,
+					$transaction: {
+						$network: evmNetworkIdFromChainId(chainId),
+						txHash,
+					},
+					indexInTransaction: blobIndex,
 				},
 				$block: {
 					[EntityMetaKey.Selector]: {
@@ -545,6 +544,7 @@ const networkScopedEvmBlockFieldsFromVoltaireBlockRpc = (
 			$network: evmNetworkIdFromChainId(chainId),
 			blockNumber,
 		},
+		blockNumber,
 		hash: blockHash,
 		...(parentHash != null && { parentHash }),
 		timestamp: (
@@ -650,6 +650,10 @@ export default {
 
 					return {
 						...block,
+						[EntityMetaKey.Selector]: {
+							$network,
+							hash: block.hash,
+						},
 						$$transactions: evmTransactionRefsForTxHashes(
 							chainId,
 							voltaireBlockWire.transactions
@@ -674,6 +678,7 @@ export default {
 			},
 		})({
 			fields: {
+				blockNumber: (entity) => entity.blockNumber,
 				hash: (entity) => entity.hash,
 				parentHash: (entity) => entity.parentHash,
 				timestamp: (entity) => entity.timestamp,
@@ -692,19 +697,19 @@ export default {
 		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmBlob,
 			resolve: {
-				[EvmBlobSelector.EvmNetworkTxHashBlobIndex]: async (entitySelector) => {
+				[EvmBlobSelector.TransactionIndexInTransaction]: async (entitySelector) => {
 					const { getTransactionByHashForRpcUrl } = await import('$/sources/Voltaire/JsonRpc/queries.ts')
-					const chainId = chainIdFromEvmNetworkId(entitySelector.$network)
+					const chainId = chainIdFromEvmNetworkId(entitySelector.$transaction.$network)
 					const jsonRpcTransport = (await voltaireJsonRpcTransportWithOriginsByChainId())[chainId]
 					const tx = await getTransactionByHashForRpcUrl({
 						...jsonRpcTransport,
-						txHash: entitySelector.txHash,
+						txHash: entitySelector.$transaction.txHash,
 					})
 					if (tx == null) throw new Error('Voltaire_JsonRpc: blob transaction not found')
 					const bvh = tx.blobVersionedHashes
-					if (!Array.isArray(bvh) || typeof bvh[entitySelector.blobIndex] !== 'string')
+					if (!Array.isArray(bvh) || typeof bvh[entitySelector.indexInTransaction] !== 'string')
 						throw new Error('Voltaire_JsonRpc: blob index missing on transaction')
-					const versionedHash = hexLowerOfByteSize(bvh[entitySelector.blobIndex], 32)
+					const versionedHash = hexLowerOfByteSize(bvh[entitySelector.indexInTransaction], 32)
 					if (versionedHash == null || !versionedHash.startsWith('0x01')) throw new Error('Voltaire_JsonRpc: invalid blob versioned hash')
 					const blockNumber = (() => {
 						try {
@@ -720,7 +725,7 @@ export default {
 						$transaction: {
 							[EntityMetaKey.Selector]: {
 								$network: evmNetworkIdFromChainId(chainId),
-								txHash: entitySelector.txHash,
+								txHash: entitySelector.$transaction.txHash,
 							},
 						} satisfies Entity<typeof schema, EntityType.EvmTransaction>,
 						$block: {
@@ -734,6 +739,7 @@ export default {
 			},
 		})({
 			fields: {
+				indexInTransaction: (entity) => entity[EntityMetaKey.Selector].indexInTransaction,
 				versionedHash: (entity) => entity.versionedHash,
 				$transaction: (entity) => ({
 					[EntityMetaKey.Selector]: entity.$transaction[EntityMetaKey.Selector],
@@ -1001,7 +1007,7 @@ export default {
 								},
 							} satisfies Entity<typeof schema, EntityType.EvmAccount>,
 						}),
-						transactionIndex: (
+						indexInBlock: (
 							jsonRpcTransaction.transactionIndex != null ? ((parsed) => (
 							Number.isFinite(parsed) && Number.isInteger(parsed) && parsed >= 0 ?
 								parsed
@@ -1220,7 +1226,7 @@ export default {
 				$from: (entity) => entity.$from,
 				$to: (entity) => entity.$to,
 				$contract: (entity) => entity.$contract,
-				transactionIndex: (entity) => entity.transactionIndex,
+				indexInBlock: (entity) => entity.indexInBlock,
 				value: (entity) => entity.value,
 				nonce: (entity) => entity.nonce,
 				input: (entity) => entity.input,
@@ -1250,19 +1256,19 @@ export default {
 		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmLog,
 			resolve: {
-				[EvmLogSelector.EvmNetworkTxHashLogIndex]: async (entitySelector) => {
+				[EvmLogSelector.TransactionIndexInTransaction]: async (entitySelector) => {
 					const {
 						getTransactionReceiptForRpcUrl,
 					} = await import('$/sources/Voltaire/JsonRpc/queries.ts')
 					const { getRpcReceipt } = await import('$/sources/Voltaire/JsonRpc/types.ts')
-					const chainId = chainIdFromEvmNetworkId(entitySelector.$network)
+					const chainId = chainIdFromEvmNetworkId(entitySelector.$transaction.$network)
 					const jsonRpcTransport = (await voltaireJsonRpcTransportWithOriginsByChainId())[chainId]
 					const receiptWire = await getTransactionReceiptForRpcUrl({
 						...jsonRpcTransport,
-						txHash: entitySelector.txHash,
+						txHash: entitySelector.$transaction.txHash,
 					})
 					const receipt = receiptWire == null ? null : getRpcReceipt(receiptWire)
-					const log = findReceiptLogWireForEvmLogId(receipt?.logs, entitySelector.logIndex)
+					const log = findReceiptLogWireForEvmLogId(receipt?.logs, entitySelector.indexInTransaction)
 					if (log == null)
 						throw new Error('Voltaire_JsonRpc: receipt log not found for EvmLog')
 					return evmLogEntityFromIdAndWire(entitySelector, log)
@@ -1270,7 +1276,8 @@ export default {
 			},
 		})({
 			fields: {
-				topics: (entity) => entity.topics ?? [],
+				$$topics: (entity) => entity.$$topics,
+				indexInTransaction: (entity) => entity[EntityMetaKey.Selector].indexInTransaction,
 				$transaction: (entity) => (
 					entity.$transaction == null ?
 						undefined
@@ -1288,9 +1295,6 @@ export default {
 						}
 				),
 				data: (entity) => entity.data,
-				blockNumber: (entity) => entity.blockNumber,
-				blockHash: (entity) => entity.blockHash,
-				transactionIndex: (entity) => entity.transactionIndex,
 				removed: (entity) => entity.removed,
 				$emitter: (entity) => (
 					entity.$emitter == null ?

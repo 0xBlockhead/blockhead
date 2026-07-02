@@ -42,12 +42,12 @@ const zcashShieldedActionRows = (
 	},
 	transaction: Awaited<ReturnType<typeof import('$/sources/Zcashd/JsonRpc/queries.ts')['getRawTransaction']>>
 ) => [
-	...(transaction.vShieldedSpend ?? []).map((spend, actionIndex) => ({
+	...(transaction.vShieldedSpend ?? []).map((spend, indexInTransaction) => ({
 		[EntityMetaKey.Selector]: {
 			$transaction: entitySelector,
 			pool: ZcashShieldedPoolKind.Sapling,
 			actionKind: ZcashShieldedActionKind.Spend,
-			actionIndex,
+			indexInTransaction,
 		},
 		$pool: {
 			[EntityMetaKey.Selector]: {
@@ -60,12 +60,12 @@ const zcashShieldedActionRows = (
 		noteCommitment: undefined,
 		valueCommitment: spend.cv,
 	})),
-	...(transaction.vShieldedOutput ?? []).map((output, actionIndex) => ({
+	...(transaction.vShieldedOutput ?? []).map((output, indexInTransaction) => ({
 		[EntityMetaKey.Selector]: {
 			$transaction: entitySelector,
 			pool: ZcashShieldedPoolKind.Sapling,
 			actionKind: ZcashShieldedActionKind.Output,
-			actionIndex,
+			indexInTransaction,
 		},
 		$pool: {
 			[EntityMetaKey.Selector]: {
@@ -78,12 +78,12 @@ const zcashShieldedActionRows = (
 		noteCommitment: output.cmu,
 		valueCommitment: output.cv,
 	})),
-	...(transaction.orchard?.actions ?? []).map((action, actionIndex) => ({
+	...(transaction.orchard?.actions ?? []).map((action, indexInTransaction) => ({
 		[EntityMetaKey.Selector]: {
 			$transaction: entitySelector,
 			pool: ZcashShieldedPoolKind.Orchard,
 			actionKind: ZcashShieldedActionKind.Action,
-			actionIndex,
+			indexInTransaction,
 		},
 		$pool: {
 			[EntityMetaKey.Selector]: {
@@ -169,14 +169,14 @@ export default {
 		defineResolver(Source.Zcashd_JsonRpc, {
 			entityType: EntityType.ZcashShieldedAction,
 			resolve: {
-				[ZcashShieldedActionSelector.UtxoTransactionPoolActionKindActionIndex]: async ({ $transaction, pool, actionKind, actionIndex }) => {
+				[ZcashShieldedActionSelector.TransactionPoolActionKindIndexInTransaction]: async ({ $transaction, pool, actionKind, indexInTransaction }) => {
 					const shieldedAction = zcashShieldedActionRows(
 						$transaction,
 						await getTransaction($transaction)
-						).find((action) => (
+					).find((action) => (
 						action[EntityMetaKey.Selector].pool === pool
 					&& action[EntityMetaKey.Selector].actionKind === actionKind
-					&& action[EntityMetaKey.Selector].actionIndex === actionIndex
+					&& action[EntityMetaKey.Selector].indexInTransaction === indexInTransaction
 						))
 					if (shieldedAction == null) throw new Error(`Zcashd_JsonRpc: shielded action not found for ${$transaction.txId}`)
 					return shieldedAction

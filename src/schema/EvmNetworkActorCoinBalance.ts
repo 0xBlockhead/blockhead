@@ -1,20 +1,17 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum EvmNetworkActorCoinBalanceSelector {
-	EvmAccountNativeCoinInstance = 'evmAccountNativeCoinInstance',
-	ActorNetwork = '$actor+$network',
-	EvmAccountErc20CoinInstance = 'evmAccountErc20CoinInstance',
-	ActorContract = '$actor+$contract',
+	EvmAccountNativeCoinInstance = 'EvmAccountNativeCoinInstance',
+	EvmAccountErc20CoinInstance = 'EvmAccountErc20CoinInstance',
 }
 export default {
 	entityType: EntityType.EvmNetworkActorCoinBalance,
-	label: 'EVM network actor coin balance',
-	labelPlural: 'EVM network actor coin balances',
+	label: 'balance',
+	labelPlural: 'balances',
 	selectors: [
 		{
 			name: EvmNetworkActorCoinBalanceSelector.EvmAccountNativeCoinInstance,
@@ -33,62 +30,60 @@ export default {
 	],
 	fields: [
 		{
-			name: '$actor',
-			label: 'actor',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmAccount,
-			cardinality: EntityFieldCardinality.One,
+				name: '$actor',
+				label: 'Actor',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.EvmAccount,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$network',
-			label: 'network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmNetwork,
-			cardinality: EntityFieldCardinality.One,
+				name: '$network',
+				label: 'Network',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.EvmNetwork,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$contract',
-			label: 'contract',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmContract,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$contract',
+				label: 'Contract',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.EvmContract,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$coinInstance',
-			label: 'coin instance',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmCoinInstance,
-			cardinality: EntityFieldCardinality.One,
+				name: '$coinInstance',
+				label: 'Coin',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.EvmCoinInstance,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'symbol',
-			label: 'Symbol',
-			description: 'The short ticker or symbol used for display.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'symbol',
+				label: 'Symbol',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'decimals',
-			label: 'Decimals',
-			description: 'The number of decimal places used to display the amount.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'decimals',
+				label: 'Decimals',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$$timestamps',
-			label: 'timestamps',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.EvmNetworkActorCoinBalance_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$timestamps',
+				label: 'Observations',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.EvmNetworkActorCoinBalance_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$$blocks',
-			label: 'blocks',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.EvmNetworkActorCoinBalance_EvmBlock,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$blocks',
+				label: 'Blocks',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.EvmNetworkActorCoinBalance_EvmBlock,
+				cardinality: EntityFieldCardinality.Many,
 		},
 	],
 } as const satisfies EntityDefinition

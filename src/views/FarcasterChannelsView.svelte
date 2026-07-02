@@ -1,12 +1,14 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
 	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -14,53 +16,121 @@
 
 
 	// State
-	const listView = {
-		entityType: EntityType.FarcasterChannel,
-		item: 'summary',
-		orientation: 'column',
-	} as const
-
 	let {
 		selection,
-		title,
+		title = 'Farcaster channels',
+		typeAnnotationParagraphs = [],
+		placeholderText = 'Loading Farcaster channels...',
+		emptyText = undefined,
 		open = $bindable(true),
-		id = 'FarcasterChannels',
-		href = '',
+		collapsible = true,
+		showTypeAnnotation = true,
+		id = 'FarcasterChannels-list',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			selection: EntityProxyEntitiesResource<typeof schema, EntityType.FarcasterChannel>
 			title?: string
+			typeAnnotationParagraphs?: string[]
+			placeholderText?: string
+			emptyText?: string
 			open?: boolean
+			collapsible?: boolean
+			showTypeAnnotation?: boolean
 			id?: string
-			href?: string
 		},
-		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
+		Pick<
+			ComponentProps<typeof EntitiesList>,
+			| 'href'
+			| 'CollapsibleProps'
+		>
 	> = $props()
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import FarcasterChannelView from '$/views/FarcasterChannelView.svelte'
 </script>
 
 
-<EntitiesList
-	entityType={listView.entityType}
-	{title}
-	bind:open
-	{id}
-	href={href}
-	resource={selection}
-	getKey={(entity) => stringify(entity.entitySelector)}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
-	{...EntitiesListProps}
->
-	{#snippet Item({ item })}
-		<FarcasterChannelView
-			selection={select(EntityType.FarcasterChannel, item.entitySelector)}
-			layout={EntityLayout.Summary}
-		/>
-	{/snippet}
-</EntitiesList>
+{#snippet TypeAnnotationParagraphs()}
+	{#each typeAnnotationParagraphs as paragraph (paragraph)}
+		<p>{paragraph}</p>
+	{/each}
+{/snippet}
+
+{#if open}
+	<ResourceBoundary
+		resource={
+			selection.sources == null ? selection({
+				fields: {
+					$icon: true,
+					name: true,
+					id: true,
+					createdAt: true,
+				},
+			}) : selection
+		}
+		{placeholderText}
+	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.FarcasterChannel}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+			/>
+		{/snippet}
+
+		{#snippet children(farcasterChannels)}
+			{@const uniqueFarcasterChannels = [...new Map(farcasterChannels.values.map((farcasterChannel) => [farcasterChannel[EntityMetaKey.SelectorKey], farcasterChannel])).values()]}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.FarcasterChannel}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				totalCount={farcasterChannels.values.length === uniqueFarcasterChannels.length && farcasterChannels.totalCount != null && farcasterChannels.totalCount >= uniqueFarcasterChannels.length ? farcasterChannels.totalCount : uniqueFarcasterChannels.length}
+				getKey={(farcasterChannel) => farcasterChannel[EntityMetaKey.SelectorKey]}
+				items={uniqueFarcasterChannels}
+			>
+				{#snippet Empty()}
+					{#if emptyText != null}
+						<p data-text="muted">{emptyText}</p>
+					{:else}
+						<p data-text="muted">No Farcaster channels yet.</p>
+					{/if}
+				{/snippet}
+
+				{#snippet Item({ item: farcasterChannel }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.FarcasterChannel> })}
+					<FarcasterChannelView
+						selection={select(EntityType.FarcasterChannel, farcasterChannel.entitySelector)}
+						prefetched={farcasterChannel}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/snippet}
+	</ResourceBoundary>
+{:else}
+	<EntitiesList
+		{...EntitiesListProps}
+		entityType={EntityType.FarcasterChannel}
+		{id}
+		{title}
+		bind:open
+		{collapsible}
+		{showTypeAnnotation}
+		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	/>
+{/if}

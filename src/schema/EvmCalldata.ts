@@ -1,17 +1,17 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+import { type } from 'arktype'
+
 export enum EvmCalldataSelector {
-	Hex = 'hex',
+	Hex = 'Hex',
 }
 export default {
 	entityType: EntityType.EvmCalldata,
 	label: 'EVM calldata',
-	labelPlural: 'EVM calldatas',
+	labelPlural: 'EVM calldata',
 	selectors: [
 		{
 			name: EvmCalldataSelector.Hex,
@@ -22,11 +22,11 @@ export default {
 	],
 	fields: [
 		{
-			name: 'hex',
-			label: 'hex',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'hex',
+				label: 'Hex',
+				type: EntityFieldType.Primitive,
+				primitiveType: (ZeroExHex),
+				cardinality: EntityFieldCardinality.One,
 		},
 	],
 } as const satisfies EntityDefinition

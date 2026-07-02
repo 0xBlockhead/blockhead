@@ -1,75 +1,66 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
-	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import BlockheadSourcesView from '$/views/BlockheadSourcesView.svelte'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
-
-
-	const hubKey = 'manage'
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// Components
-	import BlockheadSourcesView from '$/views/BlockheadSourcesView.svelte'
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import Page from '$/components/Page.svelte'
-	import GlobalView from '$/views/GlobalView.svelte'
 </script>
 
 
+<svelte:head>
+	<title>Manage • Blockhead</title>
+</svelte:head>
+
+
 <Page>
-	<GlobalView
-		selection={select(EntityType._Global, { scope: 'Manage' })}
-		title="Manage"
-		href={resolve('/~/manage')}
+	<CollapsibleTabs
+		id='manage:hub'
+		sectionIdPrefix='manage'
+		sections={[
+			{ id: 'profiles', label: 'Profiles' },
+			{ id: 'sources', label: 'Sources' },
+		]}
+		data-card
+		scrollContainerProps={{
+			'data-row': 'start align-start',
+			style: '--carousel-basis: 40ch',
+		}}
 	>
-		{#snippet children({ open: hubOpen,
-		})}
-			<CollapsibleTabs
-				id={`${hubKey}:hub`}
-				sectionIdPrefix={hubKey}
-				sections={[
-					{ id: 'profiles', label: 'Profiles' },
-					{ id: 'sources', label: 'Sources' },
-				]}
-				data-card
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-					style: '--carousel-basis: 40ch',
-				}}
+		{#snippet Summary({ open: _open })}
+			<header
+				data-row-item='flexible'
+				data-row='wrap gap-4'
 			>
-				{#snippet Summary({ open: _summaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Manage
-						</HeadingComponent>
-					</header>
-				{/snippet}
-
-				{#snippet SectionProfiles({ id, label })}
-					<p data-text="muted">
-						Profiles are not wired yet.
-					</p>
-				{/snippet}
-
-				{#snippet SectionSources({ id, label })}
-					<BlockheadSourcesView
-						href={resolve('/~/manage/sources')}
-						selection={select(
-			EntityType._Global,
-			{ scope: '$$blockheadSources' }
-		).$$blockheadSources}
-						id="sources"
-						open={hubOpen}
-					/>
-				{/snippet}
-		</CollapsibleTabs>
+				<HeadingComponent>Manage</HeadingComponent>
+			</header>
 		{/snippet}
-	</GlobalView>
+
+		{#snippet SectionProfiles()}
+			<p data-text='muted'>Profiles are not wired yet.</p>
+		{/snippet}
+
+		{#snippet SectionSources()}
+			<BlockheadSourcesView
+				href={resolve('/~/manage/sources')}
+				selection={select(EntityType._Global, { scope: '$$blockheadSources' })[EntityProxyField]<EntityType.BlockheadSource>('$$blockheadSources')({
+					sources: [Source.Local_Internal],
+				})}
+				id='sources'
+				open={true}
+			/>
+		{/snippet}
+	</CollapsibleTabs>
 </Page>

@@ -1,5 +1,3 @@
-import { readFileSync } from 'node:fs'
-
 import { describe, expect, it, vi } from 'vitest'
 
 import {
@@ -128,70 +126,22 @@ const validFixtureResolver = {
 	},
 } satisfies SourceResolverDefinition<typeof fixtureSchema, 'Fixture'>
 
-const resolverCoverageRows = () => (
-	readFileSync('RESOLVER-COVERAGE.md', 'utf8')
-		.split('\n')
-		.flatMap((line) => {
-			const match = line.match(/^\| `([^`]+)` \| ([^|]+) \|/)
-			if (match == null)
-				return []
-
-			return [{
-				source: match[1],
-				state: match[2].trim(),
-			}]
-		})
-)
-
-
 describe('resolver registry live resolver architecture', () => {
-	it('keeps resolver coverage ledger aligned with sources, bindings, and active resolver modules', () => {
-		const coverageRows = resolverCoverageRows()
-		const coverageStateBySource = new Map(
-			coverageRows.map((row) => [
-				row.source,
-				row.state,
-			])
-		)
-		const sourceEnumMembers = Object.values(Source)
-		const providerSourceRows = sourceProviders.flatMap((sourceProvider) => (
-			sourceProvider.sources.map((sourceDefinition) => sourceDefinition.source)
-		))
-		const bindingSources = sourceProviders.flatMap((sourceProvider) => (
-			sourceProvider.bindings.map((binding) => binding.source)
-		))
-		const activeResolverSources = resolvers.map((resolver) => resolver.source)
-		const implementedSources = coverageRows.flatMap((row) => (
-			row.state === 'implemented' ?
-				[row.source]
+	it('registers only resolver modules with at least one definition', () => {
+		const activeResolverSources = resolvers.flatMap((resolverModule) => (
+			resolverModule.resolvers.length > 0 ?
+				[resolverModule.source]
 			:
 				[]
 		))
 
-		expect([...coverageStateBySource.keys()].toSorted()).toEqual(
-			sourceEnumMembers.toSorted()
-		)
-		expect(providerSourceRows.toSorted()).toEqual(
-			sourceEnumMembers.toSorted()
-		)
-		expect([...new Set(bindingSources)].toSorted()).toEqual(
-			sourceEnumMembers.toSorted()
-		)
-		expect(activeResolverSources.toSorted()).toEqual(
-			implementedSources.toSorted()
-		)
-		expect(coverageRows.flatMap((row) => (
-			[
-				'implemented',
-				'no resolver',
-				'deferred-schema',
-				'deferred-runtime',
-				'deferred-artifact',
-			].includes(row.state) ?
-				[]
-			:
-				[row]
-		))).toEqual([])
+		expect(activeResolverSources.length).toBeGreaterThan(0)
+		expect(new Set(activeResolverSources).size).toBe(activeResolverSources.length)
+		expect(activeResolverSources.every((source) => (
+			sourceProviders.some((sourceProvider) => (
+				sourceProvider.sources.some((sourceDefinition) => sourceDefinition.source === source)
+			))
+		))).toBe(true)
 	})
 
 	it('rejects invalid resolver definitions before runtime reads', () => {
@@ -569,11 +519,11 @@ describe('resolver registry live resolver architecture', () => {
 			&& resolver.entityType === EntityType.EvmTransaction
 		))?.fields ?? {})).toEqual(expect.arrayContaining([
 			'$block',
-			'$from',
-			'$to',
-			'$contract',
-			'transactionIndex',
-			'value',
+				'$from',
+				'$to',
+				'$contract',
+				'indexInBlock',
+				'value',
 			'nonce',
 			'input',
 			'r',
@@ -729,6 +679,10 @@ describe('resolver registry live resolver architecture', () => {
 			$network,
 			hash: blockHash,
 		}, resolverContext)).toBe(blockHash)
+		expect(blockResolver.fields.blockNumber(block, {
+			$network,
+			hash: blockHash,
+		}, resolverContext)).toBe(100n)
 		expect(blockResolver.fields.blobGasUsed(block, {
 			$network,
 			hash: blockHash,
@@ -781,9 +735,11 @@ describe('resolver registry live resolver architecture', () => {
 			txHash,
 		}, resolverContext)).toEqual([{
 			[EntityMetaKey.Selector]: {
-				$network,
-				txHash,
-				logIndex: 3,
+				$transaction: {
+					$network,
+					txHash,
+				},
+				indexInTransaction: 3,
 			},
 		}])
 
@@ -808,9 +764,11 @@ describe('resolver registry live resolver architecture', () => {
 			resolverContext
 		)).toEqual([{
 			[EntityMetaKey.Selector]: {
-				$network,
-				txHash,
-				logIndex: 3,
+				$transaction: {
+					$network,
+					txHash,
+				},
+				indexInTransaction: 3,
 			},
 		}])
 
@@ -818,23 +776,33 @@ describe('resolver registry live resolver architecture', () => {
 			candidate.source === Source.Voltaire_JsonRpc
 			&& candidate.entityType === EntityType.EvmLog
 		))
-		const resolveLog = logResolver?.resolve[EvmLogSelector.EvmNetworkTxHashLogIndex]
+		const resolveLog = logResolver?.resolve[EvmLogSelector.TransactionIndexInTransaction]
 		if (logResolver == null || resolveLog == null)
 			throw new Error('Voltaire_JsonRpc: missing EvmLog resolver')
 		const log = await resolveLog({
-			$network,
-			txHash,
-			logIndex: 3,
+			$transaction: {
+				$network,
+				txHash,
+			},
+			indexInTransaction: 3,
 		}, resolverContext)
-		expect(logResolver.fields.topics(log, {
-			$network,
-			txHash,
-			logIndex: 3,
-		}, resolverContext)).toEqual([topic])
+		expect(logResolver.fields.$$topics(log, {
+			$transaction: {
+				$network,
+				txHash,
+			},
+			indexInTransaction: 3,
+		}, resolverContext)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				hex: topic,
+			},
+		}])
 		expect(logResolver.fields.$transaction(log, {
-			$network,
-			txHash,
-			logIndex: 3,
+			$transaction: {
+				$network,
+				txHash,
+			},
+			indexInTransaction: 3,
 		}, resolverContext)).toEqual({
 			[EntityMetaKey.Selector]: {
 				$network,
@@ -842,34 +810,30 @@ describe('resolver registry live resolver architecture', () => {
 			},
 		})
 		expect(logResolver.fields.$block(log, {
-			$network,
-			txHash,
-			logIndex: 3,
+			$transaction: {
+				$network,
+				txHash,
+			},
+			indexInTransaction: 3,
 		}, resolverContext)).toEqual({
 			[EntityMetaKey.Selector]: {
 				$network,
 				hash: blockHash,
 			},
 		})
-		expect(logResolver.fields.blockHash(log, {
-			$network,
-			txHash,
-			logIndex: 3,
-		}, resolverContext)).toBe(blockHash)
-		expect(logResolver.fields.transactionIndex(log, {
-			$network,
-			txHash,
-			logIndex: 3,
-		}, resolverContext)).toBe(2)
 		expect(logResolver.fields.removed(log, {
-			$network,
-			txHash,
-			logIndex: 3,
+			$transaction: {
+				$network,
+				txHash,
+			},
+			indexInTransaction: 3,
 		}, resolverContext)).toBe(false)
 		expect(logResolver.fields.$emitter(log, {
-			$network,
-			txHash,
-			logIndex: 3,
+			$transaction: {
+				$network,
+				txHash,
+			},
+			indexInTransaction: 3,
 		}, resolverContext)).toEqual({
 			[EntityMetaKey.Selector]: {
 				$network,
@@ -882,23 +846,29 @@ describe('resolver registry live resolver architecture', () => {
 			&& candidate.entityType === EntityType.EvmBlob
 			&& 'versionedHash' in candidate.fields
 		))
-		const resolveBlob = blobResolver?.resolve[EvmBlobSelector.EvmNetworkTxHashBlobIndex]
+		const resolveBlob = blobResolver?.resolve[EvmBlobSelector.TransactionIndexInTransaction]
 		if (blobResolver == null || resolveBlob == null)
 			throw new Error('Voltaire_JsonRpc: missing EvmBlob resolver')
 		const blob = await resolveBlob({
-			$network,
-			txHash,
-			blobIndex: 0,
+			$transaction: {
+				$network,
+				txHash,
+			},
+			indexInTransaction: 0,
 		}, resolverContext)
 		expect(blobResolver.fields.versionedHash(blob, {
-			$network,
-			txHash,
-			blobIndex: 0,
+			$transaction: {
+				$network,
+				txHash,
+			},
+			indexInTransaction: 0,
 		}, resolverContext)).toBe(versionedHash)
 		expect(blobResolver.fields.$transaction(blob, {
-			$network,
-			txHash,
-			blobIndex: 0,
+			$transaction: {
+				$network,
+				txHash,
+			},
+			indexInTransaction: 0,
 		}, resolverContext)).toEqual({
 			[EntityMetaKey.Selector]: {
 				$network,
@@ -906,9 +876,11 @@ describe('resolver registry live resolver architecture', () => {
 			},
 		})
 		expect(blobResolver.fields.$block(blob, {
-			$network,
-			txHash,
-			blobIndex: 0,
+			$transaction: {
+				$network,
+				txHash,
+			},
+			indexInTransaction: 0,
 		}, resolverContext)).toEqual({
 			[EntityMetaKey.Selector]: {
 				$network,

@@ -121,6 +121,7 @@
 				data-collapsible-tabs-pane-host
 				data-scroll-container="layout-carousel"
 				data-row="align-start"
+				{...scrollContainerProps}
 			>
 				{@render body({
 					open,

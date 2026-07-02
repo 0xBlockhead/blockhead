@@ -36,6 +36,12 @@ const assertPolkadotMainnet = (network: NetworkId) => {
 		assertPolkadotMainnet(network.$network)
 		return
 	}
+	if ('slug' in network) {
+		if (network.slug !== 'polkadot')
+			throw new Error('SubstrateSidecar_Rest: unsupported network')
+
+		return
+	}
 	if (
 		!('caip2' in network)
 		|| network.caip2.namespace !== networkBySlug.polkadot.caip2.namespace
@@ -108,7 +114,7 @@ export default {
 									blockNumber: BigInt(block.number),
 									hash: block.hash,
 								},
-								extrinsicIndex,
+								indexInBlock: extrinsicIndex,
 							},
 							...(extrinsic.hash != null && {
 								hash: extrinsic.hash,
@@ -154,17 +160,17 @@ export default {
 									blockNumber: BigInt(block.number),
 									hash: block.hash,
 								},
-								eventIndex,
+								indexInBlock: eventIndex,
 							},
 							...(event.extrinsicIndex != null && {
 								$extrinsic: {
 									[EntityMetaKey.Selector]: {
 										$block: {
-											$network: $network,
-											blockNumber: BigInt(block.number),
-											hash: block.hash,
-										},
-										extrinsicIndex: event.extrinsicIndex,
+										$network: $network,
+										blockNumber: BigInt(block.number),
+										hash: block.hash,
+									},
+										indexInBlock: event.extrinsicIndex,
 									},
 								},
 							}),
@@ -194,16 +200,16 @@ export default {
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotExtrinsic,
 			resolve: {
-				[PolkadotExtrinsicSelector.PolkadotBlockExtrinsicIndex]: async ({ $block, extrinsicIndex }) => {
+				[PolkadotExtrinsicSelector.BlockIndexInBlock]: async ({ $block, indexInBlock }) => {
 					assertPolkadotMainnet($block.$network)
 					const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 					const block = await getBlock({
 						restBaseUrl: await substrateSidecarRestBaseUrl(),
 						blockId: $block.blockNumber.toString(),
 					})
-					const extrinsic = block.extrinsics.at(extrinsicIndex)
+					const extrinsic = block.extrinsics.at(indexInBlock)
 					if (extrinsic == null)
-						throw new Error(`SubstrateSidecar_Rest: missing extrinsic ${extrinsicIndex}`)
+						throw new Error(`SubstrateSidecar_Rest: missing extrinsic ${indexInBlock}`)
 					return {
 						...(extrinsic.hash != null && {
 							hash: extrinsic.hash,
@@ -242,7 +248,7 @@ export default {
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotEvent,
 			resolve: {
-				[PolkadotEventSelector.PolkadotBlockEventIndex]: async ({ $block, eventIndex }) => {
+				[PolkadotEventSelector.BlockIndexInBlock]: async ({ $block, indexInBlock }) => {
 					assertPolkadotMainnet($block.$network)
 					const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 					const block = await getBlock({
@@ -258,9 +264,9 @@ export default {
 						}))
 						)),
 						...(block.onFinalize?.events ?? []),
-					].at(eventIndex)
+					].at(indexInBlock)
 					if (event == null)
-						throw new Error(`SubstrateSidecar_Rest: missing event ${eventIndex}`)
+						throw new Error(`SubstrateSidecar_Rest: missing event ${indexInBlock}`)
 					const [
 						palletName,
 					eventName,
@@ -274,7 +280,7 @@ export default {
 										blockNumber: BigInt(block.number),
 										hash: block.hash,
 									},
-									extrinsicIndex: event.extrinsicIndex,
+									indexInBlock: event.extrinsicIndex,
 								},
 							},
 						}),
@@ -446,12 +452,12 @@ export default {
 					})
 					return block.extrinsics.map((extrinsic, extrinsicIndex) => ({
 						[EntityMetaKey.Selector]: {
-							$block: {
-								$network: $network,
-								blockNumber: BigInt(block.number),
-								hash: block.hash,
-							},
-							extrinsicIndex,
+								$block: {
+									$network: $network,
+									blockNumber: BigInt(block.number),
+									hash: block.hash,
+								},
+							indexInBlock: extrinsicIndex,
 						},
 						...(extrinsic.hash != null && {
 							hash: extrinsic.hash,
@@ -515,17 +521,17 @@ export default {
 									blockNumber: BigInt(block.number),
 									hash: block.hash,
 								},
-								eventIndex,
+								indexInBlock: eventIndex,
 							},
 							...(event.extrinsicIndex != null && {
 								$extrinsic: {
 									[EntityMetaKey.Selector]: {
 										$block: {
-											$network: $network,
-											blockNumber: BigInt(block.number),
-											hash: block.hash,
-										},
-										extrinsicIndex: event.extrinsicIndex,
+										$network: $network,
+										blockNumber: BigInt(block.number),
+										hash: block.hash,
+									},
+										indexInBlock: event.extrinsicIndex,
 									},
 								},
 							}),

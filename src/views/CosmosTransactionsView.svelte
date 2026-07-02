@@ -1,12 +1,15 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { resolve } from '$app/paths'
+	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
 	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -14,53 +17,126 @@
 
 
 	// State
-	const listView = {
-		entityType: EntityType.CosmosTransaction,
-		item: 'summary',
-		orientation: 'column',
-	} as const
-
 	let {
 		selection,
-		title,
+		title = 'Transactions',
+		typeAnnotationParagraphs = [],
+		placeholderText = 'Loading Cosmos transactions...',
+		emptyText = undefined,
 		open = $bindable(true),
-		id = 'CosmosTransactions',
-		href = '',
+		collapsible = true,
+		showTypeAnnotation = true,
+		id = 'CosmosTransactions-list',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			selection: EntityProxyEntitiesResource<typeof schema, EntityType.CosmosTransaction>
 			title?: string
+			typeAnnotationParagraphs?: string[]
+			placeholderText?: string
+			emptyText?: string
 			open?: boolean
+			collapsible?: boolean
+			showTypeAnnotation?: boolean
 			id?: string
-			href?: string
 		},
-		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
+		Pick<
+			ComponentProps<typeof EntitiesList>,
+			| 'href'
+			| 'CollapsibleProps'
+		>
 	> = $props()
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CosmosTransactionView from '$/views/CosmosTransactionView.svelte'
 </script>
 
 
-<EntitiesList
-	entityType={listView.entityType}
-	{title}
-	bind:open
-	{id}
-	href={href}
-	resource={selection}
-	getKey={(entity) => stringify(entity.entitySelector)}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
-	{...EntitiesListProps}
->
-	{#snippet Item({ item })}
-		<CosmosTransactionView
-			selection={select(EntityType.CosmosTransaction, item.entitySelector)}
-			layout={EntityLayout.Summary}
-		/>
-	{/snippet}
-</EntitiesList>
+{#snippet TypeAnnotationParagraphs()}
+	{#each typeAnnotationParagraphs as paragraph (paragraph)}
+		<p>{paragraph}</p>
+	{/each}
+{/snippet}
+
+{#if open}
+	<ResourceBoundary
+		resource={
+			selection.sources == null ? selection({
+				fields: {
+					txHash: true,
+					code: true,
+					gasUsed: true,
+				},
+			}) : selection
+		}
+		{placeholderText}
+	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.CosmosTransaction}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+			/>
+		{/snippet}
+
+		{#snippet children(cosmosTransactions)}
+			{@const uniqueCosmosTransactions = [...new Map(cosmosTransactions.values.map((cosmosTransaction) => [cosmosTransaction[EntityMetaKey.SelectorKey], cosmosTransaction])).values()]}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.CosmosTransaction}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				totalCount={cosmosTransactions.values.length === uniqueCosmosTransactions.length && cosmosTransactions.totalCount != null && cosmosTransactions.totalCount >= uniqueCosmosTransactions.length ? cosmosTransactions.totalCount : uniqueCosmosTransactions.length}
+				getKey={(cosmosTransaction) => cosmosTransaction[EntityMetaKey.SelectorKey]}
+				items={uniqueCosmosTransactions}
+			>
+				{#snippet Empty()}
+					{#if emptyText != null}
+						<p data-text="muted">{emptyText}</p>
+					{:else}
+						<p data-text="muted">No Cosmos transactions yet.</p>
+					{/if}
+				{/snippet}
+
+				{#snippet Item({ item: cosmosTransaction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CosmosTransaction> })}
+					<CosmosTransactionView
+						href={
+							resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/tx/[txHash]', {
+								caip2: `${String(({ ...cosmosTransaction.entitySelector, ...cosmosTransaction }).$network.caip2.namespace)}:${String(({ ...cosmosTransaction.entitySelector, ...cosmosTransaction }).$network.caip2.reference)}`,
+								txHash: String(({ ...cosmosTransaction.entitySelector, ...cosmosTransaction }).txHash),
+							})
+						}
+						selection={select(EntityType.CosmosTransaction, cosmosTransaction.entitySelector)}
+						prefetched={cosmosTransaction}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/snippet}
+	</ResourceBoundary>
+{:else}
+	<EntitiesList
+		{...EntitiesListProps}
+		entityType={EntityType.CosmosTransaction}
+		{id}
+		{title}
+		bind:open
+		{collapsible}
+		{showTypeAnnotation}
+		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	/>
+{/if}

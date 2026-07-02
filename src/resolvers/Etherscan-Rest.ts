@@ -214,11 +214,24 @@ const evmTokenTransferEntityFromEtherscanWire = ({
 	)
 	return {
 		[EntityMetaKey.Selector]: {
-			$network,
-			txHash: normalizedTxHash,
-			logIndex,
-			transferIndex,
+			$log: {
+				$transaction: {
+					$network,
+					txHash: normalizedTxHash,
+				},
+				indexInTransaction: logIndex,
+			},
+			indexInLog: transferIndex,
 		},
+		$log: {
+			[EntityMetaKey.Selector]: {
+				$transaction: {
+					$network,
+					txHash: normalizedTxHash,
+				},
+				indexInTransaction: logIndex,
+			},
+		} satisfies Entity<typeof schema, EntityType.EvmLog>,
 		standard,
 		amount,
 		...(tokenId != null && { tokenId }),
@@ -319,9 +332,9 @@ const findEtherscanTokenTransferWireForEntitySelector = (
 ): EtherscanTokenTransferTagged | undefined => (
 	wires
 		.filter((wire) => (
-			etherscanLogIndexFromWire(wire.row.logIndex) === entitySelector.logIndex
+			etherscanLogIndexFromWire(wire.row.logIndex) === entitySelector.$log.indexInTransaction
 		))
-		.at(entitySelector.transferIndex)
+		.at(entitySelector.indexInLog)
 )
 
 const evmInternalTransferEntityFromEtherscanWire = ({
@@ -345,12 +358,20 @@ const evmInternalTransferEntityFromEtherscanWire = ({
 	if (callType == null) return undefined
 
 	const entitySelector = {
-		$network,
-		txHash: normalizedTxHash,
-		internalIndex,
+		$transaction: {
+			$network,
+			txHash: normalizedTxHash,
+		},
+		indexInTransaction: internalIndex,
 	} satisfies EntitySelector<typeof schema, EntityType.EvmInternalTransfer>
 	return {
 		[EntityMetaKey.Selector]: entitySelector,
+		$transaction: {
+			[EntityMetaKey.Selector]: {
+				$network,
+				txHash: normalizedTxHash,
+			},
+		} satisfies Entity<typeof schema, EntityType.EvmTransaction>,
 		value,
 		callType,
 		...(wire.isError != null && { success: wire.isError === '0' }),
@@ -429,7 +450,7 @@ const findEtherscanInternalTransferWireForEntitySelector = (
 	wires: readonly EtherscanInternalTransaction[],
 	entitySelector: EntitySelector<typeof schema, EntityType.EvmInternalTransfer>
 ): EtherscanInternalTransaction | undefined => (
-	wires[entitySelector.internalIndex]
+	wires[entitySelector.indexInTransaction]
 )
 
 
@@ -491,17 +512,17 @@ export default {
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmTokenTransfer,
 			resolve: {
-				[EvmTokenTransferSelector.EvmNetworkTxHashLogIndexTransferIndex]: async (entitySelector, context) => {
+				[EvmTokenTransferSelector.LogIndexInLog]: async (entitySelector, context) => {
 					const {
 						getTokenTransfersByTransaction,
 						getAccountListMaxOffset,
 					} = await import('$/sources/Etherscan/Rest/queries.ts')
-					const chainId = chainIdFromEvmNetworkId(entitySelector.$network)
+					const chainId = chainIdFromEvmNetworkId(entitySelector.$log.$transaction.$network)
 					await throwIfEtherscanRestUnsupportedChainId(chainId)
 					const wires = await getTokenTransfersByTransaction({
 						publicEnv: context.publicEnv,
 						chainId,
-						txHash: entitySelector.txHash,
+						txHash: entitySelector.$log.$transaction.txHash,
 						offset: getAccountListMaxOffset,
 					})
 					if (wires == null)
@@ -510,9 +531,9 @@ export default {
 					if (wire == null)
 						throw new Error('Etherscan_Rest: token transfer not found for EvmTokenTransfer')
 					const entity = evmTokenTransferEntityFromEtherscanWire({
-						$network: entitySelector.$network,
-						txHash: entitySelector.txHash,
-						transferIndex: entitySelector.transferIndex,
+						$network: entitySelector.$log.$transaction.$network,
+						txHash: entitySelector.$log.$transaction.txHash,
+						transferIndex: entitySelector.indexInLog,
 						wire,
 					})
 					if (entity == null)
@@ -522,6 +543,8 @@ export default {
 			},
 		})({
 			fields: {
+				$log: (transfer) => transfer.$log,
+				indexInLog: (transfer) => transfer[EntityMetaKey.Selector].indexInLog,
 				standard: (transfer) => {
 					if (transfer.standard == null) throw new Error('Etherscan_Rest: token transfer missing standard')
 					return transfer.standard
@@ -558,14 +581,14 @@ export default {
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmInternalTransfer,
 			resolve: {
-				[EvmInternalTransferSelector.EvmNetworkTxHashInternalIndex]: async (entitySelector, context) => {
+				[EvmInternalTransferSelector.TransactionIndexInTransaction]: async (entitySelector, context) => {
 					const { getInternalTransactionsByTxHash } = await import('$/sources/Etherscan/Rest/queries.ts')
-					const chainId = chainIdFromEvmNetworkId(entitySelector.$network)
+					const chainId = chainIdFromEvmNetworkId(entitySelector.$transaction.$network)
 					await throwIfEtherscanRestUnsupportedChainId(chainId)
 					const wires = await getInternalTransactionsByTxHash({
 						publicEnv: context.publicEnv,
 						chainId,
-						txHash: entitySelector.txHash,
+						txHash: entitySelector.$transaction.txHash,
 					})
 					if (wires == null)
 						throw new Error('Etherscan_Rest: internal transactions by tx hash returned no result')
@@ -573,9 +596,9 @@ export default {
 					if (wire == null)
 						throw new Error('Etherscan_Rest: internal transfer not found for EvmInternalTransfer')
 					const entity = evmInternalTransferEntityFromEtherscanWire({
-						$network: entitySelector.$network,
-						txHash: entitySelector.txHash,
-						internalIndex: entitySelector.internalIndex,
+						$network: entitySelector.$transaction.$network,
+						txHash: entitySelector.$transaction.txHash,
+						internalIndex: entitySelector.indexInTransaction,
 						wire,
 					})
 					if (entity == null)
@@ -585,6 +608,8 @@ export default {
 			},
 		})({
 			fields: {
+				$transaction: (transfer) => transfer.$transaction,
+				indexInTransaction: (transfer) => transfer[EntityMetaKey.Selector].indexInTransaction,
 				value: ({ value }) => value,
 				callType: (transfer) => transfer.callType,
 				success: (transfer) => transfer.success,
@@ -887,12 +912,12 @@ export default {
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmLog,
 			resolve: {
-				[EvmLogSelector.EvmNetworkTxHashLogIndex]: async ({ $network, logIndex, txHash }, context) => {
+				[EvmLogSelector.TransactionIndexInTransaction]: async ({ $transaction, indexInTransaction }, context) => {
 					const {
 						getTokenTransfersByTransaction,
 						getAccountListMaxOffset,
 					} = await import('$/sources/Etherscan/Rest/queries.ts')
-					const chainId = chainIdFromEvmNetworkId($network)
+					const chainId = chainIdFromEvmNetworkId($transaction.$network)
 					await throwIfEtherscanRestUnsupportedChainId(chainId)
 					const limit = Math.min(
 						resolverContextRowLimit(context),
@@ -901,19 +926,19 @@ export default {
 					const wires = await getTokenTransfersByTransaction({
 						publicEnv: context.publicEnv,
 						chainId,
-						txHash: txHash,
+						txHash: $transaction.txHash,
 						offset: limit,
 					})
 					if (wires == null)
 						return []
 					return (
 						evmTokenTransferEntitySelectorsFromEtherscanWires({
-							$network: $network,
-							txHash: txHash,
+							$network: $transaction.$network,
+							txHash: $transaction.txHash,
 							wires,
 						})
 							.filter((entity) => (
-								entity[EntityMetaKey.Selector].logIndex === logIndex
+								entity[EntityMetaKey.Selector].$log.indexInTransaction === indexInTransaction
 							))
 							.map((entity) => ({
 								[EntityMetaKey.Selector]: entity[EntityMetaKey.Selector],

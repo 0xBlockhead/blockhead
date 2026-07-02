@@ -1,354 +1,231 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
 	// Types/constants
-	import {
-		NetworkNamespace,
-		networkByCaip2,
-		networkEnvironmentByEnvironment,
-	} from '$/constants/Network.ts'
-
-	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { ComponentProps } from 'svelte'
+	import { resolve } from '$app/paths'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-
-	type NetworkResource = EntityProxyResource<typeof schema, EntityType.Network>
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		selection,
+		prefetched = {},
+		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
-	}: {
-		selection: NetworkResource
-		href?: string
-		layout?: EntityLayout
-		open?: boolean
-	} = $props()
+		...EntityViewProps
+	}: WithRest<
+		{
+			selection: EntityProxyResource<typeof schema, EntityType.Network>
+			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.Network>>
+			title?: string
+			href?: string
+			layout?: EntityLayout
+			open?: boolean
+		},
+		Pick<
+			ComponentProps<typeof EntityView>,
+			| 'collapsible'
+			| 'showTypeAnnotation'
+		>
+	> = $props()
 
-
+	const network = $derived(selection({
+		sources: [
+			Source.Constants_Internal,
+		],
+		fields: {
+			name: true,
+			namespace: true,
+			environment: true,
+			$icon: true,
+			$$nativeAssets: true,
+			$$blockExplorerUrls: true,
+			$$faucetUrls: true,
+		},
+	}))
+	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || [selection.entitySelector.caip2 == null ? '' : String((`${(selection.entitySelector.caip2).namespace}:${(selection.entitySelector.caip2).reference}`) ?? '')].filter(Boolean).join(' ') || 'Network')
+	const viewDomId = $derived('network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView2 from '$/components/EntityView2.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BittensorNetworkView from '$/views/BittensorNetworkView.svelte'
-	import CosmosNetworkView from '$/views/CosmosNetworkView.svelte'
-	import EvmNetworkView from '$/views/EvmNetworkView.svelte'
-	import FilecoinNetworkView from '$/views/FilecoinNetworkView.svelte'
-	import HyperliquidNetworkView from '$/views/HyperliquidNetworkView.svelte'
-	import LightningNetworkView from '$/views/LightningNetworkView.svelte'
-	import LogosNetworkView from '$/views/LogosNetworkView.svelte'
-	import MoneroNetworkView from '$/views/MoneroNetworkView.svelte'
-	import NearNetworkView from '$/views/NearNetworkView.svelte'
-	import PolkadotNetworkView from '$/views/PolkadotNetworkView.svelte'
-	import QuilibriumNetworkView from '$/views/QuilibriumNetworkView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import SolanaNetworkView from '$/views/SolanaNetworkView.svelte'
-	import TronNetworkView from '$/views/TronNetworkView.svelte'
-	import UtxoNetworkView from '$/views/UtxoNetworkView.svelte'
-	import ZeroGNetworkView from '$/views/ZeroGNetworkView.svelte'
+	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import Network_TimestampsView from '$/views/Network_TimestampsView.svelte'
+	import AssetInstancesView from '$/views/AssetInstancesView.svelte'
+	import UrlsView from '$/views/UrlsView.svelte'
+	import MediaView from '$/views/MediaView.svelte'
 </script>
 
 
-<ResourceBoundary
-	resource={selection}
+<EntityView
+	entityType={EntityType.Network}
+	entitySelector={selection.entitySelector}
+	id={viewDomId}
+	title={title ?? titleFallback}
+	href={
+		href ?? (({ ...selection.entitySelector, ...prefetched })?.caip2 != null && ({ ...selection.entitySelector, ...prefetched })?.caip2?.namespace != null && ({ ...selection.entitySelector, ...prefetched })?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+			caip2: `${String(({ ...selection.entitySelector, ...prefetched }).caip2.namespace)}:${String(({ ...selection.entitySelector, ...prefetched }).caip2.reference)}`,
+		}) : ({ ...selection.entitySelector, ...prefetched })?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
+			networkSlug: String(({ ...selection.entitySelector, ...prefetched }).slug),
+		}) : undefined)
+	}
+	{layout}
+	bind:open
+	{...EntityViewProps}
 >
-	{#snippet children(row)}
-		{@const networkCaip2 = row.caip2 ?? (
-			'caip2' in selection.entitySelector ?
-				selection.entitySelector.caip2
-			:
-				undefined
-		)}
-		{@const networkSlug = row.slug ?? (
-			'slug' in selection.entitySelector ?
-				selection.entitySelector.slug
-			:
-				undefined
-		)}
-		{@const networkHref = href ?? (
-			networkCaip2 == null ?
-				networkSlug == null ?
-					undefined
-				:
-					resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-						networkSlug,
-					})
-				:
-					resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-						caip2: `${networkCaip2.namespace}:${networkCaip2.reference}`,
-					})
-		)}
-		{@const networkSelector = selection.entitySelector}
-		{@const networkNamespace = row.namespace ?? (
-			networkCaip2 == null ?
-				undefined
-			:
-				networkByCaip2[`${networkCaip2.namespace}:${networkCaip2.reference}`]?.namespace
-		)}
-		{#if networkNamespace === NetworkNamespace.Evm && networkCaip2 != null}
-			<EvmNetworkView
-				selection={select(EntityType.EvmNetwork, {
-					caip2: {
-						namespace: 'eip155',
-						reference: networkCaip2.reference,
-					},
-				})}
-				href={networkHref}
-				bind:open
-				{layout}
-			/>
-		{:else if networkNamespace === NetworkNamespace.Bitcoin || networkNamespace === NetworkNamespace.BitcoinCash || networkNamespace === NetworkNamespace.Litecoin || networkNamespace === NetworkNamespace.Dogecoin || networkNamespace === NetworkNamespace.Zcash}
-			<UtxoNetworkView
-				selection={select(EntityType.UtxoNetwork, { $network: networkSelector })}
-				href={networkHref}
-				bind:open
-				{layout}
-			/>
-		{:else if networkNamespace === NetworkNamespace.Solana && networkCaip2 != null}
-			<SolanaNetworkView
-				selection={select(EntityType.SolanaNetwork, {
-					caip2: {
-						namespace: 'solana',
-						reference: networkCaip2.reference,
-					},
-				})}
-				href={networkHref}
-				bind:open
-				{layout}
-			/>
-		{:else if networkNamespace === NetworkNamespace.Cosmos}
-			<CosmosNetworkView
-				selection={select(EntityType.CosmosNetwork, { $network: networkSelector })}
-				href={networkHref}
-				bind:open
-				{layout}
-			/>
-		{:else if networkNamespace === NetworkNamespace.Filecoin}
-			<FilecoinNetworkView
-				selection={select(EntityType.FilecoinNetwork, { $network: networkSelector })}
-				href={networkHref}
-				bind:open
-				{layout}
-			/>
-		{:else if networkNamespace === NetworkNamespace.Polkadot}
-			<PolkadotNetworkView
-				selection={select(EntityType.PolkadotNetwork, { $network: networkSelector })}
-				href={networkHref}
-				bind:open
-				{layout}
-			/>
-		{:else if networkNamespace === NetworkNamespace.Monero}
-			<MoneroNetworkView
-				selection={select(EntityType.MoneroNetwork, { $network: networkSelector })}
-				href={networkHref}
-				bind:open
-				{layout}
-			/>
-		{:else if networkNamespace === NetworkNamespace.Near}
-			<NearNetworkView
-				selection={select(EntityType.NearNetwork, { slug: 'near' })}
-				href={networkHref}
-				bind:open
-				{layout}
-			/>
-		{:else if networkNamespace === NetworkNamespace.Tron}
-			<TronNetworkView
-				selection={select(EntityType.TronNetwork, { $network: networkSelector })}
-				href={networkHref}
-				bind:open
-				{layout}
-			/>
-		{:else if networkNamespace === NetworkNamespace.Hyperliquid}
-			<HyperliquidNetworkView
-				selection={select(EntityType.HyperliquidNetwork, { $network: networkSelector })}
-				href={networkHref}
-				bind:open
-				{layout}
-			/>
-		{:else if networkNamespace === NetworkNamespace.Bittensor}
-			<BittensorNetworkView
-				selection={select(EntityType.BittensorNetwork, { $network: networkSelector })}
-				href={networkHref}
-				bind:open
-				{layout}
-			/>
-		{:else if networkNamespace === NetworkNamespace.Lightning}
-			<LightningNetworkView
-				selection={select(EntityType.LightningNetwork, {
-					$network: networkSelector,
-				})}
-				href={networkHref}
-				bind:open
-				{layout}
-			/>
-		{:else if networkNamespace === NetworkNamespace.ZeroG}
-			<ZeroGNetworkView
-				selection={select(EntityType.Network, networkSelector)}
-				href={networkHref}
-				bind:open
-				{layout}
-			/>
-		{:else if networkNamespace === NetworkNamespace.Logos}
-			<LogosNetworkView
-				selection={select(EntityType.Network, networkSelector)}
-				href={networkHref}
-				bind:open
-				{layout}
-			/>
-		{:else if networkNamespace === NetworkNamespace.Quilibrium}
-			<QuilibriumNetworkView
-				selection={select(EntityType.Network, networkSelector)}
-				href={networkHref}
-				bind:open
-				{layout}
-			/>
+
+	{#snippet Icon()}
+		<ResourceBoundary resource={network}>
+			{#snippet Pending()}
+				<IconComponent />
+			{/snippet}
+
+			{#snippet children(entity)}
+				{@const reference = entity.$icon}
+				{#if reference?.[EntityMetaKey.Selector] !== undefined}
+					<MediaView
+						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
+						prefetched={reference}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Title()}
+		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
+			{[String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || title || [selection.entitySelector.caip2 == null ? '' : String((`${(selection.entitySelector.caip2).namespace}:${(selection.entitySelector.caip2).reference}`) ?? '')].filter(Boolean).join(' ') || 'Network'}
 		{:else}
-			<EntityView2
-				{selection}
-				entityType={EntityType.Network}
-				entitySelector={networkSelector}
-				href={networkHref}
-				bind:open
-				{layout}
-				view={{
-					closed: [
-						'caip2',
-						'environment',
-					],
-					content: {
-						dl: [
-							[
-								'caip2',
-								'environment',
-								{
-									label: 'stack classification',
-								},
-								'executionEnvironments',
-								'consensusMechanisms',
-							],
-							[
-								{
-									label: 'native asset count',
-								},
-								{
-									label: 'explorer/faucet URL counts',
-								},
-							],
-						],
-					},
-					details: {
-						tabs: [
-							{
-								label: 'Namespace-specific state',
-								items: [
-									{
-										label: 'EVM',
-									},
-									{
-										label: 'UTXO',
-									},
-									{
-										label: 'Solana',
-									},
-									{
-										label: 'Cosmos',
-									},
-									{
-										label: 'Celestia',
-									},
-									{
-										label: 'Avail',
-									},
-									{
-										label: 'Filecoin',
-									},
-									{
-										label: 'Polkadot',
-									},
-									{
-										label: 'Monero',
-									},
-									{
-										label: 'NEAR',
-									},
-									{
-										label: 'TRON',
-									},
-									{
-										label: 'Hyperliquid',
-									},
-									{
-										label: 'Bittensor',
-									},
-									{
-										label: 'Lightning',
-									},
-									{
-										label: 'Arweave',
-									},
-									{
-										label: '0G',
-									},
-									{
-										label: 'Quilibrium',
-									},
-								],
-							},
-							{
-								label: 'Catalog refs',
-								items: [
-									'$$nativeAssets',
-									'$$blockExplorerUrls',
-									'$$faucetUrls',
-									{
-										label: 'secondary identifiers',
-									},
-								],
-							},
-							{
-								label: 'Observations',
-								items: [
-									{
-										label: 'Network_Timestamp fallback rows',
-									},
-									{
-										label: 'endpoint observations',
-									},
-								],
-							},
-						],
-					},
-				}}
-			>
-				{#snippet Title()}
-					{row.name}
+			<ResourceBoundary resource={network}>
+				{#snippet Pending()}
+					{[String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || title || [selection.entitySelector.caip2 == null ? '' : String((`${(selection.entitySelector.caip2).namespace}:${(selection.entitySelector.caip2).reference}`) ?? '')].filter(Boolean).join(' ') || 'Network'}
 				{/snippet}
 
-				{#snippet Content()}
-					<dl>
-						{#if row.caip2 != null}
-							<div>
-								<dt>CAIP-2</dt>
-								<dd>
-									{row.caip2.namespace}:{row.caip2.reference}
-								</dd>
-							</div>
-						{/if}
-
-						{#if row.environment !== undefined}
-							<div>
-								<dt>Environment</dt>
-								<dd>{networkEnvironmentByEnvironment[row.environment].label}</dd>
-							</div>
-						{/if}
-					</dl>
+				{#snippet children(entity)}
+					{[String((entity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 				{/snippet}
-			</EntityView2>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
-</ResourceBoundary>
+
+	{#snippet Value()}
+		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
+			{@const caip20 = ({ ...selection.entitySelector, ...prefetched }).caip2}
+			{#if caip20 !== undefined && caip20 !== null}
+				<TruncatedValue value={caip20 == null ? '' : String((`${(caip20).namespace}:${(caip20).reference}`) ?? '')} />
+			{/if}
+		{:else}
+			<ResourceBoundary resource={network}>
+				{#snippet Pending()}
+					{@const caip20 = ({ ...selection.entitySelector, ...prefetched }).caip2}
+					{#if caip20 !== undefined && caip20 !== null}
+						<TruncatedValue value={caip20 == null ? '' : String((`${(caip20).namespace}:${(caip20).reference}`) ?? '')} />
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const caip20 = ({ ...selection.entitySelector, ...prefetched, ...entity }).caip2}
+					{#if caip20 !== undefined && caip20 !== null}
+						<TruncatedValue value={caip20 == null ? '' : String((`${(caip20).namespace}:${(caip20).reference}`) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			A blockchain, ledger, or protocol network with its own identity and supporting metadata.
+		</p>
+	{/snippet}
+
+	{#snippet Content({ open: contentOpen })}
+		<dl data-column-item="center">
+			<div>
+				<dt>Namespace</dt>
+				<dd>
+					<ResourceBoundary resource={network}>
+						{#snippet Pending()}
+							{@const namespace = prefetched.namespace ?? selection.entitySelector.namespace}
+							{#if namespace !== undefined && namespace !== null}
+								{String((namespace) ?? '')}
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const namespace = entity.namespace ?? selection.entitySelector.namespace ?? prefetched.namespace}
+							{#if namespace !== undefined && namespace !== null}
+								{String((namespace) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Environment</dt>
+				<dd>
+					<ResourceBoundary resource={network}>
+						{#snippet Pending()}
+							{@const environment = prefetched.environment ?? selection.entitySelector.environment}
+							{#if environment !== undefined && environment !== null}
+								{String((environment) ?? '')}
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const environment = entity.environment ?? selection.entitySelector.environment ?? prefetched.environment}
+							{#if environment !== undefined && environment !== null}
+								{String((environment) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<Network_TimestampsView
+				selection={selection[EntityProxyField]<EntityType.Network_Timestamp>('$$timestamps')}
+				title='Observations'
+				id='Network_TimestampsView-$$timestamps'
+			/>
+
+			<AssetInstancesView
+				selection={selection[EntityProxyField]<EntityType.AssetInstance>('$$nativeAssets')}
+				title='Native assets'
+				id='AssetInstancesView-$$nativeAssets'
+			/>
+
+			<UrlsView
+				selection={selection[EntityProxyField]<EntityType.Url>('$$blockExplorerUrls')}
+				title='Block explorer URLs'
+				id='UrlsView-$$blockExplorerUrls'
+			/>
+
+			<UrlsView
+				selection={selection[EntityProxyField]<EntityType.Url>('$$faucetUrls')}
+				title='Faucet URLs'
+				id='UrlsView-$$faucetUrls'
+			/>
+		{/if}
+	{/snippet}
+</EntityView>

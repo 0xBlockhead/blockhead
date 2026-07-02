@@ -19,7 +19,6 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { stringify } from 'devalue'
 import { _GlobalSelector } from '$/schema/_Global.ts'
 import { CoinSelector } from '$/schema/Coin.ts'
 import { CurrencySelector } from '$/schema/Currency.ts'

@@ -1,12 +1,21 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
+	// Types/constants
+	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+
+
+	// Context
+	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
-	import { eip155NetworkSelectorFromCaip2 } from '$/lib/caip2.ts'
+
+
 	// State
 	let {
+		data,
 		params,
-	} = $props()
+	}: PageProps = $props()
 
 
 	// Components
@@ -15,11 +24,48 @@
 </script>
 
 
+<svelte:head>
+	<title>User operation • Blockhead</title>
+</svelte:head>
+
+
 <Page>
 	<EvmUserOperationView
-		selection={select(EntityType.EvmUserOperation, {
-			$network: eip155NetworkSelectorFromCaip2(params.caip2),
-			hash: ZeroExHex.assert(params.userOperationHash.toLowerCase()),
-		})}
+		href={
+			resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/user-operation/[userOperationHash=userOperationHash]', {
+				caip2: params.caip2,
+				userOperationHash: params.userOperationHash,
+			})
+		}
+		selection={
+			select(EntityType.EvmUserOperation, data.selector, {
+				fields: {
+					successful: true,
+					timestampMs: true,
+					fee: true,
+					nonce: true,
+					entryPointVersion: true,
+					sponsorType: true,
+					$bundledTransaction: true,
+					$block: true,
+					$sender: true,
+					$paymaster: true,
+					$bundler: true,
+					$entryPoint: true,
+					callGasLimit: true,
+					verificationGasLimit: true,
+					preVerificationGas: true,
+					maxFeePerGas: true,
+					maxPriorityFeePerGas: true,
+					gas: true,
+					gasUsed: true,
+					gasPrice: true,
+					initCode: true,
+					callData: true,
+					paymasterAndData: true,
+					signature: true,
+				},
+			})
+		}
 	/>
 </Page>

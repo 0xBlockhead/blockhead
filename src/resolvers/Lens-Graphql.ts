@@ -13,6 +13,7 @@ import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { LensAccountSelector } from '$/schema/LensAccount.ts'
+import { LensNetworkSelector } from '$/schema/LensNetwork.ts'
 import { LensPostSelector } from '$/schema/LensPost.ts'
 import { LensAccount_TimestampSelector } from '$/schema/LensAccount_Timestamp.ts'
 import { LensPost_TimestampSelector } from '$/schema/LensPost_Timestamp.ts'
@@ -99,6 +100,36 @@ const lensGraphqlResolvers = {
 
 	resolvers: [
 		defineResolver(Source.Lens_Graphql, {
+			entityType: EntityType.LensNetwork,
+			resolve: {
+				[LensNetworkSelector.Scope]: async (_entitySelector, context) => {
+					const { queryLatestPosts } = await import('$/sources/Lens/Graphql/queries.ts')
+					const limit = resolverContextRowLimit(context)
+					const pageSize: 'TEN' | 'FIFTY' = limit > 10 ? 'FIFTY' : 'TEN'
+					return (
+						(await queryLatestPosts(context.publicEnv, pageSize)).posts.items
+							.flatMap((lensPost) => (
+								((postSlug) => (
+									postSlug != null ?
+										[
+											{
+												[EntityMetaKey.Selector]: { id: postSlug },
+											},
+										]
+									:
+										[]
+								))(lensAnyPostSlugFromWire(lensPost))
+							))
+					)
+				},
+			},
+		})({
+			fields: {
+				$$lensPosts: (posts) => posts,
+			},
+		}),
+
+		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensAccount,
 			resolve: {
 				[LensAccountSelector.Address]: async ({ address }, context) => {
@@ -184,6 +215,8 @@ const lensGraphqlResolvers = {
 		})({
 			fields: {
 				address: (account) => account.address,
+				localName: (account) => account.localName,
+				legacyProfileId: (account) => account.legacyProfileId,
 				displayName: (account) => account.displayName,
 				bio: (account) => account.bio,
 				createdAt: (account) => account.createdAt,

@@ -78,16 +78,29 @@
 				open: _open,
 			})}
 		{:else}
-			<Heading>
-				{#if href}
-					<a
-						data-link
-						href={href}
-					>{title ?? ''}</a>
-				{:else}
-					{title ?? ''}
-				{/if}
-			</Heading>
+			<header
+				class="entity-view-summary"
+				data-row-item="flexible"
+				data-row="wrap gap-2"
+			>
+				<div
+					data-row-item="flexible"
+					data-row="wrap"
+				>
+					<div data-row="start wrap">
+						<Heading>
+							{#if href}
+								<a
+									data-link
+									href={href}
+								>{title ?? ''}</a>
+							{:else}
+								{title ?? ''}
+							{/if}
+						</Heading>
+					</div>
+				</div>
+			</header>
 		{/if}
 	{/snippet}
 

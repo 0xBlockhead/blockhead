@@ -306,6 +306,7 @@ export type SubscribeEntityReferenceResult<
 > = {
 	readonly [EntityMetaKey.Selector]: EntitySelector<_Schema, _EntityType>
 	readonly [EntityMetaKey.SelectorKey]: string
+	readonly [EntityMetaKey.Source]: string
 	readonly entitySelector: EntitySelector<_Schema, _EntityType>
 } & Partial<EntityFieldValues<_Schema, _EntityType>>
 
@@ -350,7 +351,7 @@ export type SubscribeFieldResult<
 				SubscribeFieldSingleResult<_Schema, _EntityType, _FieldName>
 )
 
-type SubscribeAllResultFields<
+export type SubscribeAllResultFields<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
 > = Partial<{
@@ -451,22 +452,21 @@ const persistedCollectionLoadedSubset = (
 	)
 		return undefined
 
-	const record = Object(value)
 	if (
-		typeof record.collectionId !== 'string'
-		|| typeof record.loadedKey !== 'string'
-		|| typeof record.rowCount !== 'number'
-		|| record.sourceRowCounts == null
-		|| typeof record.sourceRowCounts !== 'object'
+		typeof value.collectionId !== 'string'
+		|| typeof value.loadedKey !== 'string'
+		|| typeof value.rowCount !== 'number'
+		|| value.sourceRowCounts == null
+		|| typeof value.sourceRowCounts !== 'object'
 	)
 		return undefined
 
 	return {
-		collectionId: record.collectionId,
-		loadedKey: record.loadedKey,
-		rowCount: record.rowCount,
+		collectionId: value.collectionId,
+		loadedKey: value.loadedKey,
+		rowCount: value.rowCount,
 		sourceRowCounts: Object.fromEntries(
-			Object.entries(record.sourceRowCounts).flatMap(([source, count]) => (
+			Object.entries(value.sourceRowCounts).flatMap(([source, count]) => (
 				typeof count === 'number' ?
 					[[source, count]]
 				:
@@ -901,27 +901,22 @@ const countFilterKeysFromSubset = (
 	})
 )
 
-const selectorFieldValue = (
-	entitySelector: object,
-	fieldName: string
-) => Object.getOwnPropertyDescriptor(entitySelector, fieldName)?.value
-
 const fieldConditionValue = <
 	const _Schema extends Schema
 >(
 	context: ClientContext<_Schema>,
 	entityType: string,
-	parentSelector: object,
+	parentSelector: Record<string, { readonly [index: number]: unknown } | undefined>,
 	parentSelectorKey: string,
 	condition: EntityFieldCondition
 ) => {
-	const selectorValue = selectorFieldValue(parentSelector, condition.fieldName)
+	const selectorValue = parentSelector[condition.fieldName]
 	if (selectorValue !== undefined)
 		return (
 			condition.itemIndex === undefined ?
 				selectorValue
 			:
-				Object(selectorValue)[condition.itemIndex]
+				selectorValue[condition.itemIndex]
 		)
 
 	for (const row of context.entityFieldCollections[entityType][condition.fieldName].toArray.toReversed()) {
@@ -943,7 +938,7 @@ const fieldConditionState = <
 >(
 	context: ClientContext<_Schema>,
 	entityType: string,
-	parentSelector: object,
+	parentSelector: Record<string, { readonly [index: number]: unknown } | undefined>,
 	parentSelectorKey: string,
 	definition: EntityFieldDefinition
 ) => {
@@ -972,7 +967,7 @@ const fieldCanCompleteEmpty = <
 >(
 	context: ClientContext<_Schema>,
 	entityType: string,
-	parentSelector: object,
+	parentSelector: Record<string, { readonly [index: number]: unknown } | undefined>,
 	parentSelectorKey: string,
 	definition: EntityFieldDefinition
 ) => {
@@ -1104,7 +1099,7 @@ const loadEntityRows = async <
 	const subset = parseResolverSubset(loadSubsetOptions)
 	const entityDefinition = context.entityDefinitionByType[entityType]
 	const resolvers = context.resolverIndexes.resolverDefinitionsByEntityType[entityType] ?? []
-	const sources = new Set(sourceNames ?? requestedSources(
+	const sources = new Set(sourceNames ?? resolvableSources(
 		subset,
 		undefined,
 		resolvers.map((resolver) => String(resolver.source))
@@ -1202,7 +1197,7 @@ const loadFieldRows = async <
 	const resolverParts = context.resolverIndexes.resolverValuePartsByEntityTypeAndFieldName[
 		resolverPartsKey(entityType, fieldName)
 	] ?? []
-	const sources = new Set(sourceNames ?? requestedSources(
+	const sources = new Set(sourceNames ?? resolvableSources(
 		subset,
 		definition.defaultSources,
 		resolverParts.map((resolverPart) => String(resolverPart.source))
@@ -1379,7 +1374,7 @@ const loadCountRows = async <
 	const resolverParts = context.resolverIndexes.resolverCountPartsByEntityTypeAndFieldName[
 		resolverPartsKey(entityType, fieldName)
 	] ?? []
-	const sources = new Set(sourceNames ?? requestedSources(
+	const sources = new Set(sourceNames ?? resolvableSources(
 		subset,
 		definition.defaultSources,
 		resolverParts.map((resolverPart) => String(resolverPart.source))
@@ -1529,9 +1524,11 @@ export const client = <
 		sourceProviders,
 		env
 	)
-	const enabledSources = enabledSourcesFromBindings<_Source>(
-		sourceProviders.flatMap((sourceProvider) => sourceProvider.bindings)
-	)
+		const enabledSources = new Set(
+			[...enabledSourcesFromBindings<_Source>(
+				sourceProviders.flatMap((sourceProvider) => sourceProvider.bindings)
+			)].filter((source) => resolverPublicEnvBySource.has(String(source)))
+		)
 	const {
 		resolverIndexes,
 	} = indexResolvers(

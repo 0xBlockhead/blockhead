@@ -1,0 +1,23 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import type { PageLoad } from './$types'
+import { error } from '@sveltejs/kit'
+import { parseEntitySelector } from '$/schema/$schema.ts'
+import { schema } from '$/schema/index.ts'
+import XmtpNetworkSchema from '$/schema/XmtpNetwork.ts'
+import { type as arktype } from 'arktype'
+
+export const load: PageLoad = ({ params }) => {
+	const xmtpNetworkSelector = parseEntitySelector(
+		schema,
+		XmtpNetworkSchema,
+		{
+			scope: 'XmtpNetwork',
+		}
+	)
+	if (xmtpNetworkSelector instanceof arktype.errors) error(404, 'Invalid XmtpNetwork selector')
+
+	return {
+		selector: xmtpNetworkSelector,
+	}
+}

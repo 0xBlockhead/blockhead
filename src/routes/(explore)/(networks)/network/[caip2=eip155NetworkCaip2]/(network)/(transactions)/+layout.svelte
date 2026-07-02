@@ -1,8 +1,8 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
 <script lang="ts">
-	import { eip155NetworkSelectorFromCaip2 } from '$/lib/caip2.ts'
 	// Types/constants
-	import type { Snippet } from 'svelte'
-	import { stringify } from 'devalue'
+	import type { LayoutProps } from './$types.ts'
 
 
 	// Context
@@ -11,15 +11,9 @@
 
 	// State
 	let {
-		children: PageChildren,
+		children,
 		params,
-	}: {
-		children: Snippet
-		params: {
-			caip2: `eip155:${string}`
-			transactionId?: string
-		}
-	} = $props()
+	}: LayoutProps = $props()
 
 
 	// Components
@@ -28,15 +22,12 @@
 
 
 <ParentPageCollapsible
-	title="Blocks"
-	href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/blocks', params)}
-	id={stringify({ ...eip155NetworkSelectorFromCaip2(params.caip2), scope: 'blocks' })}
+	title='Transactions'
+	href={
+		resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/transactions', {
+			caip2: params.caip2,
+		})
+	}
 >
-	<ParentPageCollapsible
-		title="Transactions"
-		href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/transactions', params)}
-		id={stringify({ ...eip155NetworkSelectorFromCaip2(params.caip2), scope: 'transactions' })}
-	>
-		{@render PageChildren()}
-	</ParentPageCollapsible>
+	{@render children()}
 </ParentPageCollapsible>

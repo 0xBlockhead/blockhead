@@ -195,9 +195,15 @@ export default {
 					}[] = []
 
 					for (const relayHost of hostsForChain) {
-						const deliveredPayloads = await getProposerPayloadDeliveredForRelayHost(relayHost, {
-							limit: Math.min(subsetRowLimit, 200),
-						})
+						let deliveredPayloads
+						try {
+							deliveredPayloads = await getProposerPayloadDeliveredForRelayHost(relayHost, {
+								limit: Math.min(subsetRowLimit, 200),
+							})
+						} catch {
+							continue
+						}
+
 						for (const payload of deliveredPayloads) {
 							const slot = parsePayloadSlot(payload)
 							const blockHashRaw = payload.block_hash ?? payload.blockHash
@@ -215,9 +221,6 @@ export default {
 							if (out.length >= subsetRowLimit) return out
 						}
 					}
-
-					if (out.length === 0)
-						throw new Error(`MevRelay_Rest: no proposer_payload_delivered payloads for chain ${String(chainId)}`)
 
 					return out
 				},
@@ -244,9 +247,15 @@ export default {
 					const subsetRowLimit = resolverContextRowLimit(context)
 					const seen = new Set<string>()
 					for (const relayHost of hostsForChain) {
-						const deliveredPayloads = await getProposerPayloadDeliveredForRelayHost(relayHost, {
-							limit: Math.min(subsetRowLimit * 8, 200),
-						})
+						let deliveredPayloads
+						try {
+							deliveredPayloads = await getProposerPayloadDeliveredForRelayHost(relayHost, {
+								limit: Math.min(subsetRowLimit * 8, 200),
+							})
+						} catch {
+							continue
+						}
+
 						for (const payload of deliveredPayloads) {
 							const builderPubkey = payload.builder_pubkey ?? payload.builderPubkey
 							if (builderPubkey == null || builderPubkey === '') continue
